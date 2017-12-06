@@ -31,13 +31,6 @@ public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStanda
     private static final Trace LOGGER = TraceManager.getTrace(MidPointPhysicalNamingStrategy.class);
 
     @Override
-    public Identifier toPhysicalColumnName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
-        Identifier i = super.toPhysicalTableName(identifier, jdbcEnvironment);
-        LOGGER.trace("toPhysicalColumnName {} {}", identifier, i);
-        return i;
-    }
-
-    @Override
     public Identifier toPhysicalTableName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
         String name = identifier.getText();
         if (name.startsWith("m_") || "hibernate_sequence".equals(name)) {
@@ -53,6 +46,4 @@ public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStanda
         LOGGER.trace("toPhysicalTableName {} {}", identifier, i);
         return i;
     }
-
-
 }

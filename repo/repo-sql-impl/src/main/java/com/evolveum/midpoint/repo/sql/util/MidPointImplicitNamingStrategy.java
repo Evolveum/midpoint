@@ -18,108 +18,23 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.google.common.base.CaseFormat;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.boot.model.naming.*;
+import org.hibernate.boot.model.naming.Identifier;
+import org.hibernate.boot.model.naming.ImplicitBasicColumnNameSource;
+import org.hibernate.boot.model.naming.ImplicitJoinColumnNameSource;
+import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyHbmImpl;
 import org.hibernate.boot.model.source.spi.AttributePath;
 
 import java.util.Arrays;
 
 /**
  * Created by Viliam Repan (lazyman).
- *
+ * <p>
  * Pure magic. Clean up necessary, same for annoations.
  */
 public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacyHbmImpl {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointImplicitNamingStrategy.class);
-
-    private static final int MAX_LENGTH = 30;
-
-    @Override
-    public Identifier determinePrimaryTableName(ImplicitEntityNameSource source) {
-        Identifier i = super.determinePrimaryTableName(source);
-        LOGGER.trace("determinePrimaryTableName {} -> {}", source.getEntityNaming(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineCollectionTableName(ImplicitCollectionTableNameSource source) {
-        Identifier i = super.determineCollectionTableName(source);
-        LOGGER.trace("determineCollectionTableName {} {} -> {}", source.getOwningEntityNaming(), source.getOwningPhysicalTableName(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineForeignKeyName(ImplicitForeignKeyNameSource source) {
-        Identifier i = super.determineForeignKeyName(source);
-        LOGGER.trace("determineForeignKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineUniqueKeyName(ImplicitUniqueKeyNameSource source) {
-        Identifier i = super.determineUniqueKeyName(source);
-        LOGGER.trace("determineUniqueKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineIndexName(ImplicitIndexNameSource source) {
-        Identifier i = super.determineIndexName(source);
-        LOGGER.trace("determineIndexName {} {} -> {}", source.getTableName(), source.getColumnNames(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineMapKeyColumnName(ImplicitMapKeyColumnNameSource source) {
-        Identifier i = super.determineMapKeyColumnName(source);
-        LOGGER.trace("determineMapKeyColumnName {} -> {}", source.getPluralAttributePath(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineDiscriminatorColumnName(ImplicitDiscriminatorColumnNameSource source) {
-        Identifier i = super.determineDiscriminatorColumnName(source);
-        LOGGER.trace("determineDiscriminatorColumnName {} -> {}", source.getEntityNaming(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineAnyDiscriminatorColumnName(ImplicitAnyDiscriminatorColumnNameSource source) {
-        Identifier i = super.determineAnyDiscriminatorColumnName(source);
-        LOGGER.trace("determineAnyDiscriminatorColumnName {} -> {}", source.getAttributePath(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineAnyKeyColumnName(ImplicitAnyKeyColumnNameSource source) {
-        Identifier i = super.determineAnyKeyColumnName(source);
-        LOGGER.trace("determineAnyKeyColumnName {} -> {}", source.getAttributePath(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineListIndexColumnName(ImplicitIndexColumnNameSource source) {
-        Identifier i = super.determineListIndexColumnName(source);
-        LOGGER.trace("determineListIndexColumnName {} -> {}", source.getPluralAttributePath(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determineIdentifierColumnName(ImplicitIdentifierColumnNameSource source) {
-        Identifier i = super.determineIdentifierColumnName(source);
-        LOGGER.trace("determineIdentifierColumnName {} {} -> {}", source.getEntityNaming(), source.getIdentifierAttributePath(), i);
-        return i;
-    }
-
-    @Override
-    public Identifier determinePrimaryKeyJoinColumnName(ImplicitPrimaryKeyJoinColumnNameSource source) {
-        Identifier i = super.determinePrimaryKeyJoinColumnName(source);
-        LOGGER.trace("determinePrimaryKeyJoinColumnName {} {} -> {}", source.getReferencedTableName(), source.getReferencedPrimaryKeyColumnName(), i);
-
-        return i;
-    }
 
     @Override
     public Identifier determineJoinColumnName(ImplicitJoinColumnNameSource source) {
@@ -127,6 +42,7 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
 
         // RObject, creatorRef.target, oid -> m_object.creatorRef_targetOid
         // RObjectReference, owner, oid -> m_object_reference.owner_oid
+        // RObjectReference, target, oid -> m_object_reference.targetOid
 
         AttributePath path = source.getAttributePath();
         String property = path.getProperty();
@@ -134,8 +50,14 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
 
         Identifier real;
         if (path.getDepth() == 1) {
-            real = toIdentifier(StringUtils.join(Arrays.asList(property, columnName), "_"),
-                    source.getBuildingContext());
+            String name;
+            if (property.endsWith("target") && "oid".equals(columnName)) {
+                name = property + "Oid";
+            } else {
+                name = StringUtils.join(Arrays.asList(property, columnName), "_");
+            }
+
+            real = toIdentifier(name, source.getBuildingContext());
         } else {
             // TODO fixme BRUTAL HACK -- we are not able to eliminate columns like 'ownerRefCampaign_targetOid' from the schema (even with @AttributeOverride/@AssociationOverride)
             if ("ownerRefCampaign.target".equals(path.getFullPath()) ||
@@ -155,13 +77,6 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
 
         LOGGER.trace("determineJoinColumnName {} {} -> {}, {}", source.getReferencedTableName(), source.getReferencedColumnName(), i, real);
         return real;
-    }
-
-    @Override
-    public Identifier determineJoinTableName(ImplicitJoinTableNameSource source) {
-        Identifier i = super.determineJoinTableName(source);
-        LOGGER.trace("determineJoinTableName {} {}", source, i);
-        return i;
     }
 
     @Override
