@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -50,6 +51,7 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
+    @Autowired private AccessCertificationService certificationService;
 
     @Autowired(required = false)
     private ReportManager reportManager;
@@ -113,7 +115,7 @@ public class CleanUpTaskHandler implements TaskHandler {
 				// TODO report progress
 				auditService.cleanupAudit(auditCleanupPolicy, opResult);
 			} catch (Exception ex) {
-				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				LOGGER.error("Audit cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			}
@@ -126,7 +128,7 @@ public class CleanUpTaskHandler implements TaskHandler {
 			try {
 				taskManager.cleanupTasks(closedTasksPolicy, task, opResult);
 			} catch (Exception ex) {
-				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				LOGGER.error("Tasks cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			}
@@ -145,13 +147,28 @@ public class CleanUpTaskHandler implements TaskHandler {
 				    reportManager.cleanupReports(reportCleanupPolicy, opResult);
                 }
 			} catch (Exception ex) {
-				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				LOGGER.error("Reports cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			}
 		} else {
 			LOGGER.trace("Cleanup: No clean up policy for report specified. Finishing clean up task.");
 		}
+
+		CleanupPolicyType closedCampaignsPolicy = cleanupPolicies.getClosedCertificationCampaigns();
+		if (closedCampaignsPolicy != null) {
+			try {
+				certificationService.cleanupCampaigns(closedCampaignsPolicy, task, opResult);
+			} catch (Throwable ex) {
+				LOGGER.error("Campaigns cleanup: {}", ex.getMessage(), ex);
+				opResult.recordFatalError(ex.getMessage(), ex);
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			}
+		} else {
+			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+		}
+
+
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);

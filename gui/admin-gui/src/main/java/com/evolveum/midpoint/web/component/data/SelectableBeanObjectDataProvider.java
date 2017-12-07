@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,12 +44,12 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
 import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman
@@ -80,21 +79,21 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 //    private int size = Integer.MAX_VALUE;
 
     private Class<? extends O> type;
-    private Collection<SelectorOptions<GetOperationOptions>> options;
+	private Collection<SelectorOptions<GetOperationOptions>> options;
 
-   public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected ) {
-        super(component, true, true);
+	public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected ) {
+		super(component, true, true);
 
-        Validate.notNull(type);
-       if (selected != null) {
-           this.selected = selected;
-       }
-        this.type = type;
-    }
+		Validate.notNull(type);
+		if (selected != null) {
+			this.selected = selected;
+		}
+		this.type = type;
+	}
 
-    public void clearSelectedObjects(){
-    	selected.clear();
-    }
+	public void clearSelectedObjects(){
+		selected.clear();
+	}
 
     public List<O> getSelectedData() {
     	preprocessSelectedDataInternal();
@@ -178,23 +177,23 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, currentOptions, task, result);
 
             if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
+	            LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
             }
 
-            for (PrismObject<? extends O> object : list) {
-                getAvailableData().add(createDataObjectWrapper(object.asObjectable()));
-            }
+	        for (PrismObject<? extends O> object : list) {
+		        getAvailableData().add(createDataObjectWrapper(object.asObjectable()));
+	        }
 //            result.recordSuccess();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
-            return handleNotSuccessOrHandledErrorInIterator(result);
+	        result.recordFatalError("Couldn't list objects.", ex);
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
+	        return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
-            result.computeStatusIfUnknown();
+	        result.computeStatusIfUnknown();
         }
 
-        LOGGER.trace("end::iterator() {}", result);
-        return getAvailableData().iterator();
+	    LOGGER.trace("end::iterator() {}", result);
+	    return getAvailableData().iterator();
     }
 
     protected Iterator<SelectableBean<O>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
@@ -238,7 +237,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             Integer counted = getModel().countObjects(type, getQuery(), options, task, result);
-            count = counted == null ? 0 : counted.intValue();
+            count = defaultIfNull(counted, 0);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
@@ -248,7 +247,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             getPage().showResult(result);
-            throw new RestartResponseException(PageError.class);
+            // Let us do nothing. The error will be shown on the page and a count of 0 will be used.
+	        // Redirecting to the error page does more harm than good (see also MID-4306).
         }
 
         LOGGER.trace("end::internalSize(): {}", count);

@@ -322,13 +322,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			}
 
 			@Override
-					protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+			protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
 				List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
 				if (customOrdering != null) {
-							return customOrdering;
-						}
-						return super.createObjectOrderings(sortParam);
-					}
+					return customOrdering;
+				}
+				return super.createObjectOrderings(sortParam);
+			}
 		};
 		if (options == null){
 			if (ResourceType.class.equals(type)) {

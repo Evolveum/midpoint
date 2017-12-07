@@ -98,6 +98,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 
 	boolean isDeprecated();
 	
+	boolean isExperimental();
+	
 	String getDeprecatedSince();
 
 	/**

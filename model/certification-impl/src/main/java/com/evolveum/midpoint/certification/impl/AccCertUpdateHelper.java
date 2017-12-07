@@ -19,6 +19,7 @@ package com.evolveum.midpoint.certification.impl;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -26,10 +27,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -53,15 +50,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -90,6 +79,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType.F_END_TIMESTAMP;
+import static java.util.Collections.singleton;
 
 /**
  * @author mederly
@@ -112,6 +102,11 @@ public class AccCertUpdateHelper {
     @Autowired private AccCertCaseOperationsHelper caseHelper;
     @Autowired private Clock clock;
     @Autowired private AccCertExpressionHelper expressionHelper;
+
+	public static final String CLASS_DOT = AccCertUpdateHelper.class.getName() + ".";
+	public static final String OPERATION_DELETE_OBSOLETE_CAMPAIGN = CLASS_DOT + "deleteObsoleteCampaign";
+	public static final String OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER = CLASS_DOT + "cleanupCampaignsByNumber";
+	public static final String OPERATION_CLEANUP_CAMPAIGNS_BY_AGE = CLASS_DOT + "cleanupCampaignsByAge";
 
     //region ================================ Campaign create ================================
 
@@ -672,7 +667,107 @@ public class AccCertUpdateHelper {
         eventHelper.onCampaignStageEnd(campaign, task, result);
     }
 
-    //endregion
+	public void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result) {
+		if (policy.getMaxAge() != null) {
+			cleanupCampaignsByDate(policy.getMaxAge(), task, result);
+		}
+		if (policy.getMaxRecords() != null) {
+			cleanupCampaignsByNumber(policy.getMaxRecords(), task, result);
+		}
+	}
+
+	private static final int DELETE_BLOCK_SIZE = 100;
+
+	private void cleanupCampaignsByNumber(int maxRecords, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER);
+		LOGGER.info("Starting cleanup for closed certification campaigns, keeping {} ones.", maxRecords);
+		int deleted = 0;
+		Set<String> poisonedCampaigns = new HashSet<>();
+		try {
+			for (;;) {
+				ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+						.item(AccessCertificationCampaignType.F_STATE).eq(AccessCertificationCampaignStateType.CLOSED)
+						.and().not().id(poisonedCampaigns.toArray(new String[0]))   // hoping there are not many of these
+						.desc(AccessCertificationCampaignType.F_END_TIMESTAMP)
+						.offset(maxRecords)
+						.maxSize(DELETE_BLOCK_SIZE)
+						.build();
+				int delta = searchAndDeleteCampaigns(query, poisonedCampaigns, result, task);
+				if (delta == 0) {
+					LOGGER.info("Deleted {} campaigns.", deleted);
+					return;
+				}
+			}
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	private void cleanupCampaignsByDate(Duration maxAge, Task task, OperationResult parentResult) {
+		if (maxAge.getSign() > 0) {
+			maxAge = maxAge.negate();
+		}
+		Date deleteCampaignsFinishedUpTo = new Date();
+		maxAge.addTo(deleteCampaignsFinishedUpTo);
+
+		LOGGER.info("Starting cleanup for closed certification campaigns deleting up to {} (max age '{}').", deleteCampaignsFinishedUpTo, maxAge);
+
+		OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS_BY_AGE);
+		XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteCampaignsFinishedUpTo);
+		int deleted = 0;
+		Set<String> poisonedCampaigns = new HashSet<>();
+		try {
+			for (;;) {
+				ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+						.item(AccessCertificationCampaignType.F_STATE).eq(AccessCertificationCampaignStateType.CLOSED)
+						.and().item(AccessCertificationCampaignType.F_END_TIMESTAMP).lt(timeXml)
+						.and().not().id(poisonedCampaigns.toArray(new String[0]))   // hoping there are not many of these
+						.maxSize(DELETE_BLOCK_SIZE)
+						.build();
+				int delta = searchAndDeleteCampaigns(query, poisonedCampaigns, result, task);
+				if (delta == 0) {
+					LOGGER.info("Deleted {} campaigns.", deleted);
+					return;
+				}
+			}
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	private int searchAndDeleteCampaigns(ObjectQuery query, Set<String> poisonedCampaigns,
+			OperationResult result, Task task) {
+		SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns;
+		try {
+			campaigns = modelService.searchObjects(AccessCertificationCampaignType.class, query, null, task, result);
+		} catch (CommonException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get a list of campaigns to be cleaned up", e);
+			result.recordFatalError(e.getMessage(), e);
+			return 0;
+		}
+		LOGGER.debug("Campaigns to be deleted: {}", campaigns.size());
+		int deleted = 0;
+		for (PrismObject<AccessCertificationCampaignType> campaign : campaigns) {
+			OperationResult subresult = result.createMinorSubresult(OPERATION_DELETE_OBSOLETE_CAMPAIGN);
+			try {
+				LOGGER.debug("Deleting campaign {}", campaign);
+				ObjectDelta<AccessCertificationCampaignType> deleteDelta = new ObjectDelta<>(
+						AccessCertificationCampaignType.class, ChangeType.DELETE, prismContext);
+				deleteDelta.setOid(campaign.getOid());
+				modelService.executeChanges(singleton(deleteDelta), null, task, subresult);
+				deleted++;
+			} catch (CommonException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete obsolete campaign {}", e, campaign);
+				poisonedCampaigns.add(campaign.getOid());
+			} finally {
+				subresult.computeStatusIfUnknown();
+			}
+		}
+		LOGGER.debug("Campaigns really deleted: {}", deleted);
+		return deleted;
+	}
+
+	//endregion
 
     //region ================================ Auxiliary methods for delta processing ================================
 
@@ -719,7 +814,7 @@ public class AccCertUpdateHelper {
         Collection<ObjectDeltaOperation<? extends ObjectType>> ops;
         try {
             ops = modelService.executeChanges(
-					Collections.singleton(objectDelta),
+					singleton(objectDelta),
                     ModelExecuteOptions.createRaw().setPreAuthorized(), task, result);
         } catch (ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new SystemException("Unexpected exception when adding object: " + e.getMessage(), e);

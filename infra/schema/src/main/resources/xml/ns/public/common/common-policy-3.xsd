@@ -64,6 +64,8 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.objectState</a:displayName>
+								<a:help>PolicyConstraintsType.objectState.help</a:help>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -74,6 +76,8 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.assignmentState</a:displayName>
+								<a:help>PolicyConstraintsType.assignmentState.help</a:help>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -84,6 +88,8 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.hasAssignment</a:displayName>
+								<a:help>PolicyConstraintsType.hasAssignment.help</a:help>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -94,16 +100,32 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:displayName>PolicyConstraintsType.hasNoAssignment</a:displayName>
+								<a:help>PolicyConstraintsType.hasNoAssignment.help</a:help>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Exclusion constraint. Constraint that forbids this object to be assigned together with other object.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.exclusion</a:displayName>
+								<a:help>PolicyConstraintsType.exclusion.help</a:help>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Actual number of objects that have this role assigned is lower than prescribed value.
 								(The constraint should be perhaps named minAssigneesViolation.)
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.minAssignees</a:displayName>
+								<a:help>PolicyConstraintsType.minAssignees.help</a:help>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -112,6 +134,10 @@
 								Actual number of objects that have this role assigned is higher than prescribed value.
 								(The constraint should be perhaps named maxAssigneesViolation.)
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.maxAssignees</a:displayName>
+								<a:help>PolicyConstraintsType.maxAssignees.help</a:help>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="objectMinAssigneesViolation" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -121,6 +147,9 @@
 								This is the same as minAssignees, but indicates that the constraint should be evaluated against an object
 								when evaluating object constraints. HIGHLY EXPERIMENTAL
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="objectMaxAssigneesViolation" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -130,22 +159,35 @@
 								This is the same as minAssignees, but indicates that the constraint should be evaluated against an object
 								when evaluating object constraints. HIGHLY EXPERIMENTAL
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="modification" type="tns:ModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
+								Constraint that triggers when the object is modified.
 								Modification of the object (add, modify, delete).
 								(This constraint should be perhaps named objectModification.)
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.modification</a:displayName>
+								<a:help>PolicyConstraintsType.modification.help</a:help>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="assignment" type="tns:AssignmentModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
+								Constraint that triggers when the object is assigned, usassignmed or the assignment is modified.
 								Modification of an assignment, i.e. where this object is a target of assignment that is being modified.
 								(This constraint should be perhaps named assignmentModification.)
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicyConstraintsType.assignment</a:displayName>
+								<a:help>PolicyConstraintsType.assignment.help</a:help>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="objectTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -156,6 +198,10 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.6</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.objectTimeValidity</a:displayName>
+									<a:help>PolicyConstraintsType.objectTimeValidity.help</a:help>
+								</xsd:appinfo>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -167,6 +213,10 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.6</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.assignmentTimeValidity</a:displayName>
+									<a:help>PolicyConstraintsType.assignmentTimeValidity.help</a:help>
+								</xsd:appinfo>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -175,6 +225,12 @@
 							<xsd:documentation>
 								Occurrence of the policy situation within an object or an assignment.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.situation</a:displayName>
+									<a:help>PolicyConstraintsType.situation.help</a:help>
+								</xsd:appinfo>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
@@ -217,6 +273,10 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.transition</a:displayName>
+									<a:help>PolicyConstraintsType.transition.help</a:help>
+								</xsd:appinfo>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -230,6 +290,10 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<xsd:appinfo>
+									<a:displayName>PolicyConstraintsType.ref</a:displayName>
+									<a:help>PolicyConstraintsType.ref.help</a:help>
+								</xsd:appinfo>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -285,10 +349,21 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.5</a:since>
+                        <xsd:appinfo>
+							<a:displayName>AbstractPolicyConstraintType.name</a:displayName>
+							<a:help>AbstractPolicyConstraintType.name.help</a:help>
+						</xsd:appinfo>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AbstractPolicyConstraintType.description</a:displayName>
+						<a:help>AbstractPolicyConstraintType.description.help</a:help>
+					</xsd:appinfo>            	
+            	</xsd:annotation>
+            </xsd:element>
 			<xsd:element name="presentation" type="tns:PolicyConstraintPresentationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -297,6 +372,8 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7</a:since>
+						<a:displayName>AbstractPolicyConstraintType.presentation</a:displayName>
+						<a:help>AbstractPolicyConstraintType.presentation.help</a:help>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -329,6 +406,10 @@
 					<xsd:documentation>
 						Message to be conveyed to the user.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintPresentationType.message</a:displayName>
+						<a:help>PolicyConstraintPresentationType.message.help</a:help>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="shortMessage" type="tns:LocalizableMessageTemplateType" minOccurs="0">
@@ -336,6 +417,10 @@
 					<xsd:documentation>
 						Very short message describing the situation. Could be used for e.g. notification messages subject, approval process or work item names.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintPresentationType.shortMessage</a:displayName>
+						<a:help>PolicyConstraintPresentationType.shortMessage.help</a:help>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="longMessage" type="tns:LocalizableMessageTemplateType" minOccurs="0">
@@ -343,6 +428,10 @@
 					<xsd:documentation>
 						Long, documentation-like explanation of the rule.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintPresentationType.longMessage</a:displayName>
+						<a:help>PolicyConstraintPresentationType.longMessage.help</a:help>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- todo something like GUI component id/type -->
@@ -352,6 +441,11 @@
 						If set to true, no embedded triggers will be presented. Use for hiding constraints that are
 						to be considered too technical to be shown to user. EXPERIMENTAL
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:displayName>PolicyConstraintPresentationType.final</a:displayName>
+						<a:help>PolicyConstraintPresentationType.final.help</a:help>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="hidden" type="xsd:boolean" minOccurs="0">
@@ -359,13 +453,23 @@
 					<xsd:documentation>
 						If set to true, this trigger will be excluded from presentation. EXPERIMENTAL
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:displayName>PolicyConstraintPresentationType.hidden</a:displayName>
+						<a:help>PolicyConstraintPresentationType.hidden.help</a:help>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO. EXPERIMENTAL.
+						Ordinal number that determines ordering of displayed messages. EXPERIMENTAL.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:displayName>PolicyConstraintPresentationType.displayOrder</a:displayName>
+						<a:help>PolicyConstraintPresentationType.displayOrder.help</a:help>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -524,7 +628,9 @@
 	                            </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-					         		<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+				         		<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+								<a:displayName>ExclusionPolicyConstraintType.targetRef</a:displayName>
+								<a:help>ExclusionPolicyConstraintType.targetRef.help</a:help>
 					        </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1061,6 +1167,10 @@
                     <xsd:documentation>
                         Enforcement action. This action stops the operation and results with the error.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.enforcement</a:displayName>
+						<a:help>PolicyActionsType.enforcement.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="approval" type="tns:ApprovalPolicyActionType" minOccurs="0" maxOccurs="unbounded">
@@ -1072,6 +1182,10 @@
 
 						More approval actions can be specified. They will be eventually merged into one approval process.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.approval</a:displayName>
+						<a:help>PolicyActionsType.approval.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="remediation" type="tns:RemediationPolicyActionType" minOccurs="0">
@@ -1084,6 +1198,11 @@
                         This action starts a workflow. Therefore it is ideal for actions that are not frequent but
                         that require immediate attention. E.g. missing manager for organizational unit.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:experimental>true</a:experimental>
+                    	<a:displayName>PolicyActionsType.remediation</a:displayName>
+						<a:help>PolicyActionsType.remediation.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="prune" type="tns:PrunePolicyActionType" minOccurs="0">
@@ -1096,6 +1215,11 @@
                         This mechanism can be used for example to implement set of roles where only one of the roles
                         can be assigned at a time.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.6</a:since>
+                    	<a:displayName>PolicyActionsType.prune</a:displayName>
+						<a:help>PolicyActionsType.prune.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="certification" type="tns:CertificationPolicyActionType" minOccurs="0">
@@ -1107,6 +1231,10 @@
                         and can occur on large number of objects. The campaign is an efficient method how to handle mass
                         decisions. However it mat not be started immediately.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.certification</a:displayName>
+						<a:help>PolicyActionsType.certification.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0" maxOccurs="unbounded">
@@ -1115,6 +1243,10 @@
                         Notification action. The operation will proceed. Notifications are sent at the end of the
                         operation. More notification actions can be specified.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.notification</a:displayName>
+						<a:help>PolicyActionsType.notification.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="record" type="tns:RecordPolicyActionType" minOccurs="0">
@@ -1123,6 +1255,10 @@
                         Record action. The operation will proceed. Policy situation will be recorded for
 						given object or assignment. It can be reported on or certified later on.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.record</a:displayName>
+						<a:help>PolicyActionsType.record.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1148,6 +1284,10 @@
                             Name for the action. It is used for logging and other diagnostic purposes.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionType.name</a:displayName>
+						<a:help>PolicyActionType.name.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -1157,6 +1297,10 @@
                             Free-form description (e.g. comments about the action purpose)
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionType.description</a:displayName>
+						<a:help>PolicyActionType.description.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
@@ -1168,6 +1312,8 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7</a:since>
+                    	<a:displayName>PolicyActionType.condition</a:displayName>
+						<a:help>PolicyActionType.condition.help</a:help>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1229,13 +1375,21 @@
                                 How should be this approval policy action composed with other ones that
                                 might be related to the same item (object or assignment)?
                             </xsd:documentation>
+		                    <xsd:appinfo>
+		                    	<a:displayName>ApprovalPolicyActionType.compositionStrategy</a:displayName>
+								<a:help>ApprovalPolicyActionType.compositionStrategy.help</a:help>
+		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="approvalDisplayName" type="tns:LocalizableMessageTemplateType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								If not specified, the name is derived from triggered constraints (short messages).
+								Display name for this approval definition. If not specified, the name is derived from triggered constraints (short messages).
 							</xsd:documentation>
+		                    <xsd:appinfo>
+		                    	<a:displayName>ApprovalPolicyActionType.approvalDisplayName</a:displayName>
+								<a:help>ApprovalPolicyActionType.approvalDisplayName.help</a:help>
+		                    </xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:choice>
@@ -1248,6 +1402,10 @@
                                             "securityApprover", and so on.
                                         </p>
                                     </xsd:documentation>
+				                    <xsd:appinfo>
+				                    	<a:displayName>ApprovalPolicyActionType.approverRelation</a:displayName>
+										<a:help>ApprovalPolicyActionType.approverRelation.help</a:help>
+				                    </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -1258,6 +1416,10 @@
                                             May be used with approverRelation and approverExpression element(s).
                                         </p>
                                     </xsd:documentation>
+				                    <xsd:appinfo>
+				                    	<a:displayName>ApprovalPolicyActionType.approverRef</a:displayName>
+										<a:help>ApprovalPolicyActionType.approverRef.help</a:help>
+				                    </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
@@ -1269,6 +1431,10 @@
                                             May be used with approverRelation and approverRef element(s).
                                         </p>
                                     </xsd:documentation>
+				                    <xsd:appinfo>
+				                    	<a:displayName>ApprovalPolicyActionType.approverExpression</a:displayName>
+										<a:help>ApprovalPolicyActionType.approverExpression.help</a:help>
+				                    </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
                         </xsd:sequence>
@@ -1279,6 +1445,10 @@
                                         More complex (multi-stages) approval schema.
                                     </p>
                                 </xsd:documentation>
+			                    <xsd:appinfo>
+			                    	<a:displayName>ApprovalPolicyActionType.approvalSchema</a:displayName>
+									<a:help>ApprovalPolicyActionType.approvalSchema.help</a:help>
+			                    </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
                         <xsd:element name="approvalProcess" type="xsd:string"
@@ -1292,6 +1462,9 @@
                                         THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
                                     </p>
                                 </xsd:documentation>
+                                <xsd:appinfo>
+                                	<a:experimental>true</a:experimental>
+                                </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
                     </xsd:choice>
@@ -1585,6 +1758,8 @@
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
                                 <a:since>3.6</a:since>
+		                    	<a:displayName>CertificationPolicyActionType.definitionRef</a:displayName>
+								<a:help>CertificationPolicyActionType.definitionRef.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1633,6 +1808,9 @@
 								How much information about triggered policy rules should be stored?
 								EXPERIMENTAL
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<!--<xsd:element name="situationConstraints" type="tns:SituationConstraintsStorageStrategyType" minOccurs="0">-->
