@@ -62,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.PersistenceException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.*;
@@ -138,24 +139,31 @@ public class ObjectUpdater {
             LOGGER.trace("Saved object '{}' with oid '{}'", object.getCompileTimeClass().getSimpleName(), oid);
 
             object.setOid(oid);
-        } catch (ConstraintViolationException ex) {
-            handleConstraintViolationException(session, ex, result);
-            baseHelper.rollbackTransaction(session, ex, result, true);
+        } catch (PersistenceException ex) {
+            ConstraintViolationException constEx = findConstraintViolationException(ex);
+            if (constEx == null) {
+                baseHelper.handleGeneralException(ex, session, result);
+                // it wont go here as exception will be thrown
+                return oid;
+            }
 
-            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
+            handleConstraintViolationException(session, constEx, result);
+            baseHelper.rollbackTransaction(session, constEx, result, true);
+
+            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
             // we don't know if it's only name uniqueness violation, or something else,
             // therefore we're throwing it always as ObjectAlreadyExistsException revert
             // to the original oid and prevent of unexpected behaviour (e.g. by import with overwrite option)
             if (StringUtils.isEmpty(originalOid)) {
                 object.setOid(null);
             }
-            String constraintName = ex.getConstraintName();
+            String constraintName = constEx.getConstraintName();
             // Breaker to avoid long unreadable messages
             if (constraintName != null && constraintName.length() > SqlRepositoryServiceImpl.MAX_CONSTRAINT_NAME_LENGTH) {
                 constraintName = null;
             }
             throw new ObjectAlreadyExistsException("Conflicting object already exists"
-                    + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), ex);
+                    + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), constEx);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
@@ -166,6 +174,18 @@ public class ObjectUpdater {
         }
 
         return oid;
+    }
+
+    private ConstraintViolationException findConstraintViolationException(PersistenceException ex) {
+        if (ex instanceof ConstraintViolationException) {
+            return (ConstraintViolationException) ex;
+        }
+
+        if (ex.getCause() instanceof ConstraintViolationException) {
+            return (ConstraintViolationException) ex.getCause();
+        }
+
+        return null;
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,

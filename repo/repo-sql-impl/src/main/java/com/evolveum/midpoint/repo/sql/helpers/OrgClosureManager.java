@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -41,10 +40,8 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
-import org.hibernate.tool.hbm2ddl.SchemaUpdate;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +51,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
 /**
@@ -218,9 +212,15 @@ public class OrgClosureManager {
         }
         if (isH2()) {
             // beware, this does implicit commit!
-            Query dropQuery = session.createSQLQuery("drop table if exists " + closureContext.temporaryTableName);
-            dropQuery.executeUpdate();
-            closureContext.temporaryTableName = null;
+            try {
+                session.getTransaction().begin();
+                NativeQuery dropQuery = session.createNativeQuery("drop table if exists " + closureContext.temporaryTableName);
+                dropQuery.executeUpdate();
+                closureContext.temporaryTableName = null;
+            } catch (RuntimeException ex) {
+                session.getTransaction().rollback();
+                throw ex;
+            }
         }
     }
 
