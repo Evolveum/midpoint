@@ -49,15 +49,22 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.hibernate.Metamodel;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.Joinable;
+import org.hibernate.persister.entity.JoinedSubclassEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.persistence.Table;
+import javax.persistence.metamodel.ManagedType;
 import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -405,13 +412,16 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static String getTableName(Class hqlType) {
-        Table tableAnnotation = (Table) hqlType.getAnnotation(Table.class);     // TODO what about performance here? (synchronized call)
-        if (tableAnnotation != null && StringUtils.isNotEmpty(tableAnnotation.name())) {
-            return tableAnnotation.name();
+    public static String getTableName(Class hqlType, Session session) {
+        SessionFactory factory = session.getSessionFactory();
+        MetamodelImpl model = (MetamodelImpl) factory.getMetamodel();
+        EntityPersister ep = model.entityPersister(hqlType);
+        if (ep instanceof Joinable) {
+            Joinable joinable = (Joinable) ep;
+            return joinable.getTableName();
         }
-        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
-        return namingStrategy.classToTableName(hqlType.getSimpleName());
+
+        throw new SystemException("Couldn't get table name for class " + hqlType.getName());
     }
 
     public static byte[] getByteArrayFromXml(String xml, boolean compress) {

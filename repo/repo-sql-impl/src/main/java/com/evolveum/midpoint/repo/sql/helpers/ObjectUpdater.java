@@ -291,8 +291,8 @@ public class ObjectUpdater {
             LOGGER.trace("Checking oid uniqueness.");
             //todo improve this table name bullshit
             Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
-            SQLQuery query = session.createSQLQuery("select count(*) from " + RUtil.getTableName(hqlType)
-                    + " where oid=:oid");
+            SQLQuery query = session.createSQLQuery("select count(*) from "
+                    + RUtil.getTableName(hqlType, session) + " where oid=:oid");
             query.setString("oid", object.getOid());
 
             Number count = (Number) query.uniqueResult();

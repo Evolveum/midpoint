@@ -304,7 +304,7 @@ public class ObjectRetriever {
 				}
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
-                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
+                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType, session));
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
