@@ -854,8 +854,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 			TestUtil.displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
-			if (!e.getMessage().contains("Role \"Immutable inducements\" is to be modified")) {
-				fail("Exception message was not as expected: " + e.getMessage());
+			if (!getTranslatedMessage(e).contains("Role \"Immutable inducements\" is to be modified")) {
+				fail("Exception message was not as expected: " + getTranslatedMessage(e));
 			}
 		}
 	}
@@ -943,8 +943,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 			TestUtil.displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
-			if (!e.getMessage().contains("Role \"No inducements add or delete\" is to be modified")) {
-				fail("Exception message was not as expected: " + e.getMessage());
+			if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete\" is to be modified")) {
+				fail("Exception message was not as expected: " + getTranslatedMessage(e));
 			}
 		}
 	}
@@ -978,8 +978,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 			TestUtil.displayThen(TEST_NAME);
 			System.out.println("Expected exception: " + e);
 			e.printStackTrace(System.out);
-			if (!e.getMessage().contains("Role \"No inducements add or delete (expression)\" is to be modified")) {
-				fail("Exception message was not as expected: " + e.getMessage());
+			if (!getTranslatedMessage(e).contains("Role \"No inducements add or delete (expression)\" is to be modified")) {
+				fail("Exception message was not as expected: " + getTranslatedMessage(e));
 			}
 		}
 	}

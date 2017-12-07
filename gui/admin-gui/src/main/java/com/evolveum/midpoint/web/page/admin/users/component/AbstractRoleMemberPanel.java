@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -24,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
@@ -333,7 +335,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
         return recomputeMenuItems;
 	}
 
-	private List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
+	protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
 		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
 		unassignMenuItems
 				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersSelected"),
@@ -342,7 +344,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						removeMembersPerformed(QueryScope.SELECTED, target);
+						removeMembersPerformed(QueryScope.SELECTED, null , target);
 					}
 				}));
 		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
@@ -351,7 +353,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.ALL, target);
+				removeMembersPerformed(QueryScope.ALL, null ,target);
 			}
 		}));
 		return unassignMenuItems;
@@ -416,7 +418,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
 				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
-				AbstractRoleMemberPanel.this.addMembersPerformed(type, relation, selected, target);
+				AbstractRoleMemberPanel.this.addMembersPerformed(type, Arrays.asList(relation), selected, target);
 
 			}
 		};
@@ -445,10 +447,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
 
-	protected abstract void addMembersPerformed(QName type, QName relation, List selected,
+	protected abstract void addMembersPerformed(QName type, List<QName> relation, List selected,
 			AjaxRequestTarget target);
 
-	protected abstract void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
+	protected abstract void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target);
 
 	protected abstract void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
 

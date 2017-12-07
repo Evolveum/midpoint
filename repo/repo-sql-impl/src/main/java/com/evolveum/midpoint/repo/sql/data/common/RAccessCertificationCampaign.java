@@ -94,11 +94,13 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return handlerUri;
     }
 
+    @JaxbName(localPart = "startTimestamp")
     @Column(name = "startTimestamp")
     public XMLGregorianCalendar getStart() {
         return start;
     }
 
+    @JaxbName(localPart = "endTimestamp")
     @Column(name = "endTimestamp")
     public XMLGregorianCalendar getEnd() {
         return end;

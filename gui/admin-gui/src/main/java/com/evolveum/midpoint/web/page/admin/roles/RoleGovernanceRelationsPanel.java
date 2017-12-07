@@ -15,25 +15,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -43,8 +31,26 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * Created by honchar.
@@ -136,15 +142,94 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
                 }));
         return assignMemberMenuItems;
     }
+    
+    protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
+		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
+		unassignMenuItems
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignApproversSelected"),
+						false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
-    @Override
-    protected ObjectDelta getDeleteAssignmentDelta(Class classType) throws SchemaException {
-        ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-                FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(RelationTypes.OWNER.getRelation()));
-        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.APPROVER.getRelation()));
-        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.MANAGER.getRelation()));
-        return delta;
-    }
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_APPROVER), target);
+					}
+				}));
+		
+		unassignMenuItems
+		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignOwnersSelected"),
+				false, new HeaderMenuAction(this) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_OWNER), target);
+			}
+		}));
+		
+		unassignMenuItems
+		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignManagersSelected"),
+				false, new HeaderMenuAction(this) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_MANAGER), target);
+			}
+		}));
+		
+		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
+				false, new HeaderMenuAction(this) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				removeAllMembersPerformed(target);
+			}
+		}));
+		return unassignMenuItems;
+	}
+    
+    private void removeAllMembersPerformed(AjaxRequestTarget target) {
+    	
+    	RoleRelationSelectionPanel relatioNSelectionPanel = new RoleRelationSelectionPanel(getPageBase().getMainPopupBodyId(), new RoleRelationSelectionDto()) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onConfirmPerformed(IModel<RoleRelationSelectionDto> model, AjaxRequestTarget target) {
+				getPageBase().hideMainPopup(target);
+				
+				RoleRelationSelectionDto relationsSelected = model.getObject();
+				ArrayList<QName> relations=  new ArrayList<>();
+				if (relationsSelected.isApprover()) {
+					relations.add(SchemaConstants.ORG_APPROVER);
+				}
+				
+				if (relationsSelected.isOwner()) {
+					relations.add(SchemaConstants.ORG_OWNER);
+				}
+				
+				if (relationsSelected.isManager()) {
+					relations.add(SchemaConstants.ORG_MANAGER);
+				}
+				
+				removeMembersPerformed(QueryScope.ALL, relations, target);
+			}
+		};
+
+		getPageBase().showMainPopup(relatioNSelectionPanel, target);
+		
+	}
+
+//    @Override
+//    protected ObjectDelta getDeleteAssignmentDelta(Class classType) throws SchemaException {
+//        ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+//                FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(RelationTypes.OWNER.getRelation()));
+//        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.APPROVER.getRelation()));
+//        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.MANAGER.getRelation()));
+//        return delta;
+//    }
 
     @Override
     protected ObjectQuery createAllMemberQuery() {
@@ -311,5 +396,24 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return oidsList;
     }
 
+class RoleRelationSelectionDto implements Serializable {
+		
+		private static final long serialVersionUID = 1L;
+		private boolean approver;
+		private boolean owner;
+		private boolean manager;
+		
+		public boolean isApprover() {
+			return approver;
+		}
+		
+		public boolean isManager() {
+			return manager;
+		}
+		
+		public boolean isOwner() {
+			return owner;
+		}
+	}
 
 }

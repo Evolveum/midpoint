@@ -4228,6 +4228,75 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void testAdHoc114CampaignEndTimestamp() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+                    .item(AccessCertificationCampaignType.F_STATE).eq(AccessCertificationCampaignStateType.CLOSED)
+                    .and().item(AccessCertificationCampaignType.F_END_TIMESTAMP).lt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
+                    .and().not().id(new String[0])
+                    .maxSize(10)
+                    .build();
+            String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
+            String expected = "select\n"
+                    + "  a.oid,\n"
+                    + "  a.fullObject,\n"
+                    + "  a.stringsCount,\n"
+                    + "  a.longsCount,\n"
+                    + "  a.datesCount,\n"
+                    + "  a.referencesCount,\n"
+                    + "  a.polysCount,\n"
+                    + "  a.booleansCount\n"
+                    + "from\n"
+                    + "  RAccessCertificationCampaign a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.state = :state and\n"
+                    + "    a.end < :end and\n"
+                    + "    not a.oid in (:oid)\n"               // TODO why this?!
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc115CampaignEndTimestamp2() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+                    .item(AccessCertificationCampaignType.F_STATE).eq(AccessCertificationCampaignStateType.CLOSED)
+                    .and().not().id("10-10-10-10-10")   // hoping there are not many of these
+                    .desc(AccessCertificationCampaignType.F_END_TIMESTAMP)
+                    .offset(100)
+                    .maxSize(20)
+                    .build();
+            String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
+            String expected = "select\n"
+                    + "  a.oid,\n"
+                    + "  a.fullObject,\n"
+                    + "  a.stringsCount,\n"
+                    + "  a.longsCount,\n"
+                    + "  a.datesCount,\n"
+                    + "  a.referencesCount,\n"
+                    + "  a.polysCount,\n"
+                    + "  a.booleansCount\n"
+                    + "from\n"
+                    + "  RAccessCertificationCampaign a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.state = :state and\n"
+                    + "    not a.oid in :oid\n"
+                    + "  )\n"
+                    + "order by a.end desc";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     private Collection<SelectorOptions<GetOperationOptions>> distinct() {
         return createCollection(createDistinct());
     }

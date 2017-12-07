@@ -20,7 +20,9 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -919,4 +921,107 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("no comment"));
     }
 
+    @Test
+    public void test900CleanupCampaignsDeny() throws Exception {
+        final String TEST_NAME = "test900CleanupCampaignsDeny";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ELAINE_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        CleanupPolicyType policy = new CleanupPolicyType().maxRecords(0);
+        certificationService.cleanupCampaigns(policy, task, result);
+        display("result", result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
+        display("campaigns", campaigns);
+    }
+
+    @Test
+    public void test910CleanupCampaignsAllow() throws Exception {
+        final String TEST_NAME = "test910CleanupCampaignsAllow";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        CleanupPolicyType policy = new CleanupPolicyType().maxRecords(0);
+        certificationService.cleanupCampaigns(policy, task, result);
+        result.computeStatus();
+        display("result", result);
+        assertSuccess(result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
+        display("campaigns", campaigns);
+        assertEquals("Wrong # of remaining campaigns", 1, campaigns.size());
+        PrismObject<AccessCertificationCampaignType> remainingCampaign = campaigns.get(0);
+        assertEquals("Wrong OID of the remaining campaign", roleInducementCampaignOid, remainingCampaign.getOid());
+
+        certificationManager.closeCampaign(roleInducementCampaignOid, true, task, result);
+
+        certificationService.cleanupCampaigns(policy, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns2 = getAllCampaigns(result);
+        display("campaigns after 2nd cleanup", campaigns2);
+        assertEquals("Wrong # of remaining campaigns", 0, campaigns2.size());
+    }
+
+    @Test
+    public void test920CleanupCampaignsByAge() throws Exception {
+        final String TEST_NAME = "test920CleanupCampaignsByAge";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        AccessCertificationCampaignType c1 = new AccessCertificationCampaignType(prismContext)
+                .name("c1")
+                .state(CLOSED)
+                .stageNumber(0)
+                .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-PT10M")));
+        AccessCertificationCampaignType c2 = new AccessCertificationCampaignType(prismContext)
+                .name("c2")
+                .state(CLOSED)
+                .stageNumber(0)
+                .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2D")));
+        AccessCertificationCampaignType c3 = new AccessCertificationCampaignType(prismContext)
+                .name("c3")
+                .state(CLOSED)
+                .stageNumber(0)
+                .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2M")));
+        repositoryService.addObject(c1.asPrismObject(), null, result);
+        repositoryService.addObject(c2.asPrismObject(), null, result);
+        repositoryService.addObject(c3.asPrismObject(), null, result);
+        display("campaigns", getAllCampaigns(result));
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        CleanupPolicyType policy = new CleanupPolicyType().maxAge(XmlTypeConverter.createDuration("P1D"));
+        certificationService.cleanupCampaigns(policy, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+        display("cleanup result", result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaignsAfter = getAllCampaigns(result);
+        display("campaigns after cleanup", campaignsAfter);
+
+        assertEquals("Wrong # of remaining campaigns", 1, campaignsAfter.size());
+        PrismObject<AccessCertificationCampaignType> remainingCampaign = campaignsAfter.get(0);
+        assertEquals("Wrong name of the remaining campaign", "c1", remainingCampaign.getName().getOrig());
+    }
 }
