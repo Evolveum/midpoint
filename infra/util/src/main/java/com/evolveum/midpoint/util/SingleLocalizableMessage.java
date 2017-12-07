@@ -98,7 +98,7 @@ public class SingleLocalizableMessage implements LocalizableMessage {
 
 	@Override
 	public String toString() {
-		return "LocalizableMessage(" + key + ": " + Arrays.toString(args) + " ("
+		return "SingleLocalizableMessage(" + key + ": " + Arrays.toString(args) + " ("
 				+ (fallbackMessage != null ? fallbackMessage : fallbackLocalizableMessage) + "))";
 	}
 
