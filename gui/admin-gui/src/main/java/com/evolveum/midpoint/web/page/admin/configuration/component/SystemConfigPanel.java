@@ -72,7 +72,8 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-4";
 
-    private static final String CLEANUP_SIZE = "col-md-6";
+    private static final String CLEANUP_LABEL_SIZE = "col-md-6";
+    private static final String CLEANUP_INPUT_SIZE = "col-md-6";
 
 
     public SystemConfigPanel(String id, IModel<SystemConfigurationDto> model) {
@@ -105,42 +106,42 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
         TextFormGroup auditRecordsAgeField = new TextFormGroup(ID_AUDIT_RECORDS_CLEANUP_AGE,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP_AGE),
                 createStringResource("SystemConfigPanel.cleanupPolicy.auditRecords"),
-                DURATION_TOOLTIP_KEY, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                DURATION_TOOLTIP_KEY, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(auditRecordsAgeField);
         TextFormGroup auditRecordsRecordsField = new TextFormGroup(ID_AUDIT_RECORDS_CLEANUP_RECORDS,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP_RECORDS),
                 createStringResource("SystemConfigPanel.cleanupPolicy.auditRecords.records"),
-                null, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                null, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(auditRecordsRecordsField);
         TextFormGroup closedTasksAgeField = new TextFormGroup(ID_CLOSED_TASKS_CLEANUP_AGE,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP_AGE),
                 createStringResource("SystemConfigPanel.cleanupPolicy.closedTasks"),
-                DURATION_TOOLTIP_KEY, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         add(closedTasksAgeField);
         TextFormGroup campaignsAgeField = new TextFormGroup(ID_CERTIFICATION_CAMPAIGNS_CLEANUP_AGE,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_CAMPAIGN_CLEANUP_AGE),
                 createStringResource("SystemConfigPanel.cleanupPolicy.certificationCampaigns"),
-                DURATION_TOOLTIP_KEY, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                DURATION_TOOLTIP_KEY, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(campaignsAgeField);
         TextFormGroup campaignsRecordsField = new TextFormGroup(ID_CERTIFICATION_CAMPAIGNS_CLEANUP_RECORDS,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_CAMPAIGN_CLEANUP_RECORDS),
                 createStringResource("SystemConfigPanel.cleanupPolicy.certificationCampaigns.records"),
-                null, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                null, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(campaignsRecordsField);
         TextFormGroup reportsAgeField = new TextFormGroup(ID_REPORTS_CLEANUP_AGE,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_REPORT_CLEANUP_AGE),
                 createStringResource("SystemConfigPanel.cleanupPolicy.reports"),
-                DURATION_TOOLTIP_KEY, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         add(reportsAgeField);
         TextFormGroup resultsAgeField = new TextFormGroup(ID_RESULTS_CLEANUP_AGE,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_RESULT_CLEANUP_AGE),
                 createStringResource("SystemConfigPanel.cleanupPolicy.results"),
-                DURATION_TOOLTIP_KEY, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                DURATION_TOOLTIP_KEY, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(resultsAgeField);
         TextFormGroup resultsRecordsField = new TextFormGroup(ID_RESULTS_CLEANUP_RECORDS,
                 new PropertyModel<>(getModel(), SystemConfigurationDto.F_RESULT_CLEANUP_RECORDS),
                 createStringResource("SystemConfigPanel.cleanupPolicy.results.records"),
-                null, true, CLEANUP_SIZE, CLEANUP_SIZE, false, false);
+                null, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(resultsRecordsField);
 
         TextFormGroup deploymentInfoName = new TextFormGroup(ID_DEPLOYMENT_INFO_NAME, new PropertyModel<String>(getModel(), "deploymentInformation.name"), createStringResource("SystemConfigPanel.deploymentInformation.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
