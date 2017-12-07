@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,7 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * 
  * @author semancik
  */
-public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
+public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
 	private final PrismContext prismContext;
 	private final Protector protector;

@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,7 +75,8 @@ public class CredentialsProcessor {
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private ModelObjectResolver resolver;
 	@Autowired private ValuePolicyProcessor valuePolicyProcessor;
-	@Autowired Protector protector;
+	@Autowired private Protector protector;
+	@Autowired private LocalizationService localizationService;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
@@ -101,6 +103,7 @@ public class CredentialsProcessor {
 		evaluator.setNow(now);
 		evaluator.setPrismContext(prismContext);
 		evaluator.setProtector(protector);
+		evaluator.setLocalizationService(localizationService);
 		evaluator.setResolver(resolver);
 		evaluator.setResult(result);
 		evaluator.setTask(task);
@@ -120,6 +123,7 @@ public class CredentialsProcessor {
 		evaluator.setNow(now);
 		evaluator.setPrismContext(prismContext);
 		evaluator.setProtector(protector);
+		evaluator.setLocalizationService(localizationService);
 		evaluator.setResolver(resolver);
 		evaluator.setResult(result);
 		evaluator.setTask(task);
@@ -139,6 +143,7 @@ public class CredentialsProcessor {
 		evaluator.setNow(now);
 		evaluator.setPrismContext(prismContext);
 		evaluator.setProtector(protector);
+		evaluator.setLocalizationService(localizationService);
 		evaluator.setResolver(resolver);
 		evaluator.setResult(result);
 		evaluator.setTask(task);

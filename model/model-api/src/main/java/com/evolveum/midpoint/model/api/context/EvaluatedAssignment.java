@@ -16,10 +16,10 @@
 package com.evolveum.midpoint.model.api.context;
 
 import java.util.Collection;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -103,5 +103,6 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 	void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
-	void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
+	void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger,
+			LocalizationService localizationService) throws PolicyViolationException;
 }

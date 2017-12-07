@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.LocalizationTestUtil;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 
@@ -57,7 +58,7 @@ public class ExpressionTestUtil {
 
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector,
 			PrismContext prismContext, SecurityContextManager securityContextManager) {
-    	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext);
+    	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext, LocalizationTestUtil.getLocalizationService());
     	expressionFactory.setObjectResolver(resolver);
 
     	// NOTE: we need to register the evaluator factories to expressionFactory manually here
@@ -98,7 +99,7 @@ public class ExpressionTestUtil {
         scriptExpressionFactory.setFunctions(functions);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
-        Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector);
+        Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager);
         expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);

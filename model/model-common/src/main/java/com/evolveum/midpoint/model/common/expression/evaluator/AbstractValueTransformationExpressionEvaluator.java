@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -69,19 +70,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionR
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
 						implements ExpressionEvaluator<V,D> {
 
-    private SecurityContextManager securityContextManager;
+	protected SecurityContextManager securityContextManager;
+    protected LocalizationService localizationService;
 
 	private E expressionEvaluatorType;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, SecurityContextManager securityContextManager) {
+    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType,
+		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
         this.securityContextManager = securityContextManager;
+        this.localizationService = localizationService;
     }
 
     public E getExpressionEvaluatorType() {
 		return expressionEvaluatorType;
+	}
+
+	public LocalizationService getLocalizationService() {
+		return localizationService;
 	}
 
 	/* (non-Javadoc)
@@ -418,8 +426,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 						contextDescription, task, result);
 			} catch (ExpressionEvaluationException e) {
 				throw new TunnelException(
-						new ExpressionEvaluationException(e.getMessage() + "("+dumpSourceValues(sourceVariables)+") in "+contextDescription,
-								e, ExceptionUtil.getUserFriendlyMessage(e)));
+						localizationService.translate(
+								new ExpressionEvaluationException(
+										e.getMessage() + "("+dumpSourceValues(sourceVariables)+") in "+contextDescription,
+										e,
+										ExceptionUtil.getUserFriendlyMessage(e))));
 			} catch (ObjectNotFoundException e) {
 				throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
 						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));

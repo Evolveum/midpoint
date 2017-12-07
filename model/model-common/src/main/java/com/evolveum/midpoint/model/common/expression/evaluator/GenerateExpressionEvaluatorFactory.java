@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  * @author semancik
  *
  */
-public class GenerateExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
+public class GenerateExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
 	private final Protector protector;
 	private final PrismContext prismContext;

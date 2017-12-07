@@ -26,12 +26,10 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationFromLinkExpressionEvaluatorType;
@@ -43,13 +41,14 @@ import org.apache.commons.lang.Validate;
  * @author semancik
  *
  */
-public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
+public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
 	private final PrismContext prismContext;
 	private final Protector protector;
 	private final ModelService modelService;
 
-	public AssociationFromLinkExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector, ModelService modelService) {
+	public AssociationFromLinkExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
+			Protector protector, ModelService modelService) {
 		super(expressionFactory);
 		this.prismContext = prismContext;
 		this.protector = protector;

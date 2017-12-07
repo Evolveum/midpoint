@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
@@ -75,6 +76,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private LocalizationService localizationService;
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
@@ -255,7 +257,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 					roleA.getTarget() != null ? roleA.getTarget().asObjectable() : null,
 					roleB.getTarget() != null ? roleB.getTarget().asObjectable() : null,
 					roleA.getAssignmentPath(), roleB.getAssignmentPath());
-			assignmentA.triggerConstraintLegacy(trigger);
+			assignmentA.triggerConstraintLegacy(trigger, localizationService);
 		}
 	}
 

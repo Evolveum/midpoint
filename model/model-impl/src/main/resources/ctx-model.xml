@@ -210,6 +210,7 @@
         <constructor-arg>
         	<ref bean="prismContext"/>
         </constructor-arg>
+        <constructor-arg ref="localizationService"/>
         <property name="defaultEvaluatorFactory">
             <ref bean="asIsExpressionEvaluatorFactory"/>
         </property>
