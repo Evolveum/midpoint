@@ -312,7 +312,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null, null,null, null);
     }
 
-    <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
+    private <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
         Validate.notNull(type, "type");
         ComplexTypeDefinition ctd = queryBuilder.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(currentClass);
         if (ctd == null) {
