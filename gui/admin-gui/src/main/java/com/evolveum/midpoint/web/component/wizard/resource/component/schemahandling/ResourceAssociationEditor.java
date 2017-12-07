@@ -182,8 +182,8 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(explicitRefIntegrity);
 
         QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
-                "SchemaHandlingStep.association.label.associationName", "SchemaHandlingStep.association.tooltip.associationLocalPart",
-                "SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace", true, true)  {
+                "SchemaHandlingStep.association.tooltip.associationLocalPart", "SchemaHandlingStep.association.tooltip.associationNamespace",
+                true, true)  {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(parentStep.getAssociationList());

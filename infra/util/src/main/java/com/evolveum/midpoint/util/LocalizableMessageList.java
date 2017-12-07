@@ -88,4 +88,28 @@ public class LocalizableMessageList implements LocalizableMessage {
 				&& LocalizableMessage.isEmpty(postfix)
 				&& messages.stream().allMatch(m -> m.isEmpty());
 	}
+
+	@Override
+	public String toString() {
+		return "LocalizableMessageList(" + messages +
+				(isNonTrivial(separator) ? ", separator=" + separator : "") +
+				(isNonTrivial(prefix) ? ", prefix=" + prefix : "") +
+				(isNonTrivial(postfix) ? ", postfix=" + postfix : "")
+				+ ')';
+	}
+
+	private boolean isNonTrivial(LocalizableMessage msg) {
+		if (msg == null) {
+			return false;
+		}
+		if (!(msg instanceof SingleLocalizableMessage)) {
+			return true;
+		}
+		SingleLocalizableMessage single = (SingleLocalizableMessage) msg;
+		if (single.getKey() != null || single.getFallbackLocalizableMessage() != null) {
+			return true;
+		}
+		// a value more complex than "; " or ", " or ". " or "[" or "]" or something like that
+		return single.getFallbackMessage() != null && single.getFallbackMessage().length() > 2;
+	}
 }

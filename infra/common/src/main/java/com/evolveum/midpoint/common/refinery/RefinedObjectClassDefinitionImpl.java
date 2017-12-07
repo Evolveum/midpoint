@@ -754,6 +754,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
+	public boolean isExperimental() {
+		return originalObjectClassDefinition.isExperimental();
+	}
+	
+	@Override
 	public boolean isEmphasized() {
 		return originalObjectClassDefinition.isEmphasized();
 	}

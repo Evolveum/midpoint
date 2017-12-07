@@ -22,7 +22,7 @@
         	<h3 class="box-title"><wicket:message key="ExecuteChangeOptionsPanel.options"/></h3>
         </div>
 	    <div class="box-body">
-	        <div class="option-checkbox">
+	        <div class="option-checkbox" wicket:id="forceContainer">
 	        	<div class="checkbox">
 	        		<label>
 			            <input type="checkbox" wicket:id="force">
@@ -30,7 +30,7 @@
 		            </label>
 	            </div>
 	        </div>
-	        <div class="option-checkbox" wicket:id="reconcileLabel">
+	        <div class="option-checkbox" wicket:id="reconcileContainer">
 	        	<div class="checkbox">
 		        	<label>
 			            <input type="checkbox" wicket:id="reconcile">
@@ -38,7 +38,7 @@
 			        </label>
 			    </div>
 	        </div>
-	        <div class="option-checkbox" wicket:id="reconcileAffectedLabel">
+	        <div class="option-checkbox" wicket:id="reconcileAffectedContainer">
 	        	<div class="checkbox">
 	        		<label>
 			            <input type="checkbox" wicket:id="reconcileAffected">
@@ -46,7 +46,7 @@
 		            </label>
 		        </div>
 	        </div>
-	        <div class="option-checkbox">
+	        <div class="option-checkbox" wicket:id="executeAfterAllApprovalsContainer">
 	        	<div class="checkbox">
 	        		<label>
 			            <input type="checkbox" wicket:id="executeAfterAllApprovals">
@@ -54,7 +54,7 @@
 		            </label>
 		        </div>
 	        </div>
-	        <div class="option-checkbox" wicket:id="keepDisplayingResultsLabel">
+	        <div class="option-checkbox" wicket:id="keepDisplayingResultsContainer">
 	        	<div class="checkbox">
 	        		<label>
 			            <input type="checkbox" wicket:id="keepDisplayingResults">
