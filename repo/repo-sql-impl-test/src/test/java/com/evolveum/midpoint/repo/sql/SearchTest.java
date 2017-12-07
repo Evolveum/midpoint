@@ -350,6 +350,34 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void orgAssignmentSearchTestNoTargetType() throws Exception {
+        PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", null);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one user", 1, users.size());
+        assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
+    }
+
+    @Test
+    public void orgAssignmentSearchTestByOid() throws Exception {
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("00000000-8888-6666-0000-100000000085")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one user", 1, users.size());
+        assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
+        System.out.println("Found user:\n" + users.get(0).debugDump());
+    }
+
+    @Test
     public void roleAndOrgAssignmentSearchTest() throws Exception {
         PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
         PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
