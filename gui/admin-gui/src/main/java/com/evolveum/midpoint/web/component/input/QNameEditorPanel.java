@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -58,8 +59,8 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 	private IModel<String> localpartModel;
     private IModel<String> namespaceModel;
 
-    public QNameEditorPanel(String id, IModel<ItemPathType> model, String localPartLabelKey, String localPartTooltipKey,
-                            String namespaceLabelKey, String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired) {
+    public QNameEditorPanel(String id, IModel<ItemPathType> model, String localPartTooltipKey,
+                            String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired) {
         super(id, model);
 		this.itemPathModel = model;
 
@@ -104,7 +105,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 			}
 		};
 
-        initLayout(localPartLabelKey, localPartTooltipKey, namespaceLabelKey, namespaceTooltipKey, markLocalPartAsRequired, markNamespaceAsRequired);
+        initLayout(localPartTooltipKey, namespaceTooltipKey, markLocalPartAsRequired, markNamespaceAsRequired);
     }
 
 	private QName itemPathToQName() {
@@ -136,25 +137,43 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         return model;
     }
 
-    private void initLayout(String localPartLabelKey, String localPartTooltipKey,
-			String namespaceLabelKey, String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired){
+    private void initLayout(String localPartTooltipKey,
+			String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired){
 
-        Label localPartLabel = new Label(ID_LOCAL_PART_LABEL, getString(localPartLabelKey));
+        Label localPartLabel = new Label(ID_LOCAL_PART_LABEL, getString("SchemaHandlingStep.association.label.associationName"));
         localPartLabel.setOutputMarkupId(true);
         localPartLabel.setOutputMarkupPlaceholderTag(true);
+        localPartLabel.add(getSpecificLabelStyleAppender());
         add(localPartLabel);
 
 		WebMarkupContainer localPartRequired = new WebMarkupContainer(ID_LOCAL_PART_REQUIRED);
-		localPartRequired.setVisible(markLocalPartAsRequired);
+		localPartRequired.add(new VisibleEnableBehaviour(){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return markLocalPartAsRequired;
+			}
+		});
 		add(localPartRequired);
 
-        Label namespaceLabel = new Label(ID_NAMESPACE_LABEL, getString(namespaceLabelKey));
+        Label namespaceLabel = new Label(ID_NAMESPACE_LABEL, getString("SchemaHandlingStep.association.label.associationNamespace"));
         namespaceLabel.setOutputMarkupId(true);
         namespaceLabel.setOutputMarkupPlaceholderTag(true);
+        namespaceLabel.add(getSpecificLabelStyleAppender());
         add(namespaceLabel);
 
 		WebMarkupContainer namespaceRequired = new WebMarkupContainer(ID_NAMESPACE_REQUIRED);
-		namespaceRequired.setVisible(markNamespaceAsRequired);
+		namespaceRequired.add(new VisibleEnableBehaviour(){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return markNamespaceAsRequired;
+			}
+		});
 		add(namespaceRequired);
 
 		TextField localPart = new TextField<>(ID_LOCAL_PART, localpartModel);
@@ -176,10 +195,26 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         localPartTooltip.add(new AttributeAppender("data-original-title", getString(localPartTooltipKey)));
         localPartTooltip.add(new InfoTooltipBehavior());
         localPartTooltip.setOutputMarkupPlaceholderTag(true);
+        localPartTooltip.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return localPartTooltipKey != null;
+			}
+		});
         add(localPartTooltip);
 
         Label namespaceTooltip = new Label(ID_T_NAMESPACE);
         namespaceTooltip.add(new AttributeAppender("data-original-title", getString(namespaceTooltipKey)));
+		namespaceTooltip.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return namespaceTooltipKey != null;
+			}
+		});
         namespaceTooltip.add(new InfoTooltipBehavior());
         namespaceTooltip.setOutputMarkupPlaceholderTag(true);
         add(namespaceTooltip);
@@ -209,5 +244,9 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 	}
 
 	protected void onUpdate(AjaxRequestTarget target) {
+	}
+
+	protected AttributeAppender getSpecificLabelStyleAppender(){
+    	return AttributeAppender.append("style", "");
 	}
 }
