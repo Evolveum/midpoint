@@ -19,83 +19,116 @@
 <wicket:panel>
     <div class="row">
         <div class="col-md-12">
-            <h3 style="margin-left: 20px;">
-                <wicket:message key="SystemConfigPanel.title.basic"/>
-            </h3>
 
-            <div class="form-group">
-                <label class="col-md-4 control-label">
-                    <wicket:message key="SystemConfigPanel.title.securityPolicy"/>
-                </label>
-                <div wicket:id="securityPolicyChooser"/>
-            </div>
-
-            <div class="form-group" wicket:id="objectPolicyEditor"></div>
-
-            <h3 style="margin-left: 20px;">
-                <wicket:message key="SystemConfigPanel.title.accountSynchronization"/>
-            </h3>
-            <div class="form-group" wicket:id="chooseAssignmentPolicyEnforcement"/>
-            <h3 style="margin-left: 20px">
-                <wicket:message key="SystemConfigPanel.cleanupPolicy"/>
-            </h3>
             <div class="container-fluid">
-                <div class="col-md-6">
-                    <div class="form-group" wicket:id="auditRecordsCleanupAge"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                    <div class="form-group" wicket:id="auditRecordsCleanupRecords"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                    <div class="form-group" wicket:id="closedTasksCleanupAge"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                    <div class="form-group" wicket:id="certificationCampaignsCleanupAge"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group" wicket:id="certificationCampaignsCleanupRecords"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                    <div class="form-group" wicket:id="reportsCleanupAge"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                    <div class="form-group" wicket:id="resultsCleanupAge"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
-                    <div class="form-group" wicket:id="resultsCleanupRecords"
-                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3><wicket:message key="SystemConfigPanel.title.basic"/></h3>
+
+                        <div class="form-group">
+                            <label class="col-md-4 control-label">
+                                <wicket:message key="SystemConfigPanel.title.securityPolicy"/>
+                            </label>
+                            <div wicket:id="securityPolicyChooser"/>
+                        </div>
+
+                        <div class="form-group" wicket:id="objectPolicyEditor"></div>
+
+                        <h3><wicket:message key="SystemConfigPanel.title.accountSynchronization"/></h3>
+
+                        <div class="form-group" wicket:id="chooseAssignmentPolicyEnforcement"/>
+                    </div>
                 </div>
             </div>
 
-            <h3 style="margin-left: 20px;">
-                <wicket:message key="SystemConfigPanel.title.deploymentInformation"/>
-            </h3>
-            <div class="form-group" wicket:id="deploymentInfoContainer">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3><wicket:message key="SystemConfigPanel.cleanupPolicy"/></h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group" wicket:id="auditRecordsCleanupAge"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group" wicket:id="auditRecordsCleanupRecords"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group" wicket:id="certificationCampaignsCleanupAge"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group" wicket:id="certificationCampaignsCleanupRecords"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group" wicket:id="resultsCleanupAge"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                    <div class="col-md-6">
 
-                <div class="form-group" wicket:id="deploymentInfoName"/>
-
-                <div class="form-group" wicket:id="deploymentInfoDescription"/>
-
-                <div class="form-group" wicket:id="deploymentInfoHeaderColor"/>
-
-                <div class="form-group" wicket:id="deploymentInfoSkin"/>
-
-                <div class="form-group" wicket:id="deploymentInfoCustomerUrl"/>
-
-                <div class="form-group" wicket:id="deploymentInfoPartnerName"/>
-
-                <div class="form-group" wicket:id="deploymentInfoSubscriptionId"/>
-
-
-            <hr style="margin-right: 20px;">
-
-
-                <div class="form-group" wicket:id="deploymentInfoLogoImageUrl"/>
-
-                <div class="form-group" wicket:id="deploymentInfoLogoCssClass"/>
-
-            <hr style="margin-right: 20px;">
+                        <div class="form-group" wicket:id="resultsCleanupRecords"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group" wicket:id="closedTasksCleanupAge"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                        <div class="form-group" wicket:id="reportsCleanupAge"
+                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                    </div>
+                </div>
             </div>
-            <h3 style="margin-left: 20px;">
-                <wicket:message key="SystemConfigPanel.title.misc"/>
-            </h3>
 
-            <div class="form-group" wicket:id="experimentalCodeCheckbox"/>
+            <div class="container-fluid" wicket:id="deploymentInfoContainer">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3><wicket:message key="SystemConfigPanel.title.deploymentInformation"/></h3>
+
+                        <div class="form-group" wicket:id="deploymentInfoName"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoDescription"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoHeaderColor"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoSkin"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoCustomerUrl"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoPartnerName"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoSubscriptionId"/>
+
+                        <hr style="margin-right: 20px;">
+
+                        <div class="form-group" wicket:id="deploymentInfoLogoImageUrl"/>
+
+                        <div class="form-group" wicket:id="deploymentInfoLogoCssClass"/>
+
+                        <hr style="margin-right: 20px;">
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3><wicket:message key="SystemConfigPanel.title.misc"/></h3>
+
+                        <div class="form-group" wicket:id="experimentalCodeCheckbox"/>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
