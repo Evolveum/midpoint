@@ -232,8 +232,8 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 //    }
 
     @Override
-    protected ObjectQuery createAllMemberQuery() {
-        return super.createDirectMemberQuery();
+    protected ObjectQuery createAllMemberQuery(List<QName> relations) {
+        return super.createDirectMemberQuery(relations);
     }
 
     @Override
@@ -326,6 +326,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
             protected List<String> load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_OWNER_RELATION_OBJECTS);
 
+                
                 PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
                 rv.setRelation(RelationTypes.OWNER.getRelation());
 
