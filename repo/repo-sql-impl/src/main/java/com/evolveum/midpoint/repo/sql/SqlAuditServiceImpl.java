@@ -46,6 +46,7 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
+import org.hibernate.query.NativeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -511,15 +512,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
 
 			// drop records from m_audit_item, m_audit_event, m_audit_delta, and others
-			session.createSQLQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
+			session.createNativeQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
 					RAuditItem.COLUMN_RECORD_ID)).executeUpdate();
-			session.createSQLQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
+			session.createNativeQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
 					RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
-			session.createSQLQuery(createDeleteQuery(RAuditPropertyValue.TABLE_NAME, tempTable,
+			session.createNativeQuery(createDeleteQuery(RAuditPropertyValue.TABLE_NAME, tempTable,
 					RAuditPropertyValue.COLUMN_RECORD_ID)).executeUpdate();
-			session.createSQLQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
+			session.createNativeQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
 					RAuditReferenceValue.COLUMN_RECORD_ID)).executeUpdate();
-			session.createSQLQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
+			session.createNativeQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
 					.executeUpdate();
 
 			// drop temporary table
@@ -529,7 +530,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 				sb.append(dialect.getDropTemporaryTableString());
 				sb.append(' ').append(tempTable);
 
-				session.createSQLQuery(sb.toString()).executeUpdate();
+				session.createNativeQuery(sb.toString()).executeUpdate();
 			}
 
 			session.getTransaction().commit();
@@ -573,7 +574,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 		String queryString = "insert into " + tempTable + " " + selectString;
 		LOGGER.trace("Query string = {}", queryString);
-		SQLQuery query = session.createSQLQuery(queryString);
+		NativeQuery query = session.createNativeQuery(queryString);
 		query.setParameter(0, new Timestamp(minValue.getTime()));
 
 		return query.executeUpdate();
@@ -609,7 +610,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 		String queryString = "insert into " + tempTable + " " + selectString;
 		LOGGER.trace("Query string = {}", queryString);
-		SQLQuery query = session.createSQLQuery(queryString);
+		NativeQuery query = session.createNativeQuery(queryString);
 		return query.executeUpdate();
 	}
 
