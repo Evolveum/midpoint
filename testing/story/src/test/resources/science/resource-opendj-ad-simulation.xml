@@ -37,61 +37,60 @@
 		<filter>
             <q:equal>
             	<q:path>c:connectorType</q:path>
-            	<!-- This is OK to use the legacy connector. It is more similar to AD than the new one. -->
-                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
     <connectorConfiguration
-            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap-legacy/org.identityconnectors.ldap.LdapConnector"
+            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-         <icfc:resultsHandlerConfiguration>
-				<icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
-				<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
-			</icfc:resultsHandlerConfiguration>
         <icfc:configurationProperties>
             <icfcldap:port>10389</icfcldap:port>
             <icfcldap:host>localhost</icfcldap:host>
-            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-            <icfcldap:principal>cn=directory manager</icfcldap:principal>
-            <icfcldap:credentials>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:bindPassword>
                 <clearValue>secret</clearValue>
-            </icfcldap:credentials>
+            </icfcldap:bindPassword>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
         </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
-<schemaHandling>
+	<schemaHandling>
       <objectType>
          <intent>default</intent>
          <displayName>Default Account</displayName>
          <default>true</default>
-         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</objectClass>
+         <objectClass>ri:inetOrgPerson</objectClass>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:givenName</ref>
+            <ref>ri:givenName</ref>
             <displayName>Given Name</displayName>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">givenName</c:path>
+                  <path>givenName</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:sn</ref>
+            <ref>ri:sn</ref>
             <displayName>Surname</displayName>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">familyName</c:path>
+                  <path>familyName</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:uid</ref>
+            <ref>ri:uid</ref>
             <displayName>Login name</displayName>
             <secondaryIdentifier>true</secondaryIdentifier>
-            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
             <limitations>
                <minOccurs>0</minOccurs>
                <maxOccurs>1</maxOccurs>
@@ -99,18 +98,17 @@
             <outbound>
                <strength>weak</strength>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
+                  <path>name</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:displayName</ref>
+            <ref>ri:displayName</ref>
             <displayName>Principal name</displayName>
-            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
             <outbound>
                <strength>weak</strength>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">name</c:path>
+                  <path>name</path>
                </source>
                <expression>
                   <script>
@@ -120,15 +118,15 @@
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:mail</ref>
+            <ref>ri:mail</ref>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">emailAddress</c:path>
+                  <path>emailAddress</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">icfs:name</ref>
+            <ref>ri:dn</ref>
             <displayName>Distinguished Name</displayName>
             <limitations>
                <minOccurs>0</minOccurs>
@@ -137,14 +135,13 @@
                   <add>true</add>
                </access>
             </limitations>
-            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
             <outbound>
                <strength>weak</strength>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">givenName</c:path>
+                  <path>givenName</path>
                </source>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">familyName</c:path>
+                  <path>familyName</path>
                </source>
                <expression>
                   <script>
@@ -156,43 +153,43 @@
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:o</ref>
+            <ref>ri:o</ref>
             <displayName>Unix home directory</displayName>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">extension/ext:aixHomeDir</c:path>
+                  <path>extension/ext:aixHomeDir</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:ou</ref>
+            <ref>ri:ou</ref>
             <displayName>Aix login shell</displayName>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">extension/ext:aixDefaultShell</c:path>
+                  <path>extension/ext:aixDefaultShell</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:roomNumber</ref>
+            <ref>ri:roomNumber</ref>
             <displayName>Aix gecos</displayName>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">extension/ext:aixDescription</c:path>
+                  <path>extension/ext:aixDescription</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:title</ref>
+            <ref>ri:title</ref>
             <displayName>Aix user ID</displayName>
             <outbound>
                <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">extension/ext:aixUserId</c:path>
+                  <path>extension/ext:aixUserId</path>
                </source>
             </outbound>
          </attribute>
          <attribute>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:initials</ref>
+            <ref>ri:initials</ref>
             <displayName>Logon script</displayName>
             <outbound>
                <strength>weak</strength>
@@ -227,15 +224,14 @@
             <forceLoad>true</forceLoad>
          </dependency>
          <association>
-            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:groups</ref>
+            <ref>ri:groups</ref>
             <tolerant>true</tolerant>
-            <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
             <kind>entitlement</kind>
             <intent>math</intent>
             <intent>stats</intent>
             <direction>objectToSubject</direction>
-            <associationAttribute xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:uniqueMember</associationAttribute>
-            <valueAttribute xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">icfs:name</valueAttribute>
+            <associationAttribute>ri:uniqueMember</associationAttribute>
+            <valueAttribute>ri:dn</valueAttribute>
          </association>
          <iteration>
             <maxIterations>5</maxIterations>
@@ -257,14 +253,14 @@
          <intent>math</intent>
          <displayName>Science groups</displayName>
          <default>true</default>
-         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:GroupObjectClass</objectClass>
+         <objectClass>ri:groupOfUniqueNames</objectClass>
       </objectType>
       <objectType>
          <kind>entitlement</kind>
          <intent>stats</intent>
          <displayName>Science groups</displayName>
          <default>false</default>
-         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:GroupObjectClass</objectClass>
+         <objectClass>ri:groupOfUniqueNames</objectClass>
       </objectType>
    </schemaHandling>
    

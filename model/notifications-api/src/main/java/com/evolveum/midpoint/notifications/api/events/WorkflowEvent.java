@@ -34,12 +34,14 @@ abstract public class WorkflowEvent extends BaseEvent {
 
     @NotNull protected final WfContextType workflowContext;
     @NotNull private final ChangeType changeType;
+    @NotNull protected final TaskType workflowTask;
 
     public WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-            @NotNull WfContextType workflowContext, EventHandlerType handler) {
+            @NotNull WfContextType workflowContext, @NotNull TaskType workflowTask, EventHandlerType handler) {
         super(lightweightIdentifierGenerator, handler);
         this.changeType = changeType;
 		this.workflowContext = workflowContext;
+		this.workflowTask = workflowTask;
     }
 
     public String getProcessInstanceName() {
@@ -112,7 +114,12 @@ abstract public class WorkflowEvent extends BaseEvent {
 		return workflowContext;
 	}
 
-	public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {
+    @NotNull
+    public TaskType getWorkflowTask() {
+        return workflowTask;
+    }
+
+    public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {
         WfProcessorSpecificStateType state = getProcessorSpecificState();
         if (state instanceof WfPrimaryChangeProcessorStateType) {
             return (WfPrimaryChangeProcessorStateType) state;

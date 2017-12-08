@@ -15,15 +15,15 @@ echo %BIN_DIR%
 :gotHome
 
 rem if script for start and stop exists
-if exist "%BIN_DIR%\springboot.bat" goto okBoot
+if exist "%BIN_DIR%\midpoint.bat" goto okBoot
 echo %BIN_DIR%
-echo The springboot.bat file is not in \bin directory or is no accessible
+echo The midpoint.bat file is not in \bin directory or is no accessible
 goto end
 :okBoot
 
 rem if start/stop out file exists
 if not "%BOOT_OUT%" == "" goto okOut
-set "BOOT_OUT=%MIDPOINT_HOME%\log\springboot.out"
+set "BOOT_OUT=%MIDPOINT_HOME%\log\midpoint.out"
 echo %BOOT_OUT%
 :okOut
 

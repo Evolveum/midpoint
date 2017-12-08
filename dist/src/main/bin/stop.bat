@@ -13,13 +13,13 @@ set "MIDPOINT_HOME=%cd%\var"
 echo %MIDPOINT_HOME%
 :gotHome
 
-if exist "%BIN_DIR%\springboot.bat" goto okHome
+if exist "%BIN_DIR%\midpoint.bat" goto okHome
 echo The MIDPOINT_HOME environment variable is not defined correctly
 echo This environment variable is needed to run this program
 goto end
 :okHome
 
-set "EXECUTABLE=%BIN_DIR%\springboot.bat"
+set "EXECUTABLE=%BIN_DIR%\midpoint.bat"
 
 rem Check that target executable exists
 if exist "%EXECUTABLE%" goto okExec

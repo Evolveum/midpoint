@@ -621,4 +621,9 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean canBeDefinitionOf(PrismValue pvalue) {
 		return refinedAttributeDefinition.canBeDefinitionOf(pvalue);
 	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(refinedAttributeDefinition) + ":" + layer;
+	}
 }
