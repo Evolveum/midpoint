@@ -87,6 +87,14 @@ public class AdUtils {
 	        ObjectClassComplexTypeDefinition accountObjectClassDef = assertAdSchema(resourceSchema, resource, accountObjectClass, prismContext);
 	        return accountObjectClassDef;
 	}
+	
+	public static ObjectClassComplexTypeDefinition assertAdResourceSchemaLongTimestamp(PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        display("Resource schema", resourceSchema);
+        ResourceTypeUtil.validateSchema(resourceSchema, resource);
+        ObjectClassComplexTypeDefinition accountObjectClassDef = assertAdSchemaLongTimestamp(resourceSchema, resource, accountObjectClass, prismContext);
+        return accountObjectClassDef;
+}
 
 	public static ObjectClassComplexTypeDefinition assertAdRefinedSchema(PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
@@ -96,8 +104,36 @@ public class AdUtils {
         return accountObjectClassDef;
 	}
 
+	
+	// Assumes string timestamp
 	public static ObjectClassComplexTypeDefinition assertAdSchema(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
+		ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resourceSchema, resource, accountObjectClass, prismContext);
+		
+        ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
+        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
+        		DOMUtil.XSD_STRING, 0, 1);
+        assertTrue("createTimeStampDef read", createTimestampDef.canRead());
+        assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
+        assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
+		
+		return accountObjectClassDefinition;
+	}
+		
+	// Assumes string timestamp
+	public static ObjectClassComplexTypeDefinition assertAdSchemaLongTimestamp(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
+		ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resourceSchema, resource, accountObjectClass, prismContext);
+		
+        ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
+        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
+        		DOMUtil.XSD_LONG, 0, 1);
+        assertTrue("createTimeStampDef read", createTimestampDef.canRead());
+        assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
+        assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
+		
+		return accountObjectClassDefinition;
+	}
 
+	private static ObjectClassComplexTypeDefinition assertAdSchemaBase(ResourceSchema resourceSchema, PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext) throws SchemaException {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
         display("Refined schema", refinedSchema);
@@ -123,13 +159,6 @@ public class AdUtils {
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
-
-        ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
-        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
-        		DOMUtil.XSD_STRING, 0, 1);
-        assertTrue("createTimeStampDef read", createTimestampDef.canRead());
-        assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
-        assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
 
         ResourceAttributeDefinition<Long> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
         PrismAsserts.assertDefinition(isCriticalSystemObjectDef, new QName(MidPointConstants.NS_RI, "isCriticalSystemObject"),
