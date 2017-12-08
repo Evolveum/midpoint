@@ -156,7 +156,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			@Override
 			public boolean isVisible(){
 				return getModelObject().containsMultivalueContainer() && getModelObject().getContainer() != null
-						&& getModelObject().getContainer().isAddContainerButtonVisible();
+						&& getModelObject().getContainer().isAddContainerButtonVisible()
+						&& getModelObject().getDefinition().canModify();
 			}
 		});
         add(addChildContainerButton);
