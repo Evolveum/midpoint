@@ -908,7 +908,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple
 						.getNonNegativeValues();
 				for (EvaluatedConstruction construction : evaluatedConstructions) {
-					assignmentInfoDtoSet.add(createAssignmentsPreviewDto(construction));
+					if (!construction.isWeak()) {
+						assignmentInfoDtoSet.add(createAssignmentsPreviewDto(construction));
+					}
 				}
 			}
 
