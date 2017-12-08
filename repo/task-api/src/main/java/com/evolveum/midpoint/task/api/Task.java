@@ -946,6 +946,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     PrismObject<TaskType> getTaskPrismObject();
 
+    TaskType getTaskType();
+
 	/**
 	 * Re-reads the task state from the persistent storage.
 	 *
