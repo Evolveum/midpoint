@@ -35,6 +35,7 @@
     		scope="singleton">
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="prismContext"/>
+		<constructor-arg ref="localizationService" />
         <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
 		<property name="objectResolver" ref="repoObjectResolver"/>
     </bean>

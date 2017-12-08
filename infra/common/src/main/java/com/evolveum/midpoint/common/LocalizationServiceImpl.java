@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -179,5 +180,22 @@ public class LocalizationServiceImpl implements LocalizationService {
         }
 
         return translated;
+    }
+
+    @Override
+    public <T extends CommonException> T translate(T e) {
+        if (e == null) {
+            return null;
+        }
+        if (e.getUserFriendlyMessage() == null) {
+            return e;
+        }
+        if (e.getTechnicalMessage() == null) {
+            e.setTechnicalMessage(translate(e.getUserFriendlyMessage(), Locale.US));
+        }
+        if (e.getLocalizedUserFriendlyMessage() == null) {
+            e.setLocalizedUserFriendlyMessage(translate(e.getUserFriendlyMessage(), Locale.getDefault()));
+        }
+        return e;
     }
 }

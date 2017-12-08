@@ -776,38 +776,37 @@ public class TestVillage extends AbstractStoryTest {
 	}
 
 	@Test
-	public void test200createUserAssignOrgPwdPolicy() throws Exception{
-
-		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
+	public void test200CreateUserAssignOrgPwdPolicy() throws Exception {
+		final String TEST_NAME = "test200CreateUserAssignOrgPwdPolicy";
         displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = new OperationResult(TEST_NAME);
 
 		//prepare password policies
 		addObject(GLOBAL_PASSWORD_POLICY_FILE);
 		addObject(ORG_PASSWORD_POLICY_FILE);
 
-		ObjectDelta orgPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF, prismContext, ORG_PASSWORD_POLICY_OID);
-
-		Collection deltas = MiscUtil.createCollection(orgPasswordPolicyRefDelta);
-		modelService.executeChanges(deltas, null, task, result);
-
-		InternalsConfig.setAvoidLoggingChange(true);
-		ObjectDelta sysConfigPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
-		deltas = MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta);
-		modelService.executeChanges(deltas, null, task, result);
-		InternalsConfig.setAvoidLoggingChange(false);
+		ObjectDelta<OrgType> orgPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF, prismContext, ORG_PASSWORD_POLICY_OID);
+		modelService.executeChanges(MiscUtil.createCollection(orgPasswordPolicyRefDelta), null, task, result);
+		
+		ObjectDelta<SystemConfigurationType> sysConfigPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
+		modelService.executeChanges(MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta), null, task, result);
 
 		//add user + assign role + assign org with the password policy specified
-		PrismObject<UserType> objectToAdd = PrismTestUtil.parseObject(USER_MIKE_FILE);
-		ObjectDelta<UserType> addUser = ObjectDelta.createAddDelta(objectToAdd);
+		PrismObject<UserType> userMikeBefore = PrismTestUtil.parseObject(USER_MIKE_FILE);
+		display("User mike before", userMikeBefore);
+		ObjectDelta<UserType> addUserMikeDelta = ObjectDelta.createAddDelta(userMikeBefore);
 
-		deltas = MiscUtil.createCollection(addUser);
+		// WHEN
+		displayWhen(TEST_NAME);
 		//The user's password has length 4..if the policy is not chosen correctly, it fails
-		modelService.executeChanges(deltas, null, task, result);
+		modelService.executeChanges(MiscUtil.createCollection(addUserMikeDelta), null, task, result);
 
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
 		//TODO: assert added user
-
 	}
 
 	@Test
@@ -833,17 +832,16 @@ public class TestVillage extends AbstractStoryTest {
     public void test300AddProjectJollyRoger() throws Exception {
 		final String TEST_NAME = "test300AddProjectJollyRoger";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(ORG_PROJECT_JOLLY_ROGER_FILE, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_PROJECT_JOLLY_ROGER_OID);
         display("Org", org);

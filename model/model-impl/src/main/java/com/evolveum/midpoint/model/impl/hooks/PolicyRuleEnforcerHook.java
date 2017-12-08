@@ -87,7 +87,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 						.messages(evalCtx.messages)
 						.separator(LocalizableMessageList.SEMICOLON)
 						.buildOptimized();
-				throw new PolicyViolationException(message);
+				throw localizationService.translate(new PolicyViolationException(message));
 			}
         }
 		return HookOperationMode.FOREGROUND;

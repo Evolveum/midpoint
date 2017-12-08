@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationTestUtil;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
@@ -91,7 +92,7 @@ public class TestScriptCaching {
 		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector);
 		scriptExpressionfactory.setObjectResolver(resolver);
 		scriptExpressionfactory.setFunctions(functions);
-        evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector);
+        evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         String languageUrl = evaluator.getLanguageUrl();
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
     }
