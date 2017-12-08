@@ -754,10 +754,13 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return false;
 	}
 
-	public List<QName> getChildMultivalueContainersPaths(){
+	public List<QName> getChildMultivalueContainersToBeAdded(){
 		List<QName> pathList = new ArrayList<>();
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd()){
 				continue;
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
