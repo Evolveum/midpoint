@@ -69,7 +69,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
 			token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
 		} else {
 			LOGGER.error("Unsupported authentication {}", authentication);
-			throw new AuthenticationServiceException(messages.getMessage("web.security.provider.unavailable"));
+			throw new AuthenticationServiceException("web.security.provider.unavailable");
 		}
 
 		MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();

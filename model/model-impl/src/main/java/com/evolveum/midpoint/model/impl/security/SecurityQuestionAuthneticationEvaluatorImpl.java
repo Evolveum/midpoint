@@ -30,7 +30,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 			SecurityQuestionsAuthenticationContext authCtx) {
 		if (MapUtils.isEmpty(authCtx.getQuestionAnswerMap())) {
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
-			throw new BadCredentialsException(messages.getMessage("web.security.provider.password.encoding"));
+			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 
 		Map<String, String> enteredQuestionAnswer = authCtx.getQuestionAnswerMap();
@@ -43,7 +43,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 
 		if (allBlank) {
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
-			throw new BadCredentialsException(messages.getMessage("web.security.provider.password.encoding"));
+			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 	}
 
@@ -64,7 +64,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 
 		if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
 			recordAuthenticationFailure(principal, connEnv, "no stored security questions");
-			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.password.bad"));
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
 		}
 
 	}

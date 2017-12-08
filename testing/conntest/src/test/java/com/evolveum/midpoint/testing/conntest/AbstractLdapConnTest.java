@@ -90,6 +90,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapConnTest.class);

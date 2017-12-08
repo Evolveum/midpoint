@@ -152,9 +152,10 @@ public class PageLogin extends PageBase {
 
         String msg = ex.getMessage();
         if (StringUtils.isEmpty(msg)) {
-            msg = getString("web.security.provider.unavailable");
+            msg = "web.security.provider.unavailable";
         }
 
+        msg = getLocalizationService().translate(msg, null, getLocale(), msg);
         error(msg);
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
