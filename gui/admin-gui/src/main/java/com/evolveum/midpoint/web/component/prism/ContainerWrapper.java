@@ -386,7 +386,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 				continue;
 			}
 			
-			if (containerAdd.isSingleValue()) {
+			if (containerAdd.isSingleValue() || containerAdd.isEmpty()) {
 				containerAdd.replace(newContainerValue);
 			} else {
 				containerAdd.add(newContainerValue);
