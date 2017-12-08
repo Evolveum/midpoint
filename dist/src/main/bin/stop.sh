@@ -29,7 +29,7 @@ while [ -h "$PRG" ] ; do
 done
 
 PRGDIR=`dirname "$PRG"`
-EXECUTABLE=springboot.sh
+EXECUTABLE=midpoint.sh
 
   if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
     echo "Cannot find $PRGDIR/$EXECUTABLE"
