@@ -27,51 +27,43 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import org.python.modules.operator;
+import com.evolveum.midpoint.common.LocalizationService;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.common.LocalizationTestUtil;
 
 /**
  * @author Radovan Semancik
@@ -89,6 +81,7 @@ public abstract class AbstractScriptTest {
 
     protected ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
+    protected LocalizationService localizationService;
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -101,11 +94,12 @@ public abstract class AbstractScriptTest {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
     	Protector protector = new ProtectorImpl();
-        Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
+        Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
 		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector);
 		scriptExpressionfactory.setObjectResolver(resolver);
 		scriptExpressionfactory.setFunctions(functions);
+	    localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
         String languageUrl = evaluator.getLanguageUrl();
         System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);
@@ -254,10 +248,9 @@ public abstract class AbstractScriptTest {
     			"testExpressionFuncConcatName", null, "Horatio Torquemada Marley");
     }
 	
-	private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
-		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
+	private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
+		return PrismTestUtil.parseAtomicValue(
                 new File(getTestDir(), fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
-		return expressionType;
 	}
 
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, ItemDefinition outputDefinition,

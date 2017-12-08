@@ -2177,4 +2177,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			return e.getMessage();
 		}
 	}
+
+	protected void assertMessage(CommonException e, String expectedMessage) {
+		String realMessage = getTranslatedMessage(e);
+		assertEquals("Wrong message", expectedMessage, realMessage);
+	}
 }

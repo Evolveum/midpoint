@@ -16,13 +16,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
@@ -101,6 +101,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	private PrismContext prismContext;
 	
 	private Protector protector;
+
+	private LocalizationService localizationService;
 	
 	private OperationalDataManager metadataManager;
 	
@@ -135,6 +137,14 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
 	public void setProtector(Protector protector) {
 		this.protector = protector;
+	}
+
+	public LocalizationService getLocalizationService() {
+		return localizationService;
+	}
+
+	public void setLocalizationService(LocalizationService localizationService) {
+		this.localizationService = localizationService;
 	}
 
 	public OperationalDataManager getMetadataManager() {
@@ -371,7 +381,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 					.key("PolicyViolationException.message.credentials." + getCredentialHumanReadableKey())
 					.arg(validationResult.getUserFriendlyMessage())
 					.build();
-			throw new PolicyViolationException(message);
+			throw localizationService.translate(new PolicyViolationException(message));
 		}
 	}
 

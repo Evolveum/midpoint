@@ -26,12 +26,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,7 +42,7 @@ import org.apache.commons.lang.Validate;
  * @author semancik
  *
  */
-public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
+public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
 	private final PrismContext prismContext;
 	private final Protector protector;
@@ -92,7 +90,7 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismReferenceDefinition) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager);
+        		(PrismReferenceDefinition) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

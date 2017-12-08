@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import java.util.Locale;
 
@@ -34,4 +35,9 @@ public interface LocalizationService {
     default String translate(LocalizableMessage msg) {
         return translate(msg, Locale.getDefault());
     }
+
+    /**
+     * Fills-in message and localizedMessage based on userFriendlyMessage, if needed.
+     */
+    <T extends CommonException> T translate(T e);
 }

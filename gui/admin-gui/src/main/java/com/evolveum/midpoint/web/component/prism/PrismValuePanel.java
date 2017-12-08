@@ -35,6 +35,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -571,25 +572,17 @@ public class PrismValuePanel extends Panel {
 						}
 					}
 				}, 10);
-//			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
-//				definition.getNamespace()
-//			ValueWrapper vw = valueWrapperModel.getObject();
-//			if (vw != null) {
-//			}
-//			return new TextPanel<>(id, new PropertyModel<ItemPathType>(valueWrapperModel, baseExpression + ".orig"),
-//					String.class);
-////					inputPanel = new QNameEditorPanel(id, new PropertyModel<ItemPathType>(valueWrapperModel, baseExpression),
-////							"SchemaHandlingStep.association.label.associationName", "SchemaHandlingStep.association.tooltip.associationLocalPart",
-////							"SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace", true, true)  {
-////						@Override
-////						protected void onUpdate(AjaxRequestTarget target) {
-//////							target.add(parentStep.getAssociationList());
-//////							((PageResourceWizard) getPageBase()).refreshIssues(target);
-////						}
-////					};
-////					nonSchemaRefPanel.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
+				return new QNameEditorPanel(id, new PropertyModel<ItemPathType>(valueWrapperModel, baseExpression), null, null,
+						false, false) {
+					@Override
+					protected AttributeAppender getSpecificLabelStyleAppender() {
+						return AttributeAppender.append("style", "font-weight: normal !important;");
+					}
 
-		}else {
+				};
+
+			} else {
 				Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
 				if (type != null && type.isPrimitive()) {
 					type = ClassUtils.primitiveToWrapper(type);

@@ -3485,7 +3485,14 @@
         </xsd:annotation>
         <xsd:sequence>
         
-        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:appinfo>
+        				<a:displayName>AssignmentType.description</a:displayName>
+        				<a:help>AssignmentType.description.help</a:help>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         
         	<xsd:element ref="tns:extension" minOccurs="0">
         		<xsd:annotation>
@@ -3533,6 +3540,8 @@
 	        		<xsd:appinfo>
 	        			<a:since>3.5</a:since>
 	        			<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
+	        			<a:displayName>AssignmentType.lifecycleState</a:displayName>
+        				<a:help>AssignmentType.lifecycleState.help</a:help>
 	        		</xsd:appinfo>
 	        	</xsd:annotation>
 	        </xsd:element>
@@ -3544,11 +3553,12 @@
                 <xsd:element name="target" type="tns:ObjectType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO: target
+                            Target of assignment or inducement. This is the role, org or service that is assigned.
                         </xsd:documentation>
                         <xsd:appinfo>
                     		<a:objectReference>tns:targetRef</a:objectReference>
                             <a:displayName>AssignmentType.target</a:displayName>
+                            <a:help>AssignmentType.target.help</a:help>
                     	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -3556,10 +3566,11 @@
                 <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO: target ref
+                            Target of assignment or inducement. This is the role, org or service that is assigned.
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.target</a:displayName>
+                            <a:help>AssignmentType.target.help</a:help>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -3604,6 +3615,7 @@
                         </xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>AssignmentType.policyRule</a:displayName>
+							<a:help>AssignmentType.policyRule.help</a:help>
 						</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -3626,6 +3638,10 @@
 		                
 		                If not specified and no orderConstraints are specified then the values of 1 is assumed.
 		            </xsd:documentation>
+		        	<xsd:appinfo>
+                        <a:displayName>AssignmentType.order</a:displayName>
+                        <a:help>AssignmentType.order.help</a:help>
+		        	</xsd:appinfo>
 		        </xsd:annotation>
 			</xsd:element>
 			<xsd:element name="orderConstraint" type="tns:OrderConstraintsType" minOccurs="0" maxOccurs="unbounded">
@@ -3664,13 +3680,23 @@
 		        </xsd:annotation>
 			</xsd:element>
 
-			<xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
+			<xsd:element name="focusType" type="xsd:QName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Type of focal object that this assingnment/inducement applies to. E.g UserType, RoleType, OrgType, ...
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>AssignmentType.focusType</a:displayName>
+                        <a:help>AssignmentType.focusType.help</a:help>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			
 			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Reference to the tenant to which this assignment refers. This is an argument to the target of this
+                        Reference to the tenant which this assignment is associated with. This is an argument to the target of this
                         assignment. E.g. is if frequently used to parametrize the role which is assigned by this assignment.
                         However the exact interpretation of this value depends on the logic of the target role. It may be
                         significant or it may be entirely ignored.
@@ -3679,6 +3705,7 @@
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
                         <a:displayName>AssignmentType.tenantReference</a:displayName>
+                        <a:help>AssignmentType.tenantReference.help</a:help>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3686,7 +3713,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        Reference to the organization (org. unit, project, ...) to which this assignment refers. This is an argument to the target of this
+                        Reference to the organization (org. unit, project, ...) which this assignment is associated with. This is an argument to the target of this
                         assignment. E.g. is if frequently used to parametrize the role which is assigned by this assignment.
                         However the exact interpretation of this value depends on the logic of the target role. It may be
                         significant or it may be entirely ignored.
@@ -3695,6 +3722,7 @@
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
                         <a:displayName>AssignmentType.orgReference</a:displayName>
+                        <a:help>AssignmentType.orgReference.help</a:help>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3719,6 +3747,10 @@
                     <xsd:appinfo>
                     	<a:since>3.5</a:since>
 						<a:operational>true</a:operational>
+						<xsd:appinfo>
+							<a:displayName>AssignmentType.policySituation</a:displayName>
+							<a:help>AssignmentType.policySituation.help</a:help>
+						</xsd:appinfo>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13809,9 +13841,23 @@
     					Name of the rule. It is used to record processing of the rule
     					in the logfiles and for similar diagnostic reasons.
     				</xsd:documentation>
+    				<xsd:appinfo>
+		            	<a:displayName>PolicyRuleType.name</a:displayName>
+		            	<a:help>PolicyRuleType.name.help</a:help>
+                   	</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Free-form description of the rule (comment).
+    				</xsd:documentation>
+    				<xsd:appinfo>
+		            	<a:displayName>PolicyRuleType.description</a:displayName>
+		            	<a:help>PolicyRuleType.description.help</a:help>
+                   	</xsd:appinfo>
+    			</xsd:annotation>
+        	</xsd:element>
  		    <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -13819,6 +13865,7 @@
     				</xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PolicyRuleType.policyConstraints</a:displayName>
+						<a:help>PolicyRuleType.policyConstraints.help</a:help>
 					</xsd:appinfo>
 				</xsd:annotation>
     		</xsd:element>
@@ -13830,6 +13877,10 @@
     					default situation will be selected instead. The situation
     					is determined by the constraint that triggered the rule.
     				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policySituation</a:displayName>
+						<a:help>PolicyRuleType.policySituation.help</a:help>
+					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="policyActions" type="tns:PolicyActionsType" minOccurs="0">
@@ -13838,6 +13889,10 @@
     					Action(s) that has to be takes as a reaction to this rule being
     					triggered.
     				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policyActions</a:displayName>
+						<a:help>PolicyRuleType.policyActions.help</a:help>
+					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="evaluationTarget" type="tns:PolicyRuleEvaluationTargetType" minOccurs="0">
@@ -13848,6 +13903,8 @@
     				</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7</a:since>
+						<a:displayName>PolicyRuleType.evaluationTarget</a:displayName>
+						<a:help>PolicyRuleType.evaluationTarget.help</a:help>
 					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>

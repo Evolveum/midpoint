@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
@@ -900,7 +901,8 @@ public class LensUtil {
 		CollectionUtils.addIgnoreNull(policySituations, rule.getPolicySituation());
 	}
 
-	public static void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
+	public static void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations,
+			LocalizationService localizationService) throws PolicyViolationException {
 
 		LOGGER.debug("Legacy policy rule triggered: {}", trigger);
 		if (LOGGER.isTraceEnabled()) {
@@ -908,7 +910,7 @@ public class LensUtil {
 		}
 
 		if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-			throw new PolicyViolationException(trigger.getMessage());
+			throw localizationService.translate(new PolicyViolationException(trigger.getMessage()));
 		}
 	}
 

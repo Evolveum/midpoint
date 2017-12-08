@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -42,8 +43,10 @@ public class ReferenceSearchExpressionEvaluator
 
 	public ReferenceSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType,
 			PrismReferenceDefinition outputDefinition, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager);
+			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
+			LocalizationService localizationService) {
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager,
+				localizationService);
 	}
 
 	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {

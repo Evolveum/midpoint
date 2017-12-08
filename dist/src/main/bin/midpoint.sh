@@ -50,11 +50,11 @@ if [ ! -d var ] ; then
 fi
 
 if [ -z "$BOOT_OUT" ] ; then  
-  BOOT_OUT="$SCRIPT_PATH"../var/log/springboot.out
+  BOOT_OUT="$SCRIPT_PATH"../var/log/midpoint.out
 fi
 
-if [ -z "$SPRING_PID" ] ; then
- SPRING_PID="$SCRIPT_PATH"../var/log/spring.pid
+if [ -z "$PID_FILE" ] ; then
+ PID_FILE="$SCRIPT_PATH"../var/log/midpoint.pid
 fi
 
 [ -z "$MIDPOINT_HOME" ] && MIDPOINT_HOME=`cd "$SCRIPT_PATH../var" >/dev/null; pwd`
@@ -96,18 +96,18 @@ fi
 # ----- Execute The Requested Command -----------------------------------------
 
 #if [ $have_tty -eq 1 ]; then
-#  if [ ! -z "$SPRING_PID" ]; then
-#    echo "Using SPRING_PID:    $SPRING_PID"
+#  if [ ! -z "$PID_FILE" ]; then
+#    echo "Using PID_FILE:    $PID_FILE"
 #  fi
 #fi
 
 if [ "$1" = "start" ] ; then
- if [ ! -z "$SPRING_PID" ]; then
-    if [ -f "$SPRING_PID" ]; then
-      if [ -s "$SPRING_PID" ]; then
+ if [ ! -z "$PID_FILE" ]; then
+    if [ -f "$PID_FILE" ]; then
+      if [ -s "$PID_FILE" ]; then
         echo "Existing PID file found during start."
-        if [ -r "$SPRING_PID" ]; then
-          PID=`cat "$SPRING_PID"`
+        if [ -r "$PID_FILE" ]; then
+          PID=`cat "$PID_FILE"`
           ps -p $PID >/dev/null 2>&1
           if [ $? -eq 0 ] ; then
             echo "Midpoint appears to still be running with PID $PID. Start aborted."
@@ -116,10 +116,10 @@ if [ "$1" = "start" ] ; then
             exit 1
           else
             echo "Removing/clearing stale PID file."
-            rm -f "$SPRING_PID" >/dev/null 2>&1
+            rm -f "$PID_FILE" >/dev/null 2>&1
             if [ $? != 0 ]; then
-              if [ -w "$SPRING_PID" ]; then
-                cat /dev/null > "$SPRING_PID"
+              if [ -w "$PID_FILE" ]; then
+                cat /dev/null > "$PID_FILE"
               else
                 echo "Unable to remove or clear stale PID file. Start aborted."
                 exit 1
@@ -131,9 +131,9 @@ if [ "$1" = "start" ] ; then
           exit 1
         fi
       else
-        rm -f "$SPRING_PID" >/dev/null 2>&1
+        rm -f "$PID_FILE" >/dev/null 2>&1
 if [ $? != 0 ]; then
-          if [ ! -w "$SPRING_PID" ]; then
+          if [ ! -w "$PID_FILE" ]; then
             echo "Unable to remove or write to empty PID file. Start aborted."
             exit 1
           fi
@@ -154,8 +154,8 @@ eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
       >> "$BOOT_OUT" 2>&1 "&"
       
 
-if [ ! -z "$SPRING_PID" ]; then
-    echo $! > "$SPRING_PID"
+if [ ! -z "$PID_FILE" ]; then
+    echo $! > "$PID_FILE"
 fi
 
 
@@ -178,10 +178,10 @@ elif [ "$1" = "stop" ] ; then
     FORCE=1
   fi
 
-  if [ ! -z "$SPRING_PID" ]; then
-    if [ -f "$SPRING_PID" ]; then
-      if [ -s "$SPRING_PID" ]; then
-        kill -0 `cat "$SPRING_PID"` >/dev/null 2>&1
+  if [ ! -z "$PID_FILE" ]; then
+    if [ -f "$PID_FILE" ]; then
+      if [ -s "$PID_FILE" ]; then
+        kill -0 `cat "$PID_FILE"` >/dev/null 2>&1
         if [ $? -gt 0 ]; then
           echo "PID file found but no matching process was found. Stop aborted."
           exit 1
@@ -190,7 +190,7 @@ elif [ "$1" = "stop" ] ; then
         echo "PID file is empty and has been ignored."
       fi
     else
-      echo "\$SPRING_PID was set but the specified file does not exist. Is Tomcat running? Stop aborted."
+      echo "\$PID_FILE was set but the specified file does not exist. Is Tomcat running? Stop aborted."
       exit 1
     fi
   fi
@@ -200,23 +200,23 @@ elif [ "$1" = "stop" ] ; then
       kill -15 `cat "$CATALINA_PID"` >/dev/null 2>&1
     fi
 
-    if [ ! -z "$SPRING_PID" ]; then
+    if [ ! -z "$PID_FILE" ]; then
 	echo "Stopping midPoint"
-      kill -TERM `cat "$SPRING_PID"` >/dev/null 2>&1
+      kill -TERM `cat "$PID_FILE"` >/dev/null 2>&1
     fi
   # stop failed. Shutdown port disabled? Try a normal kill.
     
 
-  if [ ! -z "$SPRING_PID" ]; then
-    if [ -f "$SPRING_PID" ]; then
+  if [ ! -z "$PID_FILE" ]; then
+    if [ -f "$PID_FILE" ]; then
       while [ $SLEEP -ge 0 ]; do
 	
-        kill -0 `cat "$SPRING_PID"` >/dev/null 2>&1
+        kill -0 `cat "$PID_FILE"` >/dev/null 2>&1
         if [ $? -gt 0 ]; then
-          rm -f "$SPRING_PID" >/dev/null 2>&1
+          rm -f "$PID_FILE" >/dev/null 2>&1
           if [ $? != 0 ]; then
-            if [ -w "$SPRING_PID" ]; then
-              cat /dev/null > "$SPRING_PID"
+            if [ -w "$PID_FILE" ]; then
+              cat /dev/null > "$PID_FILE"
               # If MidPoint has stopped don't try and force a stop with an empty PID file
               FORCE=0
             else
@@ -236,7 +236,7 @@ elif [ "$1" = "stop" ] ; then
             echo "PID file was not removed."
           fi
           echo "To aid diagnostics a thread dump has been written to standard out."
-          kill -3 `cat "$SPRING_PID"`
+          kill -3 `cat "$PID_FILE"`
         fi
         SLEEP=`expr $SLEEP - 1 `
       done
@@ -245,20 +245,20 @@ elif [ "$1" = "stop" ] ; then
 
   KILL_SLEEP_INTERVAL=5
   if [ $FORCE -eq 1 ]; then
-    if [ -z "$SPRING_PID" ]; then
-      echo "Kill failed: \$SPRING_PID not set"
+    if [ -z "$PID_FILE" ]; then
+      echo "Kill failed: \$PID_FILE not set"
     else
-      if [ -f "$SPRING_PID" ]; then
-        PID=`cat "$SPRING_PID"`
+      if [ -f "$PID_FILE" ]; then
+        PID=`cat "$PID_FILE"`
         echo "Killing midPoint with the PID: $PID"
         kill -9 $PID
         while [ $KILL_SLEEP_INTERVAL -ge 0 ]; do
-            kill -0 `cat "$SPRING_PID"` >/dev/null 2>&1
+            kill -0 `cat "$PID_FILE"` >/dev/null 2>&1
             if [ $? -gt 0 ]; then
-                rm -f "$SPRING_PID" >/dev/null 2>&1
+                rm -f "$PID_FILE" >/dev/null 2>&1
                 if [ $? != 0 ]; then
-                    if [ -w "$SPRING_PID" ]; then
-                        cat /dev/null > "$SPRING_PID"
+                    if [ -w "$PID_FILE" ]; then
+                        cat /dev/null > "$PID_FILE"
                     else
                         echo "The PID file could not be removed."
                     fi

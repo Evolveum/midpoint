@@ -56,8 +56,9 @@ public class WorkItemEvent extends WorkflowEvent {
 			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
 			@NotNull WfContextType workflowContext,
-			@Nullable EventHandlerType handler, @Nullable Duration timeBefore) {
-        super(lightweightIdentifierGenerator, changeType, workflowContext, handler);
+		    @NotNull TaskType workflowTask,
+		    @Nullable EventHandlerType handler, @Nullable Duration timeBefore) {
+        super(lightweightIdentifierGenerator, changeType, workflowContext, workflowTask, handler);
 	    Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;

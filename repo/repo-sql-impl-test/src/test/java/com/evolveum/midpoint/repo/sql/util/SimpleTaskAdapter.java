@@ -394,6 +394,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public TaskType getTaskType() {
+        return null;
+    }
+
+    @Override
     public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }

@@ -556,6 +556,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
+	public boolean isExperimental() {
+		return refinedAttributeDefinition.isExperimental();
+	}
+	
+	@Override
 	public boolean isOperational() {
 		return refinedAttributeDefinition.isOperational();
 	}
@@ -615,5 +620,10 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public boolean canBeDefinitionOf(PrismValue pvalue) {
 		return refinedAttributeDefinition.canBeDefinitionOf(pvalue);
+	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(refinedAttributeDefinition) + ":" + layer;
 	}
 }
