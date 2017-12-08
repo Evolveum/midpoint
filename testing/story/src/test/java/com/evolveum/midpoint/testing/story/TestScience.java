@@ -163,8 +163,8 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
 
         OperationResult testResultStats = modelService.testResource(RESOURCE_DUMMY_STATS_OID, task);
         TestUtil.assertSuccess(testResultStats);
@@ -182,33 +182,38 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test100JackAssignRoleStatistics() throws Exception {
 		final String TEST_NAME = "test100JackAssignRoleStatistics";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
-
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
 
-		assignRole(USER_JACK_OID, ROLE_STATISTICS_OID);
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_STATISTICS_OID, task, result);
 
-		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
-		AssertJUnit.assertNotNull("User jack not found", userJack);
-		UserType jackType = userJack.asObjectable();
+		// WHEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		AssertJUnit.assertNotNull("User jack not found", userAfter);
 
-		IntegrationTestTools.display("User Jack", jackType);
+		display("User after", userAfter);
 
-		AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
-
-		assertUserJack(userJack);
-		assertLinks(userJack, 3);
-		String accountStatsOid = getLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
-		String accountUnixOid = getLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
-		String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
+		assertUserJack(userAfter);
+		assertLinks(userAfter, 3);
+		String accountStatsOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_STATS_OID);
+		String accountUnixOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_UNIX_OID);
+		String accountOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_AD_SIMULATION_OID);
 
 		PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
-		IntegrationTestTools.display("Stats account: ", shadowStats);
+		display("Stats account: ", shadowStats);
 		PrismObject<ShadowType> shadowUnix = provisioningService.getObject(ShadowType.class, accountUnixOid, null, task, result);
-		IntegrationTestTools.display("Unix account: ", shadowUnix);
+		display("Unix account: ", shadowUnix);
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
-		IntegrationTestTools.display("AD account: ", shadowOpenDj);
+		display("AD account: ", shadowOpenDj);
 
 
 		//internalId on unix dummy resource and title on openDJ simulation must be the same
@@ -218,17 +223,16 @@ public class TestScience  extends AbstractStoryTest {
 		assertNotNull("No 'title' in "+shadowOpenDj, openDjSyncedId);
 		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
 
-		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
+		PrismProperty<Integer> generatedValue = userAfter.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
  		assertNotNull("Generated id value must not be null", generatedValue);
  		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
-
 	}
 
 	@Test
 	public void test101UnassignRoleStats() throws Exception{
 		final String TEST_NAME = "test101UnassignRoleStats";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 
 		OperationResult result = task.getResult();
 
@@ -242,7 +246,7 @@ public class TestScience  extends AbstractStoryTest {
 		AssertJUnit.assertNotNull("User jack not found", userJack);
 		UserType jackType = userJack.asObjectable();
 
-		IntegrationTestTools.display("User Jack", jackType);
+		display("User Jack", jackType);
 
 		AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
 
@@ -253,11 +257,11 @@ public class TestScience  extends AbstractStoryTest {
 		String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
 
 		PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
-		IntegrationTestTools.display("Stats account: ", shadowStats);
+		display("Stats account: ", shadowStats);
 		PrismObject<ShadowType> shadowUnix = provisioningService.getObject(ShadowType.class, accountUnixOid, null, task, result);
-		IntegrationTestTools.display("Unix account: ", shadowUnix);
+		display("Unix account: ", shadowUnix);
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
-		IntegrationTestTools.display("AD account: ", shadowOpenDj);
+		display("AD account: ", shadowOpenDj);
 
 		ObjectDelta<UserType> delteStatsAccountDelta= ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountStatsOid);
 		modelService.executeChanges((Collection) MiscUtil.createCollection(delteStatsAccountDelta), null, task, result);
@@ -268,7 +272,7 @@ public class TestScience  extends AbstractStoryTest {
 		AssertJUnit.assertNotNull("User jack not found", userJackAfter);
 		UserType jackTypeAfter = userJackAfter.asObjectable();
 
-		IntegrationTestTools.display("User Jack", jackTypeAfter);
+		display("User Jack", jackTypeAfter);
 
 		AssertJUnit.assertEquals("Wrong number of link refs", 2, jackTypeAfter.getLinkRef().size());
 
@@ -277,8 +281,8 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test102AssignRoleStats() throws Exception{
 		final String TEST_NAME = "test102AssignRoleStats";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 
 		OperationResult result = task.getResult();
 
@@ -292,14 +296,14 @@ public class TestScience  extends AbstractStoryTest {
 		// THEN
 		result.computeStatus();
 		if (!result.isSuccess() && !result.isPartialError()) {
-			IntegrationTestTools.display(result);
+			display(result);
 			AssertJUnit.fail("Expected success or partial error, but got "+result.getStatus());
 		}
 		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJack);
 		UserType jackType = userJack.asObjectable();
 
-		IntegrationTestTools.display("User Jack", jackType);
+		display("User Jack", jackType);
 
 		AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
 
@@ -310,11 +314,11 @@ public class TestScience  extends AbstractStoryTest {
 		String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
 
 		PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
-		IntegrationTestTools.display("Stats account: ", shadowStats);
+		display("Stats account: ", shadowStats);
 		PrismObject<ShadowType> shadowUnix = provisioningService.getObject(ShadowType.class, accountUnixOid, null, task, result);
-		IntegrationTestTools.display("Unix account: ", shadowUnix);
+		display("Unix account: ", shadowUnix);
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
-		IntegrationTestTools.display("AD account: ", shadowOpenDj);
+		display("AD account: ", shadowOpenDj);
 
 		openDJController.start();
 
@@ -325,8 +329,8 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test200DelteUserJack() throws Exception {
 		final String TEST_NAME = "test200DelteUserJack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 
 		OperationResult result = task.getResult();
 
@@ -336,9 +340,9 @@ public class TestScience  extends AbstractStoryTest {
 		// THEN
 		result.computeStatus();
 
-		IntegrationTestTools.display("Result: ", result);
+		display("Result: ", result);
 		if (!result.isSuccess() && !result.isHandledError()) {
-			IntegrationTestTools.display(result);
+			display(result);
 			AssertJUnit.fail("Expected success or handled error, but got "+result.getStatus());
 		}
 

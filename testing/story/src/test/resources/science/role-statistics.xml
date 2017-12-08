@@ -14,10 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<role oid="23d90f70-1924-419e-9beb-78a8bde6d261"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-      oid="23d90f70-1924-419e-9beb-78a8bde6d261"
-      version="7">
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
    <name>Stats</name>
    <inducement id="1">
       <construction>
@@ -30,7 +30,7 @@
                   <associationTargetSearch>
                      <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
                         <q:equal>
-                           <q:path>attributes/icfs:name</q:path>
+                           <q:path>attributes/ri:dn</q:path>
                            <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>
                         </q:equal>
                      </filter>
