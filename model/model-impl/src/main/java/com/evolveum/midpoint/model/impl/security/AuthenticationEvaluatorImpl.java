@@ -107,7 +107,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		} else {
 			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
 
-			throw new BadCredentialsException(messages.getMessage("web.security.provider.invalid"));
+			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 	}
 
@@ -129,7 +129,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		} else {
 			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
 
-			throw new BadCredentialsException(messages.getMessage("web.security.provider.invalid"));
+			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 	}
 
@@ -139,7 +139,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		CredentialsType credentials = userType.getCredentials();
 		if (credentials == null || getCredential(credentials) == null) {
 			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
-			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.invalid"));
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}
 
 		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
@@ -147,14 +147,14 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		// Lockout
 		if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
 			recordAuthenticationFailure(principal, connEnv, "password locked-out");
-			throw new LockedException(messages.getMessage("web.security.provider.locked"));
+			throw new LockedException("web.security.provider.locked");
 		}
 
 		if (suportsAuthzCheck()) {
 			// Authorizations
 			if (!hasAnyAuthorization(principal)) {
 				recordAuthenticationFailure(principal, connEnv, "no authorizations");
-				throw new DisabledException(messages.getMessage("web.security.provider.access.denied"));
+				throw new DisabledException("web.security.provider.access.denied");
 			}
 		}
 
@@ -194,7 +194,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		CredentialsType credentials = userType.getCredentials();
 		if (credentials == null) {
 			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
-			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.invalid"));
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}
 		PasswordType passwordType = credentials.getPassword();
 		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
@@ -203,13 +203,13 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		// Lockout
 		if (isLockedOut(passwordType, passwordCredentialsPolicy)) {
 			recordAuthenticationFailure(principal, connEnv, "password locked-out");
-			throw new LockedException(messages.getMessage("web.security.provider.locked"));
+			throw new LockedException("web.security.provider.locked");
 		}
 
 		// Authorizations
 		if (!hasAnyAuthorization(principal)) {
 			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new AccessDeniedException(messages.getMessage("web.security.provider.access.denied"));
+			throw new AccessDeniedException("web.security.provider.access.denied");
 		}
 
 		// Password age
@@ -227,7 +227,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		// Authorizations
 		if (!hasAnyAuthorization(principal)) {
 			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new AccessDeniedException(messages.getMessage("web.security.provider.access.denied"));
+			throw new AccessDeniedException("web.security.provider.access.denied");
 		}
 
 		PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
@@ -242,7 +242,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
 		if (StringUtils.isBlank(enteredUsername)) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no username");
-			throw new UsernameNotFoundException(messages.getMessage("web.security.provider.invalid"));
+			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 
 		MidPointPrincipal principal;
@@ -250,21 +250,21 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			principal = userProfileService.getPrincipal(enteredUsername);
 		} catch (ObjectNotFoundException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no user");
-			throw new UsernameNotFoundException(messages.getMessage("web.security.provider.invalid"));
+			throw new UsernameNotFoundException("web.security.provider.invalid");
 		} catch (SchemaException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
-			throw new AccessDeniedException(messages.getMessage("web.security.provider.invalid"));
+			throw new AccessDeniedException("web.security.provider.invalid");
 		}
 
 
 		if (principal == null) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no user");
-			throw new UsernameNotFoundException(messages.getMessage("web.security.provider.invalid"));
+			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 
 		if (supportsActivationCheck && !principal.isEnabled()) {
 			recordAuthenticationFailure(principal, connEnv, "user disabled");
-			throw new DisabledException(messages.getMessage("web.security.provider.disabled"));
+			throw new DisabledException("web.security.provider.disabled");
 		}
 		return principal;
 	}
@@ -286,7 +286,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			P passwordCredentialsPolicy) {
 		if (credentials == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored credential value");
-			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.credential.bad"));
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.credential.bad");
 		}
 
 		validateCredentialNotNull(connEnv, principal, credentials);
@@ -303,7 +303,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 				XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
 				if (clock.isPast(passwordValidUntil)) {
 					recordAuthenticationFailure(principal, connEnv, "password expired");
-					throw new CredentialsExpiredException(messages.getMessage("web.security.provider.credential.expired"));
+					throw new CredentialsExpiredException("web.security.provider.password.bad");
 				}
 			}
 		}
@@ -313,7 +313,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			CredentialPolicyType passwordCredentialsPolicy) {
 		if (protectedString == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
-			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.password.bad"));
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
 		}
 		if (passwordCredentialsPolicy == null) {
 			return;
@@ -325,7 +325,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 				XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
 				if (clock.isPast(passwordValidUntil)) {
 					recordAuthenticationFailure(principal, connEnv, "password expired");
-					throw new CredentialsExpiredException(messages.getMessage("web.security.provider.credential.expired"));
+					throw new CredentialsExpiredException("web.security.provider.password.bad");
 				}
 			}
 		}
@@ -351,7 +351,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			// if the administrator himself cannot log in. Therefore explicitly log those errors here.
 			LOGGER.error("Error dealing with credentials of user \"{}\" credentials: {}", principal.getUsername(), e.getMessage());
 			recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
-			throw new AuthenticationServiceException(messages.getMessage("web.security.provider.unavailable"), e);
+			throw new AuthenticationServiceException("web.security.provider.unavailable", e);
 		}
 	}
 
@@ -362,7 +362,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 				decryptedPassword = protector.decryptString(protectedString);
 			} catch (EncryptionException e) {
 				recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
-				throw new AuthenticationServiceException(messages.getMessage("web.security.provider.unavailable"), e);
+				throw new AuthenticationServiceException("web.security.provider.unavailable", e);
 			}
 		} else {
 			LOGGER.warn("Authenticating user based on clear value. Please check objects, "
@@ -379,7 +379,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 				decryptedPassword = protector.decryptString(protectedString);
 			} catch (EncryptionException e) {
 				recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
-				throw new AuthenticationServiceException(messages.getMessage("web.security.provider.unavailable"), e);
+				throw new AuthenticationServiceException("web.security.provider.unavailable", e);
 			}
 		} else {
 			LOGGER.warn("Authenticating user based on clear value. Please check objects, "
