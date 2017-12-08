@@ -116,7 +116,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 
-	protected static final int NUMBER_OF_ACCOUNTS = 25;
+	protected static final int NUMBER_OF_ACCOUNTS = 23;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 
 	private static final String NS_EXTENSION = "http://whatever.com/my";
@@ -246,7 +246,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Override
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         super.test000Sanity();
 
 		assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
@@ -261,9 +261,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Override
     public void test020Schema() throws Exception {
 		final String TEST_NAME = "test020Schema";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        accountObjectClassDefinition = AdUtils.assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
+        accountObjectClassDefinition = AdUtils.assertAdResourceSchemaLongTimestamp(resource, getAccountObjectClass(), prismContext);
 
         assertLdapConnectorInstances(1);
 	}
@@ -273,7 +273,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test100SeachJackBySamAccountName() throws Exception {
 		final String TEST_NAME = "test100SeachJackBySamAccountName";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -313,7 +313,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test105SeachPiratesByCn() throws Exception {
 		final String TEST_NAME = "test105SeachPiratesByCn";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -353,7 +353,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test110GetJack() throws Exception {
 		final String TEST_NAME = "test110GetJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -395,7 +395,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test150SeachAllAccounts() throws Exception {
 		final String TEST_NAME = "test150SeachAllAccounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -411,7 +411,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         		NUMBER_OF_ACCOUNTS, task, result);
 
         // TODO: why 11? should be 1
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 12);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 11);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -428,7 +428,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test152SeachFirst2Accounts() throws Exception {
 		final String TEST_NAME = "test152SeachFirst2Accounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -459,7 +459,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test154SeachFirst11Accounts() throws Exception {
 		final String TEST_NAME = "test154SeachFirst11Accounts";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -487,7 +487,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test162SeachFirst2AccountsOffset0() throws Exception {
 		final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -521,7 +521,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test172Search2AccountsOffset1() throws Exception {
 		final String TEST_NAME = "test172Search2AccountsOffset1";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -553,7 +553,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test174SeachFirst11AccountsOffset2() throws Exception {
 		final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -591,7 +591,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test182Search2AccountsOffset1SortCn() throws Exception {
 		final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -622,7 +622,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test200AssignAccountBarbossa() throws Exception {
 		final String TEST_NAME = "test200AssignAccountBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -672,7 +672,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test210ModifyAccountBarbossaTitle() throws Exception {
 		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -708,7 +708,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue() throws Exception {
 		final String TEST_NAME = "test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -747,7 +747,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse() throws Exception {
 		final String TEST_NAME = "test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -786,7 +786,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test220ModifyUserBarbossaPassword() throws Exception {
 		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -821,7 +821,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test230DisableUserBarbossa() throws Exception {
 		final String TEST_NAME = "test230DisableUserBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -863,7 +863,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test239EnableUserBarbossa() throws Exception {
 		final String TEST_NAME = "test239EnableUserBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -899,7 +899,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test250AssignGuybrushPirates() throws Exception {
 		final String TEST_NAME = "test250AssignGuybrushPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -938,7 +938,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test255ModifyUserGuybrushPassword() throws Exception {
 		final String TEST_NAME = "test255ModifyUserGuybrushPassword";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -974,7 +974,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test260EnableGyubrush() throws Exception {
 		final String TEST_NAME = "test260EnableGyubrush";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -1009,7 +1009,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test300AssignBarbossaPirates() throws Exception {
 		final String TEST_NAME = "test300AssignBarbossaPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -1043,7 +1043,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test390ModifyUserBarbossaRename() throws Exception {
 		final String TEST_NAME = "test390ModifyUserBarbossaRename";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -1088,7 +1088,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test395UnAssignBarbossaPirates() throws Exception {
 		final String TEST_NAME = "test395UnAssignBarbossaPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // TODO: do this on another account. There is a bad interference with rename.
 
@@ -1124,7 +1124,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test399UnAssignAccountBarbossa() throws Exception {
 		final String TEST_NAME = "test399UnAssignAccountBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -1151,7 +1151,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test500AddOrgMeleeIsland() throws Exception {
 		final String TEST_NAME = "test500AddOrgMeleeIsland";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -1190,7 +1190,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	@Test
     public void test510AssignGuybrushMeleeIsland() throws Exception {
 		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);

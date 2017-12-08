@@ -44,7 +44,7 @@
                 <t:clearValue>mAZadlo911</t:clearValue>
             </icfcldap:bindPassword>
             <icfcldap:pagingBlockSize>5</icfcldap:pagingBlockSize> <!-- ridiculously small, just to test paging -->
-            
+
             <icfcldap:rawUserAccountControlAttribute>true</icfcldap:rawUserAccountControlAttribute>
             
         </icfc:configurationProperties>
