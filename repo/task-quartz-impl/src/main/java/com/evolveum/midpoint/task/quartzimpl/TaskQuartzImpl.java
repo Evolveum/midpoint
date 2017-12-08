@@ -274,6 +274,11 @@ public class TaskQuartzImpl implements Task {
 		return taskPrism;
 	}
 
+	@Override
+	public TaskType getTaskType() {
+		return getTaskPrismObject().asObjectable();
+	}
+
 	RepositoryService getRepositoryService() {
 		return repositoryService;
 	}

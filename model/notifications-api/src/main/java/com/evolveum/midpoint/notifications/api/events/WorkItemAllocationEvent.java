@@ -38,9 +38,10 @@ public class WorkItemAllocationEvent extends WorkItemEvent {
 			@NotNull ChangeType changeType,
 			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull WfContextType workflowContext, @Nullable Duration timeBefore) {
+			@NotNull WfContextType workflowContext, @NotNull TaskType workflowTask,
+			@Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationInfo, sourceInfo,
-				workflowContext,null, timeBefore);
+				workflowContext, workflowTask, null, timeBefore);
 	}
 
 	@Override
