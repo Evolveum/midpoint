@@ -100,7 +100,6 @@ public class ContextLoader {
 
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private ProvisioningService provisioningService;
-    @Autowired private SecurityHelper securityHelper;
 	@Autowired private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
@@ -411,37 +410,9 @@ public class ContextLoader {
 		    context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
 		}
 
-		loadSecurityPolicy(context, task, result);
+		// Cannot load security policy here. parentOrgRef may not be completed yet.
 	}
 
-	@SuppressWarnings("unchecked")
-	private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return;
-		}
-		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			LOGGER.trace("Skipping load of security policy because focus is not user");
-			return;
-		}
-		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
-		if (securityPolicy == null) {
-			securityPolicy = securityHelper.locateSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
-					context.getSystemConfiguration(), task, result);
-			if (securityPolicy == null) {
-				// store empty policy to avoid repeated lookups
-				securityPolicy = new SecurityPolicyType();
-			}
-			focusContext.setSecurityPolicy(securityPolicy);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
-		} else {
-			LOGGER.debug("Security policy: {}", securityPolicy);
-		}
-	}
 
     // expects that object policy configuration is already set in focusContext
 	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {

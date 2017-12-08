@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import org.apache.commons.lang.StringUtils;
@@ -82,6 +83,7 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private FunctionLibrary logFunctionLibrary;
 	@Autowired private FunctionLibrary basicFunctionLibrary;
 	@Autowired private FunctionLibrary midpointFunctionLibrary;
+	@Autowired private LocalizationService localizationService;
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
@@ -184,9 +186,9 @@ public class ReportServiceImpl implements ReportService {
 		Collection<FunctionLibrary> functions = createFunctionLibraries();
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector());
+				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o = null;
+		Object o;
 		try{
 			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
 				parentResult);
@@ -238,9 +240,9 @@ public class ReportServiceImpl implements ReportService {
 		Collection<FunctionLibrary> functions = createFunctionLibraries();
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector());
+				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o = null;
+		Object o;
 		try{
 			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
 				parentResult);

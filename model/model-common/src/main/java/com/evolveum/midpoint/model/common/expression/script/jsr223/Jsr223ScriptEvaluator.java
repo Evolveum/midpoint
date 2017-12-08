@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import javax.script.AbstractScriptEngine;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -31,6 +30,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
@@ -41,7 +41,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -68,13 +67,15 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
 
-	private ScriptEngine scriptEngine;
-	private PrismContext prismContext;
-	private Protector protector;
+	private final ScriptEngine scriptEngine;
+	private final PrismContext prismContext;
+	private final Protector protector;
+	private final LocalizationService localizationService;
 
-	private Map<String, CompiledScript> scriptCache;
+	private final Map<String, CompiledScript> scriptCache;
 
-	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext, Protector protector) {
+	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext, Protector protector,
+			LocalizationService localizationService) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		scriptEngine = scriptEngineManager.getEngineByName(engineName);
 		if (scriptEngine == null) {
@@ -83,6 +84,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.scriptCache = new ConcurrentHashMap<>();
+		this.localizationService = localizationService;
 	}
 
 	@Override
@@ -113,8 +115,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (Throwable e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e,
-					ExceptionUtil.getUserFriendlyMessage(e));
+			throw localizationService.translate(
+					new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription,
+							e, ExceptionUtil.getUserFriendlyMessage(e)));
 		}
 
 		if (outputDefinition == null) {

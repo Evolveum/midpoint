@@ -707,6 +707,26 @@ public class TestQueryConvertor {
 	}
 
 	@Test
+	public void test595Logicals2() throws Exception {
+		final String TEST_NAME = "test595Logicals2";
+		displayTestTitle(TEST_NAME);
+		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_DESCRIPTION).eq("A")
+				.and().item(UserType.F_DESCRIPTION).eq("B")
+				.or().item(UserType.F_DESCRIPTION).eq("C")
+				.and().item(UserType.F_DESCRIPTION).eq("D")
+				.and()
+					.block()
+						.item(UserType.F_DESCRIPTION).eq("E1")
+						.and().item(UserType.F_DESCRIPTION).eq("E2")
+						.or().item(UserType.F_DESCRIPTION).eq("E3")
+					.endBlock()
+				.build();
+
+		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+	}
+
+	@Test
 	public void test600Type() throws Exception {
 		final String TEST_NAME = "test600Type";
 		displayTestTitle(TEST_NAME);

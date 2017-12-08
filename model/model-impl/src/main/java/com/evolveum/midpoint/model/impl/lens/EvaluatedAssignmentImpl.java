@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
@@ -432,8 +433,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@Override
-	public void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-		LensUtil.triggerConstraintLegacy(trigger, policySituations);
+	public void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger,
+			LocalizationService localizationService) throws PolicyViolationException {
+		LensUtil.triggerConstraintLegacy(trigger, policySituations, localizationService);
 	}
 
 	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {

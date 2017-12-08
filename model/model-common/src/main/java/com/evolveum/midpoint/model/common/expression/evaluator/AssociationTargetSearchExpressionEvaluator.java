@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
@@ -62,8 +63,10 @@ public class AssociationTargetSearchExpressionEvaluator
 
 	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver,
-			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager);
+			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
+			LocalizationService localizationService) {
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext,
+				securityContextManager, localizationService);
 	}
 
 	@Override

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.List;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -44,8 +45,9 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
-    ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression, SecurityContextManager securityContextManager) {
-    	super(scriptType, securityContextManager);
+    ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression,
+		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
+    	super(scriptType, securityContextManager, localizationService);
         this.scriptExpression = scriptExpression;
     }
 

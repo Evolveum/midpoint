@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -45,10 +46,13 @@ public class ExpressionFactory {
 	final private PrismContext prismContext;
 	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
 	final private SecurityContextManager securityContextManager;
+	private LocalizationService localizationService;
 
-	public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext) {
+	public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext,
+			LocalizationService localizationService) {
 		this.prismContext = prismContext;
 		this.securityContextManager = securityContextManager;
+		this.localizationService = localizationService;
 	}
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
@@ -57,6 +61,10 @@ public class ExpressionFactory {
 
 	public PrismContext getPrismContext() {
 		return prismContext;
+	}
+
+	public LocalizationService getLocalizationService() {
+		return localizationService;
 	}
 
 	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,

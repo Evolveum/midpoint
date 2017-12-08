@@ -17,6 +17,7 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 
 /**
@@ -24,12 +25,12 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
  * 
  * @author semancik
  */
-public abstract class AbstractObjectResolvableExpressionEvaluator implements ExpressionEvaluatorFactory {
+public abstract class AbstractObjectResolvableExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 	
 	private final ExpressionFactory expressionFactory;
 	private ObjectResolver objectResolver;
 
-	public AbstractObjectResolvableExpressionEvaluator(ExpressionFactory expressionFactory) {
+	public AbstractObjectResolvableExpressionEvaluatorFactory(ExpressionFactory expressionFactory) {
 		super();
 		this.expressionFactory = expressionFactory;
 	}
@@ -44,6 +45,10 @@ public abstract class AbstractObjectResolvableExpressionEvaluator implements Exp
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
 		this.objectResolver = objectResolver;
+	}
+
+	public LocalizationService getLocalizationService() {
+		return expressionFactory.getLocalizationService();
 	}
 
 	@PostConstruct

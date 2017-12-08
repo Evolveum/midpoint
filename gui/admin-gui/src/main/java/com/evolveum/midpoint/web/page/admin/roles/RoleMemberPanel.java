@@ -50,6 +50,8 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -157,12 +159,12 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return assignmentToModify;
 	}
 
-	private ObjectQuery getActionQuery(QueryScope scope) {
+	private ObjectQuery getActionQuery(QueryScope scope, List<QName> relations) {
 		switch (scope) {
 			case ALL:
-				return createAllMemberQuery();
+				return createAllMemberQuery(relations);
 			case ALL_DIRECT:
-				return createDirectMemberQuery( );
+				return createDirectMemberQuery(relations);
 			case SELECTED:
 				return createRecomputeQuery();
 		}
@@ -170,23 +172,22 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return null;
 	}
 
-	protected ObjectQuery createAllMemberQuery() {
+	protected ObjectQuery createAllMemberQuery(List<QName> relations) {
 		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(createReferenceValuesList())
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(createReferenceValuesList(relations))
 				.build();
 	}
 
-	private List<PrismReferenceValue> createReferenceValuesList() {
+	private List<PrismReferenceValue> createReferenceValuesList(List<QName> relations) {
 		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
 		if (relations != null && relations.size() > 0){
-			for (RelationTypes relation : relations) {
-				PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-				rv.setRelation(relation.getRelation());
-				referenceValuesList.add(rv);
+			if (!CollectionUtils.isEmpty(relations)) {
+				for (QName relation : relations) {
+					referenceValuesList.add(createReference(relation).asReferenceValue());
+				}
 			}
 		} else {
-			PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-			referenceValuesList.add(rv);
+			referenceValuesList.add(createReference().asReferenceValue());
 		}
 
 		return referenceValuesList;
@@ -374,7 +375,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	protected void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope));
 		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, relation, MemberOperation.REMOVE, operationalTask.getResult());
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), delta,
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope, relation), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
 
 	}
@@ -382,7 +383,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope));
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), null,
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope, null), null,
 				TaskCategory.RECOMPUTATION, target);
 
 	}
@@ -391,17 +392,24 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	protected ObjectQuery createContentQuery() {
 		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
 
-		return indirect ? createAllMemberQuery() : createDirectMemberQuery();
+		List<QName> relationList = new ArrayList<>();
+		if (relations != null) {
+			for (RelationTypes relation: relations) {
+				relationList.add(relation.getRelation());
+			}
+		}
+		
+		return indirect ? createAllMemberQuery(relationList) : createDirectMemberQuery(relationList);
 
 	}
 
-	protected ObjectQuery createDirectMemberQuery() {
+	protected ObjectQuery createDirectMemberQuery(List<QName> relations) {
 		ObjectQuery query;
 
 		String oid = getModelObject().getOid();
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-				.ref(createReferenceValuesList());
+				.ref(createReferenceValuesList(relations));
 		ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_TENANT));
 		ObjectViewDto<OrgType> tenant = tenantChoice.getModelObject();
 		if (tenant != null && tenant.getObjectType() != null) {
