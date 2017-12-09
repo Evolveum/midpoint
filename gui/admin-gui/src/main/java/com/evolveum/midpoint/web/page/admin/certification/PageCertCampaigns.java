@@ -737,7 +737,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		result.recomputeStatus();
 		if (result.isSuccess()) {
 			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The campaign(s) have been successfully deleted.");
+					"The campaign(s) have been successfully deleted.");     // todo i18n
 		}
 
 		Table campaignsTable = getCampaignsTable();
@@ -789,7 +789,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		result.recomputeStatus();
 		if (result.isSuccess()) {
 			result.recordStatus(OperationResultStatus.SUCCESS,
-					processed + " campaign(s) have been successfully processed.");
+					processed + " campaign(s) have been successfully processed.");      // todo i18n
 		}
 
 		showResult(result);

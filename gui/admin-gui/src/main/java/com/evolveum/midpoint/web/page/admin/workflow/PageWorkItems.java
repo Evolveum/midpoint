@@ -219,7 +219,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         }
 
         if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully " + (approve ? "approved." : "rejected."));
+            mainResult.recordStatus(OperationResultStatus.SUCCESS,
+                    createStringResource(approve ? "pageWorkItems.message.success.approved" : "pageWorkItems.message.success.rejected").getString());
         }
 
         showResult(mainResult);
@@ -262,7 +263,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         }
 
         if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully claimed.");
+            mainResult.recordStatus(OperationResultStatus.SUCCESS,
+                    createStringResource("pageWorkItems.message.success.claimed").getString());
         }
 
         showResult(mainResult);
@@ -299,7 +301,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             warn(getString("pageWorkItems.message.noItemToBeReleased"));
         } else {
             if (mainResult.isSuccess()) {
-                mainResult.recordStatus(OperationResultStatus.SUCCESS, applicable + " work item(s) have been successfully released.");
+                mainResult.recordStatus(OperationResultStatus.SUCCESS,
+                        createStringResource("pageWorkItems.message.success.released", applicable).getString());
             }
             showResult(mainResult);
         }
