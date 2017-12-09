@@ -248,7 +248,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
 		result.computeStatusIfUnknown();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "The definition has been successfully deleted.");
+			result.recordStatus(OperationResultStatus.SUCCESS, "The definition has been successfully deleted.");    // todo i18n
 		}
 
 		getDefinitionsTable().clearCache();

@@ -134,7 +134,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                         //noinspection ConstantConditions
                         getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
                     }
-                    result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
+                    result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");   // todo 18n
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't submit bulk action to execution", e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);

@@ -48,9 +48,9 @@ public class TaskOperationUtils {
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "The task have been successfully suspended.");
+                    result.recordStatus(OperationResultStatus.SUCCESS, "The task have been successfully suspended.");   // todo i18n
                 } else {
-                    result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");
+                    result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");  // todo i18n
                 }
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
@@ -69,7 +69,7 @@ public class TaskOperationUtils {
             result.computeStatus();
 
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");  // todo i18n
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't resume the task", e);
@@ -86,7 +86,7 @@ public class TaskOperationUtils {
             result.computeStatus();
 
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run.");
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run."); // todo i18n
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't schedule the task", e);
