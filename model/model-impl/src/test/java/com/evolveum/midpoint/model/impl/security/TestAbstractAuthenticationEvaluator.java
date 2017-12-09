@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Locale;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -1056,31 +1057,35 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	}
 
 	private void assertBadPasswordException(BadCredentialsException e, String username) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
+	}
+
+	private String getTranslatedMessage(Throwable t) {
+		return localizationService.translate(t.getMessage(), new Object[0], Locale.getDefault());
 	}
 
 	private void assertPasswordEncodingException(BadCredentialsException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.encoding"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.encoding"), getTranslatedMessage(e));
 	}
 
 	private void assertDeniedException(AccessDeniedException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.access.denied"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.access.denied"), getTranslatedMessage(e));
 	}
 
 	private void assertLockedException(LockedException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.locked"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.locked"), getTranslatedMessage(e));
 	}
 
 	private void assertDisabledException(DisabledException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.disabled"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.disabled"), getTranslatedMessage(e));
 	}
 
 	private void assertExpiredException(CredentialsExpiredException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.credential.expired"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.credential.expired"), getTranslatedMessage(e));
 	}
 
 	private void assertNoUserException(UsernameNotFoundException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
 	}
 
 	private ConnectionEnvironment createConnectionEnvironment() {
