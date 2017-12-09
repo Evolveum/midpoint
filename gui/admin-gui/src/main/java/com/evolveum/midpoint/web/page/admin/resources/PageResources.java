@@ -418,7 +418,7 @@ public class PageResources extends PageAdminResources {
 		result.recomputeStatus();
 		if (result.isSuccess()) {
 			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The resource(s) have been successfully deleted.");
+					"The resource(s) have been successfully deleted."); // todo i18n
 		}
 
 		getResourceTable().clearCache();

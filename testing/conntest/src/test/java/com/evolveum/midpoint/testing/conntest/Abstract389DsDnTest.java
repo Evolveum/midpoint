@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
+@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public abstract class Abstract389DsDnTest extends Abstract389DsTest {
 
 	@Override

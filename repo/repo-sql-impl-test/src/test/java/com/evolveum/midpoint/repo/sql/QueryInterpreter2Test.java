@@ -4238,6 +4238,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .and().not().id(new String[0])
                     .maxSize(10)
                     .build();
+            query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));           // necessary to remove "not oid()" clause
             String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
             String expected = "select\n"
                     + "  a.oid,\n"
@@ -4253,8 +4254,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "where\n"
                     + "  (\n"
                     + "    a.state = :state and\n"
-                    + "    a.end < :end and\n"
-                    + "    not a.oid in (:oid)\n"               // TODO why this?!
+                    + "    a.end < :end\n"
                     + "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {

@@ -173,10 +173,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		};
 
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-			columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
-		}
+		ContainerWrapper<AssignmentType> cwat = getModelObject();
+					columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
+if (cwat != null){
 
+}
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
 				assignmentsProvider, columns, getTableId(), getItemsPerPage()) {
 			private static final long serialVersionUID = 1L;

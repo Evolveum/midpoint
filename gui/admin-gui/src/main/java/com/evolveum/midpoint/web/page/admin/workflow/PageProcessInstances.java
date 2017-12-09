@@ -189,7 +189,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
 
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully stopped.");
+            result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully stopped."); // todo i18n
         }
 
         showResult(result);
@@ -229,7 +229,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 		}
 
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully deleted.");
+			result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully deleted."); // todo i18n
 		}
 
 		showResult(result);

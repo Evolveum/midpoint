@@ -304,7 +304,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     boolean isCorrectPassword = getModelInteractionService().checkPassword(user.getOid(), oldPassword,
                             checkPasswordTask, checkPasswordResult);
                     if (!isCorrectPassword) {
-                        warn(getString("PageSelfCredentials.incorrectOldPassword"));
+                        error(getString("PageSelfCredentials.incorrectOldPassword"));
                         target.add(getFeedbackPanel());
                         return;
                     }
