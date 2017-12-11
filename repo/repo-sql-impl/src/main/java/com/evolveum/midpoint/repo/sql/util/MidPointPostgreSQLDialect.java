@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import org.hibernate.dialect.PostgreSQL95Dialect;
-import org.hibernate.dialect.PostgresPlusDialect;
 import org.hibernate.type.descriptor.sql.LongVarbinaryTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
