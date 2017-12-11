@@ -54,7 +54,7 @@ public class RAuditPropertyValue implements EntityState {
 	}
 
 	@Id
-	@GeneratedValue	//todo identifier generator [lazyman]
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public long getId() {
 		return id;
 	}

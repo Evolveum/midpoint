@@ -57,7 +57,7 @@ public class RAuditReferenceValue implements EntityState {
 	}
 
 	@Id
-	@GeneratedValue	//todo identifier generator [lazyman]
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public long getId() {
 		return id;
 	}
