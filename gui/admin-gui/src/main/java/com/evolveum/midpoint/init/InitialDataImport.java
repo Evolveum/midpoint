@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +146,12 @@ public class InitialDataImport {
 
         securityContext.setAuthentication(null);
 
+        try {
+            cleanup();
+        } catch (IOException ex) {
+            LOGGER.error("Couldn't cleanup tmp folder with imported files", ex);
+        }
+
         mainResult.recomputeStatus("Couldn't import objects.");
 
         LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);
@@ -212,6 +219,11 @@ public class InitialDataImport {
             throw new IllegalArgumentException("parameter name = " + name, e);
         }
         return new File(path);
+    }
+
+    private void cleanup() throws IOException {
+        Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp/initial-objects");
+        FileUtils.deleteDirectory(destDir.toFile());
     }
 
     /**

@@ -18,7 +18,10 @@ package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.prism.schema.CatalogImpl;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
@@ -88,6 +91,11 @@ import java.util.concurrent.TimeUnit;
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
+
+    private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
+    private static final String USER_HOME_PROPERTY_NAME = "user.home";
+
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
 
@@ -100,6 +108,18 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
 
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
+        String mpHome = System.getProperty(MIDPOINT_HOME_PROPERTY);
+        if (StringUtils.isEmpty(mpHome)) {
+            LOGGER.info("{} system property is not set, using default configuration", MIDPOINT_HOME_PROPERTY);
+
+            mpHome = System.getProperty(USER_HOME_PROPERTY_NAME);
+            if (!mpHome.endsWith("/")) {
+                mpHome += "/";
+            }
+            mpHome += "midpoint";
+            System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
+        }
+
         System.setProperty("spring.config.location", "${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);
