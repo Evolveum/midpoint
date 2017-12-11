@@ -19,13 +19,19 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -122,8 +128,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public ObjectDeltaWaves<O> getSecondaryDeltas() {
         return secondaryDeltas;
     }
+    
+    @Override
+	public Collection<ObjectDelta<O>> getAllDeltas() {
+		List<ObjectDelta<O>> deltas = new ArrayList<>(secondaryDeltas.size() + 1);
+		ObjectDelta<O> primaryDelta = getPrimaryDelta();
+		if (primaryDelta != null) {
+			deltas.add(primaryDelta);
+		}
+		for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
+			if (secondaryDelta != null) {
+				deltas.add(secondaryDelta);
+			}
+		}
+		return deltas;
+	}
 
-    public ObjectDelta<O> getProjectionWaveSecondaryDelta() throws SchemaException {
+	public ObjectDelta<O> getProjectionWaveSecondaryDelta() throws SchemaException {
         return getWaveSecondaryDelta(getProjectionWave());
     }
 
@@ -309,6 +330,42 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 			}
 		}
 	}
+	
+	/**
+	 * Returns true if there is any change in organization membership.
+	 * I.e. in case that there is a change in parentOrgRef.
+	 */
+	public boolean hasOrganizationalChange() {
+		return hasChangeInItem(SchemaConstants.PATH_PARENT_ORG_REF);
+	}
+	
+	public boolean hasChangeInItem(ItemPath itemPath) {
+		if (isAdd()) {
+			PrismObject<O> objectNew = getObjectNew();
+			if (objectNew == null) {
+				return false;
+			}
+			Item<PrismValue,ItemDefinition> item = objectNew.findItem(itemPath);
+			if (item == null) {
+				return false;
+			}
+			List<PrismValue> values = item.getValues();
+			if (values == null || values.isEmpty()) {
+				return false;
+			}
+			return true;
+		} else if (isDelete()) {
+			// We do not care any more
+			return false;
+		} else {
+			for (ObjectDelta<O> delta : getAllDeltas()) {
+				if (delta.hasItemDelta(itemPath)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 
     @Override
 	public LensFocusContext<O> clone(LensContext lensContext) {
@@ -323,11 +380,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 			clone.secondaryDeltas = this.secondaryDeltas.clone();
 		}
 	}
-
-	@Override
-    public String debugDump() {
-        return debugDump(0);
-    }
 
     public String dump(boolean showTriples) {
         return debugDump(0, showTriples);
