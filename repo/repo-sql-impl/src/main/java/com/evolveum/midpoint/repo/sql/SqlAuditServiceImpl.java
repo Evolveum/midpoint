@@ -571,7 +571,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		String queryString = "insert into " + tempTable + " " + selectString;
 		LOGGER.trace("Query string = {}", queryString);
 		NativeQuery query = session.createNativeQuery(queryString);
-		query.setParameter(0, new Timestamp(minValue.getTime()));
+		query.setParameter(1, new Timestamp(minValue.getTime()));
 
 		return query.executeUpdate();
     }
