@@ -310,7 +310,13 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 
 	@Override
 	public String toString() {
-		return "XNode(map:"+subnodes.size()+" entries)";
+		StringBuilder sb = new StringBuilder("XNode(map:"+subnodes.size()+" entries)");
+		sb.append("\n");
+		subnodes.forEach(entry -> {
+			sb.append(entry.toString());
+			sb.append("; \n");
+		});
+		return sb.toString();
 	}
 
 	private Entry findEntry(QName qname) {
