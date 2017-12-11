@@ -44,7 +44,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -83,7 +82,6 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 
@@ -664,11 +662,34 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		if (!searchType.equals(ObjectTypes.OBJECT)) {
 			q = q.type(searchType.getClassDefinition());
 		}
+
+		PrismReferenceValue parentOrgValue = new PrismReferenceValue();
+		parentOrgValue.setOid(oid);
+		parentOrgValue.setRelation(SchemaConstants.ORG_MANAGER);
+
+
+		PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(oid, OrgType.COMPLEX_TYPE);
+		parentOrgRefVal.setRelation(SchemaConstants.ORG_MANAGER);
+
 		ObjectQuery query;
 		if (SEARCH_SCOPE_ONE.equals(scope)) {
-			query = q.isDirectChildOf(oid).build();
+			query = q.isDirectChildOf(oid)
+					.and()
+					.block()
+					.not()
+					.item(ObjectType.F_PARENT_ORG_REF)
+					.ref(parentOrgValue)
+					.endBlock()
+					.build();
 		} else {
-			query = q.isChildOf(oid).build();
+			query = q.isChildOf(oid)
+					.and()
+					.block()
+					.not()
+					.item(ObjectType.F_PARENT_ORG_REF)
+					.ref(parentOrgValue)
+					.endBlock()
+					.build();
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());

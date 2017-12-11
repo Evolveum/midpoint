@@ -20,8 +20,14 @@ USE_NOHUP="true"
 if [ -z "$MIDPOINT_HOME" ] ; then
 	MIDPOINT_HOME="$SCRIPT_PATH../var"
 fi
-JAVA_OPTS="$JAVA_OPTS -Xms2048M -Xmx2048M -XX:PermSize=128m -XX:MaxPermSize=256m 
--Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks -Djavax.net.ssl.trustStoreType=jceks 
+JAVA_OPTS="$JAVA_OPTS
+-Xms2048M
+-Xmx2048M
+-XX:PermSize=128m
+-XX:MaxPermSize=256m
+-Dpython.cachedir=$MIDPOINT_HOME/tmp
+-Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks
+-Djavax.net.ssl.trustStoreType=jceks
 -Dmidpoint.home=$MIDPOINT_HOME"
 
 # resolve links - $0 may be a softlink

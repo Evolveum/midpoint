@@ -25,6 +25,7 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
