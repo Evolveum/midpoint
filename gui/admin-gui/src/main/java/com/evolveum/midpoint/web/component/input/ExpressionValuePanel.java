@@ -294,7 +294,13 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 if (getModelObject() == null){
                     getModel().setObject(new ExpressionType());
                 }
-                ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue));
+                try {
+                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue));
+                } catch (Exception ex){
+                    getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
+                            ex.getLocalizedMessage(), 0));
+                    target.add(getPageBase().getFeedbackPanel());
+                }
             }
         });
         targetSearchContainer.add(targetSearchFilterPathInput);

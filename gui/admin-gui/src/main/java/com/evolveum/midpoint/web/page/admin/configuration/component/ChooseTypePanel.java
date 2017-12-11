@@ -156,7 +156,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
             LOGGER.trace("Choose operation performed: {} ({})", o.getName(), o.getOid());
         }
 
-        target.add(get(ID_OBJECT_NAME));
+        target.add(get(ID_INPUT_CONTAINER).get(ID_OBJECT_NAME));
         executeCustomAction(target, object);
     }
 
