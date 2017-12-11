@@ -3291,7 +3291,10 @@
                         If it is required to change password. E.g. there are situation when you set first password
                         for the user, but after the user fist log in to the system, he/she has to change his/her password.
                     </xsd:documentation>
-                </xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AbstractCredentialType.forceChange</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -3306,7 +3309,13 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:AbstractCredentialType">
         		<xsd:sequence>
-            		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
+            		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PasswordType.value</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
             		<xsd:element name="historyEntry" type="tns:PasswordHistoryEntryType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
