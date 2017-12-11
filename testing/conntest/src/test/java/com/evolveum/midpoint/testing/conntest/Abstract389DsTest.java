@@ -18,6 +18,7 @@ package com.evolveum.midpoint.testing.conntest;
 import java.io.File;
 
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
