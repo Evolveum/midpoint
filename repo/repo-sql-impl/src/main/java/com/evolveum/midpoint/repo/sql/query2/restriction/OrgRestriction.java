@@ -23,11 +23,18 @@ import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
 public class OrgRestriction extends Restriction<OrgFilter> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(OrgRestriction.class);
 
     public OrgRestriction(InterpretationContext context, OrgFilter filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         super(context, filter, baseEntityDefinition, parent);
@@ -51,6 +58,20 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         }
 
         String orgOidParamName = hibernateQuery.addParameter("orgOid", filter.getOrgRef().getOid());
+
+        QName relation = filter.getOrgRef().getRelation();
+        String relationParamName;
+        if (relation != null) {
+            if (filter.getScope() == OrgFilter.Scope.ONE_LEVEL) {
+                relationParamName = hibernateQuery.addParameter("relation", RUtil.qnameToString(relation));
+            } else {
+                LOGGER.warn("'relation' clause ({}) not supported for subtree queries; ignoring it", relation);
+                relationParamName = null;
+            }
+        } else {
+            relationParamName = null;
+        }
+
         String oidQueryText;    // oid in ...
         switch (filter.getScope()) {
             case ONE_LEVEL:
@@ -60,6 +81,9 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                            "where " +
                               "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
                               "ref.targetOid = :" + orgOidParamName;
+                if (relationParamName != null) {
+                    oidQueryText += " and ref.relation = :" + relationParamName;        // TODO normalized vs unnormalized QNames, default vs null
+                }
                 break;
             case ANCESTORS:
                 oidQueryText =

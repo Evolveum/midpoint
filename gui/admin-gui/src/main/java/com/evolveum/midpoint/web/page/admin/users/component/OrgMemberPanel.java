@@ -663,32 +663,20 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			q = q.type(searchType.getClassDefinition());
 		}
 
-		PrismReferenceValue parentOrgValue = new PrismReferenceValue();
-		parentOrgValue.setOid(oid);
-		parentOrgValue.setRelation(SchemaConstants.ORG_MANAGER);
-
-
-		PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(oid, OrgType.COMPLEX_TYPE);
-		parentOrgRefVal.setRelation(SchemaConstants.ORG_MANAGER);
+		PrismReferenceValue managerReference = new PrismReferenceValue(oid).relation(SchemaConstants.ORG_MANAGER);
+		PrismReferenceValue memberReference = new PrismReferenceValue(oid).relation(SchemaConstants.ORG_DEFAULT);
 
 		ObjectQuery query;
 		if (SEARCH_SCOPE_ONE.equals(scope)) {
-			query = q.isDirectChildOf(oid)
-					.and()
-					.block()
-					.not()
-					.item(ObjectType.F_PARENT_ORG_REF)
-					.ref(parentOrgValue)
-					.endBlock()
-					.build();
+			query = q.isDirectChildOf(memberReference).build();
 		} else {
+			/*
+			 *  Not precise enough: when user is both manager and member, and when subtree of members is displayed,
+			 *  the user will be shown only as manager. It is because when displaying subtree, we cannot distinguish
+			 *  the relation.
+			 */
 			query = q.isChildOf(oid)
-					.and()
-					.block()
-					.not()
-					.item(ObjectType.F_PARENT_ORG_REF)
-					.ref(parentOrgValue)
-					.endBlock()
+					.and().not().isDirectChildOf(managerReference)
 					.build();
 		}
 		if (LOGGER.isTraceEnabled()) {

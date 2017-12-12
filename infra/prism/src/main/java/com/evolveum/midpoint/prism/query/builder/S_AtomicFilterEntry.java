@@ -40,8 +40,8 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit id(long... identifiers);
     S_AtomicFilterExit ownerId(String... identifiers);
     S_AtomicFilterExit ownerId(long... identifiers);
-    S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value);
-    S_AtomicFilterExit isChildOf(PrismReferenceValue value);
+    S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value);       // relation is taken into account (null means all)
+    S_AtomicFilterExit isChildOf(PrismReferenceValue value);             // relation is ignored in this case
     S_AtomicFilterExit isDirectChildOf(String oid);
     S_AtomicFilterExit isChildOf(String oid);
     S_AtomicFilterExit isParentOf(PrismReferenceValue value);            // reference should point to OrgType

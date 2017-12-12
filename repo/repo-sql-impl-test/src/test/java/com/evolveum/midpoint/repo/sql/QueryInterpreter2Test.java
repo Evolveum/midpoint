@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -1546,6 +1547,44 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid)\n" +
                     "order by o.name.orig asc\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test342QueryOrgTreeFindMembersNotManagers() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .isDirectChildOf("org1")
+                    .and().not().isDirectChildOf(new PrismReferenceValue("org1").relation(SchemaConstants.ORG_MANAGER))
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+
+            OperationResult result = new OperationResult("query org structure");
+            repositoryService.searchObjects(UserType.class, query, null, result);
+
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject,\n"
+                    + "  u.stringsCount,\n"
+                    + "  u.longsCount,\n"
+                    + "  u.datesCount,\n"
+                    + "  u.referencesCount,\n"
+                    + "  u.polysCount,\n"
+                    + "  u.booleansCount\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid) and\n"
+                    + "    not u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid2 and ref.relation = :relation)\n"
+                    + "  )\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
