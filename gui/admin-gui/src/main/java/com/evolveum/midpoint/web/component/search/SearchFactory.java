@@ -111,7 +111,7 @@ public class SearchFactory {
                 new ItemPath(ReportType.F_PARENT)
         ));
         SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
-                new ItemPath(ShadowType.F_OBJECT_CLASS),
+//                new ItemPath(ShadowType.F_OBJECT_CLASS),
                 new ItemPath(ShadowType.F_DEAD),
                 new ItemPath(ShadowType.F_INTENT),
                 new ItemPath(ShadowType.F_EXISTS),
