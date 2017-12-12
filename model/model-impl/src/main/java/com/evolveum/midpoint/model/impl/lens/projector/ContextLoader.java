@@ -101,6 +101,7 @@ public class ContextLoader {
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SecurityHelper securityHelper;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 
@@ -410,7 +411,7 @@ public class ContextLoader {
 		    context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
 		}
 
-		// Cannot load security policy here. parentOrgRef may not be completed yet.
+		loadSecurityPolicy(context, task, result);
 	}
 
 
@@ -1328,5 +1329,55 @@ public class ContextLoader {
 		}
 	}
 
-
+	public <F extends ObjectType> void reloadSecurityPolicyIfNeeded(LensContext<F> context,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			LOGGER.trace("Skipping load of security policy because focus is not user");
+			return;
+		}
+		if (!focusContext.hasOrganizationalChange()) {
+			return;
+		}
+		loadSecurityPolicy(context, true, task, result);
+	}
+	
+	public <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		loadSecurityPolicy(context, false, task, result);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context, boolean forceReload,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			LOGGER.trace("Skipping load of security policy because focus is not user");
+			return;
+		}
+		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
+		if (forceReload || securityPolicy == null) {
+			securityPolicy = securityHelper.locateSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
+					context.getSystemConfiguration(), task, result);
+			if (securityPolicy == null) {
+				// store empty policy to avoid repeated lookups
+				securityPolicy = new SecurityPolicyType();
+			}
+			focusContext.setSecurityPolicy(securityPolicy);
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
+		} else {
+			LOGGER.debug("Security policy: {}", securityPolicy);
+		}
+	}
 }

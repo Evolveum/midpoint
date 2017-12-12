@@ -244,6 +244,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF);
 	public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	public static final ItemPath PATH_AUTOASSIGN_ENABLED = new ItemPath(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
+	public static final ItemPath PATH_PARENT_ORG_REF = new ItemPath(ObjectType.F_PARENT_ORG_REF);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";

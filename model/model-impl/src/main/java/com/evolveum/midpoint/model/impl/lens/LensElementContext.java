@@ -285,6 +285,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		originalDelta.swallow(propDelta);
 		return originalDelta;
 	}
+	
+	/**
+	 * Returns collection of all deltas that this element context contains.
+	 * This is a nice method to use if we want to inspect all deltas (e.g. look for a changed item)
+	 * but we want to avoid the overhead of merging all the deltas together.
+	 */
+	public abstract Collection<ObjectDelta<O>> getAllDeltas();
 
 	@NotNull
 	public List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
