@@ -57,6 +57,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Evaluator that validates the value of any object property. The validation means a checks whether
@@ -179,11 +182,13 @@ public class ObjectValuePolicyEvaluator {
 		this.task = task;
 	}
 
+	// Beware: minOccurs is not checked here; it has to be done globally over all values. See validateMinOccurs method.
 	public OperationResult validateProtectedStringValue(ProtectedStringType value) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String clearValue = getClearValue(value);
 		return validateStringValue(clearValue);
 	}
 
+	// Beware: minOccurs is not checked here; it has to be done globally over all values. See validateMinOccurs method.
 	public OperationResult validateStringValue(String clearValue) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		OperationResult result = new OperationResult(OPERATION_VALIDATE_VALUE);
 		List<LocalizableMessage> messages = new ArrayList<>();
@@ -194,6 +199,11 @@ public class ObjectValuePolicyEvaluator {
 		validateHistory(clearValue, messages, result);
 		validateStringPolicy(clearValue, messages, result);
 
+		return generateResultMessage(messages, result);
+	}
+
+	@NotNull
+	private OperationResult generateResultMessage(List<LocalizableMessage> messages, OperationResult result) {
 		result.computeStatus();
 		if (!result.isSuccess() && !messages.isEmpty()) {
 			result.setUserFriendlyMessage(
@@ -203,6 +213,17 @@ public class ObjectValuePolicyEvaluator {
 							.buildOptimized());
 		}
 		return result;
+	}
+
+	public OperationResult validateMinOccurs(int values) throws SchemaException {
+		OperationResult result = new OperationResult(OPERATION_VALIDATE_VALUE);
+		List<LocalizableMessage> messages = new ArrayList<>();
+
+		prepare();
+
+		validateMinOccurs(values, messages, result);
+
+		return generateResultMessage(messages, result);
 	}
 
 	private void prepare() throws SchemaException {
@@ -284,15 +305,7 @@ public class ObjectValuePolicyEvaluator {
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (clearValue == null) {
-			int minOccurs = getMinOccurs();
-			if (minOccurs == 0) {
-				return;
-			} else {
-				LocalizableMessage msg = LocalizableMessageBuilder.buildKey("ValuePolicy.valueMustBePresent");
-				result.addSubresult(new OperationResult("minOccurs", OperationResultStatus.FATAL_ERROR, msg));
-				messages.add(msg);
-				return;
-			}
+			return; // should be checked elsewhere
 		}
 
 		if (valuePolicy == null) {
@@ -302,6 +315,23 @@ public class ObjectValuePolicyEvaluator {
 
 		valuePolicyProcessor.validateValue(clearValue, valuePolicy, originResolver, messages,
 				"user " + shortDesc + " value policy validation", task, result);
+	}
+
+	private void validateMinOccurs(int values, List<LocalizableMessage> messages, OperationResult result) {
+		int minOccurs = getMinOccurs();
+		if (values < minOccurs) {       // implies minOccurs > 0
+			LocalizableMessage msg;
+			if (minOccurs == 1) {
+				msg = LocalizableMessageBuilder.buildKey("ValuePolicy.valueMustBePresent");
+			} else {
+				msg = new LocalizableMessageBuilder()
+						.key("ValuePolicy.valuesMustBePresent")
+						.args(minOccurs, values)
+						.build();
+			}
+			result.addSubresult(new OperationResult("minOccurs", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
+		}
 	}
 
 	private void validateHistory(String clearValue, List<LocalizableMessage> messages, OperationResult result) throws SchemaException {
@@ -364,11 +394,12 @@ public class ObjectValuePolicyEvaluator {
 		if (credentialPolicy == null) {
 			return 0;
 		}
-		String minOccurs = credentialPolicy.getMinOccurs();
-		if (minOccurs == null) {
-			return 0;
+		String minOccursPhrase = credentialPolicy.getMinOccurs();
+		if (minOccursPhrase == null && valuePolicy != null) {
+			minOccursPhrase = valuePolicy.getMinOccurs();       // deprecated but let's consider it
 		}
-		return XsdTypeMapper.multiplicityToInteger(minOccurs);
+		Integer minOccurs = XsdTypeMapper.multiplicityToInteger(minOccursPhrase);
+		return defaultIfNull(minOccurs, 0);
 	}
 
 	private List<PasswordHistoryEntryType> getSortedHistoryList(PrismContainer<PasswordHistoryEntryType> historyEntries, boolean ascending) {

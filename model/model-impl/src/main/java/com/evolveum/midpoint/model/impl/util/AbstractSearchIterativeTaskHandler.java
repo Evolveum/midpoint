@@ -497,7 +497,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     /**
      * Ready-made implementation of createQuery - gets and parses objectQuery extension property.
      */
+    @NotNull
     protected ObjectQuery createQueryFromTask(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	    ObjectQuery query = createQueryFromTaskIfExists(handler, runResult, task, opResult);
+	    return query != null ? query : new ObjectQuery();
+    }
+
+    protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
         Class<? extends ObjectType> objectClass = getType(task);
         LOGGER.trace("Object class = {}", objectClass);
 
@@ -509,8 +515,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
             return query;
         } else {
-            // Search all objects
-            return new ObjectQuery();
+            return null;
         }
     }
 

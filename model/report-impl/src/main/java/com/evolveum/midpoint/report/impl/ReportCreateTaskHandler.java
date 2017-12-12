@@ -385,11 +385,6 @@ public class ReportCreateTaskHandler implements TaskHandler {
                 JasperExportManager.exportReportToHtmlFile(jasperPrint, destinationFileName);
                 break;
             case CSV:
-                JRCsvExporter csvExporter = new JRCsvExporter();
-                csvExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-                csvExporter.setExporterOutput(new SimpleWriterExporterOutput(destinationFileName));
-                csvExporter.exportReport();
-                break;
             case RTF:
             case XLS:
             case ODT:
@@ -397,46 +392,63 @@ public class ReportCreateTaskHandler implements TaskHandler {
             case DOCX:
             case XLSX:
             case PPTX:
-
-            case JXL:
-                ExporterInput input = new SimpleExporterInput(jasperPrint);
-                ExporterOutput output = new SimpleOutputStreamExporterOutput(destinationFileName);
-
-                Exporter exporter = createExporter(reportType.getExport());
-                if (exporter == null) {
-                    break;
+                Exporter exporter = createExporter(reportType.getExport(), jasperPrint, destinationFileName);
+                if (exporter != null) {
+                    exporter.exportReport();
                 }
-                exporter.setExporterInput(input);
-                exporter.setExporterOutput(output);
-                exporter.exportReport();
-                break;
             default:
                 break;
         }
         return destinationFileName;
     }
 
-    private Exporter createExporter(ExportType type) {
+    private Exporter createExporter(ExportType type, JasperPrint jasperPrint, String destinationFileName) {
+        Exporter exporter;
+        boolean writerOutput;
         switch (type) {
             case CSV:
-                return new JRCsvExporter();
+                writerOutput = true;
+                exporter = new JRCsvExporter();
+                break;
             case RTF:
-                return new JRRtfExporter();
+                writerOutput = true;
+                exporter = new JRRtfExporter();
+                break;
             case XLS:
-                return new JRXlsExporter();
+                writerOutput = false;
+                exporter = new JRXlsExporter();
+                break;
             case ODT:
-                return new JROdtExporter();
+                writerOutput = false;
+                exporter = new JROdtExporter();
+                break;
             case ODS:
-                return new JROdsExporter();
+                writerOutput = false;
+                exporter = new JROdsExporter();
+                break;
             case DOCX:
-                return new JRDocxExporter();
+                writerOutput = false;
+                exporter = new JRDocxExporter();
+                break;
             case XLSX:
-                return new JRXlsxExporter();
+                writerOutput = false;
+                exporter = new JRXlsxExporter();
+                break;
             case PPTX:
-                return new JRPptxExporter();
+                writerOutput = false;
+                exporter = new JRPptxExporter();
+                break;
             default:
                 return null;
         }
+        //noinspection unchecked
+        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+        ExporterOutput output = writerOutput
+                ? new SimpleWriterExporterOutput(destinationFileName)
+                : new SimpleOutputStreamExporterOutput(destinationFileName);
+        //noinspection unchecked
+        exporter.setExporterOutput(output);
+        return exporter;
     }
 
     public static String getDateTime() {
