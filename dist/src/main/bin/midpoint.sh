@@ -50,6 +50,9 @@ cd "$SCRIPT_PATH/.."
 
 if [ ! -d var ] ; then
 	mkdir var
+fi
+
+if [ ! -d var/log ] ; then
 	mkdir var/log
 fi
 
