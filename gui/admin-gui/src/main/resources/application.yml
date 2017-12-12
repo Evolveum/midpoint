@@ -9,6 +9,7 @@ server:
                  # as minutes - so we end up with never expiring session.
   tomcat:
     basedir: ${midpoint.home}
+    max-http-post-size: 104857600
 
 auth:
   logout:
