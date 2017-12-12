@@ -240,7 +240,7 @@ public class SecurityUtil {
 		return historyLength;
 	}
 
-	public static CredentialsStorageTypeType getCredentialStoragetTypeType(CredentialsStorageMethodType storageMethod) {
+	public static CredentialsStorageTypeType getCredentialStorageTypeType(CredentialsStorageMethodType storageMethod) {
 		if (storageMethod == null) {
 			return null;
 		}

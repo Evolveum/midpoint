@@ -674,7 +674,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	}
 
     public boolean isEmpty() {
-        for(PrismContainerValue<C> pval : getValues()) {
+        for (PrismContainerValue<C> pval : getValues()) {
         	if (!pval.isEmpty()) {
         		return false;
         	}
