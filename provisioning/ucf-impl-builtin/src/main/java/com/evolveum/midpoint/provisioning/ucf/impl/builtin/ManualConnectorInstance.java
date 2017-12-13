@@ -136,7 +136,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
 		ObjectDelta<? extends ShadowType> objectDelta = ObjectDelta.createAddDelta(object);
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
-		String shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
+		String shadowName = object.getName().toString();
 		String description = "Please create resource account: "+shadowName;
 		PrismObject<CaseType> acase = addCase(description, ShadowUtil.getResourceOid(object.asObjectable()), shadowName, objectDeltaType, result);
 		return acase.getOid();
@@ -160,7 +160,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		ObjectDelta<? extends ShadowType> objectDelta = ObjectDelta.createModifyDelta("", changeDeltas, ShadowType.class, getPrismContext());
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
 		objectDeltaType.setOid(shadow.getOid());
-		String shadowName = getShadowIdentifier(identifiers);
+		String shadowName = shadow.getName().toString();
 		String description = "Please modify resource account: "+shadowName;
 		PrismObject<CaseType> acase = addCase(description, resourceOid, shadow.getOid(), objectDeltaType, result);
 		return acase.getOid();
@@ -172,7 +172,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 		LOGGER.debug("Creating case to delete account {}", identifiers);
-		String shadowName = getShadowIdentifier(identifiers);
+		String shadowName = shadow.getName().toString();
 		String description = "Please delete resource account: "+shadowName;
 		ObjectDeltaType objectDeltaType = new ObjectDeltaType();
 		objectDeltaType.setChangeType(ChangeTypeType.DELETE);
@@ -326,15 +326,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		}
 		connected = true;
 		// Nothing else to do
-	}
-
-	private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers){
-		try {
-			Object[] shadowIdentifiers = identifiers.toArray();
-			return ((ResourceAttribute)shadowIdentifiers[0]).getValue().getValue().toString();
-		} catch (NullPointerException e){
-			return "";
-		}
 	}
 
 	@Override
