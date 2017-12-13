@@ -17,17 +17,6 @@
 
 SCRIPT_PATH=$(cd $(dirname "$0") && pwd -P)/$(basename "$2")
 USE_NOHUP="true"
-if [ -z "$MIDPOINT_HOME" ] ; then
-	MIDPOINT_HOME="$SCRIPT_PATH../var"
-fi
-JAVA_OPTS="$JAVA_OPTS
--Xms2048M
--Xmx2048M
--Dpython.cachedir=$MIDPOINT_HOME/tmp
--Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks
--Djavax.net.ssl.trustStoreType=jceks
--Dmidpoint.home=$MIDPOINT_HOME"
-
 # resolve links - $0 may be a softlink
 PRG="$0"
 
@@ -50,8 +39,22 @@ cd "$SCRIPT_PATH/.."
 
 if [ ! -d var ] ; then
 	mkdir var
+fi
+
+if [ ! -d var/log ] ; then
 	mkdir var/log
 fi
+
+if [ -z "$MIDPOINT_HOME" ] ; then
+	MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
+fi
+JAVA_OPTS="$JAVA_OPTS
+-Xms2048M
+-Xmx2048M
+-Dpython.cachedir=$MIDPOINT_HOME/tmp
+-Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks
+-Djavax.net.ssl.trustStoreType=jceks
+-Dmidpoint.home=$MIDPOINT_HOME"
 
 if [ -z "$BOOT_OUT" ] ; then  
   BOOT_OUT="$SCRIPT_PATH"../var/log/midpoint.out

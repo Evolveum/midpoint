@@ -258,9 +258,27 @@ public class SearchFactory {
                 continue;
             }
 
+            if (!isIndexed(def)) {
+            	continue;
+            }
+            
             map.put(new ItemPath(extensionPath, def.getName()), def);
         }
 
         return map;
+    }
+    
+    private static boolean isIndexed(ItemDefinition def) {
+    	if (!(def instanceof PrismPropertyDefinition)) {
+    		return true;
+    	}
+    	
+    	PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) def;
+    	Boolean indexed = propertyDef.isIndexed();
+    	if (indexed == null) {
+    		return true;
+    	}
+    	
+    	return indexed.booleanValue();
     }
 }
