@@ -1,28 +1,21 @@
-midPoint 3.6 "Comenius"
+midPoint 3.7 "Darwin"
 ----------------------------------
 
-Release 3.6 is twenty first midPoint release code-named Comenius.
-The 3.6 release brings numerous new features especially in the
-field of identity governance, password management and identity
-connectors.
+Release 3.7 is a twenty third midPoint release code-named Darwin.
+The 3.7 release brings new deployment model and numerous gradual improvements.
+There are improvements of identity governance features, improvements of user
+interface and internal improvements.
 
-Release date: 4th July 2017
+Release date: 14th December 2017
 
-Changes with respect to version 3.5.1:
-    Major SoD improvements
-    Certificaiton improvements
-    Escalation
-    Other identity governance features
-    Password hashing
-    Manual connectors by ITSM integration
-    Important improvements to mappings, expressions, object templates and other mechanisms
-    Custom forms
-    Quasi-fulltext search
-    Shopping cart and role catalog improvements
-    Numerous GUI improvements
-    Significantly improved Powershell support
-    New CSV connector
-    Other connector improvements
+Changes with respect to version 3.6.1:
+    Stand-alone deployment based on Spring Boot
+    User interface improvements
+    Governance improvements
+    Expression, mapping and bulk action improvements
+    Security improvements
+    Task improvements
+    Miscellaneous improvements
 
 Java 7 environment is no longer supported.
 XPath2 scripting is no longer supported.

@@ -190,7 +190,7 @@ public abstract class AbstractWebserviceTest {
     protected static ModelPortType modelPort;
     protected static SystemConfigurationType configurationType;
 
-	private static final File DEFAULT_SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
+	private static final String SERVER_LOG_FILE_SUFFIX = "log/midpoint.log";
 	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
 	private File serverLogFile = null;
@@ -287,8 +287,12 @@ public abstract class AbstractWebserviceTest {
 		if (serverLogFile == null) {
 			if (System.getProperty("midpoint.serverLogFile") != null) {
 				serverLogFile = new File(System.getProperty("midpoint.serverLogFile"));
+	    	} else if (System.getenv("MIDPOINT_HOME") != null) {
+	    		serverLogFile = new File(System.getenv("MIDPOINT_HOME"), SERVER_LOG_FILE_SUFFIX);
+	    	} else if (System.getProperty("midpoint.home") != null) {
+	    		serverLogFile = new File(System.getProperty("midpoint.home"), SERVER_LOG_FILE_SUFFIX);
 	    	} else {
-	    		serverLogFile = DEFAULT_SERVER_LOG_FILE;
+	    		throw new IllegalStateException("Cannot determine server log file");
 	    	}
 		}
 		return serverLogFile;
