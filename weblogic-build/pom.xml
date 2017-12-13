@@ -39,6 +39,73 @@
 	    <version>3.7-SNAPSHOT</version>
 	    <type>war</type>
 	</dependency>
+	<dependency>
+		<groupId>org.apache.abdera</groupId>
+		<artifactId>abdera-core</artifactId>
+		<version>1.1.3</version>
+		<exclusions>
+			<exclusion>
+				<groupId>*</groupId>
+				<artifactId>*</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.abdera</groupId>
+		<artifactId>abdera-core</artifactId>
+		<version>1.1.3</version>
+		<exclusions>
+			<exclusion>
+				<groupId>*</groupId>
+				<artifactId>*</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+    <groupId>org.apache.abdera</groupId>
+		<artifactId>abdera-i18n</artifactId>
+		<version>1.1.1</version>
+		<exclusions>
+			<exclusion>
+				<groupId>*</groupId>
+				<artifactId>*</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.cxf</groupId>
+		<artifactId>cxf-rt-databinding-aegis</artifactId>
+		<version>3.1.4</version>
+		<exclusions>
+			<exclusion>
+				<groupId>*</groupId>
+				<artifactId>*</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.cxf</groupId>
+		<artifactId>cxf-rt-rs-json-basic</artifactId>
+		<version>3.1.4</version>
+		<scope>provided</scope>
+		<exclusions>
+			<exclusion>
+				<groupId>*</groupId>
+				<artifactId>*</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+		<groupId>commons-logging</groupId>
+		<artifactId>commons-logging</artifactId>
+		<version>1.2</version>
+		<exclusions>
+			<exclusion>
+				<groupId>*</groupId>
+				<artifactId>*</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -59,8 +126,33 @@
 									<groupId>com.evolveum.midpoint.gui</groupId>
 									<artifactId>admin-gui</artifactId>
 									<bundleFileName>midpoint.war</bundleFileName>
-									<contextRoot>/midpoint</contextRoot>
+									<contextRoot>/midpoint/</contextRoot>
 								</webModule>
+								<jarModule>
+									<groupId>org.apache.abdera</groupId>
+									<artifactId>abdera-core</artifactId>
+									<bundleDir>/APP-INF/lib/</bundleDir>
+								</jarModule>
+								<jarModule>
+									<groupId>org.apache.abdera</groupId>
+									<artifactId>abdera-i18n</artifactId>
+									<bundleDir>/APP-INF/lib/</bundleDir>
+								</jarModule>
+								<jarModule>
+									<groupId>org.apache.cxf</groupId>
+									<artifactId>cxf-rt-databinding-aegis</artifactId>
+									<bundleDir>/APP-INF/lib/</bundleDir>
+								</jarModule>
+								<jarModule>
+									<groupId>org.apache.cxf</groupId>
+									<artifactId>cxf-rt-rs-json-basic</artifactId>
+									<bundleDir>/APP-INF/lib/</bundleDir>
+								</jarModule>
+								<jarModule>
+									<groupId>commons-logging</groupId>
+									<artifactId>commons-logging</artifactId>
+									<bundleDir>/APP-INF/lib/</bundleDir>
+								</jarModule>
 							</modules>
 						</configuration>
                     </plugin>

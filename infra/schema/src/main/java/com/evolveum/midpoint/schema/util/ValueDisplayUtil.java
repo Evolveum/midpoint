@@ -151,8 +151,8 @@ public class ValueDisplayUtil {
                         if (evaluatorValue.getFilter() != null) {
                             DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode(),
                                     0, false, null);
-//                            expressionString.append(evaluatorValue.getFilter().getFilterClauseXNode().debugDump(0));
-//                            expressionString.append("; ");
+
+                            //TODO temporary hack: removing namespace part of the QName
                             while (expressionString.indexOf("}") >= 0 && expressionString.indexOf("{") >= 0 &&
                                     expressionString.indexOf("}") - expressionString.indexOf("{") > 0){
                                 expressionString.replace(expressionString.indexOf("{"), expressionString.indexOf("}") + 1, "");
