@@ -1050,14 +1050,10 @@ public class PageDebugList extends PageAdminConfiguration {
 					Collections.addAll(choices, ObjectTypes.values());
 					choices.remove(ObjectTypes.OBJECT);
 
-					Collections.sort(choices, new Comparator<ObjectTypes>() {
-
-						@Override
-						public int compare(ObjectTypes o1, ObjectTypes o2) {
-							String str1 = (String) renderer.getDisplayValue(o1);
-							String str2 = (String) renderer.getDisplayValue(o2);
-							return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-						}
+					choices.sort((o1, o2) -> {
+						String str1 = (String) renderer.getDisplayValue(o1);
+						String str2 = (String) renderer.getDisplayValue(o2);
+						return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
 					});
 
 					return choices;
