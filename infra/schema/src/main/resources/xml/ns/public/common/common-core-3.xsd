@@ -11601,7 +11601,7 @@
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
-                    			Minimal number of value occurences. minOccurs set to zero means that the value
+                    			Minimal number of value occurrences. minOccurs set to zero means that the value
                     			is optional.
                     			E.g. when applied to passwords the minOccurs=0 means that the policy will
                     			accept no password at all. But it will still validate the password using
@@ -11616,7 +11616,7 @@
                     <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
-                    			Maximal number of value occurences.
+                    			Maximal number of value occurrences.
                     			If not specified then the default schema limitation is imposed.
                     			DEPRECATED. Use equivalent setting in security policy instead.
                     		</xsd:documentation>
@@ -14513,7 +14513,7 @@
 			<xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Minimal number of value occurences. minOccurs set to zero means that the value
+            			Minimal number of value occurrences. minOccurs set to zero means that the value
             			is optional.
             			E.g. when applied to passwords the minOccurs=0 means that the policy will
             			accept no password at all. But it will still validate the password using

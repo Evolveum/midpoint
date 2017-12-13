@@ -193,7 +193,7 @@ public class ModelRestService {
 		return response;
 	}
 
-		@POST
+	@POST
 	@Path("/{type}/{oid}/validate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})

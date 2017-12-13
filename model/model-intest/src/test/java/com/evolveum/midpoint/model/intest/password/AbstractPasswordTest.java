@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -25,13 +24,11 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,11 +41,7 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -63,14 +56,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * @author semancik
@@ -1508,11 +1493,48 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected abstract void assert31xBluePasswordAfterPasswordChange(PrismObject<UserType> userAfter) throws Exception;
 
 	/*
+	 *  Policy prevents the password from being removed.
+	 */
+	@Test
+	public void test314RemovePasswordFail() throws Exception {
+		final String TEST_NAME = "test314RemovePasswordFail";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(1, task, result);
+
+		try {
+			// WHEN+THEN
+			TestUtil.displayWhen(TEST_NAME);
+			try {
+				modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result /*, no value */);
+				fail("unexpected success");
+			} catch (PolicyViolationException e) {
+				assertMessage(e, "Provided password does not satisfy the policies: The value must be present.");
+			}
+		} finally {
+			setPasswordMinOccurs(null, task, result);
+		}
+	}
+
+	private void setPasswordMinOccurs(Integer value, Task task, OperationResult result) throws CommonException {
+		ObjectDelta<SecurityPolicyType> delta = DeltaBuilder.deltaFor(SecurityPolicyType.class, prismContext)
+				.item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_OCCURS)
+						.replace(value)
+				.asObjectDeltaCast(getSecurityPolicyOid());
+		executeChanges(delta, null, task, result);
+	}
+
+	/*
 	 *  Remove password. It should be removed from red resource as well. (MID-3111)
 	 */
 	@Test
-	public void test314RemovePassword() throws Exception {
-		final String TEST_NAME = "test314RemovePassword";
+	public void test315RemovePassword() throws Exception {
+		final String TEST_NAME = "test315RemovePassword";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -2539,6 +2561,37 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
      	// BLUE resource already has a password
 
 	}
+
+	/*
+	 *  Policy prevents creating user with no password.
+	 */
+	@Test
+	public void test910AddUserWithNoPasswordFail() throws Exception {
+		final String TEST_NAME = "test910AddUserWithNoPasswordFail";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(1, task, result);
+
+		try {
+			// WHEN+THEN
+			TestUtil.displayWhen(TEST_NAME);
+			try {
+				UserType user = new UserType(prismContext).name("passwordless");
+				addObject(user.asPrismObject(), task, result);
+				fail("unexpected success");
+			} catch (PolicyViolationException e) {
+				assertMessage(e, "Provided password does not satisfy the policies: The value must be present.");
+			}
+		} finally {
+			setPasswordMinOccurs(null, task, result);
+		}
+	}
+
 
 	protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);

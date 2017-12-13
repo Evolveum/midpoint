@@ -223,6 +223,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	}
 	
 	@Override
+	public Collection<ObjectDelta<ShadowType>> getAllDeltas() {
+		List<ObjectDelta<ShadowType>> deltas = new ArrayList<>(2);
+		ObjectDelta<ShadowType> primaryDelta = getPrimaryDelta();
+		if (primaryDelta != null) {
+			deltas.add(primaryDelta);
+		}
+		if (secondaryDelta != null) {
+			deltas.add(secondaryDelta);
+		}
+		return deltas;
+	}
+	
+	@Override
 	public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
 		return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew());
 	}

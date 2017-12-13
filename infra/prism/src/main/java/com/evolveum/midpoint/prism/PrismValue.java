@@ -25,13 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
@@ -523,7 +517,6 @@ public abstract class PrismValue implements IPrismValue {
 			return new PrismPropertyValue<>(realValue);
 		}
 	}
-
 
 	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
 	// Note that the path can contain name segments only (at least for now)

@@ -830,6 +830,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
             if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equivalent(propertyPath)) {
                 return (DD) delta;
             }
+            // e.g. when deleting credentials we match also deletion of credentials/password (is that correct?)
             if ((delta instanceof ContainerDelta<?>) && delta.getPath().isSubPath(propertyPath)) {
             	return (DD) ((ContainerDelta)delta).getSubDelta(propertyPath.substract(delta.getPath()));
             }

@@ -74,13 +74,13 @@ public class CredentialsProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
-    @Autowired private SecurityHelper securityHelper;
 	@Autowired private PrismContext prismContext;
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private ModelObjectResolver resolver;
 	@Autowired private ValuePolicyProcessor valuePolicyProcessor;
 	@Autowired private Protector protector;
 	@Autowired private LocalizationService localizationService;
+	@Autowired private ContextLoader contextLoader;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
@@ -92,41 +92,14 @@ public class CredentialsProcessor {
 			return;
 		}
 		
-		loadSecurityPolicy(context, task, result);
+		contextLoader.reloadSecurityPolicyIfNeeded(context, task, result);
 
 		processFocusPassword((LensContext<UserType>) context, now, task, result);
 		processFocusNonce((LensContext<UserType>) context, now, task, result);
 		processFocusSecurityQuestions((LensContext<UserType>) context, now, task, result);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return;
-		}
-		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			LOGGER.trace("Skipping load of security policy because focus is not user");
-			return;
-		}
-		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
-		if (securityPolicy == null) {
-			securityPolicy = securityHelper.locateSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
-					context.getSystemConfiguration(), task, result);
-			if (securityPolicy == null) {
-				// store empty policy to avoid repeated lookups
-				securityPolicy = new SecurityPolicyType();
-			}
-			focusContext.setSecurityPolicy(securityPolicy);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
-		} else {
-			LOGGER.debug("Security policy: {}", securityPolicy);
-		}
-	}
+
 
 	private <F extends FocusType> void processFocusPassword(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,

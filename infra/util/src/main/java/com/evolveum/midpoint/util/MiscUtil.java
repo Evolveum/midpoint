@@ -687,4 +687,9 @@ public class MiscUtil {
 	public static <T> Set<T> filter(Set<T> input, Predicate<? super T> predicate) {
 		return input.stream().filter(predicate).collect(Collectors.toSet());
 	}
+
+	@NotNull
+	public static <V> Collection<V> nonNullValues(@NotNull Collection<V> values) {
+		return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
+	}
 }
