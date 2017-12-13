@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -281,6 +282,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public void sort(final PageBase pageBase) {
 		if (isSorted()) {
+			Collator collator = Collator.getInstance(pageBase.getLocale());
+			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
+			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
@@ -300,7 +304,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 											: id2.getDisplayName())
 							: (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : ""))
 							: "");
-					return str1.compareToIgnoreCase(str2);
+					//return str1.compareToIgnoreCase(str2);
+					return collator.compare(str1, str2);
 				}
 			});
 		} else {
