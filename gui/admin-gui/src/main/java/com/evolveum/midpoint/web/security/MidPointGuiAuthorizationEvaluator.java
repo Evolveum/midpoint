@@ -172,8 +172,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         			authentication, object);
             return;
         }
-        
-        if ("/".equals(filterInvocation.getRequest().getServletPath())) {
+
+        String servletPath = filterInvocation.getRequest().getServletPath();
+        if ("".equals(servletPath) || "/".equals(servletPath)) {
         	// Special case, this is in fact "magic" redirect to home page or login page. It handles autz in its own way.
         	LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (/)",
         			authentication, object);
