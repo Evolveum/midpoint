@@ -1,6 +1,5 @@
-package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +13,8 @@ package com.evolveum.midpoint.testing.story;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.evolveum.midpoint.testing.story;
 
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -34,7 +32,9 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -63,7 +64,6 @@ public class TestTrafo extends AbstractStoryTest {
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "trafo");
 
 	public static final String NS_TRAFO_EXT = "http://midpoint.evolveum.com/xml/ns/story/trafo/ext";
-	private static final File TRAFO_SCHEMA_EXTENSION_FILE = new File(TEST_DIR, "extension.xsd");
 	private static final QName TRAFO_EXTENSION_HOMEDIR_QNAME = new QName(NS_TRAFO_EXT, "homedir");
 	private static final QName TRAFO_EXTENSION_UID_QNAME = new QName(NS_TRAFO_EXT, "uid");
 	private static final ItemPath TRAFO_EXTENSION_HOMEDIR_PATH = new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
@@ -193,37 +193,41 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
 
         OperationResult testResultAd = modelService.testResource(RESOURCE_DUMMY_AD_OID, task);
-        TestUtil.assertSuccess(testResultAd);
+        assertSuccess(testResultAd);
 
         OperationResult testResultMail = modelService.testResource(RESOURCE_DUMMY_MAIL_OID, task);
-        TestUtil.assertSuccess(testResultMail);
+        assertSuccess(testResultMail);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
+        
+        PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+        PrismContainerDefinition<?> userExtensionDef = userDefinition.getExtensionDefinition();
+        PrismAsserts.assertPropertyDefinition(userExtensionDef, 
+        		TRAFO_EXTENSION_HOMEDIR_QNAME, DOMUtil.XSD_STRING, 0, 1);
 	}
 
 	@Test
     public void test100JackAssignAccountAd() throws Exception {
 		final String TEST_NAME = "test100JackAssignAccountAd";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_AD_OID, null, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -275,21 +279,20 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test105JackUnAssignAccountAd() throws Exception {
 		final String TEST_NAME = "test105JackUnAssignAccountAd";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_AD_OID, null, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+		assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -341,20 +344,20 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test109JackAccountAdGone() throws Exception {
 		final String TEST_NAME = "test109JackAccountAdGone";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         clock.overrideDuration("P2D");
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -380,19 +383,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test120AJackssignAccountMail() throws Exception {
 		final String TEST_NAME = "test120JackAssignAccountMail";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAIL_OID, null, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -455,19 +458,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test125JackUnAssignAccountMail() throws Exception {
 		final String TEST_NAME = "test125JackUnAssignAccountMail";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAIL_OID, null, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -529,20 +532,20 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test129JackAccountMailGone() throws Exception {
 		final String TEST_NAME = "test129JackAccountMailGone";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         clock.overrideDuration("P2D");
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -579,19 +582,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test150JackAssignRoleEmployee() throws Exception {
 		final String TEST_NAME = "test150JackAssignRoleEmployee";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_EMPLOYEE_OID, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -696,19 +699,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test160AngelicaAdd() throws Exception {
 		final String TEST_NAME = "test160AngelicaAdd";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(USER_ANGELICA_FILE);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -813,19 +816,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test200Smith111Add() throws Exception {
 		final String TEST_NAME = "test200Smith111Add";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(USER_SMITH111_FILE);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -934,19 +937,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test210Smith222Add() throws Exception {
 		final String TEST_NAME = "test210Smith222Add";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(USER_SMITH222_FILE);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1055,19 +1058,19 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test300Smith111Rename() throws Exception {
 		final String TEST_NAME = "test300Smith111Rename";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 //        addObject(USER_SMITH111_FILE);
 
 
-//        TestUtil.displayThen(TEST_NAME);
+//        displayThen(TEST_NAME);
 //		result.computeStatus();
 //        TestUtil.assertSuccess(result);
 
@@ -1079,7 +1082,7 @@ public class TestTrafo extends AbstractStoryTest {
 		String accountMailOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_MAIL_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1194,15 +1197,15 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test310Smith222Rename() throws Exception {
 		final String TEST_NAME = "test310Smith222Rename";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		PrismObject<UserType> userSmith = getUser(USER_SMITH222_OID);
 		display("User smith222 before change execution", userSmith);
 		assertUser(userSmith, USER_SMITH222_OID, USER_SMITH222_USERNAME, "John Smith", "John", "Smith");
@@ -1211,9 +1214,8 @@ public class TestTrafo extends AbstractStoryTest {
 		String accountMailOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_MAIL_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         modifyUserReplace(userSmith.getOid(), UserType.F_FAMILY_NAME, task, result, new PolyString("Smither", "smither"));
 
