@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -32,8 +33,12 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
  *
  * @author semancik
  */
-@PageDescriptor(url = "/result")
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/result", matchUrlForSecurity = "/result")
+        }, permitAll = true)
 public class PageOperationResult extends PageBase {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_BACK = "back";

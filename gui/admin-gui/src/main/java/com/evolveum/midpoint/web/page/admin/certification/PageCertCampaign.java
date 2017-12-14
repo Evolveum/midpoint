@@ -317,8 +317,8 @@ public class PageCertCampaign extends PageAdminCertification {
 		column = new MultiButtonColumn<CertCaseDto>(new Model(), responses+1) {
 
 			@Override
-			public String getCaption(int id) {
-				return availableResponses.getCaption(id);
+			public String getButtonTitle(int id) {
+				return availableResponses.getTitle(id);
 			}
 
 			@Override

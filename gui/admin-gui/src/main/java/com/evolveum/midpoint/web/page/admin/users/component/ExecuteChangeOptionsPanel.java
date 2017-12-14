@@ -50,7 +50,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private final boolean showReconcileAffected;
     private final boolean showKeepDisplayingResults;
 
-    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile, boolean showReconcileAffected) {
+    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
+            boolean showReconcile, boolean showReconcileAffected) {
         super(id, model);
         this.showReconcile = showReconcile;
         this.showReconcileAffected = showReconcileAffected;
@@ -58,7 +59,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         initLayout();
     }
 
-    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile, boolean showReconcileAffected, boolean showKeepDisplayingResults) {
+    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
+            boolean showReconcile, boolean showReconcileAffected, boolean showKeepDisplayingResults) {
         super(id, model);
         this.showReconcile = showReconcile;
         this.showReconcileAffected = showReconcileAffected;
@@ -90,7 +92,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         WebMarkupContainer container = new WebMarkupContainer(containerId);
         container.add(content);
         if (show) {
-            container.add(new AttributeModifier("title", createStringResource(helpKey).getString()));
+            container.add(new AttributeModifier("title", createStringResource(helpKey)));
         }
         container.setVisible(show);
         add(container);

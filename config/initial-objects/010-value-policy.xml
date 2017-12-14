@@ -23,13 +23,6 @@
         <t:norm>default password policy</t:norm>
     </name>
     <description>Default password policy</description>
-    <lifetime>
-        <expiration>999</expiration>
-        <warnBeforeExpiration>9</warnBeforeExpiration>
-        <lockAfterExpiration>0</lockAfterExpiration>
-        <minPasswordAge>0</minPasswordAge>
-        <passwordHistoryLength>0</passwordHistoryLength>
-    </lifetime>
     <stringPolicy>
         <description>Testing string policy</description>
         <limitations>
