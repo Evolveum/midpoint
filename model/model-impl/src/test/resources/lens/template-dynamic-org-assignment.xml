@@ -1,0 +1,65 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!-- MID-4251 -->
+<objectTemplate
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" 
+	oid="ee079df8-1146-4e53-872f-b9733f24ebfe">
+	<name>Special user template for dynamic role assignment</name>
+	<mapping>
+		<name>assignment mapping</name>
+		<source>
+			<path>description</path>
+		</source>
+		<expression>
+			<assignmentTargetSearch>
+				<targetType>OrgType</targetType>
+            	<filter>
+               		<q:equal>
+                  		<q:path>name</q:path>
+                  		<q:value>PB001</q:value>
+               		</q:equal>
+            	</filter>
+            	<populate>
+            		<populateItem>
+            			<expression>
+            				<script>
+            					<code>
+            						description
+            					</code>
+            				</script>
+            			</expression>
+            			<target>
+            				<path>activation/validTo</path>
+            			</target>
+            		</populateItem>
+            	</populate>
+			</assignmentTargetSearch>
+		</expression>
+		<target>
+			<path>assignment</path>
+			<set>
+				<condition>
+					<script>
+						<code>
+							input?.targetRef?.type?.localPart == 'OrgType'
+						</code>
+					</script>
+				</condition>
+			</set>
+		</target>
+	</mapping>
+</objectTemplate>

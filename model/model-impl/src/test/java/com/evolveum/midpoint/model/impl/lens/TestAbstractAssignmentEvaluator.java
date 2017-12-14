@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_ACTIVATION;
 import static org.testng.AssertJUnit.assertEquals;
@@ -34,6 +34,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -103,6 +105,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Autowired
 	private MappingEvaluator mappingEvaluator;
 
+	@Autowired
+	private Projector projector;
 
 	public abstract File[] getRoleCorpFiles();
 
@@ -897,6 +901,66 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		assertNoConstruction(evaluatedAssignment, MINUS, "location");
 
 		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
+	}
+
+	// MID-4251
+	@Test
+	public void test400UserFred() throws Exception {
+		final String TEST_NAME = "test400UserFred";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		String pastTime = XmlTypeConverter.fromNow(createDuration("-P3D")).toString();
+		String futureTime = XmlTypeConverter.fromNow(createDuration("P3D")).toString();
+		UserType fred = new UserType(prismContext)
+				.name("fred")
+				.description(futureTime)
+				.employeeType(DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE);
+		addObject(fred.asPrismObject());
+		PrismObject<UserType> fredAsCreated = findUserByUsername("fred");
+		display("fred as created", fredAsCreated);
+
+		ObjectDelta<UserType> descriptionDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_DESCRIPTION).replace(pastTime)
+				.asObjectDeltaCast(fredAsCreated.getOid());
+
+		LensContext<UserType> lensContext = createUserLensContext();
+		fillContextWithUser(lensContext, fredAsCreated.getOid(), result);
+		addFocusDeltaToContext(lensContext, descriptionDelta);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		projector.project(lensContext, "test", task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		display("Evaluated assignment", lensContext.getEvaluatedAssignmentTriple().debugDump());
+//		assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
+//		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
+//
+//		for (Construction<UserType> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
+//			assertEquals("Wrong validity for " + construction, false, construction.isValid());
+//		}
+//
+//		assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Engineer");
+//		assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+//		assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
+//		assertNoConstruction(evaluatedAssignment, PLUS, "title");
+//		assertNoConstruction(evaluatedAssignment, MINUS, "title");
+//
+//		assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
+//		assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+//		assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
+//		assertNoConstruction(evaluatedAssignment, PLUS, "location");
+//		assertNoConstruction(evaluatedAssignment, MINUS, "location");
+//
+//		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
 
 	protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
