@@ -114,6 +114,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		addObject(ORG_BRETHREN_FILE);
+		addObject(TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_FILE);
+
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE, TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID, initResult);
 	}
 
 	@Test

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,10 +50,6 @@ public class TestAssignmentEvaluator extends TestAbstractAssignmentEvaluator {
         super.initSystem(initTask, initResult);
 
         addObjects(getRoleCorpFiles());
-	    addObject(ORG_BRETHREN_FILE);
-	    addObject(TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_FILE);
-
-	    setDefaultObjectTemplate(UserType.COMPLEX_TYPE, DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE, TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID, initResult);
     }
 
     @Override
