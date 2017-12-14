@@ -41,7 +41,8 @@ public class SmartAssignmentKey {
 
 	@Override
 	public int hashCode() {
-		return assignmentCVal.hashCode();
+		//return assignmentCVal.hashCode();
+		return 1;
 	}
 
 	@Override
