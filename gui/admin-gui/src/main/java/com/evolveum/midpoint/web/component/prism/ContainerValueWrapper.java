@@ -765,11 +765,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
-			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd()){
+			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd() ||
+					!((ContainerWrapper<C>)wrapper).getItemDefinition().canModify()){
 				continue;
 			}
-			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
-					canReadAndModify(((ContainerWrapper<C>) wrapper).getItemDefinition())){
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapper<C>) wrapper).getName());
 			}
 		}
