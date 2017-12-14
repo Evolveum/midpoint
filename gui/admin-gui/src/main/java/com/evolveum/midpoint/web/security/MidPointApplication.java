@@ -84,7 +84,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,7 +91,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 
 /**
@@ -215,9 +213,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
         SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
         guard.addPattern("+*.woff2");
-
-        URL url = buildMidpointHomeLocalizationFolderUrl();
-        ClassLoader classLoader = new URLClassLoader(new URL[]{url});
 
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
         resourceLoaders.add(0, new MidPointStringResourceLoader(localizationService));
