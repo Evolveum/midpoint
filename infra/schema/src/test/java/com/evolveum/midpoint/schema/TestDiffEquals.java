@@ -372,6 +372,31 @@ public class TestDiffEquals {
         assertEquals("Wrong hashCode", a1a.hashCode(), a1b.hashCode());
     }
 
+    // MID-4251
+    @Test
+    public void testAssignmentHashcode3() throws SchemaException {
+    	LOGGER.info("\n\n===[ testAssignmentHashcode3 ]===\n");
+    	System.out.println("\n\n===[ testAssignmentHashcode3 ]===\n");
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+	    AssignmentType a1a = new AssignmentType(prismContext)
+			    .beginActivation()
+			        .validTo("2018-01-01T00:00:00.000+01:00")
+			    .end();
+        AssignmentType a1b = a1a.clone();
+
+        // use unqualified item name for validTo
+	    a1b.getActivation().asPrismContainerValue()
+			    .findItem(ActivationType.F_VALID_TO)
+			    .setElementName(new QName("validTo"));
+
+	    System.out.println("a1a = " + a1a.asPrismContainerValue().debugDump());
+	    System.out.println("a1b = " + a1b.asPrismContainerValue().debugDump());
+
+	    // WHEN
+        assertEquals("Wrong hashCode", a1a.hashCode(), a1b.hashCode());
+    }
+
     @Test
     public void testDiffShadow() throws Exception {
     	System.out.println("\n\n===[ testDiffShadow ]===\n");

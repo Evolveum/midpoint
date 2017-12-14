@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -940,27 +941,11 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-		display("Evaluated assignment", lensContext.getEvaluatedAssignmentTriple().debugDump());
-//		assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
-//		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
-//
-//		for (Construction<UserType> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
-//			assertEquals("Wrong validity for " + construction, false, construction.isValid());
-//		}
-//
-//		assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Engineer");
-//		assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
-//		assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
-//		assertNoConstruction(evaluatedAssignment, PLUS, "title");
-//		assertNoConstruction(evaluatedAssignment, MINUS, "title");
-//
-//		assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
-//		assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
-//		assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
-//		assertNoConstruction(evaluatedAssignment, PLUS, "location");
-//		assertNoConstruction(evaluatedAssignment, MINUS, "location");
-//
-//		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = lensContext.getEvaluatedAssignmentTriple();
+		display("Evaluated assignment triple", triple.debugDump());
+		assertEquals("Wrong # of evaluated assignments zero set", 0, triple.getZeroSet().size());
+		assertEquals("Wrong # of evaluated assignments plus set", 1, triple.getPlusSet().size());
+		assertEquals("Wrong # of evaluated assignments minus set", 1, triple.getMinusSet().size());
 	}
 
 	protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
