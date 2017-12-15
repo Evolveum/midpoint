@@ -1212,7 +1212,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void assertShadows(int expected, OperationResult result) throws SchemaException {
-		int actual = repositoryService.countObjects(ShadowType.class, null, result);
+		int actual = repositoryService.countObjects(ShadowType.class, null, null, result);
 		if (expected != actual) {
 			if (actual > 20) {
 				AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual + " (too many to display)");

@@ -1139,7 +1139,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         try {
-            return repositoryService.countObjects(type, query, parentResult);
+            return repositoryService.countObjects(type, query, null, parentResult);
         } finally {
             result.computeStatus();
         }

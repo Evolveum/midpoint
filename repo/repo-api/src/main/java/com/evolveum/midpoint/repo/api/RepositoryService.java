@@ -335,12 +335,13 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-			throws SchemaException;
-
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			OperationResult parentResult) throws SchemaException;
+
+	@Deprecated // use the version with options instead
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+			throws SchemaException;
 
 	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 

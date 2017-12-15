@@ -162,7 +162,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
         assertObjects(objects, COUNT);
 
-        int count = repositoryService.countObjects(UserType.class, null, result);
+        int count = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects after operation", 0, count);
     }
 
@@ -196,7 +196,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
         assertObjects(objects, COUNT);
 
-        int count = repositoryService.countObjects(UserType.class, null, result);
+        int count = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects after operation", COUNT/2, count);
     }
 
@@ -244,7 +244,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
 
         System.out.println("Object processed: " + objects.size());
 
-        int count = repositoryService.countObjects(UserType.class, null, result);
+        int count = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects after operation", COUNT, count);
     }
 }

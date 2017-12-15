@@ -1588,6 +1588,30 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    // MID-4337
+    @Test
+    public void test346QuerySubtreeDistinctCount() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+                    .isChildOf(new PrismReferenceValue("123"))
+                    .build();
+
+            String real = getInterpretedQuery2(session, OrgType.class, query, true, distinct());
+            String expected = "select\n"
+                    + "  count(distinct o.oid)\n"
+                    + "from\n"
+                    + "  ROrg o\n"
+                    + "where\n"
+                    + "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     @Test
     public void test348QueryRoots() throws Exception {
         Session session = open();
@@ -1939,7 +1963,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         result.computeStatusIfUnknown();
         assertTrue(result.isSuccess());
 
-        realCount = repositoryService.countObjects(type, query, result);
+        realCount = repositoryService.countObjects(type, query, null, result);
         assertEquals("Expected count doesn't match for countObjects " + query, count, realCount);
 
         result.computeStatusIfUnknown();
@@ -2040,14 +2064,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             assertEqualsIgnoreWhitespace(expected, real);
 
             OperationResult result = new OperationResult("test530queryUserSubstringName");
-            int count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
+            int count = repositoryService.countObjects(ObjectType.class, objectQuery, null, result);
             assertEquals(2, count);
 
             objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
                     .item(F_NAME).containsPoly("a").matchingOrig()
                     .build();
             objectQuery.setUseNewQueryInterpreter(true);
-            count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
+            count = repositoryService.countObjects(ObjectType.class, objectQuery, null, result);
             assertEquals(21, count);
 
         } finally {
@@ -2625,8 +2649,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
 
             result = new OperationResult("count");
-            long count = repositoryService.countObjects(GenericObjectType.class, objectQuery,
-                    result);
+            long count = repositoryService.countObjects(GenericObjectType.class, objectQuery, null, result);
             result.computeStatus();
             assertTrue(result.isSuccess());
             assertEquals(1, count);
@@ -2680,7 +2703,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             assertTrue(obj.getCompileTimeClass().equals(UserType.class));
 
             result = new OperationResult("count");
-            long count = repositoryService.countObjects(UserType.class, objectQuery, result);
+            long count = repositoryService.countObjects(UserType.class, objectQuery, null, result);
             result.computeStatus();
             assertTrue(result.isSuccess());
             assertEquals(1, count);
@@ -4296,6 +4319,21 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void testAdHoc116DistinctWithCount() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query, true, distinct());
+            String expected = "select count(distinct u.oid) from RUser u";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 
     private Collection<SelectorOptions<GetOperationOptions>> distinct() {
         return createCollection(createDistinct());

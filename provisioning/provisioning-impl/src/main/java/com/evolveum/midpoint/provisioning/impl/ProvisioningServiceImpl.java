@@ -603,7 +603,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		if (!ShadowType.class.isAssignableFrom(type) || GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
-			int count = getCacheRepositoryService().countObjects(type, query, parentResult);
+			int count = getCacheRepositoryService().countObjects(type, query, options, parentResult);
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
