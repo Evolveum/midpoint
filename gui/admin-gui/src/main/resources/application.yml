@@ -2,6 +2,11 @@ spring:
   application:
     name: MidPoint
 
+  http:
+    multipart:
+      max-file-size: 100Mb
+      max-request-size: 100Mb
+
 server:
   display-name: MidPoint
   session:
@@ -9,14 +14,14 @@ server:
                  # as minutes - so we end up with never expiring session.
   tomcat:
     basedir: ${midpoint.home}
-    max-http-post-size: 104857600
+    max-http-post-size: 104857600 # in bytes
 
 auth:
   logout:
     url: /
 
 #security:
-#  enable-csrf: false
+#  enable-csrf: false # default for midpoint is true
 
 # more properties with default values can be found here:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
