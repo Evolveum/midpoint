@@ -98,6 +98,8 @@ public abstract class LoadableModel<T> implements IModel<T> {
     public void detach() {
         if (loaded && alwaysReload) {
             this.loaded = false;
+            object = null;
+
             onDetach();
         }
     }

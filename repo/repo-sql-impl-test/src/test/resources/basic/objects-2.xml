@@ -32,6 +32,7 @@
 
     <task oid="777">
         <name>Task with no owner</name>
+        <taskIdentifier>777</taskIdentifier>
         <executionStatus>runnable</executionStatus>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
@@ -43,6 +44,7 @@
 
     <task oid="777a">
         <name>Task with owner different from administrator</name>
+        <taskIdentifier>777a</taskIdentifier>
         <executionStatus>runnable</executionStatus>
         <ownerRef oid="00000000-0000-0000-2222-333333333333" type="c:UserType"/>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>

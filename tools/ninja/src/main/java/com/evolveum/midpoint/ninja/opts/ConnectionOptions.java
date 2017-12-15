@@ -45,7 +45,7 @@ public class ConnectionOptions {
     @Parameter(names = {P_MIDPOINT_HOME, P_MIDPOINT_HOME_LONG}, descriptionKey = "connection.midpointHome")
     private String midpointHome;
 
-    @Parameter(names = {P_WEBSERVICE, P_WEBSERVICE_LONG}, descriptionKey = "connection.useWebservice")
+    @Parameter(names = {P_WEBSERVICE, P_WEBSERVICE_LONG}, descriptionKey = "connection.useWebservice", hidden = true)   //todo remove hidden when implementation is done
     private boolean useWebservice;
 
     public String getAskPassword() {

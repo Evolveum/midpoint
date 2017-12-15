@@ -22,7 +22,6 @@
     <!--         <globalAccountSynchronizationSettings> -->
     <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
     <!--         </globalAccountSynchronizationSettings> -->
-    <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
     <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <classLogger>
@@ -62,6 +61,12 @@
             <package>org.apache.wicket.resource.PropertiesFactory</package>
         </classLogger>
         <classLogger>
+            <!-- disabled because we don't need to see every log message for every key
+            when resource bundle doesn't exist for specific locale (unnecessary log pollution) -->
+            <level>ERROR</level>
+            <package>org.springframework.context.support.ResourceBundleMessageSource</package>
+        </classLogger>
+        <classLogger>
             <!-- Standard useful logger -->
             <level>INFO</level>
             <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
@@ -72,26 +77,26 @@
             <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
         </classLogger>
 
-        <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
+        <appender xsi:type="c:FileAppenderConfigurationType" name="MIDPOINT_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
-            <fileName>${midpoint.home}/log/idm.log</fileName>
-            <filePattern>${midpoint.home}/log/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <fileName>${midpoint.home}/log/midpoint.log</fileName>
+            <filePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</filePattern>
             <maxHistory>10</maxHistory>
             <maxFileSize>100MB</maxFileSize>
             <append>true</append>
         </appender>
         <!-- Appender for profiling purposes -->
-        <appender xsi:type="c:FileAppenderConfigurationType" name="IDM-PROFILE_LOG"
+        <appender xsi:type="c:FileAppenderConfigurationType" name="MIDPOINT_PROFILE_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date %level: %msg%n</pattern>
-            <fileName>${midpoint.home}/log/idm-profile.log</fileName>
-            <filePattern>${midpoint.home}/log/idm-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <fileName>${midpoint.home}/log/midpoint-profile.log</fileName>
+            <filePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
             <maxHistory>10</maxHistory>
             <maxFileSize>100MB</maxFileSize>
             <append>true</append>
         </appender>
-        <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+        <rootLoggerAppender>MIDPOINT_LOG</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
         <auditing>
             <enabled>false</enabled>

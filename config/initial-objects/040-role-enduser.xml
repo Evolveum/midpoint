@@ -52,6 +52,19 @@
         </object>
     </authorization>
     <authorization>
+    	<name>self-persona-read</name>
+    	<description>
+    		Allow to read all the personas of currently logged-in user.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+    		<type>UserType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    </authorization>
+    <authorization>
     	<name>self-credentials-request</name>
     	<description>
     		Allow to modify user's own credentials.
@@ -118,8 +131,6 @@
     	</object>
     	<item>credentials</item>
     	<item>assignment</item>
-    	<item>parentOrgRef</item>
-    	<item>roleMembershipRef</item>
     </authorization>
     <authorization>
     	<name>self-shadow-execution-add-modify-delete</name>
@@ -158,6 +169,56 @@
         </object>
         <object>
             <type>ServiceType</type>
+        </object>
+        <object> <!-- Deputy delegations may have users as targets -->
+            <type>UserType</type>
+        </object>
+    </authorization>
+    <authorization>
+    	<name>assignment-target-read-task</name>
+    	<description>
+    		Authorization that allows to read workflow status of tasks. This is used to display requests
+    		to the end users, especially in the "My Requests" box in user dashboard.
+    		This authorization is a temporary solution. It will be replaced by a finer-grained
+    		permissions in the future.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+        </object>
+        <item>workflowContext</item>
+    </authorization>
+    <authorization>
+    	<name>self-owned-task-read</name>
+    	<description>
+    		Authorization that allows to see all tasks owned by a currently logged-in user.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+        </object>
+    </authorization>
+    <authorization>
+    	<name>self-owned-task-add-execute-changes</name>
+    	<description>
+    		Authorization to create a new 'execute changes' task owned by a currently logged-in user.
+    		This is needed to execute asynchronous operations from the GUI.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>TaskType</type>
+            <filter>
+    			<q:equal>
+    				<q:path>handlerUri</q:path>
+    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+    			</q:equal>
+    		</filter>
+    		<owner>
+    			<special>self</special>
+    		</owner>
         </object>
     </authorization>
     <roleType>system</roleType>

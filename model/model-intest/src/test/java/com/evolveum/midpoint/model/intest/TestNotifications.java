@@ -160,7 +160,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 				+ " - Weapon: rum\n"
 				+ " - Full Name: Jack Sparrow\n"
 				+ " - Password:\n"
-				+ "    - value: (protected string)\n"
+				+ "    - Value: (protected string)\n"
 				+ " - Administrative status: ENABLED\n"
 				+ "\n"
 				+ "Channel: http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user", addMessage.getBody());

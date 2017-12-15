@@ -3,10 +3,10 @@
 xmlns:xsi=”http://www.w3.org/2001/XMLSchema-instance
 xsi:schemaLocation=”http://xmlns.oracle.com/weblogic/weblogic-application
 http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.xsd">
-    <xml>
+     <xml>
         <parser-factory>
             <saxparser-factory>com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl</saxparser-factory>
-            <document-builder-factory>net.sf.saxon.dom.DocumentBuilderFactoryImpl</document-builder-factory>
+            <document-builder-factory>com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl</document-builder-factory>
             <transformer-factory>net.sf.saxon.TransformerFactoryImpl</transformer-factory>
         </parser-factory>
     </xml>
@@ -15,6 +15,7 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
         <param-value>UTF-8</param-value>
     </application-param>
     <prefer-application-packages>
+    	<package-name>org.antlr.*</package-name>
         <!-- // for logging  -->
         <package-name>org.slf4j.*</package-name>
         <package-name>ch.qos.logback.*</package-name>
@@ -23,32 +24,95 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
         <!--package-name>com.sun.xml.*</package-name-->
         <!-- // for apache commons lang/io  -->
         <package-name>org.apache.commons.*</package-name>
-  	<!-- // for spring/hibernate -->
+		<!-- // for spring/hibernate -->
         <package-name>antlr.*</package-name>
         <package-name>org.springframework.*</package-name>
-        <package-name>org.hibernate.*</package-name>
-        <!-- // for jstl -->
-        <package-name>javax.servlet.jsp.jstl.*</package-name>
-        <!-- // for jax-ws -->
-        <package-name>javax.jws.*</package-name>
-        <package-name>javax.ws.*</package-name>
- 	 <!-- // xml processing -->
+		<!-- // xml processing -->
         <!--package-name>javax.xml.*</package-name-->
         <!--package-name>javax.xml.stream.*</package-name-->
         <!--package-name>org.xml.sax.*</package-name-->
         <!--package-name>org.w3c.*</package-name-->
         <package-name>org.apache.xmlcommons.*</package-name>
-        <package-name>org.apache.xml.serializer.*</package-name>
         <package-name>net.sf.saxon.*</package-name>
-        <package-name>org.apache.xalan.*</package-name>
         <package-name>com.ctc.wstx.*</package-name>
-        <package-name>org.codehaus.*</package-name>       
-
+        <package-name>org.codehaus.groovy.*</package-name>
+        <package-name>org.codehaus.stax2.*</package-name>
+        <package-name>org.codehaus.staxmate.*</package-name>       
         <package-name>org.mozilla.*</package-name>
-	<package-name>org.joda.*</package-name>
-		
-	<package-name>javax.persistence.*</package-name>
-	<package-name>org.python.*</package-name>
+		<package-name>org.joda.*</package-name>
+		<package-name>javax.persistence.*</package-name>
+		<package-name>org.python.*</package-name>
+		<package-name>org.apache.cxf.*</package-name>
+		<!-- wls-cat -->
+		<package-name>com.google.common.*</package-name>
+		<!--
+		<package-name>com.sun.codemodel.*</package-name>
+		<package-name>com.sun.istack.*</package-name>
+		<package-name>com.sun.mail.*</package-name>
+		<package-name>com.sun.tools.*</package-name>
+		<package-name>com.sun.xml.*</package-name>
+		-->
+		<package-name>com.ziclix.python.*</package-name>
+		<package-name>javassist.*</package-name>
+		<package-name>javassist.bytecode.*</package-name>
+		<package-name>javassist.bytecode.analysis.*</package-name>
+		<package-name>javassist.bytecode.annotation.*</package-name>
+		<package-name>javassist.bytecode.stackmap.*</package-name>
+		<package-name>javassist.compiler.*</package-name>
+		<package-name>javassist.compiler.ast.*</package-name>
+		<package-name>javassist.convert.*</package-name>
+		<package-name>javassist.expr.*</package-name>
+		<package-name>javassist.runtime.*</package-name>
+		<package-name>javassist.scopedpool.*</package-name>
+		<package-name>javassist.tools.*</package-name>
+		<package-name>javassist.tools.reflect.*</package-name>
+		<package-name>javassist.tools.rmi.*</package-name>
+		<package-name>javassist.tools.web.*</package-name>
+		<package-name>javassist.util.*</package-name>
+		<package-name>javassist.util.proxy.*</package-name>
+		<package-name>javatests.*</package-name>
+		<!--
+		<package-name>javax.annotation.*</package-name>
+		<package-name>javax.annotation.security.*</package-name>
+		<package-name>javax.annotation.sql.*</package-name>
+		<package-name>javax.inject.*</package-name>
+		<package-name>javax.mail.*</package-name>
+		<package-name>javax.mail.event.*</package-name>
+		<package-name>javax.mail.internet.*</package-name>
+		<package-name>javax.mail.search.*</package-name>
+		<package-name>javax.mail.util.*</package-name>
+		<package-name>javax.transaction.*</package-name>
+		<package-name>javax.transaction.xa.*</package-name>
+		<package-name>javax.wsdl.*</package-name>
+		<package-name>javax.wsdl.extensions.*</package-name>
+		<package-name>javax.wsdl.factory.*</package-name>
+		<package-name>javax.wsdl.xml.*</package-name>
+		<package-name>javax.xml.*</package-name>
+		<package-name>javax.xml.bind.*</package-name>
+		<package-name>javax.xml.namespace.*</package-name>
+		<package-name>javax.xml.stream.*</package-name>
+		-->
+		<package-name>net.sf.cglib.*</package-name>
+		<package-name>org.bouncycastle.*</package-name>
+		<package-name>org.bouncycastle.asn1.*</package-name>
+		<package-name>org.bouncycastle.crypto.*</package-name>
+		<package-name>org.bouncycastle.i18n.*</package-name>
+		<package-name>org.bouncycastle.jce.*</package-name>
+		<package-name>org.bouncycastle.math.*</package-name>
+		<package-name>org.bouncycastle.util.*</package-name>
+		<package-name>org.bouncycastle.x509.*</package-name>
+		<package-name>org.kohsuke.rngom.*</package-name>
+		<package-name>org.objectweb.asm.*</package-name>
+		<package-name>org.opensaml.soap.*</package-name>
+		<package-name>org.relaxng.datatype.*</package-name>
+   
+		<!-- wls-cat 12.2.-->
+		<package-name>com.fasterxml.jackson.*</package-name>
+		<package-name>com.google.thirdparty.*</package-name>
+		<package-name>org.aopalliance.aop.*</package-name>
+		<package-name>org.aopalliance.intercept.*</package-name>
+		<package-name>org.jboss.logging.*</package-name>
+		<!-- <package-name>org.w3c.dom.*</package-name> -->
     </prefer-application-packages>
     <prefer-application-resources>
         <resource-name>META-INF/services/javax.ws.rs.ext.RuntimeDelegate</resource-name>

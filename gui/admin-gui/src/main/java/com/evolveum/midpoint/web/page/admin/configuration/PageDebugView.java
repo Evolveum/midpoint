@@ -31,7 +31,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -53,7 +52,6 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -65,9 +63,10 @@ import java.util.Collection;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
                 label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description")})
 public class PageDebugView extends PageAdminConfiguration {
+    private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
-    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "initObjectViewObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
@@ -76,7 +75,6 @@ public class PageDebugView extends PageAdminConfiguration {
 
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
-    private IModel<ObjectViewDto> model;
     private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<>(true);
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
@@ -86,61 +84,49 @@ public class PageDebugView extends PageAdminConfiguration {
     private TextArea<String> plainTextarea;
     final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
     private String dataLanguage;
-    private ObjectViewDto objectViewDto;
     private boolean isInitialized = false;
+    private ObjectViewDto objectViewDto = new ObjectViewDto();
 
     public PageDebugView() {
-        model = new IModel<ObjectViewDto>() {
 
-            @Override
-            public ObjectViewDto getObject() {
-                if (!isInitialized) {
-                    objectViewDto = loadObject();
-                    isInitialized = true;
-                }
-                return objectViewDto;
-            }
+    }
 
-            @Override
-            public void setObject(ObjectViewDto o) {
-                objectViewDto = o;
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         dataLanguage = determineDataLanguage();
+        initObjectViewObject();
         initLayout();
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
         return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                if (model == null) {
+                if (objectViewDto == null) {
                     return "";
                 }
-                ObjectViewDto object;
-                try {
-                    object = model.getObject();
-                } catch (RuntimeException e) {
-                    // e.g. when the object is unreadable
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object", e);
-                    return "";
-                }
-                if (object == null) {
-            		return "";
-            	} else {
-                    return createStringResource("PageDebugView.title", object.getName()).getString();
-                }
+//                ObjectViewDto object;
+//                try {
+//                    object = objectViewModel.getObject();
+//                } catch (RuntimeException e) {
+//                    // e.g. when the object is unreadable
+//                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object", e);
+//                    return "";
+//                }
+//                if (object == null) {
+//            		return "";
+//            	} else {
+                    return createStringResource("PageDebugView.title", objectViewDto.getName()).getString();
+//                }
             }
         };
     }
 
-    private ObjectViewDto loadObject() {
+    private void initObjectViewObject() {
         StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
         if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
             getSession().error(getString("pageDebugView.message.oidNotDefined"));
@@ -149,7 +135,6 @@ public class PageDebugView extends PageAdminConfiguration {
 
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult(); //todo is this result != null ?
-        ObjectViewDto dto = null;
         try {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
 
@@ -187,14 +172,14 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismContext context = application.getPrismContext();
 
             String lex = context.serializerFor(dataLanguage).serialize(object);
-            dto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, lex);
+            objectViewDto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, lex);
 
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't load object.", ex);
         }
 
-        if (dto == null) {
+        if (objectViewDto == null) {
             showResult(result);
             throw new RestartResponseException(PageDebugList.class);
         }
@@ -205,8 +190,6 @@ public class PageDebugView extends PageAdminConfiguration {
             showResult(result, false);
             throw new RestartResponseException(PageDebugList.class);
         }
-
-        return dto;
     }
 
     private void initLayout() {
@@ -255,8 +238,7 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         });
 
-        plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA,
-                new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, getObjectViewXmlModel());
         plainTextarea.setVisible(false);
 
         mainForm.add(plainTextarea);
@@ -269,9 +251,10 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void addOrReplaceEditor(){
-        editor = new AceEditor("aceEditor", new PropertyModel<>(model, ObjectViewDto.F_XML));
+        editor = new AceEditor("aceEditor", getObjectViewXmlModel());
         editor.setModeForDataLanguage(dataLanguage);
         editor.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -283,6 +266,8 @@ public class PageDebugView extends PageAdminConfiguration {
     private void initViewButton(Form mainForm) {
         DataLanguagePanel<Objectable> dataLanguagePanel =
                 new DataLanguagePanel<Objectable>(ID_VIEW_BUTTON_PANEL, dataLanguage, Objectable.class, PageDebugView.this) {
+                    private static final long serialVersionUID = 1L;
+
 	                @Override
 	                protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
 			                String objectString) {
@@ -307,6 +292,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private void initButtons(final Form mainForm) {
         AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
                 createStringResource("pageDebugView.button.save")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -322,6 +308,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
         AjaxButton backButton = new AjaxButton("backButton",
                 createStringResource("pageDebugView.button.back")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -344,8 +331,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     public void savePerformed(AjaxRequestTarget target) {
-        ObjectViewDto dto = model.getObject();
-        if (StringUtils.isEmpty(dto.getXml())) {
+        if (StringUtils.isEmpty(objectViewDto.getXml())) {
             error(getString("pageDebugView.message.cantSaveEmpty"));
             target.add(getFeedbackPanel());
             return;
@@ -355,7 +341,7 @@ public class PageDebugView extends PageAdminConfiguration {
         OperationResult result = task.getResult();
         try {
 
-            PrismObject<ObjectType> oldObject = dto.getObject();
+            PrismObject<ObjectType> oldObject = objectViewDto.getObject();
             oldObject.revive(getPrismContext());
 
             Holder<Objectable> objectHolder = new Holder<>(null);
@@ -375,7 +361,7 @@ public class PageDebugView extends PageAdminConfiguration {
                     LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
                 }
                 
-                //quick fix for now (MID-1910), maybe it should be somewhere in model..
+                //quick fix for now (MID-1910), maybe it should be somewhere in objectViewModel..
 //                if (isReport(oldObject)){
 //                	ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
 //                }
@@ -411,5 +397,24 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
 	    parseObject(objectViewDto.getXml(), objectHolder, dataLanguage, validateSchema.getObject(), false, Objectable.class, result);
+    }
+
+    private IModel<String> getObjectViewXmlModel(){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return objectViewDto != null ? objectViewDto.getXml() : "";
+            }
+
+            @Override
+            public void setObject(String s) {
+                objectViewDto.setXml(s);
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
     }
 }

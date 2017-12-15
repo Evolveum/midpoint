@@ -266,10 +266,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	public SchemaDescription loadPrismSchemaFileDescription(File file) throws FileNotFoundException, SchemaException {
-		 if (!(file.getName().matches(".*\\.xsd$"))){
-         	LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
-         	return null;
-         }
+		if (!(file.getName().matches(".*\\.xsd$"))){
+        	LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
+        	return null;
+        }
+		LOGGER.debug("Loading schema from file {}", file);
 		SchemaDescription desc = SchemaDescription.parseFile(file);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);

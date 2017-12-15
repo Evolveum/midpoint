@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -45,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.SubscriptionType;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -680,6 +682,14 @@ public final class WebComponentUtil {
 				return list;
 			}
 		};
+	}
+
+	@NotNull
+	public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(@NotNull Class<T> type, @NotNull Predicate<T> filter) {
+		return new ReadOnlyModel<>(() ->
+				Arrays.stream(type.getEnumConstants())
+						.filter(filter)
+						.collect(Collectors.toList()));
 	}
 
 	public static List<String> createTaskCategoryList() {

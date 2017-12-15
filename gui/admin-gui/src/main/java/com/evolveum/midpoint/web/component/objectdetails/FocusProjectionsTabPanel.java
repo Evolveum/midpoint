@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,7 +65,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
@@ -89,7 +86,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 
 /**
  * @author semancik
@@ -245,9 +241,23 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
 						resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
 				if (refinedSchema == null) {
-					error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
-							resource.getName()));
-					continue;
+					Task task = getPageBase().createSimpleTask(FocusPersonasTabPanel.class.getSimpleName() + ".loadResource");
+					OperationResult result = task.getResult();
+					PrismObject<ResourceType> loadedResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
+					result.recomputeStatus();
+					
+					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
+							loadedResource, LayerType.PRESENTATION, getPrismContext());
+					
+					if (refinedSchema == null) {
+						error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
+								resource.getName()));
+						continue;
+					}
+					
+//					resource = loadedResource.asObjectable();
+					shadow.setResource(loadedResource.asObjectable());
+					
 				}
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());

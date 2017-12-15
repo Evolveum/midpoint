@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.access.ConfigAttribute;
@@ -181,14 +182,14 @@ public class SecurityUtil {
 	}
 
 	public static NonceCredentialsPolicyType getEffectiveNonceCredentialsPolicy(SecurityPolicyType securityPolicy) throws SchemaException {
-		List<NonceCredentialsPolicyType> noncePolies = getEffectiveNonceCredentialsPolicies(securityPolicy);
-		if (noncePolies.isEmpty()) {
+		List<NonceCredentialsPolicyType> noncePolicies = getEffectiveNonceCredentialsPolicies(securityPolicy);
+		if (CollectionUtils.isEmpty(noncePolicies)) {
 			return null;
 		}
-		if (noncePolies.size() > 1) {
+		if (noncePolicies.size() > 1) {
 			throw new SchemaException("More than one nonce policy");
 		}
-		return noncePolies.get(0);
+		return noncePolicies.get(0);
 	}
 
 	private static void copyDefaults(CredentialPolicyType defaults,
@@ -240,7 +241,7 @@ public class SecurityUtil {
 		return historyLength;
 	}
 
-	public static CredentialsStorageTypeType getCredentialStoragetTypeType(CredentialsStorageMethodType storageMethod) {
+	public static CredentialsStorageTypeType getCredentialStorageTypeType(CredentialsStorageMethodType storageMethod) {
 		if (storageMethod == null) {
 			return null;
 		}

@@ -86,7 +86,7 @@ public class Main {
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
-	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-3";
+	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/model/model-3";
 
 	// Object OIDs
 	private static final String ROLE_PIRATE_OID = "2de6a600-636f-11e4-9cc7-3c970e467874";

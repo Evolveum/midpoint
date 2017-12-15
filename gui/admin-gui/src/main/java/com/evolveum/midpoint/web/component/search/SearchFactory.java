@@ -111,7 +111,7 @@ public class SearchFactory {
                 new ItemPath(ReportType.F_PARENT)
         ));
         SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
-                new ItemPath(ShadowType.F_OBJECT_CLASS),
+//                new ItemPath(ShadowType.F_OBJECT_CLASS),
                 new ItemPath(ShadowType.F_DEAD),
                 new ItemPath(ShadowType.F_INTENT),
                 new ItemPath(ShadowType.F_EXISTS),
@@ -258,9 +258,27 @@ public class SearchFactory {
                 continue;
             }
 
+            if (!isIndexed(def)) {
+            	continue;
+            }
+            
             map.put(new ItemPath(extensionPath, def.getName()), def);
         }
 
         return map;
+    }
+    
+    private static boolean isIndexed(ItemDefinition def) {
+    	if (!(def instanceof PrismPropertyDefinition)) {
+    		return true;
+    	}
+    	
+    	PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) def;
+    	Boolean indexed = propertyDef.isIndexed();
+    	if (indexed == null) {
+    		return true;
+    	}
+    	
+    	return indexed.booleanValue();
     }
 }

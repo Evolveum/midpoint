@@ -812,15 +812,20 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	}
 
 	public boolean isEmpty() {
-        return getValues().isEmpty();
+	    return hasNoValues();
     }
 
-    @Override
+    public boolean hasNoValues() {
+		return getValues().isEmpty();
+    }
+
+	public static boolean hasNoValues(Item<?, ?> item) {
+		return item == null || item.getValues().isEmpty();
+	}
+
+	@Override
 	public int hashCode() {
-		int valuesHash = 0;
-		if (values != null) {
-			valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
-		}
+		int valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
 		if (valuesHash == 0) {
 			// empty or non-significant container. We do not want this to destroy hashcode of
 			// parent item
@@ -828,7 +833,8 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
+		String localElementName = elementName != null ? elementName.getLocalPart() : null;
+		result = prime * result + ((localElementName == null) ? 0 : localElementName.hashCode());
 		result = prime * result + valuesHash;
 		return result;
 	}
@@ -1023,5 +1029,24 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 				}
 			}
 		}
+	}
+
+	@NotNull
+	public static <V extends PrismValue> Collection<V> getValues(Item<V, ?> item) {
+    	return item != null ? item.getValues() : Collections.emptySet();
+	}
+
+	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
+	// Note that the path can contain name segments only (at least for now)
+	@NotNull
+	public Collection<PrismValue> getAllValues(ItemPath path) {
+    	return values.stream()
+			    .flatMap(v -> v.getAllValues(path).stream())
+			    .collect(Collectors.toList());
+	}
+
+	@NotNull
+	public static Collection<PrismValue> getAllValues(Item<?, ?> item, ItemPath path) {
+    	return item != null ? item.getAllValues(path) : Collections.emptySet();
 	}
 }

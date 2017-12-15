@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -343,6 +344,57 @@ public class TestDiffEquals {
         assertTrue(a1e.hashCode() == a1a.hashCode());
         assertTrue(a1e.hashCode() == a1b.hashCode());
         assertTrue(a1e.hashCode() == a1m.hashCode());
+    }
+
+    // MID-4251
+    @Test
+    public void testAssignmentHashcode2() {
+    	LOGGER.info("\n\n===[ testAssignmentHashcode2 ]===\n");
+    	System.out.println("\n\n===[ testAssignmentHashcode2 ]===\n");
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        AssignmentType a1a = new AssignmentType(prismContext).id(6L)
+		        .beginMetadata()
+		            .createApprovalComment("hi")
+		        .<AssignmentType>end()
+		        .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE).relation(SchemaConstants.ORG_DEFAULT))
+		        .beginActivation()
+		            .effectiveStatus(ActivationStatusType.ENABLED)
+		            .validTo("2018-01-01T00:00:00.000+01:00")
+		        .end();
+        AssignmentType a1b = new AssignmentType(prismContext)
+		        .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE))
+		        .beginActivation()
+			        .validTo("2018-01-01T00:00:00.000+01:00")
+		        .end();
+
+        // WHEN
+        assertEquals("Wrong hashCode", a1a.hashCode(), a1b.hashCode());
+    }
+
+    // MID-4251
+    @Test
+    public void testAssignmentHashcode3() throws SchemaException {
+    	LOGGER.info("\n\n===[ testAssignmentHashcode3 ]===\n");
+    	System.out.println("\n\n===[ testAssignmentHashcode3 ]===\n");
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+	    AssignmentType a1a = new AssignmentType(prismContext)
+			    .beginActivation()
+			        .validTo("2018-01-01T00:00:00.000+01:00")
+			    .end();
+        AssignmentType a1b = a1a.clone();
+
+        // use unqualified item name for validTo
+	    a1b.getActivation().asPrismContainerValue()
+			    .findItem(ActivationType.F_VALID_TO)
+			    .setElementName(new QName("validTo"));
+
+	    System.out.println("a1a = " + a1a.asPrismContainerValue().debugDump());
+	    System.out.println("a1b = " + a1b.asPrismContainerValue().debugDump());
+
+	    // WHEN
+        assertEquals("Wrong hashCode", a1a.hashCode(), a1b.hashCode());
     }
 
     @Test

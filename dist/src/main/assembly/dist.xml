@@ -96,6 +96,14 @@
       <unpack>false</unpack>
     </dependencySet>
     <dependencySet>
+      <outputDirectory>/lib</outputDirectory>
+      <includes>
+        <include>com.evolveum.midpoint.tools:ninja</include>
+      </includes>
+      <outputFileNameMapping>ninja.jar</outputFileNameMapping>
+      <unpack>false</unpack>
+    </dependencySet>
+    <dependencySet>
       <outputDirectory>/bin</outputDirectory>
       <includes>
         <include>*:*:*:bin:*</include>
