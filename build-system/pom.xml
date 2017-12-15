@@ -63,7 +63,7 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.1.11</logback.version>
-        <spring.boot.version>1.5.8.RELEASE</spring.boot.version>
+        <spring.boot.version>1.5.8.e1.SNAPSHOT</spring.boot.version>
         <spring.version>4.3.12.RELEASE</spring.version>
         <spring.security.version>4.2.3.RELEASE</spring.security.version>
         <cas.client.version>3.4.1</cas.client.version>
