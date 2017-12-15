@@ -34,7 +34,7 @@
             Defines resource capabilities such as ability to enable/disable account,
             ability to reset passwords, etc.
             
-            Version: 3.6-SNAPSHOT
+            Version: 3.7
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>

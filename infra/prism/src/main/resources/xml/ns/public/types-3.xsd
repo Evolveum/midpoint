@@ -30,7 +30,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.6-SNAPSHOT
+            Version: 3.7
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
