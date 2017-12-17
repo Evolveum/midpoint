@@ -18,7 +18,7 @@ public class ListKeysOptions {
     @Parameter(names = {P_KEY_PASSWORD, P_KEY_PASSWORD_LONG}, descriptionKey = "listKeys.keyPassword")
     private String keyPassword;
 
-    @Parameter(names = {P_KEY_ASK_PASSWORD, P_KEY_ASK_PASSWORD_LONG}, password = true, echoInput = true,
+    @Parameter(names = {P_KEY_ASK_PASSWORD}, password = true,
             descriptionKey = "listKeys.askKeyPassword")
     private String askKeyPassword;
 
