@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
 import org.jetbrains.annotations.NotNull;
@@ -82,13 +82,12 @@ public class NameResolutionHelper {
 			if (batch.size() >= MAX_OIDS_TO_RESOLVE_AT_ONCE || !iterator.hasNext()) {
 				Query query = session.getNamedQuery("resolveReferences");
 				query.setParameterList("oid", batch);
-				query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 
 				@SuppressWarnings({ "unchecked", "raw" })
-				List<Map<String, Object>> results = query.list();			// returns oid + name
-				for (Map<String, Object> result : results) {
-					String oid = (String) result.get("0");
-					RPolyString name = (RPolyString) result.get("1");
+				List<Object[]> results = query.list();			// returns oid + name
+				for (Object[] result : results) {
+					String oid = (String) result[0];
+					RPolyString name = (RPolyString) result[1];
 					oidNameMap.put(oid, new PolyString(name.getOrig(), name.getNorm()));
 				}
 				batch.clear();
