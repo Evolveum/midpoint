@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.encoder.Encoder;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
@@ -58,40 +59,45 @@ public abstract class Action<T> {
         ple.setContext(lc);
         ple.start();
 
-        ConsoleAppender out = new ConsoleAppender();
-        out.setTarget("System.out");
-        out.setEncoder(ple);
-
-        ConsoleAppender err = new ConsoleAppender();
-        err.setTarget("System.err");
-        err.setEncoder(ple);
+        ConsoleAppender out = setupAppender("System.out", lc, ple);
+        ConsoleAppender err = setupAppender("System.err", lc, ple);
 
         Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-        if (opts.isVerbose()) {
-            if (LogTarget.SYSTEM_OUT.equals(target)) {
-                root.addAppender(out);
-            } else {
-                root.addAppender(err);
-            }
-        }
-
-        infoLogger = (Logger) LoggerFactory.getLogger(LOGGER_SYS_OUT);
-        infoLogger.setAdditive(false);
         if (LogTarget.SYSTEM_OUT.equals(target)) {
-            infoLogger.addAppender(out);
+            root.addAppender(out);
         } else {
-            infoLogger.addAppender(err);
+            root.addAppender(err);
         }
 
-        errorLogger = (Logger) LoggerFactory.getLogger(LOGGER_SYS_ERR);
-        errorLogger.setAdditive(false);
-        errorLogger.addAppender(err);
+        root.setLevel(Level.OFF);
+
+        infoLogger = setupLogger(LOGGER_SYS_OUT, opts);
+        errorLogger = setupLogger(LOGGER_SYS_ERR, opts);
+    }
+
+    private Logger setupLogger(String name, BaseOptions opts) {
+        Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_SYS_OUT);
 
         if (opts.isSilent()) {
-            root.setLevel(Level.OFF);
+            logger.setLevel(Level.OFF);
+        } else if (opts.isVerbose()) {
+            logger.setLevel(Level.DEBUG);
         } else {
-            root.setLevel(Level.INFO);
+            logger.setLevel(Level.INFO);
         }
+
+        return logger;
+    }
+
+    private ConsoleAppender setupAppender(String target, LoggerContext ctx, Encoder enc) {
+        ConsoleAppender appender = new ConsoleAppender();
+        appender.setTarget(target);
+        appender.setContext(ctx);
+        appender.setEncoder(enc);
+
+        appender.start();
+
+        return appender;
     }
 
     protected void logError(String message, Object... args) {
@@ -105,6 +111,10 @@ public abstract class Action<T> {
         if (opts.isVerbose()) {
             errorLogger.error("Exception details", ex);
         }
+    }
+
+    protected void logDebug(String message, Object... args) {
+        infoLogger.debug(message, args);
     }
 
     protected void logInfo(String message, Object... args) {

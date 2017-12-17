@@ -12,8 +12,8 @@ public enum Command {
 
     EXPORT("export", ExportOptions.class, ExportRepositoryAction.class, null),
 
-//    DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class, null),
-//
+    DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class, null),
+
 //    PASSWORD_RESET("password", PasswordResetOptions.class, PasswordResetRepositoryAction.class, null),
 //
 //    UNLOCK("unlock", UnlockOptions.class, UnlockRepositoryAction.class, null),

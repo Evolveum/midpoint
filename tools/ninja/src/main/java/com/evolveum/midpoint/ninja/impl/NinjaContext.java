@@ -147,6 +147,11 @@ public class NinjaContext {
         return restService;
     }
 
+    public boolean isVerbose() {
+        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        return base.isVerbose();
+    }
+
     public Charset getCharset() {
         BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
         String charset = base.getCharset();

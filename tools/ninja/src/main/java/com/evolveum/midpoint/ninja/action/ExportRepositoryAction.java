@@ -3,6 +3,7 @@ package com.evolveum.midpoint.ninja.action;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
+import com.evolveum.midpoint.ninja.util.CountStatus;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -78,7 +79,14 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         PrismObject object = repository.getObject(type.getClassDefinition(), options.getOid(), opts, result);
 
-        handleResult(result);
+        result.recomputeStatus();
+        if (!result.isAcceptable()) {
+            logError("Export finished with some problems, reason: {}", result.getMessage());
+
+            if (context.isVerbose()) {
+                logError("Full result\n{}", result.debugDumpLazily());
+            }
+        }
 
         PrismSerializer<String> serializer = prismContext.xmlSerializer();
         String xml = serializer.serialize(object);
@@ -86,21 +94,32 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
     }
 
     private void exportByFilter(final Writer writer) throws SchemaException, IOException {
+        OperationResult result = new OperationResult(OPERATION_EXPORT);
+
+        CountStatus status = new CountStatus();
+        status.start();
+
+        logInfo("Starting export");
+
         ObjectTypes type = options.getType();
         if (type != null) {
-            exportByType(type, writer);
+            exportByType(type, writer, status, result);
         } else {
             for (ObjectTypes t : ObjectTypes.values()) {
                 if (Modifier.isAbstract(t.getClassDefinition().getModifiers())) {
                     continue;
                 }
 
-                exportByType(t, writer);
+                exportByType(t, writer, status, result);
             }
         }
+
+        handleResult(result, status);
     }
 
-    private void exportByType(ObjectTypes type, Writer writer) throws SchemaException, IOException {
+    private void exportByType(ObjectTypes type, Writer writer, CountStatus status, OperationResult result)
+            throws SchemaException, IOException {
+
         RepositoryService repository = context.getRepository();
 
         PrismContext prismContext = context.getPrismContext();
@@ -117,6 +136,15 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
             try {
                 String xml = serializer.serialize(object);
                 writer.write(xml);
+
+                status.incrementCount();
+
+                if (status.getLastPrintout() + NinjaUtils.COUNT_STATUS_LOG_INTERVAL < System.currentTimeMillis()) {
+                    logInfo("Exported: {}, avg: {}ms",
+                            status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+
+                    status.lastPrintoutNow();
+                }
             } catch (Exception ex) {
                 return false;
             }
@@ -124,18 +152,22 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
             return true;
         };
 
-        OperationResult result = new OperationResult(OPERATION_EXPORT);
-
         repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, false, result);
-
-        handleResult(result);
     }
 
-    private void handleResult(OperationResult result) {
+    private void handleResult(OperationResult result, CountStatus status) {
         result.recomputeStatus();
 
-        if (!result.isAcceptable()) {
-            //todo show some warning
+        if (result.isAcceptable()) {
+            logInfo("Export finished. Exported: {} objects, avg. {}ms",
+                    status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+        } else {
+            logError("Export finished with some problems, reason: {}. Imported: {}, avg. {}ms",
+                    result.getMessage(), status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+
+            if (context.isVerbose()) {
+                logError("Full result\n{}", result.debugDumpLazily());
+            }
         }
     }
 }
