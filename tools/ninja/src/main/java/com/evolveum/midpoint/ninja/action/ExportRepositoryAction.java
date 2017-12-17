@@ -77,20 +77,15 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
 
+        logInfo("Starting export");
+
         PrismObject object = repository.getObject(type.getClassDefinition(), options.getOid(), opts, result);
-
-        result.recomputeStatus();
-        if (!result.isAcceptable()) {
-            logError("Export finished with some problems, reason: {}", result.getMessage());
-
-            if (context.isVerbose()) {
-                logError("Full result\n{}", result.debugDumpLazily());
-            }
-        }
 
         PrismSerializer<String> serializer = prismContext.xmlSerializer();
         String xml = serializer.serialize(object);
         writer.write(xml);
+
+        handleResultOnFinish(result, null, "Export finished");
     }
 
     private void exportByFilter(final Writer writer) throws SchemaException, IOException {
@@ -114,7 +109,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
             }
         }
 
-        handleResult(result, status);
+        handleResultOnFinish(result, status, "Export finished");
     }
 
     private void exportByType(ObjectTypes type, Writer writer, CountStatus status, OperationResult result)
@@ -139,12 +134,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
                 status.incrementCount();
 
-                if (status.getLastPrintout() + NinjaUtils.COUNT_STATUS_LOG_INTERVAL < System.currentTimeMillis()) {
-                    logInfo("Exported: {}, avg: {}ms",
-                            status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
-
-                    status.lastPrintoutNow();
-                }
+                logCountProgress(status);
             } catch (Exception ex) {
                 return false;
             }
@@ -153,21 +143,5 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         };
 
         repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, false, result);
-    }
-
-    private void handleResult(OperationResult result, CountStatus status) {
-        result.recomputeStatus();
-
-        if (result.isAcceptable()) {
-            logInfo("Export finished. Exported: {} objects, avg. {}ms",
-                    status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
-        } else {
-            logError("Export finished with some problems, reason: {}. Imported: {}, avg. {}ms",
-                    result.getMessage(), status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
-
-            if (context.isVerbose()) {
-                logError("Full result\n{}", result.debugDumpLazily());
-            }
-        }
     }
 }

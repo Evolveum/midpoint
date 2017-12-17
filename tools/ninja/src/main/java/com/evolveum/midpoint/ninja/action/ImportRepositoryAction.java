@@ -142,12 +142,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
                     status.incrementCount();
 
-                    if (status.getLastPrintout() + NinjaUtils.COUNT_STATUS_LOG_INTERVAL < System.currentTimeMillis()) {
-                        logInfo("Imported: {}, skipped: {}, avg: {}ms",
-                                status.getCount(), status.getSkipped(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
-
-                        status.lastPrintoutNow();
-                    }
+                    logCountProgress(status);
                 } catch (Exception ex) {
                     throw new NinjaException("Couldn't import object, reason: " + ex.getMessage(), ex);
                 }
@@ -165,19 +160,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         Validator validator = new Validator(prismContext, handler);
         validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
 
-        result.recomputeStatus();
-
-        if (result.isAcceptable()) {
-            logInfo("Import finished. Processed: {} objects, skipped: {}, avg. {}ms",
-                    status.getCount(), status.getSkipped(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
-        } else {
-            logError("Import finished with some problems, reason: {}. Processed: {} objects, skipped: {}, avg. {}ms",
-                    result.getMessage(), status.getCount(), status.getSkipped(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
-
-            if (context.isVerbose()) {
-                logError("Full result\n{}", result.debugDumpLazily());
-            }
-        }
+        handleResultOnFinish(result, status, "Import finished");
     }
 
     private String importObject(PrismObject object, OperationResult result)

@@ -1,13 +1,11 @@
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.ninja.impl.ConfigurationException;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.DeleteOptions;
-import com.evolveum.midpoint.ninja.util.FileReference;
+import com.evolveum.midpoint.ninja.util.CountStatus;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -22,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -42,36 +41,49 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     @Override
     public void execute() throws Exception {
         String oid = options.getOid();
-        FileReference filter = options.getFilter();
-
-        if (oid == null && filter == null) {
-            throw new ConfigurationException("Either filer or oid must not be null");
-        }
 
         if (oid != null) {
             deleteByOid();
         } else {
-            deleteByFilter();
+            ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context);
+
+            deleteByFilter(query);
         }
     }
 
-    private void deleteByOid() throws SchemaException {
+    private void deleteByOid() throws SchemaException, IOException {
         InOidFilter filter = InOidFilter.createInOid(options.getOid());
-
-        deleteByFilter(filter);
-    }
-
-    private void deleteByFilter() throws SchemaException, IOException {
-        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
-
-        deleteByFilter(filter);
-    }
-
-    private void deleteByFilter(ObjectFilter filter) throws SchemaException {
-        ObjectTypes type = options.getType();
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
+        deleteByFilter(query);
+    }
+
+    private void deleteByFilter(ObjectQuery query) throws SchemaException, IOException {
         OperationResult result = new OperationResult(OPERATION_DELETE);
+
+        CountStatus status = new CountStatus();
+        status.start();
+
+        logInfo("Starting delete");
+
+        ObjectTypes type = options.getType();
+        if (type != null) {
+            deleteByFilter(type, query, status, result);
+        } else {
+            for (ObjectTypes t : ObjectTypes.values()) {
+                if (Modifier.isAbstract(t.getClassDefinition().getModifiers())) {
+                    continue;
+                }
+
+                deleteByFilter(t, query, status, result);
+            }
+        }
+
+        handleResultOnFinish(result, status, "Delete finished");
+    }
+
+    private void deleteByFilter(ObjectTypes type, ObjectQuery query, CountStatus status, OperationResult result)
+            throws SchemaException, IOException {
 
         ResultHandler handler = (prismObject, operationResult) -> {
 
@@ -80,6 +92,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
                 switch (state) {
                     case SKIP:
+                        status.incrementSkipped();
                         return true;
                     case STOP:
                         return false;
@@ -89,6 +102,8 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
                 RepositoryService repository = context.getRepository();
                 repository.deleteObject(prismObject.getCompileTimeClass(), prismObject.getOid(), operationResult);
+
+                status.incrementCount();
             } catch (ObjectNotFoundException ex) {
                 // object was already gone
             } catch (IOException ex) {
@@ -108,7 +123,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     }
 
     private State askForState(PrismObject object) throws IOException {
-        System.out.println("Do you really want to delete object '" + object.toDebugName() + "'? Yes/No/Cancel");
+        logInfo("Do you really want to delete object '" + object.toDebugName() + "'? Yes/No/Cancel");
 
         State state = null;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {

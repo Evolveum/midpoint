@@ -10,7 +10,9 @@ import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.util.CountStatus;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -119,6 +121,41 @@ public abstract class Action<T> {
 
     protected void logInfo(String message, Object... args) {
         infoLogger.info(message, args);
+    }
+
+    protected void handleResultOnFinish(OperationResult result, CountStatus status, String finishMessage) {
+        result.recomputeStatus();
+
+        if (result.isAcceptable()) {
+            if (status == null) {
+                logInfo("{}", finishMessage);
+            } else {
+                logInfo("{}. Processed: {} objects, avg. {}ms",
+                        finishMessage, status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+            }
+        } else {
+            if (status == null) {
+                logError("{}", finishMessage);
+            } else {
+                logError("{} with some problems, reason: {}. Processed: {}, avg. {}ms", finishMessage,
+                        result.getMessage(), status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+            }
+
+            if (context.isVerbose()) {
+                logError("Full result\n{}", result.debugDumpLazily());
+            }
+        }
+    }
+
+    protected void logCountProgress(CountStatus status) {
+        if (status.getLastPrintout() + NinjaUtils.COUNT_STATUS_LOG_INTERVAL > System.currentTimeMillis()) {
+            return;
+        }
+
+        logInfo("Processed: {}, skipped: {}, avg: {}ms",
+                status.getCount(), status.getSkipped(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+
+        status.lastPrintoutNow();
     }
 
     public abstract void execute() throws Exception;
