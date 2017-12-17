@@ -74,11 +74,14 @@ public abstract class Action<T> {
         root.setLevel(Level.OFF);
 
         infoLogger = setupLogger(LOGGER_SYS_OUT, opts);
+
         errorLogger = setupLogger(LOGGER_SYS_ERR, opts);
+        errorLogger.setAdditive(false);
+        errorLogger.addAppender(err);
     }
 
     private Logger setupLogger(String name, BaseOptions opts) {
-        Logger logger = (Logger) LoggerFactory.getLogger(LOGGER_SYS_OUT);
+        Logger logger = (Logger) LoggerFactory.getLogger(name);
 
         if (opts.isSilent()) {
             logger.setLevel(Level.OFF);
