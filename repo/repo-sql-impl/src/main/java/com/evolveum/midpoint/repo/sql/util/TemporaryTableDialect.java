@@ -18,9 +18,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.H2Dialect;
-import org.hibernate.dialect.Oracle12cDialect;
+import org.hibernate.dialect.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -90,11 +88,11 @@ public abstract class TemporaryTableDialect {
             return new H2TempTableDialect();
         }
 
-        if (dialect instanceof MidPointMySQLDialect) {
+        if (dialect instanceof MySQL5InnoDBDialect) {
             return new MysqlTempTableDialect();
         }
 
-        if (dialect instanceof MidPointPostgreSQLDialect) {
+        if (dialect instanceof PostgreSQL95Dialect) {
             return new PostgreSQLTempTableDialect();
         }
 
@@ -102,7 +100,7 @@ public abstract class TemporaryTableDialect {
             return new OracleTempTableDialect();
         }
 
-        if (dialect instanceof UnicodeSQLServer2008Dialect) {
+        if (dialect instanceof SQLServer2008Dialect) {
             return new SQLServerTempTableDialect();
         }
 
@@ -169,8 +167,8 @@ public abstract class TemporaryTableDialect {
 
         @Override
         public String generateTemporaryTableName(String baseTableName) {
-            final String name = super.generateTemporaryTableName( baseTableName );
-            return name.length() > 30 ? name.substring( 0, 30 ) : name;
+            final String name = super.generateTemporaryTableName(baseTableName);
+            return name.length() > 30 ? name.substring(0, 30) : name;
         }
 
 

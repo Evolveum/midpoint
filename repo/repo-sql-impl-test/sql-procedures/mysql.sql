@@ -76,8 +76,6 @@ DETERMINISTIC
     DELETE FROM m_function_library;
     DELETE FROM m_object;
 
-    UPDATE hibernate_sequence SET next_val = 1;
-
     RETURN run;
   END$$
 

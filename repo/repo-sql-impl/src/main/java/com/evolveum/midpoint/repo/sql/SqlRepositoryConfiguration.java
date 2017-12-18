@@ -18,10 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
-import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
-import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
-import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -52,7 +49,7 @@ public class SqlRepositoryConfiguration {
 		MYSQL(DRIVER_MYSQL, MidPointMySQLDialect.class.getName()),
 		POSTGRESQL(DRIVER_POSTGRESQL, MidPointPostgreSQLDialect.class.getName()),
 		SQLSERVER(DRIVER_SQLSERVER, UnicodeSQLServer2008Dialect.class.getName()),
-		ORACLE(DRIVER_ORACLE, Oracle12cDialect.class.getName()),
+		ORACLE(DRIVER_ORACLE, MidPointOracleDialect.class.getName()),
 		MARIADB(DRIVER_MARIADB, MidPointMySQLDialect.class.getName());
 
         // order is important! (the first value is the default)

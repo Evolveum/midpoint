@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.ClassPathUtil;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.dialect.H2Dialect;
-import org.hibernate.dialect.Oracle12cDialect;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 import org.testng.annotations.Test;
@@ -39,7 +38,7 @@ public class SchemaTest {
         createSQLSchema("./target/h2-schema.sql", H2Dialect.class.getName());
         createSQLSchema("./target/sqlserver-schema.sql", UnicodeSQLServer2008Dialect.class.getName());
         createSQLSchema("./target/mysql-schema.sql", MidPointMySQLDialect.class.getName());
-        createSQLSchema("./target/oracle-schema.sql", Oracle12cDialect.class.getName());
+        createSQLSchema("./target/oracle-schema.sql", MidPointOracleDialect.class.getName());
         createSQLSchema("./target/postgresql-schema.sql", MidPointPostgreSQLDialect.class.getName());
     }
 
