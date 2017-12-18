@@ -755,7 +755,7 @@ public class ObjectTypeUtil {
 	}
 
 	public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
-		for (Item<?,?> srcExtensionItem: srcExtensionContainerValue.getItems()) {
+		for (Item<?,?> srcExtensionItem: emptyIfNull(srcExtensionContainerValue.getItems())) {
 			Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
 			if (magicItem == null) {
 				//noinspection unchecked
