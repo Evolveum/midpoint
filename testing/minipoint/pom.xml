@@ -26,7 +26,7 @@
   </parent>
   <artifactId>minipoint</artifactId>
   <groupId>com.evolveum.midpoint.testing</groupId>
-  <version>3.7</version>
+  <version>3.7.1-SNAPSHOT</version>
   <name>midPoint Testing - MiniPoint</name>
   <issueManagement>
   	<system>Atlassian JIRA</system>

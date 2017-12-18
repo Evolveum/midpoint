@@ -25,7 +25,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.7</version>
+        <version>3.7.1-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -72,7 +72,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.7</version>
+            <version>3.7.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
