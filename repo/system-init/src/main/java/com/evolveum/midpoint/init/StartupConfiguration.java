@@ -41,6 +41,8 @@ import java.util.Iterator;
 
 public class StartupConfiguration implements MidpointConfiguration {
 
+    public static final String MIDPOINT_SILENT_PROPERTY_NAME = "midpoint.silent";
+
     private static final String USER_HOME_SYSTEM_PROPERTY_NAME = "user.home";
     private static final String MIDPOINT_HOME_SYSTEM_PROPERTY_NAME = "midpoint.home";
     private static final String MIDPOINT_CONFIGURATION_SECTION = "midpoint";
@@ -52,6 +54,8 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String LOGBACK_EXTRA_CONFIG_FILENAME = "logback-extra.xml";
 
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
+
+    private boolean silent = false;
 
     private CompositeConfiguration config = null;
     private Document xmlConfigAsDocument = null;        // just in case when we need to access original XML document
@@ -128,6 +132,7 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Initialize system configuration
      */
     public void init() {
+        this.silent = Boolean.getBoolean(MIDPOINT_SILENT_PROPERTY_NAME);
 
         if (midPointHomePath == null) {
 
@@ -191,7 +196,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             ah.init(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
 
             File configFile = new File(midpointHome, this.getConfigFilename());
-            System.out.println("Loading midPoint configuration from file " + configFile);
+            printToSysout("Loading midPoint configuration from file " + configFile);
             LOGGER.info("Loading midPoint configuration from file {}", configFile);
             try {
                 if (!configFile.exists()) {
@@ -200,7 +205,7 @@ public class StartupConfiguration implements MidpointConfiguration {
                     if (!success || !configFile.exists()) {
                         String message = "Unable to extract configuration file " + this.getConfigFilename() + " from classpath";
                         LOGGER.error(message);
-                        System.out.println(message);
+                        printToSysout(message);
                         throw new SystemException(message);
                     }
                 }
@@ -211,12 +216,12 @@ public class StartupConfiguration implements MidpointConfiguration {
             } catch (ConfigurationException e) {
                 String message = "Unable to read configuration file [" + configFile + "]: " + e.getMessage();
                 LOGGER.error(message);
-                System.out.println(message);
+                printToSysout(message);
                 throw new SystemException(message, e);      // there's no point in continuing with midpoint initialization
             } catch (IOException e) {
             	String message = "Unable to set permissions for configuration file [" + configFile + "]: " + e.getMessage();
                 LOGGER.warn(message);
-                System.out.println(message);
+                printToSysout(message);
                 // Non-critical, continue
 			}
 
@@ -227,10 +232,18 @@ public class StartupConfiguration implements MidpointConfiguration {
             } catch (ConfigurationException e) {
                 String message = "Unable to read configuration file [" + this.getConfigFilename() + "]: " + e.getMessage();
                 LOGGER.error(message);
-                System.out.println(message);
+                printToSysout(message);
                 throw new SystemException(message, e);
             }
         }
+    }
+
+    private void printToSysout(String message) {
+        if (silent) {
+            return;
+        }
+
+        System.out.println(message);
     }
 
     private void setupInitialLogging(File midpointHome) {

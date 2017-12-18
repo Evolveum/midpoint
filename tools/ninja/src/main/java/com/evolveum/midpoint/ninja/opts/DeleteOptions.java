@@ -42,7 +42,7 @@ public class DeleteOptions {
     @Parameter(names = {P_ASK, P_ASK_LONG}, descriptionKey = "delete.ask")
     private boolean ask;
 
-    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "delete.type", required = true)
+    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "delete.type")
     private ObjectTypes type;
 
     @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "delete.filter",

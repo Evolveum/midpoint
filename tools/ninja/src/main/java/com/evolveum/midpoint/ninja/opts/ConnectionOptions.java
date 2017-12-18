@@ -38,7 +38,7 @@ public class ConnectionOptions {
     @Parameter(names = {P_PASSWORD, P_PASSWORD_LONG}, descriptionKey = "connection.password")
     private String password;
 
-    @Parameter(names = {P_ASK_PASSWORD, P_ASK_PASSWORD_LONG}, password = true, echoInput = true,
+    @Parameter(names = {P_ASK_PASSWORD, P_ASK_PASSWORD_LONG}, password = true,
             descriptionKey = "connection.askPassword")
     private String askPassword;
 
