@@ -85,6 +85,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
     }
 
     private void updateConfigurationFromProperties(Configuration configuration, Properties properties) {
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_DATABASE);
+
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_EMBEDDED);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_DROP_IF_EXISTS);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_AS_SERVER);
