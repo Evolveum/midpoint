@@ -10,7 +10,6 @@ import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.io.FileUtils;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +24,7 @@ public class Main {
         JCommander jc = NinjaUtils.setupCommandLineParser();
 
         try {
-            jc.parseWithoutValidation(args);
+            jc.parse(args);
         } catch (ParameterException ex) {
             System.err.println(ex.getMessage());
             return;
@@ -54,14 +53,6 @@ public class Main {
             System.err.println("Cant' use " + BaseOptions.P_VERBOSE + " and " + BaseOptions.P_SILENT
                     + " together (verbose and silent)");
             printHelp(jc, parsedCommand);
-            return;
-        }
-
-        jc = NinjaUtils.setupCommandLineParser();
-        try {
-            jc.parse(args);
-        } catch (ParameterException ex) {
-            System.err.println(ex.getMessage());
             return;
         }
 

@@ -218,7 +218,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			return provisioning.countObjects(type, query, options, task, parentResult);
 		} else {
-			return cacheRepositoryService.countObjects(type, query, parentResult);
+			return cacheRepositoryService.countObjects(type, query, options, parentResult);
 		}
 	}
 
