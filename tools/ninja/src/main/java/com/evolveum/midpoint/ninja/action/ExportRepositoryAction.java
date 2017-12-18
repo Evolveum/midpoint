@@ -77,7 +77,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
 
-        logInfo("Starting export");
+        log.info("Starting export");
 
         PrismObject object = repository.getObject(type.getClassDefinition(), options.getOid(), opts, result);
 
@@ -94,7 +94,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         CountStatus status = new CountStatus();
         status.start();
 
-        logInfo("Starting export");
+        log.info("Starting export");
 
         ObjectTypes type = options.getType();
         if (type != null) {

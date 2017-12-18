@@ -155,7 +155,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
             }
         };
 
-        logInfo("Starting import");
+        log.info("Starting import");
 
         Validator validator = new Validator(prismContext, handler);
         validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);

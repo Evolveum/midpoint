@@ -64,7 +64,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
         CountStatus status = new CountStatus();
         status.start();
 
-        logInfo("Starting delete");
+        log.info("Starting delete");
 
         ObjectTypes type = options.getType();
         if (type != null) {
@@ -123,7 +123,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     }
 
     private State askForState(PrismObject object) throws IOException {
-        logInfo("Do you really want to delete object '" + object.toDebugName() + "'? Yes/No/Cancel");
+        log.info("Do you really want to delete object '" + object.toDebugName() + "'? Yes/No/Cancel");
 
         State state = null;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {

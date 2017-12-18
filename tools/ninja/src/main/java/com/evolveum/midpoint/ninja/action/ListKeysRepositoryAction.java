@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -21,33 +22,38 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
     @Override
+    protected LogTarget getInfoLogTarget() {
+        return LogTarget.SYSTEM_ERR;
+    }
+
+    @Override
     public void execute() throws Exception {
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 
         if (protector instanceof ProtectorImpl) {
             ProtectorImpl impl = (ProtectorImpl) protector;
-            logInfo("Location: {}", impl.getKeyStorePath());
+            System.out.println("Location: " + impl.getKeyStorePath());
         }
 
         KeyStore keyStore = protector.getKeyStore();
 
-        logInfo("Type: {}", keyStore.getType());
+        System.out.println("Type: " + keyStore.getType());
 
         Provider provider = keyStore.getProvider();
-        logInfo("Provider: {}", provider.getName());
+        System.out.println("Provider: " + provider.getName());
 
         Enumeration<String> aliases = keyStore.aliases();
 
         while (aliases.hasMoreElements()) {
             String alias = aliases.nextElement();
 
-            logInfo("======");
+            System.out.println("======");
 
             describeAlias(keyStore, alias, protector);
 
             if (aliases.hasMoreElements()) {
-                logInfo("======");
+                System.out.println("======");
             }
         }
 
@@ -57,17 +63,17 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
     private void describeAlias(KeyStore keyStore, String alias, Protector protector)
             throws KeyStoreException, UnrecoverableEntryException, NoSuchAlgorithmException, EncryptionException {
 
-        logInfo("Alias: {}", alias);
-        logInfo("Creation date: {}", keyStore.getCreationDate(alias));
+        System.out.println("Alias: " + alias);
+        System.out.println("Creation date: " + keyStore.getCreationDate(alias));
 
         Certificate cert = keyStore.getCertificate(alias);
         if (cert != null) {
-            logInfo("Certificate: {}", cert);
+            System.out.println("Certificate: " + cert);
         }
 
         Certificate[] chain = keyStore.getCertificateChain(alias);
         if (chain != null) {
-            logInfo("Certificate chain: {}", chain);
+            System.out.println("Certificate chain: " + chain);
         }
 
         char[] password = getPassword();
@@ -81,18 +87,18 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
 
         KeyStore.SecretKeyEntry sEntry = (KeyStore.SecretKeyEntry) entry;
         SecretKey key = sEntry.getSecretKey();
-        logInfo("Secret key entry");
+        System.out.println("Secret key entry");
 
-        logInfo("  Algorithm: {}", key.getAlgorithm());
-        logInfo("  Format: {}", key.getFormat());
-        logInfo("  Key length: {}", key.getEncoded().length * 8);
-        logInfo("  SHA1 digest: {}", getSecretKeyDigest(key));
+        System.out.println("  Algorithm: " + key.getAlgorithm());
+        System.out.println("  Format: " + key.getFormat());
+        System.out.println("  Key length: " + key.getEncoded().length * 8);
+        System.out.println("  SHA1 digest: " + getSecretKeyDigest(key));
 
         if (protector instanceof ProtectorImpl) {
             ProtectorImpl impl = (ProtectorImpl) protector;
 
             String name = impl.getSecretKeyDigest(key);
-            logInfo("  Key name: {}", name);
+            System.out.println("  Key name: " + name);
         }
     }
 
