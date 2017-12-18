@@ -18,11 +18,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import org.hibernate.boot.Metadata;
 import org.hibernate.dialect.Oracle12cDialect;
-import org.hibernate.dialect.unique.UniqueDelegate;
-import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Index;
-import org.hibernate.mapping.Table;
-import org.hibernate.mapping.UniqueKey;
 import org.hibernate.tool.schema.spi.Exporter;
 
 /**
@@ -60,47 +56,5 @@ public class MidPointOracleDialect extends Oracle12cDialect {
                 return exporter.getSqlDropStrings(exportable, metadata);
             }
         };
-    }
-
-    @Override
-    public UniqueDelegate getUniqueDelegate() {
-        UniqueDelegate delegate = super.getUniqueDelegate();
-
-        return new UniqueDelegate() {
-
-            @Override
-            public String getColumnDefinitionUniquenessFragment(Column column) {
-                return delegate.getColumnDefinitionUniquenessFragment(column);
-            }
-
-            @Override
-            public String getTableCreationUniqueConstraintsFragment(Table table) {
-                return delegate.getTableCreationUniqueConstraintsFragment(table);
-            }
-
-            @Override
-            public String getAlterTableToAddUniqueKeyCommand(UniqueKey uniqueKey, Metadata metadata) {
-                return delegate.getAlterTableToAddUniqueKeyCommand(uniqueKey, metadata) + INITRANS;
-            }
-
-            @Override
-            public String getAlterTableToDropUniqueKeyCommand(UniqueKey uniqueKey, Metadata metadata) {
-                return delegate.getAlterTableToDropUniqueKeyCommand(uniqueKey, metadata);
-            }
-        };
-    }
-
-    @Override
-    public String getAddForeignKeyConstraintString(
-            String constraintName, String[] foreignKey, String referencedTable, String[] primaryKey,
-            boolean referencesPrimaryKey) {
-
-        return super.getAddForeignKeyConstraintString(constraintName, foreignKey, referencedTable,
-                primaryKey, referencesPrimaryKey) + INITRANS;
-    }
-
-    @Override
-    public String getAddForeignKeyConstraintString(String constraintName, String foreignKeyDefinition) {
-        return super.getAddForeignKeyConstraintString(constraintName, foreignKeyDefinition) + INITRANS;
     }
 }
