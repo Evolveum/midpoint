@@ -755,6 +755,10 @@
                         <groupId>javax.xml.stream</groupId> <!-- Other packages use stax:stax-api -->
                         <artifactId>stax-api</artifactId>
                     </exclusion>
+                    <exclusion> <!-- Duplicate with woodstox-core -->
+                        <groupId>org.codehaus.woodstox</groupId>
+                        <artifactId>woodstox-core-asl</artifactId>
+                    </exclusion>
                 </exclusions>
 			</dependency>
             <dependency>
