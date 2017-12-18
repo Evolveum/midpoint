@@ -367,7 +367,7 @@ public class OrgClosureManager {
         deleteQuery.executeUpdate();
         LOGGER.trace("Closure table content deleted");
 
-        final int orgsTotal = repositoryService.countObjects(OrgType.class, new ObjectQuery(), result);
+        final int orgsTotal = repositoryService.countObjects(OrgType.class, new ObjectQuery(), null, result);
         final MutableInt orgsProcessed = new MutableInt(0);
 
         ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {

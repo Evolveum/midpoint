@@ -25,6 +25,10 @@ import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.hibernate.Query;
 import org.hibernate.Session;
 
 import java.util.Collection;
@@ -33,6 +37,8 @@ import java.util.Collection;
  * @author lazyman
  */
 public class QueryEngine2 {
+
+    private static final Trace LOGGER = TraceManager.getTrace(QueryEngine2.class);
 
     private SqlRepositoryConfiguration repoConfiguration;
     private PrismContext prismContext;
@@ -48,7 +54,13 @@ public class QueryEngine2 {
 
         QueryInterpreter2 interpreter = new QueryInterpreter2(repoConfiguration);
         RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
+        Query hqlQuery = hibernateQuery.getAsHqlQuery(session);
 
-        return new RQueryImpl(hibernateQuery.getAsHqlQuery(session), hibernateQuery);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Query interpretation result:\n--- Query:\n{}\n--- with options: {}\n--- resulted in HQL:\n{}",
+                    DebugUtil.debugDump(query), options, hqlQuery.getQueryString());
+
+        }
+        return new RQueryImpl(hqlQuery, hibernateQuery);
     }
 }

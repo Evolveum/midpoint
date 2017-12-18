@@ -6,7 +6,7 @@ The 3.7 release brings new deployment model and numerous gradual improvements.
 There are improvements of identity governance features, improvements of user
 interface and internal improvements.
 
-Release date: 15th December 2017
+Release date: 18th December 2017
 
 Changes with respect to version 3.6.1:
     Stand-alone deployment based on Spring Boot

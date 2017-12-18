@@ -1310,7 +1310,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 	protected void assertShadows(int expectedCount) throws SchemaException {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName() + ".assertShadows");
-		int actualCount = repositoryService.countObjects(ShadowType.class, null, result);
+		int actualCount = repositoryService.countObjects(ShadowType.class, null, null, result);
 		if (actualCount != expectedCount) {
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override

@@ -251,7 +251,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     // checks org graph w.r.t. real org/parentref situation in repo
     protected void checkOrgGraph() throws SchemaException {
         OperationResult result = new OperationResult("temp");
-        int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, new ObjectQuery(), result);
+        int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, new ObjectQuery(), null, result);
         info("Checking graph with repo. Orgs in repo: " + numberOfOrgsInRepo + ", orgs in graph: " + orgGraph.vertexSet().size());
         assertTrue("# of orgs in repo (" + numberOfOrgsInRepo + ") is different from # of orgs in graph (" + orgGraph.vertexSet().size() + ")",
                 numberOfOrgsInRepo == orgGraph.vertexSet().size());
