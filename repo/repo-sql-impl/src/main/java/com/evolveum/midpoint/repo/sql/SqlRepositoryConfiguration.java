@@ -131,7 +131,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
     private static final String DRIVER_H2 = Driver.class.getName();
-    private static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
+    private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
     private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
     private static final String DRIVER_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private static final String DRIVER_POSTGRESQL = "org.postgresql.Driver";

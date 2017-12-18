@@ -31,14 +31,13 @@ It fakes JNDI context with simple H2 file DataSource.
     <bean id="sampleJNDIDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
           lazy-init="false">
         <property name="driverClass" value="org.h2.Driver"/>
-        <property name="jdbcUrl"
-                  value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
+        <property name="jdbcUrl" value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
         <property name="user" value="sa"/>
         <property name="password" value=""/>
 
         <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="8"/>
-        <property name="maxPoolSize" value="20"/>
+        <property name="minPoolSize" value="3"/>
+        <property name="maxPoolSize" value="8"/>
         <property name="idleConnectionTestPeriod" value="1800"/>
         <property name="connectionTesterClassName"
                   value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>
@@ -55,8 +54,8 @@ It fakes JNDI context with simple H2 file DataSource.
         <property name="password" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
 
         <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="8"/>
-        <property name="maxPoolSize" value="20"/>
+        <property name="minPoolSize" value="3"/>
+        <property name="maxPoolSize" value="8"/>
         <property name="idleConnectionTestPeriod" value="1800"/>
         <property name="connectionTesterClassName"
                   value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>
