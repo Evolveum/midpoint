@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
  */
 public class NinjaContext {
 
+    private static final String MIDPOINT_SILENT_PROPERTY_NAME = "midpoint.silent";
     private static final String MIDPOINT_HOME_OPTION = "midpoint.home";
 
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
@@ -86,6 +87,8 @@ public class NinjaContext {
     }
 
     private RepositoryService setupRepositoryViaMidPointHome(ConnectionOptions options) {
+        System.setProperty(MIDPOINT_SILENT_PROPERTY_NAME, "true");
+
         String midpointHome = options.getMidpointHome();
 
         String jdbcUrl = options.getUrl();
