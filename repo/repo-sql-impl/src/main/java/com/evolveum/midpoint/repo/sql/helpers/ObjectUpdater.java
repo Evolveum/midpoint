@@ -58,6 +58,7 @@ import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.NativeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -291,9 +292,9 @@ public class ObjectUpdater {
             LOGGER.trace("Checking oid uniqueness.");
             //todo improve this table name bullshit
             Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
-            SQLQuery query = session.createSQLQuery("select count(*) from "
+            NativeQuery query = session.createNativeQuery("select count(*) from "
                     + RUtil.getTableName(hqlType, session) + " where oid=:oid");
-            query.setString("oid", object.getOid());
+            query.setParameter("oid", object.getOid());
 
             Number count = (Number) query.uniqueResult();
             if (count != null && count.longValue() > 0) {

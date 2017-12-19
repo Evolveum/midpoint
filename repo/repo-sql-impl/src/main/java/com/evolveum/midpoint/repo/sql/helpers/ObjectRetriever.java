@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.NativeQuery;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -132,7 +133,7 @@ public class ObjectRetriever {
 			} else if (getConfiguration().isLockForUpdateViaSql()) {
 				LOGGER.trace("Trying to lock object {} for update (via SQL)", oid);
 				long time = System.currentTimeMillis();
-				SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
+				NativeQuery q = session.createNativeQuery("select oid from m_object where oid = ? for update");
 				q.setString(0, oid);
 				Object result = q.uniqueResult();
 				if (result == null) {
@@ -304,7 +305,7 @@ public class ObjectRetriever {
 				}
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
-                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType, session));
+                NativeQuery sqlQuery = session.createNativeQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType, session));
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;

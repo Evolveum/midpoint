@@ -50,9 +50,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.NativeQuery;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -198,24 +199,24 @@ public class CertificationCaseHelper {
                         affectedIds.add(id);
                         // TODO couldn't this cascading be done by hibernate itself?
                         Integer integerCaseId = RUtil.toInteger(id);
-//                        Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
+//                        NativeQuery deleteCaseReferences = session.createNativeQuery("delete from " + RCertCaseReference.TABLE +
 //                                " where owner_owner_oid=:oid and owner_id=:id");
-//                        deleteCaseReferences.setString("oid", campaignOid);
-//                        deleteCaseReferences.setInteger("id", integerCaseId);
+//                        deleteCaseReferences.setParameter("oid", campaignOid);
+//                        deleteCaseReferences.setParameter("id", integerCaseId);
 //                        deleteCaseReferences.executeUpdate();
-                        Query deleteWorkItemReferences = session.createSQLQuery("delete from " + RCertWorkItemReference.TABLE +
+                        NativeQuery deleteWorkItemReferences = session.createNativeQuery("delete from " + RCertWorkItemReference.TABLE +
                                 " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
-                        deleteWorkItemReferences.setString("oid", campaignOid);
-                        deleteWorkItemReferences.setInteger("id", integerCaseId);
+                        deleteWorkItemReferences.setParameter("oid", campaignOid);
+                        deleteWorkItemReferences.setParameter("id", integerCaseId);
                         deleteWorkItemReferences.executeUpdate();
-                        Query deleteCaseWorkItems = session.createSQLQuery("delete from " + RAccessCertificationWorkItem.TABLE +
+                        NativeQuery deleteCaseWorkItems = session.createNativeQuery("delete from " + RAccessCertificationWorkItem.TABLE +
                                 " where owner_owner_oid=:oid and owner_id=:id");
-                        deleteCaseWorkItems.setString("oid", campaignOid);
-                        deleteCaseWorkItems.setInteger("id", integerCaseId);
+                        deleteCaseWorkItems.setParameter("oid", campaignOid);
+                        deleteCaseWorkItems.setParameter("id", integerCaseId);
                         deleteCaseWorkItems.executeUpdate();
                         Query deleteCase = session.getNamedQuery("delete.campaignCase");
-                        deleteCase.setString("oid", campaignOid);
-                        deleteCase.setInteger("id", integerCaseId);
+                        deleteCase.setParameter("oid", campaignOid);
+                        deleteCase.setParameter("id", integerCaseId);
                         deleteCase.executeUpdate();
                     }
                 }
