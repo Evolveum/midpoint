@@ -1,1364 +1,231 @@
-CREATE TABLE m_abstract_role (
-  approvalProcess    NVARCHAR(255) COLLATE database_default,
-  autoassign_enabled BIT,
-  displayName_norm   NVARCHAR(255) COLLATE database_default,
-  displayName_orig   NVARCHAR(255) COLLATE database_default,
-  identifier         NVARCHAR(255) COLLATE database_default,
-  ownerRef_relation  NVARCHAR(157) COLLATE database_default,
-  ownerRef_targetOid NVARCHAR(36) COLLATE database_default,
-  ownerRef_type      INT,
-  requestable        BIT,
-  riskLevel          NVARCHAR(255) COLLATE database_default,
-  oid                NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_acc_cert_campaign (
-  definitionRef_relation  NVARCHAR(157) COLLATE database_default,
-  definitionRef_targetOid NVARCHAR(36) COLLATE database_default,
-  definitionRef_type      INT,
-  endTimestamp            DATETIME2,
-  handlerUri              NVARCHAR(255) COLLATE database_default,
-  name_norm               NVARCHAR(255) COLLATE database_default,
-  name_orig               NVARCHAR(255) COLLATE database_default,
-  ownerRef_relation       NVARCHAR(157) COLLATE database_default,
-  ownerRef_targetOid      NVARCHAR(36) COLLATE database_default,
-  ownerRef_type           INT,
-  stageNumber             INT,
-  startTimestamp          DATETIME2,
-  state                   INT,
-  oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_acc_cert_case (
-  id                       INT                                   NOT NULL,
-  owner_oid                NVARCHAR(36) COLLATE database_default NOT NULL,
-  administrativeStatus     INT,
-  archiveTimestamp         DATETIME2,
-  disableReason            NVARCHAR(255) COLLATE database_default,
-  disableTimestamp         DATETIME2,
-  effectiveStatus          INT,
-  enableTimestamp          DATETIME2,
-  validFrom                DATETIME2,
-  validTo                  DATETIME2,
-  validityChangeTimestamp  DATETIME2,
-  validityStatus           INT,
-  currentStageOutcome      NVARCHAR(255) COLLATE database_default,
-  fullObject               VARBINARY(MAX),
-  objectRef_relation       NVARCHAR(157) COLLATE database_default,
-  objectRef_targetOid      NVARCHAR(36) COLLATE database_default,
-  objectRef_type           INT,
-  orgRef_relation          NVARCHAR(157) COLLATE database_default,
-  orgRef_targetOid         NVARCHAR(36) COLLATE database_default,
-  orgRef_type              INT,
-  outcome                  NVARCHAR(255) COLLATE database_default,
-  remediedTimestamp        DATETIME2,
-  reviewDeadline           DATETIME2,
-  reviewRequestedTimestamp DATETIME2,
-  stageNumber              INT,
-  targetRef_relation       NVARCHAR(157) COLLATE database_default,
-  targetRef_targetOid      NVARCHAR(36) COLLATE database_default,
-  targetRef_type           INT,
-  tenantRef_relation       NVARCHAR(157) COLLATE database_default,
-  tenantRef_targetOid      NVARCHAR(36) COLLATE database_default,
-  tenantRef_type           INT,
-  PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_acc_cert_definition (
-  handlerUri                   NVARCHAR(255) COLLATE database_default,
-  lastCampaignClosedTimestamp  DATETIME2,
-  lastCampaignStartedTimestamp DATETIME2,
-  name_norm                    NVARCHAR(255) COLLATE database_default,
-  name_orig                    NVARCHAR(255) COLLATE database_default,
-  ownerRef_relation            NVARCHAR(157) COLLATE database_default,
-  ownerRef_targetOid           NVARCHAR(36) COLLATE database_default,
-  ownerRef_type                INT,
-  oid                          NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_acc_cert_wi (
-  id                     INT                                   NOT NULL,
-  owner_id               INT                                   NOT NULL,
-  owner_owner_oid        NVARCHAR(36) COLLATE database_default NOT NULL,
-  closeTimestamp         DATETIME2,
-  outcome                NVARCHAR(255) COLLATE database_default,
-  outputChangeTimestamp  DATETIME2,
-  performerRef_relation  NVARCHAR(157) COLLATE database_default,
-  performerRef_targetOid NVARCHAR(36) COLLATE database_default,
-  performerRef_type      INT,
-  stageNumber            INT,
-  PRIMARY KEY (id, owner_id, owner_owner_oid)
-);
-
-CREATE TABLE m_acc_cert_wi_reference (
-  owner_id              INT                                    NOT NULL,
-  owner_owner_id        INT                                    NOT NULL,
-  owner_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  relation              NVARCHAR(157) COLLATE database_default NOT NULL,
-  targetOid             NVARCHAR(36) COLLATE database_default  NOT NULL,
-  targetType            INT,
-  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
-);
-
-CREATE TABLE m_assignment (
-  id                      INT                                   NOT NULL,
-  owner_oid               NVARCHAR(36) COLLATE database_default NOT NULL,
-  administrativeStatus    INT,
-  archiveTimestamp        DATETIME2,
-  disableReason           NVARCHAR(255) COLLATE database_default,
-  disableTimestamp        DATETIME2,
-  effectiveStatus         INT,
-  enableTimestamp         DATETIME2,
-  validFrom               DATETIME2,
-  validTo                 DATETIME2,
-  validityChangeTimestamp DATETIME2,
-  validityStatus          INT,
-  assignmentOwner         INT,
-  createChannel           NVARCHAR(255) COLLATE database_default,
-  createTimestamp         DATETIME2,
-  creatorRef_relation     NVARCHAR(157) COLLATE database_default,
-  creatorRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  creatorRef_type         INT,
-  lifecycleState          NVARCHAR(255) COLLATE database_default,
-  modifierRef_relation    NVARCHAR(157) COLLATE database_default,
-  modifierRef_targetOid   NVARCHAR(36) COLLATE database_default,
-  modifierRef_type        INT,
-  modifyChannel           NVARCHAR(255) COLLATE database_default,
-  modifyTimestamp         DATETIME2,
-  orderValue              INT,
-  orgRef_relation         NVARCHAR(157) COLLATE database_default,
-  orgRef_targetOid        NVARCHAR(36) COLLATE database_default,
-  orgRef_type             INT,
-  resourceRef_relation    NVARCHAR(157) COLLATE database_default,
-  resourceRef_targetOid   NVARCHAR(36) COLLATE database_default,
-  resourceRef_type        INT,
-  targetRef_relation      NVARCHAR(157) COLLATE database_default,
-  targetRef_targetOid     NVARCHAR(36) COLLATE database_default,
-  targetRef_type          INT,
-  tenantRef_relation      NVARCHAR(157) COLLATE database_default,
-  tenantRef_targetOid     NVARCHAR(36) COLLATE database_default,
-  tenantRef_type          INT,
-  extId                   INT,
-  extOid                  NVARCHAR(36) COLLATE database_default,
-  PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_assignment_ext_boolean (
-  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        INT                                    NOT NULL,
-  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  booleanValue                 BIT                                    NOT NULL,
-  extensionType                INT,
-  dynamicDef                   BIT,
-  eType                        NVARCHAR(157) COLLATE database_default,
-  valueType                    INT,
-  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
-);
-
-CREATE TABLE m_assignment_ext_date (
-  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        INT                                    NOT NULL,
-  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  dateValue                    DATETIME2                              NOT NULL,
-  extensionType                INT,
-  dynamicDef                   BIT,
-  eType                        NVARCHAR(157) COLLATE database_default,
-  valueType                    INT,
-  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, dateValue)
-);
-
-CREATE TABLE m_assignment_ext_long (
-  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        INT                                    NOT NULL,
-  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  longValue                    BIGINT                                 NOT NULL,
-  extensionType                INT,
-  dynamicDef                   BIT,
-  eType                        NVARCHAR(157) COLLATE database_default,
-  valueType                    INT,
-  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, longValue)
-);
-
-CREATE TABLE m_assignment_ext_poly (
-  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        INT                                    NOT NULL,
-  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  orig                         NVARCHAR(255) COLLATE database_default NOT NULL,
-  extensionType                INT,
-  dynamicDef                   BIT,
-  norm                         NVARCHAR(255) COLLATE database_default,
-  eType                        NVARCHAR(157) COLLATE database_default,
-  valueType                    INT,
-  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, orig)
-);
-
-CREATE TABLE m_assignment_ext_reference (
-  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        INT                                    NOT NULL,
-  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  targetoid                    NVARCHAR(36) COLLATE database_default  NOT NULL,
-  extensionType                INT,
-  dynamicDef                   BIT,
-  relation                     NVARCHAR(157) COLLATE database_default,
-  targetType                   INT,
-  eType                        NVARCHAR(157) COLLATE database_default,
-  valueType                    INT,
-  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, targetoid)
-);
-
-CREATE TABLE m_assignment_ext_string (
-  eName                        NVARCHAR(157) COLLATE database_default NOT NULL,
-  anyContainer_owner_id        INT                                    NOT NULL,
-  anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  stringValue                  NVARCHAR(255) COLLATE database_default NOT NULL,
-  extensionType                INT,
-  dynamicDef                   BIT,
-  eType                        NVARCHAR(157) COLLATE database_default,
-  valueType                    INT,
-  PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue)
-);
-
-CREATE TABLE m_assignment_extension (
-  owner_id        INT                                   NOT NULL,
-  owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  booleansCount   SMALLINT,
-  datesCount      SMALLINT,
-  longsCount      SMALLINT,
-  polysCount      SMALLINT,
-  referencesCount SMALLINT,
-  stringsCount    SMALLINT,
-  PRIMARY KEY (owner_id, owner_owner_oid)
-);
-
-CREATE TABLE m_assignment_policy_situation (
-  assignment_id   INT                                   NOT NULL,
-  assignment_oid  NVARCHAR(36) COLLATE database_default NOT NULL,
-  policySituation NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_assignment_reference (
-  owner_id        INT                                    NOT NULL,
-  owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  reference_type  INT                                    NOT NULL,
-  relation        NVARCHAR(157) COLLATE database_default NOT NULL,
-  targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
-  targetType      INT,
-  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
-);
-
-CREATE TABLE m_audit_delta (
-  checksum          NVARCHAR(32) COLLATE database_default NOT NULL,
-  record_id         BIGINT                                NOT NULL,
-  delta             NVARCHAR(MAX),
-  deltaOid          NVARCHAR(36) COLLATE database_default,
-  deltaType         INT,
-  fullResult        NVARCHAR(MAX),
-  objectName_norm   NVARCHAR(255) COLLATE database_default,
-  objectName_orig   NVARCHAR(255) COLLATE database_default,
-  resourceName_norm NVARCHAR(255) COLLATE database_default,
-  resourceName_orig NVARCHAR(255) COLLATE database_default,
-  resourceOid       NVARCHAR(36) COLLATE database_default,
-  status            INT,
-  PRIMARY KEY (checksum, record_id)
-);
-
-CREATE TABLE m_audit_event (
-  id                BIGINT NOT NULL,
-  attorneyName      NVARCHAR(255) COLLATE database_default,
-  attorneyOid       NVARCHAR(36) COLLATE database_default,
-  channel           NVARCHAR(255) COLLATE database_default,
-  eventIdentifier   NVARCHAR(255) COLLATE database_default,
-  eventStage        INT,
-  eventType         INT,
-  hostIdentifier    NVARCHAR(255) COLLATE database_default,
-  initiatorName     NVARCHAR(255) COLLATE database_default,
-  initiatorOid      NVARCHAR(36) COLLATE database_default,
-  initiatorType     INT,
-  message           NVARCHAR(1024) COLLATE database_default,
-  nodeIdentifier    NVARCHAR(255) COLLATE database_default,
-  outcome           INT,
-  parameter         NVARCHAR(255) COLLATE database_default,
-  remoteHostAddress NVARCHAR(255) COLLATE database_default,
-  result            NVARCHAR(255) COLLATE database_default,
-  sessionIdentifier NVARCHAR(255) COLLATE database_default,
-  targetName        NVARCHAR(255) COLLATE database_default,
-  targetOid         NVARCHAR(36) COLLATE database_default,
-  targetOwnerName   NVARCHAR(255) COLLATE database_default,
-  targetOwnerOid    NVARCHAR(36) COLLATE database_default,
-  targetType        INT,
-  taskIdentifier    NVARCHAR(255) COLLATE database_default,
-  taskOID           NVARCHAR(255) COLLATE database_default,
-  timestampValue    DATETIME2,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE m_audit_item (
-  changedItemPath NVARCHAR(900) COLLATE database_default NOT NULL,
-  record_id       BIGINT                                 NOT NULL,
-  PRIMARY KEY (changedItemPath, record_id)
-);
-
-CREATE TABLE m_audit_prop_value (
-  id        BIGINT NOT NULL,
-  name      NVARCHAR(255) COLLATE database_default,
-  record_id BIGINT,
-  value     NVARCHAR(1024) COLLATE database_default,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE m_audit_ref_value (
-  id              BIGINT NOT NULL,
-  name            NVARCHAR(255) COLLATE database_default,
-  oid             NVARCHAR(255) COLLATE database_default,
-  record_id       BIGINT,
-  targetName_norm NVARCHAR(255) COLLATE database_default,
-  targetName_orig NVARCHAR(255) COLLATE database_default,
-  type            NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE m_case (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_connector (
-  connectorBundle            NVARCHAR(255) COLLATE database_default,
-  connectorHostRef_relation  NVARCHAR(157) COLLATE database_default,
-  connectorHostRef_targetOid NVARCHAR(36) COLLATE database_default,
-  connectorHostRef_type      INT,
-  connectorType              NVARCHAR(255) COLLATE database_default,
-  connectorVersion           NVARCHAR(255) COLLATE database_default,
-  framework                  NVARCHAR(255) COLLATE database_default,
-  name_norm                  NVARCHAR(255) COLLATE database_default,
-  name_orig                  NVARCHAR(255) COLLATE database_default,
-  oid                        NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_connector_host (
-  hostname  NVARCHAR(255) COLLATE database_default,
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  port      NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_connector_target_system (
-  connector_oid    NVARCHAR(36) COLLATE database_default NOT NULL,
-  targetSystemType NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_exclusion (
-  id                  INT                                   NOT NULL,
-  owner_oid           NVARCHAR(36) COLLATE database_default NOT NULL,
-  policy              INT,
-  targetRef_relation  NVARCHAR(157) COLLATE database_default,
-  targetRef_targetOid NVARCHAR(36) COLLATE database_default,
-  targetRef_type      INT,
-  PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_focus (
-  administrativeStatus    INT,
-  archiveTimestamp        DATETIME2,
-  disableReason           NVARCHAR(255) COLLATE database_default,
-  disableTimestamp        DATETIME2,
-  effectiveStatus         INT,
-  enableTimestamp         DATETIME2,
-  validFrom               DATETIME2,
-  validTo                 DATETIME2,
-  validityChangeTimestamp DATETIME2,
-  validityStatus          INT,
-  hasPhoto                BIT DEFAULT 0                         NOT NULL,
-  oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_focus_photo (
-  owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  photo     VARBINARY(MAX),
-  PRIMARY KEY (owner_oid)
-);
-
-CREATE TABLE m_focus_policy_situation (
-  focus_oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  policySituation NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_form (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_function_library (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_generic_object (
-  name_norm  NVARCHAR(255) COLLATE database_default,
-  name_orig  NVARCHAR(255) COLLATE database_default,
-  objectType NVARCHAR(255) COLLATE database_default,
-  oid        NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_lookup_table (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_lookup_table_row (
-  id                  INT                                   NOT NULL,
-  owner_oid           NVARCHAR(36) COLLATE database_default NOT NULL,
-  row_key             NVARCHAR(255) COLLATE database_default,
-  label_norm          NVARCHAR(255) COLLATE database_default,
-  label_orig          NVARCHAR(255) COLLATE database_default,
-  lastChangeTimestamp DATETIME2,
-  row_value           NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_node (
-  name_norm      NVARCHAR(255) COLLATE database_default,
-  name_orig      NVARCHAR(255) COLLATE database_default,
-  nodeIdentifier NVARCHAR(255) COLLATE database_default,
-  oid            NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_object (
-  oid                   NVARCHAR(36) COLLATE database_default NOT NULL,
-  booleansCount         SMALLINT,
-  createChannel         NVARCHAR(255) COLLATE database_default,
-  createTimestamp       DATETIME2,
-  creatorRef_relation   NVARCHAR(157) COLLATE database_default,
-  creatorRef_targetOid  NVARCHAR(36) COLLATE database_default,
-  creatorRef_type       INT,
-  datesCount            SMALLINT,
-  fullObject            VARBINARY(MAX),
-  lifecycleState        NVARCHAR(255) COLLATE database_default,
-  longsCount            SMALLINT,
-  modifierRef_relation  NVARCHAR(157) COLLATE database_default,
-  modifierRef_targetOid NVARCHAR(36) COLLATE database_default,
-  modifierRef_type      INT,
-  modifyChannel         NVARCHAR(255) COLLATE database_default,
-  modifyTimestamp       DATETIME2,
-  name_norm             NVARCHAR(255) COLLATE database_default,
-  name_orig             NVARCHAR(255) COLLATE database_default,
-  objectTypeClass       INT,
-  polysCount            SMALLINT,
-  referencesCount       SMALLINT,
-  stringsCount          SMALLINT,
-  tenantRef_relation    NVARCHAR(157) COLLATE database_default,
-  tenantRef_targetOid   NVARCHAR(36) COLLATE database_default,
-  tenantRef_type        INT,
-  version               INT                                   NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_object_ext_boolean (
-  eName        NVARCHAR(157) COLLATE database_default NOT NULL,
-  owner_oid    NVARCHAR(36) COLLATE database_default  NOT NULL,
-  ownerType    INT                                    NOT NULL,
-  booleanValue BIT                                    NOT NULL,
-  dynamicDef   BIT,
-  eType        NVARCHAR(157) COLLATE database_default,
-  valueType    INT,
-  PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
-);
-
-CREATE TABLE m_object_ext_date (
-  eName      NVARCHAR(157) COLLATE database_default NOT NULL,
-  owner_oid  NVARCHAR(36) COLLATE database_default  NOT NULL,
-  ownerType  INT                                    NOT NULL,
-  dateValue  DATETIME2                              NOT NULL,
-  dynamicDef BIT,
-  eType      NVARCHAR(157) COLLATE database_default,
-  valueType  INT,
-  PRIMARY KEY (eName, owner_oid, ownerType, dateValue)
-);
-
-CREATE TABLE m_object_ext_long (
-  eName      NVARCHAR(157) COLLATE database_default NOT NULL,
-  owner_oid  NVARCHAR(36) COLLATE database_default  NOT NULL,
-  ownerType  INT                                    NOT NULL,
-  longValue  BIGINT                                 NOT NULL,
-  dynamicDef BIT,
-  eType      NVARCHAR(157) COLLATE database_default,
-  valueType  INT,
-  PRIMARY KEY (eName, owner_oid, ownerType, longValue)
-);
-
-CREATE TABLE m_object_ext_poly (
-  eName      NVARCHAR(157) COLLATE database_default NOT NULL,
-  owner_oid  NVARCHAR(36) COLLATE database_default  NOT NULL,
-  ownerType  INT                                    NOT NULL,
-  orig       NVARCHAR(255) COLLATE database_default NOT NULL,
-  dynamicDef BIT,
-  norm       NVARCHAR(255) COLLATE database_default,
-  eType      NVARCHAR(157) COLLATE database_default,
-  valueType  INT,
-  PRIMARY KEY (eName, owner_oid, ownerType, orig)
-);
-
-CREATE TABLE m_object_ext_reference (
-  eName      NVARCHAR(157) COLLATE database_default NOT NULL,
-  owner_oid  NVARCHAR(36) COLLATE database_default  NOT NULL,
-  ownerType  INT                                    NOT NULL,
-  targetoid  NVARCHAR(36) COLLATE database_default  NOT NULL,
-  dynamicDef BIT,
-  relation   NVARCHAR(157) COLLATE database_default,
-  targetType INT,
-  eType      NVARCHAR(157) COLLATE database_default,
-  valueType  INT,
-  PRIMARY KEY (eName, owner_oid, ownerType, targetoid)
-);
-
-CREATE TABLE m_object_ext_string (
-  eName       NVARCHAR(157) COLLATE database_default NOT NULL,
-  owner_oid   NVARCHAR(36) COLLATE database_default  NOT NULL,
-  ownerType   INT                                    NOT NULL,
-  stringValue NVARCHAR(255) COLLATE database_default NOT NULL,
-  dynamicDef  BIT,
-  eType       NVARCHAR(157) COLLATE database_default,
-  valueType   INT,
-  PRIMARY KEY (eName, owner_oid, ownerType, stringValue)
-);
-
-CREATE TABLE m_object_template (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  type      INT,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_object_text_info (
-  owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  text      NVARCHAR(255) COLLATE database_default NOT NULL,
-  PRIMARY KEY (owner_oid, text)
-);
-
-CREATE TABLE m_operation_execution (
-  id                     INT                                   NOT NULL,
-  owner_oid              NVARCHAR(36) COLLATE database_default NOT NULL,
-  initiatorRef_relation  NVARCHAR(157) COLLATE database_default,
-  initiatorRef_targetOid NVARCHAR(36) COLLATE database_default,
-  initiatorRef_type      INT,
-  status                 INT,
-  taskRef_relation       NVARCHAR(157) COLLATE database_default,
-  taskRef_targetOid      NVARCHAR(36) COLLATE database_default,
-  taskRef_type           INT,
-  timestampValue         DATETIME2,
-  PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_org (
-  costCenter       NVARCHAR(255) COLLATE database_default,
-  displayOrder     INT,
-  locality_norm    NVARCHAR(255) COLLATE database_default,
-  locality_orig    NVARCHAR(255) COLLATE database_default,
-  name_norm        NVARCHAR(255) COLLATE database_default,
-  name_orig        NVARCHAR(255) COLLATE database_default,
-  tenant           BIT,
-  oid              NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_org_closure (
-  ancestor_oid   NVARCHAR(36) COLLATE database_default NOT NULL,
-  descendant_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  val            INT,
-  PRIMARY KEY (ancestor_oid, descendant_oid)
-);
-
-CREATE TABLE m_org_org_type (
-  org_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  orgType NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_reference (
-  owner_oid      NVARCHAR(36) COLLATE database_default  NOT NULL,
-  reference_type INT                                    NOT NULL,
-  relation       NVARCHAR(157) COLLATE database_default NOT NULL,
-  targetOid      NVARCHAR(36) COLLATE database_default  NOT NULL,
-  targetType     INT,
-  PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
-);
-
-CREATE TABLE m_report (
-  export              INT,
-  name_norm           NVARCHAR(255) COLLATE database_default,
-  name_orig           NVARCHAR(255) COLLATE database_default,
-  orientation         INT,
-  parent              BIT,
-  useHibernateSession BIT,
-  oid                 NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_report_output (
-  name_norm           NVARCHAR(255) COLLATE database_default,
-  name_orig           NVARCHAR(255) COLLATE database_default,
-  reportRef_relation  NVARCHAR(157) COLLATE database_default,
-  reportRef_targetOid NVARCHAR(36) COLLATE database_default,
-  reportRef_type      INT,
-  oid                 NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_resource (
-  administrativeState        INT,
-  connectorRef_relation      NVARCHAR(157) COLLATE database_default,
-  connectorRef_targetOid     NVARCHAR(36) COLLATE database_default,
-  connectorRef_type          INT,
-  name_norm                  NVARCHAR(255) COLLATE database_default,
-  name_orig                  NVARCHAR(255) COLLATE database_default,
-  o16_lastAvailabilityStatus INT,
-  oid                        NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_role (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  roleType  NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_security_policy (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_sequence (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_service (
-  displayOrder  INT,
-  locality_norm NVARCHAR(255) COLLATE database_default,
-  locality_orig NVARCHAR(255) COLLATE database_default,
-  name_norm     NVARCHAR(255) COLLATE database_default,
-  name_orig     NVARCHAR(255) COLLATE database_default,
-  oid           NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_service_type (
-  service_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  serviceType NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_shadow (
-  attemptNumber                INT,
-  dead                         BIT,
-  exist                        BIT,
-  failedOperationType          INT,
-  fullSynchronizationTimestamp DATETIME2,
-  intent                       NVARCHAR(255) COLLATE database_default,
-  kind                         INT,
-  name_norm                    NVARCHAR(255) COLLATE database_default,
-  name_orig                    NVARCHAR(255) COLLATE database_default,
-  objectClass                  NVARCHAR(157) COLLATE database_default,
-  pendingOperationCount        INT,
-  resourceRef_relation         NVARCHAR(157) COLLATE database_default,
-  resourceRef_targetOid        NVARCHAR(36) COLLATE database_default,
-  resourceRef_type             INT,
-  status                       INT,
-  synchronizationSituation     INT,
-  synchronizationTimestamp     DATETIME2,
-  oid                          NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_system_configuration (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_task (
-  binding                INT,
-  canRunOnNode           NVARCHAR(255) COLLATE database_default,
-  category               NVARCHAR(255) COLLATE database_default,
-  completionTimestamp    DATETIME2,
-  executionStatus        INT,
-  handlerUri             NVARCHAR(255) COLLATE database_default,
-  lastRunFinishTimestamp DATETIME2,
-  lastRunStartTimestamp  DATETIME2,
-  name_norm              NVARCHAR(255) COLLATE database_default,
-  name_orig              NVARCHAR(255) COLLATE database_default,
-  node                   NVARCHAR(255) COLLATE database_default,
-  objectRef_relation     NVARCHAR(157) COLLATE database_default,
-  objectRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  objectRef_type         INT,
-  ownerRef_relation      NVARCHAR(157) COLLATE database_default,
-  ownerRef_targetOid     NVARCHAR(36) COLLATE database_default,
-  ownerRef_type          INT,
-  parent                 NVARCHAR(255) COLLATE database_default,
-  recurrence             INT,
-  status                 INT,
-  taskIdentifier         NVARCHAR(255) COLLATE database_default,
-  threadStopAction       INT,
-  waitingReason          INT,
-  wfEndTimestamp           DATETIME2,
-  wfObjectRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfObjectRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfObjectRef_type         INT,
-  wfProcessInstanceId      NVARCHAR(255) COLLATE database_default,
-  wfRequesterRef_relation  NVARCHAR(157) COLLATE database_default,
-  wfRequesterRef_targetOid NVARCHAR(36) COLLATE database_default,
-  wfRequesterRef_type      INT,
-  wfStartTimestamp         DATETIME2,
-  wfTargetRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfTargetRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfTargetRef_type         INT,
-  oid                    NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_task_dependent (
-  task_oid  NVARCHAR(36) COLLATE database_default NOT NULL,
-  dependent NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_trigger (
-  id             INT                                   NOT NULL,
-  owner_oid      NVARCHAR(36) COLLATE database_default NOT NULL,
-  handlerUri     NVARCHAR(255) COLLATE database_default,
-  timestampValue DATETIME2,
-  PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_user (
-  additionalName_norm  NVARCHAR(255) COLLATE database_default,
-  additionalName_orig  NVARCHAR(255) COLLATE database_default,
-  costCenter           NVARCHAR(255) COLLATE database_default,
-  emailAddress         NVARCHAR(255) COLLATE database_default,
-  employeeNumber       NVARCHAR(255) COLLATE database_default,
-  familyName_norm      NVARCHAR(255) COLLATE database_default,
-  familyName_orig      NVARCHAR(255) COLLATE database_default,
-  fullName_norm        NVARCHAR(255) COLLATE database_default,
-  fullName_orig        NVARCHAR(255) COLLATE database_default,
-  givenName_norm       NVARCHAR(255) COLLATE database_default,
-  givenName_orig       NVARCHAR(255) COLLATE database_default,
-  honorificPrefix_norm NVARCHAR(255) COLLATE database_default,
-  honorificPrefix_orig NVARCHAR(255) COLLATE database_default,
-  honorificSuffix_norm NVARCHAR(255) COLLATE database_default,
-  honorificSuffix_orig NVARCHAR(255) COLLATE database_default,
-  locale               NVARCHAR(255) COLLATE database_default,
-  locality_norm        NVARCHAR(255) COLLATE database_default,
-  locality_orig        NVARCHAR(255) COLLATE database_default,
-  name_norm            NVARCHAR(255) COLLATE database_default,
-  name_orig            NVARCHAR(255) COLLATE database_default,
-  nickName_norm        NVARCHAR(255) COLLATE database_default,
-  nickName_orig        NVARCHAR(255) COLLATE database_default,
-  preferredLanguage    NVARCHAR(255) COLLATE database_default,
-  status               INT,
-  telephoneNumber      NVARCHAR(255) COLLATE database_default,
-  timezone             NVARCHAR(255) COLLATE database_default,
-  title_norm           NVARCHAR(255) COLLATE database_default,
-  title_orig           NVARCHAR(255) COLLATE database_default,
-  oid                  NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE TABLE m_user_employee_type (
-  user_oid     NVARCHAR(36) COLLATE database_default NOT NULL,
-  employeeType NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_user_organization (
-  user_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  norm     NVARCHAR(255) COLLATE database_default,
-  orig     NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_user_organizational_unit (
-  user_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  norm     NVARCHAR(255) COLLATE database_default,
-  orig     NVARCHAR(255) COLLATE database_default
-);
-
-CREATE TABLE m_value_policy (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-
-CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
-
-CREATE INDEX iRequestable ON m_abstract_role (requestable);
-
-CREATE INDEX iAutoassignEnabled
-  ON m_abstract_role (autoassign_enabled);
-
-ALTER TABLE m_acc_cert_campaign
-    ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
-
-CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
-
-CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
-
-CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
-
-CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
-
-ALTER TABLE m_acc_cert_definition
-    ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
-
-CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
-
-CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
-
-CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
-
-CREATE INDEX iTargetRefTargetOid ON m_assignment (targetRef_targetOid);
-
-CREATE INDEX iTenantRefTargetOid ON m_assignment (tenantRef_targetOid);
-
-CREATE INDEX iOrgRefTargetOid ON m_assignment (orgRef_targetOid);
-
-CREATE INDEX iResourceRefTargetOid ON m_assignment (resourceRef_targetOid);
-
-CREATE INDEX iAExtensionBoolean ON m_assignment_ext_boolean (extensionType, eName, booleanValue);
-
-CREATE INDEX iAExtensionDate ON m_assignment_ext_date (extensionType, eName, dateValue);
-
-CREATE INDEX iAExtensionLong ON m_assignment_ext_long (extensionType, eName, longValue);
-
-CREATE INDEX iAExtensionPolyString ON m_assignment_ext_poly (extensionType, eName, orig);
-
-CREATE INDEX iAExtensionReference ON m_assignment_ext_reference (extensionType, eName, targetoid);
-
-CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName, stringValue);
-
-CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid);
-
-CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
-
-CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
-
-CREATE INDEX iAuditPropValRecordId
-  ON m_audit_prop_value (record_id);
-
-CREATE INDEX iAuditRefValRecordId
-  ON m_audit_ref_value (record_id);
-
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
-
-ALTER TABLE m_connector_host
-ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
-
-CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus);
-
-CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
-
-ALTER TABLE m_form
-  ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
-
-ALTER TABLE m_function_library
-  ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
-
-ALTER TABLE m_generic_object
-ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
-
-ALTER TABLE m_lookup_table
-ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
-
-ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key);
-
-ALTER TABLE m_node
-ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
-
-CREATE INDEX iObjectNameOrig ON m_object (name_orig);
-
-CREATE INDEX iObjectNameNorm ON m_object (name_norm);
-
-CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
-
-CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
-
-CREATE INDEX iObjectLifecycleState ON m_object (lifecycleState);
-
-CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
-
-CREATE INDEX iExtensionBooleanDef ON m_object_ext_boolean (owner_oid, ownerType);
-
-CREATE INDEX iExtensionDate ON m_object_ext_date (ownerType, eName, dateValue);
-
-CREATE INDEX iExtensionDateDef ON m_object_ext_date (owner_oid, ownerType);
-
-CREATE INDEX iExtensionLong ON m_object_ext_long (ownerType, eName, longValue);
-
-CREATE INDEX iExtensionLongDef ON m_object_ext_long (owner_oid, ownerType);
-
-CREATE INDEX iExtensionPolyString ON m_object_ext_poly (ownerType, eName, orig);
-
-CREATE INDEX iExtensionPolyStringDef ON m_object_ext_poly (owner_oid, ownerType);
-
-CREATE INDEX iExtensionReference ON m_object_ext_reference (ownerType, eName, targetoid);
-
-CREATE INDEX iExtensionReferenceDef ON m_object_ext_reference (owner_oid, ownerType);
-
-CREATE INDEX iExtensionString ON m_object_ext_string (ownerType, eName, stringValue);
-
-CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType);
-
-ALTER TABLE m_object_template
-ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm);
-
-CREATE INDEX iOpExecTaskOid
-  ON m_operation_execution (taskRef_targetOid);
-
-CREATE INDEX iOpExecInitiatorOid
-  ON m_operation_execution (initiatorRef_targetOid);
-
-CREATE INDEX iOpExecStatus
-  ON m_operation_execution (status);
-
-CREATE INDEX iOpExecOwnerOid
-  ON m_operation_execution (owner_oid);
-
-ALTER TABLE m_org
-ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
-
-CREATE INDEX iDisplayOrder ON m_org (displayOrder);
-
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
-
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
-
-CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid);
-
-CREATE INDEX iReferenceTargetOid ON m_reference (targetOid);
-
-ALTER TABLE m_report
-ADD CONSTRAINT uc_report_name UNIQUE (name_norm);
-
-CREATE INDEX iReportParent ON m_report (parent);
-
-ALTER TABLE m_resource
-ADD CONSTRAINT uc_resource_name UNIQUE (name_norm);
-
-ALTER TABLE m_role
-ADD CONSTRAINT uc_role_name UNIQUE (name_norm);
-
-ALTER TABLE m_security_policy
-ADD CONSTRAINT uc_security_policy_name UNIQUE (name_norm);
-
-ALTER TABLE m_sequence
-ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
-
-CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
-
-CREATE INDEX iShadowDead ON m_shadow (dead);
-
-CREATE INDEX iShadowKind ON m_shadow (kind);
-
-CREATE INDEX iShadowIntent ON m_shadow (intent);
-
-CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
-
-CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
-
-CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
-
-CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
-
-ALTER TABLE m_system_configuration
-ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
-
-ALTER TABLE m_task
-  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier);
-
-CREATE INDEX iParent ON m_task (parent);
-
-CREATE INDEX iTaskWfProcessInstanceId ON m_task (wfProcessInstanceId);
-
-CREATE INDEX iTaskWfStartTimestamp ON m_task (wfStartTimestamp);
-
-CREATE INDEX iTaskWfEndTimestamp ON m_task (wfEndTimestamp);
-
-CREATE INDEX iTaskWfRequesterOid ON m_task (wfRequesterRef_targetOid);
-
-CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid);
-
-CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid);
-
-CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
-
-ALTER TABLE m_user
-ADD CONSTRAINT uc_user_name UNIQUE (name_norm);
-
-CREATE INDEX iEmployeeNumber ON m_user (employeeNumber);
-
-CREATE INDEX iFullName ON m_user (fullName_orig);
-
-CREATE INDEX iFamilyName ON m_user (familyName_orig);
-
-CREATE INDEX iGivenName ON m_user (givenName_orig);
-
-CREATE INDEX iLocality ON m_user (locality_orig);
-
-ALTER TABLE m_value_policy
-ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
-
-ALTER TABLE m_abstract_role
-ADD CONSTRAINT fk_abstract_role
-FOREIGN KEY (oid)
-REFERENCES m_focus;
-
-ALTER TABLE m_acc_cert_campaign
-    ADD CONSTRAINT fk_acc_cert_campaign
-    FOREIGN KEY (oid)
-    REFERENCES m_object;
-
-ALTER TABLE m_acc_cert_case
-ADD CONSTRAINT fk_acc_cert_case_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_acc_cert_campaign;
-
-ALTER TABLE m_acc_cert_definition
-    ADD CONSTRAINT fk_acc_cert_definition
-    FOREIGN KEY (oid)
-    REFERENCES m_object;
-
-ALTER TABLE m_acc_cert_wi
-  ADD CONSTRAINT fk_acc_cert_wi_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case;
-
-ALTER TABLE m_acc_cert_wi_reference
-  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
-FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
-REFERENCES m_acc_cert_wi;
-
-ALTER TABLE m_assignment
-ADD CONSTRAINT fk_assignment_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_assignment_ext_boolean
-ADD CONSTRAINT fk_assignment_ext_boolean
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension;
-
-ALTER TABLE m_assignment_ext_date
-ADD CONSTRAINT fk_assignment_ext_date
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension;
-
-ALTER TABLE m_assignment_ext_long
-ADD CONSTRAINT fk_assignment_ext_long
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension;
-
-ALTER TABLE m_assignment_ext_poly
-ADD CONSTRAINT fk_assignment_ext_poly
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension;
-
-ALTER TABLE m_assignment_ext_reference
-ADD CONSTRAINT fk_assignment_ext_reference
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension;
-
-ALTER TABLE m_assignment_ext_string
-ADD CONSTRAINT fk_assignment_ext_string
-FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension;
-
-ALTER TABLE m_assignment_policy_situation
-  ADD CONSTRAINT fk_assignment_policy_situation
-FOREIGN KEY (assignment_id, assignment_oid)
-REFERENCES m_assignment;
-
-ALTER TABLE m_assignment_reference
-ADD CONSTRAINT fk_assignment_reference
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_assignment;
-
-ALTER TABLE m_audit_delta
-ADD CONSTRAINT fk_audit_delta
-FOREIGN KEY (record_id)
-REFERENCES m_audit_event;
-
-ALTER TABLE m_audit_item
-  ADD CONSTRAINT fk_audit_item
-FOREIGN KEY (record_id)
-REFERENCES m_audit_event;
-
-ALTER TABLE m_audit_prop_value
-  ADD CONSTRAINT fk_audit_prop_value
-FOREIGN KEY (record_id)
-REFERENCES m_audit_event;
-
-ALTER TABLE m_audit_ref_value
-  ADD CONSTRAINT fk_audit_ref_value
-FOREIGN KEY (record_id)
-REFERENCES m_audit_event;
-
-ALTER TABLE m_case
-  ADD CONSTRAINT fk_case
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_connector
-ADD CONSTRAINT fk_connector
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_connector_host
-ADD CONSTRAINT fk_connector_host
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_connector_target_system
-ADD CONSTRAINT fk_connector_target_system
-FOREIGN KEY (connector_oid)
-REFERENCES m_connector;
-
-ALTER TABLE m_exclusion
-ADD CONSTRAINT fk_exclusion_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_focus
-ADD CONSTRAINT fk_focus
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_focus_photo
-ADD CONSTRAINT fk_focus_photo
-FOREIGN KEY (owner_oid)
-REFERENCES m_focus;
-
-ALTER TABLE m_focus_policy_situation
-  ADD CONSTRAINT fk_focus_policy_situation
-FOREIGN KEY (focus_oid)
-REFERENCES m_focus;
-
-ALTER TABLE m_form
-  ADD CONSTRAINT fk_form
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_function_library
-  ADD CONSTRAINT fk_function_library
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_generic_object
-ADD CONSTRAINT fk_generic_object
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_lookup_table
-ADD CONSTRAINT fk_lookup_table
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT fk_lookup_table_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_lookup_table;
-
-ALTER TABLE m_node
-ADD CONSTRAINT fk_node
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_ext_boolean
-ADD CONSTRAINT fk_object_ext_boolean
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_ext_date
-ADD CONSTRAINT fk_object_ext_date
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_ext_long
-ADD CONSTRAINT fk_object_ext_long
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_ext_poly
-ADD CONSTRAINT fk_object_ext_poly
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_ext_reference
-ADD CONSTRAINT fk_object_ext_reference
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_ext_string
-ADD CONSTRAINT fk_object_ext_string
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_template
-ADD CONSTRAINT fk_object_template
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_object_text_info
-  ADD CONSTRAINT fk_object_text_info_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_operation_execution
-  ADD CONSTRAINT fk_op_exec_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_org
-ADD CONSTRAINT fk_org
-FOREIGN KEY (oid)
-REFERENCES m_abstract_role;
-
-ALTER TABLE m_org_closure
-ADD CONSTRAINT fk_ancestor
-FOREIGN KEY (ancestor_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_org_closure
-ADD CONSTRAINT fk_descendant
-FOREIGN KEY (descendant_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_org_org_type
-ADD CONSTRAINT fk_org_org_type
-FOREIGN KEY (org_oid)
-REFERENCES m_org;
-
-ALTER TABLE m_reference
-ADD CONSTRAINT fk_reference_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_report
-ADD CONSTRAINT fk_report
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_report_output
-ADD CONSTRAINT fk_report_output
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_resource
-ADD CONSTRAINT fk_resource
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_role
-ADD CONSTRAINT fk_role
-FOREIGN KEY (oid)
-REFERENCES m_abstract_role;
-
-ALTER TABLE m_security_policy
-ADD CONSTRAINT fk_security_policy
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_sequence
-ADD CONSTRAINT fk_sequence
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_service
-  ADD CONSTRAINT fk_service
-FOREIGN KEY (oid)
-REFERENCES m_abstract_role;
-
-ALTER TABLE m_service_type
-  ADD CONSTRAINT fk_service_type
-FOREIGN KEY (service_oid)
-REFERENCES m_service;
-
-ALTER TABLE m_shadow
-ADD CONSTRAINT fk_shadow
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_system_configuration
-ADD CONSTRAINT fk_system_configuration
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_task
-ADD CONSTRAINT fk_task
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-ALTER TABLE m_task_dependent
-ADD CONSTRAINT fk_task_dependent
-FOREIGN KEY (task_oid)
-REFERENCES m_task;
-
-ALTER TABLE m_trigger
-ADD CONSTRAINT fk_trigger_owner
-FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_user
-ADD CONSTRAINT fk_user
-FOREIGN KEY (oid)
-REFERENCES m_focus;
-
-ALTER TABLE m_user_employee_type
-ADD CONSTRAINT fk_user_employee_type
-FOREIGN KEY (user_oid)
-REFERENCES m_user;
-
-ALTER TABLE m_user_organization
-ADD CONSTRAINT fk_user_organization
-FOREIGN KEY (user_oid)
-REFERENCES m_user;
-
-ALTER TABLE m_user_organizational_unit
-ADD CONSTRAINT fk_user_org_unit
-FOREIGN KEY (user_oid)
-REFERENCES m_user;
-
-ALTER TABLE m_value_policy
-ADD CONSTRAINT fk_value_policy
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
-CREATE TABLE hibernate_sequence (
-  next_val BIGINT
-);
-
-INSERT INTO hibernate_sequence VALUES (1);
+create table m_acc_cert_campaign (definitionRef_relation nvarchar(157) collate database_default, definitionRef_targetOid nvarchar(36) collate database_default, definitionRef_type int, endTimestamp datetime2, handlerUri nvarchar(255) collate database_default, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, ownerRef_relation nvarchar(157) collate database_default, ownerRef_targetOid nvarchar(36) collate database_default, ownerRef_type int, stageNumber int, startTimestamp datetime2, state int, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_acc_cert_case (id int not null, owner_oid nvarchar(36) collate database_default not null, administrativeStatus int, archiveTimestamp datetime2, disableReason nvarchar(255) collate database_default, disableTimestamp datetime2, effectiveStatus int, enableTimestamp datetime2, validFrom datetime2, validTo datetime2, validityChangeTimestamp datetime2, validityStatus int, currentStageOutcome nvarchar(255) collate database_default, fullObject varbinary(MAX), objectRef_relation nvarchar(157) collate database_default, objectRef_targetOid nvarchar(36) collate database_default, objectRef_type int, orgRef_relation nvarchar(157) collate database_default, orgRef_targetOid nvarchar(36) collate database_default, orgRef_type int, outcome nvarchar(255) collate database_default, remediedTimestamp datetime2, reviewDeadline datetime2, reviewRequestedTimestamp datetime2, stageNumber int, targetRef_relation nvarchar(157) collate database_default, targetRef_targetOid nvarchar(36) collate database_default, targetRef_type int, tenantRef_relation nvarchar(157) collate database_default, tenantRef_targetOid nvarchar(36) collate database_default, tenantRef_type int, primary key (id, owner_oid));
+create table m_acc_cert_definition (handlerUri nvarchar(255) collate database_default, lastCampaignClosedTimestamp datetime2, lastCampaignStartedTimestamp datetime2, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, ownerRef_relation nvarchar(157) collate database_default, ownerRef_targetOid nvarchar(36) collate database_default, ownerRef_type int, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_acc_cert_wi (id int not null, owner_id int not null, owner_owner_oid nvarchar(36) collate database_default not null, closeTimestamp datetime2, outcome nvarchar(255) collate database_default, outputChangeTimestamp datetime2, performerRef_relation nvarchar(157) collate database_default, performerRef_targetOid nvarchar(36) collate database_default, performerRef_type int, stageNumber int, primary key (id, owner_id, owner_owner_oid));
+create table m_acc_cert_wi_reference (owner_id int not null, owner_owner_id int not null, owner_owner_owner_oid nvarchar(36) collate database_default not null, relation nvarchar(157) collate database_default not null, targetOid nvarchar(36) collate database_default not null, targetType int, primary key (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid));
+create table m_assignment (id int not null, owner_oid nvarchar(36) collate database_default not null, administrativeStatus int, archiveTimestamp datetime2, disableReason nvarchar(255) collate database_default, disableTimestamp datetime2, effectiveStatus int, enableTimestamp datetime2, validFrom datetime2, validTo datetime2, validityChangeTimestamp datetime2, validityStatus int, assignmentOwner int, createChannel nvarchar(255) collate database_default, createTimestamp datetime2, creatorRef_relation nvarchar(157) collate database_default, creatorRef_targetOid nvarchar(36) collate database_default, creatorRef_type int, lifecycleState nvarchar(255) collate database_default, modifierRef_relation nvarchar(157) collate database_default, modifierRef_targetOid nvarchar(36) collate database_default, modifierRef_type int, modifyChannel nvarchar(255) collate database_default, modifyTimestamp datetime2, orderValue int, orgRef_relation nvarchar(157) collate database_default, orgRef_targetOid nvarchar(36) collate database_default, orgRef_type int, resourceRef_relation nvarchar(157) collate database_default, resourceRef_targetOid nvarchar(36) collate database_default, resourceRef_type int, targetRef_relation nvarchar(157) collate database_default, targetRef_targetOid nvarchar(36) collate database_default, targetRef_type int, tenantRef_relation nvarchar(157) collate database_default, tenantRef_targetOid nvarchar(36) collate database_default, tenantRef_type int, extId int, extOid nvarchar(36) collate database_default, primary key (id, owner_oid));
+create table m_assignment_ext_boolean (eName nvarchar(157) collate database_default not null, anyContainer_owner_id int not null, anyContainer_owner_owner_oid nvarchar(36) collate database_default not null, booleanValue bit not null, extensionType int, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue));
+create table m_assignment_ext_date (eName nvarchar(157) collate database_default not null, anyContainer_owner_id int not null, anyContainer_owner_owner_oid nvarchar(36) collate database_default not null, dateValue datetime2 not null, extensionType int, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, dateValue));
+create table m_assignment_ext_long (eName nvarchar(157) collate database_default not null, anyContainer_owner_id int not null, anyContainer_owner_owner_oid nvarchar(36) collate database_default not null, longValue bigint not null, extensionType int, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, longValue));
+create table m_assignment_ext_poly (eName nvarchar(157) collate database_default not null, anyContainer_owner_id int not null, anyContainer_owner_owner_oid nvarchar(36) collate database_default not null, orig nvarchar(255) collate database_default not null, extensionType int, dynamicDef bit, norm nvarchar(255) collate database_default, eType nvarchar(157) collate database_default, valueType int, primary key (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, orig));
+create table m_assignment_ext_reference (eName nvarchar(157) collate database_default not null, anyContainer_owner_id int not null, anyContainer_owner_owner_oid nvarchar(36) collate database_default not null, targetoid nvarchar(36) collate database_default not null, extensionType int, dynamicDef bit, relation nvarchar(157) collate database_default, targetType int, eType nvarchar(157) collate database_default, valueType int, primary key (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, targetoid));
+create table m_assignment_ext_string (eName nvarchar(157) collate database_default not null, anyContainer_owner_id int not null, anyContainer_owner_owner_oid nvarchar(36) collate database_default not null, stringValue nvarchar(255) collate database_default not null, extensionType int, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue));
+create table m_assignment_extension (owner_id int not null, owner_owner_oid nvarchar(36) collate database_default not null, booleansCount smallint, datesCount smallint, longsCount smallint, polysCount smallint, referencesCount smallint, stringsCount smallint, primary key (owner_id, owner_owner_oid));
+create table m_assignment_policy_situation (assignment_id int not null, assignment_oid nvarchar(36) collate database_default not null, policySituation nvarchar(255) collate database_default);
+create table m_assignment_reference (owner_id int not null, owner_owner_oid nvarchar(36) collate database_default not null, reference_type int not null, relation nvarchar(157) collate database_default not null, targetOid nvarchar(36) collate database_default not null, targetType int, primary key (owner_id, owner_owner_oid, reference_type, relation, targetOid));
+create table m_audit_delta (checksum nvarchar(32) collate database_default not null, record_id bigint not null, delta nvarchar(MAX), deltaOid nvarchar(36) collate database_default, deltaType int, fullResult nvarchar(MAX), objectName_norm nvarchar(255) collate database_default, objectName_orig nvarchar(255) collate database_default, resourceName_norm nvarchar(255) collate database_default, resourceName_orig nvarchar(255) collate database_default, resourceOid nvarchar(36) collate database_default, status int, primary key (checksum, record_id));
+create table m_audit_event (id bigint identity not null, attorneyName nvarchar(255) collate database_default, attorneyOid nvarchar(36) collate database_default, channel nvarchar(255) collate database_default, eventIdentifier nvarchar(255) collate database_default, eventStage int, eventType int, hostIdentifier nvarchar(255) collate database_default, initiatorName nvarchar(255) collate database_default, initiatorOid nvarchar(36) collate database_default, initiatorType int, message nvarchar(1024) collate database_default, nodeIdentifier nvarchar(255) collate database_default, outcome int, parameter nvarchar(255) collate database_default, remoteHostAddress nvarchar(255) collate database_default, result nvarchar(255) collate database_default, sessionIdentifier nvarchar(255) collate database_default, targetName nvarchar(255) collate database_default, targetOid nvarchar(36) collate database_default, targetOwnerName nvarchar(255) collate database_default, targetOwnerOid nvarchar(36) collate database_default, targetType int, taskIdentifier nvarchar(255) collate database_default, taskOID nvarchar(255) collate database_default, timestampValue datetime2, primary key (id));
+create table m_audit_item (changedItemPath nvarchar(900) collate database_default not null, record_id bigint not null, primary key (changedItemPath, record_id));
+create table m_audit_prop_value (id bigint identity not null, name nvarchar(255) collate database_default, record_id bigint, value nvarchar(1024) collate database_default, primary key (id));
+create table m_audit_ref_value (id bigint identity not null, name nvarchar(255) collate database_default, oid nvarchar(255) collate database_default, record_id bigint, targetName_norm nvarchar(255) collate database_default, targetName_orig nvarchar(255) collate database_default, type nvarchar(255) collate database_default, primary key (id));
+create table m_connector_target_system (connector_oid nvarchar(36) collate database_default not null, targetSystemType nvarchar(255) collate database_default);
+create table m_focus_photo (owner_oid nvarchar(36) collate database_default not null, photo varbinary(MAX), primary key (owner_oid));
+create table m_focus_policy_situation (focus_oid nvarchar(36) collate database_default not null, policySituation nvarchar(255) collate database_default);
+create table m_object (oid nvarchar(36) collate database_default not null, booleansCount smallint, createChannel nvarchar(255) collate database_default, createTimestamp datetime2, creatorRef_relation nvarchar(157) collate database_default, creatorRef_targetOid nvarchar(36) collate database_default, creatorRef_type int, datesCount smallint, fullObject varbinary(MAX), lifecycleState nvarchar(255) collate database_default, longsCount smallint, modifierRef_relation nvarchar(157) collate database_default, modifierRef_targetOid nvarchar(36) collate database_default, modifierRef_type int, modifyChannel nvarchar(255) collate database_default, modifyTimestamp datetime2, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, objectTypeClass int, polysCount smallint, referencesCount smallint, stringsCount smallint, tenantRef_relation nvarchar(157) collate database_default, tenantRef_targetOid nvarchar(36) collate database_default, tenantRef_type int, version int not null, primary key (oid));
+create table m_object_ext_boolean (eName nvarchar(157) collate database_default not null, owner_oid nvarchar(36) collate database_default not null, ownerType int not null, booleanValue bit not null, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, owner_oid, ownerType, booleanValue));
+create table m_object_ext_date (eName nvarchar(157) collate database_default not null, owner_oid nvarchar(36) collate database_default not null, ownerType int not null, dateValue datetime2 not null, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, owner_oid, ownerType, dateValue));
+create table m_object_ext_long (eName nvarchar(157) collate database_default not null, owner_oid nvarchar(36) collate database_default not null, ownerType int not null, longValue bigint not null, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, owner_oid, ownerType, longValue));
+create table m_object_ext_poly (eName nvarchar(157) collate database_default not null, owner_oid nvarchar(36) collate database_default not null, ownerType int not null, orig nvarchar(255) collate database_default not null, dynamicDef bit, norm nvarchar(255) collate database_default, eType nvarchar(157) collate database_default, valueType int, primary key (eName, owner_oid, ownerType, orig));
+create table m_object_ext_reference (eName nvarchar(157) collate database_default not null, owner_oid nvarchar(36) collate database_default not null, ownerType int not null, targetoid nvarchar(36) collate database_default not null, dynamicDef bit, relation nvarchar(157) collate database_default, targetType int, eType nvarchar(157) collate database_default, valueType int, primary key (eName, owner_oid, ownerType, targetoid));
+create table m_object_ext_string (eName nvarchar(157) collate database_default not null, owner_oid nvarchar(36) collate database_default not null, ownerType int not null, stringValue nvarchar(255) collate database_default not null, dynamicDef bit, eType nvarchar(157) collate database_default, valueType int, primary key (eName, owner_oid, ownerType, stringValue));
+create table m_object_text_info (owner_oid nvarchar(36) collate database_default not null, text nvarchar(255) collate database_default not null, primary key (owner_oid, text));
+create table m_operation_execution (id int not null, owner_oid nvarchar(36) collate database_default not null, initiatorRef_relation nvarchar(157) collate database_default, initiatorRef_targetOid nvarchar(36) collate database_default, initiatorRef_type int, status int, taskRef_relation nvarchar(157) collate database_default, taskRef_targetOid nvarchar(36) collate database_default, taskRef_type int, timestampValue datetime2, primary key (id, owner_oid));
+create table m_org_closure (ancestor_oid nvarchar(36) collate database_default not null, descendant_oid nvarchar(36) collate database_default not null, val int, primary key (ancestor_oid, descendant_oid));
+create table m_org_org_type (org_oid nvarchar(36) collate database_default not null, orgType nvarchar(255) collate database_default);
+create table m_reference (owner_oid nvarchar(36) collate database_default not null, reference_type int not null, relation nvarchar(157) collate database_default not null, targetOid nvarchar(36) collate database_default not null, targetType int, primary key (owner_oid, reference_type, relation, targetOid));
+create table m_service_type (service_oid nvarchar(36) collate database_default not null, serviceType nvarchar(255) collate database_default);
+create table m_shadow (attemptNumber int, dead bit, exist bit, failedOperationType int, fullSynchronizationTimestamp datetime2, intent nvarchar(255) collate database_default, kind int, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, objectClass nvarchar(157) collate database_default, pendingOperationCount int, resourceRef_relation nvarchar(157) collate database_default, resourceRef_targetOid nvarchar(36) collate database_default, resourceRef_type int, status int, synchronizationSituation int, synchronizationTimestamp datetime2, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_task (binding int, canRunOnNode nvarchar(255) collate database_default, category nvarchar(255) collate database_default, completionTimestamp datetime2, executionStatus int, handlerUri nvarchar(255) collate database_default, lastRunFinishTimestamp datetime2, lastRunStartTimestamp datetime2, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, node nvarchar(255) collate database_default, objectRef_relation nvarchar(157) collate database_default, objectRef_targetOid nvarchar(36) collate database_default, objectRef_type int, ownerRef_relation nvarchar(157) collate database_default, ownerRef_targetOid nvarchar(36) collate database_default, ownerRef_type int, parent nvarchar(255) collate database_default, recurrence int, status int, taskIdentifier nvarchar(255) collate database_default, threadStopAction int, waitingReason int, wfEndTimestamp datetime2, wfObjectRef_relation nvarchar(157) collate database_default, wfObjectRef_targetOid nvarchar(36) collate database_default, wfObjectRef_type int, wfProcessInstanceId nvarchar(255) collate database_default, wfRequesterRef_relation nvarchar(157) collate database_default, wfRequesterRef_targetOid nvarchar(36) collate database_default, wfRequesterRef_type int, wfStartTimestamp datetime2, wfTargetRef_relation nvarchar(157) collate database_default, wfTargetRef_targetOid nvarchar(36) collate database_default, wfTargetRef_type int, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_task_dependent (task_oid nvarchar(36) collate database_default not null, dependent nvarchar(255) collate database_default);
+create table m_user_employee_type (user_oid nvarchar(36) collate database_default not null, employeeType nvarchar(255) collate database_default);
+create table m_user_organization (user_oid nvarchar(36) collate database_default not null, norm nvarchar(255) collate database_default, orig nvarchar(255) collate database_default);
+create table m_user_organizational_unit (user_oid nvarchar(36) collate database_default not null, norm nvarchar(255) collate database_default, orig nvarchar(255) collate database_default);
+create table m_abstract_role (approvalProcess nvarchar(255) collate database_default, autoassign_enabled bit, displayName_norm nvarchar(255) collate database_default, displayName_orig nvarchar(255) collate database_default, identifier nvarchar(255) collate database_default, ownerRef_relation nvarchar(157) collate database_default, ownerRef_targetOid nvarchar(36) collate database_default, ownerRef_type int, requestable bit, riskLevel nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_case (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_connector (connectorBundle nvarchar(255) collate database_default, connectorHostRef_relation nvarchar(157) collate database_default, connectorHostRef_targetOid nvarchar(36) collate database_default, connectorHostRef_type int, connectorType nvarchar(255) collate database_default, connectorVersion nvarchar(255) collate database_default, framework nvarchar(255) collate database_default, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_connector_host (hostname nvarchar(255) collate database_default, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, port nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_exclusion (id int not null, owner_oid nvarchar(36) collate database_default not null, policy int, targetRef_relation nvarchar(157) collate database_default, targetRef_targetOid nvarchar(36) collate database_default, targetRef_type int, primary key (id, owner_oid));
+create table m_focus (administrativeStatus int, archiveTimestamp datetime2, disableReason nvarchar(255) collate database_default, disableTimestamp datetime2, effectiveStatus int, enableTimestamp datetime2, validFrom datetime2, validTo datetime2, validityChangeTimestamp datetime2, validityStatus int, hasPhoto bit default false not null, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_form (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_function_library (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_generic_object (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, objectType nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_lookup_table (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_lookup_table_row (id int not null, owner_oid nvarchar(36) collate database_default not null, row_key nvarchar(255) collate database_default, label_norm nvarchar(255) collate database_default, label_orig nvarchar(255) collate database_default, lastChangeTimestamp datetime2, row_value nvarchar(255) collate database_default, primary key (id, owner_oid));
+create table m_node (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, nodeIdentifier nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_object_template (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, type int, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_org (costCenter nvarchar(255) collate database_default, displayOrder int, locality_norm nvarchar(255) collate database_default, locality_orig nvarchar(255) collate database_default, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, tenant bit, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_report (export int, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, orientation int, parent bit, useHibernateSession bit, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_report_output (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, reportRef_relation nvarchar(157) collate database_default, reportRef_targetOid nvarchar(36) collate database_default, reportRef_type int, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_resource (administrativeState int, connectorRef_relation nvarchar(157) collate database_default, connectorRef_targetOid nvarchar(36) collate database_default, connectorRef_type int, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, o16_lastAvailabilityStatus int, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_role (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, roleType nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_security_policy (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_sequence (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_service (displayOrder int, locality_norm nvarchar(255) collate database_default, locality_orig nvarchar(255) collate database_default, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_system_configuration (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_trigger (id int not null, owner_oid nvarchar(36) collate database_default not null, handlerUri nvarchar(255) collate database_default, timestampValue datetime2, primary key (id, owner_oid));
+create table m_user (additionalName_norm nvarchar(255) collate database_default, additionalName_orig nvarchar(255) collate database_default, costCenter nvarchar(255) collate database_default, emailAddress nvarchar(255) collate database_default, employeeNumber nvarchar(255) collate database_default, familyName_norm nvarchar(255) collate database_default, familyName_orig nvarchar(255) collate database_default, fullName_norm nvarchar(255) collate database_default, fullName_orig nvarchar(255) collate database_default, givenName_norm nvarchar(255) collate database_default, givenName_orig nvarchar(255) collate database_default, honorificPrefix_norm nvarchar(255) collate database_default, honorificPrefix_orig nvarchar(255) collate database_default, honorificSuffix_norm nvarchar(255) collate database_default, honorificSuffix_orig nvarchar(255) collate database_default, locale nvarchar(255) collate database_default, locality_norm nvarchar(255) collate database_default, locality_orig nvarchar(255) collate database_default, name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, nickName_norm nvarchar(255) collate database_default, nickName_orig nvarchar(255) collate database_default, preferredLanguage nvarchar(255) collate database_default, status int, telephoneNumber nvarchar(255) collate database_default, timezone nvarchar(255) collate database_default, title_norm nvarchar(255) collate database_default, title_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+create table m_value_policy (name_norm nvarchar(255) collate database_default, name_orig nvarchar(255) collate database_default, oid nvarchar(36) collate database_default not null, primary key (oid));
+alter table m_acc_cert_campaign add constraint uc_acc_cert_campaign_name unique (name_norm);
+create index iCaseObjectRefTargetOid on m_acc_cert_case (objectRef_targetOid);
+create index iCaseTargetRefTargetOid on m_acc_cert_case (targetRef_targetOid);
+create index iCaseTenantRefTargetOid on m_acc_cert_case (tenantRef_targetOid);
+create index iCaseOrgRefTargetOid on m_acc_cert_case (orgRef_targetOid);
+alter table m_acc_cert_definition add constraint uc_acc_cert_definition_name unique (name_norm);
+create index iCertWorkItemRefTargetOid on m_acc_cert_wi_reference (targetOid);
+create index iAssignmentAdministrative on m_assignment (administrativeStatus);
+create index iAssignmentEffective on m_assignment (effectiveStatus);
+create index iTargetRefTargetOid on m_assignment (targetRef_targetOid);
+create index iTenantRefTargetOid on m_assignment (tenantRef_targetOid);
+create index iOrgRefTargetOid on m_assignment (orgRef_targetOid);
+create index iResourceRefTargetOid on m_assignment (resourceRef_targetOid);
+create index iAExtensionBoolean on m_assignment_ext_boolean (extensionType, eName, booleanValue);
+create index iAExtensionDate on m_assignment_ext_date (extensionType, eName, dateValue);
+create index iAExtensionLong on m_assignment_ext_long (extensionType, eName, longValue);
+create index iAExtensionPolyString on m_assignment_ext_poly (extensionType, eName, orig);
+create index iAExtensionReference on m_assignment_ext_reference (extensionType, eName, targetoid);
+create index iAExtensionString on m_assignment_ext_string (extensionType, eName, stringValue);
+create index iAssignmentReferenceTargetOid on m_assignment_reference (targetOid);
+create index iTimestampValue on m_audit_event (timestampValue);
+create index iChangedItemPath on m_audit_item (changedItemPath);
+create index iAuditPropValRecordId on m_audit_prop_value (record_id);
+create index iAuditRefValRecordId on m_audit_ref_value (record_id);
+create index iObjectNameOrig on m_object (name_orig);
+create index iObjectNameNorm on m_object (name_norm);
+create index iObjectTypeClass on m_object (objectTypeClass);
+create index iObjectCreateTimestamp on m_object (createTimestamp);
+create index iObjectLifecycleState on m_object (lifecycleState);
+create index iExtensionBoolean on m_object_ext_boolean (ownerType, eName, booleanValue);
+create index iExtensionBooleanDef on m_object_ext_boolean (owner_oid, ownerType);
+create index iExtensionDate on m_object_ext_date (ownerType, eName, dateValue);
+create index iExtensionDateDef on m_object_ext_date (owner_oid, ownerType);
+create index iExtensionLong on m_object_ext_long (ownerType, eName, longValue);
+create index iExtensionLongDef on m_object_ext_long (owner_oid, ownerType);
+create index iExtensionPolyString on m_object_ext_poly (ownerType, eName, orig);
+create index iExtensionPolyStringDef on m_object_ext_poly (owner_oid, ownerType);
+create index iExtensionReference on m_object_ext_reference (ownerType, eName, targetoid);
+create index iExtensionReferenceDef on m_object_ext_reference (owner_oid, ownerType);
+create index iExtensionString on m_object_ext_string (ownerType, eName, stringValue);
+create index iExtensionStringDef on m_object_ext_string (owner_oid, ownerType);
+create index iOpExecTaskOid on m_operation_execution (taskRef_targetOid);
+create index iOpExecInitiatorOid on m_operation_execution (initiatorRef_targetOid);
+create index iOpExecStatus on m_operation_execution (status);
+create index iOpExecOwnerOid on m_operation_execution (owner_oid);
+create index iAncestor on m_org_closure (ancestor_oid);
+create index iDescendant on m_org_closure (descendant_oid);
+create index iDescendantAncestor on m_org_closure (descendant_oid, ancestor_oid);
+create index iReferenceTargetOid on m_reference (targetOid);
+create index iShadowResourceRef on m_shadow (resourceRef_targetOid);
+create index iShadowDead on m_shadow (dead);
+create index iShadowKind on m_shadow (kind);
+create index iShadowIntent on m_shadow (intent);
+create index iShadowObjectClass on m_shadow (objectClass);
+create index iShadowFailedOperationType on m_shadow (failedOperationType);
+create index iShadowSyncSituation on m_shadow (synchronizationSituation);
+create index iShadowPendingOperationCount on m_shadow (pendingOperationCount);
+create index iParent on m_task (parent);
+create index iTaskWfProcessInstanceId on m_task (wfProcessInstanceId);
+create index iTaskWfStartTimestamp on m_task (wfStartTimestamp);
+create index iTaskWfEndTimestamp on m_task (wfEndTimestamp);
+create index iTaskWfRequesterOid on m_task (wfRequesterRef_targetOid);
+create index iTaskWfObjectOid on m_task (wfObjectRef_targetOid);
+create index iTaskWfTargetOid on m_task (wfTargetRef_targetOid);
+alter table m_task add constraint uc_task_identifier unique (taskIdentifier);
+create index iAbstractRoleIdentifier on m_abstract_role (identifier);
+create index iRequestable on m_abstract_role (requestable);
+create index iAutoassignEnabled on m_abstract_role (autoassign_enabled);
+alter table m_case add constraint uc_case_name unique (name_norm);
+alter table m_connector_host add constraint uc_connector_host_name unique (name_norm);
+create index iFocusAdministrative on m_focus (administrativeStatus);
+create index iFocusEffective on m_focus (effectiveStatus);
+alter table m_form add constraint uc_form_name unique (name_norm);
+alter table m_function_library add constraint uc_function_library_name unique (name_norm);
+alter table m_generic_object add constraint uc_generic_object_name unique (name_norm);
+alter table m_lookup_table add constraint uc_lookup_name unique (name_norm);
+alter table m_lookup_table_row add constraint uc_row_key unique (owner_oid, row_key);
+alter table m_node add constraint uc_node_name unique (name_norm);
+alter table m_object_template add constraint uc_object_template_name unique (name_norm);
+create index iDisplayOrder on m_org (displayOrder);
+alter table m_org add constraint uc_org_name unique (name_norm);
+create index iReportParent on m_report (parent);
+alter table m_report add constraint uc_report_name unique (name_norm);
+alter table m_resource add constraint uc_resource_name unique (name_norm);
+alter table m_role add constraint uc_role_name unique (name_norm);
+alter table m_security_policy add constraint uc_security_policy_name unique (name_norm);
+alter table m_sequence add constraint uc_sequence_name unique (name_norm);
+alter table m_system_configuration add constraint uc_system_configuration_name unique (name_norm);
+create index iTriggerTimestamp on m_trigger (timestampValue);
+create index iEmployeeNumber on m_user (employeeNumber);
+create index iFullName on m_user (fullName_orig);
+create index iFamilyName on m_user (familyName_orig);
+create index iGivenName on m_user (givenName_orig);
+create index iLocality on m_user (locality_orig);
+alter table m_user add constraint uc_user_name unique (name_norm);
+alter table m_value_policy add constraint uc_value_policy_name unique (name_norm);
+alter table m_acc_cert_campaign add constraint fk_acc_cert_campaign foreign key (oid) references m_object;
+alter table m_acc_cert_case add constraint fk_acc_cert_case_owner foreign key (owner_oid) references m_acc_cert_campaign;
+alter table m_acc_cert_definition add constraint fk_acc_cert_definition foreign key (oid) references m_object;
+alter table m_acc_cert_wi add constraint fk_acc_cert_wi_owner foreign key (owner_id, owner_owner_oid) references m_acc_cert_case;
+alter table m_acc_cert_wi_reference add constraint fk_acc_cert_wi_ref_owner foreign key (owner_id, owner_owner_id, owner_owner_owner_oid) references m_acc_cert_wi;
+alter table m_assignment add constraint fk_assignment_owner foreign key (owner_oid) references m_object;
+alter table m_assignment_ext_boolean add constraint fk_assignment_ext_boolean foreign key (anyContainer_owner_id, anyContainer_owner_owner_oid) references m_assignment_extension;
+alter table m_assignment_ext_date add constraint fk_assignment_ext_date foreign key (anyContainer_owner_id, anyContainer_owner_owner_oid) references m_assignment_extension;
+alter table m_assignment_ext_long add constraint fk_assignment_ext_long foreign key (anyContainer_owner_id, anyContainer_owner_owner_oid) references m_assignment_extension;
+alter table m_assignment_ext_poly add constraint fk_assignment_ext_poly foreign key (anyContainer_owner_id, anyContainer_owner_owner_oid) references m_assignment_extension;
+alter table m_assignment_ext_reference add constraint fk_assignment_ext_reference foreign key (anyContainer_owner_id, anyContainer_owner_owner_oid) references m_assignment_extension;
+alter table m_assignment_ext_string add constraint fk_assignment_ext_string foreign key (anyContainer_owner_id, anyContainer_owner_owner_oid) references m_assignment_extension;
+alter table m_assignment_policy_situation add constraint fk_assignment_policy_situation foreign key (assignment_id, assignment_oid) references m_assignment;
+alter table m_assignment_reference add constraint fk_assignment_reference foreign key (owner_id, owner_owner_oid) references m_assignment;
+alter table m_audit_delta add constraint fk_audit_delta foreign key (record_id) references m_audit_event;
+alter table m_audit_item add constraint fk_audit_item foreign key (record_id) references m_audit_event;
+alter table m_audit_prop_value add constraint fk_audit_prop_value foreign key (record_id) references m_audit_event;
+alter table m_audit_ref_value add constraint fk_audit_ref_value foreign key (record_id) references m_audit_event;
+alter table m_connector_target_system add constraint fk_connector_target_system foreign key (connector_oid) references m_connector;
+alter table m_focus_photo add constraint fk_focus_photo foreign key (owner_oid) references m_focus;
+alter table m_focus_policy_situation add constraint fk_focus_policy_situation foreign key (focus_oid) references m_focus;
+alter table m_object_ext_boolean add constraint fk_object_ext_boolean foreign key (owner_oid) references m_object;
+alter table m_object_ext_date add constraint fk_object_ext_date foreign key (owner_oid) references m_object;
+alter table m_object_ext_long add constraint fk_object_ext_long foreign key (owner_oid) references m_object;
+alter table m_object_ext_poly add constraint fk_object_ext_poly foreign key (owner_oid) references m_object;
+alter table m_object_ext_reference add constraint fk_object_ext_reference foreign key (owner_oid) references m_object;
+alter table m_object_ext_string add constraint fk_object_ext_string foreign key (owner_oid) references m_object;
+alter table m_object_text_info add constraint fk_object_text_info_owner foreign key (owner_oid) references m_object;
+alter table m_operation_execution add constraint fk_op_exec_owner foreign key (owner_oid) references m_object;
+alter table m_org_closure add constraint fk_ancestor foreign key (ancestor_oid) references m_object;
+alter table m_org_closure add constraint fk_descendant foreign key (descendant_oid) references m_object;
+alter table m_org_org_type add constraint fk_org_org_type foreign key (org_oid) references m_org;
+alter table m_reference add constraint fk_reference_owner foreign key (owner_oid) references m_object;
+alter table m_service_type add constraint fk_service_type foreign key (service_oid) references m_service;
+alter table m_shadow add constraint fk_shadow foreign key (oid) references m_object;
+alter table m_task add constraint fk_task foreign key (oid) references m_object;
+alter table m_task_dependent add constraint fk_task_dependent foreign key (task_oid) references m_task;
+alter table m_user_employee_type add constraint fk_user_employee_type foreign key (user_oid) references m_user;
+alter table m_user_organization add constraint fk_user_organization foreign key (user_oid) references m_user;
+alter table m_user_organizational_unit add constraint fk_user_org_unit foreign key (user_oid) references m_user;
+alter table m_abstract_role add constraint fk_abstract_role foreign key (oid) references m_focus;
+alter table m_case add constraint fk_case foreign key (oid) references m_object;
+alter table m_connector add constraint fk_connector foreign key (oid) references m_object;
+alter table m_connector_host add constraint fk_connector_host foreign key (oid) references m_object;
+alter table m_exclusion add constraint fk_exclusion_owner foreign key (owner_oid) references m_object;
+alter table m_focus add constraint fk_focus foreign key (oid) references m_object;
+alter table m_form add constraint fk_form foreign key (oid) references m_object;
+alter table m_function_library add constraint fk_function_library foreign key (oid) references m_object;
+alter table m_generic_object add constraint fk_generic_object foreign key (oid) references m_object;
+alter table m_lookup_table add constraint fk_lookup_table foreign key (oid) references m_object;
+alter table m_lookup_table_row add constraint fk_lookup_table_owner foreign key (owner_oid) references m_lookup_table;
+alter table m_node add constraint fk_node foreign key (oid) references m_object;
+alter table m_object_template add constraint fk_object_template foreign key (oid) references m_object;
+alter table m_org add constraint fk_org foreign key (oid) references m_abstract_role;
+alter table m_report add constraint fk_report foreign key (oid) references m_object;
+alter table m_report_output add constraint fk_report_output foreign key (oid) references m_object;
+alter table m_resource add constraint fk_resource foreign key (oid) references m_object;
+alter table m_role add constraint fk_role foreign key (oid) references m_abstract_role;
+alter table m_security_policy add constraint fk_security_policy foreign key (oid) references m_object;
+alter table m_sequence add constraint fk_sequence foreign key (oid) references m_object;
+alter table m_service add constraint fk_service foreign key (oid) references m_abstract_role;
+alter table m_system_configuration add constraint fk_system_configuration foreign key (oid) references m_object;
+alter table m_trigger add constraint fk_trigger_owner foreign key (owner_oid) references m_object;
+alter table m_user add constraint fk_user foreign key (oid) references m_focus;
+alter table m_value_policy add constraint fk_value_policy foreign key (oid) references m_object;
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
 --# updating it.
