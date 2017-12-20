@@ -1,6 +1,0 @@
-#!/bin/bash
-
-MIDPOINT_HOME=/var/opt/midpoint
-BASEDIR="`dirname \"$0\"`/.."
-
-exec java -classpath "$BASEDIR/lib/*" -Dmidpoint.home=$MIDPOINT_HOME com.evolveum.midpoint.tools.ninja.Main $*

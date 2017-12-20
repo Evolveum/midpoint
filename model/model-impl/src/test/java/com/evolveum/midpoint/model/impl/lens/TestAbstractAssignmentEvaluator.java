@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_ACTIVATION;
 import static org.testng.AssertJUnit.assertEquals;
@@ -34,6 +34,9 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -103,12 +106,18 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Autowired
 	private MappingEvaluator mappingEvaluator;
 
+	@Autowired
+	private Projector projector;
 
 	public abstract File[] getRoleCorpFiles();
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		addObject(ORG_BRETHREN_FILE);
+		addObject(TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_FILE);
+
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE, TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID, initResult);
 	}
 
 	@Test
@@ -897,6 +906,50 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		assertNoConstruction(evaluatedAssignment, MINUS, "location");
 
 		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
+	}
+
+	// MID-4251
+	@Test
+	public void test400UserFred() throws Exception {
+		final String TEST_NAME = "test400UserFred";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		String pastTime = XmlTypeConverter.fromNow(createDuration("-P3D")).toString();
+		String futureTime = XmlTypeConverter.fromNow(createDuration("P3D")).toString();
+		UserType fred = new UserType(prismContext)
+				.name("fred")
+				.description(futureTime)
+				.employeeType(DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE);
+		addObject(fred.asPrismObject());
+		PrismObject<UserType> fredAsCreated = findUserByUsername("fred");
+		display("fred as created", fredAsCreated);
+
+		ObjectDelta<UserType> descriptionDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_DESCRIPTION).replace(pastTime)
+				.asObjectDeltaCast(fredAsCreated.getOid());
+
+		LensContext<UserType> lensContext = createUserLensContext();
+		fillContextWithUser(lensContext, fredAsCreated.getOid(), result);
+		addFocusDeltaToContext(lensContext, descriptionDelta);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		projector.project(lensContext, "test", task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = lensContext.getEvaluatedAssignmentTriple();
+		display("Evaluated assignment triple", triple.debugDump());
+		assertEquals("Wrong # of evaluated assignments zero set", 0, triple.getZeroSet().size());
+		assertEquals("Wrong # of evaluated assignments plus set", 1, triple.getPlusSet().size());
+		assertEquals("Wrong # of evaluated assignments minus set", 1, triple.getMinusSet().size());
 	}
 
 	protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {

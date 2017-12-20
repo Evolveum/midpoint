@@ -22,6 +22,9 @@
 	<name>lechuck-deputy-deputy</name>
 	<assignment>
 		<targetRef oid="0dde9c33-822f-4798-9fda-b3280edf6efa" type="c:UserType" relation="org:deputy" />	<!-- lechuck-deputy -->
+		<limitTargetContent>
+			<allowTransitive>true</allowTransitive>
+		</limitTargetContent>
 	</assignment>
 	<fullName>Captain LeChuck Deputy Deputy</fullName>
 	<familyName>LeChuck</familyName>

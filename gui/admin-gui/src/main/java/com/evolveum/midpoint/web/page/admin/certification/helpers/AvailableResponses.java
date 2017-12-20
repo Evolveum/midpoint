@@ -80,7 +80,7 @@ public class AvailableResponses implements Serializable {
         return response == null || responseValues.contains(response);
     }
 
-    public String getCaption(int id) {
+    public String getTitle(int id) {
         if (id < responseKeys.size()) {
             return PageBase.createStringResourceStatic(page, responseKeys.get(id)).getString();
         } else {

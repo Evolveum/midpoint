@@ -157,7 +157,11 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     protected static final File ORG_BRETHREN_FILE = new File(TEST_DIR, "org-brethren.xml");
 	protected static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";
 	protected static final String ORG_BRETHREN_INDUCED_ORGANIZATION = "Pirate Brethren";
-	
+
+	protected static final File TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_FILE = new File(TEST_DIR, "template-dynamic-org-assignment.xml");
+	protected static final String TEMPLATE_DYNAMIC_ORG_ASSIGNMENT_OID = "ee079df8-1146-4e53-872f-b9733f24ebfe";
+	protected static final String DYNAMIC_ORG_ASSIGNMENT_EMPLOYEE_TYPE = "dynamicOrgAssignment";
+
 	@Autowired protected Projector projector;
 	@Autowired protected Clockwork clockwork;
 	@Autowired protected TaskManager taskManager;

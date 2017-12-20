@@ -833,7 +833,8 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
+		String localElementName = elementName != null ? elementName.getLocalPart() : null;
+		result = prime * result + ((localElementName == null) ? 0 : localElementName.hashCode());
 		result = prime * result + valuesHash;
 		return result;
 	}

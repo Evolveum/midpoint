@@ -242,6 +242,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                     .item(new ItemPath(AssignmentType.F_TARGET_REF))
                     .ref(SchemaConstants.ORG_DEPUTY)
                     .endBlock()
+                   .and()
+                    .not()
+                    .exists(AssignmentType.F_POLICY_RULE)
                     .build();
         } else {
             return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())

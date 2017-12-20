@@ -3246,6 +3246,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 
+	protected void addTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTrigger");
+        OperationResult result = task.getResult();
+        Collection<TriggerType> triggers = timestamps.stream()
+		        .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
+		        .collect(Collectors.toList());
+        ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
+		       .item(ObjectType.F_TRIGGER).addRealValues(triggers)
+		       .asObjectDeltaCast(oid);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+
 	protected <O extends ObjectType> void assertTrigger(PrismObject<O> object, String handlerUri, XMLGregorianCalendar start, XMLGregorianCalendar end) throws ObjectNotFoundException, SchemaException {
 		for (TriggerType trigger: object.asObjectable().getTrigger()) {
 			if (handlerUri.equals(trigger.getHandlerUri())
