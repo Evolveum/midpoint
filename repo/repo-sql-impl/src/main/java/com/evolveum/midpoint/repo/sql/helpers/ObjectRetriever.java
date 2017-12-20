@@ -49,6 +49,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.*;
+import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.NativeQuery;
 import org.jetbrains.annotations.NotNull;
@@ -134,7 +135,7 @@ public class ObjectRetriever {
 				LOGGER.trace("Trying to lock object {} for update (via SQL)", oid);
 				long time = System.currentTimeMillis();
 				NativeQuery q = session.createNativeQuery("select oid from m_object where oid = ? for update");
-				q.setString(0, oid);
+				q.setParameter(1, oid);
 				Object result = q.uniqueResult();
 				if (result == null) {
 					return throwObjectNotFoundException(type, oid);
@@ -159,7 +160,7 @@ public class ObjectRetriever {
 		GetObjectResult fullObject = null;
 		if (!lockForUpdate) {
 			Query query = session.getNamedQuery("get.object");
-			query.setString("oid", oid);
+			query.setParameter("oid", oid);
 			query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 			query.setLockOptions(lockOptions);
 
@@ -222,7 +223,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             LOGGER.trace("Selecting account shadow owner for account {}.", shadowOid);
             Query query = session.getNamedQuery("searchShadowOwner.getOwner");
-            query.setString("oid", shadowOid);
+            query.setParameter("oid", shadowOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -258,7 +259,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
-            query.setString("oid", accountOid);
+            query.setParameter("oid", accountOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -503,7 +504,7 @@ public class ObjectRetriever {
                 //todo improve, use user.hasPhoto flag and take options into account [lazyman]
                 //this is called only when options contains INCLUDE user/jpegPhoto
                 Query query = session.getNamedQuery("get.focusPhoto");
-                query.setString("oid", prismObject.getOid());
+                query.setParameter("oid", prismObject.getOid());
                 byte[] photo = (byte[]) query.uniqueResult();
                 if (photo != null) {
                     PrismProperty property = prismObject.findOrCreateProperty(FocusType.F_JPEG_PHOTO);
@@ -602,7 +603,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listResourceObjectShadows");
-            query.setString("oid", resourceOid);
+            query.setParameter("oid", resourceOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -649,7 +650,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("getVersion");
-            query.setString("oid", oid);
+            query.setParameter("oid", oid);
 
             Number versionLong = (Number) query.uniqueResult();
             if (versionLong == null) {
@@ -842,12 +843,12 @@ main:       for (;;) {
             Query query;
             if (lowerObjectOids.size() == 1) {
                 query = session.getNamedQuery("isAnySubordinateAttempt.oneLowerOid");
-                query.setString("dOid", lowerObjectOids.iterator().next());
+                query.setParameter("dOid", lowerObjectOids.iterator().next());
             } else {
                 query = session.getNamedQuery("isAnySubordinateAttempt.moreLowerOids");
                 query.setParameterList("dOids", lowerObjectOids);
             }
-            query.setString("aOid", upperOrgOid);
+            query.setParameter("aOid", upperOrgOid);
 
             Number number = (Number) query.uniqueResult();
             session.getTransaction().commit();
@@ -871,7 +872,7 @@ main:       for (;;) {
 
 			final String implementationLevelQuery;
 			final Map<String, RepositoryQueryDiagResponse.ParameterValue> implementationLevelQueryParameters;
-			final Query query;
+			final org.hibernate.Query query;
 			final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
 			if (isMidpointQuery) {
 				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
