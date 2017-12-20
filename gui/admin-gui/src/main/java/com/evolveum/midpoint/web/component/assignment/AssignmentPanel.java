@@ -173,11 +173,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		};
 
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
-		ContainerWrapper<AssignmentType> cwat = getModelObject();
-					columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
-if (cwat != null){
+		columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
 
-}
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
 				assignmentsProvider, columns, getTableId(), getItemsPerPage()) {
 			private static final long serialVersionUID = 1L;
@@ -279,49 +276,7 @@ if (cwat != null){
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-
-				ContainerValueWrapper<AssignmentType> assignmentContainer = rowModel.getObject();
-				ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(new ItemPath(AssignmentType.F_ACTIVATION)));
-				ActivationStatusType administrativeStatus = null;
-				XMLGregorianCalendar validFrom = null;
-				XMLGregorianCalendar validTo = null;
-				ActivationType activation = null;
-				String lifecycleStatus = "";
-				PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapper(AssignmentType.F_LIFECYCLE_STATE);
-				if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
-					Iterator<ValueWrapper> iter = lifecycleStatusProperty.getValues().iterator();
-					if (iter.hasNext()){
-						lifecycleStatus = (String) iter.next().getValue().getRealValue();
-					}
-				}
-				if (activationContainer != null){
-					activation = new ActivationType();
-					PropertyOrReferenceWrapper administrativeStatusProperty = activationContainer.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
-					if (administrativeStatusProperty != null && administrativeStatusProperty.getValues() != null){
-						Iterator<ValueWrapper> iter = administrativeStatusProperty.getValues().iterator();
-						if (iter.hasNext()){
-							administrativeStatus = (ActivationStatusType) iter.next().getValue().getRealValue();
-							activation.setAdministrativeStatus(administrativeStatus);
-						}
-					}
-					PropertyOrReferenceWrapper validFromProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_FROM);
-					if (validFromProperty != null && validFromProperty.getValues() != null){
-						Iterator<ValueWrapper> iter = validFromProperty.getValues().iterator();
-						if (iter.hasNext()){
-							validFrom = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
-							activation.setValidFrom(validFrom);
-						}
-					}
-					PropertyOrReferenceWrapper validToProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_TO);
-					if (validToProperty != null && validToProperty.getValues() != null){
-						Iterator<ValueWrapper> iter = validToProperty.getValues().iterator();
-						if (iter.hasNext()){
-							validTo = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
-							activation.setValidTo(validTo);
-						}
-					}
-				}
-				item.add(new Label(componentId, Model.of(WebModelServiceUtils.getEffectiveStatus(lifecycleStatus, activation, getPageBase()))));
+				item.add(new Label(componentId, getActivationLabelModel(rowModel.getObject())));
 			}
         });
         columns.addAll(initColumns());
@@ -515,6 +470,58 @@ if (cwat != null){
 
 	protected PageBase getParentPage() {
 		return getPageBase();
+	}
+
+	private IModel<String> getActivationLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
+		ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(new ItemPath(AssignmentType.F_ACTIVATION)));
+		ActivationStatusType administrativeStatus = null;
+		XMLGregorianCalendar validFrom = null;
+		XMLGregorianCalendar validTo = null;
+		ActivationType activation = null;
+		String lifecycleStatus = "";
+		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapper(AssignmentType.F_LIFECYCLE_STATE);
+		if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
+			Iterator<ValueWrapper> iter = lifecycleStatusProperty.getValues().iterator();
+			if (iter.hasNext()){
+				lifecycleStatus = (String) iter.next().getValue().getRealValue();
+			}
+		}
+		if (activationContainer != null){
+			activation = new ActivationType();
+			PropertyOrReferenceWrapper administrativeStatusProperty = activationContainer.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+			if (administrativeStatusProperty != null && administrativeStatusProperty.getValues() != null){
+				Iterator<ValueWrapper> iter = administrativeStatusProperty.getValues().iterator();
+				if (iter.hasNext()){
+					administrativeStatus = (ActivationStatusType) iter.next().getValue().getRealValue();
+					activation.setAdministrativeStatus(administrativeStatus);
+				}
+			}
+			PropertyOrReferenceWrapper validFromProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_FROM);
+			if (validFromProperty != null && validFromProperty.getValues() != null){
+				Iterator<ValueWrapper> iter = validFromProperty.getValues().iterator();
+				if (iter.hasNext()){
+					validFrom = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
+					activation.setValidFrom(validFrom);
+				}
+			}
+			PropertyOrReferenceWrapper validToProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_TO);
+			if (validToProperty != null && validToProperty.getValues() != null){
+				Iterator<ValueWrapper> iter = validToProperty.getValues().iterator();
+				if (iter.hasNext()){
+					validTo = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
+					activation.setValidTo(validTo);
+				}
+			}
+		}
+		if (administrativeStatus != null){
+			return Model.of(WebModelServiceUtils
+					.getEffectiveStatus(lifecycleStatus, activation, getPageBase()).value().toLowerCase());
+		} else {
+			return AssignmentsUtil.createActivationTitleModel(WebModelServiceUtils
+							.getEffectiveStatus(lifecycleStatus, activation, getPageBase()),
+					validFrom, validTo, AssignmentPanel.this);
+		}
+
 	}
 
 }
