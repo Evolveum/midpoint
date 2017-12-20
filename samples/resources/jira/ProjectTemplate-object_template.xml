@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="73cc1d77-dedc-4269-a051-b006821a9c79"
+                version="43">
+   <name>Project Template</name>
+   <metadata>
+      <createTimestamp>2017-09-13T13:34:30.245+02:00</createTimestamp>
+      <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator-MP --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <item>
+      <c:ref>focus/orgType</c:ref>
+      <valueEnumerationRef oid="5783c174-d141-11e4-bb29-001e8c717e5b"/>
+   </item>
+   <mapping>
+      <name>Assign Basic role to JIRA Projects</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>name</q:path>
+                  <q:value>JIRA Project</q:value>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>Assign JIRA Projects to org unit</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>OrgType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>name</q:path>
+                  <q:value>JIRA Projects</q:value>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>Project developers-Users (OU members-Users) assignment</name>
+      <source>
+         <name>developerUsers</name>
+         <c:path>extension/developerUsers</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <relativityMode>absolute</relativityMode>
+            <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                    import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                    import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                    import java.util.*;
+                    
+                    if(developerUsers!=null &amp;&amp; focus != null &amp;&amp; focus.getOid() != null){
+                     for (developerUser in developerUsers){
+                        user = midpoint.searchObjectByName(UserType.class, developerUser);
+                        
+                        if(user!=null){
+                        
+                            //log.info('XXX User: '+ user.toString())
+                            orgOrt = new ObjectReferenceType();
+                            orgOrt.setOid(focus.getOid());
+                            orgOrt.setType(OrgType.COMPLEX_TYPE);
+                    
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.asPrismContainerValue()
+                            assignment.setTargetRef(orgOrt);
+                        
+                        
+                            delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+
+                            midpoint.executeChanges(delta)
+                        }
+                     }
+                    }
+                </code>
+         </script>
+      </expression>
+   </mapping>
+   <mapping>
+      <name>Project developers-groups (OU members-Roles) assignment</name>
+      <source>
+         <name>developerGroups</name>
+         <c:path>extension/developerGroups</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <relativityMode>absolute</relativityMode>
+            <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                    import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                    import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                    import java.util.*;
+                    
+                    if(developerGroups!=null &amp;&amp; focus != null &amp;&amp; focus.getOid() != null){
+                     for (developerGroup in developerGroups){
+                        group = midpoint.searchObjectByName(RoleType.class, developerGroup);
+                        
+                        if(group!=null){
+                        
+                            //log.info('XXX User: '+ user.toString())
+                            orgOrt = new ObjectReferenceType();
+                            orgOrt.setOid(focus.getOid());
+                            orgOrt.setType(OrgType.COMPLEX_TYPE);
+                    
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.asPrismContainerValue()
+                            assignment.setTargetRef(orgOrt);
+                        
+                        
+                            delta = ObjectDelta.createModificationAddContainer(RoleType.class, group.getOid(), RoleType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+
+                            midpoint.executeChanges(delta)
+                        }
+                     }
+                    }
+                </code>
+         </script>
+      </expression>
+   </mapping>
+   <mapping>
+      <name>Project administrator-users (OU managers-Users) assignment</name>
+      <source>
+         <name>administratorUsers</name>
+         <c:path>extension/administratorUsers</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <relativityMode>absolute</relativityMode>
+            <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                    import com.evolveum.midpoint.schema.constants.SchemaConstants;
+                    import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                    import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                    import java.util.*;
+                    
+                    if(administratorUsers!=null &amp;&amp; focus != null &amp;&amp; focus.getOid() != null){
+                     for (administratorUser in administratorUsers){
+                        user = midpoint.searchObjectByName(UserType.class, administratorUser);
+                        
+                        if(user!=null){
+                        
+                            //log.info('XXX User: '+ user.toString())
+                            orgOrt = new ObjectReferenceType();
+                            orgOrt.setOid(focus.getOid());
+                            orgOrt.setType(OrgType.COMPLEX_TYPE);
+                            orgOrt.setRelation(SchemaConstants.ORG_MANAGER);
+                    
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.asPrismContainerValue()
+                            assignment.setTargetRef(orgOrt);
+                        
+                        
+                            delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+
+                            midpoint.executeChanges(delta)
+                        }
+                     }
+                    }
+                </code>
+         </script>
+      </expression>
+   </mapping>
+   <mapping>
+      <name>Project administrator-groups (OU managers-Roles) assignment</name>
+      <source>
+         <name>administratorGroups</name>
+         <c:path>extension/administratorGroups</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <relativityMode>absolute</relativityMode>
+            <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                    import com.evolveum.midpoint.schema.constants.SchemaConstants;
+                    import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                    import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                    import java.util.*;
+                    
+                    if(administratorGroups!=null &amp;&amp; focus != null &amp;&amp; focus.getOid() != null){
+                     for (administratorGroup in administratorGroups){
+                        group = midpoint.searchObjectByName(RoleType.class, administratorGroup);
+                        
+                        if(group!=null){
+                        
+                            //log.info('XXX User: '+ user.toString())
+                            orgOrt = new ObjectReferenceType();
+                            orgOrt.setOid(focus.getOid());
+                            orgOrt.setType(OrgType.COMPLEX_TYPE);
+                            orgOrt.setRelation(SchemaConstants.ORG_MANAGER);
+                    
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.asPrismContainerValue()
+                            assignment.setTargetRef(orgOrt);
+                        
+                        
+                            delta = ObjectDelta.createModificationAddContainer(RoleType.class, group.getOid(), RoleType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+
+                            midpoint.executeChanges(delta)
+                        }
+                     }
+                    }
+                </code>
+         </script>
+      </expression>
+   </mapping>
+</objectTemplate>
+</objects>

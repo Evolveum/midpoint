@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="83cc1d77-dedc-4269-a051-b006821a9c79"
+                version="30">
+   <name>Group Template</name>
+   <metadata>
+      <createTimestamp>2017-09-13T13:34:27.394+02:00</createTimestamp>
+      <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator-MP --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <mapping>
+      <name>Assign Basic role to JIRA Group</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>name</q:path>
+                  <q:value>JIRA Group</q:value>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>Assign Metarole to JIRA Group</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>name</q:path>
+                  <q:value>Group Membership Metarole</q:value>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+</objectTemplate>
+</objects>
