@@ -93,6 +93,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	public static final File USER_ADMINISTRATOR_FILE = new File(TEST_RESOURCE_DIR, "user-administrator.xml");
 
 	protected static final File USER_JACK_FILE = new File(TEST_RESOURCE_DIR, "user-jack.xml");
+	protected static final File USER_JACK_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-jack-deputy.xml");        // delegation is created only when needed
 	protected static final File USER_BOB_FILE = new File(TEST_RESOURCE_DIR, "user-bob.xml");
 	protected static final File USER_CHUCK_FILE = new File(TEST_RESOURCE_DIR, "user-chuck.xml");
 	protected static final File USER_LEAD1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1.xml");
@@ -136,6 +137,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
 	protected String userJackOid;
+	protected String userJackDeputyOid;
 	protected String userBobOid;
 	protected String userChuckOid;
 	protected String userLead1Oid;
@@ -221,6 +223,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		metaroleApproveUnassign = repoAddObjectFromFile(METAROLE_APPROVE_UNASSIGN_FILE, initResult).getOid();
 
 		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
+		userJackDeputyOid = repoAddObjectFromFile(USER_JACK_DEPUTY_FILE, initResult).getOid();
 		userBobOid = repoAddObjectFromFile(USER_BOB_FILE, initResult).getOid();
 		userChuckOid = repoAddObjectFromFile(USER_CHUCK_FILE, initResult).getOid();
 		roleRole1Oid = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();

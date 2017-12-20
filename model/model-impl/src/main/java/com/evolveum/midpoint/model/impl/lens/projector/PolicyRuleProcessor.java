@@ -639,7 +639,7 @@ public class PolicyRuleProcessor {
 						continue;
 					}
 					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone());
-					boolean direct = target.isDirectlyAssigned() || target.getAssignmentPath().getFirstOrderChain().size() == 1;
+					boolean direct = target.isDirectlyAssigned();
 					if (direct) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
 					} else {
