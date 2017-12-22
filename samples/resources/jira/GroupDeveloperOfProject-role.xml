@@ -4,17 +4,8 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="b73234af-1d81-49d1-98d4-888aedf25ee7"
-      version="18">
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
    <name>GroupDeveloperOfProject</name>
-   <metadata>
-      <createTimestamp>2017-09-13T13:34:31.526+02:00</createTimestamp>
-      <creatorRef oid="00000000-0000-0000-0000-000000000002"
-                  relation="org:default"
-                  type="c:UserType"><!-- administrator-MP --></creatorRef>
-      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
-   </metadata>
    <iteration>0</iteration>
    <iterationToken/>
    <displayName>Group as Developer of the Project</displayName>
@@ -62,8 +53,8 @@
                   <returnMultiplicity>multi</returnMultiplicity>
                   <script>
                      <code>
-								return focusAssignment?.getOrgRef()?.getOid()
-						</code>
+								        return focusAssignment?.getOrgRef()?.getOid()
+						         </code>
                   </script>
                </expression>
             </q:inOid>

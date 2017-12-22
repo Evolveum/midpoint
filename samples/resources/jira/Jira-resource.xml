@@ -5,144 +5,25 @@
           xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          oid="cf933dce-43ef-4925-af9b-f9e13f91a665"
-          version="395">
+          oid="cf933dce-43ef-4925-af9b-f9e13f91a665">
    <name>JiraConnector</name>
-   <metadata>
-      <createTimestamp>2017-09-13T13:34:23.125+02:00</createTimestamp>
-      <creatorRef oid="00000000-0000-0000-0000-000000000002"
-                  relation="org:default"
-                  type="c:UserType"/>
-      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
-      <modifyTimestamp>2017-09-13T13:36:28.678+02:00</modifyTimestamp>
-      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                   oid="00000000-0000-0000-0000-000000000002"
-                   relation="org:default"
-                   type="tns:UserType"/>
-      <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
-   </metadata>
-   <operationExecution id="2">
-      <timestamp>2017-07-25T16:02:48.038+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:ResourceType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000025588</token>
-         </executionResult>
-         <objectName>JiraConnector</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"/>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
-   <operationExecution id="3">
-      <timestamp>2017-08-16T14:45:56.732+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:ResourceType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000000078</token>
-         </executionResult>
-         <objectName>JiraConnector</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"/>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
-   <operationExecution id="4">
-      <timestamp>2017-08-16T14:52:08.473+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:ResourceType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000000078</token>
-         </executionResult>
-         <objectName>JiraConnector</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"/>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
-   <operationExecution id="5">
-      <timestamp>2017-08-16T14:58:40.608+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:ResourceType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000001227</token>
-         </executionResult>
-         <objectName>JiraConnector</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"/>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
-   <operationExecution id="1">
-      <timestamp>2017-09-13T13:36:28.893+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:ResourceType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000000875</token>
-         </executionResult>
-         <objectName>JiraConnector</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"/>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
    <operationalState>
       <lastAvailabilityStatus>up</lastAvailabilityStatus>
    </operationalState>
-   <connectorRef oid="f6b777f9-1198-4895-a8ae-e8ded02ab34b"
-                 relation="org:default"
-                 type="c:ConnectorType"/>
+   <connectorRef type="ConnectorType">
+      <filter>
+         <q:equal>
+            <q:path>c:connectorType</q:path>
+            <q:value>com.evolveum.polygon.connector.jira.rest.JiraConnector</q:value>
+         </q:equal>
+      </filter>
+	 </connectorRef>
    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
       <icfc:configurationProperties xmlns:gen156="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-jira-rest/com.evolveum.polygon.connector.jira.rest.JiraConnector">
          <gen156:baseUrl>172.16.1.253:8084</gen156:baseUrl>
          <gen156:username>administrator</gen156:username>
          <gen156:password>
-            <t:encryptedData>
-               <t:encryptionMethod>
-                  <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
-               </t:encryptionMethod>
-               <t:keyInfo>
-                  <t:keyName>SFa9k96IEj/oFg3usm5azcrDSz0=</t:keyName>
-               </t:keyInfo>
-               <t:cipherData>
-                  <t:cipherValue>d3pczH9jaQfQrHOIsQlwfdsDGBVqn97pG1e4kErFsZg=</t:cipherValue>
-               </t:cipherData>
-            </t:encryptedData>
+            <clearValue>secret</clearValue>
          </gen156:password>
       </icfc:configurationProperties>
    </connectorConfiguration>
@@ -1020,8 +901,6 @@
                                     userOrt = new ObjectReferenceType();
                                     userOrt.setOid(leader.getOid());
                                     userOrt.setType(UserType.COMPLEX_TYPE);
-                                    
-                                    //log.info("XXXXXXXXXXXXXXX ORT targer name: {}", midpoint.getUserByOid(userOrt.getOid()).getName());
                                     if (userOrt != null){
                                         return userOrt;
                                     }

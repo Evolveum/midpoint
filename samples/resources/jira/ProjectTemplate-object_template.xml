@@ -9,8 +9,7 @@
                 xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                oid="73cc1d77-dedc-4269-a051-b006821a9c79"
-                version="43">
+                oid="73cc1d77-dedc-4269-a051-b006821a9c79">
    <name>Project Template</name>
    <metadata>
       <createTimestamp>2017-09-13T13:34:30.245+02:00</createTimestamp>
@@ -87,8 +86,6 @@
                         user = midpoint.searchObjectByName(UserType.class, developerUser);
                         
                         if(user!=null){
-                        
-                            //log.info('XXX User: '+ user.toString())
                             orgOrt = new ObjectReferenceType();
                             orgOrt.setOid(focus.getOid());
                             orgOrt.setType(OrgType.COMPLEX_TYPE);
@@ -132,8 +129,6 @@
                         group = midpoint.searchObjectByName(RoleType.class, developerGroup);
                         
                         if(group!=null){
-                        
-                            //log.info('XXX User: '+ user.toString())
                             orgOrt = new ObjectReferenceType();
                             orgOrt.setOid(focus.getOid());
                             orgOrt.setType(OrgType.COMPLEX_TYPE);
@@ -226,7 +221,6 @@
                         
                         if(group!=null){
                         
-                            //log.info('XXX User: '+ user.toString())
                             orgOrt = new ObjectReferenceType();
                             orgOrt.setOid(focus.getOid());
                             orgOrt.setType(OrgType.COMPLEX_TYPE);

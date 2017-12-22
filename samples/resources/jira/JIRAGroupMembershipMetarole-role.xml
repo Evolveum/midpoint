@@ -5,56 +5,8 @@
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="8b0b1109-ffa5-41cc-95c1-67badfe55390"
-      version="6">
+      oid="8b0b1109-ffa5-41cc-95c1-67badfe55390">
    <name>JIRA Group Membership Metarole</name>
-   <metadata>
-      <createTimestamp>2017-09-13T13:34:19.843+02:00</createTimestamp>
-      <creatorRef oid="00000000-0000-0000-0000-000000000002"
-                  relation="org:default"
-                  type="c:UserType"><!-- administrator-MP --></creatorRef>
-      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
-   </metadata>
-   <operationExecution id="1">
-      <timestamp>2017-07-25T13:44:12.661+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>add</t:changeType>
-            <t:objectType>c:RoleType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000019124</token>
-         </executionResult>
-         <objectName>Group Membership Metarole</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"><!-- administrator-MP --></initiatorRef>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
-   <operationExecution id="3">
-      <timestamp>2017-07-25T13:45:33.575+02:00</timestamp>
-      <operation>
-         <objectDelta>
-            <t:changeType>modify</t:changeType>
-            <t:objectType>c:RoleType</t:objectType>
-         </objectDelta>
-         <executionResult>
-            <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
-            <status>success</status>
-            <token>1000000000000019374</token>
-         </executionResult>
-         <objectName>Group Membership Metarole</objectName>
-      </operation>
-      <status>success</status>
-      <initiatorRef oid="00000000-0000-0000-0000-000000000002"
-                    relation="org:default"
-                    type="c:UserType"><!-- administrator-MP --></initiatorRef>
-      <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
-   </operationExecution>
    <activation>
       <effectiveStatus>enabled</effectiveStatus>
       <enableTimestamp>2017-07-25T13:44:12.605+02:00</enableTimestamp>
