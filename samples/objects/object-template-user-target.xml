@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
 	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -11,7 +8,7 @@
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                 oid="10000000-0000-0000-0000-000000002241"
                 version="4">
-   <name>Role Template</name>
+   <name>User Target Template</name>
    <mapping>
       <description>
                 Property mapping.
@@ -73,4 +70,3 @@
     	</condition>
    </mapping>
 </objectTemplate>
-</objects>
