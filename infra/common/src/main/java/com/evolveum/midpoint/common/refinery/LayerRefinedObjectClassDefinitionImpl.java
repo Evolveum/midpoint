@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -478,6 +479,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public boolean isExperimental() {
 		return refinedObjectClassDefinition.isExperimental();
 	}
+    
+    @Override
+	public boolean isElaborate() {
+		return refinedObjectClassDefinition.isElaborate();
+	}
 
     @Override
 	public String getDocumentation() {
@@ -574,8 +580,14 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public String getHumanReadableName() {
 		return refinedObjectClassDefinition.getHumanReadableName();
 	}
+    
+    @Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		refinedObjectClassDefinition.accept(visitor);
+	}
 
-    @NotNull
+	@NotNull
 	@Override
     public LayerRefinedObjectClassDefinition clone() {
         return wrap(refinedObjectClassDefinition.clone(), this.layer);
@@ -583,8 +595,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 
 	@NotNull
 	@Override
-	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
-		return new LayerRefinedObjectClassDefinitionImpl(refinedObjectClassDefinition.deepClone(ctdMap, onThisPath), layer);
+	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		return new LayerRefinedObjectClassDefinitionImpl(refinedObjectClassDefinition.deepClone(ctdMap, onThisPath, postCloneAction), layer);
 	}
 
     @Override

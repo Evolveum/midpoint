@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -298,6 +299,14 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public boolean isEmpty() {
 		return itemDefinitions.isEmpty();
 	}
+	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		for (ItemDefinition itemDefinition : itemDefinitions) {
+			itemDefinition.accept(visitor);
+		}
+	}
 
 	@NotNull
 	@Override
@@ -309,12 +318,12 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	}
 
 	public ComplexTypeDefinition deepClone() {
-		return deepClone(new HashMap<>(), new HashMap<>());
+		return deepClone(new HashMap<>(), new HashMap<>(), null);
 	}
 
 	@NotNull
 	@Override
-	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
 		if (ctdMap != null) {
 			ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
 			if (clone != null) {
@@ -332,7 +341,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		onThisPath.put(this.getTypeName(), clone);
 		clone.itemDefinitions.clear();
 		for (ItemDefinition itemDef: this.itemDefinitions) {
-			clone.itemDefinitions.add(itemDef.deepClone(ctdMap, onThisPath));
+			ItemDefinition itemClone = itemDef.deepClone(ctdMap, onThisPath, postCloneAction);
+			clone.itemDefinitions.add(itemClone);
+			if (postCloneAction != null) {
+				postCloneAction.accept(itemClone);
+			}
 		}
 		onThisPath.remove(this.getTypeName());
 		return clone;
