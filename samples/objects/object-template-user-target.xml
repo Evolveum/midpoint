@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="10000000-0000-0000-0000-000000002241"
+                version="4">
+   <name>Role Template</name>
+   <mapping>
+      <description>
+                Property mapping.
+                Defines how properties of user object are set up.
+                This specific definition sets a full name as a concatenation
+                of givenName and familyName.
+            </description>
+      <strength>weak</strength>
+      <source>
+         <c:path>$user/givenName</c:path>
+      </source>
+      <source>
+         <c:path>$user/familyName</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                        givenName + ' ' + familyName
+                    </code>
+         </script>
+      </expression>
+      <target>
+         <c:path>$user/fullName</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>Responsibility metarole assignment</name>
+	  <source>
+    		<path>$user/employeeType</path>
+    	</source>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>c:RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>c:name</q:path>
+                  <expression>
+                     <value>employee</value>
+                  </expression>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+	  <condition>
+    		<script>
+    			<code>
+						if(employeeType.equals("employee")){
+							return true
+						}
+						return false
+				</code>
+    		</script>
+    	</condition>
+   </mapping>
+</objectTemplate>
+</objects>
