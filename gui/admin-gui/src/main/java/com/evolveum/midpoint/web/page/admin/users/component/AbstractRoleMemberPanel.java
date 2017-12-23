@@ -617,4 +617,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected Class getDefaultObjectType(){
 		return ObjectType.class;
 	}
+
+	protected Form getFormComponent(){
+		return (Form) get(ID_FORM);
+	}
 }
