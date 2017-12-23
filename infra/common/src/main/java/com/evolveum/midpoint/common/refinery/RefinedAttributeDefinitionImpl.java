@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -560,8 +561,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 	}
 
 	@Override
-	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
-		return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap, onThisPath);
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap, onThisPath, postCloneAction);
 	}
 
 	@Override

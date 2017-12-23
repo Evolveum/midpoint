@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
@@ -335,6 +337,13 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	@Override
 	public HttpConnectionInformation getStoredConnectionInformation() {
 		return securityContextManager.getStoredConnectionInformation();
+	}
+
+	@Override
+	public <O extends ObjectType> AccessDecision determineSubitemDecision(
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, String operationUrl,
+			AuthorizationPhaseType phase, ItemPath subitemRootPath) {
+		return securityEnforcer.determineSubitemDecision(securityConstraints, delta, operationUrl, phase, subitemRootPath);
 	}
 
 }

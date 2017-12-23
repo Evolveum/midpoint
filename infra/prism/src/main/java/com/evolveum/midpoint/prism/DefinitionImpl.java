@@ -61,6 +61,7 @@ public abstract class DefinitionImpl implements Definition {
     protected boolean deprecated = false;
     protected String deprecatedSince;
     protected boolean experimental = false;
+    protected boolean elaborate = false;
 
     /**
      * whether an item is inherited from a supertype (experimental feature)
@@ -142,6 +143,15 @@ public abstract class DefinitionImpl implements Definition {
 
 	public void setExperimental(boolean experimental) {
 		this.experimental = experimental;
+	}
+
+	@Override
+	public boolean isElaborate() {
+		return elaborate;
+	}
+
+	public void setElaborate(boolean elaborate) {
+		this.elaborate = elaborate;
 	}
 
 	public void setInherited(boolean inherited) {
@@ -244,6 +254,8 @@ public abstract class DefinitionImpl implements Definition {
         clone.deprecated = this.deprecated;
 		clone.isRuntimeSchema = this.isRuntimeSchema;
 		clone.emphasized = this.emphasized;
+		clone.experimental = this.experimental;
+		clone.elaborate = this.elaborate;
     }
 
 	@SuppressWarnings("ConstantConditions")

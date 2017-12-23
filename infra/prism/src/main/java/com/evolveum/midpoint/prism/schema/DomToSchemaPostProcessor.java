@@ -1049,7 +1049,7 @@ class DomToSchemaPostProcessor {
 			itemDef.setDeprecated(deprecated);
 		}
 		
-		//deprecated since
+		// deprecated since
 		Element deprecatedSince = SchemaProcessorUtil.getAnnotationElement(annotation, A_DEPRECATED_SINCE);
 		if (deprecatedSince != null) {
 			itemDef.setDeprecatedSince(deprecatedSince.getTextContent());
@@ -1059,6 +1059,12 @@ class DomToSchemaPostProcessor {
 		Boolean experimental = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_EXPERIMENTAL);
 		if (experimental != null) {
 			itemDef.setExperimental(experimental);
+		}
+		
+		// elaborate
+		Boolean elaborate = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_ELABORATE);
+		if (elaborate != null) {
+			itemDef.setElaborate(elaborate);
 		}
 
 		// operational

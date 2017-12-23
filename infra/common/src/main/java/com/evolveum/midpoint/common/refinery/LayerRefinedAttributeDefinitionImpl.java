@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -120,6 +121,12 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return refinedAttributeDefinition.getLimitations(layer);
 	}
 
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		refinedAttributeDefinition.accept(visitor);
+	}
+	
 	@NotNull
 	@Override
 	public RefinedAttributeDefinition<T> clone() {
@@ -151,6 +158,21 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 			return overrideCanModify;
 		}
 		return refinedAttributeDefinition.canModify(layer);
+	}
+	
+	@Override
+	public void setCanRead(boolean val) {
+		throw new UnsupportedOperationException("read only");
+	}
+
+	@Override
+	public void setCanModify(boolean val) {
+		throw new UnsupportedOperationException("read only");
+	}
+
+	@Override
+	public void setCanAdd(boolean val) {
+		throw new UnsupportedOperationException("read only");
 	}
 
 	//	@Override
@@ -240,8 +262,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public ItemDefinition<PrismProperty<T>> deepClone(boolean ultraDeep) {
-		return refinedAttributeDefinition.deepClone(ultraDeep);
+	public ItemDefinition<PrismProperty<T>> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+		return refinedAttributeDefinition.deepClone(ultraDeep, postCloneAction);
 	}
 
 	@Override
@@ -561,6 +583,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 	
 	@Override
+	public boolean isElaborate() {
+		return refinedAttributeDefinition.isElaborate();
+	}
+	
+	@Override
 	public boolean isOperational() {
 		return refinedAttributeDefinition.isOperational();
 	}
@@ -586,8 +613,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
-		return new LayerRefinedAttributeDefinitionImpl<>(refinedAttributeDefinition.deepClone(ctdMap, onThisPath), layer);
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		return new LayerRefinedAttributeDefinitionImpl<>(refinedAttributeDefinition.deepClone(ctdMap, onThisPath, postCloneAction), layer);
 	}
 
 	@Override
@@ -626,4 +653,5 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public String toString() {
 		return String.valueOf(refinedAttributeDefinition) + ":" + layer;
 	}
+
 }

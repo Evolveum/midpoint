@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -56,9 +59,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -1680,6 +1687,81 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
         assertAssignments(userBarbossa, 0);
+
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test260AutzJackLimitedRoleAdministrator() throws Exception {
+		final String TEST_NAME = "test260AutzJackLimitedRoleAdministrator";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertReadDenyRaw();
+
+		assertSearch(UserType.class, null, 1);
+		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+		assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+		assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+
+        assertAddDeny();
+        assertDeleteDeny();
+
+        assertAddAllow(ROLE_EXCLUSION_PIRATE_FILE);
+        
+        PrismObject<RoleType> roleExclusion = assertGetAllow(RoleType.class, ROLE_EXCLUSION_PIRATE_OID);
+        display("Exclusion role", roleExclusion);
+//        display("Exclusion role def", roleExclusion.getDefinition());
+        
+        display("TTTTTTTTTTTTTTTTTTTT");
+        PrismObjectDefinition<RoleType> roleExclusionEditSchema = getEditObjectDefinition(roleExclusion);
+		display("Exclusion role edit schema", roleExclusionEditSchema);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_NAME, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_DESCRIPTION, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_ROLE_TYPE, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_INDUCEMENT, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_METADATA, false, false, false);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_ASSIGNMENT, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_DESCRIPTION),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
+				true, false, false);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
+				true, false, false);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
+				true, false, false);
+		// TODO: inducement
+		        
+        // TODO: modify empty role to add exclusion
+        // TODO: delete exclusion
 
         assertGlobalStateUntouched();
 	}

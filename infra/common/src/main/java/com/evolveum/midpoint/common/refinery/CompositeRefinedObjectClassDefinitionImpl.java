@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -140,6 +141,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean isExperimental() {
 		return structuralObjectClassDefinition.isExperimental();
+	}
+	
+	@Override
+	public boolean isElaborate() {
+		return structuralObjectClassDefinition.isElaborate();
 	}
 
 	@Override
@@ -584,6 +590,16 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 				.map(def -> def.getPasswordDefinition())
 				.findFirst().orElse(null);
 	}
+	
+    @Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		structuralObjectClassDefinition.accept(visitor);
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+			auxiliaryObjectClassDefinition.accept(visitor);
+		}
+	}
+
 
 	@NotNull
 	@Override
@@ -686,10 +702,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@NotNull
 	@Override
-	public CompositeRefinedObjectClassDefinitionImpl deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
-		RefinedObjectClassDefinition structuralClone = structuralObjectClassDefinition.deepClone(ctdMap, onThisPath);
+	public CompositeRefinedObjectClassDefinitionImpl deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		RefinedObjectClassDefinition structuralClone = structuralObjectClassDefinition.deepClone(ctdMap, onThisPath, postCloneAction);
 		List<RefinedObjectClassDefinition> auxiliaryClones = auxiliaryObjectClassDefinitions.stream()
-				.map(def -> def.deepClone(ctdMap, onThisPath))
+				.map(def -> def.deepClone(ctdMap, onThisPath, postCloneAction))
 				.collect(Collectors.toCollection(ArrayList::new));
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralClone, auxiliaryClones);
 	}
