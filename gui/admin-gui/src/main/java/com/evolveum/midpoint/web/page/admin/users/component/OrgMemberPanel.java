@@ -26,6 +26,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -113,6 +114,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 	private static final String OPERATION_LOAD_MANAGERS = DOT_CLASS + "loadManagers";
+	private static final String OPERATION_LOAD_MEMBER_RELATION_OBJECTS = DOT_CLASS + "loadMemberRelationObjects";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
 	private static final String ID_DELETE_MANAGER = "deleteManager";
@@ -177,7 +179,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		List<RelationTypes> relationTypes = new ArrayList<RelationTypes>(Arrays.asList(RelationTypes.values()));
 		DropDownChoicePanel<RelationTypes> relationSelector = new DropDownChoicePanel<RelationTypes>(ID_SEARCH_BY_RELATION,
-				Model.of(RelationTypes.MEMBER), Model.ofList(relationTypes),
+				Model.of(), Model.ofList(relationTypes),
 				new EnumChoiceRenderer<RelationTypes>(), true);
 		relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		relationSelector.setOutputMarkupId(true);
@@ -198,6 +200,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected void initCustomLayout(Form form, ModelServiceLocator serviceLocator) {
 		WebMarkupContainer managerContainer = createManagerContainer(serviceLocator);
 		form.addOrReplace(managerContainer);
+	}
+
+	@Override
+	protected void initMemberRelationObjectsModel(){
+		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
+			@Override
+			protected List<String> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATION_OBJECTS);
+				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MEMBER.getRelation()));
+			}
+		};
 	}
 
 	private WebMarkupContainer createManagerContainer(ModelServiceLocator serviceLocator) {
@@ -829,4 +842,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 		return relationsList;
 	}
+
+	@Override
+	protected boolean isRelationColumnVisible(){
+		return true;
+	}
+
+//	@Override
+//	protected QName[] getMemberRelationQueryItem(){
+//		return new QName[]{FocusType.F_PARENT_ORG_REF};
+//	}
 }
