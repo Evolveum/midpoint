@@ -136,7 +136,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
 		ObjectDelta<? extends ShadowType> objectDelta = ObjectDelta.createAddDelta(object);
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
-		String shadowName = object.getName().toString();
+		String shadowName;
+		if (object.getName() != null) {
+			shadowName = object.getName().toString();
+		} else {
+			shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
+		}
 		String description = "Please create resource account: "+shadowName;
 		PrismObject<CaseType> acase = addCase(description, ShadowUtil.getResourceOid(object.asObjectable()), shadowName, objectDeltaType, result);
 		return acase.getOid();
@@ -326,6 +331,16 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		}
 		connected = true;
 		// Nothing else to do
+	}
+
+	private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers){
+		try {
+			Object[] shadowIdentifiers = identifiers.toArray();
+
+			return ((ResourceAttribute)shadowIdentifiers[0]).getValue().getValue().toString();
+		} catch (NullPointerException e){
+			return "";
+		}
 	}
 
 	@Override
