@@ -422,6 +422,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		assignmentDetailsVisible = true;
 		detailsPanelAssignmentsList.clear();
 		detailsPanelAssignmentsList.add(rowModel.getObject());
+		rowModel.getObject().setSelected(false);
 		target.add(AssignmentPanel.this);
 	}
 
@@ -429,6 +430,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		assignmentDetailsVisible = true;
 		detailsPanelAssignmentsList.clear();
 		detailsPanelAssignmentsList.addAll(rowModel);
+		rowModel.forEach(assignmentTypeContainerValueWrapper -> {
+			assignmentTypeContainerValueWrapper.setSelected(false);
+		});
 		target.add(AssignmentPanel.this);
 	}
 
@@ -451,6 +455,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			} else {
 				value.setStatus(ValueStatus.DELETED);
 			}
+			value.setSelected(false);
 		});
 		refreshTable(target);
 	}
