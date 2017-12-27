@@ -223,8 +223,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				super.onUpdateRow(target, table, rowModel);
 				rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
+				super.onUpdateRow(target, table, rowModel);
 			};
 
 			@Override
