@@ -24,11 +24,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author mederly
  */
-public interface ItemDefinition<I extends Item> extends Definition {
+public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 
 	@NotNull
 	QName getName();
@@ -73,6 +74,8 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 * itself: the "shell" of the container.
 	 */
 	boolean canRead();
+	
+	void setCanRead(boolean val);
 
 	/**
 	 * Returns true if this item can be modified (updated).
@@ -84,6 +87,8 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 * itself: the "shell" of the container.
 	 */
 	boolean canModify();
+	
+	void setCanModify(boolean val);
 
 	/**
 	 * Returns true if this item can be added: it can be part of an object that is created.
@@ -95,6 +100,8 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 * itself: the "shell" of the container.
 	 */
 	boolean canAdd();
+	
+	void setCanAdd(boolean val);
 
 	/**
 	 * Returns the name of an element this one can be substituted for (e.g. c:user -&gt; c:object,
@@ -138,9 +145,9 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	@NotNull
 	ItemDefinition<I> clone();
 
-	ItemDefinition<I> deepClone(boolean ultraDeep);
+	ItemDefinition<I> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-	ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
+	ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
 	@Override
 	void revive(PrismContext prismContext);

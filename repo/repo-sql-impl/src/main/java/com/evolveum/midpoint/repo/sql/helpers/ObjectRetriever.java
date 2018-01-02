@@ -739,10 +739,10 @@ public class ObjectRetriever {
                 paging = ObjectPaging.createPaging(0, 0);        // counts will be filled-in later
                 pagedQuery.setPaging(paging);
                 offset = 0;
-                remaining = repositoryService.countObjects(type, query, result);
+                remaining = repositoryService.countObjects(type, query, options, result);
             } else {
                 offset = paging.getOffset() != null ? paging.getOffset() : 0;
-                remaining = paging.getMaxSize() != null ? paging.getMaxSize() : repositoryService.countObjects(type, query, result) - offset;
+                remaining = paging.getMaxSize() != null ? paging.getMaxSize() : repositoryService.countObjects(type, query, options, result) - offset;
             }
 
 main:       while (remaining > 0) {

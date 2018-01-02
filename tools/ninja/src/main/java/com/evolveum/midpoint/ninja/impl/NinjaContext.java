@@ -20,6 +20,7 @@ import com.beust.jcommander.JCommander;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.InitializationBeanPostprocessor;
+import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -33,6 +34,7 @@ import java.nio.charset.Charset;
  */
 public class NinjaContext {
 
+    private static final String MIDPOINT_SILENT_PROPERTY_NAME = "midpoint.silent";
     private static final String MIDPOINT_HOME_OPTION = "midpoint.home";
 
     private static final String REPOSITORY_SERVICE_BEAN = "repositoryService";
@@ -48,6 +50,8 @@ public class NinjaContext {
     };
 
     private JCommander jc;
+
+    private Log log;
 
     private GenericXmlApplicationContext context;
 
@@ -85,7 +89,15 @@ public class NinjaContext {
         }
     }
 
+    public void setLog(Log log) {
+        this.log = log;
+    }
+
     private RepositoryService setupRepositoryViaMidPointHome(ConnectionOptions options) {
+        log.info("Initializing repository using midpoint home");
+
+        System.setProperty(MIDPOINT_SILENT_PROPERTY_NAME, "true");
+
         String midpointHome = options.getMidpointHome();
 
         String jdbcUrl = options.getUrl();
@@ -124,6 +136,8 @@ public class NinjaContext {
     }
 
     private RestService setupRestService(ConnectionOptions options) {
+        log.info("Initializing rest service");
+
         String url = options.getUrl();
         String username = options.getUsername();
         String password = getPassword(options);
@@ -145,6 +159,11 @@ public class NinjaContext {
 
     public RestService getRestService() {
         return restService;
+    }
+
+    public boolean isVerbose() {
+        BaseOptions base = NinjaUtils.getOptions(jc, BaseOptions.class);
+        return base.isVerbose();
     }
 
     public Charset getCharset() {

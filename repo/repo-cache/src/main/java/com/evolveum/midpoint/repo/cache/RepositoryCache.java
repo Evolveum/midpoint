@@ -230,12 +230,13 @@ public class RepositoryCache implements RepositoryService {
 		return repository.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
 	}
 
+	@Deprecated
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException {
 		// TODO use cached query result if applicable
 		log("Cache: PASS countObjects ({})", type.getSimpleName());
-		return repository.countObjects(type, query, parentResult);
+		return repository.countObjects(type, query, null, parentResult);
 	}
 
 	@Override

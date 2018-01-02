@@ -1167,7 +1167,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             }
             switch (objectManager) {
                 case PROVISIONING: count = provisioning.countObjects(type, query, options, task, parentResult); break;
-                case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, parentResult); break;
+                case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, options, parentResult); break;
                 case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
             }

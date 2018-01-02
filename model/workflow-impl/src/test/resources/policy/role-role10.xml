@@ -17,4 +17,5 @@
 <role oid="00000001-d34d-b33f-f00d-000000000010">
 	<name>Role10</name>
 	<description>Induced by Role1</description>
+	<delegable>true</delegable>
 </role>

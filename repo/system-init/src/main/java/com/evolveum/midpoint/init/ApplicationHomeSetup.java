@@ -29,14 +29,26 @@ public class ApplicationHomeSetup {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
 
+    private boolean silent = false;
+
     public void init(String midpointHomeSystemPropertyName) {
+        this.silent = Boolean.getBoolean(StartupConfiguration.MIDPOINT_SILENT_PROPERTY_NAME);
+
         LOGGER.info(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
-        System.out.println(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
+        printToSysout(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
 
         String midpointHomePath = System.getProperty(midpointHomeSystemPropertyName);
 
         createMidpointHomeDirectories(midpointHomePath);
         setupMidpointHomeDirectory(midpointHomePath);
+    }
+
+    private void printToSysout(String message) {
+        if (silent) {
+            return;
+        }
+
+        System.out.println(message);
     }
     
     /**

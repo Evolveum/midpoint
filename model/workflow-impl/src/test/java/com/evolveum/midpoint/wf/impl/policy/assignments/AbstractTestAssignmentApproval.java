@@ -222,6 +222,30 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		executeAssignRoles123ToJack(TEST_NAME, true, true, true, true);
 	}
 
+	@Test   // MID-4355
+	public void test100AddCreateDelegation() throws Exception {
+		final String TEST_NAME = "test100AddCreateDelegation";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		task.setOwner(userAdministrator);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		assignDeputy(userJackDeputyOid, userJackOid, a -> {
+			//a.beginLimitTargetContent().allowTransitive(true);
+		}, task, result);
+
+		// THEN
+		PrismObject<UserType> deputy = getUser(userJackDeputyOid);
+		display("deputy after", deputy);
+
+		result.computeStatus();
+		assertSuccess(result);
+		assertAssignedDeputy(deputy, userJackOid);
+	}
+
 	/**
 	 * Assigning Role1 with two deputies present. (But approved by the delegator.)
 	 */

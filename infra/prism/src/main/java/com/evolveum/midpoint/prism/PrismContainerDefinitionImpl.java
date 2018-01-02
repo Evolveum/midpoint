@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Definition of a property container.
@@ -282,6 +283,14 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		return new ContainerDelta(path, this, prismContext);
 	}
 
+    @Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		if (complexTypeDefinition != null) {
+			complexTypeDefinition.accept(visitor);
+		}
+	}
+    
 	/**
      * Shallow clone
      */
@@ -300,11 +309,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     @Override
-	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap, Map<QName,ComplexTypeDefinition> onThisPath) {
+	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap, Map<QName,ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
 		PrismContainerDefinitionImpl<C> clone = clone();
 		ComplexTypeDefinition ctd = getComplexTypeDefinition();
 		if (ctd != null) {
-			ctd = ctd.deepClone(ctdMap, onThisPath);
+			ctd = ctd.deepClone(ctdMap, onThisPath, postCloneAction);
 			clone.setComplexTypeDefinition(ctd);
 		}
 		return clone;

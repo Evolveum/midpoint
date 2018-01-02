@@ -258,7 +258,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                         expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
                     }
                 } else {
-                    expectedTotal = (long) repositoryService.countObjects(type, query, opResult);
+                    expectedTotal = (long) repositoryService.countObjects(type, query, queryOptions, opResult);
                 }
                 LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
             }

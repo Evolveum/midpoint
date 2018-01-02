@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
 
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -34,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class RefinedAssociationDefinition implements Serializable {
+public class RefinedAssociationDefinition implements Serializable, Visitable {
 	private static final long serialVersionUID = 1L;
 
 	private Map<LayerType, PropertyLimitations> limitationsMap;
@@ -137,6 +139,11 @@ public class RefinedAssociationDefinition implements Serializable {
 
 	public String getDisplayName() {
 		return resourceObjectAssociationType.getDisplayName();
+	}
+	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 	public RefinedAssociationDefinition clone() {
