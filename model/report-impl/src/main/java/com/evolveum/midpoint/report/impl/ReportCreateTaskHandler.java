@@ -529,6 +529,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         
         ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, parentReport);
+        variables.addVariableDefinition(ExpressionConstants.VAR_TASK, task.getTaskPrismObject().asObjectable());
         variables.addVariableDefinition(ExpressionConstants.VAR_FILE, commandLineScriptExecutor.getOsSpecificFilePath(reportOutputFilePath));
 
         try {

@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * <p>
@@ -764,17 +765,17 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
         }
     }
 
-    public PrismContainerDefinition<C> deepCloneDefinition(boolean ultraDeep) {
-    	PrismContainerDefinition<C> clonedDef = (PrismContainerDefinition<C>) getDefinition().deepClone(ultraDeep);
-		propagateDeepCloneDefinition(ultraDeep, clonedDef);
+    public PrismContainerDefinition<C> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+    	PrismContainerDefinition<C> clonedDef = (PrismContainerDefinition<C>) getDefinition().deepClone(ultraDeep, postCloneAction);
+		propagateDeepCloneDefinition(ultraDeep, clonedDef, postCloneAction);
 		setDefinition(clonedDef);
 		return clonedDef;
 	}
 
     @Override
-    protected void propagateDeepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedDef) {
+    protected void propagateDeepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedDef, Consumer<ItemDefinition> postCloneAction) {
 		for(PrismContainerValue<C> cval: getValues()) {
-			cval.deepCloneDefinition(ultraDeep, clonedDef);
+			cval.deepCloneDefinition(ultraDeep, clonedDef, postCloneAction);
 		}
 	}
 
@@ -885,8 +886,17 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	            if (def.isDynamic()) {
 	            	sb.append(",dyn");
 	            }
+	            if (def.isElaborate()) {
+	            	sb.append(",elaborate");
+	            }
 	            sb.append(")");
 	        }
+        } else {
+        	if (def != null) {
+	        	if (def.isElaborate()) {
+	            	sb.append(",elaborate");
+	            }
+        	}
         }
 		Iterator<PrismContainerValue<C>> i = getValues().iterator();
         if (i.hasNext()) {

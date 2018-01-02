@@ -16,4 +16,5 @@
 
 <role oid="00000001-d34d-b33f-f00d-000000000015">
 	<name>Role15</name>
+	<delegable>true</delegable>
 </role>

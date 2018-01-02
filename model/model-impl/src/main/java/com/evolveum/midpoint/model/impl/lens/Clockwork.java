@@ -67,6 +67,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -1360,15 +1362,13 @@ public class Clockwork {
 			if (isFocus) {
 				// Process assignments first. If the assignments are allowed then we
 				// have to ignore the assignment item in subsequent security checks
-				ContainerDelta<Containerable> assignmentDelta = primaryDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
-				if (assignmentDelta != null) {
-					AuthorizationDecisionType assignmentItemDecision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT),
-							operationUrl, getRequestAuthorizationPhase(context));
-					if (assignmentItemDecision == AuthorizationDecisionType.ALLOW) {
+				if (primaryDelta.hasItemOrSubitemDelta(SchemaConstants.PATH_ASSIGNMENT)) {
+					AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDelta, operationUrl, getRequestAuthorizationPhase(context));
+					if (assignmentItemDecision == AccessDecision.ALLOW) {
 						// Nothing to do, operation is allowed for all values
-						LOGGER.debug("Allow assignment/unassignment to {} becasue access to assignment container is explicitly allowed", object);
-					} else if (assignmentItemDecision == AuthorizationDecisionType.DENY) {
-						LOGGER.debug("Deny assignment/unassignment to {} becasue access to assignment container is explicitly denied", object);
+						LOGGER.debug("Allow assignment/unassignment to {} becasue access to assignment container/properties is explicitly allowed", object);
+					} else if (assignmentItemDecision == AccessDecision.DENY) {
+						LOGGER.debug("Deny assignment/unassignment to {} becasue access to assignment container/properties is explicitly denied", object);
 						throw new AuthorizationException("Access denied");
 					} else {
 						AuthorizationDecisionType actionDecision = securityConstraints.getActionDecision(operationUrl, getRequestAuthorizationPhase(context));
@@ -1448,6 +1448,12 @@ public class Clockwork {
 		} else {
 			return null;
 		}
+	}
+
+	private <O extends ObjectType> AccessDecision determineDecisionForAssignmentItems(
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> primaryDelta, String operationUrl,
+			AuthorizationPhaseType requestAuthorizationPhase) {
+		return securityEnforcer.determineSubitemDecision(securityConstraints, primaryDelta, operationUrl, requestAuthorizationPhase, SchemaConstants.PATH_ASSIGNMENT);
 	}
 
 	private <F extends ObjectType> AuthorizationPhaseType getRequestAuthorizationPhase(LensContext<F> context) {
