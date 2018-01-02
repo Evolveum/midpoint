@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.testing.story;
 
-import com.evolveum.midpoint.init.ConfigurablePrismContextFactory;
 import com.evolveum.midpoint.model.api.WorkflowService;
-import com.evolveum.midpoint.model.test.DummyTransport;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -53,7 +50,6 @@ public class TestDelivery extends AbstractStoryTest {
 	//@Autowired private DummyTransport dummyTransport;
 
 	private static final String TEST_DIR = "src/test/resources/delivery";
-	private static final String EXTENSION_SCHEMA_DIR = "src/test/resources/delivery/schema";
 	private static final String ORG_DIR = TEST_DIR + "/orgs";
 	private static final String ROLES_DIR = TEST_DIR + "/roles";
 	private static final String RULES_DIR = TEST_DIR + "/rules";
@@ -119,12 +115,6 @@ public class TestDelivery extends AbstractStoryTest {
 	private static String userGuybrushOid;
 	private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
 	private static String userLechuckOid;
-
-	@BeforeSuite
-	public void setSchema() throws Exception {
-		System.out.println("Setting extension schema dir to " + EXTENSION_SCHEMA_DIR);
-		ConfigurablePrismContextFactory.setExtensionDirOverride(EXTENSION_SCHEMA_DIR);
-	}
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {

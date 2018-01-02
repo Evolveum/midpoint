@@ -60,12 +60,15 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -249,6 +252,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             @Override
             public void updateAjaxAttributes(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
+                // check whether behavior will use POST method, if not then don't put CSRF token there
+                if (!isPostMethodTypeBehavior(behavior, attributes)) {
+                    return;
+                }
+
                 CsrfToken csrfToken = SecurityUtils.getCsrfToken();
                 if (csrfToken == null) {
                     return;
@@ -265,6 +273,25 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
+    }
+
+    private boolean isPostMethodTypeBehavior(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
+        if (behavior instanceof AjaxFormComponentUpdatingBehavior) {
+            // these also uses POST, but they set it after this method is called
+            return true;
+        }
+
+        if (behavior instanceof AjaxFormSubmitBehavior) {
+            AjaxFormSubmitBehavior fb = (AjaxFormSubmitBehavior) behavior;
+            Form form = fb.getForm();
+            String formMethod = form.getMarkupAttributes().getString("method");
+            if (formMethod == null || "POST".equalsIgnoreCase(formMethod) || form.getRootForm().isMultiPart()) {
+                // this will also use POST
+                return true;
+            }
+        }
+
+        return AjaxRequestAttributes.Method.POST.equals(attributes.getMethod());
     }
 
     private static List<LocaleDescriptor> loadLocaleDescriptors(Resource resource) throws IOException {

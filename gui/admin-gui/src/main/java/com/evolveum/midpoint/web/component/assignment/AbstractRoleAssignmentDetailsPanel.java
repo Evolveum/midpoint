@@ -32,12 +32,6 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 
 	private static final long serialVersionUID = 1L;
 
-	private static List hiddenItems = new ArrayList<>();
-
-	static  {
-			hiddenItems.add(AssignmentType.F_POLICY_RULE);
-	};
-
 	public AbstractRoleAssignmentDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
 		super(id, form, assignmentModel);
 	}

@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -765,11 +766,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
-			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd()){
+			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd() ||
+					!((ContainerWrapper<C>)wrapper).getItemDefinition().canModify()){
 				continue;
 			}
-			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
-					canReadAndModify(((ContainerWrapper<C>) wrapper).getItemDefinition())){
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapper<C>) wrapper).getName());
 			}
 		}

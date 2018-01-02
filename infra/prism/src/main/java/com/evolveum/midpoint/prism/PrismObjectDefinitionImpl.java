@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import java.util.function.Consumer;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -75,8 +77,8 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 	}
 
 	@Override
-	public PrismObjectDefinition<O> deepClone(boolean ultraDeep) {
-		return (PrismObjectDefinition<O>) super.deepClone(ultraDeep);
+	public PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+		return (PrismObjectDefinition<O>) super.deepClone(ultraDeep, postCloneAction);
 	}
 
 	@Override

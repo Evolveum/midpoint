@@ -173,11 +173,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		};
 
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
-		ContainerWrapper<AssignmentType> cwat = getModelObject();
-					columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
-if (cwat != null){
+		columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
 
-}
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
 				assignmentsProvider, columns, getTableId(), getItemsPerPage()) {
 			private static final long serialVersionUID = 1L;
@@ -226,8 +223,8 @@ if (cwat != null){
 
 			@Override
 			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				super.onUpdateRow(target, table, rowModel);
 				rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
+				super.onUpdateRow(target, table, rowModel);
 			};
 
 			@Override
@@ -425,6 +422,7 @@ if (cwat != null){
 		assignmentDetailsVisible = true;
 		detailsPanelAssignmentsList.clear();
 		detailsPanelAssignmentsList.add(rowModel.getObject());
+		rowModel.getObject().setSelected(false);
 		target.add(AssignmentPanel.this);
 	}
 
@@ -432,6 +430,9 @@ if (cwat != null){
 		assignmentDetailsVisible = true;
 		detailsPanelAssignmentsList.clear();
 		detailsPanelAssignmentsList.addAll(rowModel);
+		rowModel.forEach(assignmentTypeContainerValueWrapper -> {
+			assignmentTypeContainerValueWrapper.setSelected(false);
+		});
 		target.add(AssignmentPanel.this);
 	}
 
@@ -454,6 +455,7 @@ if (cwat != null){
 			} else {
 				value.setStatus(ValueStatus.DELETED);
 			}
+			value.setSelected(false);
 		});
 		refreshTable(target);
 	}

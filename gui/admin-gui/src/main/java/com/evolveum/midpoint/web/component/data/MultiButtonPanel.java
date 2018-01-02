@@ -126,6 +126,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         return "";
     }
 
+    // looks like this one is not really used
     public String getCaption(int id) {
         return String.valueOf(id);
     }

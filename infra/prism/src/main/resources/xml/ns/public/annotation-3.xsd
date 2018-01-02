@@ -236,6 +236,19 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:element name="elaborate" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks elaborate items.
+                Elaborate items are complicated data structure that may deviate from
+                normal principles of the system. For example elaborate items may not
+                be supported in user interface and may only be manageable by raw edits
+                or a special-purpose tools. Elaborate items may be not fully supported
+                by authorizations, schema tools and so on.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
     <xsd:element name="emphasized" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>

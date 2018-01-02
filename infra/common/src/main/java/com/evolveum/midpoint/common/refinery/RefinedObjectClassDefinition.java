@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
@@ -33,6 +34,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -190,7 +192,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	@NotNull
 	@Override
-	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
+	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 	//endregion
 
 	LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType);

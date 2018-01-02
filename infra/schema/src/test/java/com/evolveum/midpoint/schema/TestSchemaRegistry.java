@@ -177,8 +177,8 @@ public class TestSchemaRegistry {
 
 		// Just make sure this does not end with NPE or stack overflow
 		PrismObjectDefinition<UserType> shallowClone = userDefinition.clone();
-		PrismObjectDefinition<UserType> deepClone = userDefinition.deepClone(false);
-		PrismObjectDefinition<UserType> ultraDeepClone = userDefinition.deepClone(true);
+		PrismObjectDefinition<UserType> deepClone = userDefinition.deepClone(false, null);
+		PrismObjectDefinition<UserType> ultraDeepClone = userDefinition.deepClone(true, null);
 	}
 
     @Test
@@ -205,8 +205,8 @@ public class TestSchemaRegistry {
 
 		// Just make sure this does not end with NPE or stack overflow
 		PrismObjectDefinition<RoleType> shallowClone = roleDefinition.clone();
-		PrismObjectDefinition<RoleType> deepClone = roleDefinition.deepClone(false);
-		PrismObjectDefinition<RoleType> ultraDeepClone = roleDefinition.deepClone(true);
+		PrismObjectDefinition<RoleType> deepClone = roleDefinition.deepClone(false, null);
+		PrismObjectDefinition<RoleType> ultraDeepClone = roleDefinition.deepClone(true, null);
 	}
 
     @Test

@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -28,13 +29,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.util.Arrays;
 
 /**
  * @author Radovan Semancik
@@ -54,8 +56,14 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	private XMLGregorianCalendar drakeValidFrom;
 	private XMLGregorianCalendar drakeValidTo;
 
-	@Autowired(required=true)
+	@Autowired
 	private TriggerHandlerRegistry triggerHandlerRegistry;
+
+	@Override
+	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+		// addTrigger call can overlap with trigger execution on slower machines, leading to positive conflict check result
+		return ConflictResolutionActionType.NONE;
+	}
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -171,11 +179,9 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		testTriggerHandler.reset();
 
 		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-		addTrigger(USER_JACK_OID, startCal, MockTriggerHandler.HANDLER_URI);
-
 		XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
 		startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
-		addTrigger(USER_JACK_OID, startCalPlus5ms, MockTriggerHandler.HANDLER_URI);
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI);
 
 		/// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -235,11 +241,9 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		testTriggerHandler.reset();
 
 		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-		addTrigger(USER_JACK_OID, startCal, MockTriggerHandler.HANDLER_URI);
-
 		XMLGregorianCalendar startCalPlus5days = XmlTypeConverter.createXMLGregorianCalendar(startCal);
 		startCalPlus5days.add(XmlTypeConverter.createDuration("P5D"));
-		addTrigger(USER_JACK_OID, startCalPlus5days, MockTriggerHandler.HANDLER_URI);
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5days), MockTriggerHandler.HANDLER_URI);
 
 		/// WHEN
 		TestUtil.displayWhen(TEST_NAME);

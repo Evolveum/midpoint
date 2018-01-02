@@ -36,28 +36,4 @@ public class InducementDetailsPanel<R extends AbstractRoleType, C extends Contai
     public InducementDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(id, form, assignmentModel);
     }
-
-    @Override
-    protected void initContainersPanel(Form form, PageAdminObjectDetails<R> pageBase){
-        ContainerWrapperListFromObjectWrapperModel<C, R> containerModel =
-                new ContainerWrapperListFromObjectWrapperModel<C, R>(pageBase.getObjectModel(), collectContainersToShow());
-        if (containerModel != null && containerModel.getObject() != null){
-            containerModel.getObject().forEach(container -> {
-                        if (container.getName().equals(AssignmentType.F_CONSTRUCTION)) {
-                            container.setAddContainerButtonVisible(true);
-                            container.setShowEmpty(true, false);
-
-                            ContainerWrapper associationWrapper = container.findContainerWrapper(container.getPath().append(ConstructionType.F_ASSOCIATION));
-                            if (associationWrapper != null) {
-                                associationWrapper.setRemoveContainerButtonVisible(true);
-                            }
-                        }
-                    });
-        }
-
-        PrismPanel<C> containers = new PrismPanel<C>(ID_SPECIFIC_CONTAINERS, containerModel,
-                null, form, null, pageBase) ;
-        add(containers);
-    }
-
 }

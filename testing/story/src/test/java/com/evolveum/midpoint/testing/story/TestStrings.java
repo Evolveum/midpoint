@@ -16,6 +16,27 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValues;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -24,14 +45,11 @@ import com.evolveum.midpoint.model.test.DummyTransport;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -41,31 +59,28 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValues;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEscalationEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
  *
@@ -218,8 +233,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 
         // TODO
 	}
@@ -228,17 +243,19 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
     public void test100SimpleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test100SimpleAssignmentStart";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
 		dummyTransport.clearMessages();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		assignRole(userBobOid, roleATest1Oid, task, task.getResult());
 
 		// THEN
+		displayThen(TEST_NAME);
 		assertNotAssignedRole(getUser(userBobOid), roleATest1Oid);
 
 		WorkItemType workItem = getWorkItem(task, result);
@@ -292,8 +309,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test102SimpleAssignmentApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -304,11 +321,13 @@ public class TestStrings extends AbstractStoryTest {
 		WorkItemType workItem = getWorkItem(task, result);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
 		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", null, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		login(userAdministrator);
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
@@ -377,8 +396,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
 		final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -456,8 +475,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test106SimpleAssignmentApproveByCheese() throws Exception {
 		final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -513,8 +532,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test108SimpleAssignmentApproveByChef() throws Exception {
 		final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// GIVEN
@@ -589,8 +608,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test200EscalatedApprovalStart() throws Exception {
 		final String TEST_NAME = "test200EscalatedApprovalStart";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -637,8 +656,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test202FourDaysLater() throws Exception {
 		final String TEST_NAME = "test202FourDaysLater";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -670,8 +689,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test204SixDaysLater() throws Exception {
 		final String TEST_NAME = "test204SixDaysLater";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -739,8 +758,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test205EightDaysLater() throws Exception {
 		final String TEST_NAME = "test205EightDaysLater";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -791,8 +810,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test206ApproveByCheese() throws Exception {
 		final String TEST_NAME = "test206ApproveByCheese";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -883,8 +902,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test208SixDaysLater() throws Exception {
 		final String TEST_NAME = "test208SixDaysLater";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -925,8 +944,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test209EightDaysLater() throws Exception {
 		final String TEST_NAME = "test209EightDaysLater";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -982,11 +1001,11 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test220FormRoleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test220FormRoleAssignmentStart";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		PrismObject<UserType> bob = getUserFromRepo(userBobOid);
 		login(bob);
 
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		task.setOwner(bob);
 		OperationResult result = task.getResult();
 
@@ -1027,8 +1046,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test221FormApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test221FormApproveByLechuck";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -1071,8 +1090,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test222FormApproveByCheese() throws Exception {
 		final String TEST_NAME = "test222FormApproveByCheese";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -1139,8 +1158,8 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test250ApproverAssignment() throws Exception {
 		final String TEST_NAME = "test250ApproverAssignment";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();

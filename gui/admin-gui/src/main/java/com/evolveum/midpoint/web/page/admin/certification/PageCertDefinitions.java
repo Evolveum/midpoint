@@ -165,7 +165,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			};
 
 			@Override
-			public String getCaption(int id) {
+			public String getButtonTitle(int id) {
 				return PageCertDefinitions.this.createStringResource(captionKeys[id]).getString();
 			}
 

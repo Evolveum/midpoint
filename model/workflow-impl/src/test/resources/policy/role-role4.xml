@@ -17,4 +17,5 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  oid="00000001-d34d-b33f-f00d-000000000004">
 	<name>Role4</name>
+	<delegable>true</delegable>
 </role>
