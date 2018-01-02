@@ -1,0 +1,66 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+   <name>GroupDeveloperOfProject</name>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <displayName>Group as Developer of the Project</displayName>
+   <inducement id="1">
+      <construction>
+         <resourceRef oid="cf933dce-43ef-4925-af9b-f9e13f91a665"
+                      relation="org:default"
+                      type="c:ResourceType"><!-- JiraConnector --></resourceRef>
+         <kind>entitlement</kind>
+         <intent>Group</intent>
+         <association>
+            <c:ref>ri:DeveloperGroup</c:ref>
+            <outbound>
+               <source>
+                  <name>orgUnit</name>
+                  <c:path>$assignment/c:orgRef</c:path>
+               </source>
+               <expression>
+                  <associationTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                           xsi:type="c:SearchObjectExpressionEvaluatorType">
+                     <filter>
+                        <q:equal>
+                           <q:path>attributes/icfs:name</q:path>
+                           <expression>
+                              <script xsi:type="c:ScriptExpressionEvaluatorType">
+                                 <code>
+                                    org = midpoint.getOrgByOid(orgUnit.getOid());                                   
+                                    return org.getName()
+                                </code>
+                              </script>
+                           </expression>
+                        </q:equal>
+                     </filter>
+                  </associationTargetSearch>
+               </expression>
+            </outbound>
+         </association>
+      </construction>
+   </inducement>
+   <inducement id="2">
+      <targetRef relation="org:default" type="c:OrgType">
+         <filter>
+            <q:inOid>
+               <expression>
+                  <returnMultiplicity>multi</returnMultiplicity>
+                  <script>
+                     <code>
+								        return focusAssignment?.getOrgRef()?.getOid()
+						         </code>
+                  </script>
+               </expression>
+            </q:inOid>
+         </filter>
+      </targetRef>
+      <order>1</order>
+      <focusType>UserType</focusType>
+   </inducement>
+</role>

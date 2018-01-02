@@ -1,11 +1,11 @@
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import org.apache.xml.security.utils.Base64;
 import org.springframework.context.ApplicationContext;
 
@@ -76,8 +76,9 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
             System.out.println("Certificate chain: " + chain);
         }
 
-        //todo use key password from options
-        KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection("midpoint".toCharArray());
+        char[] password = getPassword();
+
+        KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password);
         KeyStore.Entry entry = keyStore.getEntry(alias, protParam);
 
         if (!(entry instanceof KeyStore.SecretKeyEntry)) {
@@ -99,6 +100,19 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
             String name = impl.getSecretKeyDigest(key);
             System.out.println("  Key name: " + name);
         }
+    }
+
+    private char[] getPassword() {
+        String password = options.getKeyPassword();
+        if (password == null) {
+            password = options.getAskKeyPassword();
+        }
+
+        if (password == null) {
+            password = "";
+        }
+
+        return password.toCharArray();
     }
 
     private String getSecretKeyDigest(SecretKey key) throws NinjaException {

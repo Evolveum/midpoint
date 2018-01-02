@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
@@ -32,6 +33,10 @@ public class NinjaUtils {
             "\txmlns:org=\"http://midpoint.evolveum.com/xml/ns/public/common/org-3\">\n";
 
     public static final String XML_OBJECTS_SUFFIX = "</c:objects>";
+
+    public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat(".##");
+
+    public static final long COUNT_STATUS_LOG_INTERVAL = 2 * 1000; // two seconds
 
     public static JCommander setupCommandLineParser() {
         BaseOptions base = new BaseOptions();

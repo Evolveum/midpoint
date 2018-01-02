@@ -1420,7 +1420,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(refVal)
 				.build();
-		return repositoryService.countObjects(FocusType.class, query, result);
+		return repositoryService.countObjects(FocusType.class, query, null, result);
 	}
 
 	protected SearchResultList<PrismObject<FocusType>> listAssignees(String targetOid, OperationResult result) throws SchemaException {

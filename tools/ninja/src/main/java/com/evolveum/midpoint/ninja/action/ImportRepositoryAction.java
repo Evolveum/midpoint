@@ -3,6 +3,11 @@ package com.evolveum.midpoint.ninja.action;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.opts.ImportOptions;
+import com.evolveum.midpoint.ninja.util.CountStatus;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,10 +22,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ImportOptions;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.springframework.context.ApplicationContext;
 import org.w3c.dom.Element;
@@ -91,18 +92,19 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         importByFilter(filter, true, reader);
     }
 
-    private void importByFilter(Reader reader) throws SchemaException, IOException, ObjectNotFoundException {
+    private void importByFilter(Reader reader) throws SchemaException, IOException {
         ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
 
         importByFilter(filter, false, reader);
     }
 
-    private void importByFilter(ObjectFilter filter, boolean stopAfterFound, Reader reader)
-            throws SchemaException, ObjectNotFoundException, IOException {
-
+    private void importByFilter(ObjectFilter filter, boolean stopAfterFound, Reader reader) {
         ApplicationContext appContext = context.getApplicationContext();
         PrismContext prismContext = appContext.getBean(PrismContext.class);
         MatchingRuleRegistry matchingRuleRegistry = appContext.getBean(MatchingRuleRegistry.class);
+
+        CountStatus status = new CountStatus();
+        status.start();
 
         OperationResult result = new OperationResult(OPERATION_IMPORT);
 
@@ -123,16 +125,24 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
                         boolean match = ObjectQuery.match(object, filter, matchingRuleRegistry);
 
                         if (!match) {
+                            status.incrementSkipped();
+
                             return EventResult.skipObject("Object doesn't match filter");
                         }
                     }
 
                     ObjectTypes type = options.getType();
                     if (type != null && !type.getClassDefinition().equals(object.getCompileTimeClass())) {
+                        status.incrementSkipped();
+
                         return EventResult.skipObject("Type doesn't match");
                     }
 
                     importObject(object, objectResult);
+
+                    status.incrementCount();
+
+                    logCountProgress(status);
                 } catch (Exception ex) {
                     throw new NinjaException("Couldn't import object, reason: " + ex.getMessage(), ex);
                 }
@@ -145,14 +155,12 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
             }
         };
 
+        log.info("Starting import");
+
         Validator validator = new Validator(prismContext, handler);
         validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
 
-        result.recomputeStatus();
-
-        if (!result.isAcceptable()) {
-            //todo show some warning
-        }
+        handleResultOnFinish(result, status, "Import finished");
     }
 
     private String importObject(PrismObject object, OperationResult result)

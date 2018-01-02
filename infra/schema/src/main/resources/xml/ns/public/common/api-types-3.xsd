@@ -33,7 +33,7 @@
         <xsd:documentation>
             Schema that defines data types used in XML version of midPoint APIs.
             
-            Version: 3.6-SNAPSHOT
+            Version: 3.7
             Recommended namespace prefix: apit
         </xsd:documentation>
     </xsd:annotation>

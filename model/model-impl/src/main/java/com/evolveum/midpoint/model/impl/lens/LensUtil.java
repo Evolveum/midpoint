@@ -681,7 +681,7 @@ public class LensUtil {
     		return;
     	}
     	PrismContainer<AssignmentType> dstContainer = (PrismContainer<AssignmentType>) dstItem;
-    	if (srcExtension != null && !srcExtension.getValues().isEmpty()) {
+    	if (srcExtension != null && !srcExtension.isEmpty()) {
 		    PrismContainer<?> dstExtensionContainer = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
 		    PrismContainerValue<?> dstExtensionContainerValue = dstExtensionContainer.getValues().isEmpty()
 				    ? dstExtensionContainer.createNewValue() : dstExtensionContainer.getValue();
