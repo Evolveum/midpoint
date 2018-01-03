@@ -82,6 +82,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TASK_EVENTS_TABLE,
         ASSIGNMENTS_TAB_TABLE,
         INDUCEMENTS_TAB_TABLE,
+        INDUCED_ENTITLEMENTS_TAB_TABLE,
         POLICY_RULES_TAB_TABLE
 
     }

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -252,7 +253,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                     .ref(relation)
                     .build();
         }
-	};
+	}
 
 	private QName getRelation() {
 		DropDownChoicePanel<RelationTypes> relationPanel = getRelationPanel();
