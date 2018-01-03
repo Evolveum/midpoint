@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -229,14 +230,17 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         canModify = false;
     }
 
+    @Override
 	public void setCanRead(boolean read) {
         this.canRead = read;
     }
 
+    @Override
     public void setCanModify(boolean modify) {
         this.canModify = modify;
     }
 
+    @Override
     public void setCanAdd(boolean add) {
         this.canAdd = add;
     }
@@ -344,6 +348,11 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		}
 		return true;
 	}
+    
+    @Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
 
 	@NotNull
 	@Override
@@ -370,16 +379,16 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	 *
 	 */
 	@Override
-	public ItemDefinition<I> deepClone(boolean ultraDeep) {
+	public ItemDefinition<I> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
 		if (ultraDeep) {
-			return deepClone(null, new HashMap<>());
+			return deepClone(null, new HashMap<>(), postCloneAction);
 		} else {
-			return deepClone(new HashMap<>(), new HashMap<>());
+			return deepClone(new HashMap<>(), new HashMap<>(), postCloneAction);
 		}
 	}
 
 	@Override
-	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
 		return clone();
 	}
 
@@ -473,6 +482,9 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         }
         if (isDynamic()) {
             sb.append(",dyn");
+        }
+        if (isElaborate()) {
+            sb.append(",elaborate");
         }
         extendToString(sb);
     }

@@ -118,8 +118,6 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		PageAdminObjectDetails<F> pageBase = (PageAdminObjectDetails<F>)getPageBase();
 
 		ItemPath assignmentPath = getModelObject().getPath();
-//		ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F> assignmentModel =
-//				new ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), assignmentPath);
 
 		Form form = new Form<>("form");
 
@@ -139,8 +137,26 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     }
 
     protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
-		PrismPanel<AssignmentType> containers = new PrismPanel<>(ID_SPECIFIC_CONTAINERS, new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectContainersToShow()),
-				null, form, null, pageBase) ;
+		ContainerWrapperListFromObjectWrapperModel<Containerable, F> containerModel =
+				new ContainerWrapperListFromObjectWrapperModel<Containerable, F>(pageBase.getObjectModel(), collectContainersToShow());
+		ItemPath assignmentPath = getModelObject().getPath();
+		if (containerModel != null && containerModel.getObject() != null){
+			containerModel.getObject().forEach(container -> {
+				if (container.getName().equals(AssignmentType.F_CONSTRUCTION)) {
+					container.setAddContainerButtonVisible(true);
+					container.setShowEmpty(true, false);
+
+					ContainerWrapper associationWrapper = container.findContainerWrapper(container.getPath().append(ConstructionType.F_ASSOCIATION));
+					if (associationWrapper != null) {
+						associationWrapper.setRemoveContainerButtonVisible(true);
+					}
+				}
+			});
+		}
+
+		PrismPanel<Containerable> containers = new PrismPanel<Containerable>(ID_SPECIFIC_CONTAINERS, containerModel,
+				null, form,
+				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase) ;
 		add(containers);
 	}
     
@@ -150,6 +166,15 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     
     protected abstract List<ItemPath> collectContainersToShow();
     
+    protected boolean getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
+			return true;
+		}
+		List<ItemPath> pathsToHide = new ArrayList<>();
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF));
+		return PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath());
+	}
+
     private boolean getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
     	if (itemWrapper.getPath().equals(getAssignmentPath().append(AssignmentType.F_METADATA))){
     		return true;

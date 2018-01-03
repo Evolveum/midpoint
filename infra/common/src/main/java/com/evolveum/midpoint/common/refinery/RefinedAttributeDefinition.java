@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author mederly
@@ -83,7 +84,7 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 	RefinedAttributeDefinition<T> clone();
 
 	@Override
-	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
+	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
 	String debugDump(int indent, LayerType layer);
 

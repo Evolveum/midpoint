@@ -241,6 +241,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:elaborate>true</a:elaborate>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -252,6 +253,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:elaborate>true</a:elaborate>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -262,6 +264,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:elaborate>true</a:elaborate>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -276,6 +279,7 @@
 								<xsd:appinfo>
 									<a:displayName>PolicyConstraintsType.transition</a:displayName>
 									<a:help>PolicyConstraintsType.transition.help</a:help>
+									<a:elaborate>true</a:elaborate>
 								</xsd:appinfo>
 							</xsd:appinfo>
 						</xsd:annotation>

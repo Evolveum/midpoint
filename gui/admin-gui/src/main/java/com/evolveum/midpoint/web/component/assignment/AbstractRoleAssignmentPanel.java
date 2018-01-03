@@ -190,13 +190,20 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ObjectReferenceType.relation")) {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-                String relation = assignmentModel.getObject().getContainerValue().getValue().getTargetRef() != null ?
-                        assignmentModel.getObject().getContainerValue().getValue().getTargetRef().getRelation().getLocalPart() : "";
-                item.add(new Label(componentId, relation));
+                item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
             }
         });
 
         return columns;
+    }
+
+    private String getRelationLabelValue(ContainerValueWrapper<AssignmentType> assignmentWrapper){
+        if (assignmentWrapper == null || assignmentWrapper.getContainerValue() == null || assignmentWrapper.getContainerValue().getValue() == null
+                || assignmentWrapper.getContainerValue().getValue().getTargetRef() == null
+                || assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation() == null){
+            return "";
+        }
+        return assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation().getLocalPart();
     }
 
     protected boolean showAllAssignmentsVisible(){

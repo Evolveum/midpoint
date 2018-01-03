@@ -23,4 +23,5 @@
 	<inducement>
 		<targetRef oid="00000001-d34d-b33f-f00d-000000000010" type="RoleType" />
 	</inducement>
+	<delegable>true</delegable>
 </role>

@@ -63,7 +63,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
 
 			@Override
             public boolean isVisible() {
-                return !(numberOfButtons <= 2);
+                return !(numberOfButtons <= 2) || menuItemsModel.getObject().size() > 2;
             }
         });
         add(inlineMenu);

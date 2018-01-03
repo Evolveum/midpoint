@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -81,6 +82,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -276,14 +278,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			} else {
 				// all items in the object and delta must be allowed
 
+				Function<ItemPath, AccessDecision> itemDecisionFunction = (itemPath) -> decideAllowedItems(itemPath,  allowedItems, phase);
+				AccessDecision itemsDecision = null;
 				if (params.hasDelta()) {
-					if (!processAuthorizationDelta(params.getDelta(), allowedItems, phase)) {
-						decision = AccessDecision.DEFAULT;
-					}
+					itemsDecision = determineDeltaDecision(params.getDelta(), itemDecisionFunction);
 				} else if (params.hasObject()) {
-					if (!processAuthorizationObject(params.getObject(), allowedItems, phase)) {
-						decision = AccessDecision.DEFAULT;
-					}
+					itemsDecision = determineObjectDecision(params.getObject(), itemDecisionFunction);
+				}
+				if (itemsDecision != AccessDecision.ALLOW) {
+					decision = AccessDecision.DEFAULT;
 				}
 			}
 		}
@@ -294,72 +297,87 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return decision;
 	}
-
-	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
-		return isContainerAllowed(object.getValue(), allowedItems, phase);
+	
+	private AccessDecision decideAllowedItems(final ItemPath itemPath, final Collection<ItemPath> allowedItems, final AuthorizationPhaseType phase) {
+		if (isAllowedItem(itemPath, allowedItems, phase)) {
+			return AccessDecision.ALLOW;
+		} else {
+			return AccessDecision.DEFAULT;
+		}
 	}
 
-	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cdelta, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
-		final MutableBoolean itemDecision = new MutableBoolean(true);
+	private <O extends ObjectType> AccessDecision determineObjectDecision(PrismContainer<O> object, Function<ItemPath, AccessDecision> itemDecitionFunction) {
+		return determineContainerDecision(object.getValue(), itemDecitionFunction);
+	}
+
+	private <C extends Containerable> AccessDecision determineContainerDeltaDecision(ContainerDelta<C> cdelta, Function<ItemPath, AccessDecision> itemDecitionFunction) {
+		final Holder<AccessDecision> decisionHolder = new Holder<>();
 		cdelta.foreach(cval -> {
-			if (!isContainerAllowed(cval, allowedItems, phase)) {
-				itemDecision.setValue(false);
-			}
+			AccessDecision subdecision = determineContainerDecision(cval, itemDecitionFunction);
+			decisionHolder.setValue(AccessDecision.combine(decisionHolder.getValue(), subdecision));
 		});
-		return itemDecision.booleanValue();
+		return decisionHolder.getValue();
 	}
 
-	private boolean isContainerAllowed(PrismContainerValue<?> cval, Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
+	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, Function<ItemPath, AccessDecision> itemDecitionFunction) {
 		if (cval.isEmpty()) {
 			// TODO: problem with empty containers such as
 			// orderConstraint in assignment. Skip all
 			// empty items ... for now.
-			return true;
+			return null;
 		}
-		boolean decision = true;
+		AccessDecision decision = null;
 		for (Item<?, ?> item: cval.getItems()) {
 			ItemPath itemPath = item.getPath();
-			if (item instanceof PrismContainer<?>) {
-				if (isAllowedItem(itemPath, allowedItems, phase)) {
-					// entire container is allowed. We do not need to go deeper
-				} else {
-					List<PrismContainerValue<?>> subValues = (List)((PrismContainer<?>)item).getValues();
-					for (PrismContainerValue<?> subValue: subValues) {
-						if (!isContainerAllowed(subValue, allowedItems, phase)) {
-							decision = false;
-						}
-					}
+			AccessDecision itemDecision = itemDecitionFunction.apply(itemPath);
+			if (itemDecision == null) {
+				// null decision means: skip this
+				continue;
+			}
+			if (itemDecision == AccessDecision.DEFAULT && item instanceof PrismContainer<?>) {
+				// No decision for entire container. Subitems will dictate the decision.
+				List<PrismContainerValue<?>> subValues = (List)((PrismContainer<?>)item).getValues();
+				for (PrismContainerValue<?> subValue: subValues) {
+					AccessDecision subdecision = determineContainerDecision(subValue, itemDecitionFunction);
+					decision = AccessDecision.combine(decision, subdecision);
+					// We do not want to break the loop immediately here. We want all the denied items to get logged
 				}
 			} else {
-				if (!isAllowedItem(itemPath, allowedItems, phase)) {
+				if (itemDecision == AccessDecision.DENY) {
 					LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
-					decision = false;
+					// We do not want to break the loop immediately here. We want all the denied items to get logged
 				}
+				decision = AccessDecision.combine(decision, itemDecision);
 			}
 		}
 		return decision;
 	}
 
-	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
+	private <O extends ObjectType> AccessDecision determineDeltaDecision(ObjectDelta<O> delta, Function<ItemPath, AccessDecision> itemDecisionFunction) {
 		if (delta.isAdd()) {
-			return processAuthorizationObject(delta.getObjectToAdd(), allowedItems, phase);
+			return determineObjectDecision(delta.getObjectToAdd(), itemDecisionFunction);
 		} else {
+			AccessDecision decision = null;
 			for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
 				ItemPath itemPath = itemDelta.getPath();
-				if (itemDelta instanceof ContainerDelta<?>) {
-					if (!isAllowedItem(itemPath, allowedItems, phase)) {
-						if (!processAuthorizationContainerDelta((ContainerDelta<?>)itemDelta, allowedItems, phase)) {
-							return false;
-						}
-					}
+				AccessDecision itemDecision = itemDecisionFunction.apply(itemPath);
+				if (itemDecision == null) {
+					// null decision means: skip this
+					continue;
+				}
+				if (itemDecision == AccessDecision.DEFAULT && itemDelta instanceof ContainerDelta<?>) {
+					// No decision for entire container. Subitems will dictate the decision.
+					AccessDecision subdecision = determineContainerDeltaDecision((ContainerDelta<?>)itemDelta, itemDecisionFunction);
+					decision = AccessDecision.combine(decision, subdecision);
 				} else {
-					if (!isAllowedItem(itemPath, allowedItems, phase)) {
+					if (itemDecision == AccessDecision.DENY) {
 						LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
-						return false;
+						// We do not want to break the loop immediately here. We want all the denied items to get logged
 					}
+					decision = AccessDecision.combine(decision, itemDecision);
 				}
 			}
-			return true;
+			return decision;
 		}
 	}
 	
@@ -1577,5 +1595,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		donorPrincipal.setPreviousPrincipal(attorneyPrincipal);
 		
 		return donorPrincipal;
+	}
+
+	@Override
+	public <O extends ObjectType> AccessDecision determineSubitemDecision(
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, String operationUrl,
+			AuthorizationPhaseType phase, ItemPath subitemRootPath) {
+		return determineDeltaDecision(delta, 
+				(itemPath) -> {
+					if (itemPath.isSubPathOrEquivalent(subitemRootPath)) {
+						return null;
+					}
+					AuthorizationDecisionType authorizationDecisionType = securityConstraints.findItemDecision(itemPath, operationUrl, phase);
+					return AccessDecision.translate(authorizationDecisionType);
+				});
 	}
 }
