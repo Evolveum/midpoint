@@ -70,7 +70,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestSemiManual extends AbstractManualResourceTest {
+public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 	protected static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
 	protected static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");

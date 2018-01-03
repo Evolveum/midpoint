@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,7 @@ import java.util.List;
 public abstract class ShadowCache {
 	
 	public static String OP_PROCESS_SYNCHRONIZATION = ShadowCache.class.getName() + ".processSynchronization";
+	public static String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -544,28 +545,32 @@ public abstract class ShadowCache {
 		return resource.getConsistency().isDiscovery();
 	}
 	
-	public abstract String afterAddOnResource(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException,
+	public abstract String afterAddOnResource(
+			ProvisioningContext ctx, 
+			PrismObject<ShadowType> shadowToAdd, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+			OperationResult parentResult) 
+					throws SchemaException, ObjectAlreadyExistsException,
 					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
-	public String addShadow(PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
+	public String addShadow(PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 					ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Validate.notNull(shadow, "Object to add must not be null.");
+		Validate.notNull(shadowToAdd, "Object to add must not be null.");
 
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start adding shadow object:\n{}", shadow.debugDump());
+			LOGGER.trace("Start adding shadow object:\n{}", shadowToAdd.debugDump());
 		}
 
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		ProvisioningContext ctx = ctxFactory.create(shadowToAdd, task, parentResult);
 		try {
 			ctx.assertDefinition();
 		} catch (SchemaException e) {
-			handleError(ctx, e, shadow, FailedOperation.ADD, null, 
+			handleError(ctx, e, shadowToAdd, FailedOperation.ADD, null, 
 					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
@@ -574,60 +579,80 @@ public abstract class ShadowCache {
 //			LOGGER.trace("Definition:\n{}", ctx.getObjectClassDefinition().debugDump());
 //		}
 
-		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			SchemaException e = new SchemaException(
-					"Attempt to add shadow without any attributes: " + shadow);
+					"Attempt to add shadow without any attributes: " + shadowToAdd);
 			parentResult.recordFatalError(e);
-			handleError(ctx, e, shadow, FailedOperation.ADD, null, 
+			handleError(ctx, e, shadowToAdd, FailedOperation.ADD, null, 
 					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
 		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
-			applyAttributesDefinition(ctx, shadow);
-			attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+			applyAttributesDefinition(ctx, shadowToAdd);
+			attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		}
 		
-		preAddChecks(ctx, shadow, task, parentResult);
+		preAddChecks(ctx, shadowToAdd, task, parentResult);
 		
-		String shadowOid = shadowManager.addNewProposedShadow(ctx, shadow, task, parentResult);
+		String proposedShadowOid = shadowManager.addNewProposedShadow(ctx, shadowToAdd, task, parentResult);
 
-		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue;
-		PrismObject<ShadowType> addedShadow;
-		try {
-			preprocessEntitlements(ctx, shadow, parentResult);
+		ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
+		opState.setExistingShadowOid(proposedShadowOid);
+		PrismObject<ShadowType> addedShadow = null;
 
-			applyAttributesDefinition(ctx, shadow);
-			shadowManager.setKindIfNecessary(shadow.asObjectable(), ctx.getObjectClassDefinition());
-			accessChecker.checkAdd(ctx, shadow, parentResult);
+		preprocessEntitlements(ctx, shadowToAdd, parentResult);
 
-			// RESOURCE OPERATION: add
-			asyncReturnValue = 
-					resouceObjectConverter.addResourceObject(ctx, shadow, scripts, parentResult);
-			addedShadow = asyncReturnValue.getReturnValue();
+		applyAttributesDefinition(ctx, shadowToAdd);
+		shadowManager.setKindIfNecessary(shadowToAdd.asObjectable(), ctx.getObjectClassDefinition());
+		accessChecker.checkAdd(ctx, shadowToAdd, parentResult);
 
-		} catch (Exception ex) {
-			if (shadowOid != null) {
-				// TODO: maybe integrate with consistency mechanism?
-				shadowManager.handlePropesedShadowError(ctx, shadow, shadowOid, ex, task, parentResult);
+		if (shouldExecuteResourceOperationDirectly(ctx)) {
+			try {
+	
+				// RESOURCE OPERATION: add
+				AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
+						resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, parentResult);
+				opState.processAsyncResult(asyncReturnValue);
+				addedShadow = asyncReturnValue.getReturnValue();
+	
+			} catch (Exception ex) {
+				if (proposedShadowOid != null) {
+					// TODO: maybe integrate with consistency mechanism?
+					shadowManager.handlePropesedShadowError(ctx, shadowToAdd, proposedShadowOid, ex, task, parentResult);
+				}
+				
+				addedShadow = handleError(ctx, ex, shadowToAdd, FailedOperation.ADD, null,
+						isDoDiscovery(resource, options), isCompensate(options), parentResult);
+				return addedShadow.getOid();
 			}
 			
-			addedShadow = handleError(ctx, ex, shadow, FailedOperation.ADD, null,
-					isDoDiscovery(resource, options), isCompensate(options), parentResult);
-			return addedShadow.getOid();
+			LOGGER.debug("Resource operation executed (ADD {}), operation state: {}", shadowToAdd, opState.shortDumpLazily());
+		} else {
+			opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
+			// Create dummy subresult with IN_PROGRESS state. 
+			// This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
+			OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
+			delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
+			LOGGER.debug("Resource operation NOT executed, execution pending (ADD {})", shadowToAdd);
 		}
 
 		// REPO OPERATION: add
 		// This is where the repo shadow is created or updated (if needed)
-		String oid = afterAddOnResource(ctx, shadowOid, asyncReturnValue, parentResult);
-		addedShadow.setOid(oid);
+		String oid = afterAddOnResource(ctx, shadowToAdd, opState, parentResult);
+		if (addedShadow != null) {
+			addedShadow.setOid(oid);
+		} else {
+			addedShadow = shadowToAdd;
+		}
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
 				delta, parentResult);
-		if (asyncReturnValue.isInProgress()) {
+		
+		if (opState.isExecuting()) {
 			operationListener.notifyInProgress(operationDescription, task, parentResult);
-		} else {
+		} else if (opState.isCompleted()) {
 			operationListener.notifySuccess(operationDescription, task, parentResult);
 		}
 		return oid;
@@ -666,6 +691,18 @@ public abstract class ShadowCache {
 		if (ResourceTypeUtil.isValidateSchema(ctx.getResource())) {
 			ShadowUtil.validateAttributeSchema(shadow, ctx.getObjectClassDefinition());
 		}
+	}
+	
+	private boolean shouldExecuteResourceOperationDirectly(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency == null) {
+			return true;
+		}
+		Duration operationGroupingInterval = consistency.getOperationGroupingInterval();
+		if (operationGroupingInterval == null) {
+			return true;
+		}
+		return false;
 	}
 
 	private ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
