@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.component.prism;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
@@ -35,11 +33,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
  * @author katkav
  *
  */
-public class AssociationWrapper extends ContainerWrapper<ShadowAssociationType> {
+public class ShadowAssociationWrapper extends AbstractAssociationWrapper<ShadowAssociationType> {
 
-	private static transient Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
+	private static transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapper.class);
 	
-	AssociationWrapper(PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	ShadowAssociationWrapper(PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		super(container, objectStatus, status, path);	
 	}
 

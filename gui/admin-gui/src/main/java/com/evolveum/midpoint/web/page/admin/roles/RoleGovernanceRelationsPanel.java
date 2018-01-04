@@ -61,15 +61,6 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceRelationsPanel.class);
     private static final String DOT_CLASS = RoleGovernanceRelationsPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_APPROVER_RELATION_OBJECTS = DOT_CLASS + "loadApproverRelationObjects";
-    private static final String OPERATION_LOAD_OWNER_RELATION_OBJECTS = DOT_CLASS + "loadOwnerRelationObjects";
-    private static final String OPERATION_LOAD_MANAGER_RELATION_OBJECTS = DOT_CLASS + "loadManagerRelationObjects";
-
-    private LoadableModel<List<String>> approverRelationObjectsModel;
-    private LoadableModel<List<String>> ownerRelationObjectsModel;
-    private LoadableModel<List<String>> managerRelationObjectsModel;
-
-    private boolean areModelsInitialized = false;
 
     public RoleGovernanceRelationsPanel(String id, IModel<RoleType> model, List<RelationTypes> relations) {
         super(id, model, relations);
@@ -222,15 +213,6 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 		
 	}
 
-//    @Override
-//    protected ObjectDelta getDeleteAssignmentDelta(Class classType) throws SchemaException {
-//        ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-//                FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(RelationTypes.OWNER.getRelation()));
-//        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.APPROVER.getRelation()));
-//        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.MANAGER.getRelation()));
-//        return delta;
-//    }
-
     @Override
     protected ObjectQuery createAllMemberQuery(List<QName> relations) {
         return super.createDirectMemberQuery(relations);
@@ -257,147 +239,11 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     @Override
-    protected List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = super.createMembersColumns();
-        IColumn<SelectableBean<ObjectType>, String> column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
-                createStringResource("roleMemberPanel.relation")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
-                                     String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
-                loadAllRelationModels();
-                cellItem.add(new Label(componentId,
-                        getRelationValue((FocusType) rowModel.getObject().getValue())));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-                return Model.of(getRelationValue((FocusType) rowModel.getObject().getValue()));
-            }
-
-        };
-        columns.add(column);
-        return columns;
+    protected boolean isRelationColumnVisible(){
+        return true;
     }
 
-
-    private void loadAllRelationModels(){
-        if (approverRelationObjectsModel != null) {
-            approverRelationObjectsModel.reset();
-        } else {
-            initApproverRelationObjectsModel();
-        }
-        if (managerRelationObjectsModel != null) {
-            managerRelationObjectsModel.reset();
-        } else {
-            initManagerRelationObjectsModel();
-        }
-        if (ownerRelationObjectsModel != null) {
-            ownerRelationObjectsModel.reset();
-        } else {
-            initOwnerRelationObjectsModel();
-        }
-    }
-
-    private void initApproverRelationObjectsModel(){
-        approverRelationObjectsModel = new LoadableModel<List<String>>(false) {
-            @Override
-            protected List<String> load() {
-                OperationResult result = new OperationResult(OPERATION_LOAD_APPROVER_RELATION_OBJECTS);
-
-                PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-                rv.setRelation(RelationTypes.APPROVER.getRelation());
-
-                ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
-                        .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                        .ref(rv).build();
-
-                List<PrismObject<FocusType>> approverRelationObjects =
-                        WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
-                return getObjectOidsList(approverRelationObjects);
-            }
-        };
-    }
-
-    private void initOwnerRelationObjectsModel(){
-        ownerRelationObjectsModel = new LoadableModel<List<String>>(false) {
-            @Override
-            protected List<String> load() {
-                OperationResult result = new OperationResult(OPERATION_LOAD_OWNER_RELATION_OBJECTS);
-
-                
-                PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-                rv.setRelation(RelationTypes.OWNER.getRelation());
-
-                ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
-                        .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                        .ref(rv).build();
-
-                List<PrismObject<FocusType>> ownerRelationObjects =
-                        WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
-                return getObjectOidsList(ownerRelationObjects);
-            }
-        };
-    }
-
-    private void initManagerRelationObjectsModel(){
-        managerRelationObjectsModel = new LoadableModel<List<String>>(false) {
-            @Override
-            protected List<String> load() {
-                OperationResult result = new OperationResult(OPERATION_LOAD_MANAGER_RELATION_OBJECTS);
-
-                PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-                rv.setRelation(RelationTypes.MANAGER.getRelation());
-
-                ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
-                        .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                        .ref(rv).build();
-
-                List<PrismObject<FocusType>> managerRelationObjects =
-                        WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
-                return getObjectOidsList(managerRelationObjects);
-            }
-        };
-    }
-
-    private String getRelationValue(FocusType focusObject){
-        StringBuilder relations = new StringBuilder();
-        if (focusObject == null){
-            return "";
-        }
-
-        if (approverRelationObjectsModel.getObject().contains(focusObject.getOid())){
-            relations.append(createStringResource("RelationTypes.APPROVER").getString());
-        }
-        if (ownerRelationObjectsModel.getObject().contains(focusObject.getOid())){
-            relations.append(relations.length() > 0 ? ", " : "");
-            relations.append(createStringResource("RelationTypes.OWNER").getString());
-        }
-        if (managerRelationObjectsModel.getObject().contains(focusObject.getOid())){
-            relations.append(relations.length() > 0 ? ", " : "");
-            relations.append(createStringResource("RelationTypes.MANAGER").getString());
-        }
-        return relations.toString();
-    }
-
-    private List<String> getObjectOidsList(List<PrismObject<FocusType>> objectList){
-        List<String> oidsList = new ArrayList<>();
-        if (objectList == null){
-            return oidsList;
-        }
-        for (PrismObject<FocusType> object : objectList){
-            if (object == null){
-                continue;
-            }
-            if (!oidsList.contains(object.getOid())){
-                oidsList.add(object.getOid());
-            }
-        }
-        return oidsList;
-    }
-
-class RoleRelationSelectionDto implements Serializable {
+    class RoleRelationSelectionDto implements Serializable {
 		
 		private static final long serialVersionUID = 1L;
 		private boolean approver;

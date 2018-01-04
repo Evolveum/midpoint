@@ -15,12 +15,61 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+
 /**
  * @author semancik
  *
  */
 public enum AccessDecision {
+	/**
+	 * Access explicitly allowed.
+	 */
 	ALLOW,
+	
+	/**
+	 * Access explicitly denied.
+	 */
 	DENY,
+	
+	/**
+	 * Means "no decision" or "not allowed yet".
+	 */
 	DEFAULT;
+	
+	public static AccessDecision combine(AccessDecision oldDecision, AccessDecision newDecision) {
+		if (oldDecision == null && newDecision == null) {
+			return null;
+		}
+		if (oldDecision == null && newDecision != null) {
+			return newDecision;
+		}
+		if (oldDecision != null && newDecision == null) {
+			return oldDecision;
+		}
+		if (oldDecision == DENY || newDecision == DENY) {
+			return DENY;
+		}
+		if (oldDecision == DEFAULT || newDecision == DEFAULT) {
+			return DEFAULT;
+		}
+		if (oldDecision == ALLOW || newDecision == ALLOW) {
+			return ALLOW;
+		}
+		throw new IllegalStateException("Unexpected combine "+oldDecision+"+"+newDecision);
+	}
+	
+	public static AccessDecision translate(AuthorizationDecisionType authorizationDecisionType) {
+		if (authorizationDecisionType == null) {
+			return AccessDecision.DEFAULT;
+		}
+		switch (authorizationDecisionType) {
+			case ALLOW:
+				return ALLOW;
+			case DENY:
+				return DENY;
+			default:
+				throw new IllegalStateException("Unknown AuthorizationDecisionType "+authorizationDecisionType);
+		}
+	}
 }

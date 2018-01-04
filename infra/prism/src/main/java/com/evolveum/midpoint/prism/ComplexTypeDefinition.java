@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Provides a definition for a complex type, i.e. type that prescribes inner items.
@@ -33,7 +34,7 @@ import java.util.Map;
  * @author semancik
  * @author mederly
  */
-public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore {
+public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore, Visitable {
 
 	/**
 	 * Returns definitions for all inner items.
@@ -140,7 +141,7 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	 *                   in order to prevent infinite loops when doing ultra deep cloning.
 	 */
 	@NotNull
-	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
+	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
 	/**
 	 * Trims the definition (and any definitions it refers to) to contain only items related to given paths.

@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -681,7 +682,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		// Also do not copy 'immutable' flag so the clone is free to be modified
     }
 
-    protected void propagateDeepCloneDefinition(boolean ultraDeep, D clonedDefinition) {
+    protected void propagateDeepCloneDefinition(boolean ultraDeep, D clonedDefinition, Consumer<ItemDefinition> postCloneAction) {
     	// nothing to do by default
     }
 

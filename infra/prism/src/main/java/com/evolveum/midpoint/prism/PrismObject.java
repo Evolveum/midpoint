@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -246,8 +247,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		super.copyValues(clone);
 	}
 
-	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep) {
-		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep);
+	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep, postCloneAction);
 	}
 
 	@NotNull

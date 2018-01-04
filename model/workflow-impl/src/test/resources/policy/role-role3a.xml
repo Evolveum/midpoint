@@ -17,5 +17,6 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  oid="00000001-d34d-b33f-f00d-00000000003a">
 	<name>Role3a</name>
+	<delegable>true</delegable>
 	<approverRef oid="00000001-d34d-b33f-f00d-L00000000003" type="UserType"/>		<!-- lead3 -->
 </role>

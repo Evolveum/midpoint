@@ -18,4 +18,5 @@
 	<name>Role10a</name>
 	<description>Induced by Role1a</description>
 	<!-- approverRef will be set during the tests -->
+	<delegable>true</delegable>
 </role>
