@@ -18,6 +18,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -46,6 +48,7 @@ import java.util.Date;
 public class ValueDisplayUtil {
     public static String toStringValue(PrismPropertyValue propertyValue) {
         Object value = propertyValue.getValue();
+        String defaultStr = "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
         if (value == null) {
             return null;
         } else if (value instanceof String) {
@@ -139,6 +142,18 @@ public class ValueDisplayUtil {
             return "(binary data)";
         } else if (value instanceof RawType) {
             return PrettyPrinter.prettyPrint(value);
+        } else if (value instanceof ItemPathType && ((ItemPathType) value).getItemPath() != null) {
+            ItemPath itemPath = ((ItemPathType) value).getItemPath();
+            StringBuilder sb = new StringBuilder();
+            itemPath.getSegments().forEach(segment -> {
+                if (segment instanceof NameItemPathSegment){
+                    sb.append(PrettyPrinter.prettyPrint(((NameItemPathSegment) segment).getName()));
+                } else {
+                    sb.append(segment.toString());
+                }
+                sb.append("; ");
+            });
+            return sb.toString();
         } else if (value instanceof ExpressionType) {
             StringBuilder expressionString = new StringBuilder();
             if (((ExpressionType)value).getExpressionEvaluator() != null && ((ExpressionType) value).getExpressionEvaluator().size() > 0){
@@ -159,14 +174,13 @@ public class ValueDisplayUtil {
                             }
                         }
                     } else {
-                        expressionString.append("(a value of type " + value.getClass().getSimpleName() + ")");
-
+                        expressionString.append(defaultStr);
                     }
                 });
             }
             return expressionString.toString();
         } else {
-            return "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
+            return defaultStr;
         }
     }
 
