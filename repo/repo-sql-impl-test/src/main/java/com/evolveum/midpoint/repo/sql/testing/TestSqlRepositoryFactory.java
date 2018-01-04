@@ -85,7 +85,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
     }
 
     private void updateConfigurationFromProperties(Configuration configuration, Properties properties) {
-        updateConfigurationStringProperty(configuration, properties, PROPERTY_DATABASE);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_DATABASE, "h2");
 
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_EMBEDDED);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_DROP_IF_EXISTS);
@@ -139,7 +139,15 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
     }
 
     private void updateConfigurationStringProperty(Configuration configuration, Properties properties, String propertyName) {
+        updateConfigurationStringProperty(configuration, properties, propertyName, null);
+    }
+
+    private void updateConfigurationStringProperty(Configuration configuration, Properties properties, String propertyName, String defaultValue) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
+        if (value == null) {
+            value = defaultValue;
+        }
+
         if (value == null) {
             return;
         }
