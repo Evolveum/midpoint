@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -977,11 +978,16 @@ public class ShadowManager {
 		return pendingOperation;
 	}
 
-	private void addPendingOperationModify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> pendingModifications, 
-			OperationResult resourceOperationResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	private void addPendingOperationModify(
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> shadow,
+			Collection<? extends ItemDelta> pendingModifications, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			OperationResult parentResult)
+					throws ObjectNotFoundException, SchemaException {
 		
 		ObjectDelta<ShadowType> pendingDelta = createModifyDelta(shadow, pendingModifications);		
-		addPendingOperationDelta(ctx, shadow, pendingDelta, OperationResultStatusType.IN_PROGRESS, resourceOperationResult, parentResult);
+		addPendingOperationDelta(ctx, shadow, pendingDelta, opState, parentResult);
 	}
 	
 	// returns conflicting operation (pending delta) if there is any
@@ -992,8 +998,12 @@ public class ShadowManager {
 		return checkAndRecordPendingOperationBeforeExecution(ctx, shadow, proposedDelta, task, parentResult);
 	}
 	
-	private void recordPendingDeleteOperationAfterExecution(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,
-			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	private void recordPendingDeleteOperationAfterExecution(
+			ProvisioningContext ctx, 
+			PrismObject<ShadowType> oldRepoShadow,
+			ProvisioningOperationState<AsynchronousOperationResult> opState, 
+			OperationResult parentResult) 
+					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
 		if (ResourceTypeUtil.getRecordPendingOperations(ctx.getResource()) == RecordPendingOperationsType.ALL) {
 			// We have to look for pending delta for this operation that may already exist. In that case update it
@@ -1005,14 +1015,14 @@ public class ShadowManager {
 			PendingOperationType existingPendingOperation = findExistingPendingOperation(currentShadow, proposedDelta, false);
 			if (existingPendingOperation != null) {
 				LOGGER.trace("Found existing pending operation for delete of {}, updating", currentShadow);
-				updatePendingOperationStatus(ctx, currentShadow, existingPendingOperation, OperationResultStatusType.IN_PROGRESS, resourceOperationResult, parentResult);				
+				updatePendingOperation(ctx, currentShadow, opState, existingPendingOperation, parentResult);				
 				return;
 			}
 		}
 		
 		ObjectDelta<ShadowType> pendingDelta = oldRepoShadow.createDeleteDelta();
 		
-		addPendingOperationDelta(ctx, oldRepoShadow, pendingDelta, OperationResultStatusType.IN_PROGRESS, resourceOperationResult, parentResult);
+		addPendingOperationDelta(ctx, oldRepoShadow, pendingDelta, opState, parentResult);
 	}
 	
 	private PendingOperationType findExistingPendingOperation(PrismObject<ShadowType> currentShadow, ObjectDelta<ShadowType> proposedDelta, boolean processInProgress) throws SchemaException {
@@ -1108,7 +1118,7 @@ public class ShadowManager {
 						}
 						
 						LOGGER.trace("Storing pending operation for {} of {}", proposedDelta.getChangeType(), object);
-						addPendingOperationDelta(ctx, object, proposedDelta, null, null, object.getVersion(), parentResult);
+						addPendingOperationDelta(ctx, object, proposedDelta, null, object.getVersion(), parentResult);
 						LOGGER.trace("Stored pending operation for {} of {}", proposedDelta.getChangeType(), object);
 						
 						// Yes, really return null. We are supposed to return conflicting operation (if found).
@@ -1133,28 +1143,38 @@ public class ShadowManager {
 		return repositoryService.getObject(ShadowType.class, oldRepoShadow.getOid(), null, parentResult);
 	}
 
-	private PendingOperationType addPendingOperationDelta(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ObjectDelta<ShadowType> pendingDelta,
-			OperationResultStatusType pendingDeltaStatus, OperationResult resourceOperationResult, OperationResult parentResult) 
+	private <A extends AsynchronousOperationResult> PendingOperationType addPendingOperationDelta(
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> shadow,
+			ObjectDelta<ShadowType> pendingDelta,
+			ProvisioningOperationState<A> opState,
+			OperationResult parentResult) 
 					throws SchemaException, ObjectNotFoundException {
 		try {
-			return addPendingOperationDelta(ctx, shadow, pendingDelta, pendingDeltaStatus, resourceOperationResult, null, parentResult);
+			return addPendingOperationDelta(ctx, shadow, pendingDelta, opState, null, parentResult);
 		} catch (PreconditionViolationException e) {
 			// should not happen
 			throw new SystemException(e);
 		}
 	}
 	
-	private PendingOperationType addPendingOperationDelta(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ObjectDelta<ShadowType> pendingDelta,
-			OperationResultStatusType pendingDeltaStatus, OperationResult resourceOperationResult, String readVersion, OperationResult parentResult) 
+	private <A extends AsynchronousOperationResult> PendingOperationType addPendingOperationDelta(
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> shadow,
+			ObjectDelta<ShadowType> pendingDelta,
+			ProvisioningOperationState<A> opState,
+			String readVersion,
+			OperationResult parentResult) 
 					throws SchemaException, ObjectNotFoundException, PreconditionViolationException {
 		ObjectDeltaType pendingDeltaType = DeltaConvertor.toObjectDeltaType(pendingDelta);
 		
 		PendingOperationType pendingOperation = new PendingOperationType();
 		pendingOperation.setDelta(pendingDeltaType);
 		pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
-		pendingOperation.setResultStatus(pendingDeltaStatus);
-		if (resourceOperationResult != null) {
-			pendingOperation.setAsynchronousOperationReference(resourceOperationResult.getAsynchronousOperationReference());
+		if (opState != null) {
+			pendingOperation.setExecutionStatus(opState.getExecutionStatus());
+			pendingOperation.setResultStatus(opState.getResultStatusType());
+			pendingOperation.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
 		}
 		
 		Collection repoDeltas = new ArrayList<>(1);
@@ -1178,30 +1198,40 @@ public class ShadowManager {
 		return pendingOperation;
 	}
 	
-	private void updatePendingOperationStatus(ProvisioningContext ctx, PrismObject<ShadowType> shadow, PendingOperationType existingPendingOperation,
-			OperationResultStatusType pendingDeltaStatus, OperationResult resourceOperationResult, OperationResult parentResult) 
+	private <A extends AsynchronousOperationResult> void updatePendingOperation(
+			ProvisioningContext ctx, 
+			PrismObject<ShadowType> shadow,
+			ProvisioningOperationState<A> opState,
+			PendingOperationType existingPendingOperation,
+			OperationResult parentResult) 
 					throws SchemaException, ObjectNotFoundException {
+		List<PendingOperationType> pendingExecutionOperations = new ArrayList<>(1);
+		pendingExecutionOperations.add(existingPendingOperation);
+		updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, parentResult);
+	}
+	
+	public <A extends AsynchronousOperationResult> void updatePendingOperations(
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> shadow,
+			ProvisioningOperationState<A> opState,
+			List<PendingOperationType> pendingExecutionOperations,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		Collection<? extends ItemDelta> repoDeltas = new ArrayList<>();
+		OperationResultStatusType resultStatus = opState.getResultStatusType();
+		String asynchronousOperationReference = opState.getAsynchronousOperationReference();
+		PendingOperationExecutionStatusType executionStatus = opState.getExecutionStatus();
 		
-		ItemPath containerPath = existingPendingOperation.asPrismContainerValue().getPath();
-		Collection repoDeltas = new ArrayList<>();
-		
-		if (pendingDeltaStatus != null) {
-			ItemPath statusPath = containerPath.subPath(PendingOperationType.F_RESULT_STATUS);
-			PropertyDelta<OperationResultStatusType> statusDelta = PropertyDelta.createModificationReplaceProperty(statusPath, shadow.getDefinition(),
-					pendingDeltaStatus);
-			repoDeltas.add(statusDelta);
+		for (PendingOperationType existingPendingOperation: pendingExecutionOperations) {
+			ItemPath containerPath = existingPendingOperation.asPrismContainerValue().getPath();
+			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_EXECUTION_STATUS, executionStatus, shadow.getDefinition());
+			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_RESULT_STATUS, resultStatus, shadow.getDefinition());
+			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference, shadow.getDefinition());
+			
+			// TODO: timestamps
 		}
 		
-		if (resourceOperationResult != null) {
-			ItemPath asyncRefPath = containerPath.subPath(PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE);
-			PropertyDelta<String> asyncRefDelta;
-			if (resourceOperationResult.getAsynchronousOperationReference() == null) {
-				asyncRefDelta = PropertyDelta.createModificationReplaceProperty(asyncRefPath, shadow.getDefinition() /*,  no value */);
-			} else {
-				asyncRefDelta = PropertyDelta.createModificationReplaceProperty(asyncRefPath, shadow.getDefinition(), 
-					resourceOperationResult.getAsynchronousOperationReference());
-			}
-			repoDeltas.add(asyncRefDelta);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Updating pending operations in {}\n:{}", shadow, DebugUtil.debugDump(repoDeltas, 1));
 		}
 		
 		try {
@@ -1209,6 +1239,18 @@ public class ShadowManager {
 		} catch (ObjectAlreadyExistsException ex) {
 			throw new SystemException(ex);
 		}
+	}
+	
+	private <T> void addPropertyDelta(Collection repoDeltas, ItemPath containerPath, QName propertyName, T propertyValue, PrismObjectDefinition<ShadowType> shadowDef) {
+		ItemPath propPath = containerPath.subPath(propertyName);
+		PropertyDelta<T> delta;
+		if (propertyValue == null) {
+			delta = PropertyDelta.createModificationReplaceProperty(propPath, shadowDef /* no value */);
+		} else {
+			delta = PropertyDelta.createModificationReplaceProperty(propPath, shadowDef,
+				propertyValue);
+		}
+		repoDeltas.add(delta);
 	}
 	
 	/**
@@ -1316,9 +1358,13 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
-	public void modifyShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, Collection<? extends ItemDelta> modifications, 
-			OperationResult resourceOperationResult, OperationResult parentResult) 
-			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+	public void modifyShadow(
+				ProvisioningContext ctx, 
+				PrismObject<ShadowType> oldRepoShadow, 
+				Collection<? extends ItemDelta> modifications, 
+				ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+				OperationResult parentResult) 
+						throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
 		
 		PendingOperationType existingPendingOperation = null;
 		if (ResourceTypeUtil.getRecordPendingOperations(ctx.getResource()) == RecordPendingOperationsType.ALL) {
@@ -1333,20 +1379,23 @@ public class ShadowManager {
 			}
 		}
 		
-		LOGGER.trace("Updating repository shadow, resourceOperationResult={}, {} modifications, existingPendingOperation={}", resourceOperationResult.getStatus(), modifications.size(), existingPendingOperation);
-		if (resourceOperationResult != null && resourceOperationResult.isInProgress()) {
-			if (existingPendingOperation == null) {
-				addPendingOperationModify(ctx, oldRepoShadow, modifications, resourceOperationResult, parentResult);
-			} else {
-				updatePendingOperationStatus(ctx, oldRepoShadow, existingPendingOperation, OperationResultStatusType.IN_PROGRESS, resourceOperationResult, parentResult);
-			}
-		} else {
+		LOGGER.trace("Updating repository {}, {}, {} modifications, existingPendingOperation={}", oldRepoShadow, opState, modifications.size(), existingPendingOperation);
+		if (opState.isCompleted()) {
+			// completed operation
 			if (existingPendingOperation == null) {
 				modifyShadowAttributes(ctx, oldRepoShadow, modifications, parentResult);
 			} else {
-				updatePendingOperationStatus(ctx, oldRepoShadow, existingPendingOperation, resourceOperationResult.getStatus().createStatusType(), resourceOperationResult, parentResult);
+				updatePendingOperation(ctx, oldRepoShadow, opState, existingPendingOperation, parentResult);
+			}
+		} else {
+			// operation in progress
+			if (existingPendingOperation == null) {
+				addPendingOperationModify(ctx, oldRepoShadow, modifications, opState, parentResult);
+			} else {
+				updatePendingOperation(ctx, oldRepoShadow, opState, existingPendingOperation, parentResult);
 			}
 		}
+
 	}
 		
 	/**
@@ -1371,6 +1420,31 @@ public class ShadowManager {
 		}	
 	}
 	
+	public boolean isRepositoryOnlyModification(Collection<? extends ItemDelta> modifications) {
+		for (ItemDelta itemDelta : modifications) {
+			if (isResourceModification(itemDelta)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean isResourceModification(ItemDelta itemDelta) {
+		if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
+			return true;
+		}
+		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
+			return true;
+		}
+		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
+			return true;
+		}
+		if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+			return true;
+		}
+		return false;
+	}
+
 	@SuppressWarnings("rawtypes")
 	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -1628,19 +1702,27 @@ public class ShadowManager {
 		}
 	}
 	
-	public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult resourceOperationResult, OperationResult parentResult) 
+	public void deleteShadow(
+			ProvisioningContext ctx, 
+			PrismObject<ShadowType> oldRepoShadow, 
+			ProvisioningOperationState<AsynchronousOperationResult> opState,
+			OperationResult parentResult) 
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
-		if (resourceOperationResult != null && resourceOperationResult.isInProgress()) {
-			LOGGER.trace("Recording pending delete operation in repository {}, resourceOperationResult={}", oldRepoShadow, 
-					resourceOperationResult==null?null:resourceOperationResult.getStatus());
-			recordPendingDeleteOperationAfterExecution(ctx, oldRepoShadow, resourceOperationResult, parentResult);
-			
-		} else {
-			LOGGER.trace("Deleting repository {}, resourceOperationResult={}", oldRepoShadow, 
-					resourceOperationResult==null?null:resourceOperationResult.getStatus());
+		if (opState.isCompleted()) {
+			LOGGER.trace("Deleting repository {}: {}", oldRepoShadow, opState);
 			repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+		} else {
+			LOGGER.trace("Recording pending delete operation in repository {}: {}", oldRepoShadow, 
+					opState);
+			recordPendingDeleteOperationAfterExecution(ctx, oldRepoShadow, opState, parentResult);
 		}
+	}
+	
+	public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) 
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		LOGGER.trace("Deleting repository {}", oldRepoShadow);
+		repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 	}
 
 	/**
@@ -1829,6 +1911,5 @@ public class ShadowManager {
 		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
 	}
-
 
 }

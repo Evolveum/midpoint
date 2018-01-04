@@ -147,7 +147,14 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	public static void recordConnectorOperation(String name) {
 		long count = recordCountInternal(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		if (isTrace(InternalCounters.CONNECTOR_OPERATION_COUNT)) {
-			traceOperation("connector", () -> name, count, true);
+			traceOperation("connectorOperation", () -> name, count, true);
+		}
+	}
+	
+	public static void recordConnectorModification(String name) {
+		long count = recordCountInternal(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
+		if (isTrace(InternalCounters.CONNECTOR_MODIFICATION_COUNT)) {
+			traceOperation("connectorModification", () -> name, count, true);
 		}
 	}
 

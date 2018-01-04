@@ -125,13 +125,34 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
 	protected static final File ROLE_TWO_MANUAL_GROUPING_FILE = new File(TEST_DIR, "role-two-manual-grouping.xml");
 	protected static final String ROLE_TWO_MANUAL_GROUPING_OID = "c9de1300-f092-11e7-8c5f-3ff8ea609a1d";
+	
+	protected static final File TASK_PROPAGATION_MANUAL_GROUPING_FILE = new File(TEST_DIR, "task-propagation-manual-grouping.xml");
+	protected static final String TASK_PROPAGATION_MANUAL_GROUPING_OID = "b84a2c46-f0b5-11e7-baff-d35c2f14080f";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractGroupingManualResourceTest.class);
 
+	protected String propagationTaskOid = null;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+	}
+	
+	@Override
+	protected boolean isDirect() {
+		return false;
+	}
+	
+	@Override
+	protected void runPropagation() throws Exception {
+		if (propagationTaskOid == null) {
+			addTask(TASK_PROPAGATION_MANUAL_GROUPING_FILE);
+			propagationTaskOid = TASK_PROPAGATION_MANUAL_GROUPING_OID;
+			waitForTaskStart(TASK_PROPAGATION_MANUAL_GROUPING_OID, true);
+		} else {
+			restartTask(TASK_PROPAGATION_MANUAL_GROUPING_OID);
+		}
+		waitForTaskFinish(TASK_PROPAGATION_MANUAL_GROUPING_OID, true);
 	}
 
 	// Grouping execution. The operation is delayed for a while.

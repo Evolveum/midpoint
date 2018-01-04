@@ -127,5 +127,23 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 			asyncResult.shortDump(sb);
 		}
 	}
+
+	public void determineExecutionStatusFromResult() {
+		if (asyncResult == null) {
+			throw new IllegalStateException("Cannot determine execution status from null result");
+		}
+		OperationResult operationResult = asyncResult.getOperationResult();
+		if (operationResult == null) {
+			throw new IllegalStateException("Cannot determine execution status from null result");
+		}
+		OperationResultStatus status = operationResult.getStatus();
+		if (status == null) {
+			executionStatus = PendingOperationExecutionStatusType.REQUESTED;
+		} else if (status == OperationResultStatus.IN_PROGRESS) {
+			executionStatus = PendingOperationExecutionStatusType.EXECUTING;
+		} else {
+			executionStatus = PendingOperationExecutionStatusType.COMPLETED;
+		}
+	}
 	
 }

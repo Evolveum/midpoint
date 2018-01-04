@@ -172,6 +172,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		addObject(USER_BARBOSSA_FILE);
 		addObject(USER_DRAKE_FILE);
 	}
+	
+	@Override
+	protected boolean isDirect() {
+		return true;
+	}
 
 	protected int getConcurrentTestNumberOfThreads() {
 		return 4;
@@ -191,315 +196,62 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		return false;
 	}
 
-	@Test
-	public void test200ModifyUserWillFullname() throws Exception {
-		final String TEST_NAME = "test200ModifyUserWillFullname";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+	
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				accountWillOid, new ItemPath(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
-				USER_WILL_FULL_NAME_PIRATE);
-		display("ObjectDelta", delta);
-
-		accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME_PIRATE));
-
-		// THEN
-		displayThen(TEST_NAME);
-		display("result", result);
-		willLastCaseOid = assertInProgress(result);
-
-		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
-
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
-		// Still old data in the repo. The operation is not completed yet.
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModel);
-
-		assertSinglePendingOperation(shadowModel, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
-
-		PrismObject<ShadowType> shadowProvisioningFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowProvisioningFuture);
-		assertShadowName(shadowProvisioningFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowProvisioningFuture);
-
-		assertNotNull("No async reference in result", willLastCaseOid);
-
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-	}
-
-	@Test
-	public void test202RecomputeWill() throws Exception {
-		final String TEST_NAME = "test202RecomputeWill";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		recomputeUser(userWillOid, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
-		// Still old data in the repo. The operation is not completed yet.
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-		assertShadowPassword(shadowModel);
-
-		assertSinglePendingOperation(shadowModel, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
-
-		PrismObject<ShadowType> shadowProvisioningFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowProvisioningFuture);
-		assertShadowName(shadowProvisioningFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertShadowPassword(shadowProvisioningFuture);
-
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-
-	}
-
-	/**
-	 * Case is closed. The operation is complete.
-	 */
-	@Test
-	public void test204CloseCaseAndRecomputeWill() throws Exception {
-		final String TEST_NAME = "test204CloseCaseAndRecomputeWill";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		closeCase(willLastCaseOid);
-
-		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		recomputeUser(userWillOid, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-
-		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
-
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-
-		PrismObject<ShadowType> shadowProvisioning = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		display("Model shadow", shadowProvisioning);
-		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
-		assertShadowName(shadowProvisioning, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
-		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		if (supportsBackingStore()) {
-			assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-		} else {
-			assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		}
-		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowProvisioning);
-
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowProvisioningFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowProvisioningFuture);
-		assertShadowName(shadowProvisioningFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowProvisioningFuture);
-
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-	}
-
-	/**
-	 * ff 5min, everything should be the same (grace not expired yet)
-	 */
-	@Test
-	public void test210RecomputeWillAfter5min() throws Exception {
-		final String TEST_NAME = "test210RecomputeWillAfter5min";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		clockForward("PT5M");
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		recomputeUser(userWillOid, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		if (supportsBackingStore()) {
-			assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-		} else {
-			assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		}
-		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModel);
-
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModelFuture);
-
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-	}
-
-	@Test
-	public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
-		final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_OLD);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModel);
-
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModelFuture);
-
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-	}
+//	@Test
+//	public void test202RecomputeWill() throws Exception {
+//		final String TEST_NAME = "test202RecomputeWill";
+//		displayTestTitle(TEST_NAME);
+//		// GIVEN
+//		Task task = createTask(TEST_NAME);
+//		OperationResult result = task.getResult();
+//
+//		// WHEN
+//		displayWhen(TEST_NAME);
+//		recomputeUser(userWillOid, task, result);
+//
+//		// THEN
+//		displayThen(TEST_NAME);
+//		assertSuccess(result);
+//
+//		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+//		display("Repo shadow", shadowRepo);
+//		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+//		assertNotNull("No ID in pending operation", pendingOperation.getId());
+//		// Still old data in the repo. The operation is not completed yet.
+//		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+//		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
+//		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+//
+//		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+//				accountWillOid, null, task, result);
+//
+//		display("Model shadow", shadowModel);
+//		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+//		assertShadowName(shadowModel, USER_WILL_NAME);
+//		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+//		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+//		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
+//		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+//		assertShadowPassword(shadowModel);
+//
+//		assertSinglePendingOperation(shadowModel, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+//
+//		PrismObject<ShadowType> shadowProvisioningFuture = modelService.getObject(ShadowType.class,
+//				accountWillOid,
+//				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+//				task, result);
+//		display("Model shadow (future)", shadowProvisioningFuture);
+//		assertShadowName(shadowProvisioningFuture, USER_WILL_NAME);
+//		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+//		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+//		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
+//		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+//		assertShadowPassword(shadowProvisioningFuture);
+//
+//		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+//
+//	}
 
 
 	/**

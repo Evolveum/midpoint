@@ -19,7 +19,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -57,7 +57,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, ShadowIntegrityCheckResultHandler> {
+public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ShadowType, ShadowIntegrityCheckResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
