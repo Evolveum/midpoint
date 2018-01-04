@@ -98,6 +98,9 @@ public class ObjectUpdater {
     private OrgClosureManager closureManager;
 
     @Autowired
+    private ObjectDeltaUpdater objectDeltaUpdater;
+
+    @Autowired
     private PrismContext prismContext;
 
     public <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
@@ -218,7 +221,8 @@ public class ObjectUpdater {
         }
 
         updateFullObject(rObject, object);
-        RObject merged = (RObject) session.merge(rObject);
+
+        RObject merged = objectDeltaUpdater.update(object, rObject, session, result);
         lookupTableHelper.addLookupTableRows(session, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(session, rObject, oldObject != null);
 
@@ -433,7 +437,8 @@ public class ObjectUpdater {
 
                 updateFullObject(rObject, prismObject);
                 LOGGER.trace("Starting merge.");
-                session.merge(rObject);
+                objectDeltaUpdater.update(type, oid, modifications, rObject, session, result);
+
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
                 }
