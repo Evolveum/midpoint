@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -232,8 +233,8 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
 	@NotNull
 	@Override
-	public ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
-		return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap, onThisPath);
+	public ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap, onThisPath, postCloneAction);
 	}
 
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinitionImpl clone) {

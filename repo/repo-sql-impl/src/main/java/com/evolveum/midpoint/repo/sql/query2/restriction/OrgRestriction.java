@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -23,6 +24,9 @@ import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.util.QNameUtil;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -51,6 +55,10 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         }
 
         String orgOidParamName = hibernateQuery.addParameter("orgOid", filter.getOrgRef().getOid());
+        String relationParamName = "";
+        if (isRelationRestrictionExists(filter.getOrgRef().getRelation())){
+            relationParamName = hibernateQuery.addParameter("relation", QNameUtil.qNameToUri(filter.getOrgRef().getRelation()));
+        }
         String oidQueryText;    // oid in ...
         switch (filter.getScope()) {
             case ONE_LEVEL:
@@ -58,8 +66,12 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "select ref.ownerOid " +     // TODO distinct(ref.ownerOid) ? (was in original QueryInterpreter)
                               "from RObjectReference ref " +
                            "where " +
-                              "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
-                              "ref.targetOid = :" + orgOidParamName;
+                              "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG)
+                                + (isRelationRestrictionExists(filter.getOrgRef().getRelation()) ?
+                                (" and ref.relation in :" + relationParamName)
+                                : "")
+                                + " and " +
+                                "ref.targetOid = :" + orgOidParamName;
                 break;
             case ANCESTORS:
                 oidQueryText =
@@ -75,10 +87,18 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "select ref.ownerOid " +
                             "from RObjectReference ref " +
                         "where " +
-                            "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
+                            "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG)
+                                + (isRelationRestrictionExists(filter.getOrgRef().getRelation()) ?
+                                (" and ref.relation in :" + relationParamName)
+                                : "")
+                                + " and " +
                             "ref.targetOid in (" +
                                 "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
         }
         return hibernateQuery.createIn(getBaseHqlEntity().getHqlPath() + ".oid", oidQueryText);
+    }
+
+    private boolean isRelationRestrictionExists(QName relation){
+        return relation != null && !PrismConstants.Q_ANY.equals(relation);
     }
 }

@@ -25,10 +25,17 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -91,6 +98,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	protected static final String ID_SEARCH_SCOPE = "searchScope";
 	protected static final String ID_SEARCH_BY_TYPE = "searchByType";
+	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
 	protected static final String ID_MANAGER_MENU = "managerMenu";
 	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
@@ -106,6 +114,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 	private static final String OPERATION_LOAD_MANAGERS = DOT_CLASS + "loadManagers";
+	private static final String OPERATION_LOAD_MEMBER_RELATION_OBJECTS = DOT_CLASS + "loadMemberRelationObjects";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
 	private static final String ID_DELETE_MANAGER = "deleteManager";
@@ -168,12 +177,40 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		seachScrope.setOutputMarkupId(true);
 		form.add(seachScrope);
 
+		List<RelationTypes> relationTypes = new ArrayList<RelationTypes>(Arrays.asList(RelationTypes.values()));
+		DropDownChoicePanel<RelationTypes> relationSelector = new DropDownChoicePanel<RelationTypes>(ID_SEARCH_BY_RELATION,
+				Model.of(), Model.ofList(relationTypes),
+				new EnumChoiceRenderer<RelationTypes>(), true);
+		relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+		relationSelector.setOutputMarkupId(true);
+		relationSelector.setOutputMarkupPlaceholderTag(true);
+		relationSelector.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				refreshTable(target);
+			}
+		});
+		form.add(relationSelector);
+
 	}
 
 	@Override
 	protected void initCustomLayout(Form form, ModelServiceLocator serviceLocator) {
 		WebMarkupContainer managerContainer = createManagerContainer(serviceLocator);
 		form.addOrReplace(managerContainer);
+	}
+
+	@Override
+	protected void initMemberRelationObjectsModel(){
+		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
+			@Override
+			protected List<String> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATION_OBJECTS);
+				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MEMBER.getRelation()));
+			}
+		};
 	}
 
 	private WebMarkupContainer createManagerContainer(ModelServiceLocator serviceLocator) {
@@ -663,38 +700,32 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			q = q.type(searchType.getClassDefinition());
 		}
 
-		PrismReferenceValue parentOrgValue = new PrismReferenceValue();
-		parentOrgValue.setOid(oid);
-		parentOrgValue.setRelation(SchemaConstants.ORG_MANAGER);
-
-
-		PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(oid, OrgType.COMPLEX_TYPE);
-		parentOrgRefVal.setRelation(SchemaConstants.ORG_MANAGER);
-
+		RelationTypes relation = getSelectedRelation();
+		QName relationValue = null;
+		if (relation == null){
+			relationValue = PrismConstants.Q_ANY;
+		} else {
+			relationValue = relation.getRelation();
+		}
+		PrismReferenceValue ref = new PrismReferenceValue(oid);
+		ref.setRelation(relationValue);
 		ObjectQuery query;
 		if (SEARCH_SCOPE_ONE.equals(scope)) {
-			query = q.isDirectChildOf(oid)
-					.and()
-					.block()
-					.not()
-					.item(ObjectType.F_PARENT_ORG_REF)
-					.ref(parentOrgValue)
-					.endBlock()
+			query = q.isDirectChildOf(ref)
 					.build();
 		} else {
-			query = q.isChildOf(oid)
-					.and()
-					.block()
-					.not()
-					.item(ObjectType.F_PARENT_ORG_REF)
-					.ref(parentOrgValue)
-					.endBlock()
+			query = q.isChildOf(ref)
 					.build();
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
 		return query;
+	}
+
+	private RelationTypes getSelectedRelation(){
+		DropDownChoicePanel<RelationTypes> relationSelector = (DropDownChoicePanel<RelationTypes>) getFormComponent().get(ID_SEARCH_BY_RELATION);
+		return relationSelector.getBaseFormComponent().getModelObject();
 	}
 
 	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
@@ -802,4 +833,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		return OBJECT_TYPES_DEFAULT.getClassDefinition();
 	}
+
+	private List<String> getRelationsLocalizedList(){
+		List<String> relationsList = new ArrayList<>();
+		relationsList.add(createStringResource("RelationTypes.ANY").getString());
+		for (RelationTypes relation : RelationTypes.values()){
+			relationsList.add(createStringResource(RelationTypes.class.getSimpleName() + "." + relation.name()).getString());
+		}
+		return relationsList;
+	}
+
+	@Override
+	protected boolean isRelationColumnVisible(){
+		return true;
+	}
+
+//	@Override
+//	protected QName[] getMemberRelationQueryItem(){
+//		return new QName[]{FocusType.F_PARENT_ORG_REF};
+//	}
 }

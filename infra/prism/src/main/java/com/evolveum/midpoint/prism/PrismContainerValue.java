@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -1346,24 +1347,24 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 	}
 
-	protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef) {
+	protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
 		// special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
 		PrismContainerable parent = getParent();
 		if (parent != null && complexTypeDefinition != null) {
 			if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
 				replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
 			} else {
-				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>(), new HashMap<>() ));		// OK?
+				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>(), new HashMap<>(), postCloneAction));		// OK?
 			}
 		}
 		if (items != null) {
 			for (Item<?,?> item: items) {
-				deepCloneDefinitionItem(item, ultraDeep, clonedContainerDef);
+				deepCloneDefinitionItem(item, ultraDeep, clonedContainerDef, postCloneAction);
 			}
 		}
 	}
 
-	private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> void deepCloneDefinitionItem(I item, boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef) {
+	private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> void deepCloneDefinitionItem(I item, boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
 		PrismContainerDefinition<C> oldContainerDef = getDefinition();
 		QName itemName = item.getElementName();
 		ID oldItemDefFromContainer = oldContainerDef.findItemDefinition(itemName);
@@ -1372,9 +1373,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (oldItemDefFromContainer == oldItemDef) {
 			clonedItemDef = clonedContainerDef.findItemDefinition(itemName);
 		} else {
-			clonedItemDef = (ID) oldItemDef.deepClone(ultraDeep);
+			clonedItemDef = (ID) oldItemDef.deepClone(ultraDeep, postCloneAction);
 		}
-		item.propagateDeepCloneDefinition(ultraDeep, clonedItemDef);		// propagate to items in values
+		item.propagateDeepCloneDefinition(ultraDeep, clonedItemDef, postCloneAction);		// propagate to items in values
 		item.setDefinition(clonedItemDef);									// sets CTD in values only if null!
 	}
 

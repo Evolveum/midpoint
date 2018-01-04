@@ -549,6 +549,22 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return getEffectiveCapability(CountObjectsCapabilityType.class, resourceType) != null;
 	}
 	//endregion
+	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		originalObjectClassDefinition.accept(visitor);
+		
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+			auxiliaryObjectClassDefinition.accept(visitor);
+		}
+		for (RefinedAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+			attributeDefinition.accept(visitor);
+		}
+		for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
+			associationDefinition.accept(visitor);
+		}
+	}
 
 	//region Cloning ========================================================
 	@NotNull
@@ -579,9 +595,9 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@NotNull
 	@Override
-	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
 		// TODO TODO TODO (note that in original implementation this was also missing...)
-		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceOid, originalObjectClassDefinition.deepClone(ctdMap, onThisPath));
+		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceOid, originalObjectClassDefinition.deepClone(ctdMap, onThisPath, postCloneAction));
 		copyDefinitionData(clone);
 		shared = false;
 		return clone;
@@ -756,6 +772,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@Override
 	public boolean isExperimental() {
 		return originalObjectClassDefinition.isExperimental();
+	}
+	
+	@Override
+	public boolean isElaborate() {
+		return originalObjectClassDefinition.isElaborate();
 	}
 	
 	@Override

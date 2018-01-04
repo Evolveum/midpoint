@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -109,19 +110,13 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
+            } else if (object instanceof ContainerValueWrapper){
+                ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+                valueWrapper.setSelected(selected);
             }
         }
 
-        //refresh rows with ajax
-        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
-        while (iterator.hasNext()) {
-            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
-            if (!row.getOutputMarkupId()) {
-                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-                continue;
-            }
-            target.add(row);
-        }
+        target.add(table.getBody());
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {
@@ -144,6 +139,9 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();
+        } else if (object instanceof ContainerValueWrapper){
+            ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+            return valueWrapper.isSelected();
         }
         return false;
     }
