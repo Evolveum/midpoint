@@ -16,49 +16,31 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.R_AtomicFilter;
-import com.evolveum.midpoint.prism.query.builder.R_Filter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.lang.Validate;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -113,14 +95,20 @@ public class ContainerWrapperFactory {
         
        return cWrapper;
     }
-    
-    public AssociationWrapper createAssociationWrapper(PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<ShadowAssociationType> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
-        result = new OperationResult(CREATE_ASSOCIATION_WRAPPER);
-    	//we need to switch association wrapper to single value
-    	//the transformation will be as following:
-    	// we have single value ShadowAssociationType, and from each shadowAssociationType we will create
+
+	public <C extends Containerable> AbstractAssociationWrapper createAssociationWrapper(PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
+		if (association == null || association.getDefinition() == null
+				|| (!(association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class))
+				&& !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))){
+			LOGGER.debug("Association for {} is not supported", association.getComplexTypeDefinition().getTypeClass());
+			return null;
+		}
+		result = new OperationResult(CREATE_ASSOCIATION_WRAPPER);
+		//we need to switch association wrapper to single value
+		//the transformation will be as following:
+		// we have single value ShadowAssociationType || ResourceObjectAssociationType, and from each shadowAssociationType we will create
     	// property - name of the property will be association type(QName) and the value will be shadowRef
-    	PrismContainerDefinition<ShadowAssociationType> associationDefinition = association.getDefinition().clone();
+    	PrismContainerDefinition<C> associationDefinition = association.getDefinition().clone();
     	associationDefinition.setMaxOccurs(1);
     	
     	RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
@@ -132,11 +120,18 @@ public class ContainerWrapperFactory {
 			return null;
 		}
     	
-    	PrismContainer<ShadowAssociationType> shadowAssociationTransformed = associationDefinition.instantiate();
-    	AssociationWrapper associationWrapper = new AssociationWrapper(shadowAssociationTransformed, objectStatus, status, path);
+    	PrismContainer associationTransformed = associationDefinition.instantiate();
+    	AbstractAssociationWrapper associationWrapper;
+    	if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
+    		associationWrapper = new ShadowAssociationWrapper(associationTransformed, objectStatus, status, path);
+		} else if (association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)) {
+			associationWrapper = new ResourceAssociationWrapper(associationTransformed, objectStatus, status, path);
+		} else {
+    		return null;
+		}
     	
-    	ContainerValueWrapper<ShadowAssociationType> shadowValueWrapper = new ContainerValueWrapper<>(associationWrapper,
-				shadowAssociationTransformed.createNewValue(), objectStatus,
+    	ContainerValueWrapper<C> shadowValueWrapper = new ContainerValueWrapper<>(associationWrapper,
+				associationTransformed.createNewValue(), objectStatus,
 				ContainerStatus.ADDING == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, path);
 		
 		List<ItemWrapper> associationValuesWrappers = new ArrayList<>();
@@ -146,10 +141,13 @@ public class ContainerWrapperFactory {
 			shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
 			PrismReference shadowAss = shadowRefDef.instantiate();
 			ItemPath itemPath = null;
-			for (PrismContainerValue<ShadowAssociationType> shadowAssociation : association.getValues()) {
-				if (shadowAssociation.asContainerable().getName().equals(refinedAssocationDefinition.getName())) {
-					itemPath = shadowAssociation.getPath();
-					shadowAss.add(shadowAssociation.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
+			for (PrismContainerValue<C> associationValue : association.getValues()) {
+				if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
+					ShadowAssociationType shadowAssociation = (ShadowAssociationType)associationValue.asContainerable();
+					if (shadowAssociation.getName().equals(refinedAssocationDefinition.getName())) {
+						itemPath = associationValue.getPath();
+						shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
+					}
 				}
 			}
 			

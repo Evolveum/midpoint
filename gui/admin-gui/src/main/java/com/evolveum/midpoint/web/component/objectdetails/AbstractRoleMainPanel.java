@@ -237,6 +237,23 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 
 		});
+		authorization = new FocusTabVisibleBehavior(unwrapModel(),
+				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL);
+		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new InducedEntitlementsTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+			}
+
+			@Override
+			public String getCount(){
+				return getInducedEntitlementsCount();
+			}
+
+		});
 
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
@@ -295,5 +312,20 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 				return "";
 			}
 			return Integer.toString(inducements.size());
+	}
+
+	private String getInducedEntitlementsCount(){
+			PrismObject<R> focus = getObjectModel().getObject().getObject();
+			List<AssignmentType> inducements = focus.asObjectable().getInducement();
+			if (inducements == null){
+				return "";
+			}
+			int count = 0;
+			for (AssignmentType inducement : inducements){
+				if (inducement.getConstruction() != null && inducement.getConstruction().getAssociation() != null){
+					count++;
+				}
+			};
+			return Integer.toString(count);
 	}
 }

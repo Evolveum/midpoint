@@ -1,0 +1,26 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="75be020a-1387-4ddb-abd5-e81dba966a44">
+   <name>JIRA Group</name>
+   <description>Basic role for Jira groups.</description>
+   <activation>
+      <effectiveStatus>enabled</effectiveStatus>
+      <enableTimestamp>2017-07-25T13:20:33.949+02:00</enableTimestamp>
+   </activation>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <inducement id="2">
+      <construction>
+         <resourceRef oid="cf933dce-43ef-4925-af9b-f9e13f91a665"
+                      relation="org:default"
+                      type="c:ResourceType"><!-- JiraConnector --></resourceRef>
+         <kind>entitlement</kind>
+         <intent>Group</intent>
+      </construction>
+   </inducement>
+</role>

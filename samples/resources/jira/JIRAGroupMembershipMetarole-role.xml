@@ -1,0 +1,41 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="8b0b1109-ffa5-41cc-95c1-67badfe55390">
+   <name>JIRA Group Membership Metarole</name>
+   <activation>
+      <effectiveStatus>enabled</effectiveStatus>
+      <enableTimestamp>2017-07-25T13:44:12.605+02:00</enableTimestamp>
+   </activation>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <inducement id="2">
+      <construction>
+         <resourceRef oid="cf933dce-43ef-4925-af9b-f9e13f91a665"
+                      relation="org:default"
+                      type="c:ResourceType"><!-- JiraConnector --></resourceRef>
+         <kind>account</kind>
+         <association>
+            <c:ref>ri:GroupMembership</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <expression>
+                  <associationFromLink xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                       xsi:type="c:AssociationFromLinkExpressionEvaluatorType">
+                     <projectionDiscriminator>
+                        <kind>entitlement</kind>
+                        <intent>Group</intent>
+                     </projectionDiscriminator>
+                  </associationFromLink>
+               </expression>
+            </outbound>
+         </association>
+      </construction>
+      <order>2</order>
+      <focusType>UserType</focusType>
+   </inducement>
+</role>

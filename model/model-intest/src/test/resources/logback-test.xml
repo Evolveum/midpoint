@@ -94,7 +94,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />
@@ -104,7 +104,7 @@
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.importer" level="DEBUG" />
     <logger name="com.evolveum.midpoint.common.validator" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy" level="INFO" />

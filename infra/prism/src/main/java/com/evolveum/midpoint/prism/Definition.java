@@ -98,7 +98,19 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 
 	boolean isDeprecated();
 	
+	/**
+	 * Experimental functionality is not stable and it may be changed in any
+     * future release without any warning. Use at your own risk.
+	 */
 	boolean isExperimental();
+	/**
+	 * Elaborate items are complicated data structure that may deviate from
+     * normal principles of the system. For example elaborate items may not
+     * be supported in user interface and may only be manageable by raw edits
+     * or a special-purpose tools. Elaborate items may be not fully supported
+     * by authorizations, schema tools and so on.
+	 */
+	boolean isElaborate();
 	
 	String getDeprecatedSince();
 

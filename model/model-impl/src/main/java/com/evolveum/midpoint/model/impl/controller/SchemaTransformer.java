@@ -186,7 +186,7 @@ public class SchemaTransformer {
     	authorizeOptions(rootOptions, object, null, phase, task, result);
     	validateObject(object, rootOptions, result);
 
-    	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
+    	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true, this::setFullAccessFlags);
 
     	ObjectSecurityConstraints securityConstraints;
     	try {
@@ -238,6 +238,12 @@ public class SchemaTransformer {
 		result.recordSuccessIfUnknown();
 		LOGGER.trace("applySchemasAndSecurity finishing");			// to allow folding in log viewer
     }
+	
+	public void setFullAccessFlags(ItemDefinition<?> itemDef) {		
+		itemDef.setCanRead(true);
+		itemDef.setCanAdd(true);
+		itemDef.setCanModify(true);
+	}
 
 	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition,
 			GetOperationOptions rootOptions, AuthorizationPhaseType phase, Task task, OperationResult result)
@@ -280,12 +286,16 @@ public class SchemaTransformer {
 		while (iterator.hasNext()) {
 			Item<?,?> item = iterator.next();
 			ItemPath itemPath = item.getPath();
+			ItemDefinition<?> itemDef = item.getDefinition();
+			if (itemDef != null && itemDef.isElaborate()) {
+				LOGGER.trace("applySecurityConstraints(item): {}: skip (elaborate)", itemPath);
+				continue;
+			}
 			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
 			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultReadDecision, phase);
 			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultReadDecision, phase);
 			LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
 					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
-			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null) {
 				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
 					((ItemDefinitionImpl) itemDef).setCanRead(false);
@@ -376,8 +386,13 @@ public class SchemaTransformer {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: subDefinitions) {
+				ItemPath subPath = new ItemPath(itemPath, subDef.getName());
+				if (subDef.isElaborate()) {
+					LOGGER.trace("applySecurityConstraints(itemDef): {}: skip (elaborate)", subPath);
+					continue;
+				}
 				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
-					applySecurityConstraintsItemDef(subDef, definitionsSeen, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					applySecurityConstraintsItemDef(subDef, definitionsSeen, subPath, securityConstraints,
 					    readDecision, addDecision, modifyDecision, phase);
 				}
 				if (subDef.canRead()) {
@@ -404,7 +419,7 @@ public class SchemaTransformer {
 		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
 			((ItemDefinitionImpl) itemDefinition).setCanModify(false);
 		}
-
+		
 		if (anySubElementRead) {
 			((ItemDefinitionImpl) itemDefinition).setCanRead(true);
 		}

@@ -234,7 +234,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true, schemaTransformer::setFullAccessFlags );
 
 		try {
 		
