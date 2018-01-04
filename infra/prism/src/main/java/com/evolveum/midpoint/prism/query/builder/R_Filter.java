@@ -388,6 +388,9 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (parentFilter == null) {
             throw new IllegalStateException("endBlock() call without preceding block() one");
         }
+	    if (hasRestriction()) {
+		    return addSubfilter(null).endBlock();         // finish if this is open 'type' or 'exists' filter
+	    }
         if (currentFilter != null || parentFilter.hasRestriction()) {
             ObjectFilter simplified = simplify(currentFilter);
             if (simplified != null || parentFilter.hasRestriction()) {
