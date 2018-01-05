@@ -513,13 +513,15 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 		if (values.isEmpty()) {
 			sb.append("[]");
 		} else {
+			String dump = null;
 			boolean multiline = false;
 			PrismPropertyValue<T> firstVal = values.iterator().next();
 			if (firstVal != null && !firstVal.isRaw() && firstVal.getValue() != null) {
 				if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
 					multiline = true;
 				} else {
-					if (PrettyPrinter.prettyPrint(firstVal.getValue()).length() > MAX_SINGLELINE_LEN) {
+					dump = PrettyPrinter.debugDump(firstVal.getValue(), indent + 1);
+					if (dump.length() > MAX_SINGLELINE_LEN || dump.contains("\n")) {
 						multiline = true;
 					}
 				}
@@ -534,15 +536,18 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 					} else if (value.getExpression() != null) {
 						sb.append(" (expression)");
 					} else {
-						T realValue = value.getValue();
-						if (realValue instanceof DebugDumpable) {
-							sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
+						if (dump != null) {
+							sb.append(dump);
 						} else {
-							DebugUtil.indentDebugDump(sb, indent + 1);
-							if (DebugUtil.isDetailedDebugDump()) {
-								sb.append(PrettyPrinter.prettyPrint(value));
+							T realValue = value.getValue();
+							if (realValue instanceof DebugDumpable) {
+								sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
 							} else {
-								PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
+								if (DebugUtil.isDetailedDebugDump()) {
+									PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
+								} else {
+									sb.append(PrettyPrinter.debugDump(value, indent + 1));								
+								}
 							}
 						}
 					}

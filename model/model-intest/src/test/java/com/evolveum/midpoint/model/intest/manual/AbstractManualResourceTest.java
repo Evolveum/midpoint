@@ -493,6 +493,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 	}
 	
+	/**
+	 * ff 2min, run propagation task. Grouping resources should execute the operations now.
+	 */
 	@Test
 	public void test103RunPropagation() throws Exception {
 		final String TEST_NAME = "test103RunPropagation";
@@ -500,6 +503,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		clockForward("PT2M");
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -817,6 +822,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 
+		clockForward("PT2M");
+		
 		// WHEN
 		displayWhen(TEST_NAME);
 		runPropagation();
@@ -1033,9 +1040,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
-
-
-
 	
 	protected void assertAccountWillAfterFillNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {
 		Task task = createTask(TEST_NAME);
@@ -1350,29 +1354,39 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStaus) {
+		return findPendingOperation(shadow, expectedExecutionStaus, null, null, null);
+	}
+	
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
 			OperationResultStatusType expectedResult) {
-		return findPendingOperation(shadow, expectedResult, null, null);
+		return findPendingOperation(shadow, null, expectedResult, null, null);
 	}
 
 	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
 			OperationResultStatusType expectedResult, ItemPath itemPath) {
-		return findPendingOperation(shadow, expectedResult, null, itemPath);
+		return findPendingOperation(shadow, null, expectedResult, null, itemPath);
+	}
+	
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStaus, ItemPath itemPath) {
+		return findPendingOperation(shadow, expectedExecutionStaus, null, null, itemPath);
 	}
 
 	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
 			OperationResultStatusType expectedResult, ChangeTypeType expectedChangeType) {
-		return findPendingOperation(shadow, expectedResult, expectedChangeType, null);
+		return findPendingOperation(shadow, null, expectedResult, expectedChangeType, null);
 	}
 
 	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			OperationResultStatusType expectedResult, ChangeTypeType expectedChangeType, ItemPath itemPath) {
+			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResult,
+			ChangeTypeType expectedChangeType, ItemPath itemPath) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
 		for (PendingOperationType pendingOperation: pendingOperations) {
-			OperationResultStatusType result = pendingOperation.getResultStatus();
-			if (result == null) {
-				result = OperationResultStatusType.IN_PROGRESS;
+			if (expectedExecutionStatus != null && !expectedExecutionStatus.equals(pendingOperation.getExecutionStatus())) {
+				continue;
 			}
-			if (pendingOperation.getResultStatus() != expectedResult) {
+			if (expectedResult != null && !expectedResult.equals(pendingOperation.getResultStatus())) {
 				continue;
 			}
 			ObjectDeltaType delta = pendingOperation.getDelta();

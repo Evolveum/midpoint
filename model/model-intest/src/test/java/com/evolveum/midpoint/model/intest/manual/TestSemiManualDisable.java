@@ -120,15 +120,17 @@ public class TestSemiManualDisable extends TestSemiManual {
 	@Override
 	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
 		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+				null, OperationResultStatusType.IN_PROGRESS, 
+				ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
 			assertPendingOperation(shadowRepo, pendingOperation,
 					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 					OperationResultStatusType.IN_PROGRESS,
 					null, null);
 		} else {
-			pendingOperation = findPendingOperation(shadowRepo,
-					OperationResultStatusType.SUCCESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			pendingOperation = findPendingOperation(shadowRepo, 
+					null, OperationResultStatusType.SUCCESS, 
+					ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 			assertPendingOperation(shadowRepo, pendingOperation,
 					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 					OperationResultStatusType.SUCCESS,

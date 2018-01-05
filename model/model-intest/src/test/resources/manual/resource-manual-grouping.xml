@@ -129,7 +129,7 @@
 	<consistency>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
-		<operationGroupingInterval>PT10M</operationGroupingInterval>
+		<operationGroupingInterval>PT2M</operationGroupingInterval>
 	</consistency>
 	
 </resource>

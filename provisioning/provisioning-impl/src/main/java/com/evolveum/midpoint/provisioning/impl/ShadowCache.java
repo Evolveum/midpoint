@@ -1049,6 +1049,44 @@ public abstract class ShadowCache {
 				AvailabilityStatusType.UP, parentResult);
 	}
 	
+	private ProvisioningOperationState<AsynchronousOperationResult> executeResourceDelete(
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> shadow,
+			OperationProvisioningScriptsType scripts,
+			ProvisioningOperationOptions options,
+			Task task,
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
+		opState.setExistingShadowOid(shadow.getOid());
+		
+		if (shadow.asObjectable().getFailedOperationType() == null
+				|| (shadow.asObjectable().getFailedOperationType() != null
+						&& FailedOperationTypeType.ADD != shadow.asObjectable().getFailedOperationType())) {
+			try {
+				
+				AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, parentResult);
+				opState.processAsyncResult(asyncReturnValue);
+				
+			} catch (Exception ex) {
+				try {
+					handleError(ctx, ex, shadow, FailedOperation.DELETE, null,
+							isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
+					AsynchronousOperationResult asyncReturnValue = AsynchronousOperationResult.wrap(parentResult.getLastSubresult());
+					opState.setAsyncResult(asyncReturnValue);
+					opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+					return opState;
+					
+				} catch (ObjectAlreadyExistsException e) {
+					parentResult.recordFatalError(e);
+					throw new SystemException(e.getMessage(), e);
+				}
+			}
+		}
+		
+		return opState;
+	}
+
+	
 	private void notifyAfterDelete(
 			ProvisioningContext ctx,
 			PrismObject<ShadowType> shadow,
@@ -1067,6 +1105,7 @@ public abstract class ShadowCache {
 			operationListener.notifySuccess(operationDescription, task, parentResult);
 		}
 	}
+		
 
 	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ShadowType shadowType = repoShadow.asObjectable();
@@ -2827,19 +2866,38 @@ public abstract class ShadowCache {
 	}
 	
 	public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException, SecurityViolationException {
+		ResourceConsistencyType resourceConsistencyType = resource.asObjectable().getConsistency();
+		if (resourceConsistencyType == null) {
+			LOGGER.warn("Skipping propagation of {} because no there is no consistency definition in resource", shadow);
+			return;
+		}
+		Duration operationGroupingInterval = resourceConsistencyType.getOperationGroupingInterval();
+		if (operationGroupingInterval == null) {
+			LOGGER.warn("Skipping propagation of {} because no there is no operationGroupingInterval defined in resource", shadow);
+			return;
+		}
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		
 		List<PendingOperationType> pendingExecutionOperations = new ArrayList<>();
+		boolean triggered = false;
 		for (PendingOperationType pendingOperation: shadow.asObjectable().getPendingOperation()) {
 			PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
 			if (executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
 				pendingExecutionOperations.add(pendingOperation);
+				if (isPropagationTriggered(pendingOperation, operationGroupingInterval, now)) {
+					triggered = true;
+				}
 			}
+		}
+		if (!triggered) {
+			LOGGER.debug("Skipping propagation of {} because no pending operation triggered propagation", shadow);
+			return;
 		}
 		if (pendingExecutionOperations.isEmpty()) {
 			LOGGER.debug("Skipping propagation of {} because there are no pending executions", shadow);
 			return;
 		}
 		LOGGER.debug("Propagating {} pending operations in {} ", pendingExecutionOperations.size(), shadow);
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, result);
 
 		ObjectDelta<ShadowType> operationDelta = null;
 		List<PendingOperationType> sortedOperations = sortOperations(pendingExecutionOperations);
@@ -2853,6 +2911,8 @@ public abstract class ShadowCache {
 				operationDelta.merge(pendingDelta);
 			}
 		}
+		
+		ProvisioningContext ctx = ctxFactory.create(shadow, task, result);
 		applyAttributesDefinition(ctx, shadow);
 		applyAttributesDefinition(ctx, operationDelta);
 		LOGGER.trace("Merged operation for {}:\n{} ", shadow, operationDelta.debugDumpLazily(1));
@@ -2878,15 +2938,27 @@ public abstract class ShadowCache {
 			notifyAfterModify(ctx, shadow, modifications, opState, task, result);
 			
 		} else if (operationDelta.isDelete()) {
-			// TODO: delete
+			ProvisioningOperationState<AsynchronousOperationResult> opState = executeResourceDelete(ctx, shadow, null, null, task, result);
+			opState.determineExecutionStatusFromResult();
+			
+			shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, result);
+			
+			notifyAfterDelete(ctx, shadow, opState, task, result);
 			
 		} else {
 			throw new IllegalStateException("Delta from outer space: "+operationDelta);
 		}
 		
 		// TODO: change operation status, set async references, etc. modify exists/dead flags --- delegate to shadow manager?
-		
-		// TODO: notification
+
+	}
+
+	private boolean isPropagationTriggered(PendingOperationType pendingOperation, Duration operationGroupingInterval, XMLGregorianCalendar now) {
+		XMLGregorianCalendar requestTimestamp = pendingOperation.getRequestTimestamp();
+		if (requestTimestamp == null) {
+			return false;
+		}
+		return XmlTypeConverter.isAfterInterval(requestTimestamp, operationGroupingInterval, now);
 	}
 
 }

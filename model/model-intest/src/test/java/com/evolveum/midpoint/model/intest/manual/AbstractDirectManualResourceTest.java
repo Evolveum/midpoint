@@ -448,7 +448,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		assertPendingOperation(shadowRepo, pendingOperation,
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
+				PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
 		pendingOperation = findPendingOperation(shadowRepo,
@@ -479,7 +479,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		assertPendingOperation(shadowModel, pendingOperation,
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
+				PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
 		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
@@ -533,7 +533,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		assertPendingOperation(shadowRepo, pendingOperation,
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
+				PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
 		pendingOperation = findPendingOperation(shadowRepo,
@@ -566,7 +566,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		assertPendingOperation(shadowModel, pendingOperation,
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
+				PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
 		PrismObject<ShadowType> shadowProvisioningFuture = modelService.getObject(ShadowType.class,
