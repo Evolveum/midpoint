@@ -19,7 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
  */
 public class ResourceAssociationWrapper extends AbstractAssociationWrapper<ResourceObjectAssociationType> {
 
-    private static transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapper.class);
+    private static transient Trace LOGGER = TraceManager.getTrace(ResourceAssociationWrapper.class);
 
     ResourceAssociationWrapper(PrismContainer<ResourceObjectAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
         super(container, objectStatus, status, path);
