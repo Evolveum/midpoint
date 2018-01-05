@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,11 @@ public class TestSemiManualDisable extends TestSemiManual {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 	}
+	
+	@Override
+	protected BackingStore createBackingStore() {
+		return new CsvDisablingBackingStore();
+	}
 
 	@Override
 	protected String getResourceOid() {
@@ -88,11 +93,6 @@ public class TestSemiManualDisable extends TestSemiManual {
 	@Override
 	protected File getRoleTwoFile() {
 		return ROLE_TWO_SEMI_MANUAL_DISABLE_FILE;
-	}
-
-	@Override
-	protected void deprovisionInCsv(String username) throws IOException {
-		disableInCsv(username);
 	}
 
 	@Override
@@ -146,7 +146,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		deleteInCsv(username);
+		backingStore.deleteAccount(username);
 		try {
 			repositoryService.deleteObject(ShadowType.class, accountOid, result);
 		} catch (ObjectNotFoundException e) {

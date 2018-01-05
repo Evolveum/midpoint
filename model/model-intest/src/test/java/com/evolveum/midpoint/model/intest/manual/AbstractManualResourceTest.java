@@ -156,6 +156,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 	protected static final String INTEREST_ONE = "one";
 
+	protected BackingStore backingStore;
+	
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
 
@@ -190,6 +192,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		backingStore = createBackingStore();
+		if (backingStore != null) {
+			backingStore.initialize();
+		}
+		display("Backing store", backingStore);
 
 		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 
@@ -212,6 +220,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// Turns on checks for connection in manual connector
 		InternalsConfig.setSanityChecks(true);
 
+	}
+
+	protected BackingStore createBackingStore() {
+		return null;
 	}
 
 	private PrismObject<UserType> createUserWill() throws SchemaException {
@@ -239,7 +251,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected abstract String getRoleTwoOid();
 
 	protected boolean supportsBackingStore() {
-		return false;
+		return backingStore != null;
 	}
 
 	protected boolean hasMultivalueInterests() {
@@ -573,6 +585,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		OperationResult result = task.getResult();
 
 		backingStoreProvisionWill(INTEREST_ONE);
+		displayBackingStore();
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1090,19 +1103,39 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 	
 	protected void backingStoreProvisionWill(String interest) throws IOException {
-		// nothing to do here
+		if (backingStore != null) {
+			backingStore.provisionWill(interest);
+		}
 	}
 
 	protected void backingStoreUpdateWill(String newFullName, String interest, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
-		// nothing to do here
+		if (backingStore != null) {
+			backingStore.updateWill(newFullName, interest, newAdministrativeStatus, password);
+		}
 	}
 
 	protected void backingStoreDeprovisionWill() throws IOException {
-		// Nothing to do here
+		if (backingStore != null) {
+			backingStore.deprovisionWill();
+		}
 	}
 
 	protected void displayBackingStore() throws IOException {
-		// Nothing to do here
+		if (backingStore != null) {
+			backingStore.displayContent();
+		}
+	}
+	
+	protected void backingStoreAddJack() throws IOException {
+		if (backingStore != null) {
+			backingStore.addJack();
+		}
+	}
+
+	protected void backingStoreDeleteJack() throws IOException {
+		if (backingStore != null) {
+			backingStore.deleteJack();
+		}
 	}
 
 	protected void assignWillRoleOne(final String TEST_NAME, String expectedFullName, PendingOperationExecutionStatusType executionStage) throws Exception {

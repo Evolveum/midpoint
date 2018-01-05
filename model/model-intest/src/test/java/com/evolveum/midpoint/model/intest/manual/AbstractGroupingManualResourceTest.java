@@ -120,15 +120,27 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
 	protected static final File RESOURCE_MANUAL_GROUPING_FILE = new File(TEST_DIR, "resource-manual-grouping.xml");
 	protected static final String RESOURCE_MANUAL_GROUPING_OID = "a6e228a0-f092-11e7-b5bc-579f2e54e15c";
+	
+	protected static final File RESOURCE_SEMI_MANUAL_GROUPING_FILE = new File(TEST_DIR, "resource-semi-manual-grouping.xml");
+	protected static final String RESOURCE_SEMI_MANUAL_GROUPING_OID = "9eddca88-f222-11e7-98dc-cb6e4b08800c";
 
 	protected static final File ROLE_ONE_MANUAL_GROUPING_FILE = new File(TEST_DIR, "role-one-manual-grouping.xml");
 	protected static final String ROLE_ONE_MANUAL_GROUPING_OID = "bc586500-f092-11e7-9cda-f7cd4203a755";
+	
+	protected static final File ROLE_ONE_SEMI_MANUAL_GROUPING_FILE = new File(TEST_DIR, "role-one-semi-manual-grouping.xml");
+	protected static final String ROLE_ONE_SEMI_MANUAL_GROUPING_OID = "dc961c9a-f222-11e7-b19a-0fa30f483712";
 
 	protected static final File ROLE_TWO_MANUAL_GROUPING_FILE = new File(TEST_DIR, "role-two-manual-grouping.xml");
 	protected static final String ROLE_TWO_MANUAL_GROUPING_OID = "c9de1300-f092-11e7-8c5f-3ff8ea609a1d";
 	
+	protected static final File ROLE_TWO_SEMI_MANUAL_GROUPING_FILE = new File(TEST_DIR, "role-two-semi-manual-grouping.xml");
+	protected static final String ROLE_TWO_SEMI_MANUAL_GROUPING_OID = "17fafa4e-f223-11e7-bbee-ff66557fc83f";
+	
 	protected static final File TASK_PROPAGATION_MANUAL_GROUPING_FILE = new File(TEST_DIR, "task-propagation-manual-grouping.xml");
 	protected static final String TASK_PROPAGATION_MANUAL_GROUPING_OID = "b84a2c46-f0b5-11e7-baff-d35c2f14080f";
+	
+	protected static final File TASK_PROPAGATION_SEMI_MANUAL_GROUPING_FILE = new File(TEST_DIR, "task-propagation-semi-manual-grouping.xml");
+	protected static final String TASK_PROPAGATION_SEMI_MANUAL_GROUPING_OID = "01db4542-f224-11e7-8833-bbe6634814e7";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractGroupingManualResourceTest.class);
 
@@ -149,15 +161,19 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 	@Override
 	protected void runPropagation() throws Exception {
 		if (propagationTaskOid == null) {
-			addTask(TASK_PROPAGATION_MANUAL_GROUPING_FILE);
-			propagationTaskOid = TASK_PROPAGATION_MANUAL_GROUPING_OID;
-			waitForTaskStart(TASK_PROPAGATION_MANUAL_GROUPING_OID, true);
+			addTask(getPropagationTaskFile());
+			propagationTaskOid = getPropagationTaskOid();
+			waitForTaskStart(propagationTaskOid, true);
 		} else {
-			restartTask(TASK_PROPAGATION_MANUAL_GROUPING_OID);
+			restartTask(propagationTaskOid);
 		}
-		waitForTaskFinish(TASK_PROPAGATION_MANUAL_GROUPING_OID, true);
+		waitForTaskFinish(propagationTaskOid, true);
 	}
 
+	protected abstract String getPropagationTaskOid();
+	
+	protected abstract File getPropagationTaskFile();
+	
 	// Grouping execution. The operation is delayed for a while.
 	@Override
 	protected PendingOperationExecutionStatusType getExpectedExecutionStatus(PendingOperationExecutionStatusType executionStage) {

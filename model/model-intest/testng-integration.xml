@@ -128,6 +128,7 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
             <!--  DISABLED MID-4166 
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/> -->

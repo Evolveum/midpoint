@@ -1433,6 +1433,12 @@ public class ShadowManager {
 		if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
 			return true;
 		}
+		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getParentPath())) {
+			return true;
+		}
+		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
+			return true;
+		}
 		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
 			return true;
 		}

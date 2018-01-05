@@ -2350,23 +2350,6 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 			OperationResult result) {
 		assertShadowDead(shadowModelFuture);
 	}
-
-
-	protected void backingStoreProvisionWill(String interest) throws IOException {
-		// nothing to do here
-	}
-
-	protected void backingStoreUpdateWill(String newFullName, String interest, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
-		// nothing to do here
-	}
-
-	protected void backingStoreDeprovisionWill() throws IOException {
-		// Nothing to do here
-	}
-
-	protected void displayBackingStore() throws IOException {
-		// Nothing to do here
-	}
 	
 	// Direct execution. The operation is always executing immediately after it is requested.
 	protected PendingOperationExecutionStatusType getExpectedExecutionStatus(PendingOperationExecutionStatusType executionStage) {
