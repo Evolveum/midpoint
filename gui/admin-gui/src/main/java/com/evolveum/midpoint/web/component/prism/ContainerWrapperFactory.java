@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -147,6 +148,28 @@ public class ContainerWrapperFactory {
 					if (shadowAssociation.getName().equals(refinedAssocationDefinition.getName())) {
 						itemPath = associationValue.getPath();
 						shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
+					}
+				} else if (association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)){
+					//for now Induced entitlements gui should support only targetRef expression value
+					//that is why no need to look for another expression types within association
+					ResourceObjectAssociationType resourceAssociation = (ResourceObjectAssociationType) associationValue.asContainerable();
+					if (resourceAssociation.getRef() == null || resourceAssociation.getRef().getItemPath() == null){
+						continue;
+					}
+					if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
+						itemPath = associationValue.getPath();
+						MappingType outbound = ((ResourceObjectAssociationType)association.getValue().asContainerable()).getOutbound();
+						if (outbound == null){
+							continue;
+						}
+						ExpressionType expression = outbound.getExpression();
+						if (expression == null){
+							continue;
+						}
+						ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(expression);
+						if (shadowRef != null) {
+							shadowAss.add(shadowRef.asReferenceValue().clone());
+						}
 					}
 				}
 			}
