@@ -21,6 +21,9 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyPropertyModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -29,16 +32,14 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -46,21 +47,19 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -128,7 +127,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 MapXNode associationTargetSearchNode = ExpressionUtil.getAssociationTargetSearchFilterValuesMap(getModelObject());
                 boolean isAssociationTargetSearchNull = associationTargetSearchNode == null || associationTargetSearchNode.isEmpty();
 
-                boolean isLiteralValueNull = getLiteralValue() == null;
+                List<String> literalValues = getLiteralValues();
+                boolean isLiteralValueNull = literalValues == null || literalValues.isEmpty();
                 return isShadowRefValueNull && isAssociationTargetSearchNull &&  isLiteralValueNull;
 
             }
@@ -148,22 +148,50 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public boolean isVisible(){
-                return getLiteralValue() != null;
+                List<String> literalValues = getLiteralValues();
+                return literalValues != null && !literalValues.isEmpty();
+
             }
         });
         add(literalValueContainer);
 
-        TextPanel<String> literalValueInput = new TextPanel<String>(ID_LITERAL_VALUE_INPUT, Model.of(getLiteralValue()));
-        literalValueInput.setOutputMarkupId(true);
-        literalValueInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
+        MultiValueTextPanel<String> literalValueInput = new MultiValueTextPanel<String>(ID_LITERAL_VALUE_INPUT,
+                new IModel<List<String>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public List<String> getObject() {
+                        return getLiteralValues();
+                    }
+
+                    @Override
+                    public void setObject(List<String> strings) {
+                        ExpressionUtil.updateLiteralExpressionValue(getModelObject(), strings, getPageBase().getPrismContext());
+                    }
+
+                    @Override
+                    public void detach() {
+
+                    }
+                },
+                new NonEmptyLoadableModel<Boolean>(false) {
+                    @NotNull
+                    @Override
+                    protected Boolean load() {
+                        return false;
+                    }
+                },
+                false){
+
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdate(AjaxRequestTarget target){
-                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), literalValueInput.getBaseFormComponent().getValue(),
-                        getPageBase().getPrismContext());
+            protected void modelObjectUpdatePerformed(AjaxRequestTarget target, List<String> modelObject) {
+                ExpressionUtil.updateLiteralExpressionValue(ExpressionValuePanel.this.getModelObject(),
+                        modelObject, getPageBase().getPrismContext());
             }
-        });
+        };
+        literalValueInput.setOutputMarkupId(true);
         literalValueContainer.add(literalValueInput);
 
         AjaxLink removeButton = new AjaxLink(ID_DELETE_LITERAL_VALUE_BUTTON) {
@@ -378,7 +406,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 if (getModelObject() == null){
                     getModel().setObject(new ExpressionType());
                 }
-                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), "", getPageBase().getPrismContext());
+                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), Arrays.asList(""), getPageBase().getPrismContext());
                 target.add(ExpressionValuePanel.this);
 
             }
@@ -397,13 +425,13 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, getPageBase(), task, result);
     }
 
-    private String getLiteralValue(){
-        String literalValue = null;
+    private List<String> getLiteralValues(){
+        List<String> literalValueList = new ArrayList<>();
         try{
-            return ExpressionUtil.getLiteralExpressionValue(getModelObject());
+            return ExpressionUtil.getLiteralExpressionValues(getModelObject());
         } catch (SchemaException ex){
             LOGGER.error("Couldn't get literal expression value, ", ex.getLocalizedMessage());
         }
-        return literalValue;
+        return literalValueList;
     }
 }
