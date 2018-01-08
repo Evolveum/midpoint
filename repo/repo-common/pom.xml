@@ -75,12 +75,12 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>3.7-SNAPSHOT</version>
+			<version>3.7.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-cache</artifactId>
-			<version>3.7-SNAPSHOT</version>
+			<version>3.7.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
