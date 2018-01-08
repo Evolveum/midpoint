@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 @Component
 public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends AbstractScannerResultHandler<O>>
-		extends AbstractSearchIterativeTaskHandler<O,H> {
+		extends AbstractSearchIterativeModelTaskHandler<O,H> {
 
     @Autowired(required = true)
     protected Clock clock;

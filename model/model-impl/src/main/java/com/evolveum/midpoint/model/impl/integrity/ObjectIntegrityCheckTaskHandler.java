@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -48,7 +48,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeTaskHandler<ObjectType, ObjectIntegrityCheckResultHandler> {
+public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ObjectIntegrityCheckResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI;
 

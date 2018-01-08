@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -46,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Radovan Semancik
  */
-public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable {
+public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable, ShortDumpable {
 	private static final long serialVersionUID = 1L;
 
 	private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
@@ -646,23 +647,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public String toHumanReadableString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("oid=").append(oid);
-		if (getTargetType() != null) {
-			sb.append("(");
-			sb.append(DebugUtil.formatElementName(getTargetType()));
-			sb.append(")");
-		}
-		if (targetName != null) {
-			sb.append("('").append(targetName).append("')");
-		}
-        if (getRelation() != null) {
-            sb.append("[");
-            sb.append(getRelation().getLocalPart());
-            sb.append("]");
-        }
-		if (getObject() != null) {
-			sb.append('*');
-		}
+		sb.append("oid=");
+		shortDump(sb);
 		return sb.toString();
 	}
 
@@ -687,6 +673,27 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		super.revive(prismContext);
 		if (object != null) {
 			object.revive(prismContext);
+		}
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(oid);
+		if (getTargetType() != null) {
+			sb.append("(");
+			sb.append(DebugUtil.formatElementName(getTargetType()));
+			sb.append(")");
+		}
+		if (targetName != null) {
+			sb.append("('").append(targetName).append("')");
+		}
+        if (getRelation() != null) {
+            sb.append("[");
+            sb.append(getRelation().getLocalPart());
+            sb.append("]");
+        }
+		if (getObject() != null) {
+			sb.append('*');
 		}
 	}
 

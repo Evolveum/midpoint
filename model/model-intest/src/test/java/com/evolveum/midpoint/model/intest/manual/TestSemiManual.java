@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,10 +70,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestSemiManual extends AbstractManualResourceTest {
-
-	protected static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
-	protected static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
+public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
 
@@ -83,8 +80,11 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-
-		FileUtils.copyFile(CSV_SOURCE_FILE, CSV_TARGET_FILE);
+	}
+	
+	@Override
+	protected BackingStore createBackingStore() {
+		return new CsvBackingStore();
 	}
 
 	@Override
@@ -115,11 +115,6 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Override
 	protected File getRoleTwoFile() {
 		return ROLE_TWO_SEMI_MANUAL_FILE;
-	}
-
-	@Override
-	protected boolean supportsBackingStore() {
-		return true;
 	}
 
 	@Override
@@ -360,117 +355,6 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		displayTestTitle(TEST_NAME);
 
 		cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
-	}
-
-	@Override
-	protected void backingStoreProvisionWill(String interest) throws IOException {
-		appendToCsv(new String[]{USER_WILL_NAME, USER_WILL_FULL_NAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, interest, "false", USER_WILL_PASSWORD_OLD});
-	}
-
-	@Override
-	protected void backingStoreUpdateWill(String newFullName, String interest, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
-		String disabled;
-		if (newAdministrativeStatus == ActivationStatusType.ENABLED) {
-			disabled = "false";
-		} else {
-			disabled = "true";
-		}
-		replaceInCsv(new String[]{USER_WILL_NAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, interest, disabled, password});
-	}
-
-	@Override
-	protected void backingStoreDeprovisionWill() throws IOException {
-		deprovisionInCsv(USER_WILL_NAME);
-	}
-
-	protected void backingStoreAddJack() throws IOException {
-		appendToCsv(new String[]{USER_JACK_USERNAME, USER_JACK_FULL_NAME, ACCOUNT_JACK_DESCRIPTION_MANUAL, "", "false", USER_JACK_PASSWORD_OLD});
-	}
-
-	protected void backingStoreDeleteJack() throws IOException {
-		deprovisionInCsv(USER_JACK_USERNAME);
-	}
-
-	protected void deprovisionInCsv(String username) throws IOException {
-		deleteInCsv(username);
-	}
-
-	protected void disableInCsv(String username) throws IOException {
-		String[] data = readFromCsv(username);
-		data[4] = "true";
-		replaceInCsv(data);
-	}
-
-	protected String[] readFromCsv(String username) throws IOException {
-		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
-		for (int i = 0; i < lines.size(); i++) {
-			String line = lines.get(i);
-			String[] cols = line.split(",");
-			if (cols[0].matches("\""+username+"\"")) {
-				return unescape(cols);
-			}
-		}
-		return null;
-	}
-
-	private String[] unescape(String[] cols) {
-		String[] out = new String[cols.length];
-		for (int i = 0; i < cols.length; i++) {
-			if (cols[i] != null && !cols[i].isEmpty()) {
-				out[i] = cols[i].substring(1, cols[i].length() - 1);
-			}
-		}
-		return out;
-	}
-
-	protected void appendToCsv(String[] data) throws IOException {
-		String line = formatCsvLine(data);
-		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), line.getBytes(), StandardOpenOption.APPEND);
-	}
-
-	protected void replaceInCsv(String[] data) throws IOException {
-		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
-		boolean found = false;
-		for (int i = 0; i < lines.size(); i++) {
-			String line = lines.get(i);
-			String[] cols = line.split(",");
-			if (cols[0].matches("\""+data[0]+"\"")) {
-				lines.set(i, formatCsvLine(data));
-				found = true;
-			}
-		}
-		if (!found) {
-			throw new IllegalStateException("Not found in CSV: "+data[0]);
-		}
-		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
-				StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-	}
-
-	protected void deleteInCsv(String username) throws IOException {
-		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
-		Iterator<String> iterator = lines.iterator();
-		while (iterator.hasNext()) {
-			String line = iterator.next();
-			String[] cols = line.split(",");
-			if (cols[0].matches("\""+username+"\"")) {
-				iterator.remove();
-			}
-		}
-		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
-				StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-	}
-
-	private String formatCsvLine(String[] data) {
-		return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(","));
-	}
-
-	@Override
-	protected void displayBackingStore() throws IOException {
-		display("CSV", dumpCsv());
-	}
-
-	protected String dumpCsv() throws IOException {
-		return StringUtils.join(Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath())), "\n");
 	}
 
 	@Override
