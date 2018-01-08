@@ -691,8 +691,117 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test081QueryExistsAssignmentWithRedundantBlock() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .block()
+                    .exists(F_ASSIGNMENT)
+                        .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
+                            .eq(ActivationStatusType.ENABLED)
+                    .endBlock()
+                    .asc(F_NAME)
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  a.activation.administrativeStatus = :administrativeStatus\n" +
+                    "order by u.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test082QueryExistsAssignmentWithRedundantBlock2() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .block()
+                    .exists(F_ASSIGNMENT)
+                        .block()
+                            .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
+                                .eq(ActivationStatusType.ENABLED)
+                        .endBlock()
+                    .endBlock()
+                    .asc(F_NAME)
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  a.activation.administrativeStatus = :administrativeStatus\n" +
+                    "order by u.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test084QueryExistsWithAnd() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                    .item(ShadowType.F_RESOURCE_REF).ref("111")
+                    .and()
+                        .exists(ShadowType.F_PENDING_OPERATION)
+                    .build();
+
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+                    + "  s.oid,\n"
+                    + "  s.fullObject,\n"
+                    + "  s.stringsCount,\n"
+                    + "  s.longsCount,\n"
+                    + "  s.datesCount,\n"
+                    + "  s.referencesCount,\n"
+                    + "  s.polysCount,\n"
+                    + "  s.booleansCount\n"
+                    + "from\n"
+                    + "  RShadow s\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    (\n"
+                    + "      s.resourceRef.targetOid = :targetOid and\n"
+                    + "      s.resourceRef.relation in (:relation)\n"
+                    + "    ) and\n"
+                    + "    s.pendingOperationCount > :pendingOperationCount\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void test080QueryExistsAssignmentAll() throws Exception {
+    public void test089QueryExistsAssignmentAll() throws Exception {
         Session session = open();
 
         try {
@@ -3774,7 +3883,116 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-	@Test
+    @Test
+    public void test950RedundantBlock() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                    .block()
+                        .item(ShadowType.F_NAME).eqPoly("aaa")
+                    .endBlock()
+                    .build();
+
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+                    + "  s.oid,\n"
+                    + "  s.fullObject,\n"
+                    + "  s.stringsCount,\n"
+                    + "  s.longsCount,\n"
+                    + "  s.datesCount,\n"
+                    + "  s.referencesCount,\n"
+                    + "  s.polysCount,\n"
+                    + "  s.booleansCount\n"
+                    + "from\n"
+                    + "  RShadow s\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    s.name.orig = :orig and\n"
+                    + "    s.name.norm = :norm\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test952TwoRedundantBlocks() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                    .block()
+                        .block()
+                            .item(ShadowType.F_NAME).eqPoly("aaa")
+                        .endBlock()
+                    .endBlock()
+                    .build();
+
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+                    + "  s.oid,\n"
+                    + "  s.fullObject,\n"
+                    + "  s.stringsCount,\n"
+                    + "  s.longsCount,\n"
+                    + "  s.datesCount,\n"
+                    + "  s.referencesCount,\n"
+                    + "  s.polysCount,\n"
+                    + "  s.booleansCount\n"
+                    + "from\n"
+                    + "  RShadow s\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    s.name.orig = :orig and\n"
+                    + "    s.name.norm = :norm\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test954RedundantBlocksAndExists() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                    .block()
+                        .item(ShadowType.F_RESOURCE_REF).ref("111")
+                        .and()
+                            .exists(ShadowType.F_PENDING_OPERATION)
+                    .endBlock()
+                    .build();
+
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+                    + "  s.oid,\n"
+                    + "  s.fullObject,\n"
+                    + "  s.stringsCount,\n"
+                    + "  s.longsCount,\n"
+                    + "  s.datesCount,\n"
+                    + "  s.referencesCount,\n"
+                    + "  s.polysCount,\n"
+                    + "  s.booleansCount\n"
+                    + "from\n"
+                    + "  RShadow s\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    (\n"
+                    + "      s.resourceRef.targetOid = :targetOid and\n"
+                    + "      s.resourceRef.relation in (:relation)\n"
+                    + "    ) and\n"
+                    + "    s.pendingOperationCount > :pendingOperationCount\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
 	public void testAdHoc100ProcessStartTimestamp() throws Exception {
 		Session session = open();
 
