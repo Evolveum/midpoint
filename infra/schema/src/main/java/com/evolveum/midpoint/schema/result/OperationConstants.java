@@ -51,6 +51,8 @@ public class OperationConstants {
 	public static final String REINDEX = PREFIX + ".reindex";
 	public static final String AUDIT_REINDEX = PREFIX + ".auditReindex";
 	public static final String SHADOW_REFRESH = PREFIX + ".shadowRefresh";
+	
+	public static final String PROVISIONING_PROPAGATION = "com.evolveum.midpoint.provisioning.propagation";
 
 	public static final String OPERATION_SEARCH_RESULT = "com.evolveum.midpoint.schema.result.searchResult";
 

@@ -249,6 +249,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
+	public static final String NS_PROVISIONING_TASK = NS_PROVISIONING + "/task";
 
 	// Synchronization constants
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";

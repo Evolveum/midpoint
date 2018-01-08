@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import com.evolveum.midpoint.util.ShortDumpable;
+
 /**
  * Primary goal of this class is to support asynchronous operations.
  * The call to operation may return even if the resource operation
@@ -30,7 +32,7 @@ package com.evolveum.midpoint.schema.result;
  * @author semancik
  *
  */
-public class AsynchronousOperationResult {
+public class AsynchronousOperationResult implements ShortDumpable {
 
 	private OperationResult operationResult;
 
@@ -50,5 +52,12 @@ public class AsynchronousOperationResult {
 
 	public boolean isInProgress() {
 		return operationResult.isInProgress();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (operationResult != null) {
+			sb.append(operationResult.getStatus());
+		}
 	}
 }
