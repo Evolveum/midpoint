@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collection;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,6 +33,9 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,8 +54,16 @@ public class ShadowCacheReconciler extends ShadowCache {
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public String afterAddOnResource(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult)
-					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public String afterAddOnResource(ProvisioningContext ctx, 
+			PrismObject<ShadowType> shadowToAdd, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+			OperationResult parentResult) 
+					throws SchemaException, ObjectAlreadyExistsException,
+					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+		AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult = opState.getAsyncResult();
+		if (addResult == null) {
+			return opState.getExistingShadowOid();
+		}
 		PrismObject<ShadowType> shadow = addResult.getReturnValue();
 		cleanShadowInRepository(shadow, parentResult);
 
@@ -59,8 +71,12 @@ public class ShadowCacheReconciler extends ShadowCache {
 	}
 
 	@Override
-	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
-			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> shadow,
+			Collection<? extends ItemDelta> modifications, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {
 			cleanShadowInRepository(shadow, parentResult);

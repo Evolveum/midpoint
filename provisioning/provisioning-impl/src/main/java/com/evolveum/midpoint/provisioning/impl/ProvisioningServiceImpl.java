@@ -668,7 +668,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			if (ShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
-				oid = getShadowCache(Mode.STANDARD).modifyShadow((PrismObject<ShadowType>)repoShadow,  oid, modifications, scripts, options, task,
+				oid = getShadowCache(Mode.STANDARD).modifyShadow((PrismObject<ShadowType>)repoShadow, modifications, scripts, options, task,
 					result);
 			} else {
 				cacheRepositoryService.modifyObject(type, oid, modifications, result);
@@ -942,7 +942,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
 		} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
-			getShadowCache(Mode.RECON).modifyShadow(shadow, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);
+			getShadowCache(Mode.RECON).modifyShadow(shadow, new ArrayList<ItemDelta>(), null, options, task, result);
 		} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, task, result);
 		} else {

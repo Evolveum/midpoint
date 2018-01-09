@@ -798,23 +798,6 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(ObjectDeltaType deltaType) {
-		if (deltaType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
-		sb.append(deltaType.getOid()).append(" ");
-		sb.append(deltaType.getChangeType());
-		sb.append(": ");
-		if (deltaType.getObjectToAdd() != null) {
-			sb.append(deltaType.getObjectToAdd());
-		} else {
-			sb.append(deltaType.getItemDelta());
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
 	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
 		if (deltaOpType == null) {
 			return "null";

@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,47 +30,87 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 /**
+ * MID-4347
+ * 
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestManual extends AbstractDirectManualResourceTest {
+public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 
 	@Override
+	protected BackingStore createBackingStore() {
+		return new CsvBackingStore();
+	}
+	
+	@Override
 	protected String getResourceOid() {
-		return RESOURCE_MANUAL_OID;
+		return RESOURCE_SEMI_MANUAL_GROUPING_OID;
 	}
 
 	@Override
 	protected File getResourceFile() {
-		return RESOURCE_MANUAL_FILE;
+		return RESOURCE_SEMI_MANUAL_GROUPING_FILE;
 	}
 
 	@Override
 	protected String getRoleOneOid() {
-		return ROLE_ONE_MANUAL_OID;
+		return ROLE_ONE_SEMI_MANUAL_GROUPING_OID;
 	}
 
 	@Override
 	protected File getRoleOneFile() {
-		return ROLE_ONE_MANUAL_FILE;
+		return ROLE_ONE_SEMI_MANUAL_GROUPING_FILE;
 	}
 
 	@Override
 	protected String getRoleTwoOid() {
-		return ROLE_TWO_MANUAL_OID;
+		return ROLE_TWO_SEMI_MANUAL_GROUPING_OID;
 	}
 
 	@Override
 	protected File getRoleTwoFile() {
-		return ROLE_TWO_MANUAL_FILE;
+		return ROLE_TWO_SEMI_MANUAL_GROUPING_FILE;
+	}
+	
+	@Override
+	protected String getPropagationTaskOid() {
+		return TASK_PROPAGATION_SEMI_MANUAL_GROUPING_OID;
+	}
+
+	@Override
+	protected File getPropagationTaskFile() {
+		return TASK_PROPAGATION_SEMI_MANUAL_GROUPING_FILE;
+	}
+
+	@Override
+	protected boolean hasMultivalueInterests() {
+		return false;
 	}
 
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
-		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
+		AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);
+	}
+
+	@Override
+	protected int getNumberOfAccountAttributeDefinitions() {
+		return 5;
+	}
+	
+	@Override
+	protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
+		// CSV password is readable
+		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
 	}
 
 }
