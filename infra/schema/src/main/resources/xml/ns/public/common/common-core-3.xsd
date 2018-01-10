@@ -15526,6 +15526,7 @@ ConstructionType.kind.help=Kind of resource object that should be created on the
 			<xsd:element name="pointInTimeType" type="tns:PointInTimeTypeType" minOccurs="0"/>
 			<xsd:element name="staleness" type="xsd:long" minOccurs="0"/>
 			<xsd:element name="distinct" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="definitionProcessing" type="tns:DefinitionProcessingOptionType" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -15596,6 +15597,58 @@ ConstructionType.kind.help=Kind of resource object that should be created on the
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:simpleType name="DefinitionProcessingOptionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be definitions processed when object is to be retrieved. Currently applies at the model level;
+				but in the future it might be used also elsewhere.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="full">
+				<xsd:annotation>
+					<xsd:documentation>
+						Full definition processing for the specified item(s) is to be done.
+						This applies recursively also to sub-items.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="onlyIfExists">
+				<xsd:annotation>
+					<xsd:documentation>
+						 Full definition processing for the specified item(s) is to be done, but only if the item(s) exist.
+						 This applies recursively also to sub-items.
+						 
+						 Currently supported on root level only.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ONLY_IF_EXISTS"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition for the specified item(s) is to be excluded from the resulting object, even if the item(s) do exist.
+						
+						NOT IMPLEMENTED YET
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
 
 	<xsd:simpleType name="IterationMethodType">
 		<xsd:annotation>
