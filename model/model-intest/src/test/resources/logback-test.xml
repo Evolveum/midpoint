@@ -75,13 +75,14 @@
  	<logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.ShadowManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.consistency" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
@@ -94,7 +95,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="TRACE" />
+    <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />
@@ -104,7 +105,7 @@
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.importer" level="DEBUG" />
     <logger name="com.evolveum.midpoint.common.validator" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy" level="INFO" />
@@ -116,7 +117,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.controller.AuditController" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
 	
-	<logger name="com.evolveum.midpoint.repo.common.expression.ExpressionUtil" level="TRACE"/>
+	<logger name="com.evolveum.midpoint.repo.common.expression.ExpressionUtil" level="DEBUG"/>
 	
 	<logger name="org.identityconnectors.framework" level="TRACE" />
 	<logger name="com.evolveum.icf.dummy.connector" level="DEBUG" />

@@ -4884,6 +4884,35 @@
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="operationGroupingInterval" type="xsd:duration" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				<p>
+	        				Turns on operation grouping feature and specifies a grouping interval.
+	        				Operation grouping is feature that groups several operations on a resource
+	        				into a single operation. This can be used in case midPoint creates a lot of
+	        				small operations. But we want to group all of them into a single big operation.
+	        				This means that small operations are deplayed for a specified interval. Then
+	        				all the operations are grouped into a single operation and executed at once.
+	        				This approach slightly delays the operations. But it may be huge advantage for
+	        				resources where the operations are constly (manual resources, slow resources).
+        				</p> 
+        				<p>
+        					This parameter specifies a maximum interval between the operation is requested
+        					and the operation is started. First operation will be postponed for the specified
+        					interval. When the interval is over the operation will be executed. All the
+        					operations that have accumulated during the interval will be grouped together
+        					and executed.
+        				</p>
+        				<p>
+        					Note: provisioning propagation task must be running to execute the operations.
+        				</p>
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7.1</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="validateSchema" type="xsd:boolean" minOccurs="0" default="false">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -4908,7 +4937,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true"/>
+        	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Postpone the operation in case that an error is encountered. The operation
+        				will be re-tried later (consistency mechanism).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="connectorErrorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
             	<xsd:annotation>
@@ -9176,11 +9212,24 @@
     				<xsd:documentation>
     					<p>
     						The timestamp of operation request. The point in time when the operation was
-    						recoded and when it was initiated for the first time. It is set once and should never be changed.
+    						recoded. It is set once and should never be changed.
     					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:since>3.6</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="operationStartTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of operation start. The point in time when the operation was
+    						initiated for the first time. It is set once and should never be changed.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.7.1</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
@@ -9198,11 +9247,31 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+			<xsd:element name="executionStatus" type="tns:PendingOperationExecutionStatusType" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
     					<p>
-    						Operation status. If set to in_progress then the operation is
+    						Execution status. This property indicates in which execution stage
+    						the operation is, e.g. whether it is requeste, being executed, completed,
+    						and so on.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.7.1</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element><xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						Operation result status. This property specifies result of operation execution.
+    						If execution status is present and set to anything else than "completed" then
+    						resultStatus may be empty.
+    					</p>
+    					<p>  
+    						Legacy meaning: If no execution status is present then resultStatus
+    						defines the execution status (this is pre-3.7.1 behavior). 
+    						If set to in_progress then the operation is
     						still executing. If not present at all then the operation was
     						not yet tried.
     					</p>
@@ -9229,6 +9298,73 @@
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="PendingOperationExecutionStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Execution status. This property indicates in which execution stage
+				the operation is, e.g. whether it is requeste, being executed, completed,
+				and so on.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="requested">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation is requested. Operation request is recorded.
+                		The operation is in the preparation phase and it is
+                		not being execute yet.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUESTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executionPending">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation execution is pending. The operation is prepared
+                		but it is not executed yet. The operation waits for the
+                		execution process to pick it up, waits for a condition or signal, etc.
+                		For manual operations this means that the case/ticket is not
+                		created yet. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION_PENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executing">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation is being executed. The excution process is running,
+                		manual execution task is created and still open and so on.
+                		The execution may take quite a long time.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="completed">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Execution is complete. Operation is not executed any more.
+                		For manual operations this means that the case/ticket is closed.
+                		The operation may be successful or it may have ended up with an error.
+                		This informtion is in another property. This state indicates only that
+                		the operation execution is done. It does NOT indicate success or failure.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="SynchronizationSituationDescriptionType">
     	<xsd:annotation>

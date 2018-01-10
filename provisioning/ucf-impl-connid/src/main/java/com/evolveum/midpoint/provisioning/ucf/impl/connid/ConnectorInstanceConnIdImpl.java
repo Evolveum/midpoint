@@ -1385,6 +1385,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 			// CALL THE ConnId FRAMEWORK
 			InternalMonitor.recordConnectorOperation("create");
+			InternalMonitor.recordConnectorModification("create");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_CREATE, ocDef, null);		// TODO provide object name
 			uid = connIdConnectorFacade.create(icfObjectClass, attributes, options);
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_CREATE, ocDef, uid);
@@ -1701,6 +1702,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				}
 
 				InternalMonitor.recordConnectorOperation("addAttributeValues");
+				InternalMonitor.recordConnectorModification("addAttributeValues");
 
 				// Invoking ConnId
 				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
@@ -1782,6 +1784,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				try {
 					// Call ConnId
 					InternalMonitor.recordConnectorOperation("update");
+					InternalMonitor.recordConnectorModification("update");
 					recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 					uid = connIdConnectorFacade.update(objClass, uid, attributesToUpdate, options);
 					recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
@@ -1837,6 +1840,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				}
 
 				InternalMonitor.recordConnectorOperation("removeAttributeValues");
+				InternalMonitor.recordConnectorModification("removeAttributeValues");
 				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 				uid = connIdConnectorFacade.removeAttributeValues(objClass, uid, attributesToRemove, options);
 				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
@@ -1950,6 +1954,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		try {
 
 			InternalMonitor.recordConnectorOperation("delete");
+			InternalMonitor.recordConnectorModification("delete");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_DELETE, objectClass, uid);
 			connIdConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_DELETE, objectClass, null, uid);

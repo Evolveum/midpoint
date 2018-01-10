@@ -1364,6 +1364,7 @@ public class Clockwork {
 				// have to ignore the assignment item in subsequent security checks
 				if (primaryDelta.hasItemOrSubitemDelta(SchemaConstants.PATH_ASSIGNMENT)) {
 					AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDelta, operationUrl, getRequestAuthorizationPhase(context));
+					LOGGER.trace("Security decision for assignment items: {}", assignmentItemDecision);
 					if (assignmentItemDecision == AccessDecision.ALLOW) {
 						// Nothing to do, operation is allowed for all values
 						LOGGER.debug("Allow assignment/unassignment to {} becasue access to assignment container/properties is explicitly allowed", object);
@@ -1486,7 +1487,7 @@ public class Clockwork {
 			ObjectReferenceType targetRef = changedAssignment.getTargetRef();
 			if (targetRef == null || targetRef.getOid() == null) {
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("{} of non-target assignment denied",
+					LOGGER.debug("{} of non-target assignment not allowed",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1));
 				}
 				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);

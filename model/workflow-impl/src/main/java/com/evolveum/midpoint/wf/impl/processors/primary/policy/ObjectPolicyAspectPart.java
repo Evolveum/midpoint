@@ -149,7 +149,7 @@ public class ObjectPolicyAspectPart {
 	private <T extends ObjectType> List<ObjectDelta<T>> extractDeltasToApprove(ObjectDelta<T> focusDelta, WfProcessSpecificationType processSpecification)
 			throws SchemaException {
 		List<ObjectDelta<T>> rv = new ArrayList<>();
-		if (processSpecification == null || processSpecification.getDeltaFrom().isEmpty()) {
+		if (focusDelta.isDelete() || processSpecification == null || processSpecification.getDeltaFrom().isEmpty()) {
 			return takeWholeDelta(focusDelta, rv);
 		}
 		for (DeltaSourceSpecificationType sourceSpec : processSpecification.getDeltaFrom()) {

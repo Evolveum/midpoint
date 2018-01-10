@@ -88,10 +88,11 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
         // We return DENY immediately, and ALLOW only if no DENY is present. So here we remember if we should return ALLOW or null at the end.
         boolean allow = false;
 
+        ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
 		for (Map.Entry<ItemPath,ItemSecurityConstraintsImpl> entry : itemConstraintMap.entrySet()) {
 
             ItemPath entryPath = entry.getKey();
-            if (entryPath.isSubPathOrEquivalent(itemPath)) {
+            if (entryPath.isSubPathOrEquivalent(nameOnlyItemPath)) {
                 ItemSecurityConstraintsImpl itemSecurityConstraints = entry.getValue();
                 if (itemSecurityConstraints == null) {
                     continue;
