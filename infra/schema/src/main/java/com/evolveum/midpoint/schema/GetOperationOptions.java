@@ -771,7 +771,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public int hashCode() {
 		return Objects
 				.hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery, relationalValueSearchQuery,
-						allowNotFound, readOnly, staleness, distinct);
+						allowNotFound, readOnly, staleness, distinct, definitionProcessing);
 	}
 
 	public GetOperationOptions clone() {
@@ -790,6 +790,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         if (this.relationalValueSearchQuery != null) {
         	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
         }
+        clone.definitionProcessing = this.definitionProcessing;
         return clone;
     }
 
@@ -808,18 +809,22 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		appendVal(sb, "staleness", staleness);
 		appendVal(sb, "distinct", distinct);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
+		appendVal(sb, "definitionProcessing", definitionProcessing);
 		removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();
 	}
 
 
-	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude) {
+	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude, DefinitionProcessingOption definitionProcessing) {
 		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
+			if (definitionProcessing != null) {
+				return SelectorOptions.createCollection(GetOperationOptions.createDefinitionProcessing(definitionProcessing));
+			}
 			return null;
 		}
 		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>();
-		GetOperationOptions rootOptions = fromRestOptions(options);
+		GetOperationOptions rootOptions = fromRestOptions(options, definitionProcessing);
 		if (rootOptions != null) {
 			rv.add(SelectorOptions.create(rootOptions));
 		}
@@ -832,8 +837,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return rv;
 	}
 
-	public static GetOperationOptions fromRestOptions(List<String> options) {
+	public static GetOperationOptions fromRestOptions(List<String> options, DefinitionProcessingOption definitionProcessing) {
 		if (options == null || options.isEmpty()){
+			if (definitionProcessing != null) {
+				return GetOperationOptions.createDefinitionProcessing(definitionProcessing);
+			}
 			return null;
 		}
 
@@ -852,6 +860,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 				rv.setResolveNames(true);
 			}
 		}
+		
+		rv.setDefinitionProcessing(definitionProcessing);
 
 		return rv;
 	}
