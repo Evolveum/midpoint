@@ -38,7 +38,7 @@
     	<item>lifecycleState</item>
     	<item>requestable</item>
     	<item>inducement</item>
-    	<item>assignment</item>
+    	<item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
     <authorization>
     	<name>add roles</name>

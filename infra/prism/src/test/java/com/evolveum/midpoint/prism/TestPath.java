@@ -100,13 +100,39 @@ public class TestPath {
 		System.out.println("\n\n===[ testPathCompare ]===\n");
 
 		// GIVEN
+		
+		// /foo
 		ItemPath pathFoo = new ItemPath(new QName(NS, "foo"));
+		
+		// /foo/
 		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
+		
+		// /foo/[123]
 		ItemPath pathFoo123 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
+		
+		// /foo/bar
 		ItemPath pathFooBar = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
+		
+		// /foo/[123]/bar
+		ItemPath pathFoo123Bar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L), new QName(NS, "bar"));
+		
+		// /foo/bar/baz
 		ItemPath pathFooBarBaz = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"), new QName(NS, "baz"));
+		
+		// /foo/[123]/bar/baz
+		ItemPath pathFoo123BarBaz = new ItemPath(new QName(NS, "foo"), new IdItemPathSegment(123L), new QName(NS, "bar"), new QName(NS, "baz"));
+		
+		// /foo/baz/baz
+		ItemPath pathFooBazBaz = new ItemPath(new QName(NS, "foo"), new QName(NS, "baz"), new QName(NS, "baz"));
+
+		// /foo/[123]/baz/baz
+		ItemPath pathFoo123BazBaz = new ItemPath(new QName(NS, "foo"), new IdItemPathSegment(123L), new QName(NS, "baz"), new QName(NS, "baz"));
+		
+		// /foo//bar
 		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(),
 												new NameItemPathSegment(new QName(NS, "bar")));
+		
+		// /zoo
 		ItemPath pathZoo = new ItemPath(new QName(NS, "zoo"));
 
 		List<ItemPath> onlyEmpty = Collections.singletonList(ItemPath.EMPTY_PATH);
@@ -122,6 +148,20 @@ public class TestPath {
 		assertTrue(pathFooBar.equivalent(pathFooNullBar));
 		assertTrue(ItemPath.EMPTY_PATH.isSubPath(pathFoo));
 		assertFalse(pathFoo.isSubPath(ItemPath.EMPTY_PATH));
+		
+		assertTrue(pathFoo123Bar.isSubPathOrEquivalent(pathFoo123BarBaz));
+		assertFalse(pathFoo123Bar.isSubPathOrEquivalent(pathZoo));
+		assertFalse(pathFoo123Bar.isSubPathOrEquivalent(pathFoo123BazBaz));
+		
+		assertFalse(pathFooBar.isSubPathOrEquivalent(pathFoo123BarBaz));
+		assertFalse(pathFooBar.isSubPathOrEquivalent(pathZoo));
+		assertFalse(pathFooBar.isSubPathOrEquivalent(pathFoo123BazBaz));
+		
+		assertTrue(pathFooBar.isSubPathOrEquivalent(pathFoo123BarBaz.namedSegmentsOnly()));
+		
+		assertTrue(pathFooBar.isSubPathOrEquivalent(pathFooBar));
+		assertFalse(pathFooBar.isSubPathOrEquivalent(pathZoo));
+		assertFalse(pathFooBar.isSubPathOrEquivalent(pathFooBazBaz));
 
 		assertTrue(ItemPath.containsSubpathOrEquivalent(onlyEmpty, pathFoo));
 		assertTrue(ItemPath.containsSubpath(onlyEmpty, pathFoo));
