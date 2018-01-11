@@ -2799,11 +2799,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	AbstractConstructionType.description=Description
-AbstractConstructionType.strength=Strength
-AbstractConstructionType.strength.help=Strength of the construction defines how aggressively will the construction be applied.
-ConstructionType.kind=Kind
-ConstructionType.kind.help=Kind of resource object that should be created on the resource.
+		                    	<a:displayName>UserType.nickName</a:displayName>
 		                    	<a:displayOrder>140</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -18640,5 +18636,36 @@ ConstructionType.kind.help=Kind of resource object that should be created on the
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:simpleType name="HttpMethodType">
+		<xsd:annotation>
+			<!-- Add other methods as necessary. This is meant as a general enumeration
+				 to be used at various places in midPoint. Not all places of use are obliged to support
+				 all HTTP methods listed here. -->
+			<xsd:documentation>
+				Individual HTTP methods.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="get">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="GET"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="post">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="POST"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

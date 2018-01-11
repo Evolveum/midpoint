@@ -311,7 +311,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 				+ " - Assignment:\n"
 				+ "   - ADD: \n"
 				+ "      - Construction:\n"
-				+ "         - kind: ACCOUNT\n"
+				+ "         - Kind: ACCOUNT\n"
 				+ "         - resourceRef: Dummy Resource (resource)\n"
 				+ "\n"
 				+ "Channel: ";

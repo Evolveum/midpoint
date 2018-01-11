@@ -313,11 +313,32 @@
             <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="method" type="c:HttpMethodType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which HTTP method is used to send SMS. Currently, "get" and "post" are supported.
+                        If not specified, "get" is assumed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="url" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to construct URL used to send SMS.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="body" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to construct request body used to send SMS.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="username" type="xsd:string" minOccurs="0">
