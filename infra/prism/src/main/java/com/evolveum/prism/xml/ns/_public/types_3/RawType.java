@@ -5,8 +5,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +24,7 @@ import java.util.Objects;
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
  */
-public class RawType implements Serializable, Cloneable, Equals, Revivable {
+public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable {
 	private static final long serialVersionUID = 4430291958902286779L;
 
     /**
@@ -328,6 +331,27 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 				sb.append("null");
 			} else {
 				sb.append(explicitTypeName.getLocalPart());
+			}
+		}
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (xnode != null) {
+			sb.append("(raw");
+			sb.append("):").append(xnode);
+		} else if (parsed != null) {
+			if (parsed instanceof ShortDumpable) {
+				((ShortDumpable)parsed).shortDump(sb);
+			} else {
+				Object realValue = parsed.getRealValue();
+				if (realValue == null) {
+					sb.append("null");
+				} else if (realValue instanceof ShortDumpable) {
+					((ShortDumpable)realValue).shortDump(sb);
+				} else {
+					sb.append(realValue.toString());
+				}
 			}
 		}
 	}

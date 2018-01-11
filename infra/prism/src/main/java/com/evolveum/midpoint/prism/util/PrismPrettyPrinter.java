@@ -24,10 +24,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -97,6 +103,95 @@ public class PrismPrettyPrinter {
 		}
 		return sb.toString();
 	}
+	
+	public static String prettyPrint(ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
+		sb.append(deltaType.getOid()).append(" ");
+		sb.append(deltaType.getChangeType());
+		sb.append(": ");
+		if (deltaType.getObjectToAdd() != null) {
+			sb.append(deltaType.getObjectToAdd());
+		} else {
+			sb.append("[");
+			Iterator<ItemDeltaType> iterator = deltaType.getItemDelta().iterator();
+			while (iterator.hasNext()) {
+				ItemDeltaType itemDelta = iterator.next();
+				shortPrettyPrint(sb, itemDelta);
+				if (iterator.hasNext()) {
+					sb.append(", ");
+				}
+			}
+			sb.append("]");
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ItemDeltaType deltaType) {
+		if (deltaType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ItemDeltaType(");
+		shortPrettyPrint(sb, deltaType);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	private static void shortPrettyPrint(StringBuilder sb, ItemDeltaType deltaType) {
+		ModificationTypeType modificationType = deltaType.getModificationType();
+		if (modificationType == ModificationTypeType.ADD) {
+			sb.append("(+)");
+		} else if (modificationType == ModificationTypeType.DELETE) {
+			sb.append("(-)");
+		} else if (modificationType == ModificationTypeType.REPLACE) {
+			sb.append("(=)");
+		}
+		sb.append(deltaType.getPath());
+		sb.append(": ");
+		List<RawType> values = deltaType.getValue();
+		if (values.isEmpty()) {
+			sb.append("[]");
+		} else if (values.size() == 1) {
+			values.get(0).shortDump(sb);
+		} else {
+			sb.append("[");
+			Iterator<RawType> iterator = values.iterator();
+			while (iterator.hasNext()) {
+				RawType value = iterator.next();
+				value.shortDump(sb);
+				if (iterator.hasNext()) {
+					sb.append(", ");
+				}
+			}
+			sb.append("]");
+		}
+	}
+	
+	public static String debugDump(ObjectDeltaType deltaType, int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilder(ObjectDeltaType.class, indent);
+		if (deltaType == null) {
+			sb.append("null");
+			return sb.toString();
+		}
+		sb.append(deltaType.getOid()).append(" ");
+		sb.append(deltaType.getChangeType());
+		if (deltaType.getObjectToAdd() != null) {
+			sb.append("\n");
+			sb.append(deltaType.getObjectToAdd().asPrismObject().debugDump(indent + 1));
+		} else {
+			Iterator<ItemDeltaType> iterator = deltaType.getItemDelta().iterator();
+			while (iterator.hasNext()) {
+				sb.append("\n");
+				ItemDeltaType itemDelta = iterator.next();
+				DebugUtil.indentDebugDump(sb, indent + 1);
+				shortPrettyPrint(sb, itemDelta);
+			}
+		}
+		return sb.toString();
+	}
 
 	static {
 		PrettyPrinter.registerPrettyPrinter(PrismPrettyPrinter.class);
@@ -117,6 +212,10 @@ public class PrismPrettyPrinter {
 	// Note that expectedIndent applies only to lines after the first one. The caller is responsible for preparing
 	// indentation for the first line.
 	public static void debugDumpValue(StringBuilder sb, int expectedIndent, Object value, PrismContext prismContext, QName elementName, String defaultLanguage) {
+		if (value instanceof DebugDumpable) {
+			sb.append(((DebugDumpable)value).debugDump(expectedIndent));
+			return;
+		}
 		String formatted;
 		String language = DebugUtil.getPrettyPrintBeansAs() != null ? DebugUtil.getPrettyPrintBeansAs() : defaultLanguage;
 		if (elementName == null) {

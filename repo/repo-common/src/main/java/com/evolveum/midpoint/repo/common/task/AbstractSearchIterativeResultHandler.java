@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl.util;
+package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -52,12 +52,12 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType> implements ResultHandler<O> {
 
 	public static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
-	private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
+	protected static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
 	private final TaskManager taskManager;
-	private Task coordinatorTask;
-	private String taskOperationPrefix;
-	private String processShortName;
+	private final Task coordinatorTask;
+	private final String taskOperationPrefix;
+	private final String processShortName;
 	private String contextDesc;
 	private AtomicInteger objectsProcessed = new AtomicInteger();
 	private AtomicLong totalTimeProcessing = new AtomicLong();
@@ -98,17 +98,13 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		return StringUtils.capitalize(processShortName);
 	}
 
-	public void setProcessShortName(String processShortName) {
-		this.processShortName = processShortName;
-	}
-
 	public String getContextDesc() {
 		if (contextDesc == null) {
 			return "";
 		}
 		return contextDesc;
 	}
-
+	
 	public void setContextDesc(String contextDesc) {
 		this.contextDesc = contextDesc;
 	}

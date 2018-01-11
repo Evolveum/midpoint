@@ -320,14 +320,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, Function<ItemPath, AccessDecision> itemDecitionFunction) {
-		if (cval.isEmpty()) {
+		List<Item<?,?>> items = cval.getItems();
+		// Note: cval.isEmpty() will also check for id. We do not care about that.
+		if (items == null || items.isEmpty()) {
 			// TODO: problem with empty containers such as
 			// orderConstraint in assignment. Skip all
 			// empty items ... for now.
 			return null;
 		}
 		AccessDecision decision = null;
-		for (Item<?, ?> item: cval.getItems()) {
+		for (Item<?, ?> item: items) {
 			ItemPath itemPath = item.getPath();
 			AccessDecision itemDecision = itemDecitionFunction.apply(itemPath);
 			if (itemDecision == null) {
@@ -1603,11 +1605,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			AuthorizationPhaseType phase, ItemPath subitemRootPath) {
 		return determineDeltaDecision(delta, 
 				(itemPath) -> {
-					if (itemPath.isSubPathOrEquivalent(subitemRootPath)) {
+					ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
+					if (!subitemRootPath.isSubPathOrEquivalent(nameOnlyItemPath)) {
+//						LOGGER.trace("subitem decision: {} <=> {} (not under root) : {}", subitemRootPath, nameOnlyItemPath, null);
 						return null;
 					}
-					AuthorizationDecisionType authorizationDecisionType = securityConstraints.findItemDecision(itemPath, operationUrl, phase);
-					return AccessDecision.translate(authorizationDecisionType);
+					AuthorizationDecisionType authorizationDecisionType = securityConstraints.findItemDecision(nameOnlyItemPath, operationUrl, phase);
+					AccessDecision decision = AccessDecision.translate(authorizationDecisionType);
+//					LOGGER.trace("subitem decision: {} <=> {} : {}", subitemRootPath, nameOnlyItemPath, decision);
+					return decision;
 				});
 	}
 }

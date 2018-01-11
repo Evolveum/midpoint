@@ -1839,7 +1839,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
 		assertEquals("Wrong number of pending operations in "+shadow, 0, pendingOperations.size());
 	}
-
+	
 	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertCase");
 		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);

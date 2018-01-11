@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -100,7 +101,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
-		String description = "Please create account "+object;
+		String description = "Please create account:\n"+object.debugDump(1);
 		PrismObject<CaseType> acase = addCase(description, result);
 		return acase.getOid();
 	}
@@ -116,7 +117,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 				throw new SchemaException("Duplicated changes: "+changes);
 			}
 		}
-		String description = "Please modify account "+identifiers+": "+changes;
+		String description = "Please modify account "+identifiers+":\n"+DebugUtil.debugDump(changes, 1);
 		PrismObject<CaseType> acase = addCase(description, result);
 		return acase.getOid();
 	}
@@ -180,6 +181,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	@Override
 	public OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_QUERY_CASE);
+		
+		InternalMonitor.recordConnectorOperation("queryOperationStatus");
 
 		PrismObject<CaseType> acase;
 		try {

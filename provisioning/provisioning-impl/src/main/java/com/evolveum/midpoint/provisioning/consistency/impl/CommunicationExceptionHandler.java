@@ -114,7 +114,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		resourceManager.modifyResourceAvailabilityStatus(shadow.getResource().asPrismObject(), 
 				AvailabilityStatusType.DOWN, operationResult);
 		
-		if ((!isPostpone(shadow.getResource()) || !compensate) && !FailedOperation.GET.equals(op)){
+		if ((!isPostpone(shadow.getResource()) || !compensate) && !FailedOperation.GET.equals(op)) {
 			LOGGER.trace("Postponing operation turned off.");
 			operationResult.recordFatalError(ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);

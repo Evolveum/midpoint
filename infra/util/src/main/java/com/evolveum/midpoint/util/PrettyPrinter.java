@@ -324,6 +324,59 @@ public class PrettyPrinter {
 		}
 		return null;
 	}
+	
+	public static String debugDump(Object value, int indent) {
+		if (value == null) {
+			return "null";
+		}
+		String out = null;
+		if (value instanceof DebugDumpable) {
+			return ((DebugDumpable)value).debugDump(indent);
+		}
+		if (value instanceof Collection) {
+			return DebugUtil.debugDump((Collection)value, indent);
+		}
+		out = tryDebugDumpMethod(value, indent);
+		if (out != null) {
+			return out;
+		}
+		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
+		sb.append(prettyPrint(out));
+		return sb.toString();
+	}
+	
+	private static String tryDebugDumpMethod(Object value, int indent) {
+		for (Class<?> prettyPrinterClass: prettyPrinters) {
+			String printerValue = tryDebugDumpMethod(value, indent, prettyPrinterClass);
+			if (printerValue != null) {
+				return printerValue;
+			}
+		}
+		// Fallback to this class
+		return tryDebugDumpMethod(value, indent, PrettyPrinter.class);
+	}
+
+	private static String tryDebugDumpMethod(Object value, int indent, Class<?> prettyPrinterClass) {
+		for (Method method : prettyPrinterClass.getMethods()) {
+			if (method.getName().equals("debugDump")) {
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (parameterTypes.length == 2 && parameterTypes[0].equals(value.getClass())) {
+					try {
+						return (String)method.invoke(null, value, indent);
+					} catch (IllegalArgumentException e) {
+						return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; debugDump method for value "+value;
+					} catch (IllegalAccessException e) {
+						return "###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; debugDump method for value "+value;
+					} catch (InvocationTargetException e) {
+						return "###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; debugDump method for value "+value;
+					} catch (Throwable e) {
+						return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; debugDump method for value "+value;
+					}
+				}
+			}
+		}
+		return null;
+	}
 
 	public static void registerPrettyPrinter(Class<?> printerClass) {
 		prettyPrinters.add(printerClass);
