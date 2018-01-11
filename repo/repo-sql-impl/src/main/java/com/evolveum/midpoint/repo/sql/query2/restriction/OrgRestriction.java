@@ -56,8 +56,9 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 
         String orgOidParamName = hibernateQuery.addParameter("orgOid", filter.getOrgRef().getOid());
         String relationParamName = "";
-        if (isRelationRestrictionExists(filter.getOrgRef().getRelation())){
-            relationParamName = hibernateQuery.addParameter("relation", QNameUtil.qNameToUri(filter.getOrgRef().getRelation()));
+        QName relation = filter.getOrgRef().getRelation();
+        if (doesRelationRestrictionExist(relation)) {
+            relationParamName = hibernateQuery.addParameter("relation", ReferenceRestriction.getRelationsToTest(relation));
         }
         String oidQueryText;    // oid in ...
         switch (filter.getScope()) {
@@ -67,11 +68,9 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                               "from RObjectReference ref " +
                            "where " +
                               "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG)
-                                + (isRelationRestrictionExists(filter.getOrgRef().getRelation()) ?
-                                (" and ref.relation in :" + relationParamName)
-                                : "")
-                                + " and " +
-                                "ref.targetOid = :" + orgOidParamName;
+                                + (doesRelationRestrictionExist(relation) ?
+		                            " and ref.relation in (:" + relationParamName + ")" : "")
+                                + " and ref.targetOid = :" + orgOidParamName;
                 break;
             case ANCESTORS:
                 oidQueryText =
@@ -88,17 +87,15 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                             "from RObjectReference ref " +
                         "where " +
                             "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG)
-                                + (isRelationRestrictionExists(filter.getOrgRef().getRelation()) ?
-                                (" and ref.relation in :" + relationParamName)
-                                : "")
-                                + " and " +
-                            "ref.targetOid in (" +
-                                "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
+                                + (doesRelationRestrictionExist(relation) ?
+		                            " and ref.relation in (:" + relationParamName + ")" : "")
+                                + " and ref.targetOid in (" +
+                                    "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
         }
         return hibernateQuery.createIn(getBaseHqlEntity().getHqlPath() + ".oid", oidQueryText);
     }
 
-    private boolean isRelationRestrictionExists(QName relation){
-        return relation != null && !PrismConstants.Q_ANY.equals(relation);
+    private boolean doesRelationRestrictionExist(QName relation) {
+        return relation != null && !QNameUtil.match(PrismConstants.Q_ANY, relation);
     }
 }

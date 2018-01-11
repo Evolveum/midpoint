@@ -652,4 +652,9 @@ public class XmlTypeConverter {
 	public static boolean isBeforeNow(XMLGregorianCalendar time) {
 		return toMillis(time) < System.currentTimeMillis();
 	}
+	
+	public static boolean isAfterInterval(XMLGregorianCalendar reference, Duration interval, XMLGregorianCalendar now) {
+		XMLGregorianCalendar endOfInterval = addDuration(reference, interval);
+		return endOfInterval.compare(now) == DatatypeConstants.LESSER;
+	}
 }

@@ -325,7 +325,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         }
         
         PrismContainer prismContainer = containerWrapper.getItem();
-        if (!ShadowType.class.isAssignableFrom(prismContainer.getCompileTimeClass())) {
+        if (prismContainer.getCompileTimeClass() == null ||
+                !ShadowType.class.isAssignableFrom(prismContainer.getCompileTimeClass())) {
             return false;
         }
 

@@ -296,18 +296,18 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
 	protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
 	
-	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
-	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	protected static final String USER_JACK_USERNAME = "jack";
-	protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
-	protected static final String USER_JACK_GIVEN_NAME = "Jack";
-	protected static final String USER_JACK_FAMILY_NAME = "Sparrow";
-	protected static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
-	protected static final String USER_JACK_DESCRIPTION = "Where's the rum?";
-	protected static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
-	protected static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
-	protected static final String USER_JACK_LOCALITY = "Caribbean";
-	protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
+	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	public static final String USER_JACK_USERNAME = "jack";
+	public static final String USER_JACK_FULL_NAME = "Jack Sparrow";
+	public static final String USER_JACK_GIVEN_NAME = "Jack";
+	public static final String USER_JACK_FAMILY_NAME = "Sparrow";
+	public static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
+	public static final String USER_JACK_DESCRIPTION = "Where's the rum?";
+	public static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
+	public static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
+	public static final String USER_JACK_LOCALITY = "Caribbean";
+	public static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";

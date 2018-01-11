@@ -158,7 +158,7 @@ public class CommandLineScriptExecutor {
 
     public String getOsSpecificFilePath(String filepath) {
         StringBuilder pathEscapedSpaces = new StringBuilder();
-        if (SystemUtils.IS_OS_LINUX) {
+        if (SystemUtils.IS_OS_UNIX) {
             pathEscapedSpaces.append("'").append(filepath).append("'");
         } else if (SystemUtils.IS_OS_WINDOWS) {
             filepath = filepath.replace("/", "\\");

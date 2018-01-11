@@ -37,6 +37,8 @@ public enum InternalCounters {
 	SCRIPT_EXECUTION_COUNT("scriptExecutionCount", "script execution count", null),
 
 	CONNECTOR_OPERATION_COUNT("connectorOperationCount", "connector operation count", InternalOperationClasses.CONNECTOR_OPERATIONS),
+	
+	CONNECTOR_MODIFICATION_COUNT("connectorModificationCount", "connector modification count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
 	CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT("connectorSimulatedPagingSearchCount", "connector simulated paging search count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
