@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014-2017 Evolveum
+  ~ Copyright (c) 2014-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -68,4 +68,19 @@
     	<item>inducement</item>
     	<item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
+    <authorization>
+    	<name>lra-ui-autz</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roles</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+    </authorization>
+    <authorization>
+    	<name>lra-ui-assign-autz</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssign</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassign</action>
+		<description>Assign/unassign in admin GUI (role profile)</description>
+		<c:object>
+			<c:type>RoleType</c:type>
+		</c:object>
+	</authorization>
 </role>
