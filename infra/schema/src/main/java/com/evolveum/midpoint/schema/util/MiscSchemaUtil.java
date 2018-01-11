@@ -179,6 +179,7 @@ public class MiscSchemaUtil {
 		 // TODO relational value search query (but it might become obsolete)
 		 optionsType.setAllowNotFound(options.getAllowNotFound());
 		 optionsType.setPointInTimeType(PointInTimeType.toPointInTimeTypeType(options.getPointInTimeType()));
+		 optionsType.setDefinitionProcessing(DefinitionProcessingOption.toDefinitionProcessingOptionType(options.getDefinitionProcessing()));
 		 optionsType.setStaleness(options.getStaleness());
 		 optionsType.setDistinct(options.getDistinct());
 		 return optionsType;
@@ -213,6 +214,7 @@ public class MiscSchemaUtil {
 		// TODO relational value search query (but it might become obsolete)
 		options.setAllowNotFound(optionsType.isAllowNotFound());
 		options.setPointInTimeType(PointInTimeType.toPointInTimeType(optionsType.getPointInTimeType()));
+		options.setDefinitionProcessing(DefinitionProcessingOption.toDefinitionProcessingOption(optionsType.getDefinitionProcessing()));
 		options.setStaleness(optionsType.getStaleness());
 		options.setDistinct(optionsType.isDistinct());
 		return options;

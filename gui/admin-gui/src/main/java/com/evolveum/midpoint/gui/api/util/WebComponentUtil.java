@@ -78,10 +78,7 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -429,6 +426,24 @@ public final class WebComponentUtil {
 	    } else {
 		    return null;
 	    }
+	}
+
+	// quite a hack (temporary)
+	public static <T extends ObjectType> IModel<ObjectWrapper<T>> adopt(
+			PropertyModel<ObjectWrapper<T>> objectWrapperModel, PrismContext prismContext) {
+		if (objectWrapperModel == null) {
+			return null;
+		}
+		ObjectWrapper<T> wrapper = objectWrapperModel.getObject();
+		if (wrapper == null || wrapper.getObject() == null) {
+			return objectWrapperModel;
+		}
+		try {
+			prismContext.adopt(wrapper.getObject());
+		} catch (SchemaException e) {
+			throw new IllegalStateException("Unexpected SchemaException: " + e.getMessage());
+		}
+		return objectWrapperModel;
 	}
 
 	public enum Channel {

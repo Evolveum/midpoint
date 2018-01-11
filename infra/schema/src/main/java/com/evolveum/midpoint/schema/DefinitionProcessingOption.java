@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DefinitionProcessingOptionType;
+
 /**
  * How should be definitions processed when object is to be retrieved. Currently applies at the model level;
  * but in the future it might be used also elsewhere.
@@ -42,6 +44,35 @@ public enum DefinitionProcessingOption {
 	 *
 	 * NOT IMPLEMENTED YET
 	 */
-	NONE
+	NONE;
 
+	
+	public static DefinitionProcessingOption toDefinitionProcessingOption(DefinitionProcessingOptionType definitionProcessingOptionType) {
+		if (definitionProcessingOptionType == null) {
+			return null;
+		}
+		
+		switch (definitionProcessingOptionType) {
+			case FULL: return DefinitionProcessingOption.FULL;
+			case ONLY_IF_EXISTS: return DefinitionProcessingOption.ONLY_IF_EXISTS;
+			case NONE : return DefinitionProcessingOption.NONE;
+			default:
+				throw new IllegalStateException("Unknown definition processing option: " + definitionProcessingOptionType);
+		}
+	}
+	
+	public static DefinitionProcessingOptionType toDefinitionProcessingOptionType(DefinitionProcessingOption definitionProcessingOption) {
+		if (definitionProcessingOption == null) {
+			return null;
+		}
+	
+		switch (definitionProcessingOption) {
+			case FULL : return DefinitionProcessingOptionType.FULL;
+			case ONLY_IF_EXISTS : return DefinitionProcessingOptionType.ONLY_IF_EXISTS;
+			case NONE : return DefinitionProcessingOptionType.NONE;
+			default:
+				throw new IllegalStateException("Unknown definition processing option: " + definitionProcessingOption);
+		}
+		
+	}
 }
