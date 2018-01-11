@@ -144,7 +144,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					shadowPanel = new PrismPanel<F>(ID_SHADOW,
 							new ContainerWrapperListFromObjectWrapperModel<>(objectWrapperModel, 
 									WebComponentUtil.getShadowItemsToShow()), packageRef,
-							getMainForm(), itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, objectWrapperModel), getPageBase());
+							getMainForm(), itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(
+									itemWrapper, WebComponentUtil.adopt(objectWrapperModel, getPageBase().getPrismContext())), getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
 						private static final long serialVersionUID = 1L;

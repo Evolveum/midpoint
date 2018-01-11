@@ -185,8 +185,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
@@ -194,6 +196,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -3982,6 +3986,57 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         } else {
             TestUtil.assertSuccess(result);
         }
+	}
+	
+	protected void modifyRoleAddExclusion(String roleOid, String excludedRoleOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		modifyRoleExclusion(roleOid, excludedRoleOid, true, task, result);
+	}
+	
+	protected void modifyRoleDeleteExclusion(String roleOid, String excludedRoleOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		modifyRoleExclusion(roleOid, excludedRoleOid, false, task, result);
+	}
+	
+	protected void modifyRoleExclusion(String roleOid, String excludedRoleOid, boolean add, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		modifyRolePolicyRule(roleOid, createExclusionPolicyRule(excludedRoleOid), add, task, result);
+	}
+	
+	protected void modifyRolePolicyRule(String roleOid, PolicyRuleType exclusionPolicyRule, boolean add, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        AssignmentType assignment = new AssignmentType();
+		assignment.setPolicyRule(exclusionPolicyRule);
+		ObjectDelta<RoleType> roleDelta;
+		if (add) {
+			roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+        		prismContext, assignment);
+		} else {
+			roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+	        		prismContext, assignment);
+		}
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+
+	protected PolicyRuleType createExclusionPolicyRule(String excludedRoleOid) {
+		PolicyRuleType policyRule = new PolicyRuleType();
+		PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+		ExclusionPolicyConstraintType exclusionConstraint = new ExclusionPolicyConstraintType();
+		ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(excludedRoleOid);
+        targetRef.setType(RoleType.COMPLEX_TYPE);
+		exclusionConstraint.setTargetRef(targetRef);
+		policyContraints.getExclusion().add(exclusionConstraint);
+		policyRule.setPolicyConstraints(policyContraints);
+		return policyRule;
+	}
+	
+	protected PolicyRuleType createMinAssigneePolicyRule(int minAssignees) {
+		PolicyRuleType policyRule = new PolicyRuleType();
+		PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+		MultiplicityPolicyConstraintType minAssigneeConstraint = new MultiplicityPolicyConstraintType();
+		minAssigneeConstraint.setMultiplicity(Integer.toString(minAssignees));
+		policyContraints.getMinAssignees().add(minAssigneeConstraint);
+		policyRule.setPolicyConstraints(policyContraints);
+		return policyRule;
 	}
 
 	protected Optional<AssignmentType> findAssignmentByTarget(PrismObject<? extends FocusType> focus, String targetOid) {

@@ -96,6 +96,8 @@
 						<fallbackMessage>Setting riskLevel</fallbackMessage>
 					</shortMessage>
 				</presentation>
+				<operation>add</operation>
+				<operation>modify</operation>
 				<item>riskLevel</item>
 			</modification>
 		</policyConstraints>
@@ -128,6 +130,8 @@
 				</shortMessage>
 			</presentation>
 			<modification>
+				<operation>add</operation>
+				<operation>modify</operation>
 				<item>approverRef</item>
 			</modification>
 		</policyConstraints>

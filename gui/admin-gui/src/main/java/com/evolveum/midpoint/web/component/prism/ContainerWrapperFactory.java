@@ -173,7 +173,7 @@ public class ContainerWrapperFactory {
 			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
 				valueWrapper.setEditEnabled(isEmpty(valueWrapper));
 			}
-			associationValueWrapper.setTargetTypes(Arrays.asList(ShadowType.COMPLEX_TYPE));
+			associationValueWrapper.setTargetTypes(Collections.singletonList(ShadowType.COMPLEX_TYPE));
 			associationValuesWrappers.add(associationValueWrapper);
 		}
 		
