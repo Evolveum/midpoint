@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -29,6 +31,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -62,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -1722,17 +1727,17 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         
         PrismObject<RoleType> roleExclusion = assertGetAllow(RoleType.class, ROLE_EXCLUSION_PIRATE_OID);
         display("Exclusion role", roleExclusion);
+        assertExclusion(roleExclusion, ROLE_PIRATE_OID);
 //        display("Exclusion role def", roleExclusion.getDefinition());
         
-        display("TTTTTTTTTTTTTTTTTTTT");
         PrismObjectDefinition<RoleType> roleExclusionEditSchema = getEditObjectDefinition(roleExclusion);
 		display("Exclusion role edit schema", roleExclusionEditSchema);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_NAME, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_DESCRIPTION, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_ROLE_TYPE, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
-		assertItemFlags(roleExclusionEditSchema, RoleType.F_INDUCEMENT, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_METADATA, false, false, false);
+		
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_ASSIGNMENT, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
 				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
@@ -1751,23 +1756,84 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
 				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
-				true, false, false);
+				false, false, false);
 		assertItemFlags(roleExclusionEditSchema, 
 				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
-				true, false, false);
+				false, false, false);
 		assertItemFlags(roleExclusionEditSchema, 
 				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
-				true, false, false);
-		// TODO: inducement
-		        
-        // TODO: modify empty role to add exclusion
-        // TODO: delete exclusion
+				false, false, false);
+		
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_INDUCEMENT, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_DESCRIPTION),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
+				true, true, true);
+		
+		assertAllow("add exclusion",
+        		(task, result) -> modifyRoleAddExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+		
+		PrismObject<RoleType> roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with exclusion", roleEmptyExclusion);
+        assertExclusion(roleEmptyExclusion, ROLE_PIRATE_OID);
+        
+        assertAllow("delete exclusion",
+        		(task, result) -> modifyRoleDeleteExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+        
+        assertDeny("add minAssignee",
+        		(task, result) -> modifyRolePolicyRule(ROLE_EMPTY_OID, createMinAssigneePolicyRule(1), true, task, result));
 
+        assertDeny("assign role pirate to empty role",
+        		(task, result) -> assignRole(RoleType.class, ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+        
+        roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role without exclusion", roleEmptyExclusion);
+        assertAssignments(roleEmptyExclusion, 0);
+        
         assertGlobalStateUntouched();
 	}
 
 	
-    @Override
+    private void assertExclusion(PrismObject<RoleType> roleExclusion, String excludedRoleOid) {
+        PrismContainer<AssignmentType> assignmentContainer = roleExclusion.findContainer(RoleType.F_ASSIGNMENT);
+        assertNotNull("No assignment container in "+roleExclusion, assignmentContainer);
+        assertEquals("Wrong size of assignment container in "+roleExclusion, 1, assignmentContainer.size());
+        AssignmentType exclusionAssignment = assignmentContainer.getValue().asContainerable();
+        PolicyRuleType exclusionPolicyRule = exclusionAssignment.getPolicyRule();
+        assertNotNull("No policy rule in "+roleExclusion, exclusionPolicyRule);
+        PolicyConstraintsType exclusionPolicyConstraints = exclusionPolicyRule.getPolicyConstraints();
+        assertNotNull("No policy rule constraints in "+roleExclusion, exclusionPolicyConstraints);
+        List<ExclusionPolicyConstraintType> exclusionExclusionPolicyConstraints = exclusionPolicyConstraints.getExclusion();
+        assertEquals("Wrong size of exclusion policy constraints in "+roleExclusion, 1, exclusionExclusionPolicyConstraints.size());
+        ExclusionPolicyConstraintType exclusionPolicyConstraint = exclusionExclusionPolicyConstraints.get(0);
+        assertNotNull("No exclusion policy constraint in "+roleExclusion, exclusionPolicyConstraint);
+        ObjectReferenceType targetRef = exclusionPolicyConstraint.getTargetRef();
+        assertNotNull("No targetRef in exclusion policy constraint in "+roleExclusion, targetRef);
+        assertEquals("Wrong OID targetRef in exclusion policy constraint in "+roleExclusion, excludedRoleOid, targetRef.getOid());
+	}
+
+
+	@Override
     protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
     	super.cleanupAutzTest(userOid, expectedAssignments);
 

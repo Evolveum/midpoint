@@ -29,16 +29,19 @@ import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,9 +63,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
@@ -1223,7 +1224,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
                     "  u.oid, u.fullObject,\n" +
                     "  u.stringsCount,\n" +
@@ -1242,11 +1244,145 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    a.targetRef.type = :type\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
+
+            @SuppressWarnings("unchecked")
+            Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+            assertEquals("Wrong relation parameter value",
+                    new HashSet<>(Arrays.asList("#", RUtil.qnameToString(SchemaConstants.ORG_DEFAULT))),
+                    new HashSet<>(relationParameter));
         } finally {
             close(session);
         }
     }
 
+    @Test
+    public void test152QueryUserAssignmentTargetRefManagerStandardQualified() throws Exception {
+        Session session = open();
+        try {
+            ObjectReferenceType ort = new ObjectReferenceType()
+                    .oid("123")
+                    .type(OrgType.COMPLEX_TYPE)
+                    .relation(SchemaConstants.ORG_MANAGER);
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
+                    .build();
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            String real = rQuery.getQuery().getQueryString();
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    a.targetRef.targetOid = :targetOid and\n" +
+                    "    a.targetRef.relation in (:relation) and\n" +
+                    "    a.targetRef.type = :type\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+
+            @SuppressWarnings("unchecked")
+            Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+            System.out.println("relationParameter: " + relationParameter);
+            assertEquals("Wrong relation parameter value",
+                    new HashSet<>(Arrays.asList(
+                            RUtil.qnameToString(QNameUtil.nullNamespace(SchemaConstants.ORG_MANAGER)),
+                            RUtil.qnameToString(SchemaConstants.ORG_MANAGER))),
+                    new HashSet<>(relationParameter));
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test153QueryUserAssignmentTargetRefManagerCustomQualified() throws Exception {
+        Session session = open();
+        try {
+            QName auditorRelation = new QName("http://x/", "auditor");
+            ObjectReferenceType ort = new ObjectReferenceType()
+                    .oid("123")
+                    .type(OrgType.COMPLEX_TYPE)
+                    .relation(auditorRelation);
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
+                    .build();
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            String real = rQuery.getQuery().getQueryString();
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    a.targetRef.targetOid = :targetOid and\n" +
+                    "    a.targetRef.relation = :relation and\n" +
+                    "    a.targetRef.type = :type\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+
+            String relationParameter = (String) rQuery.getQuerySource().getParameters().get("relation").getValue();
+            assertEquals("Wrong relation parameter value", RUtil.qnameToString(auditorRelation), relationParameter);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test154QueryUserAssignmentTargetRefManagerUnqualified() throws Exception {
+        Session session = open();
+        try {
+            ObjectReferenceType ort = new ObjectReferenceType()
+                    .oid("123")
+                    .type(OrgType.COMPLEX_TYPE)
+                    .relation(QNameUtil.nullNamespace(SchemaConstants.ORG_MANAGER));
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
+                    .build();
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            String real = rQuery.getQuery().getQueryString();
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    a.targetRef.targetOid = :targetOid and\n" +
+                    "    a.targetRef.relation in (:relation) and\n" +
+                    "    a.targetRef.type = :type\n" +
+                    "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+
+            @SuppressWarnings("unchecked")
+            Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+            assertEquals("Wrong relation parameter value",
+                    new HashSet<>(Arrays.asList(
+                            RUtil.qnameToString(QNameUtil.nullNamespace(SchemaConstants.ORG_MANAGER)),
+                            RUtil.qnameToString(SchemaConstants.ORG_MANAGER))),
+                    new HashSet<>(relationParameter));
+        } finally {
+            close(session);
+        }
+    }
 
     @Test
     public void test160QueryTrigger() throws Exception {
@@ -1663,6 +1799,86 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test341QueryOrgTreeFindUsersRelationDefault() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .isDirectChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_DEFAULT))
+                    .build();
+
+	        RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+	        String real = rQuery.getQuery().getQueryString();
+            String expected = "select\n"
+		            + "  u.oid,\n"
+		            + "  u.fullObject,\n"
+		            + "  u.stringsCount,\n"
+		            + "  u.longsCount,\n"
+		            + "  u.datesCount,\n"
+		            + "  u.referencesCount,\n"
+		            + "  u.polysCount,\n"
+		            + "  u.booleansCount\n"
+		            + "from\n"
+		            + "  RUser u\n"
+		            + "where\n"
+		            + "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid = :orgOid)\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+
+	        @SuppressWarnings("unchecked")
+	        Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+	        assertEquals("Wrong relation parameter value",
+			        new HashSet<>(Arrays.asList(
+					        "#",
+					        RUtil.qnameToString(SchemaConstants.ORG_DEFAULT))),
+			        new HashSet<>(relationParameter));
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test342QueryOrgTreeFindUsersRelationManager() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .isDirectChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_MANAGER))
+                    .build();
+
+	        RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+	        String real = rQuery.getQuery().getQueryString();
+            String expected = "select\n"
+		            + "  u.oid,\n"
+		            + "  u.fullObject,\n"
+		            + "  u.stringsCount,\n"
+		            + "  u.longsCount,\n"
+		            + "  u.datesCount,\n"
+		            + "  u.referencesCount,\n"
+		            + "  u.polysCount,\n"
+		            + "  u.booleansCount\n"
+		            + "from\n"
+		            + "  RUser u\n"
+		            + "where\n"
+		            + "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid = :orgOid)\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+
+	        @SuppressWarnings("unchecked")
+	        Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+	        assertEquals("Wrong relation parameter value",
+			        new HashSet<>(Arrays.asList(
+					        RUtil.qnameToString(QNameUtil.nullNamespace(SchemaConstants.ORG_MANAGER)),
+					        RUtil.qnameToString(SchemaConstants.ORG_MANAGER))),
+			        new HashSet<>(relationParameter));
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test345QueryOrgAllLevels() throws Exception {
         Session session = open();
 
@@ -1697,9 +1913,89 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    // MID-4337
+	@Test
+	public void test346QueryOrgTreeFindUsersRelationDefault() throws Exception {
+		Session session = open();
+
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.isChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_DEFAULT))
+					.build();
+
+			RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+			String real = rQuery.getQuery().getQueryString();
+			String expected = "select\n"
+					+ "  u.oid,\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "where\n"
+					+ "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+
+			@SuppressWarnings("unchecked")
+			Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+			assertEquals("Wrong relation parameter value",
+					new HashSet<>(Arrays.asList(
+							"#",
+							RUtil.qnameToString(SchemaConstants.ORG_DEFAULT))),
+					new HashSet<>(relationParameter));
+
+		} finally {
+			close(session);
+		}
+	}
+
+	@Test
+	public void test347QueryOrgTreeFindUsersRelationManager() throws Exception {
+		Session session = open();
+
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.isChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_MANAGER))
+					.build();
+
+			RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+			String real = rQuery.getQuery().getQueryString();
+			String expected = "select\n"
+					+ "  u.oid,\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "where\n"
+					+ "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
+
+			assertEqualsIgnoreWhitespace(expected, real);
+
+			@SuppressWarnings("unchecked")
+			Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
+			assertEquals("Wrong relation parameter value",
+					new HashSet<>(Arrays.asList(
+							RUtil.qnameToString(QNameUtil.nullNamespace(SchemaConstants.ORG_MANAGER)),
+							RUtil.qnameToString(SchemaConstants.ORG_MANAGER))),
+					new HashSet<>(relationParameter));
+
+		} finally {
+			close(session);
+		}
+	}
+
+
+	// MID-4337
     @Test
-    public void test346QuerySubtreeDistinctCount() throws Exception {
+    public void test350QuerySubtreeDistinctCount() throws Exception {
         Session session = open();
 
         try {
@@ -1722,7 +2018,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test348QueryRoots() throws Exception {
+    public void test355QueryRoots() throws Exception {
         Session session = open();
 
         try {
