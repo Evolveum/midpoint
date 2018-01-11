@@ -55,6 +55,6 @@
 			</script>
 		</macro>
 		<executionMethod>shell</executionMethod>
-		<code>cp "%file%" "target/%name%.pdf"</code>
+		<code>cp %file% "target/%name%.pdf"</code>
 	</postReportScript>
 </report>
