@@ -15,9 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import com.evolveum.midpoint.notifications.api.events.CustomEvent;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -26,28 +29,36 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -59,9 +70,13 @@ import static org.testng.AssertJUnit.*;
 public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 	public static final File TEST_DIR = new File("src/test/resources/notifications");
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
 	private String accountJackOid;
+	private HttpServer httpServer;
+	private MyHttpHandler httpHandler;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
@@ -72,7 +87,43 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 	@Override
 	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
+		return null;
+	}
+
+	@Override
+	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+			EncryptionException {
+		List<String> configLines = IOUtils.readLines(new FileReader(SYSTEM_CONFIGURATION_FILE));
+		String configString = StringUtils.join(configLines, '\n');
+		int port = startHttpServer();
+		configString = configString.replaceAll("\\$\\$port\\$\\$", Integer.toString(port));
+		repoAddObject(prismContext.parseObject(configString), initResult);
+	}
+
+	private int startHttpServer() throws IOException {
+		int freePort = findFreePort();
+		httpServer = HttpServer.create(new InetSocketAddress(freePort), 0);
+		httpHandler = new MyHttpHandler();
+		httpServer.createContext("/send", httpHandler);
+		httpServer.start();
+		System.out.println("Embedded http server started at port " + freePort);
+		return freePort;
+	}
+
+	@AfterClass
+	public void stopHttpServer() {
+		if (httpServer != null) {
+			System.out.println("Stopping the embedded http server");
+			httpServer.stop(0);
+			httpServer = null;
+		}
+	}
+
+	private int findFreePort() throws IOException {
+		try (ServerSocket socket = new ServerSocket(0)) {
+			socket.setReuseAddress(true);
+			return socket.getLocalPort();
+		}
 	}
 
 	@Test
@@ -123,8 +174,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		// Check account in dummy resource
 		assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
-		assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
-
 		notificationManager.setDisabled(true);
 
 		// Check notifications
@@ -140,12 +189,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 		List<Message> pwdMessages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
 		Message pwdMessage = pwdMessages.get(0);          // number of messages was already checked
-		assertEquals("Invalid list of recipients", Collections.singletonList("recipient@evolveum.com"), pwdMessage.getTo());
+		assertEquals("Invalid list of recipients", singletonList("recipient@evolveum.com"), pwdMessage.getTo());
 		assertEquals("Wrong message body", "Password for account jack on Dummy Resource is: deadmentellnotales", pwdMessage.getBody());
 
 		List<Message> addMessages = dummyTransport.getMessages("dummy:simpleAccountNotifier-ADD-SUCCESS");
 		Message addMessage = addMessages.get(0);          // number of messages was already checked
-		assertEquals("Invalid list of recipients", Collections.singletonList("recipient@evolveum.com"), addMessage.getTo());
+		assertEquals("Invalid list of recipients", singletonList("recipient@evolveum.com"), addMessage.getTo());
 		assertEquals("Wrong message body", "Notification about account-related operation\n"
 				+ "\n"
 				+ "Owner: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
@@ -204,7 +253,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 		// Check is shadow is gone
         try {
-        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        	repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         	AssertJUnit.fail("Shadow "+accountJackOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
@@ -212,8 +261,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
-
-        assertDummyScriptsDelete();
 
         // Check notifications
 		display("Notifications", dummyTransport);
@@ -244,7 +291,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
-		final String TEST_NAME="test131ModifyUserJackAssignAccount";
+		final String TEST_NAME = "test131ModifyUserJackAssignAccount";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -286,8 +333,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
-        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
-
         // Check notifications
 		display("Notifications", dummyTransport);
 
@@ -311,7 +356,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 				+ " - Assignment:\n"
 				+ "   - ADD: \n"
 				+ "      - Construction:\n"
-				+ "         - kind: ACCOUNT\n"
+				+ "         - Kind: ACCOUNT\n"
 				+ "         - resourceRef: Dummy Resource (resource)\n"
 				+ "\n"
 				+ "Channel: ";
@@ -319,69 +364,65 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     }
 
-	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
-		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
-				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
+	@Test
+	public void test200SendSmsUsingGet() {
+		final String TEST_NAME = "test200SendSmsUsingGet";
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
-		String userName = null;
-		if (user != null) {
-			userName = user.asObjectable().getName().getOrig();
-		}
-		script.addArgSingle("usr", "user: "+userName);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
 
-		// Note: We cannot test for account name as name is only assigned in provisioning
-		String accountEnabled = null;
-		if (account != null && account.asObjectable().getActivation() != null
-				&& account.asObjectable().getActivation().getAdministrativeStatus() != null) {
-			accountEnabled = account.asObjectable().getActivation().getAdministrativeStatus().toString();
-		}
-		script.addArgSingle("acc", "account: "+accountEnabled);
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Event event = new CustomEvent(lightweightIdentifierGenerator, "get", null,
+				"hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
+		notificationManager.processEvent(event, task, result);
 
-		String resourceName = null;
-		if (resource != null) {
-			resourceName = resource.getName().getOrig();
-		}
-		script.addArgSingle("res", "resource: "+resourceName);
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("processEvent result", result);
 
-		script.addArgSingle("size", "3");
-		script.setLanguage("Logo");
-		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
+		assertNotNull("No http request found", httpHandler.lastRequest);
+		assertEquals("Wrong HTTP method", "GET", httpHandler.lastRequest.method);
+		assertEquals("Wrong URI", "/send?number=%2B421905123456&text=hello+world", httpHandler.lastRequest.uri.toString());
 	}
 
-	private void assertDummyScriptsModify(PrismObject<UserType> user) {
-		assertDummyScriptsModify(user, false);
+	@Test
+	public void test210SendSmsUsingPost() {
+		final String TEST_NAME = "test210SendSmsUsingPost";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Event event = new CustomEvent(lightweightIdentifierGenerator, "post", null,
+				"hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
+		notificationManager.processEvent(event, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("processEvent result", result);
+
+		assertNotNull("No http request found", httpHandler.lastRequest);
+		assertEquals("Wrong HTTP method", "POST", httpHandler.lastRequest.method);
+		assertEquals("Wrong URI", "/send", httpHandler.lastRequest.uri.toString());
+		assertEquals("Wrong Content-Type header", singletonList("application/x-www-form-urlencoded"),
+				httpHandler.lastRequest.headers.get("content-type"));
+		assertEquals("Wrong X-Custom header", singletonList("test"), httpHandler.lastRequest.headers.get("x-custom"));
+		String username = "a9038321";
+		String password = "5ecr3t";
+		String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
+		assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
+		assertEquals("Wrong 1st line of body", "Body=\"hello+world\"&To=%2B421905123456&From=%2B421999000999", httpHandler.lastRequest.body.get(0));
 	}
 
-	private void assertDummyScriptsModify(PrismObject<UserType> user, boolean recon) {
-		ProvisioningScriptSpec modScript = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
-		String name = null;
-		String fullName = null;
-		String costCenter = null;
-		if (user != null) {
-			name = user.asObjectable().getName().getOrig();
-			fullName = user.asObjectable().getFullName().getOrig();
-			costCenter = user.asObjectable().getCostCenter();
-		}
-		modScript.addArgSingle("howMuch", costCenter);
-		modScript.addArgSingle("howLong", "from here to there");
-		modScript.addArgSingle("who", name);
-		modScript.addArgSingle("whatchacallit", fullName);
-		if (recon) {
-			ProvisioningScriptSpec reconBeforeScript = new ProvisioningScriptSpec("The vorpal blade went snicker-snack!");
-			reconBeforeScript.addArgSingle("who", name);
-			ProvisioningScriptSpec reconAfterScript = new ProvisioningScriptSpec("He left it dead, and with its head");
-			reconAfterScript.addArgSingle("how", "enabled");
-			IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), reconBeforeScript, modScript, reconAfterScript);
-		} else {
-			IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), modScript);
-		}
-	}
-
-	private void assertDummyScriptsDelete() {
-		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The Jabberwock, with eyes of flame");
-		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
-	}
-
+	@SuppressWarnings("Duplicates")
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
@@ -390,4 +431,42 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 
+	private static class MyHttpHandler implements HttpHandler {
+
+		private class Request {
+			URI uri;
+			String method;
+			Map<String, List<String>> headers;
+			List<String> body;
+		}
+
+		private Request lastRequest;
+
+		@Override
+		public void handle(HttpExchange httpExchange) throws IOException {
+			lastRequest = new Request();
+			lastRequest.uri = httpExchange.getRequestURI();
+			lastRequest.method = httpExchange.getRequestMethod();
+			lastRequest.headers = new HashMap<>();
+			// note that header names are case-insensitive in HTTP
+			httpExchange.getRequestHeaders().forEach((key, value) -> lastRequest.headers.put(key.toLowerCase(), value));
+			lastRequest.body = IOUtils.readLines(httpExchange.getRequestBody(), StandardCharsets.US_ASCII);
+			System.out.println(lastRequest.headers);
+
+			String response;
+			int responseCode;
+			if ("POST".equals(lastRequest.method) && !lastRequest.headers.containsKey("authorization")) {
+				response = "Not authorized";
+				httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"abc\"");
+				responseCode = 401;
+			} else {
+				response = "OK";
+				responseCode = 200;
+			}
+			httpExchange.sendResponseHeaders(responseCode, response.length());
+			OutputStream os = httpExchange.getResponseBody();
+			os.write(response.getBytes());
+			os.close();
+		}
+	}
 }

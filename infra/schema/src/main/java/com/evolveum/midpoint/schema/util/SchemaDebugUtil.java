@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -812,6 +813,20 @@ public class SchemaDebugUtil {
 			sb.append(result.getStatus());
 		}
 		// object, resource?
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(LoginEventType loginEventType) {
+		if (loginEventType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("LoginEventType(");
+		sb.append(prettyPrint(loginEventType.getTimestamp()));
+		String from = loginEventType.getFrom();
+		if (from != null) {
+			sb.append(" from ").append(from);
+		}
 		sb.append(")");
 		return sb.toString();
 	}
