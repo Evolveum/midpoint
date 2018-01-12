@@ -328,13 +328,53 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How to construct URL used to send SMS.
+                        DEPRECATED. Use urlExpression instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7.1</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="body" type="c:ExpressionType" minOccurs="0">
+            <xsd:element name="urlExpression" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to construct request body used to send SMS.
+                        Expression that returns constructs URL used to send SMS.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="headersExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that returns HTTP request headers. The expression should return 0, 1 or more string values
+                        that will be used as request HTTP headers. Each value is in the form of "name: value", i.e.
+                        a header name followed by comma, space and a header value. If one header has to have more values,
+                        such name-value pair should be present more times for the given header name.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bodyExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that returns request body used to send SMS (as a string).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bodyEncoding" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Encoding to be used for the message body. ISO 8859-1 is the default.
+                        Note that if you use any other encoding, your responsibility is to provide appropriate
+                        Content-Type header (see headersExpression item). This requirement might change in the future.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.7.1</a:since>
@@ -360,6 +400,16 @@
                     <xsd:documentation>
                         Instead of opening HTTP connection, writes the URL to this file. Useful for debugging.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to executing the expression, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
