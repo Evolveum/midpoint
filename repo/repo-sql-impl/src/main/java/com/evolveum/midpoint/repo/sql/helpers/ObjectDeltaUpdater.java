@@ -36,8 +36,16 @@ public class ObjectDeltaUpdater {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaUpdater.class);
 
+    /**
+     * modify
+     */
     public <T extends ObjectType> RObject<T> update(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                     RObject<T> objectToMerge, Session session, OperationResult result) {
+
+
+        for (ItemDelta delta : modifications) {
+
+        }
 
         return tryHibernateMerge(objectToMerge, session); // todo remove
 
@@ -45,6 +53,9 @@ public class ObjectDeltaUpdater {
 
     }
 
+    /**
+     * add with overwrite
+     */
     public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge, Session session,
                                                     OperationResult result) {
 

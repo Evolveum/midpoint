@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtPolyStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -29,6 +30,7 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(RAExtPolyStringId.class)
 @Table(name = "m_assignment_ext_poly")

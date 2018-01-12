@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 
 import javax.persistence.*;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.COLUMN_RECORD_ID;
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.TABLE_NAME;
 
+@Ignore
 @Entity
 @Table(name = TABLE_NAME, indexes = {
 		@Index(name = "iAuditPropValRecordId", columnList = COLUMN_RECORD_ID)})

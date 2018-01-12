@@ -24,6 +24,7 @@ import javax.persistence.*;
 
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @Table(name = RAuditEventRecord.TABLE_NAME, indexes = {
 		@Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP) }) // TODO correct index name

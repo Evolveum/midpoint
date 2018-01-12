@@ -4,6 +4,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -21,6 +22,7 @@ import java.util.Date;
 /**
  * @author Viliam Repan (lazyman)
  */
+@Ignore
 @Entity
 @Table(indexes = {
 //todo create indexes after lookup api is created (when we know how we will search through lookup table [lazyman]
