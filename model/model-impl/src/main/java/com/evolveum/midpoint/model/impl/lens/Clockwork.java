@@ -1345,6 +1345,10 @@ public class Clockwork {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
+			PrismObject<O> currentObject = elementContext.getObjectCurrent();
+			if (currentObject == null) {
+				currentObject = elementContext.getObjectOld();
+			}
 			primaryDelta = primaryDelta.clone();
 			PrismObject<O> object = elementContext.getObjectCurrent();
 			if (object == null) {
@@ -1363,7 +1367,7 @@ public class Clockwork {
 				// Process assignments first. If the assignments are allowed then we
 				// have to ignore the assignment item in subsequent security checks
 				if (primaryDelta.hasItemOrSubitemDelta(SchemaConstants.PATH_ASSIGNMENT)) {
-					AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDelta, operationUrl, getRequestAuthorizationPhase(context));
+					AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDelta, currentObject, operationUrl, getRequestAuthorizationPhase(context));
 					LOGGER.trace("Security decision for assignment items: {}", assignmentItemDecision);
 					if (assignmentItemDecision == AccessDecision.ALLOW) {
 						// Nothing to do, operation is allowed for all values
@@ -1452,9 +1456,9 @@ public class Clockwork {
 	}
 
 	private <O extends ObjectType> AccessDecision determineDecisionForAssignmentItems(
-			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> primaryDelta, String operationUrl,
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> primaryDelta, PrismObject<O> currentObject, String operationUrl,
 			AuthorizationPhaseType requestAuthorizationPhase) {
-		return securityEnforcer.determineSubitemDecision(securityConstraints, primaryDelta, operationUrl, requestAuthorizationPhase, SchemaConstants.PATH_ASSIGNMENT);
+		return securityEnforcer.determineSubitemDecision(securityConstraints, primaryDelta, currentObject, operationUrl, requestAuthorizationPhase, SchemaConstants.PATH_ASSIGNMENT);
 	}
 
 	private <F extends ObjectType> AuthorizationPhaseType getRequestAuthorizationPhase(LensContext<F> context) {
@@ -1466,7 +1470,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> AuthorizationDecisionType evaluateCredentialDecision(LensContext<F> context, ObjectSecurityConstraints securityConstraints, ItemDelta credentialChange) {
-		return securityConstraints.findItemDecision(credentialChange.getPath(),
+		return securityConstraints.findItemDecision(credentialChange.getPath().namedSegmentsOnly(),
 				ModelAuthorizationAction.CHANGE_CREDENTIALS.getUrl(), getRequestAuthorizationPhase(context));
 	}
 

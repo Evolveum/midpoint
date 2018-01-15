@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,12 +83,11 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 		}
 	}
 
-	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl, AuthorizationPhaseType phase) {
+	public AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase) {
 
         // We return DENY immediately, and ALLOW only if no DENY is present. So here we remember if we should return ALLOW or null at the end.
         boolean allow = false;
 
-        ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
 		for (Map.Entry<ItemPath,ItemSecurityConstraintsImpl> entry : itemConstraintMap.entrySet()) {
 
             ItemPath entryPath = entry.getKey();

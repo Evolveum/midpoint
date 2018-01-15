@@ -65,6 +65,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -274,18 +275,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			// Still check allowedItems. We may still deny the operation.
 			if (allowedItems.isEmpty()) {
 				// This means all items are allowed. No need to check anything
-				LOGGER.trace("    Empty list of allowed items, operation allowed");
+				LOGGER.trace("  Empty list of allowed items, operation allowed");
 			} else {
 				// all items in the object and delta must be allowed
+				LOGGER.trace("  Checking for allowed items: {}", allowedItems);
 
-				Function<ItemPath, AccessDecision> itemDecisionFunction = (itemPath) -> decideAllowedItems(itemPath,  allowedItems, phase);
+				ItemDecisionFunction itemDecisionFunction = (itemPath, removingContainer) -> decideAllowedItems(itemPath,  allowedItems, phase, removingContainer);
 				AccessDecision itemsDecision = null;
 				if (params.hasDelta()) {
-					itemsDecision = determineDeltaDecision(params.getDelta(), itemDecisionFunction);
+					itemsDecision = determineDeltaDecision(params.getDelta(), params.getObject(), itemDecisionFunction);
 				} else if (params.hasObject()) {
 					itemsDecision = determineObjectDecision(params.getObject(), itemDecisionFunction);
 				}
 				if (itemsDecision != AccessDecision.ALLOW) {
+					LOGGER.trace("    NOT ALLOWED operation because the item decision is {}", itemsDecision);
 					decision = AccessDecision.DEFAULT;
 				}
 			}
@@ -298,40 +301,125 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decision;
 	}
 	
-	private AccessDecision decideAllowedItems(final ItemPath itemPath, final Collection<ItemPath> allowedItems, final AuthorizationPhaseType phase) {
-		if (isAllowedItem(itemPath, allowedItems, phase)) {
+	private AccessDecision decideAllowedItems(final ItemPath itemPath, final Collection<ItemPath> allowedItems, final AuthorizationPhaseType phase, final boolean removingContainer) {
+		if (isAllowedItem(itemPath, allowedItems, phase, removingContainer)) {
 			return AccessDecision.ALLOW;
 		} else {
 			return AccessDecision.DEFAULT;
 		}
 	}
 
-	private <O extends ObjectType> AccessDecision determineObjectDecision(PrismContainer<O> object, Function<ItemPath, AccessDecision> itemDecitionFunction) {
-		return determineContainerDecision(object.getValue(), itemDecitionFunction);
+	private <O extends ObjectType> AccessDecision determineObjectDecision(PrismContainer<O> object, ItemDecisionFunction itemDecitionFunction) {
+		return determineContainerDecision(object.getValue(), itemDecitionFunction, false, "object");
 	}
 
-	private <C extends Containerable> AccessDecision determineContainerDeltaDecision(ContainerDelta<C> cdelta, Function<ItemPath, AccessDecision> itemDecitionFunction) {
-		final Holder<AccessDecision> decisionHolder = new Holder<>();
-		cdelta.foreach(cval -> {
-			AccessDecision subdecision = determineContainerDecision(cval, itemDecitionFunction);
-			decisionHolder.setValue(AccessDecision.combine(decisionHolder.getValue(), subdecision));
-		});
-		return decisionHolder.getValue();
+	private <C extends Containerable, O extends ObjectType> AccessDecision determineContainerDeltaDecision(ContainerDelta<C> cdelta, PrismObject<O> currentObject, ItemDecisionFunction itemDecitionFunction) {
+		AccessDecision decision = null;
+		ItemPath path = cdelta.getPath();
+		
+		// Everything is plain and simple for add. No need for any additional checks.
+		Collection<PrismContainerValue<C>> valuesToAdd = cdelta.getValuesToAdd();
+		if (valuesToAdd != null) {
+			for (PrismContainerValue<C> cval: valuesToAdd) {
+				AccessDecision subdecision = determineContainerDecision(cval, itemDecitionFunction, false, "delta add");
+				decision = AccessDecision.combine(decision, subdecision);
+			}
+		}
+		
+		// For deleted container values watch out for id-only deltas. Those deltas do not have
+		// any subitems in them. So we need to use data from currentObject for autz evaluation.
+		Collection<PrismContainerValue<C>> valuesToDelete = cdelta.getValuesToDelete();
+		if (valuesToDelete != null) {
+			for (PrismContainerValue<C> cval: valuesToDelete) {
+				AccessDecision subdecision = null;
+				if (cval.isIdOnly()) {
+					PrismContainerValue<C> currentObjectCval = determineContainerValueFromCurrentObject(path, cval.getId(), currentObject);
+					if (currentObjectCval != null) {
+						subdecision = determineContainerDecision(currentObjectCval, itemDecitionFunction, true, "delta delete (current value)");
+					}
+				} else {
+					subdecision = determineContainerDecision(cval, itemDecitionFunction, true, "delta delete");
+				}
+				if (subdecision != null) {
+					decision = AccessDecision.combine(decision, subdecision);
+				}
+			}
+		}
+		
+		// Values to replace should pass the ordinary check. But we also need to check old values
+		// in currentObject, because those values are efficiently deleted.
+		Collection<PrismContainerValue<C>> valuesToReplace = cdelta.getValuesToReplace();
+		if (valuesToReplace != null) {
+			for (PrismContainerValue<C> cval: valuesToReplace) {
+				AccessDecision subdecision = determineContainerDecision(cval, itemDecitionFunction, false, "delta replace");
+				decision = AccessDecision.combine(decision, subdecision);
+			}
+			Collection<PrismContainerValue<C>> oldCvals = determineContainerValuesFromCurrentObject(path, currentObject);
+			if (oldCvals != null) {
+				for (PrismContainerValue<C> cval: oldCvals) {
+					AccessDecision subdecision = determineContainerDecision(cval, itemDecitionFunction, true, "delta replace (removed current value)");
+					decision = AccessDecision.combine(decision, subdecision);
+				}
+			}
+		}
+		
+		return decision;
 	}
 
-	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, Function<ItemPath, AccessDecision> itemDecitionFunction) {
+	private <C extends Containerable> void logSubitemContainerDecision(AccessDecision subdecision, String location, PrismContainerValue<C> cval) {
+		if (LOGGER.isTraceEnabled()) {
+			if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
+				LOGGER.trace("    container {} for {} (processed subitems): decision={}", cval.getPath(), location, subdecision);
+			}
+		}
+	}
+	
+	private <C extends Containerable> void logSubitemDecision(AccessDecision subdecision, String location, ItemPath path) {
+		if (LOGGER.isTraceEnabled()) {
+			if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
+				LOGGER.trace("    item {} for {}: decision={}", path, location, subdecision);
+			}
+		}
+	}
+
+	private <C extends Containerable, O extends ObjectType> PrismContainerValue<C> determineContainerValueFromCurrentObject(ItemPath path,
+			long id, PrismObject<O> currentObject) {
+		Collection<PrismContainerValue<C>> oldCvals = determineContainerValuesFromCurrentObject(path, currentObject);
+		if (oldCvals == null) {
+			return null;
+		}
+		for (PrismContainerValue<C> oldCval: oldCvals) {
+			if (id == oldCval.getId()) {
+				return oldCval;
+			}
+		}
+		return null;
+	}
+
+	private <C extends Containerable, O extends ObjectType> Collection<PrismContainerValue<C>> determineContainerValuesFromCurrentObject(ItemPath path,
+			PrismObject<O> currentObject) {
+		PrismContainer<C> container = currentObject.findContainer(path);
+		if (container == null) {
+			return null;
+		}
+		return container.getValues();
+	}
+
+	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, ItemDecisionFunction itemDecitionFunction, boolean removingContainer, String decisionContextDesc) {
 		List<Item<?,?>> items = cval.getItems();
 		// Note: cval.isEmpty() will also check for id. We do not care about that.
 		if (items == null || items.isEmpty()) {
 			// TODO: problem with empty containers such as
 			// orderConstraint in assignment. Skip all
 			// empty items ... for now.
+			logSubitemContainerDecision(null, decisionContextDesc, cval);
 			return null;
 		}
 		AccessDecision decision = null;
 		for (Item<?, ?> item: items) {
 			ItemPath itemPath = item.getPath();
-			AccessDecision itemDecision = itemDecitionFunction.apply(itemPath);
+			AccessDecision itemDecision = itemDecitionFunction.decide(itemPath.namedSegmentsOnly(), removingContainer);
+			logSubitemDecision(itemDecision, decisionContextDesc, itemPath);
 			if (itemDecision == null) {
 				// null decision means: skip this
 				continue;
@@ -339,10 +427,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			if (itemDecision == AccessDecision.DEFAULT && item instanceof PrismContainer<?>) {
 				// No decision for entire container. Subitems will dictate the decision.
 				List<PrismContainerValue<?>> subValues = (List)((PrismContainer<?>)item).getValues();
+				AccessDecision containerDecision = null;
 				for (PrismContainerValue<?> subValue: subValues) {
-					AccessDecision subdecision = determineContainerDecision(subValue, itemDecitionFunction);
-					decision = AccessDecision.combine(decision, subdecision);
+					AccessDecision subdecision = determineContainerDecision(subValue, itemDecitionFunction, removingContainer, decisionContextDesc);
+					containerDecision = AccessDecision.combine(containerDecision, subdecision);
 					// We do not want to break the loop immediately here. We want all the denied items to get logged
+				}
+				if (containerDecision == null) {
+					// All items that were inside all the container values are ignored (e.g. metadata).
+					// This is efficiently the same situation as an empty container.
+					// So just ignore it.
+					continue;
+				} else {
+					decision = AccessDecision.combine(decision, containerDecision);
 				}
 			} else {
 				if (itemDecision == AccessDecision.DENY) {
@@ -352,24 +449,29 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				decision = AccessDecision.combine(decision, itemDecision);
 			}
 		}
+		logSubitemContainerDecision(decision, decisionContextDesc, cval);
 		return decision;
 	}
 
-	private <O extends ObjectType> AccessDecision determineDeltaDecision(ObjectDelta<O> delta, Function<ItemPath, AccessDecision> itemDecisionFunction) {
+	/**
+	 * The currentObject parameter is the state of the object as we have seen it (the more recent the better).
+	 * This is used to check authorization for id-only delete deltas and replace deltas for containers.
+	 */
+	private <O extends ObjectType> AccessDecision determineDeltaDecision(ObjectDelta<O> delta, PrismObject<O> currentObject, ItemDecisionFunction itemDecisionFunction) {
 		if (delta.isAdd()) {
 			return determineObjectDecision(delta.getObjectToAdd(), itemDecisionFunction);
 		} else {
 			AccessDecision decision = null;
 			for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
 				ItemPath itemPath = itemDelta.getPath();
-				AccessDecision itemDecision = itemDecisionFunction.apply(itemPath);
+				AccessDecision itemDecision = itemDecisionFunction.decide(itemPath.namedSegmentsOnly(), false);
 				if (itemDecision == null) {
 					// null decision means: skip this
 					continue;
 				}
 				if (itemDecision == AccessDecision.DEFAULT && itemDelta instanceof ContainerDelta<?>) {
 					// No decision for entire container. Subitems will dictate the decision.
-					AccessDecision subdecision = determineContainerDeltaDecision((ContainerDelta<?>)itemDelta, itemDecisionFunction);
+					AccessDecision subdecision = determineContainerDeltaDecision((ContainerDelta<?>)itemDelta, currentObject, itemDecisionFunction);
 					decision = AccessDecision.combine(decision, subdecision);
 				} else {
 					if (itemDecision == AccessDecision.DENY) {
@@ -383,17 +485,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private boolean isAllowedItem(ItemPath itemPath, Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
-		return isInList(itemPath, allowedItems) || allowedForExecutionByDefault(itemPath, phase);
+	private boolean isAllowedItem(ItemPath nameOnlyItemPath, Collection<ItemPath> allowedItems, AuthorizationPhaseType phase, boolean removingContainer) {
+		if (removingContainer && isInList(nameOnlyItemPath, AuthorizationConstants.OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE)) {
+			return true;
+		}
+		if (AuthorizationPhaseType.EXECUTION.equals(phase) && isInList(nameOnlyItemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)) {
+			return true;
+		}
+		return isInList(nameOnlyItemPath, allowedItems);
 	}
 	
-	private boolean allowedForExecutionByDefault(ItemPath itemPath, AuthorizationPhaseType phase) {
-		if (!AuthorizationPhaseType.EXECUTION.equals(phase)) {
-			return false;
-		}
-		return isInList(itemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT);
-	}
-
 	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
 		boolean itemAllowed = false;
 		for (ItemPath allowedPath: allowedItems) {
@@ -448,7 +549,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 			return false;
 		} else {
-			LOGGER.trace("  {}: No {} specification in authorization (authorization is applicable)", autzHumanReadableDesc, desc);
+			LOGGER.trace("    {}: No {} specification in authorization (authorization is applicable)", autzHumanReadableDesc, desc);
 			return true;
 		}
 	}
@@ -1601,15 +1702,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType> AccessDecision determineSubitemDecision(
-			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, String operationUrl,
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, PrismObject<O> currentObject, String operationUrl,
 			AuthorizationPhaseType phase, ItemPath subitemRootPath) {
-		return determineDeltaDecision(delta, 
-				(itemPath) -> {
-					ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
+		return determineDeltaDecision(delta, currentObject,
+				(nameOnlyItemPath, removingContainer) -> {
+					if (removingContainer && isInList(nameOnlyItemPath, AuthorizationConstants.OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE)) {
+						return null;
+					}
+					if (AuthorizationPhaseType.EXECUTION.equals(phase) && isInList(nameOnlyItemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)) {
+						return null;
+					}
 					if (!subitemRootPath.isSubPathOrEquivalent(nameOnlyItemPath)) {
 //						LOGGER.trace("subitem decision: {} <=> {} (not under root) : {}", subitemRootPath, nameOnlyItemPath, null);
 						return null;
 					}
+					
 					AuthorizationDecisionType authorizationDecisionType = securityConstraints.findItemDecision(nameOnlyItemPath, operationUrl, phase);
 					AccessDecision decision = AccessDecision.translate(authorizationDecisionType);
 //					LOGGER.trace("subitem decision: {} <=> {} : {}", subitemRootPath, nameOnlyItemPath, decision);

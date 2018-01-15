@@ -341,9 +341,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
 	@Override
 	public <O extends ObjectType> AccessDecision determineSubitemDecision(
-			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, String operationUrl,
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, PrismObject<O> currentObject, String operationUrl,
 			AuthorizationPhaseType phase, ItemPath subitemRootPath) {
-		return securityEnforcer.determineSubitemDecision(securityConstraints, delta, operationUrl, phase, subitemRootPath);
+		return securityEnforcer.determineSubitemDecision(securityConstraints, delta, currentObject, operationUrl, phase, subitemRootPath);
 	}
 
 }
