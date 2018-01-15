@@ -458,22 +458,19 @@ public class ModelRestService {
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			
 			
-			List<PrismObject<T>> objects = new ArrayList<>();
+			List<T> objects = new ArrayList<>();
 			ResultHandler<T> handler = new ResultHandler<T>() {
 				
 				@Override
 				public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-					return objects.add(object);
+					return objects.add(object.asObjectable());
 				}
 			};
 			
 			SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
-			if (objects != null){
-				List<ObjectType> list = objects.stream().map(o -> convert(clazz, o, parentResult.createOperationResultType())).collect(Collectors.toList());
-				listType.getObject().addAll(list);
-			}
+			listType.getObject().addAll(objects);
 
 			response = RestServiceUtil.createResponse(Response.Status.OK, listType, parentResult, true);
 //			response = Response.ok().entity(listType).build();
