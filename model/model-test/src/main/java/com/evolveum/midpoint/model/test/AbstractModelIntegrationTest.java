@@ -197,6 +197,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -4015,6 +4016,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
 	}
+	
+	protected void modifyRoleAddAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+	        		prismContext, assignment);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleDeleteAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+	        		prismContext, assignment);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
 
 	protected PolicyRuleType createExclusionPolicyRule(String excludedRoleOid) {
 		PolicyRuleType policyRule = new PolicyRuleType();
@@ -4037,6 +4052,50 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		policyContraints.getMinAssignees().add(minAssigneeConstraint);
 		policyRule.setPolicyConstraints(policyContraints);
 		return policyRule;
+	}
+	
+	protected PolicyRuleType createMaxAssigneePolicyRule(int maxAssignees) {
+		PolicyRuleType policyRule = new PolicyRuleType();
+		PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+		MultiplicityPolicyConstraintType maxAssigneeConstraint = new MultiplicityPolicyConstraintType();
+		maxAssigneeConstraint.setMultiplicity(Integer.toString(maxAssignees));
+		policyContraints.getMaxAssignees().add(maxAssigneeConstraint);
+		policyRule.setPolicyConstraints(policyContraints);
+		return policyRule;
+	}
+	
+	protected AssignmentType createAssignmentIdOnly(long id) {
+		AssignmentType assignment = new AssignmentType();
+		assignment.asPrismContainerValue().setId(id);
+		return assignment;
+	}
+	
+	protected void modifyRoleAddPolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+	        		prismContext, policyException);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleDeletePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+	        		prismContext, policyException);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleReplacePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationReplaceContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+	        		prismContext, policyException);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected PolicyExceptionType createPolicyException(String ruleName, String policySituation) {
+		PolicyExceptionType policyException = new PolicyExceptionType();
+		policyException.setPolicySituation(policySituation);
+		policyException.setRuleName(ruleName);
+		return policyException;
 	}
 
 	protected Optional<AssignmentType> findAssignmentByTarget(PrismObject<? extends FocusType> focus, String targetOid) {

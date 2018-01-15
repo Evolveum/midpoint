@@ -51,6 +51,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -339,7 +340,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 
-    	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
+    	ItemPath attributesPath = SchemaConstants.PATH_ATTRIBUTES;
 		AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(),
     			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase), phase);
 		AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
@@ -403,7 +404,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (securityConstraints == null) {
 			return null;
 		}
-		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT),
+		AuthorizationDecisionType decision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT,
 				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
 		if (decision == AuthorizationDecisionType.ALLOW) {
 			 getAllRoleTypesSpec(spec, result);

@@ -120,5 +120,5 @@ public interface SecurityEnforcer {
 	MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	<O extends ObjectType> AccessDecision determineSubitemDecision(ObjectSecurityConstraints securityConstraints,
-			ObjectDelta<O> delta, String operationUrl, AuthorizationPhaseType phase, ItemPath subitemRootPath);
+			ObjectDelta<O> delta, PrismObject<O> currentObject, String operationUrl, AuthorizationPhaseType phase, ItemPath subitemRootPath);
 }

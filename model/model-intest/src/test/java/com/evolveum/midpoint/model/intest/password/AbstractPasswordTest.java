@@ -2438,6 +2438,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         prepareTest();
+        
+        PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
+		display("User before", userBefore);
 
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 

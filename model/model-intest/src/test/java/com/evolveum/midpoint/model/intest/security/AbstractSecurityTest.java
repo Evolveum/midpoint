@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -340,13 +341,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE = new File(TEST_DIR, "role-assign-self-requestable-any-approver.xml");
 	protected static final String ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID = "d3e83cce-bb25-11e7-ae7c-b73d2208bf2a";
-	
-	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
-	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
-	
-	protected static final File ROLE_EXCLUSION_PIRATE_FILE = new File(TEST_DIR, "role-exclusion-pirate.xml");
-	protected static final String ROLE_EXCLUSION_PIRATE_OID = "cf60ec66-e5a8-11e7-a997-ab32b7ec5fdb";
-
+		
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 
@@ -385,7 +380,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 70;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 69;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -469,7 +464,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE, initResult);
 		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
@@ -498,6 +492,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assignOrg(userCobbOid, ORG_SCUMM_BAR_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, initTask, initResult);
+		
+		InternalsConfig.setDetailedAuhotizationLog(true);
 	}
 
 	protected int getNumberOfRoles() {
@@ -645,6 +641,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupDelete(TaskType.class, TASK_T4_OID, task, result);
         cleanupDelete(TaskType.class, TASK_T5_OID, task, result);
         cleanupDelete(TaskType.class, TASK_T6_OID, task, result);
+        
+        cleanupDelete(RoleType.class, ROLE_EMPTY_OID, task, result);
+        cleanupAdd(ROLE_EMPTY_FILE, task, result);
         
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
