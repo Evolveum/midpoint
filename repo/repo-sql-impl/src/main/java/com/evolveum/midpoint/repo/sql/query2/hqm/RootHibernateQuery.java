@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.transform.ResultTransformer;
