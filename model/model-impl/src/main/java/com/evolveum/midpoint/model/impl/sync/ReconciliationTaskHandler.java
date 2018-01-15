@@ -75,7 +75,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * The task hander for reconciliation.
+ * The task handler for reconciliation.
  *
  * This handler takes care of executing reconciliation "runs". It means that the
  * handler "run" method will be as scheduled (every few days). The
@@ -89,7 +89,6 @@ import java.util.List;
 public class ReconciliationTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/reconciliation/handler-3";
-	public static final long DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL = 5 * 60 * 1000;
 
 	/**
 	 * Just for testability. Used in tests. Injected by explicit call to a
@@ -109,12 +108,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
-	private static final int SEARCH_MAX_SIZE = 100;
-
-	private static final int MAX_ITERATIONS = 10;
-
-	private static final int BLOCK_SIZE = 20;
-
+	@SuppressWarnings("unused")
 	public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
 		return reconciliationTaskResultListener;
 	}
@@ -172,38 +166,40 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
-			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR,
+					opResult);
 			return runResult;
 		} catch (CommunicationException ex) {
 			// Error, but not critical. Just try later.
-			processErrorPartial(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, opResult);
 			return runResult;
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, opResult);
 			return runResult;
 		} catch (RuntimeException ex) {
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense
 			// to retry.
-			processErrorPartial(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, opResult);
 			return runResult;
 		} catch (ConfigurationException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, opResult);
 			return runResult;
 		} catch (SecurityViolationException ex) {
-			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, opResult);
 			return runResult;
 		} catch (ExpressionEvaluationException ex) {
-			processErrorPartial(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, opResult);
 			return runResult;
 		}
 
 		if (objectclassDef == null) {
-			processErrorPartial(runResult, "Reconciliation without an object class specification is not supported", null, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Reconciliation without an object class specification is not supported", null, TaskRunResultStatus.PERMANENT_ERROR,
+					opResult);
 			return runResult;
 		}
 
@@ -223,34 +219,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
                 processInterruption(runResult, resource, coordinatorTask, opResult);			// appends also "last N failures" (TODO refactor)
                 return runResult;
             }
-		} catch (ObjectNotFoundException ex) {
-			// This is bad. The resource does not exist. Permanent problem.
-			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
-		} catch (ObjectAlreadyExistsException ex) {
-			processErrorPartial(runResult, "Object already exist", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
-		} catch (CommunicationException ex) {
-			// Error, but not critical. Just try later.
-			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, coordinatorTask, opResult);	// appends also "last N failures" (TODO refactor)
-			return runResult;
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, coordinatorTask, opResult);
+			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, opResult);
 		} catch (RuntimeException ex) {
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense
 			// to retry.
 			processErrorFinal(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 			return runResult;
-		} catch (ConfigurationException ex) {
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorFinal(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, coordinatorTask, opResult);
-			return runResult;
-		} catch (SecurityViolationException ex) {
-			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 		}
-
 		setExpectedTotalToNull(coordinatorTask, opResult);              // expected total is unknown for the remaining phases
 
 		long beforeResourceReconTimestamp = clock.currentTimeMillis();
@@ -428,7 +407,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
 	private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
-			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
+			TaskRunResultStatus runResultStatus, OperationResult opResult) {
 		String message;
 		if (ex == null) {
 			message = errorDesc;
@@ -441,7 +420,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
     // returns false in case of execution interruption
-	private boolean performResourceReconciliation(PrismObject<ResourceType> resource, ObjectClassComplexTypeDefinition objectclassDef, ReconciliationTaskResult reconResult, Task coordinatorTask, OperationResult result)
+	private boolean performResourceReconciliation(PrismObject<ResourceType> resource, ObjectClassComplexTypeDefinition objectclassDef,
+			ReconciliationTaskResult reconResult, Task coordinatorTask, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
@@ -467,7 +447,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
 			handler.createWorkerThreads(coordinatorTask, searchResult);
-			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, coordinatorTask, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
+			// note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
+			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, coordinatorTask, searchResult);
 			handler.completeProcessing(coordinatorTask, searchResult);
 
 			interrupted = !coordinatorTask.canRun();
@@ -627,9 +608,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	 * Scans shadows for unfinished operations and tries to finish them.
      * Returns false if the reconciliation was interrupted.
 	 */
-	private boolean scanForUnfinishedOperations(Task task, String resourceOid, ReconciliationTaskResult reconResult, OperationResult result) throws SchemaException,
-			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
-			ConfigurationException, SecurityViolationException {
+	private boolean scanForUnfinishedOperations(Task task, String resourceOid, ReconciliationTaskResult reconResult,
+			OperationResult result) throws SchemaException {
 		LOGGER.trace("Scan for unfinished operations starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");
 		opResult.addParam("reconciled", true);
@@ -675,7 +655,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
                     repositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
 							provisioningResult);
 					task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, null);
-				} catch(Exception e) {
+				} catch (Exception e) {
 					task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, e);
                     LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
