@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -38,13 +38,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -61,6 +55,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -544,7 +539,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 		// System Configuration
 		try {
-			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+			File systemConfigurationFile = getSystemConfigurationFile();
+			if (systemConfigurationFile != null) {
+				repoAddObjectFromFile(systemConfigurationFile, initResult);
+			} else {
+				addSystemConfigurationObject(initResult);
+			}
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -566,6 +566,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
+	}
+
+	// to be used in very specific cases only (it is invoked when getSystemConfigurationFile returns null).
+	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+			EncryptionException {
 	}
 
 	protected PrismObject<UserType> getDefaultActor() {
