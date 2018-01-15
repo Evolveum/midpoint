@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.boot.model.naming.Identifier;
-import org.hibernate.boot.model.naming.ImplicitBasicColumnNameSource;
-import org.hibernate.boot.model.naming.ImplicitJoinColumnNameSource;
-import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyHbmImpl;
+import org.hibernate.boot.model.naming.*;
 import org.hibernate.boot.model.source.spi.AttributePath;
+import org.hibernate.boot.spi.MetadataBuildingContext;
 
 import java.util.Arrays;
 
@@ -31,6 +31,35 @@ import java.util.Arrays;
  * Pure magic. Clean up necessary, same for annoations.
  */
 public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacyHbmImpl {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointImplicitNamingStrategy.class);
+
+    @Override
+    public Identifier determinePrimaryKeyJoinColumnName(ImplicitPrimaryKeyJoinColumnNameSource source) {
+        Identifier i = super.determinePrimaryKeyJoinColumnName(source);
+
+        LOGGER.trace("determinePrimaryKeyJoinColumnName {} {} -> {}", source.getReferencedTableName(), source.getReferencedPrimaryKeyColumnName(), i);
+
+        return i;
+    }
+
+    @Override
+    protected String transformAttributePath(AttributePath attributePath) {
+        String path = super.transformAttributePath(attributePath);
+
+        LOGGER.trace("transformAttributePath {} -> {}", attributePath, path);
+
+        return path;
+    }
+
+    @Override
+    public Identifier determineIdentifierColumnName(ImplicitIdentifierColumnNameSource source) {
+        Identifier i = super.determineIdentifierColumnName(source);
+
+        LOGGER.trace("determineIdentifierColumnName {} {} -> {}", source.getEntityNaming(), source.getIdentifierAttributePath(), i);
+
+        return i;
+    }
 
     @Override
     public Identifier determineJoinColumnName(ImplicitJoinColumnNameSource source) {
@@ -70,6 +99,8 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
             real = toIdentifier(StringUtils.join(Arrays.asList(translatedParent, columnName), "_"), source.getBuildingContext());
         }
 
+        LOGGER.trace("determineJoinColumnName {} {} -> {}, {}", source.getReferencedTableName(), source.getReferencedColumnName(), i, real);
+
         return real;
     }
 
@@ -93,6 +124,10 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
         }
         result = RUtil.fixDBSchemaObjectNameLength(result);
 
-        return toIdentifier(result, source.getBuildingContext());
+        Identifier i = toIdentifier(result, source.getBuildingContext());
+
+        LOGGER.trace("determineBasicColumnName {} {}", fullPath, i);
+
+        return i;
     }
 }
