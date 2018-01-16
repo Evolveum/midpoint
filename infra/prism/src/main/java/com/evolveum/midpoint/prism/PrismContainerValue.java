@@ -1276,6 +1276,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         return items.isEmpty();
     }
+	
+	public boolean isIdOnly() {
+		if (id == null) {
+			return false;
+		}
+		if (items == null || items.isEmpty()) {
+			return true;
+		}
+		return false;
+	}
 
     @Override
 	public void normalize() {

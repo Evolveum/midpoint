@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
+import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -48,13 +50,21 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -64,7 +74,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author mederly
@@ -78,18 +95,13 @@ public class SimpleSmsTransport implements Transport {
 
     private static final String DOT_CLASS = SimpleSmsTransport.class.getName() + ".";
 
-    @Autowired
-    protected PrismContext prismContext;
-
-    @Autowired
-    protected ExpressionFactory expressionFactory;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private NotificationManager notificationManager;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected ExpressionFactory expressionFactory;
+	@Autowired private NotificationManager notificationManager;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private transient RepositoryService cacheRepositoryService;
+	@Autowired protected Protector protector;
 
     @PostConstruct
     public void init() {
@@ -103,7 +115,7 @@ public class SimpleSmsTransport implements Transport {
         result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
+        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. SMS notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -111,10 +123,11 @@ public class SimpleSmsTransport implements Transport {
             return;
         }
 
-        String smsConfigName = transportName.length() > NAME.length() ? transportName.substring(NAME.length() + 1) : null;      // after "sms:"
+        String smsConfigName = StringUtils.substringAfter(transportName, NAME + ":");
         SmsConfigurationType found = null;
         for (SmsConfigurationType smsConfigurationType: systemConfiguration.getNotificationConfiguration().getSms()) {
-            if ((smsConfigName == null && smsConfigurationType.getName() == null) || (smsConfigName != null && smsConfigName.equals(smsConfigurationType.getName()))) {
+            if (StringUtils.isEmpty(smsConfigName) && smsConfigurationType.getName() == null
+		            || StringUtils.isNotEmpty(smsConfigName) && smsConfigName.equals(smsConfigurationType.getName())) {
                 found = smsConfigurationType;
                 break;
             }
@@ -134,7 +147,7 @@ public class SimpleSmsTransport implements Transport {
         }
         String file = smsConfigurationType.getRedirectToFile();
         if (file != null) {
-            writeToFile(message, file, null, result);
+            writeToFile(message, file, null, emptyList(), null, result);
             return;
         }
 
@@ -145,7 +158,14 @@ public class SimpleSmsTransport implements Transport {
             return;
         }
 
-        String from = smsConfigurationType.getDefaultFrom() != null ? smsConfigurationType.getDefaultFrom() : "";
+        String from;
+        if (message.getFrom() != null) {
+        	from = message.getFrom();
+        } else if (smsConfigurationType.getDefaultFrom() != null) {
+        	from = smsConfigurationType.getDefaultFrom();
+        } else {
+        	from = "";
+        }
 
         if (message.getTo().isEmpty()) {
             String msg = "There is no recipient to send the notification to.";
@@ -161,33 +181,62 @@ public class SimpleSmsTransport implements Transport {
         }
 
         for (SmsGatewayConfigurationType smsGatewayConfigurationType : smsConfigurationType.getGateway()) {
-
             OperationResult resultForGateway = result.createSubresult(DOT_CLASS + "send.forGateway");
             resultForGateway.addContext("gateway name", smsGatewayConfigurationType.getName());
-
             try {
-                String url = evaluateExpressionChecked(smsGatewayConfigurationType.getUrl(), getDefaultVariables(from, to, message),
-                		"sms gateway url", task, result);
-                LOGGER.debug("Sending SMS to URL " + url);
+	            ExpressionVariables variables = getDefaultVariables(from, to, message);
+            	HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
+	            ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), smsGatewayConfigurationType.getUrl());
+	            String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
+                LOGGER.debug("Sending SMS to URL {} (method {})", url, method);
+                if (url == null) {
+                	throw new IllegalArgumentException("No URL specified");
+                }
 
+	            List<String> headersList = evaluateExpressionsChecked(smsGatewayConfigurationType.getHeadersExpression(), variables,
+			            "sms gateway request headers", task, result);
+	            LOGGER.debug("Using request headers:\n{}", headersList);
+
+	            String encoding = defaultIfNull(smsGatewayConfigurationType.getBodyEncoding(), StandardCharsets.ISO_8859_1.name());
+                String body = evaluateExpressionChecked(smsGatewayConfigurationType.getBodyExpression(), variables,
+		                "sms gateway request body", task, result);
+	            LOGGER.debug("Using request body text (encoding: {}):\n{}", encoding, body);
+
+	            if (smsGatewayConfigurationType.getLogToFile() != null) {
+	            	TransportUtil.logToFile(smsGatewayConfigurationType.getLogToFile(), formatToFile(message, url, headersList, body), LOGGER);
+	            }
                 if (smsGatewayConfigurationType.getRedirectToFile() != null) {
-                    writeToFile(message, smsGatewayConfigurationType.getRedirectToFile(), url, resultForGateway);
+                    writeToFile(message, smsGatewayConfigurationType.getRedirectToFile(), url, headersList, body, resultForGateway);
                     result.computeStatus();
                     return;
                 } else {
-                    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-                    ClientHttpRequest request = requestFactory.createRequest(new URI(url), HttpMethod.GET);
-                    ClientHttpResponse response = request.execute();
+	                HttpClientBuilder builder = HttpClientBuilder.create();
+	                String username = smsGatewayConfigurationType.getUsername();
+	                ProtectedStringType password = smsGatewayConfigurationType.getPassword();
+	                if (username != null) {
+		                CredentialsProvider provider = new BasicCredentialsProvider();
+		                String plainPassword = password != null ? protector.decryptString(password) : null;
+		                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword);
+		                provider.setCredentials(AuthScope.ANY, credentials);
+		                builder = builder.setDefaultCredentialsProvider(provider);
+	                }
+	                HttpClient client = builder.build();
+	                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
+                    ClientHttpRequest request = requestFactory.createRequest(new URI(url), HttpUtil.toHttpMethod(method));
+	                setHeaders(request, headersList);
+	                if (body != null) {
+		                request.getBody().write(body.getBytes(encoding));
+	                }
+	                ClientHttpResponse response = request.execute();
                     LOGGER.debug("Result: " + response.getStatusCode() + "/" + response.getStatusText());
                     if (response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL) {
                         throw new SystemException("SMS gateway communication failed: " + response.getStatusCode() + ": " + response.getStatusText());
                     }
-                    LOGGER.info("Message sent successfully to " + message.getTo() + " via gateway " + smsGatewayConfigurationType.getName() + ".");
+                    LOGGER.info("Message sent successfully to {} via gateway {}.", message.getTo(), smsGatewayConfigurationType.getName());
                     resultForGateway.recordSuccess();
                     result.recordSuccess();
                     return;
                 }
-
             } catch (Throwable t) {
                 String msg = "Couldn't send SMS to " + message.getTo() + " via " + smsGatewayConfigurationType.getName() + ", trying another gateway, if there is any";
                 LoggingUtils.logException(LOGGER, msg, t);
@@ -198,9 +247,32 @@ public class SimpleSmsTransport implements Transport {
         result.recordWarning("Notification to " + message.getTo() + " could not be sent.");
     }
 
-    private void writeToFile(Message message, String file, String url, OperationResult result) {
+	private void setHeaders(ClientHttpRequest request, List<String> headersList) {
+		for (String headerAsString : headersList) {
+			if (StringUtils.isEmpty(headerAsString)) {
+				continue;
+			}
+			int i = headerAsString.indexOf(':');
+			if (i < 0) {
+				throw new IllegalArgumentException("Illegal header specification (expected was 'name: value' pair): " + headerAsString);
+			}
+			String headerName = headerAsString.substring(0, i);
+			int headerValueIndex;
+			if (i+1 == headerAsString.length() || headerAsString.charAt(i+1) != ' ') {
+				// let's be nice and treat well the wrong case (there's no space after ':')
+				headerValueIndex = i+1;
+			} else {
+				// correct case: ':' followed by space
+				headerValueIndex = i+2;
+			}
+			String headerValue = headerAsString.substring(headerValueIndex);
+			request.getHeaders().add(headerName, headerValue);
+		}
+	}
+
+	private void writeToFile(Message message, String file, String url, List<String> headers, String body, OperationResult result) {
         try {
-            TransportUtil.appendToFile(file, formatToFile(message, url));
+            TransportUtil.appendToFile(file, formatToFile(message, url, headers, body));
             result.recordSuccess();
         } catch (IOException e) {
             LoggingUtils.logException(LOGGER, "Couldn't write to SMS redirect file {}", e, file);
@@ -208,52 +280,77 @@ public class SimpleSmsTransport implements Transport {
         }
     }
 
-    private String formatToFile(Message mailMessage, String url) {
-        return "================ " + new Date() + " ======= " + (url != null ? url : "") + "\n" + mailMessage.toString() + "\n\n";
+    private String formatToFile(Message mailMessage, String url, List<String> headers, String body) {
+        return "================ " + new Date() + " ======= " + (url != null ? url : "")
+		        + "\nHeaders:\n" + headers
+		        + "\n\nBody:\n" + body
+		        + "\n\nFor message:\n" + mailMessage.toString() + "\n\n";
     }
 
     private String evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
-
-        Throwable failReason;
         try {
-            return evaluateExpression(expressionType, expressionVariables, shortDesc, task, result);
+            return evaluateExpression(expressionType, expressionVariables, false, shortDesc, task, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            failReason = e;
+	        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+	        result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+	        throw new SystemException(e);
         }
-
-        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", failReason, shortDesc, expressionType);
-        result.recordFatalError("Couldn't evaluate " + shortDesc, failReason);
-        throw new SystemException(failReason);
     }
 
-    private String evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @NotNull
+    private List<String> evaluateExpressionsChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    		@SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
+        try {
+            return evaluateExpression(expressionType, expressionVariables, true, shortDesc, task, result);
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+	        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+	        result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+	        throw new SystemException(e);
+        }
+    }
 
+    // A little hack: for single-value cases we always return single-item list (even if the returned value is null)
+    @NotNull
+    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    		boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+		    ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	if (expressionType == null) {
+    		return multipleValues ? emptyList() : singletonList(null);
+	    }
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl<>(resultName, DOMUtil.XSD_STRING, prismContext);
+        if (multipleValues) {
+        	resultDef.setMaxOccurs(-1);
+        }
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
+		        expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);
 
-        if (exprResult.getZeroSet().size() != 1) {
-            throw new SystemException("Invalid number of return values (" + exprResult.getZeroSet().size() + "), expected 1.");
-        }
-
-        return exprResult.getZeroSet().iterator().next().getValue();
+	    if (!multipleValues) {
+		    if (exprResult.getZeroSet().size() > 1) {
+			    throw new SystemException("Invalid number of return values (" + exprResult.getZeroSet().size() + "), expected at most 1.");
+		    } else if (exprResult.getZeroSet().isEmpty()) {
+		    	return singletonList(null);
+		    } else {
+		    	// single-valued response is treated below
+		    }
+	    }
+	    return exprResult.getZeroSet().stream().map(ppv -> ppv.getValue()).collect(Collectors.toList());
     }
 
     protected ExpressionVariables getDefaultVariables(String from, String to, Message message) throws UnsupportedEncodingException {
-
     	ExpressionVariables variables = new ExpressionVariables();
-
         variables.addVariableDefinition(SchemaConstants.C_FROM, from);
+        variables.addVariableDefinition(SchemaConstants.C_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"));
         variables.addVariableDefinition(SchemaConstants.C_TO, to);
+        variables.addVariableDefinition(SchemaConstants.C_ENCODED_TO, URLEncoder.encode(to, "US-ASCII"));
+        variables.addVariableDefinition(SchemaConstants.C_MESSAGE_TEXT, message.getBody());
         variables.addVariableDefinition(SchemaConstants.C_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"));
         variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
-
         return variables;
     }
 
