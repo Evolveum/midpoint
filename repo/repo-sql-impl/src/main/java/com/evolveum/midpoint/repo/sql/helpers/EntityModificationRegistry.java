@@ -20,9 +20,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang3.AnnotationUtils;
-import org.apache.commons.lang3.reflect.TypeUtils;
 import org.hibernate.Metamodel;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +43,8 @@ public class EntityModificationRegistry {
     private SessionFactory sessionFactory;
 
     private Metamodel metamodel;
-    private Map<Class, Object> mappings = new HashMap<>();
+
+    private Map<Class, EntityType> jaxbMappings = new HashMap<>();
 
 
     // todo handle RObjectTextInfo
@@ -75,9 +73,17 @@ public class EntityModificationRegistry {
                 jaxb = jaxbType.type();
             }
 
-            mappings.put(jaxb, entity);
+            jaxbMappings.put(jaxb, entity);
         }
 
         System.out.println("asdf");
+    }
+
+    public EntityType getJaxbMapping(Class type) {
+        return jaxbMappings.get(type);
+    }
+
+    public EntityType getMapping(Class type) {
+        return metamodel.entity(type);
     }
 }
