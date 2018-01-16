@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
+import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
@@ -189,6 +189,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient AsyncWebProcessManager asyncWebProcessManager;
     @Autowired
     transient ApplicationContext applicationContext;
+    @Autowired
+    transient SchrodingerComponentInitListener schrodingerComponentInitListener;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -273,11 +275,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
 
-        Map<String, MidPointApplicationConfiguration> map =
-                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
-        if (map != null) {
-            map.forEach((key, value) -> value.init(this));
-        }
+        // for schrodinger selenide library
+        getComponentInitializationListeners().add(schrodingerComponentInitListener);
     }
 
     private boolean isPostMethodTypeBehavior(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
