@@ -45,6 +45,9 @@
                 <prop key="hibernate.jdbc.batch_size">20</prop>
                 <prop key="javax.persistence.validation.mode">none</prop>
                 <prop key="hibernate.transaction.coordinator_class">jdbc</prop>
+                <prop key="hibernate.hql.bulk_id_strategy">org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy</prop>
+                <!-- Todo implement strategy that will not do select when where clause contains only equals on primary key -->
+                <!--<prop key="hibernate.hql.bulk_id_strategy">com.evolveum.midpoint.repo.sql.util.EmptyMultiTableBulkIdStrategy</prop>-->
             </props>
         </property>
         <property name="implicitNamingStrategy">
