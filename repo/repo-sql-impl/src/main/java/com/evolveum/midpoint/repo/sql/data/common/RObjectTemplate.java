@@ -47,7 +47,7 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private RObjectTemplateType type;
     private Set<RObjectReference<RObjectTemplate>> includeRef;
 
@@ -71,17 +71,21 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         this.type = type;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setIncludeRef(Set<RObjectReference<RObjectTemplate>> includeRef) {
         this.includeRef = includeRef;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     @Override
@@ -92,7 +96,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
         RObjectTemplate that = (RObjectTemplate) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null)
             return false;
         if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
@@ -105,7 +109,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
@@ -115,7 +119,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
                 jaxb.getIncludeRef(), repositoryContext.prismContext, repo, RReferenceOwner.INCLUDE));

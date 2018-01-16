@@ -17,8 +17,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 import java.util.Collection;
 
@@ -27,16 +26,20 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RReportOutput extends RObject<ReportOutputType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private REmbeddedReference reportRef;
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Embedded
@@ -57,7 +60,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
 
         RReportOutput object = (RReportOutput) o;
 
-        if (name != null ? !name.equals(object.name) : object.name != null)
+        if (nameCopy != null ? !nameCopy.equals(object.nameCopy) : object.nameCopy != null)
             return false;
         if (reportRef != null ? !reportRef.equals(object.reportRef) : object.reportRef != null)
             return false;
@@ -68,7 +71,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         return result;
     }
 
@@ -76,7 +79,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), repositoryContext.prismContext));
     }
 

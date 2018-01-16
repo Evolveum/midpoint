@@ -60,7 +60,7 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RTask extends RObject<TaskType> implements OperationResult {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String taskIdentifier;
     private RTaskExecutionStatus executionStatus;
     private String node;
@@ -160,9 +160,17 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return recurrence;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "processInstanceId") })
@@ -196,10 +204,6 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "endTimestamp") })
     public XMLGregorianCalendar getWfEndTimestamp() {
         return wfEndTimestamp;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     public void setCanRunOnNode(String canRunOnNode) {
@@ -340,7 +344,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
         RTask rTask = (RTask) o;
 
-        if (name != null ? !name.equals(rTask.name) : rTask.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(rTask.nameCopy) : rTask.nameCopy != null) return false;
         if (binding != rTask.binding) return false;
         if (executionStatus != rTask.executionStatus) return false;
         if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) return false;
@@ -378,7 +382,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     @Override
     public int hashCode() {
         int result1 = super.hashCode();
-        result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
+        result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
         result1 = 31 * result1 + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
         result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
         result1 = 31 * result1 + (node != null ? node.hashCode() : 0);
@@ -404,7 +408,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
         PrismObjectDefinition<TaskType> taskDefinition = jaxb.asPrismObject().getDefinition();
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionStatus.class));
         repo.setHandlerUri(jaxb.getHandlerUri());

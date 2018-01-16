@@ -46,7 +46,7 @@ import java.util.Set;
 public class RConnector extends RObject<ConnectorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String framework;
     private REmbeddedReference connectorHostRef;
     private String connectorType;
@@ -85,13 +85,17 @@ public class RConnector extends RObject<ConnectorType> {
         return framework;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setFramework(String framework) {
@@ -126,7 +130,7 @@ public class RConnector extends RObject<ConnectorType> {
 
         RConnector that = (RConnector) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (connectorBundle != null ? !connectorBundle.equals(that.connectorBundle) : that.connectorBundle != null)
             return false;
         if (connectorHostRef != null ? !connectorHostRef.equals(that.connectorHostRef) : that.connectorHostRef != null)
@@ -145,7 +149,7 @@ public class RConnector extends RObject<ConnectorType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (framework != null ? framework.hashCode() : 0);
         result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
         result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
@@ -158,7 +162,7 @@ public class RConnector extends RObject<ConnectorType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());

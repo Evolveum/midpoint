@@ -27,19 +27,23 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RReport extends RObject<ReportType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private ROrientationType orientation;
     private RExportType export;
     private Boolean parent;
     private Boolean useHibernateSession;
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -87,7 +91,7 @@ public class RReport extends RObject<ReportType> {
 
         RReport rReport = (RReport) o;
 
-        if (name != null ? !name.equals(rReport.name) : rReport.name != null)
+        if (nameCopy != null ? !nameCopy.equals(rReport.nameCopy) : rReport.nameCopy != null)
             return false;
         if (orientation != null ? !orientation.equals(rReport.orientation) : rReport.orientation != null)
             return false;
@@ -103,7 +107,7 @@ public class RReport extends RObject<ReportType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (orientation != null ? orientation.hashCode() : 0);
         result = 31 * result + (export != null ? export.hashCode() : 0);
         result = 31 * result + (parent != null ? parent.hashCode() : 0);
@@ -117,7 +121,7 @@ public class RReport extends RObject<ReportType> {
 
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setOrientation(RUtil.getRepoEnumValue(jaxb.getOrientation(), ROrientationType.class));
         repo.setExport(RUtil.getRepoEnumValue(jaxb.getExport(), RExportType.class));
         repo.setParent(jaxb.isParent());

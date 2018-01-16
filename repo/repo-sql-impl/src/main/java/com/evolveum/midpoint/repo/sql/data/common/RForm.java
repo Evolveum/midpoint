@@ -29,10 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -45,15 +42,19 @@ import java.util.Objects;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RForm extends RObject<FormType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Override
@@ -65,12 +66,12 @@ public class RForm extends RObject<FormType> {
         if (!super.equals(o))
             return false;
         RForm rForm = (RForm) o;
-        return Objects.equals(name, rForm.name);
+        return Objects.equals(nameCopy, rForm.nameCopy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name);
+        return Objects.hash(super.hashCode(), nameCopy);
     }
 
 	public static void copyFromJAXB(FormType jaxb, RForm repo, RepositoryContext repositoryContext,

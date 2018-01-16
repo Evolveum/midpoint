@@ -28,13 +28,20 @@ import java.util.*;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RLookupTable extends RObject<LookupTableType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private Set<RLookupTableRow> rows;
 
-    @Override
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Transient
@@ -46,16 +53,11 @@ public class RLookupTable extends RObject<LookupTableType> {
         this.rows = rows;
     }
 
-    @Override
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
     public static void copyFromJAXB(LookupTableType jaxb, RLookupTable repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException, SchemaException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         List<LookupTableRowType> rows = jaxb.getRow();
         if (!rows.isEmpty()) {

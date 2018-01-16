@@ -54,7 +54,7 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RUser extends RFocus<UserType> implements OperationResult {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private RPolyString fullName;
     private RPolyString givenName;
     private RPolyString familyName;
@@ -160,9 +160,17 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return honorificSuffix;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public String getCostCenter() {
@@ -228,10 +236,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.title = title;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
     public void setAdditionalName(RPolyString additionalName) {
         this.additionalName = additionalName;
     }
@@ -288,7 +292,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
 
         RUser rUser = (RUser) o;
 
-        if (name != null ? !name.equals(rUser.name) : rUser.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(rUser.nameCopy) : rUser.nameCopy != null) return false;
         if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
         if (emailAddress != null ? !emailAddress.equals(rUser.emailAddress) : rUser.emailAddress != null) return false;
@@ -323,7 +327,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
         result = 31 * result + (familyName != null ? familyName.hashCode() : 0);
@@ -346,7 +350,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
         repo.setGivenName(RPolyString.copyFromJAXB(jaxb.getGivenName()));
         repo.setFamilyName(RPolyString.copyFromJAXB(jaxb.getFamilyName()));

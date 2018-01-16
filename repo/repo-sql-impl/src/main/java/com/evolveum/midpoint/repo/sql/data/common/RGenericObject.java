@@ -29,10 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import java.util.Collection;
 
 /**
@@ -44,20 +41,24 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RGenericObject extends RObject<GenericObjectType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String objectType;
 
     public String getObjectType() {
         return objectType;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setObjectType(String objectType) {
@@ -72,7 +73,7 @@ public class RGenericObject extends RObject<GenericObjectType> {
 
         RGenericObject that = (RGenericObject) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) return false;
 
         return true;
@@ -81,7 +82,7 @@ public class RGenericObject extends RObject<GenericObjectType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
         return result;
     }
@@ -90,7 +91,7 @@ public class RGenericObject extends RObject<GenericObjectType> {
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectType(jaxb.getObjectType());
     }
 

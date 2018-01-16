@@ -30,10 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 import java.util.Collection;
 
@@ -46,20 +43,24 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RRole extends RAbstractRole<RoleType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String roleType;
 
     public String getRoleType() {
         return roleType;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setRoleType(String roleType) {
@@ -77,7 +78,7 @@ public class RRole extends RAbstractRole<RoleType> {
 
         RRole rRole = (RRole) o;
 
-        if (name != null ? !name.equals(rRole.name) : rRole.name != null)
+        if (nameCopy != null ? !nameCopy.equals(rRole.nameCopy) : rRole.nameCopy != null)
             return false;
         if (roleType != null ? !roleType.equals(rRole.roleType) : rRole.roleType != null)
             return false;
@@ -88,7 +89,7 @@ public class RRole extends RAbstractRole<RoleType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (roleType != null ? roleType.hashCode() : 0);
         return result;
     }
@@ -98,7 +99,7 @@ public class RRole extends RAbstractRole<RoleType> {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setRoleType(jaxb.getRoleType());
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 
     @Override
