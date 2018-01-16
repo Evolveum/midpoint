@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -78,6 +79,7 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -1228,6 +1230,18 @@ public final class WebComponentUtil {
 		}
 
 		return selected;
+	}
+
+	public static void clearProviderCache(IDataProvider provider){
+		if (provider == null){
+			return;
+		}
+		if (provider instanceof BaseSortableDataProvider){
+			((BaseSortableDataProvider)provider).clearCache();
+		}
+		if (provider instanceof SelectableBeanObjectDataProvider) {
+			((SelectableBeanObjectDataProvider) provider).clearSelectedObjects();
+		}
 	}
 
 	public static Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(

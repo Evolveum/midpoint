@@ -497,11 +497,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public void clearCache() {
-		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-		provider.clearCache();
-		if (provider instanceof SelectableBeanObjectDataProvider) {
-			((SelectableBeanObjectDataProvider<O>) provider).clearSelectedObjects();
-		}
+		WebComponentUtil.clearProviderCache(getDataProvider());
 	}
 
 	public ObjectQuery getQuery() {

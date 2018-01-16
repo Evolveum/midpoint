@@ -95,6 +95,7 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -1404,9 +1405,19 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void refreshTables(AjaxRequestTarget target) {
+        clearTablesCache();
         target.add(getFeedbackPanel());
         target.add((Component) getTaskTable());
         target.add((Component) getNodeTable());
+    }
+
+    private void clearTablesCache(){
+        if (getTaskTable() != null && getTaskTable().getDataTable() != null){
+            WebComponentUtil.clearProviderCache(getTaskTable().getDataTable().getDataProvider());
+        }
+        if (getNodeTable() != null && getNodeTable().getDataTable() != null){
+            WebComponentUtil.clearProviderCache(getNodeTable().getDataTable().getDataProvider());
+        }
     }
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
