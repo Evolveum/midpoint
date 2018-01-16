@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest.security;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -30,18 +31,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -65,11 +63,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -83,12 +81,46 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestSecurityAdvanced extends AbstractSecurityTest {
 
 	private static final String AUTHORIZATION_ACTION_WORKITEMS = "http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems";
+	private static final String BIG_BADA_BOOM = "bigBadaBoom";
+	private static final String HUGE_BADA_BOOM = "hugeBadaBoom";
+	private static final String FIRST_RULE = "firstRule";
+	
+	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
+	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
+	
+	protected static final File ROLE_EXCLUSION_PIRATE_FILE = new File(TEST_DIR, "role-exclusion-pirate.xml");
+	protected static final String ROLE_EXCLUSION_PIRATE_OID = "cf60ec66-e5a8-11e7-a997-ab32b7ec5fdb";
+	
+	protected static final File ROLE_MAXASSIGNEES_10_FILE = new File(TEST_DIR, "role-maxassignees-10.xml");
+	protected static final String ROLE_MAXASSIGNEES_10_OID = "09dadf60-f6f1-11e7-8223-a72f04f867e7";
+	
+	protected static final File ROLE_MODIFY_POLICY_EXCEPTION_FILE = new File(TEST_DIR, "role-modify-policy-exception.xml");
+	protected static final String ROLE_MODIFY_POLICY_EXCEPTION_OID = "09e9acde-f787-11e7-987c-13212be79c7d";
+	
+	protected static final File ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_FILE = new File(TEST_DIR, "role-modify-policy-exception-situation.xml");
+	protected static final String ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_OID = "45bee61c-f79f-11e7-a2a7-27ade881c9e0";
+	
+	protected static final File ROLE_MODIFY_DESCRIPTION_FILE = new File(TEST_DIR, "role-modify-description.xml");
+	protected static final String ROLE_MODIFY_DESCRIPTION_OID = "1a0616e4-f79a-11e7-80c9-d77b403e1a81";
+
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		repoAddObjectFromFile(ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MAXASSIGNEES_10_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MODIFY_POLICY_EXCEPTION_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MODIFY_DESCRIPTION_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
+	}
+	
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 5;
+	
+	protected int getNumberOfRoles() {
+		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 
 
@@ -1790,18 +1822,38 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
 				true, true, true);
 		
-		assertAllow("add exclusion",
+		assertAllow("add exclusion (1)",
         		(task, result) -> modifyRoleAddExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
 		
 		PrismObject<RoleType> roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
-        display("Empty role with exclusion", roleEmptyExclusion);
+        display("Empty role with exclusion (1)", roleEmptyExclusion);
         assertExclusion(roleEmptyExclusion, ROLE_PIRATE_OID);
         
-        assertAllow("delete exclusion",
+        assertAllow("delete exclusion (1)",
         		(task, result) -> modifyRoleDeleteExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+        
+        assertAllow("add exclusion (2)",
+        		(task, result) -> modifyRoleAddExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+		
+		roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with exclusion (2)", roleEmptyExclusion);
+        AssignmentType exclusionAssignment = assertExclusion(roleEmptyExclusion, ROLE_PIRATE_OID);
+        
+        display("TTTA1");
+        assertAllow("delete exclusion (2)",
+        		(task, result) -> modifyRoleDeleteAssignment(ROLE_EMPTY_OID, createAssignmentIdOnly(exclusionAssignment.getId()), task, result));
+        
+        // TODO: add exclusion with metadata (should be denied)
         
         assertDeny("add minAssignee",
         		(task, result) -> modifyRolePolicyRule(ROLE_EMPTY_OID, createMinAssigneePolicyRule(1), true, task, result));
+        
+        assertDeny("delete maxAssignee 10 (by value)",
+        		(task, result) -> modifyRolePolicyRule(ROLE_MAXASSIGNEES_10_OID, createMaxAssigneePolicyRule(10), false, task, result));
+        
+        display("TTTA2");
+        assertDeny("delete maxAssignee 10 (by id)",
+        		(task, result) -> modifyRoleDeleteAssignment(ROLE_MAXASSIGNEES_10_OID, createAssignmentIdOnly(10L), task, result));
 
         assertDeny("assign role pirate to empty role",
         		(task, result) -> assignRole(RoleType.class, ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
@@ -1813,8 +1865,177 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
+	@Test
+    public void test270AutzJackModifyPolicyException() throws Exception {
+		final String TEST_NAME = "test270AutzJackModifyPolicyException";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertReadDenyRaw();
+        assertAddDeny();
+        assertDeleteDeny();
+
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role", roleEmpty);
+        
+        assertAllow("add policyException (1)",
+        		(task, result) -> modifyRoleAddPolicyException(ROLE_EMPTY_OID, createPolicyException(null, BIG_BADA_BOOM), task, result));
+		
+		PrismObject<RoleType> roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with policyException (1)", roleEmptyException);
+        assertPolicyException(roleEmptyException, null, BIG_BADA_BOOM);
+        
+        assertAllow("delete policyException (1)",
+        		(task, result) -> modifyRoleDeletePolicyException(ROLE_EMPTY_OID, createPolicyException(null, BIG_BADA_BOOM), task, result));
+        
+        assertAllow("add policyException (2)",
+        		(task, result) -> modifyRoleAddPolicyException(ROLE_EMPTY_OID, createPolicyException(null, BIG_BADA_BOOM), task, result));
+		
+		roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with policyException (2)", roleEmptyException);
+        PolicyExceptionType existingPolicyException = assertPolicyException(roleEmptyException, null, BIG_BADA_BOOM);
+        PolicyExceptionType idOnlyPolicyException2 = new PolicyExceptionType();
+        idOnlyPolicyException2.asPrismContainerValue().setId(existingPolicyException.asPrismContainerValue().getId());
+        
+        assertAllow("delete policyException (2)",
+        		(task, result) -> modifyRoleDeletePolicyException(ROLE_EMPTY_OID, idOnlyPolicyException2, task, result));
+        
+        assertDeny("add minAssignee",
+        		(task, result) -> modifyRolePolicyRule(ROLE_EMPTY_OID, createMinAssigneePolicyRule(1), true, task, result));
+        
+        assertDeny("assign role pirate to empty role",
+        		(task, result) -> assignRole(RoleType.class, ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+
+		assertDeny("add exclusion",
+        		(task, result) -> modifyRoleAddExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+        
+        roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role without exclusion", roleEmptyException);
+        assertAssignments(roleEmptyException, 0);
+     
+        assertGlobalStateUntouched();
+	}
 	
-    private void assertExclusion(PrismObject<RoleType> roleExclusion, String excludedRoleOid) {
+	@Test
+    public void test272AutzJackModifyPolicyExceptionFirstRule() throws Exception {
+		final String TEST_NAME = "test272AutzJackModifyPolicyExceptionFirstRule";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertReadDenyRaw();
+        assertAddDeny();
+        assertDeleteDeny();
+
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role", roleEmpty);
+        
+        assertAllow("add policyException (1)",
+        		(task, result) -> modifyRoleAddPolicyException(ROLE_EMPTY_OID, createPolicyException(FIRST_RULE, BIG_BADA_BOOM), task, result));
+		
+		PrismObject<RoleType> roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with policyException (1)", roleEmptyException);
+        PolicyExceptionType existingPolicyException = assertPolicyException(roleEmptyException, FIRST_RULE, BIG_BADA_BOOM);
+        PolicyExceptionType idOnlyPolicyException1 = new PolicyExceptionType();
+        idOnlyPolicyException1.asPrismContainerValue().setId(existingPolicyException.asPrismContainerValue().getId());
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        unassignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_OID);
+        assignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_OID);
+        login(USER_JACK_USERNAME);
+        
+        assertDeny("delete policyException (1)",
+        		(task, result) -> modifyRoleDeletePolicyException(ROLE_EMPTY_OID, idOnlyPolicyException1, task, result));
+        
+        assertDeny("delete policyException (2)",
+        		(task, result) -> modifyRoleDeletePolicyException(ROLE_EMPTY_OID, createPolicyException(FIRST_RULE, BIG_BADA_BOOM), task, result));
+        
+        // Try to trick the authorization to allow operation by mixing legal (allowed) delta with almost empty id-only delta.
+        // There are no items in the id-only delta, therefore there is nothing that would conflict with an authorization.
+        // ... and the legal delta might skew the decision towards allow.
+        // But the authorization code should be smart enough to examine the id-only delta thoroughly. And it should detect
+        // that we are trying to delete something that we are not allowed to.
+        PolicyExceptionType idOnlyPolicyException3 = new PolicyExceptionType();
+        idOnlyPolicyException3.asPrismContainerValue().setId(existingPolicyException.asPrismContainerValue().getId());
+        assertDeny("delete policyException (3)",
+        		(task, result) -> {
+        			ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_EMPTY_OID,
+					    		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+					    		prismContext, idOnlyPolicyException3);
+        			roleDelta.addModificationReplaceProperty(RoleType.F_DESCRIPTION, "whatever");
+					modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        		});
+
+        // Attempt to replace existing policy exceptions with a new one. The new value is allowed by the authorization.
+        // But removal of old value is not allowed (there is a ruleName item which is not allowed). Therefore this replace
+        // should be denied.
+        assertDeny("replace policyException (1)",
+        		(task, result) -> modifyRoleReplacePolicyException(ROLE_EMPTY_OID, createPolicyException(null, HUGE_BADA_BOOM), task, result));
+     
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test274AutzJackModifyPolicyExceptionSituation() throws Exception {
+		final String TEST_NAME = "test274AutzJackModifyPolicyExceptionSituation";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_OID);
+        login(USER_JACK_USERNAME);
+        
+        assertDeny("add policyException (1)",
+        		(task, result) -> modifyRoleAddPolicyException(ROLE_EMPTY_OID, createPolicyException(FIRST_RULE, BIG_BADA_BOOM), task, result));
+        
+        assertAllow("add policyException (3)",
+        		(task, result) -> modifyRoleAddPolicyException(ROLE_EMPTY_OID, createPolicyException(null, BIG_BADA_BOOM), task, result));
+		
+        assertAllow("replace policyException",
+        		(task, result) -> modifyRoleReplacePolicyException(ROLE_EMPTY_OID, createPolicyException(null, HUGE_BADA_BOOM), task, result));
+        
+		PrismObject<RoleType> roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with policyException (3)", roleEmptyException);
+        PolicyExceptionType existingPolicyException = assertPolicyException(roleEmptyException, null, HUGE_BADA_BOOM);
+        PolicyExceptionType idOnlyPolicyException3 = new PolicyExceptionType();
+        idOnlyPolicyException3.asPrismContainerValue().setId(existingPolicyException.asPrismContainerValue().getId());
+
+        login(USER_ADMINISTRATOR_USERNAME);
+        unassignRole(USER_JACK_OID, ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_OID);
+        assignRole(USER_JACK_OID, ROLE_MODIFY_DESCRIPTION_OID);
+        login(USER_JACK_USERNAME);
+        
+        assertDeny("delete policyException (3)",
+        		(task, result) -> modifyRoleDeletePolicyException(ROLE_EMPTY_OID, idOnlyPolicyException3, task, result));
+
+        
+        assertGlobalStateUntouched();
+	}
+
+	
+    private PolicyExceptionType assertPolicyException(PrismObject<RoleType> role, String expectedRuleName, String expectedPolicySituation) {
+    	List<PolicyExceptionType> policyExceptions = role.asObjectable().getPolicyException();
+        assertEquals("Wrong size of policyException container in "+role, 1, policyExceptions.size());
+        PolicyExceptionType policyException = policyExceptions.get(0);
+        assertEquals("Wrong rule name in "+role, expectedRuleName, policyException.getRuleName());
+        assertEquals("Wrong situation in "+role, expectedPolicySituation, policyException.getPolicySituation());
+        return policyException;
+	}
+
+
+	private AssignmentType assertExclusion(PrismObject<RoleType> roleExclusion, String excludedRoleOid) {
         PrismContainer<AssignmentType> assignmentContainer = roleExclusion.findContainer(RoleType.F_ASSIGNMENT);
         assertNotNull("No assignment container in "+roleExclusion, assignmentContainer);
         assertEquals("Wrong size of assignment container in "+roleExclusion, 1, assignmentContainer.size());
@@ -1830,6 +2051,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         ObjectReferenceType targetRef = exclusionPolicyConstraint.getTargetRef();
         assertNotNull("No targetRef in exclusion policy constraint in "+roleExclusion, targetRef);
         assertEquals("Wrong OID targetRef in exclusion policy constraint in "+roleExclusion, excludedRoleOid, targetRef.getOid());
+        return exclusionAssignment;
 	}
 
 
