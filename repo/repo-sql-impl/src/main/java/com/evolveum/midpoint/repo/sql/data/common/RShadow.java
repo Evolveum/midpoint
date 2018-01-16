@@ -72,7 +72,7 @@ import java.util.Objects;
 public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
-    private RPolyString name;
+    private RPolyString nameCopy;
 
     private String objectClass;
     //operation result
@@ -124,9 +124,17 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         return failedOperationType;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -165,10 +173,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
 
     public void setSynchronizationTimestamp(XMLGregorianCalendar synchronizationTimestamp) {
         this.synchronizationTimestamp = synchronizationTimestamp;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     public void setAttemptNumber(Integer attemptNumber) {
@@ -224,7 +228,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
 
         RShadow that = (RShadow) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
             return false;
         if (failedOperationType != that.failedOperationType) return false;
@@ -244,7 +248,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     @Override
     public int hashCode() {
         int result1 = super.hashCode();
-        result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
+        result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
         result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
@@ -262,7 +266,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(RUtil.qnameToString(jaxb.getObjectClass()));
         repo.setIntent(jaxb.getIntent());
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));

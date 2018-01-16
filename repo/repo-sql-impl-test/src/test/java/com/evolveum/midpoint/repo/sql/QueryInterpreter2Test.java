@@ -1789,7 +1789,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
-                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid = :orgOid)\n" +
+                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.targetOid = :orgOid)\n" +
                     "order by o.name.orig asc\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
@@ -1821,7 +1821,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		            + "from\n"
 		            + "  RUser u\n"
 		            + "where\n"
-		            + "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid = :orgOid)\n";
+		            + "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.relation in (:relation) and ref.targetOid = :orgOid)\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
 
@@ -1861,7 +1861,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		            + "from\n"
 		            + "  RUser u\n"
 		            + "where\n"
-		            + "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid = :orgOid)\n";
+		            + "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.relation in (:relation) and ref.targetOid = :orgOid)\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
 
@@ -1904,7 +1904,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
-                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n" +
+                    "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n" +
                     "order by o.name.orig asc";
 
             assertEqualsIgnoreWhitespace(expected, real);
@@ -1936,7 +1936,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "where\n"
-					+ "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
+					+ "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.relation in (:relation) and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
 			assertEqualsIgnoreWhitespace(expected, real);
 
 			@SuppressWarnings("unchecked")
@@ -1975,7 +1975,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "where\n"
-					+ "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.relation in (:relation) and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
+					+ "  u.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.relation in (:relation) and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
 
 			assertEqualsIgnoreWhitespace(expected, real);
 
@@ -2009,7 +2009,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "from\n"
                     + "  ROrg o\n"
                     + "where\n"
-                    + "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
+                    + "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2404,7 +2404,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "      u.name.norm = :norm\n" +
                     "    ) and\n" +
                     "    u.oid in (select ref.ownerOid from RObjectReference ref " +
-                    "               where ref.referenceType = com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner.OBJECT_PARENT_ORG and " +
+                    "               where ref.referenceType = 0 and " +
                     "               ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n" +
                     "  )\n" +
                     "order by u.name.orig asc\n";

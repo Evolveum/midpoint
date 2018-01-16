@@ -30,10 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 import java.util.Collection;
 
@@ -46,15 +43,19 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RValuePolicy extends RObject<ValuePolicyType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Override
@@ -65,7 +66,7 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
 
         RValuePolicy that = (RValuePolicy) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
 
         return true;
     }
@@ -73,7 +74,7 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         return result;
     }
 
@@ -81,7 +82,7 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 
     @Override

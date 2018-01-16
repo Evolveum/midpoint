@@ -32,10 +32,12 @@ import java.io.Serializable;
 @Ignore
 @IdClass(ROrgClosureId.class)
 @Entity
-@Table(name = "m_org_closure")
-@org.hibernate.annotations.Table(appliesTo = "m_org_closure",
-        indexes = {@Index(name = "iDescendant", columnNames = {"descendant_oid"}),
-                   @Index(name = "iDescendantAncestor", columnNames = {"descendant_oid", "ancestor_oid"})})
+@Table(name = "m_org_closure",
+        indexes = {
+                @javax.persistence.Index(name = "iAncestor", columnList = "ancestor_oid"),
+                @javax.persistence.Index(name = "iDescendant", columnList = "descendant_oid"),
+                @javax.persistence.Index(name = "iDescendantAncestor", columnList = "descendant_oid, ancestor_oid")
+        })
 @NotQueryable
 public class ROrgClosure implements Serializable {
 
@@ -67,7 +69,7 @@ public class ROrgClosure implements Serializable {
     }
 
     @MapsId("ancestorOid")
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_ancestor")
     @NotQueryable
@@ -76,7 +78,6 @@ public class ROrgClosure implements Serializable {
     }
 
     @Id
-    @Index(name = "iAncestor")
     @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     @NotQueryable
     public String getAncestorOid() {
@@ -91,7 +92,7 @@ public class ROrgClosure implements Serializable {
     }
 
     @MapsId("descendantOid")
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_descendant")
     @NotQueryable
@@ -100,7 +101,6 @@ public class ROrgClosure implements Serializable {
     }
 
     @Id
-    @Index(name = "iDescendant")
     @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     @NotQueryable
     public String getDescendantOid() {

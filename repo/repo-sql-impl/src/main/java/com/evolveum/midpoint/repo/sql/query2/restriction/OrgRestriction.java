@@ -67,7 +67,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "select ref.ownerOid " +     // TODO distinct(ref.ownerOid) ? (was in original QueryInterpreter)
                               "from RObjectReference ref " +
                            "where " +
-                              "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG)
+                              "ref.referenceType = " + RReferenceOwner.OBJECT_PARENT_ORG.ordinal()
                                 + (doesRelationRestrictionExist(relation) ?
 		                            " and ref.relation in (:" + relationParamName + ")" : "")
                                 + " and ref.targetOid = :" + orgOidParamName;
@@ -86,7 +86,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "select ref.ownerOid " +
                             "from RObjectReference ref " +
                         "where " +
-                            "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG)
+                            "ref.referenceType = " + RReferenceOwner.OBJECT_PARENT_ORG.ordinal()
                                 + (doesRelationRestrictionExist(relation) ?
 		                            " and ref.relation in (:" + relationParamName + ")" : "")
                                 + " and ref.targetOid in (" +

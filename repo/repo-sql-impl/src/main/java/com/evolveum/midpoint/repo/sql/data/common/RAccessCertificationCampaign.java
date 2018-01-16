@@ -50,7 +50,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
     public static final String TABLE_NAME = "m_acc_cert_campaign";
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private REmbeddedReference definitionRef;
     private Set<RAccessCertificationCase> cases;
 
@@ -61,9 +61,17 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     private RAccessCertificationCampaignState state;
     private Integer stageNumber;
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Embedded
@@ -114,10 +122,6 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return stageNumber;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
     public void setDefinitionRef(REmbeddedReference definitionRef) {
         this.definitionRef = definitionRef;
     }
@@ -158,7 +162,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
         RAccessCertificationCampaign that = (RAccessCertificationCampaign) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (definitionRef != null ? !definitionRef.equals(that.definitionRef) : that.definitionRef != null)
             return false;
         if (ownerRefCampaign != null ? !ownerRefCampaign.equals(that.ownerRefCampaign) : that.ownerRefCampaign
@@ -174,7 +178,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (handlerUri != null ? handlerUri.hashCode() : 0);
         result = 31 * result + (start != null ? start.hashCode() : 0);
         result = 31 * result + (end != null ? end.hashCode() : 0);
@@ -188,7 +192,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             throws DtoTranslationException {
 
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), repositoryContext.prismContext));
 
         List<AccessCertificationCaseType> cases = jaxb.getCase();

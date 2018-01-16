@@ -53,7 +53,7 @@ import java.util.Set;
 public class RResource extends RObject<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
-    private RPolyString name;
+    private RPolyString nameCopy;
     private REmbeddedReference connectorRef;
     private ROperationalState operationalState;
     //resource business configuration, embedded component can't be used, because then it couldn't use
@@ -89,9 +89,17 @@ public class RResource extends RObject<ResourceType> {
         return operationalState;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setAdministrativeState(RResourceAdministrativeState administrativeState) {
@@ -100,10 +108,6 @@ public class RResource extends RObject<ResourceType> {
 
     public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     public void setOperationalState(ROperationalState operationalState) {
@@ -125,7 +129,7 @@ public class RResource extends RObject<ResourceType> {
 
         RResource rResource = (RResource) o;
 
-        if (name != null ? !name.equals(rResource.name) : rResource.name != null)
+        if (nameCopy != null ? !nameCopy.equals(rResource.nameCopy) : rResource.nameCopy != null)
             return false;
         if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null)
             return false;
@@ -136,7 +140,7 @@ public class RResource extends RObject<ResourceType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         return result;
     }
 
@@ -144,7 +148,7 @@ public class RResource extends RObject<ResourceType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.prismContext));
 
         if (jaxb.getConnector() != null) {

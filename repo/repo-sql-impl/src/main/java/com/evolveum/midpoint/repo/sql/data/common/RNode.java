@@ -43,20 +43,24 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RNode extends RObject<NodeType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String nodeIdentifier;
 
     public String getNodeIdentifier() {
         return nodeIdentifier;
     }
 
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setNodeIdentifier(String nodeIdentifier) {
@@ -71,7 +75,7 @@ public class RNode extends RObject<NodeType> {
 
         RNode rNode = (RNode) o;
 
-        if (name != null ? !name.equals(rNode.name) : rNode.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(rNode.nameCopy) : rNode.nameCopy != null) return false;
         if (nodeIdentifier != null ? !nodeIdentifier.equals(rNode.nodeIdentifier) : rNode.nodeIdentifier != null)
             return false;
 
@@ -81,7 +85,7 @@ public class RNode extends RObject<NodeType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (nodeIdentifier != null ? nodeIdentifier.hashCode() : 0);
         return result;
     }
@@ -90,7 +94,7 @@ public class RNode extends RObject<NodeType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());
     }
 
