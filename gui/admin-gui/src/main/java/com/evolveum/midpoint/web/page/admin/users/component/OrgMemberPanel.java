@@ -455,20 +455,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return deleteMenuItems;
 	}
 
-	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI)) {
-			return super.createNewMemberInlineMenuItems();
-		}
-		return new ArrayList<>();
-	}
-
-	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI)) {
-			return super.assignNewMemberInlineMenuItems();
-		}
-		return new ArrayList<>();
-	}
-
 	private void deleteMemberPerformed(final QueryScope scope, final QName relation, final AjaxRequestTarget target, String confirmMessageKey) {
 		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource(confirmMessageKey)) {
 			@Override
