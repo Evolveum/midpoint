@@ -569,12 +569,12 @@ public class OrgClosureManager {
         try {
             int count;
 
-            if (isMySQL() || isMariaDb() || isOracle() || isSQLServer()) {
+            if (isMySqlCompatible() || isOracle() || isSQLServer()) {
 
                 long startUpsert = System.currentTimeMillis();
                 String upsertQueryText;
 
-                if (isMySQL() || isMariaDb()) {
+                if (isMySqlCompatible()) {
                     upsertQueryText = "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                             "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
                             "on duplicate key update " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val + values(val)";
@@ -714,7 +714,7 @@ public class OrgClosureManager {
     private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
         // in H2 we delete the table after whole closure operation (after commit)
-        if (isMySQL() || isMariaDb()) {
+        if (isMySqlCompatible()) {
             NativeQuery dropQuery = session.createNativeQuery("drop temporary table " + deltaTempTableName);
             dropQuery.executeUpdate();
         } else if (isSQLServer()) {
@@ -835,7 +835,7 @@ public class OrgClosureManager {
                         "inner join " + deltaTempTableName + " td " +
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
                         "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
-            } else if (isMySQL() || isMariaDb()) {
+            } else if (isMySqlCompatible()) {
                 // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
                 // TODO consider this for other databases as well
                 deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
@@ -979,7 +979,7 @@ public class OrgClosureManager {
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
-            } else if (isMySQL() || isMariaDb()) {
+            } else if (isMySqlCompatible()) {
                 createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";            // engine=memory is questionable because of missing tansactionality (but the transactionality is needed in the main table, not the delta table...)
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
@@ -1227,12 +1227,8 @@ public class OrgClosureManager {
         }
     }
 
-    private boolean isMariaDb() {
-        return baseHelper.getConfiguration().isUsingMariaDB();
-    }
-
-    private boolean isMySQL() {
-        return baseHelper.getConfiguration().isUsingMySQL();
+    private boolean isMySqlCompatible() {
+        return baseHelper.getConfiguration().isUsingMySqlCompatible();
     }
 
     private boolean isOracle() {

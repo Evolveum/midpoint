@@ -85,7 +85,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
     }
 
     private void updateConfigurationFromProperties(Configuration configuration, Properties properties) {
-        updateConfigurationStringProperty(configuration, properties, PROPERTY_DATABASE, "h2");
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_DATABASE);
 
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_EMBEDDED);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_DROP_IF_EXISTS);
@@ -116,6 +116,21 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_ZIP);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MIN_POOL_SIZE);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MAX_POOL_SIZE);
+
+        // Dirty hack, in order to make DataSourceTest happy: if none of database, driver, dialect, embedded is
+        // present but data source is, let us assume we use H2.
+        //
+        // The reason is that when using datasource (and without the dialect set) we do not have the usual information
+	    // we could use to derive the database. We do not want to default to H2, as it could cause problems in
+	    // production. So we switch to H2 in such cases only in the test mode - i.e. here.
+
+        if (!configuration.containsKey(PROPERTY_DATABASE)
+                && !configuration.containsKey(PROPERTY_DRIVER_CLASS_NAME)
+                && !configuration.containsKey(PROPERTY_HIBERNATE_DIALECT)
+                && !configuration.containsKey(PROPERTY_EMBEDDED)
+                && configuration.containsKey(PROPERTY_DATASOURCE)) {
+            configuration.setProperty(PROPERTY_DATABASE, Database.H2.name());
+        }
     }
 
     private void updateConfigurationIntegerProperty(Configuration configuration, Properties properties, String propertyName) {

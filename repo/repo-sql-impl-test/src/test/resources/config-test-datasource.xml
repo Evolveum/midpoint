@@ -23,7 +23,6 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
-            <embedded>false</embedded>
             <dataSource>java:comp/env/jdbc/db</dataSource>
         </repository>
         <audit>

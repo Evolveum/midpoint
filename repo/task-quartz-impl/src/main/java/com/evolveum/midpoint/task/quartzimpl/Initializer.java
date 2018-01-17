@@ -74,13 +74,11 @@ public class Initializer {
                 SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) taskManager.getBeanFactory().getBean("sqlRepositoryFactory");
                 sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
                 if (sqlConfig.isEmbedded()) {
-                    defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+                    defaultJdbcUrlPrefix = sqlConfig.getDefaultEmbeddedJdbcUrlPrefix();
                 }
-            } catch(NoSuchBeanDefinitionException e) {
+            } catch (NoSuchBeanDefinitionException e) {
                 LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
-            } catch (RepositoryServiceFactoryException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
             }
 
             configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig, defaultJdbcUrlPrefix);

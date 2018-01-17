@@ -26,19 +26,14 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,15 +43,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.hibernate.Session;
-import org.hibernate.jdbc.Work;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,20 +108,15 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         };
 
 
-        Checker checker = new Checker() {
-            @Override
-            public void check(int iteration, String oid) throws Exception {
-
-                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
-
-                String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
-                String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
-                LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription);
-                if (!givenName.equals(assignmentDescription)) {
-                    String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;
-                    LOGGER.error(msg);
-                    throw new AssertionError(msg);
-                }
+        Checker checker = (iteration, oid) -> {
+            PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
+            String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
+            String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
+            LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription);
+            if (!givenName.equals(assignmentDescription)) {
+                String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;
+                LOGGER.error(msg);
+                throw new AssertionError(msg);
             }
         };
 
@@ -156,27 +143,22 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         };
 
 
-        Checker checker = new Checker() {
-            @Override
-            public void check(int iteration, String oid) throws Exception {
-
-                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
-
-                String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
-                String familyName = userRetrieved.asObjectable().getFamilyName().getOrig();
-                String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
-                String referenceDescription = userRetrieved.asObjectable().getAssignment().get(0).getConstruction().getDescription();
-                LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription + ", familyName = " + familyName + ", referenceDescription = " + referenceDescription);
-                if (!givenName.equals(assignmentDescription)) {
-                    String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;
-                    LOGGER.error(msg);
-                    throw new AssertionError(msg);
-                }
-                if (!familyName.equals(referenceDescription)) {
-                    String msg = "Inconsistent object state: FamilyName = " + familyName + ", account construction description = " + referenceDescription;
-                    LOGGER.error(msg);
-                    throw new AssertionError(msg);
-                }
+        Checker checker = (iteration, oid) -> {
+            PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
+            String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
+            String familyName = userRetrieved.asObjectable().getFamilyName().getOrig();
+            String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
+            String referenceDescription = userRetrieved.asObjectable().getAssignment().get(0).getConstruction().getDescription();
+            LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription + ", familyName = " + familyName + ", referenceDescription = " + referenceDescription);
+            if (!givenName.equals(assignmentDescription)) {
+                String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;
+                LOGGER.error(msg);
+                throw new AssertionError(msg);
+            }
+            if (!familyName.equals(referenceDescription)) {
+                String msg = "Inconsistent object state: FamilyName = " + familyName + ", account construction description = " + referenceDescription;
+                LOGGER.error(msg);
+                throw new AssertionError(msg);
             }
         };
 
@@ -191,12 +173,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     private void concurrencyUniversal(String name, long duration, long waitStep, ModifierThread[] modifierThreads, Checker checker) throws Exception {
 
         Session session = getFactory().openSession();
-        session.doWork(new Work() {
-            @Override
-            public void execute(Connection connection) throws SQLException {
-                System.out.println(">>>>" + connection.getTransactionIsolation());
-            }
-        });
+        session.doWork(connection -> System.out.println(">>>>" + connection.getTransactionIsolation()));
         session.close();
 
         final File file = new File("src/test/resources/concurrency/user.xml");
@@ -313,7 +290,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             }
         }
 
-        public void runOnce() throws SchemaException {
+        void runOnce() {
 
             OperationResult result = new OperationResult("run");
 
@@ -323,13 +300,14 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             String prefix = lastName(attribute1);
             String dataWritten = "[" + prefix + ":" + Integer.toString(counter++) + "]";
 
-            PrismPropertyDefinition propertyDefinition1 = userPrismDefinition.findPropertyDefinition(attribute1);
+            PrismPropertyDefinition<?> propertyDefinition1 = userPrismDefinition.findPropertyDefinition(attribute1);
             if (propertyDefinition1 == null) {
                 throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
             }
-            PropertyDelta delta1 = new PropertyDelta(attribute1, propertyDefinition1, prismContext);
+            PropertyDelta<?> delta1 = new PropertyDelta<>(attribute1, propertyDefinition1, prismContext);
+            //noinspection unchecked
             delta1.setValueToReplace(new PrismPropertyValue(poly ? new PolyString(dataWritten) : dataWritten));
-            List<ItemDelta> deltas = new ArrayList<ItemDelta>();
+            List<ItemDelta> deltas = new ArrayList<>();
             deltas.add(delta1);
 
             ItemDefinition propertyDefinition2 = null;
@@ -339,11 +317,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     throw new IllegalArgumentException("No definition for " + attribute2 + " in " + userPrismDefinition);
                 }
                 
-                ItemDelta delta2 = null;
+                ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
                 	delta2 = new ContainerDelta(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
                 } else {
-                	delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2, prismContext);
+                    delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2, prismContext);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
                     ConstructionType act = new ConstructionType();
@@ -457,22 +435,19 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(UserType.class,
                 QueryBuilder.queryFor(UserType.class, prismContext)
                     .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
-                new ResultHandler<UserType>() {
-                    @Override
-                    public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
-                        LOGGER.info("Handling " + object + "...");
-                        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(), 
-                        		UserType.F_FULL_NAME, prismContext, new PolyString(newFullName));
-                        try {
-                            repositoryService.modifyObject(UserType.class,
-                                object.getOid(),
-                                delta.getModifications(),
-                                parentResult);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Exception in handle method", e);
-                        }
-                        return true;
+                (object, parentResult) -> {
+                    LOGGER.info("Handling " + object + "...");
+                    ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(),
+		                    UserType.F_FULL_NAME, prismContext, new PolyString(newFullName));
+                    try {
+                        repositoryService.modifyObject(UserType.class,
+                            object.getOid(),
+                            delta.getModifications(),
+                            parentResult);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Exception in handle method", e);
                     }
+                    return true;
                 },
                 null, false, result);
 
