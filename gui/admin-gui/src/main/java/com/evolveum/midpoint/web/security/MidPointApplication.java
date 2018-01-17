@@ -81,6 +81,7 @@ import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -99,6 +100,8 @@ import java.util.*;
  * @author lazyman
  */
 public class MidPointApplication extends AuthenticatedWebApplication {
+
+    public static final String SYSTEM_PROPERTY_SCHRODINGER = "midpoint.schrodinger";
 
     /**
      * Max. photo size for user/jpegPhoto
@@ -189,8 +192,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient AsyncWebProcessManager asyncWebProcessManager;
     @Autowired
     transient ApplicationContext applicationContext;
-    @Autowired
-    transient SchrodingerComponentInitListener schrodingerComponentInitListener;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -276,7 +277,19 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         new DescriptorLoader().loadData(this);
 
         // for schrodinger selenide library
-        getComponentInitializationListeners().add(schrodingerComponentInitListener);
+        initializeSchrodinger();
+    }
+
+    private void initializeSchrodinger() {
+        Environment environment = applicationContext.getEnvironment();
+
+        String value = environment.getProperty(SYSTEM_PROPERTY_SCHRODINGER);
+        Boolean enabled = Boolean.parseBoolean(value);
+
+        if (enabled) {
+            LOGGER.info("Schrodinger plugin enabled");
+            getComponentInitializationListeners().add(new SchrodingerComponentInitListener());
+        }
     }
 
     private boolean isPostMethodTypeBehavior(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {

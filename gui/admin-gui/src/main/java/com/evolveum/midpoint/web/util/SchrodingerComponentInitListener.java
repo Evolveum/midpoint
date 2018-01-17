@@ -30,12 +30,7 @@ import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 /**
@@ -43,9 +38,7 @@ import javax.xml.namespace.QName;
  */
 public class SchrodingerComponentInitListener implements IComponentInitializationListener {
 
-    private static final Trace LOG = TraceManager.getTrace(SchrodingerComponentInitListener.class);
-
-    private static final String SYSTEM_PROPERTY_SELENIUM = "midpoint.selenium";
+    private static final Trace LOGGER = TraceManager.getTrace(SchrodingerComponentInitListener.class);
 
     private static final String ATTR_DATA_PREFIX = "data-s-";
 
@@ -53,27 +46,14 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     private static final String ATTR_RESOURCE_KEY = "resource-key";
     private static final String ATTR_QNAME = "qname";
 
-    @Autowired
-    private Environment environment;
-
-    private boolean enabled;
-
-    @PostConstruct
-    public void init() {
-        String enabled = environment.getProperty(SYSTEM_PROPERTY_SELENIUM);
-        this.enabled = Boolean.parseBoolean(enabled);
-
-        LOG.info("Schrodinger plugin enabled={}", this.enabled);
-    }
-
     @Override
     public void onInitialize(Component component) {
-        if (!enabled) {
-            return;
+        try {
+            handleId(component);
+            handleLocalization(component);
+        } catch (Exception ex) {
+            LOGGER.error("Schrodinger component initializer failed", ex);
         }
-
-        handleId(component);
-        handleLocalization(component);
     }
 
     private void handleId(Component component) {
