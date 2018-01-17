@@ -72,7 +72,7 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 
     }
     
-    protected abstract String getLabel();
+    public abstract String getLabel();
 
     public boolean isButtonsVisible() {
     	return true;
