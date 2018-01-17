@@ -407,7 +407,7 @@ public class SqlRepositoryConfiguration {
             defaultLockForUpdateViaSql = false;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
-	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
+	        defaultTransactionIsolation = TransactionIsolation.REPEATABLE_READ;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = true;
 	        defaultUseReadOnlyTransactions = true;
