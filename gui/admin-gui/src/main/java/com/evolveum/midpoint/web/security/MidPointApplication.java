@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
+import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
@@ -81,6 +81,7 @@ import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -99,6 +100,8 @@ import java.util.*;
  * @author lazyman
  */
 public class MidPointApplication extends AuthenticatedWebApplication {
+
+    public static final String SYSTEM_PROPERTY_SCHRODINGER = "midpoint.schrodinger";
 
     /**
      * Max. photo size for user/jpegPhoto
@@ -273,10 +276,19 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
 
-        Map<String, MidPointApplicationConfiguration> map =
-                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
-        if (map != null) {
-            map.forEach((key, value) -> value.init(this));
+        // for schrodinger selenide library
+        initializeSchrodinger();
+    }
+
+    private void initializeSchrodinger() {
+        Environment environment = applicationContext.getEnvironment();
+
+        String value = environment.getProperty(SYSTEM_PROPERTY_SCHRODINGER);
+        Boolean enabled = Boolean.parseBoolean(value);
+
+        if (enabled) {
+            LOGGER.info("Schrodinger plugin enabled");
+            getComponentInitializationListeners().add(new SchrodingerComponentInitListener());
         }
     }
 

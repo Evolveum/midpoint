@@ -22,11 +22,16 @@
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
         </encoder>
     </appender>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </layout>
+    </appender>
     <root level="WARN">
         <appender-ref ref="X"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
-    <logger name="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="com.evolveum.midpoint" level="INFO"/>
     <!--<logger name="org.hibernate" level="TRACE"/>-->
@@ -34,21 +39,30 @@
 
     <logger name="org.hibernate.SQL" level="DEBUG"/>
     <!-- showing also SQL data -->
-    <logger name="org.hibernate.type" level="TRACE"/>
+    <!--<logger name="org.hibernate.type" level="TRACE"/>-->
     <!--<logger name="org.hibernate" level="TRACE"/>-->
     <logger name="com.evolveum.midpoint.init" level="TRACE"/>
     <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
-    <logger name="com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager" level="INFO"/>
     <logger name="com.evolveum.midpoint.testing" level="TRACE"/>
 
     <!--<logger name="com.evolveum.midpoint.repo.sql.query.QueryRegistry" level="INFO"/>-->
     <!--<logger name="com.evolveum.midpoint.prism.schema.SchemaRegistry" level="INFO"/>-->
     <!--<logger name="com.evolveum.midpoint.prism.schema.SchemaHandler" level="INFO"/>-->
 
-    <logger name="com.evolveum.midpoint.repo.sql.query" level="DEBUG"/>
-    <logger name="com.evolveum.midpoint.repo.sql.query.QueryInterpreter" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.repo.sql.query" level="INFO"/>
+    <logger name="com.evolveum.midpoint.repo.sql.query.QueryInterpreter" level="INFO"/>
     
     <logger name="PROFILING" level="TRACE"/>
     <logger name="com.evolveum.midpoint.util.aspect" level="TRACE"/>
+
+    <logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="INFO"/>
+
+    <logger name="com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy" level="INFO"/>
+    <logger name="com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy" level="INFO"/>
+    <!--<logger name="org.hibernate.cfg" level="TRACE"/>-->
+
+    <!--<logger name="org.hibernate.hql" level="DEBUG"/>-->
+    <!--<logger name="org.hibernate.query" level="DEBUG"/>-->
 </configuration>
 
