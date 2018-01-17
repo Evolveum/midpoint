@@ -275,7 +275,7 @@ public class BaseHelper {
 		// strange exception occurring in MySQL when doing multithreaded org closure maintenance
 		// alternatively we might check for error code = 1030, sql state = HY000
 		// but that would cover all cases of "Got error XYZ from storage engine"
-		if ((getConfiguration().isUsingMySQL() || getConfiguration().isUsingMariaDB())
+		if (getConfiguration().isUsingMySqlCompatible()
 				&& sqlException.getMessage() != null
 				&& sqlException.getMessage().contains("Got error -1 from storage engine")) {
 			return true;
