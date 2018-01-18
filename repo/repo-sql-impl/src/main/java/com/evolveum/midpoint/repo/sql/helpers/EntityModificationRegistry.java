@@ -19,19 +19,26 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Metamodel;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * // todo documentation, probably rename
+ * // todo documentation, cleanup, probably rename class & methods
  *
  * @author Viliam Repan (lazyman)
  */
@@ -39,12 +46,16 @@ import java.util.Map;
 @Service
 public class EntityModificationRegistry {
 
+    private static final Trace LOGGER = TraceManager.getTrace(EntityModificationRegistry.class);
+
     @Autowired
     private SessionFactory sessionFactory;
 
     private Metamodel metamodel;
 
-    private Map<Class, EntityType> jaxbMappings = new HashMap<>();
+    private Map<Class, ManagedType> jaxbMappings = new HashMap<>();
+
+    private Map<ManagedType, Map<String, Attribute>> attributeNameOverrides = new HashMap<>();
 
 
     // todo handle RObjectTextInfo
@@ -74,16 +85,49 @@ public class EntityModificationRegistry {
             }
 
             jaxbMappings.put(jaxb, entity);
+
+            // create override map
+            Map<String, Attribute> overrides = new HashMap<>();
+            attributeNameOverrides.put(entity, overrides);
+
+            for (Attribute attribute : (Set<Attribute>) entity.getAttributes()) {
+                Class jType = attribute.getJavaType();
+                JaxbPath path = (JaxbPath) jType.getAnnotation(JaxbPath.class);
+                if (path == null) {
+                    continue;
+                }
+
+                for (JaxbName name : path.itemPath()) {
+                    overrides.put(name.localPart(), attribute);
+                }
+            }
         }
 
-        System.out.println("asdf");
+        LOGGER.debug("Initialization finished");
     }
 
-    public EntityType getJaxbMapping(Class type) {
+    public ManagedType getJaxbMapping(Class type) {
         return jaxbMappings.get(type);
     }
 
-    public EntityType getMapping(Class type) {
-        return metamodel.entity(type);
+    public ManagedType getMapping(Class type) {
+        return metamodel.managedType(type);
+    }
+
+    public Attribute findAttribute(ManagedType type, String name) {
+        try {
+            return type.getAttribute(name);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    public Attribute findAttributeOverride(ManagedType type, String nameOverride) {
+        Map<String, Attribute> overrides = attributeNameOverrides.get(type);
+        if (overrides == null) {
+            return null;
+        }
+
+        return overrides.get(nameOverride);
     }
 }

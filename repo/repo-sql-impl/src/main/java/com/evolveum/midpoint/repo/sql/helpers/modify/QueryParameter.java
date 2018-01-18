@@ -16,18 +16,30 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * // todo documentation
- *
- * @author Viliam Repan (lazyman)
+ * Created by Viliam Repan (lazyman).
  */
+public class QueryParameter {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface Path {
+    private String path;
+    private String paramName;
+    private Object value;
+
+    public QueryParameter(String path, String paramName, Object value) {
+        this.path = path;
+        this.paramName = paramName;
+        this.value = value;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getParamName() {
+        return paramName;
+    }
+
+    public Object getValue() {
+        return value;
+    }
 }

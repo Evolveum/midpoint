@@ -19,10 +19,15 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.helpers.modify.HqlQuery;
+import com.evolveum.midpoint.repo.sql.helpers.modify.QueryParameter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -32,9 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.SingularAttribute;
-import javax.xml.namespace.QName;
+import javax.persistence.metamodel.ManagedType;
 import java.util.*;
 
 /**
@@ -58,36 +61,76 @@ public class ObjectDeltaUpdater {
             return tryHibernateMerge(objectToMerge, session);
         }
 
-        EntityType mainEntityType = entityModificationRegistry.getJaxbMapping(type);
+        // todo improve multitable id bulk strategy
+        // todo handle nameCopy/name correctly
 
-        QueryParameters queryParameters = new QueryParameters();
+        List<HqlQuery> queries = new ArrayList<>();
 
+        ManagedType mainEntityType = entityModificationRegistry.getJaxbMapping(type);
+
+        Map<String, QueryParameter> queryParameters = new HashMap<>();
+
+        String queryPath;
+        String parameterPrefix;
         for (ItemDelta delta : modifications) {
+            queryPath = "";
+            parameterPrefix = "";
+
+            ManagedType managedType = mainEntityType;
+
             ItemPath path = delta.getPath();
+            Iterator<ItemPathSegment> segments = path.getSegments().iterator();
+            while (segments.hasNext()) {
+                ItemPathSegment segment = segments.next();
+                if (!(segment instanceof NameItemPathSegment)) {
+                    throw new SystemException("segment not name item"); // todo proper handling
+                }
 
-            // for now we expect only simple item paths todo fix this!!!
-            QName first = path.getFirstName();
+                NameItemPathSegment nameSegment = (NameItemPathSegment) segment;
+                String nameLocalPart = nameSegment.getName().getLocalPart();
 
-            String queryPath = first.getLocalPart();
-            String parameterPrefix = first.getLocalPart();
+                Attribute attribute = entityModificationRegistry.findAttribute(managedType, nameLocalPart);
+                if (attribute == null) {
+                    attribute = entityModificationRegistry.findAttributeOverride(managedType, nameLocalPart);
+                }
 
-            Attribute attribute = mainEntityType.getAttribute(first.getLocalPart());
-            switch (attribute.getPersistentAttributeType()) {
-                case BASIC:
-                    // todo handle QName->String
-                    queryParameters.add(path, queryPath, parameterPrefix, delta.getAnyValue().getRealValue());
-                    break;
-                case EMBEDDED:
-                    Object realValue = delta.getAnyValue().getRealValue();
-                    if (realValue instanceof PolyString) {
-                        realValue = RPolyString.toRepo((PolyString) realValue);
+                if (attribute == null) {
+                    // there's no table/column that needs update
+                    continue;
+                }
 
-                        queryParameters.add(path, queryPath + ".orig", parameterPrefix + "orig", ((RPolyString) realValue).getOrig());
-                        queryParameters.add(path, queryPath + ".norm", parameterPrefix + "norm", ((RPolyString) realValue).getNorm());
-                    }
-                    // todo handle 5 more types
+                if (!queryPath.isEmpty()) {
+                    queryPath += ".";
+                }
 
-                    break;
+                queryPath += attribute.getName();
+                parameterPrefix += attribute.getName();
+
+                if (segments.hasNext()) {
+                    managedType = entityModificationRegistry.getMapping(attribute.getJavaType());
+                    continue;
+                }
+
+                switch (attribute.getPersistentAttributeType()) {
+                    case BASIC:
+                        // todo handle QName->String
+                        queryParameters.put(parameterPrefix,
+                                new QueryParameter(queryPath, parameterPrefix, delta.getAnyValue().getRealValue()));
+                        break;
+                    case EMBEDDED:
+                        Object realValue = delta.getAnyValue().getRealValue();
+                        if (realValue instanceof PolyString) {
+                            realValue = RPolyString.toRepo((PolyString) realValue);
+
+                            queryParameters.put(parameterPrefix + "orig",
+                                    new QueryParameter(queryPath + ".orig", parameterPrefix + "orig", ((RPolyString) realValue).getOrig()));
+                            queryParameters.put(parameterPrefix + "norm",
+                                    new QueryParameter(queryPath + ".norm", parameterPrefix + "norm", ((RPolyString) realValue).getNorm()));
+                        }
+                        // todo handle 5 more types
+
+                        break;
+                }
             }
         }
 
@@ -96,15 +139,9 @@ public class ObjectDeltaUpdater {
         StringBuilder sb = new StringBuilder();
         sb.append("update ").append(objectRepositoryClass).append(" o set o.version=:version,o.fullObject=:fullObject");
 
-        for (List<QueryParameter> params : queryParameters.getParametersLists()) {
-            if (params == null || params.isEmpty()) {
-                continue;
-            }
-
-            for (QueryParameter param : params) {
-                sb.append(",");
-                sb.append(param.path).append("=:").append(param.paramName);
-            }
+        for (QueryParameter param : queryParameters.values()) {
+            sb.append(",");
+            sb.append(param.getPath()).append("=:").append(param.getParamName());
         }
 
         sb.append(" where o.oid=:oid");
@@ -114,14 +151,8 @@ public class ObjectDeltaUpdater {
         query.setParameter("oid", objectToMerge.getOid());
         query.setParameter("fullObject", objectToMerge.getFullObject());
 
-        for (List<QueryParameter> params : queryParameters.getParametersLists()) {
-            if (params == null || params.isEmpty()) {
-                continue;
-            }
-
-            for (QueryParameter param : params) {
-                query.setParameter(param.paramName, param.value);
-            }
+        for (QueryParameter param : queryParameters.values()) {
+            query.setParameter(param.getParamName(), param.getValue());
         }
 
         int rowsCount = query.executeUpdate();
@@ -150,56 +181,5 @@ public class ObjectDeltaUpdater {
         LOGGER.warn("One more attempt to update object {} using standard hibernate merge (slow).", object.toString());
 
         return (RObject) session.merge(object);
-    }
-
-    private static class QueryParameters {
-
-        private Map<ItemPath, List<ObjectDeltaUpdater.QueryParameter>> parameters = new HashMap<>();
-
-        public void add(ItemPath path, String queryPath, String paramName, Object value) {
-            List<ObjectDeltaUpdater.QueryParameter> list = getParameters(path);
-            list.add(new QueryParameter(queryPath, paramName, value));
-        }
-
-
-        public void add(ItemPath path, ObjectDeltaUpdater.QueryParameter param) {
-            List<ObjectDeltaUpdater.QueryParameter> list = getParameters(path);
-            list.add(param);
-        }
-
-        public List<ObjectDeltaUpdater.QueryParameter> getParameters(ItemPath path) {
-            List<ObjectDeltaUpdater.QueryParameter> list = parameters.get(path);
-            if (list == null) {
-                list = new ArrayList<>();
-                parameters.put(path, list);
-            }
-
-            return list;
-        }
-
-        public Map<ItemPath, List<ObjectDeltaUpdater.QueryParameter>> getParameters() {
-            return parameters;
-        }
-
-        public Collection<List<ObjectDeltaUpdater.QueryParameter>> getParametersLists() {
-            return parameters.values();
-        }
-    }
-
-    private static class QueryParameter {
-
-        private String path;
-        private String paramName;
-        private Object value;
-
-        public QueryParameter() {
-            this(null, null, null);
-        }
-
-        public QueryParameter(String path, String paramName, Object value) {
-            this.path = path;
-            this.paramName = paramName;
-            this.value = value;
-        }
     }
 }
