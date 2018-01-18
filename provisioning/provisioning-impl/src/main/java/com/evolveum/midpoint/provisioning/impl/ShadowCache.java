@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -167,7 +168,7 @@ public abstract class ShadowCache {
 	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, SchemaException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
@@ -363,7 +364,7 @@ public abstract class ShadowCache {
 
 	private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) 
-					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		ResourceType resource = ctx.getResource();
 		ShadowType repositoryShadowType = repositoryShadow.asObjectable();
 		
@@ -551,13 +552,13 @@ public abstract class ShadowCache {
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
 			OperationResult parentResult) 
 					throws SchemaException, ObjectAlreadyExistsException,
-					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException;
 
 	public String addShadow(PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 					ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 		Validate.notNull(shadowToAdd, "Object to add must not be null.");
 
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
@@ -768,7 +769,7 @@ public abstract class ShadowCache {
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
-					CommunicationException, ExpressionEvaluationException;
+					CommunicationException, ExpressionEvaluationException, EncryptionException;
 
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow,
 			ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications)
@@ -778,7 +779,7 @@ public abstract class ShadowCache {
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
 		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
@@ -1107,7 +1108,7 @@ public abstract class ShadowCache {
 	}
 		
 
-	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		ShadowType shadowType = repoShadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
 		if (pendingOperations.isEmpty()) {
@@ -1588,7 +1589,7 @@ public abstract class ShadowCache {
 					LOGGER.error("Configuration error: {}", e.getMessage(), e);
 					return false;
 				} catch (ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
-						| SecurityViolationException | GenericConnectorException | ExpressionEvaluationException e) {
+						| SecurityViolationException | GenericConnectorException | ExpressionEvaluationException | EncryptionException e) {
 					objResult.recordFatalError(e.getMessage(), e);
 					LOGGER.error("{}", e.getMessage(), e);
 					return false;
@@ -1803,7 +1804,7 @@ public abstract class ShadowCache {
 	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
+					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 		PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowInRepository(ctx, resourceShadow,
 				parentResult);
 
@@ -1828,7 +1829,7 @@ public abstract class ShadowCache {
 	private PrismObject<ShadowType> createShadowInRepository(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
+					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
 		PrismObject<ShadowType> repoShadow;
 		PrismObject<ShadowType> conflictingShadow = shadowManager.lookupConflictingShadowBySecondaryIdentifiers(ctx,
@@ -2015,7 +2016,7 @@ public abstract class ShadowCache {
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 					GenericFrameworkException, SchemaException, ConfigurationException,
-					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
 
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -2109,7 +2110,7 @@ public abstract class ShadowCache {
 			return processedChanges;
 
 		} catch (SchemaException | CommunicationException | GenericFrameworkException | ConfigurationException | 
-				ObjectNotFoundException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error ex) {
+				ObjectNotFoundException | ObjectAlreadyExistsException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error ex) {
 			parentResult.recordFatalError(ex);
 			throw ex;
 		}
@@ -2289,7 +2290,7 @@ public abstract class ShadowCache {
 	void processChange(ProvisioningContext ctx, Change change, PrismObject<ShadowType> oldShadow,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ObjectNotFoundException,
-					GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+					GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
 
 		if (oldShadow == null) {
 			oldShadow = shadowManager.findOrAddShadowFromChange(ctx, change, parentResult);
@@ -2518,13 +2519,13 @@ public abstract class ShadowCache {
 	/**
 	 * Make sure that the shadow is complete, e.g. that all the mandatory fields
 	 * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
-	 * respect to simulated capabilities.
+	 * respect to simulated capabilities. 
 	 */
 	private PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow,
 			OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
+					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
 		PrismObject<ShadowType> resultShadow = repoShadow.clone();
 
@@ -2949,7 +2950,7 @@ public abstract class ShadowCache {
 			throw new IllegalStateException("Delta from outer space: "+operationDelta);
 		}
 		
-		// TODO: change operation status, set async references, etc. modify exists/dead flags --- delegate to shadow manager?
+		// do we need to modify exists/dead flags?
 
 	}
 
