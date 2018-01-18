@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -80,7 +78,7 @@ public class ScriptExpressionFactory {
 	}
 
 	public Collection<FunctionLibrary> getFunctions() {
-		return functions;
+		return Collections.unmodifiableCollection(functions);       // MID-4396
 	}
 
 	public void setFunctions(Collection<FunctionLibrary> functions) {
@@ -95,7 +93,7 @@ public class ScriptExpressionFactory {
 		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
-		expression.setFunctions(functions);
+		expression.setFunctions(new ArrayList<>(functions));
 		
 		if (customFunctionLibraryCache != null) {
 			expression.getFunctions().addAll(customFunctionLibraryCache.values());
@@ -112,7 +110,8 @@ public class ScriptExpressionFactory {
 					customLibrary.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
 					customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
 					customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
-					return expression.getFunctions().add(customLibrary);
+					expression.getFunctions().add(customLibrary);
+					return true;
 				}
 			};
 			try {
