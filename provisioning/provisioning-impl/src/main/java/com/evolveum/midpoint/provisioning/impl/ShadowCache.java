@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjects
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -107,41 +109,19 @@ public abstract class ShadowCache {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	@Autowired(required = true)
-	private ErrorHandlerFactory errorHandlerFactory;
-
-	@Autowired(required = true)
-	private ResourceManager resourceManager;
-
-	@Autowired(required = true)
-	private Clock clock;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private ResourceObjectConverter resouceObjectConverter;
-
-	@Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
-
-	@Autowired(required = true)
-	protected ShadowManager shadowManager;
-
-	@Autowired(required = true)
-	private ChangeNotificationDispatcher operationListener;
-
-	@Autowired(required = true)
-	private AccessChecker accessChecker;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private ChangeNotificationDispatcher changeNotificationDispatcher;
-
-	@Autowired(required = true)
-	private ProvisioningContextFactory ctxFactory;
+	@Autowired private ErrorHandlerFactory errorHandlerFactory;
+	@Autowired private ResourceManager resourceManager;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ResourceObjectConverter resouceObjectConverter;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired protected ShadowManager shadowManager;
+	@Autowired private ChangeNotificationDispatcher operationListener;
+	@Autowired private AccessChecker accessChecker;
+	@Autowired private TaskManager taskManager;
+	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+	@Autowired private ProvisioningContextFactory ctxFactory;
+	@Autowired private Protector protector;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
@@ -2962,4 +2942,63 @@ public abstract class ShadowCache {
 		return XmlTypeConverter.isAfterInterval(requestTimestamp, operationGroupingInterval, now);
 	}
 
+	public <T> ItemComparisonResult compare(PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task, OperationResult parentResult) 
+				throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+		
+		if (!path.equals(SchemaConstants.PATH_PASSWORD_VALUE)) {
+			throw new UnsupportedOperationException("Only password comparison is supported");
+		}
+		
+		ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
+		try {
+			ctx.assertDefinition();
+			applyAttributesDefinition(ctx, repositoryShadow);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException
+				| ConfigurationException | ExpressionEvaluationException e) {
+			throw e;
+		}
+		
+		ResourceType resource = ctx.getResource();
+
+		PasswordCompareStrategyType passwordCompareStrategy = getPasswordCompareStrategy(ctx.getObjectClassDefinition());
+		if (passwordCompareStrategy == PasswordCompareStrategyType.ERROR) {
+			throw new UnsupportedOperationException("Password comparison is not supported on "+resource);
+		}
+		
+		PrismProperty<T> repoProperty = repositoryShadow.findProperty(path);
+		if (repoProperty == null) {
+			if (passwordCompareStrategy == PasswordCompareStrategyType.CACHED) {
+				if (expectedValue == null) {
+					return ItemComparisonResult.MATCH;
+				} else {
+					return ItemComparisonResult.MISMATCH;
+				}
+			} else {
+				// AUTO
+				return ItemComparisonResult.NOT_APPLICABLE;
+			}
+		}
+		
+		ProtectedStringType repoProtectedString = (ProtectedStringType) repoProperty.getRealValue();
+		ProtectedStringType expectedProtectedString = new ProtectedStringType();
+		if (expectedValue instanceof ProtectedStringType) {
+			expectedProtectedString = (ProtectedStringType)expectedValue;
+		} else {
+			expectedProtectedString = new ProtectedStringType();
+			expectedProtectedString.setClearValue((String) expectedValue);
+		}
+		if (protector.compare(repoProtectedString, expectedProtectedString)) {
+			return ItemComparisonResult.MATCH;
+		} else {
+			return ItemComparisonResult.MISMATCH;
+		}
+	}
+	
+	private PasswordCompareStrategyType getPasswordCompareStrategy(RefinedObjectClassDefinition objectClassDefinition) {
+		ResourcePasswordDefinitionType passwordDefinition = objectClassDefinition.getPasswordDefinition();
+		if (passwordDefinition == null) {
+			return null;
+		}
+		return passwordDefinition.getCompareStrategy();
+	}
 }

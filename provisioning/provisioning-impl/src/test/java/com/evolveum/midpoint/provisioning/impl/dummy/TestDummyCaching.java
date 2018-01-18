@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -81,6 +82,16 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
+	}
+	
+	@Override
+	protected ItemComparisonResult getExpectedPasswordComparisonResultMatch() {
+		return ItemComparisonResult.MATCH;
+	}
+
+	@Override
+	protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
+		return ItemComparisonResult.MISMATCH;
 	}
 
 	/**

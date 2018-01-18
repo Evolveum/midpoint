@@ -161,6 +161,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected ResourceType resourceType;
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
+	
+	protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
 	// Testing connector discovery
 	@Autowired(required = true)

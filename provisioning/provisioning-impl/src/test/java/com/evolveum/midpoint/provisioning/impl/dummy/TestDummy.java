@@ -68,6 +68,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
@@ -170,6 +171,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 		return DRAKE_USERNAME;
 	}
 
+	protected ItemComparisonResult getExpectedPasswordComparisonResultMatch() {
+		return ItemComparisonResult.NOT_APPLICABLE;
+	}
+
+	protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
+		return ItemComparisonResult.NOT_APPLICABLE;
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -241,7 +250,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		assertSteadyResource();
 	}
-
+	
 	// test102-test106 in the superclasses
 
 	/**
@@ -1080,8 +1089,22 @@ public class TestDummy extends AbstractBasicDummyTest {
 	 * MID-4397
 	 */
 	@Test
-	public void test125ModifyAccountWillPassword() throws Exception {
-		final String TEST_NAME = "test125ModifyAccountWillPassword";
+	public void test125CompareAccountWillPassword() throws Exception {
+		final String TEST_NAME = "test125CompareAccountWillPassword";
+		displayTestTitle(TEST_NAME);
+
+		testComparePassword(TEST_NAME, "match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
+		testComparePassword(TEST_NAME, "mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
+
+		assertSteadyResource();
+	}
+	
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test126ModifyAccountWillPassword() throws Exception {
+		final String TEST_NAME = "test126ModifyAccountWillPassword";
 		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
@@ -1104,6 +1127,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD_NEW, dummyAccount.getPassword());
+		accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_NEW;
 
 		// Check if the shadow is in the repo
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class,
@@ -1117,6 +1141,41 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		assertSteadyResource();
+	}
+
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test127CompareAccountWillPassword() throws Exception {
+		final String TEST_NAME = "test125CompareAccountWillPassword";
+		displayTestTitle(TEST_NAME);
+
+		testComparePassword(TEST_NAME, "match", ACCOUNT_WILL_OID, accountWillCurrentPassword, getExpectedPasswordComparisonResultMatch());
+		testComparePassword(TEST_NAME, "mismatch old password", ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD, getExpectedPasswordComparisonResultMismatch());
+		testComparePassword(TEST_NAME, "mismatch", ACCOUNT_WILL_OID, "I woulD NeVeR ever USE this PASSword", getExpectedPasswordComparisonResultMismatch());
+
+		assertSteadyResource();
+	}
+	
+	protected void testComparePassword(final String TEST_NAME, String tag, String shadowOid, String expectedPassword, ItemComparisonResult expectedResult) throws Exception {
+		Task task = createTask(TEST_NAME+".tag");
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		// WHEN (match)
+		displayWhen(TEST_NAME);
+		ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE, 
+				expectedPassword, task, result);
+
+		// THEN (match)
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		display("Comparison result ("+tag+")", comparisonResult);
+		assertEquals("Wrong comparison result ("+tag+")", expectedResult, comparisonResult);
+		
+		syncServiceMock.assertNoNotifcations();		
 	}
 
 	/**

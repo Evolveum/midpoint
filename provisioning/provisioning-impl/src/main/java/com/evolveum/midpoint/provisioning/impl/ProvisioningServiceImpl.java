@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
@@ -712,9 +714,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (ExpressionEvaluationException e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: expression errror: " + e.getMessage(), e);
 				throw e;
-			} catch (RuntimeException e){
+			} catch (RuntimeException | Error e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
-				throw new SystemException(e);
+				throw e;
 			}
 
 		} else if (object.canRepresent(ResourceType.class)) {
@@ -1300,6 +1302,44 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);
 			throw ex;
 		}
+	}
+
+	@Override
+	public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path,
+			T expectedValue, Task task, OperationResult parentResult) 
+				throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+		Validate.notNull(oid, "Oid of object to get must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
+
+		if (!ShadowType.class.isAssignableFrom(type)) {
+			throw new UnsupportedOperationException("Only shadow compare is supported");
+		}
+
+		// Result type for this operation
+		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".compare");
+		result.addParam(OperationResult.PARAM_OID, oid);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+
+		ItemComparisonResult comparisonResult;
+		try {
+
+			PrismObject<O> repositoryObject = getRepoObject(type, oid, null, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
+			}
+
+			comparisonResult = getShadowCache(Mode.STANDARD).compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
+
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			throw e;
+		}
+
+
+		result.computeStatus();
+		result.cleanupResult();
+
+		return comparisonResult;
 	}
 
 }
