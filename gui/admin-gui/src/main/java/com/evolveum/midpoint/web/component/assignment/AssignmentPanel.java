@@ -213,25 +213,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-		columns.add(new CheckBoxHeaderColumn<ContainerValueWrapper<AssignmentType>>(){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected boolean isTableRowSelected(ContainerValueWrapper<AssignmentType> object){
-				return object.isSelected();
-			}
-
-			@Override
-			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
-				super.onUpdateRow(target, table, rowModel);
-			};
-
-			@Override
-			protected IModel<Boolean> getCheckBoxValueModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				return Model.of(rowModel.getObject().isSelected());
-			}
-		});
+		columns.add(new CheckBoxHeaderColumn<>());
 
 		columns.add(new IconColumn<ContainerValueWrapper<AssignmentType>>(Model.of("")) {
 
@@ -377,7 +359,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	private List<InlineMenuItem> getAssignmentMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"), new Model<Boolean>(true),
+		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<Boolean>(true),
 				new Model<Boolean>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<Boolean>(true),

@@ -92,17 +92,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	 */
 	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
-		this(id, defaultType, options, false, parentPage, null);
+		this(id, defaultType, tableId, options, false, parentPage, null);
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-		this(id, defaultType, null, multiselect, parentPage, null);
+	ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect, PageBase parentPage) {
+		this(id, defaultType, tableId, null, multiselect, parentPage, null);
 	}
 
-	public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
+	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 						   boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
 		super(id);
 		this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
@@ -110,6 +110,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		this.options = options;
 		this.multiselect = multiselect;
 		this.selectedObjects = selectedObjectsList;
+		this.tableId = tableId;
 		initLayout();
 	}
 
@@ -496,11 +497,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public void clearCache() {
-		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-		provider.clearCache();
-		if (provider instanceof SelectableBeanObjectDataProvider) {
-			((SelectableBeanObjectDataProvider<O>) provider).clearSelectedObjects();
-		}
+		WebComponentUtil.clearProviderCache(getDataProvider());
 	}
 
 	public ObjectQuery getQuery() {
