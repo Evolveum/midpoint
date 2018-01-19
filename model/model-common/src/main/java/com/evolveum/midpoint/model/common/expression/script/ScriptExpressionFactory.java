@@ -21,8 +21,8 @@ import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -32,12 +32,9 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
@@ -48,19 +45,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  */
 public class ScriptExpressionFactory {
 
+	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
+
 	public static String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
-	private Map<String,ScriptEvaluator> evaluatorMap = new HashMap<String, ScriptEvaluator>();
+	private Map<String,ScriptEvaluator> evaluatorMap = new HashMap<>();
 	private ObjectResolver objectResolver;
-	private PrismContext prismContext;
+	private final PrismContext prismContext;
 	private Collection<FunctionLibrary> functions;
-	private Protector protector;
+	private final Protector protector;
+	private final RepositoryService repositoryService;          // might be null during low-level testing
 
 	private Map<String, FunctionLibrary> customFunctionLibraryCache;
 	
-	public ScriptExpressionFactory(PrismContext prismContext, Protector protector) {
+	public ScriptExpressionFactory(PrismContext prismContext, Protector protector, RepositoryService repositoryService) {
 		this.prismContext = prismContext;
 		this.protector = protector;
+		this.repositoryService = repositoryService;
 	}
 	
 	public ObjectResolver getObjectResolver() {
@@ -89,48 +90,53 @@ public class ScriptExpressionFactory {
 		return evaluatorMap;
 	}
 
-	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws ExpressionSyntaxException {
+	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
+			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws ExpressionSyntaxException {
+
+		initializeCustomFunctionsLibraryCache(expressionFactory, task, result);
+		//cache cleanup method
+
 		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
-		expression.setFunctions(new ArrayList<>(functions));
-
-		// TODO make this code synchronized and ensure that searchIterative below is executed under privileged account
-		if (customFunctionLibraryCache != null) {
-			expression.getFunctions().addAll(customFunctionLibraryCache.values());
-		} else {
-			customFunctionLibraryCache = new HashMap<>();
-			//Custom functions
-			OperationResult subResult = result.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
-			ResultHandler<FunctionLibraryType> functionLibraryHandler = new ResultHandler<FunctionLibraryType>() {
-
-				@Override
-				public boolean handle(PrismObject<FunctionLibraryType> object, OperationResult parentResult) {
-					FunctionLibrary customLibrary = new FunctionLibrary();
-					customLibrary.setVariableName(object.getName().getOrig());
-					customLibrary.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
-					customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
-					customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
-					expression.getFunctions().add(customLibrary);
-					return true;
-				}
-			};
-			try {
-				objectResolver.searchIterative(FunctionLibraryType.class, null,
-						SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), functionLibraryHandler, task,
-						subResult);
-				subResult.recordSuccessIfUnknown();
-			} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
-					| ExpressionEvaluationException | ObjectNotFoundException e) {
-				subResult.recordFatalError("Failed to initialize custom functions", e);
-				throw new ExpressionSyntaxException("An error occurred during custom libraries initialization. " + e.getMessage(), e);
-			}
-		}
-	
-		//cache cleanup method
-		
-		
+		Collection<FunctionLibrary> functionsToUse = new ArrayList<>(functions);
+		functionsToUse.addAll(customFunctionLibraryCache.values());
+		expression.setFunctions(functionsToUse);
 		return expression;
+	}
+
+	// if performance becomes an issue, replace 'synchronized' with something more elaborate
+	private synchronized void initializeCustomFunctionsLibraryCache(ExpressionFactory expressionFactory, Task task,
+			OperationResult result) throws ExpressionSyntaxException {
+		if (customFunctionLibraryCache != null) {
+			return;
+		}
+		customFunctionLibraryCache = new HashMap<>();
+		if (repositoryService == null) {
+			LOGGER.warn("No repository service set for ScriptExpressionFactory; custom functions will not be loaded. This"
+					+ " can occur during low-level testing; never during standard system execution.");
+			return;
+		}
+		OperationResult subResult = result
+				.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
+		ResultHandler<FunctionLibraryType> functionLibraryHandler = (object, parentResult) -> {
+			FunctionLibrary customLibrary = new FunctionLibrary();
+			customLibrary.setVariableName(object.getName().getOrig());
+			customLibrary
+					.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
+			customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
+			customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
+			return true;
+		};
+		try {
+			repositoryService.searchObjectsIterative(FunctionLibraryType.class, null, functionLibraryHandler,
+					SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), false, subResult);
+			subResult.recordSuccessIfUnknown();
+		} catch (SchemaException | RuntimeException e) {
+			subResult.recordFatalError("Failed to initialize custom functions", e);
+			throw new ExpressionSyntaxException(
+					"An error occurred during custom libraries initialization. " + e.getMessage(), e);
+		}
 	}
 
 	public void registerEvaluator(String language, ScriptEvaluator evaluator) {
