@@ -109,7 +109,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return container.getDefinition();
 	}
 	
-		public ContainerStatus getStatus() {
+	public ContainerStatus getStatus() {
 		return status;
 	}
 
