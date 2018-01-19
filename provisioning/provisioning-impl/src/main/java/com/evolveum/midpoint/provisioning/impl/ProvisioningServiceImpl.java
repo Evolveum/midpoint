@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
@@ -68,7 +70,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -82,7 +83,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
@@ -91,7 +91,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCheckType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -247,23 +246,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						result.computeStatus();
 					}
 					throw e;
-				} catch (CommunicationException e) {
+				} catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
 					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw e;
-				} catch (SchemaException e) {
-					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-					throw e;
-				} catch (ConfigurationException e) {
-					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-					throw e;
-				} catch (SecurityViolationException e) {
-					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-					throw e;
-				} catch (SystemException e) {
-					// Do NOT wrap this into SystemException again
-					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
-					throw e;
-				} catch (RuntimeException e){
+				} catch (EncryptionException e){
 					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw new SystemException(e);
 				}
@@ -335,6 +321,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (ExpressionEvaluationException ex) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Expression error: " + ex.getMessage(), ex);
 				throw ex;
+			} catch (EncryptionException e) {
+				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+				throw new SystemException(e.getMessage(), e);
 			} catch (RuntimeException | Error ex){
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Runtime error: " + ex.getMessage(), ex);
 				throw ex;
@@ -386,34 +375,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			processedChanges = getShadowCache(Mode.STANDARD).synchronize(shadowCoordinates, tokenProperty, task, result);
 			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
 
-		} catch (ObjectNotFoundException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: object not found: " + e.getMessage(), e);
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
-		} catch (CommunicationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: communication problem: " + e.getMessage(), e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: object already exists problem: " + e.getMessage(), e);
+		} catch (ObjectAlreadyExistsException | EncryptionException e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw new SystemException(e);
 		} catch (GenericFrameworkException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result,
 					"Synchronization error: generic connector framework error: " + e.getMessage(), e);
 			throw new GenericConnectorException(e.getMessage(), e);
-		} catch (SchemaException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: schema problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: security violation: " + e.getMessage(), e);
-			throw e;
-		} catch (ConfigurationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: configuration problem: " + e.getMessage(), e);
-			throw e;
-		} catch (RuntimeException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: unexpected problem: " + e.getMessage(), e);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: expression error: " + e.getMessage(), e);
-			throw e;
 		}
 
 		result.recordSuccess();
@@ -678,33 +649,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.computeStatus();
 			}
 
-		} catch (CommunicationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: communication problem: " + e.getMessage(), e);
+		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException 
+				| ExpressionEvaluationException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		} catch (GenericFrameworkException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: generic error in the connector: " + e.getMessage(),
-					e);
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw new CommunicationException(e.getMessage(), e);
-		} catch (SchemaException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: schema problem: " + e.getMessage(), e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: object doesn't exist: " + e.getMessage(), e);
-			throw e;
-		} catch (RuntimeException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: unexpected problem: " + e.getMessage(), e);
-			throw new SystemException("Internal error: " + e.getMessage(), e);
-		} catch (ConfigurationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: configuration problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: security violation: " + e.getMessage(), e);
-			throw e;
+		} catch (EncryptionException e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			throw new SystemException(e.getMessage(), e);
 		} catch (ObjectAlreadyExistsException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: object after modification would conflict with another existing object: " + e.getMessage(), e);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: expression errror: " + e.getMessage(), e);
 			throw e;
 		}
 
@@ -758,9 +714,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (ExpressionEvaluationException e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: expression errror: " + e.getMessage(), e);
 				throw e;
-			} catch (RuntimeException e){
+			} catch (RuntimeException | Error e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
-				throw new SystemException(e);
+				throw e;
 			}
 
 		} else if (object.canRepresent(ResourceType.class)) {
@@ -923,6 +879,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				| SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": "+ e.getMessage(), e);
 			throw e;
+			
+		} catch (EncryptionException e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			throw new SystemException(e.getMessage(), e);
 		}
 
 		result.computeStatus();
@@ -933,7 +893,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	private  void refreshShadowLegacy(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			ObjectAlreadyExistsException, SecurityViolationException, GenericFrameworkException, ExpressionEvaluationException {
+			ObjectAlreadyExistsException, SecurityViolationException, GenericFrameworkException, ExpressionEvaluationException, EncryptionException {
 
 		ShadowType shadowType = shadow.asObjectable();
 
@@ -1342,6 +1302,44 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);
 			throw ex;
 		}
+	}
+
+	@Override
+	public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path,
+			T expectedValue, Task task, OperationResult parentResult) 
+				throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+		Validate.notNull(oid, "Oid of object to get must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
+
+		if (!ShadowType.class.isAssignableFrom(type)) {
+			throw new UnsupportedOperationException("Only shadow compare is supported");
+		}
+
+		// Result type for this operation
+		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".compare");
+		result.addParam(OperationResult.PARAM_OID, oid);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+
+		ItemComparisonResult comparisonResult;
+		try {
+
+			PrismObject<O> repositoryObject = getRepoObject(type, oid, null, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
+			}
+
+			comparisonResult = getShadowCache(Mode.STANDARD).compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
+
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			throw e;
+		}
+
+
+		result.computeStatus();
+		result.cleanupResult();
+
+		return comparisonResult;
 	}
 
 }

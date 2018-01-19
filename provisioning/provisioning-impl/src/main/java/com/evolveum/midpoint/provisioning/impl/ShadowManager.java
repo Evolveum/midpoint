@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -47,6 +45,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -70,7 +70,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.OptimisticLockingRunner;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepositoryOperation;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -83,7 +82,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -105,6 +103,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
@@ -115,12 +114,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPendingOperationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Responsibilities:
@@ -143,17 +144,11 @@ public class ShadowManager {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	@Autowired(required = true)
-	private Clock clock;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private Protector protector;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
 		
@@ -207,7 +202,6 @@ public class ShadowManager {
 			LOGGER.trace("Searching for shadow using filter:\n{}",
 					query.debugDump());
 		}
-//		PagingType paging = new PagingType();
 
 		// TODO: check for errors
 		 List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
@@ -418,7 +412,7 @@ public class ShadowManager {
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
 	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(ctx, change, parentResult);
@@ -490,7 +484,7 @@ public class ShadowManager {
 	
 	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(globalCtx, change, parentResult);
@@ -563,7 +557,7 @@ public class ShadowManager {
 	private PrismObject<ShadowType> createNewShadowFromChange(ProvisioningContext ctx, Change change,
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException,
-			SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
 		PrismObject<ShadowType> shadow = change.getCurrentShadow();
 		
@@ -754,7 +748,7 @@ public class ShadowManager {
 
 	// Used when new resource object is discovered
 	public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
-			PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+			PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Adding new shadow from resource object: {}", resourceShadow.debugDump());
 		}
@@ -769,7 +763,7 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
-	public String addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+	public String addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, EncryptionException {
 		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
 		if (consistency == null) {
 			return null;
@@ -808,14 +802,14 @@ public class ShadowManager {
 	 * Add new active shadow to repository. It is executed after ADD operation on resource.
 	 * There are several scenarios. The operation may have been executed (synchronous operation),
 	 * it may be executing (asynchronous operation) or the operation may be delayed due to grouping.
-	 * This is indicated by the execution status in the opState parameter.
+	 * This is indicated by the execution status in the opState parameter. 
 	 */
 	public String addNewActiveRepositoryShadow(
 			ProvisioningContext ctx, 
 			PrismObject<ShadowType> shadowToAdd, 
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
 			OperationResult parentResult) 
-					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
 		if (opState.getExistingShadowOid() != null) {
 			// We know that we have proposed shadow
 			updateProposedShadowAfterAdd(ctx, shadowToAdd, opState, parentResult);
@@ -1257,7 +1251,7 @@ public class ShadowManager {
 	 * Create a copy of a shadow that is suitable for repository storage. 
 	 */
 	private PrismObject<ShadowType> createRepositoryShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		
@@ -1313,12 +1307,12 @@ public class ShadowManager {
         setKindIfNecessary(repoShadowType, ctx.getObjectClassDefinition());
 //        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
-        // Store only password meta-data in repo
+        // Store only password meta-data in repo - unless there is explicit caching
         CredentialsType creds = repoShadowType.getCredentials();
         if (creds != null) {
         	PasswordType passwordType = creds.getPassword();
         	if (passwordType != null) {
-        		ProvisioningUtil.cleanupShadowPassword(passwordType);
+        		preparePasswordForStorage(passwordType, ctx.getObjectClassDefinition());
         		PrismObject<UserType> owner = null;
         		if (ctx.getTask() != null) {
         			owner = ctx.getTask().getOwner();
@@ -1358,13 +1352,42 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
+	private void preparePasswordForStorage(PasswordType passwordType,
+			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException, EncryptionException {
+		ProtectedStringType passwordValue = passwordType.getValue();
+		if (passwordValue == null) {
+			return;
+		}		
+		CachingStategyType cachingStategy = getPasswordCachingStrategy(objectClassDefinition);
+		if (cachingStategy != null && cachingStategy != CachingStategyType.NONE) {
+			if (!passwordValue.isHashed()) {
+				protector.hash(passwordValue);
+			}
+			return;
+		} else {
+			ProvisioningUtil.cleanupShadowPassword(passwordType);
+		}
+	}
+	
+	private CachingStategyType getPasswordCachingStrategy(RefinedObjectClassDefinition objectClassDefinition) {
+		ResourcePasswordDefinitionType passwordDefinition = objectClassDefinition.getPasswordDefinition();
+		if (passwordDefinition == null) {
+			return null;
+		}
+		CachingPolicyType passwordCachingPolicy = passwordDefinition.getCaching();
+		if (passwordCachingPolicy == null) {
+			return null;
+		}
+		return passwordCachingPolicy.getCachingStategy();
+	}
+
 	public void modifyShadow(
 				ProvisioningContext ctx, 
 				PrismObject<ShadowType> oldRepoShadow, 
 				Collection<? extends ItemDelta> modifications, 
 				ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 				OperationResult parentResult) 
-						throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+						throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		
 		PendingOperationType existingPendingOperation = null;
 		if (ResourceTypeUtil.getRecordPendingOperations(ctx.getResource()) == RecordPendingOperationsType.ALL) {
@@ -1400,11 +1423,11 @@ public class ShadowManager {
 		
 	/**
 	 * Really modifies shadow attributes. It applies the changes. It is used for synchronous operations and also for
-	 * applying the results of completed asynchronous operations. 
+	 * applying the results of completed asynchronous operations.  
 	 */
 	public void modifyShadowAttributes(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
 			OperationResult parentResult) 
-			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException { 
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException { 
 		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
@@ -1453,7 +1476,7 @@ public class ShadowManager {
 
 	@SuppressWarnings("rawtypes")
 	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
@@ -1488,14 +1511,51 @@ public class ShadowManager {
 					ProvisioningUtil.cleanupShadowActivation(valueToReplace.asContainerable());
 				}
 			} else if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+				addPasswordDelta(repoChanges, itemDelta, objectClassDefinition);
 				continue;
 			}
 			normalizeDelta(itemDelta, objectClassDefinition);
 			repoChanges.add(itemDelta);
 		}
+		
+		
 		return repoChanges;
 	}
 	
+	private void addPasswordDelta(Collection<ItemDelta> repoChanges, ItemDelta requestedPasswordDelta, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException, EncryptionException {
+		if (!(requestedPasswordDelta.getPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE))) {
+			return;
+		}
+		CachingStategyType cachingStategy = getPasswordCachingStrategy(objectClassDefinition);
+		if (cachingStategy == null || cachingStategy == CachingStategyType.NONE) {
+			return;
+		}
+		PropertyDelta<ProtectedStringType> passwordValueDelta = (PropertyDelta<ProtectedStringType>)requestedPasswordDelta;
+		hashValues(passwordValueDelta.getValuesToAdd());
+		hashValues(passwordValueDelta.getValuesToReplace());
+		repoChanges.add(requestedPasswordDelta);
+		if (!(requestedPasswordDelta.getPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE))) {
+			return;
+		}
+	}
+
+	
+	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> pvals) throws SchemaException, EncryptionException {
+		if (pvals == null) {
+			return;
+		}
+		for (PrismPropertyValue<ProtectedStringType> pval: pvals) {
+			ProtectedStringType psVal = pval.getValue();
+			if (psVal == null) {
+				return;
+			}
+			if (psVal.isHashed()) {
+				return;
+			}
+			protector.hash(psVal);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
 			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -1586,7 +1646,6 @@ public class ShadowManager {
 								normalizedRealValue = matchingRule.normalize(pval.getValue());
 							}
 							attrAddDelta.addValueToAdd(new PrismPropertyValue(normalizedRealValue));
-							LOGGER.trace("CURRENT ATTR:\n{}\nATTR DELTA:\n{}", currentResourceAttrProperty.debugDump(1), attrAddDelta.debugDump(1));
 						}
 						shadowDelta.addModification(attrAddDelta);
 					} else {
@@ -1599,7 +1658,6 @@ public class ShadowManager {
 								currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
 							}
 							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
-								LOGGER.trace("CURRENT ATTR:\n{}\ncurrentResourceNormalizedRealValue: {}", currentResourceAttrProperty.debugDump(1), currentResourceNormalizedRealValue);
 								shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
 							}
 						} else {
@@ -1611,10 +1669,10 @@ public class ShadowManager {
 								}
 							}
 							PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
-							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
-									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
-									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
-									attrDiff==null?null:attrDiff.debugDump(1));
+//							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
+//									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
+//									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
+//									attrDiff==null?null:attrDiff.debugDump(1));
 							if (attrDiff != null && !attrDiff.isEmpty()) {
 								attrDiff.setParentPath(new ItemPath(ShadowType.F_ATTRIBUTES));
 								shadowDelta.addModification(attrDiff);
@@ -1675,7 +1733,7 @@ public class ShadowManager {
 		} else {
 			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
-
+		
 		if (!shadowDelta.isEmpty()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Updating repo shadow {} with delta:\n{}", oldRepoShadow, shadowDelta.debugDump(1));
@@ -1697,6 +1755,7 @@ public class ShadowManager {
 			return oldRepoShadow;
 		}		
 	}
+	
 
 	private <T> void compareUpdateProperty(ObjectDelta<ShadowType> shadowDelta,
 			ItemPath itemPath, PrismObject<ShadowType> currentResourceShadow, PrismObject<ShadowType> oldRepoShadow) {

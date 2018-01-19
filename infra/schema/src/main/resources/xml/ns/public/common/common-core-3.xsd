@@ -5840,6 +5840,60 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="PasswordCompareStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The way how an resource password is compared with the current password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.7.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="auto">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Auto-detect comparison method. If no way of comparison
+                		is possible then an error is indicated.
+                		Note: Currently this strategy will end with an error if there
+                		is no cached password value.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		There is no way to compare password. Any operation to that
+                		tries to compare the password on the resource should end
+                		up with an error.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="cached">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Compare password with the value cached in the shadow.
+                		This setting assumes that passwords for all accounts are
+                		properly cached. Therefore if there is no password value
+                		in the shadow then we assume that there is no resource password.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CACHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: ignore, read (compare password by readin password value), resourceAuthenticate, ... -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
     <xsd:complexType name="ResourceCredentialsDefinitionType">
         <xsd:sequence>
             <xsd:element name="password" type="tns:ResourcePasswordDefinitionType" minOccurs="0" maxOccurs="1">
@@ -5860,6 +5914,19 @@
     	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+        	<xsd:element name="compareStrategy" type="tns:PasswordCompareStrategyType" minOccurs="0" default="auto">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The way how an resource password is compared with the current password.
+        				This strategy is used when midPoint needs to compare candidate password
+        				with existing resource passowrd. E.g. used in password policies that state
+        				that passwords on several resources cannot be the same.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7.1</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5886,6 +5953,23 @@
             			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
             		</xsd:appinfo>
                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Password caching policy.
+                        Currently, password storage format (encrypted, hashed) will be the same
+                        as the global password storage format used for the entire system.
+                        Definition of a specific password storage format might be added later.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:since>3.7.1</a:since>
+            		</xsd:appinfo>
+                </xsd:annotation>
+                <!-- 
+                	TODO: later, create PasswordCachingPolicyType as subtype of CachingPolicyType.
+                	PasswordCachingPolicyType could specify password storage format.
+                 -->
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -12009,6 +12093,16 @@
         <xsd:sequence>
             <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="object"/>
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specifies which projection should be used in case that projection origin is selected.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.7.1</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
         </xsd:sequence>
     </xsd:complexType>
@@ -12060,6 +12154,23 @@
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OWNER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="projection">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		One of object's projecion is the origin.
+                		E.g. in case of user password specific projection
+                		linked to the user will be scanned.
+                		If this origin type is selected then also
+                		the projectionDiscriminator must be specified.
+                		Note: Currently the only supported value is
+                		resource password.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROJECTION"/>
+                        <a:since>3.7.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
