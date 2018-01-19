@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 //import com.evolveum.midpoint.model.ModelWebService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -116,10 +118,13 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 		ObjectClassComplexTypeDefinition objectClassDefinition = ShadowUtil.getObjectClassDefinition(shadow);
 		change.setObjectClassDefinition(objectClassDefinition);
 
-		ShadowType shadowType = shadow.asObjectable();
-
 		LOGGER.trace("Start to precess change: {}", change.toString());
-		shadowCache.processChange(ctx, change, null, parentResult);
+		try {
+			shadowCache.processChange(ctx, change, null, parentResult);
+		} catch (EncryptionException e) {
+			// TODO: better handling
+			throw new SystemException(e.getMessage(), e);
+		}
 
 		LOGGER.trace("Change after processing {} . Start synchronizing.", change.toString());
 		shadowCache.processSynchronization(ctx, change, parentResult);

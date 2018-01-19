@@ -94,7 +94,8 @@ public class ScriptExpressionFactory {
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
 		expression.setFunctions(new ArrayList<>(functions));
-		
+
+		// TODO make this code synchronized and ensure that searchIterative below is executed under privileged account
 		if (customFunctionLibraryCache != null) {
 			expression.getFunctions().addAll(customFunctionLibraryCache.values());
 		} else {
