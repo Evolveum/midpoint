@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,11 +38,11 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	
 	private List<QName> targetTypes;
 
-	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
+	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
 		super(container, reference, readonly, status, null);
 	}
 	
-	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, ItemPath path) {
+	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, ItemPath path) {
 		super(container, reference, readonly, status, path);
 	}
 
@@ -54,7 +54,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	}
 
 	private List<ValueWrapper> createValues() {
-		List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+		List<ValueWrapper> values = new ArrayList<>();
 
 		for (PrismReferenceValue prismValue : item.getValues()) {
 			
@@ -84,8 +84,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	@Override
 	public ValueWrapper createAddedValue() {
 		PrismReferenceValue prv = new PrismReferenceValue();
-		ValueWrapper wrapper = new ValueWrapper(this, prv, ValueStatus.ADDED);
-		return wrapper;
+		return new ValueWrapper(this, prv, ValueStatus.ADDED);
 	}
 	
 	public ObjectFilter getFilter() {
