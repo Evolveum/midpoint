@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import org.hibernate.query.QueryParameter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,26 +26,47 @@ import java.util.Map;
  */
 public class HqlQuery {
 
+    public enum QueryType {
+
+        UPDATE, INSERT, DELETE;
+    }
+
     private ItemPath identifier;
 
-    private String query;
-    private Map<String, QueryParameter> parameters;
+    private StringBuilder query;
 
-    public HqlQuery(ItemPath identifier, String query, Map<String, QueryParameter> parameters) {
+    private QueryType queryType;
+
+    private Map<String, QueryParameter> parameters = new HashMap<>();
+
+    public HqlQuery(ItemPath identifier, String query, QueryType queryType, Map<String, QueryParameter> parameters) {
         this.identifier = identifier;
-        this.query = query;
-        this.parameters = parameters;
+
+        this.query = new StringBuilder();
+        if (query != null) {
+            this.query.append(query);
+        }
+
+        this.queryType = queryType;
+
+        if (parameters != null) {
+            this.parameters = parameters;
+        }
     }
 
     public ItemPath getIdentifier() {
         return identifier;
     }
 
-    public String getQuery() {
+    public StringBuilder getQuery() {
         return query;
     }
 
     public Map<String, QueryParameter> getParameters() {
         return parameters;
+    }
+
+    public QueryType getQueryType() {
+        return queryType;
     }
 }

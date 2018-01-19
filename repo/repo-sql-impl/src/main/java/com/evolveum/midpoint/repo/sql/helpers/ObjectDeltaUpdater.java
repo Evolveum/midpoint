@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.helpers.modify.BasicAttributeHandler;
 import com.evolveum.midpoint.repo.sql.helpers.modify.HqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.QueryParameter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -128,6 +129,21 @@ public class ObjectDeltaUpdater {
                                     new QueryParameter(queryPath + ".norm", parameterPrefix + "norm", ((RPolyString) realValue).getNorm()));
                         }
                         // todo handle 5 more types
+
+                        break;
+                    case MANY_TO_MANY:
+
+                        break;
+                    case ONE_TO_ONE:
+
+                        break;
+                    case MANY_TO_ONE:
+
+                        break;
+                    case ONE_TO_MANY:
+
+                        break;
+                    case ELEMENT_COLLECTION:
 
                         break;
                 }
