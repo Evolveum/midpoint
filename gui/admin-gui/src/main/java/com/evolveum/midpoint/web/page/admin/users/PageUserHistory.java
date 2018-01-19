@@ -77,13 +77,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 //        objectWrapper.setShowEmpty(false);
 
         for (ContainerWrapper container : objectWrapper.getContainers()) {
-        	container.setReadonly(true);
-        	
-        	container.getValues().forEach(v -> {
-        		((ContainerValueWrapper ) v).getItems().forEach(item -> ((PropertyOrReferenceWrapper) item).setReadonly(true));
-        		((ContainerValueWrapper ) v).setReadonly(true);
-        		
-        	});
+            setContainerValuesReadOnlyState(container);
         	
 //        	container.setReadonly(true);
 //
@@ -103,6 +97,22 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
         }
 
         return objectWrapper;
+    }
+
+    private void setContainerValuesReadOnlyState(ContainerWrapper container) {
+        container.setReadonly(true);
+
+        container.getValues().forEach(v -> {
+            ((ContainerValueWrapper) v).getItems().forEach(item -> {
+                if (item instanceof ContainerWrapper) {
+                    setContainerValuesReadOnlyState((ContainerWrapper) item);
+                } else if (item instanceof PropertyOrReferenceWrapper) {
+                    ((PropertyOrReferenceWrapper) item).setReadonly(true);
+                }
+            });
+            ((ContainerValueWrapper) v).setReadonly(true);
+
+        });
     }
 
     @Override
