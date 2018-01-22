@@ -33,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -88,11 +89,14 @@ public class EntityModificationRegistry {
 
             // create override map
             Map<String, Attribute> overrides = new HashMap<>();
-            attributeNameOverrides.put(entity, overrides);
 
             for (Attribute attribute : (Set<Attribute>) entity.getAttributes()) {
                 Class jType = attribute.getJavaType();
                 JaxbPath path = (JaxbPath) jType.getAnnotation(JaxbPath.class);
+                if (path == null) {
+                    path = ((Method) attribute.getJavaMember()).getAnnotation(JaxbPath.class);
+                }
+
                 if (path == null) {
                     continue;
                 }
@@ -100,6 +104,10 @@ public class EntityModificationRegistry {
                 for (JaxbName name : path.itemPath()) {
                     overrides.put(name.localPart(), attribute);
                 }
+            }
+
+            if (!overrides.isEmpty()) {
+                attributeNameOverrides.put(entity, overrides);
             }
         }
 

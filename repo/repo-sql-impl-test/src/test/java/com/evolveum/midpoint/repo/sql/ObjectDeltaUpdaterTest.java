@@ -114,21 +114,21 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, oid, UserType.F_GIVEN_NAME,
                 prismContext, new PolyString("asdf", "asdf"));
 
-        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
-        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
-        delta.addModificationAddProperty(UserType.F_EMPLOYEE_TYPE, "one","two");
-        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
-        delta.addModificationReplaceProperty(
-                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
+//        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
+//        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
+//        delta.addModificationAddProperty(UserType.F_EMPLOYEE_TYPE, "one","two");
+//        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
+//        delta.addModificationReplaceProperty(
+//                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 
-//        ActivationType activation = new ActivationType();
-//        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
-//        delta.addModificationAddContainer(
-//                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
+        ActivationType activation = new ActivationType();
+        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+        delta.addModificationAddContainer(
+                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
 //        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("zxcv","zxcv"));
 
-        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
+//        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
 
         // todo create modification for metadata/createApproverRef
 

@@ -429,6 +429,7 @@ public class ObjectUpdater {
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
                 // merge and update object
+                // todo remove this createDataObjectFromJAXB [lazyman], it's unnecessary when we're handling deltas manually
                 LOGGER.trace("Translating JAXB to data type.");
 				ObjectTypeUtil.normalizeAllRelations(prismObject);
 				RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);

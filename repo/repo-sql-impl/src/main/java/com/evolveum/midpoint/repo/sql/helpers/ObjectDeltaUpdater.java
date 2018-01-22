@@ -17,12 +17,16 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.container.Container;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -30,18 +34,23 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -60,9 +69,9 @@ public class ObjectDeltaUpdater {
     public <T extends ObjectType> RObject<T> update(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                     RObject<T> objectToMerge, Session session, OperationResult result) {
 
-//        if (1 == 1) {
-//            return tryHibernateMerge(objectToMerge, session);
-//        }
+        if (1 == 1) {
+            return tryHibernateMerge(objectToMerge, session);
+        }
 
         // todo handle nameCopy/name correctly
 
@@ -94,22 +103,64 @@ public class ObjectDeltaUpdater {
 
                 if (attribute == null) {
                     // there's no table/column that needs update
-                    continue;
+                    break;
                 }
 
                 if (segments.hasNext()) {
-                    managedType = entityModificationRegistry.getMapping(attribute.getJavaType());
-                    try {
-                        bean = ((Method) attribute.getJavaMember()).invoke(bean);
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex); //todo error handling
+                    switch (attribute.getPersistentAttributeType()) {
+                        case EMBEDDED:
+                            managedType = entityModificationRegistry.getMapping(attribute.getJavaType());
+                            try {
+                                bean = ((Method) attribute.getJavaMember()).invoke(bean);
+                            } catch (Exception ex) {
+                                throw new RuntimeException(ex); //todo error handling
+                            }
+                            break;
+                        case ONE_TO_MANY:
+                            try {
+                                Method method = ((Method) attribute.getJavaMember());
+                                ParameterizedType parameterizedType = (ParameterizedType) method.getGenericReturnType();
+                                Class clazz = (Class) parameterizedType.getActualTypeArguments()[0];
+
+                                IdItemPathSegment id = (IdItemPathSegment) segments.next();
+                                // todo handle types correctly
+                                Collection c = (Collection) ((Method) attribute.getJavaMember()).invoke(bean);
+                                if (Container.class.isAssignableFrom(clazz)) {
+                                    boolean found = false;
+                                    for (Container o : (Collection<Container>) c) {
+                                        long l = o.getId().longValue();
+                                        if (l == id.getId()) {
+                                            managedType = entityModificationRegistry.getMapping(clazz);
+                                            bean = o;
+
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!found) {
+                                        throw new RuntimeException("Couldn't find container"); // todo error handling
+                                    }
+                                } else {
+                                    throw new RuntimeException("Can't go over collection"); // todo error handling
+                                }
+                                System.out.println(c);
+                            } catch (Exception ex) {
+                                throw new RuntimeException(ex); // todo error handling
+                            }
+                            break;
+                        default:
+//                            throw new RuntimeException("Don't know what to do"); // todo error handling
                     }
+
                     continue;
                 }
 
                 switch (attribute.getPersistentAttributeType()) {
                     case BASIC:
                     case EMBEDDED:
+                        // todo qnames
+                        // todo how to handle add/delete/replace
                         try {
                             Object realValue = delta.getAnyValue().getRealValue();
                             if (realValue instanceof Enum) {
@@ -125,6 +176,10 @@ public class ObjectDeltaUpdater {
                             } else if (realValue instanceof PolyString) {
                                 PolyString p = (PolyString) realValue;
                                 realValue = new RPolyString(p.getOrig(), p.getNorm());
+                            } else if (realValue instanceof ActivationType) {
+                                RActivation ractivation = new RActivation();
+                                RActivation.copyFromJAXB((ActivationType) realValue, ractivation, null);
+                                realValue = ractivation;
                             }
                             PropertyUtils.setSimpleProperty(bean, attribute.getName(), realValue);
                         } catch (Exception ex) {
@@ -132,19 +187,35 @@ public class ObjectDeltaUpdater {
                         }
                         break;
                     case MANY_TO_MANY:
-
+                        // not used in our mappings
+                        // todo throw exception
                         break;
                     case ONE_TO_ONE:
 
                         break;
                     case MANY_TO_ONE:
-
+                        // can't be in delta (probably)
+                        // todo throw exception
                         break;
                     case ONE_TO_MANY:
+                        try {
+                            // todo handle types correctly
+                            Collection c = (Collection) ((Method) attribute.getJavaMember()).invoke(bean);
 
+
+                            System.out.println(c);
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex); // todo error handling
+                        }
                         break;
                     case ELEMENT_COLLECTION:
-
+                        try {
+                            // todo handle types correctly
+                            Collection c = (Collection) ((Method) attribute.getJavaMember()).invoke(bean);
+                            c.addAll((List) delta.getValuesToAdd().stream().map(i -> ((PrismPropertyValue) i).getRealValue()).collect(Collectors.toList()));
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex); // todo error handling
+                        }
                         break;
                 }
             }
