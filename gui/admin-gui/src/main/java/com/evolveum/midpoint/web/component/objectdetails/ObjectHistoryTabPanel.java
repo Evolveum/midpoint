@@ -201,7 +201,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
         PrismObject<F> object = getReconstructedObject(oid, eventIdentifier, type);
         String name = WebComponentUtil.getName(object);
 
-        setResponsePage(new PageXmlDataReview(getPageBase().createStringResource("PageXmlDataReview.aceEditorPanelTitle", name, date),
+        getPageBase().navigateToNext(new PageXmlDataReview(getPageBase().createStringResource("PageXmlDataReview.aceEditorPanelTitle", name, date),
                 new IModel<String>() {
                     private static final long serialVersionUID = 1L;
 

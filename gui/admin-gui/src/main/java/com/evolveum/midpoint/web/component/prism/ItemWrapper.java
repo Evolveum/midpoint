@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -90,7 +91,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	    ContainerWrapper cw = getParent();
 	    return cw == null || cw.isEnforceRequiredFields();
     }
-	
+
+    @Nullable
 	ContainerWrapper getParent();
 	
 	boolean isShowEmpty();

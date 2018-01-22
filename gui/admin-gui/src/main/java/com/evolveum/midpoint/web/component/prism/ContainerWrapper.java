@@ -22,19 +22,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -116,7 +109,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return container.getDefinition();
 	}
 	
-		public ContainerStatus getStatus() {
+	public ContainerStatus getStatus() {
 		return status;
 	}
 
@@ -415,7 +408,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 					containerValueWrapper.collectModifications(delta);
 					break;
 				case DELETED:
-					delta.addModificationDeleteContainer(getPath(), containerValueWrapper.getContainerValue().clone());
+					PrismContainerValue clonedValue = containerValueWrapper.getContainerValue().clone();
+					clonedValue.clear();
+					delta.addModificationDeleteContainer(getPath(), clonedValue);
 					break;
 			}
 		}

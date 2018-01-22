@@ -114,6 +114,7 @@
           scope="singleton">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="repositoryService" ref="repositoryService"/>
         <property name="functions">
         	<list>
         		<ref bean="basicFunctionLibrary"/>

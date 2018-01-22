@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
@@ -26,6 +29,13 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar.
  */
+@PageDescriptor(url = "/admin/xmlDataReview", action = {
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
+                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
+                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_HISTORY_XML_REVIEW_URL,
+                label = "PageUser.auth.userHistoryXmlReview.label",
+                description = "PageUser.auth.userHistoryXmlReview.description")})
 public class PageXmlDataReview extends PageAdmin {
 
     private static final String ID_ACE_EDITOR_CONTAINER = "aceEditorContainer";

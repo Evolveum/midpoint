@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyEnumValuesModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -95,6 +96,7 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -185,14 +187,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
 
         this.searchText = searchText;
-        searchModel = new LoadableModel<TasksSearchDto>(false) {
-
-            @Override
-            protected TasksSearchDto load() {
-                return loadTasksSearchDto();
-            }
-        };
-
+        searchModel = LoadableModel.create(this::loadTasksSearchDto, false);
 		refreshModel = new Model<>(new AutoRefreshDto(REFRESH_INTERVAL));
 
         initLayout();
@@ -1404,9 +1399,19 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void refreshTables(AjaxRequestTarget target) {
+        clearTablesCache();
         target.add(getFeedbackPanel());
         target.add((Component) getTaskTable());
         target.add((Component) getNodeTable());
+    }
+
+    private void clearTablesCache(){
+        if (getTaskTable() != null && getTaskTable().getDataTable() != null){
+            WebComponentUtil.clearProviderCache(getTaskTable().getDataTable().getDataProvider());
+        }
+        if (getNodeTable() != null && getNodeTable().getDataTable() != null){
+            WebComponentUtil.clearProviderCache(getNodeTable().getDataTable().getDataProvider());
+        }
     }
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
@@ -1576,16 +1581,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
             final IModel<TasksSearchDto> searchModel = (IModel) getDefaultModel();
 
-            DropDownChoice listSelect = new DropDownChoice(ID_STATE,
-                    new PropertyModel(searchModel, TasksSearchDto.F_STATUS),
-                    new AbstractReadOnlyModel<List<TaskDtoExecutionStatusFilter>>() {
-
-                        @Override
-                        public List<TaskDtoExecutionStatusFilter> getObject() {
-                            return createTypeList();
-                        }
-                    },
-                    new EnumChoiceRenderer(this));
+            DropDownChoice listSelect = new DropDownChoice<>(ID_STATE,
+                    new PropertyModel<>(searchModel, TasksSearchDto.F_STATUS),
+                    new ReadOnlyEnumValuesModel<>(TaskDtoExecutionStatusFilter.class),
+                    new EnumChoiceRenderer<>(this));
             listSelect.add(createFilterAjaxBehaviour());
             listSelect.setOutputMarkupId(true);
             listSelect.setNullValid(false);
@@ -1654,14 +1653,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     page.searchFilterPerformed(target);
                 }
             };
-        }
-
-        private List<TaskDtoExecutionStatusFilter> createTypeList() {
-            List<TaskDtoExecutionStatusFilter> list = new ArrayList<TaskDtoExecutionStatusFilter>();
-
-            Collections.addAll(list, TaskDtoExecutionStatusFilter.values());
-
-            return list;
         }
 
         private List<String> createCategoryList() {

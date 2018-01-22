@@ -41,7 +41,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	private static final long serialVersionUID = -179218652752175177L;
 
-	protected ContainerValueWrapper container;
+	@Nullable protected ContainerValueWrapper container;
 	protected I item;
 	protected ValueStatus status;
 	protected List<ValueWrapper> values;
@@ -83,8 +83,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	@Override
+	@Nullable
 	public ContainerWrapper getParent() {
-		return container.getContainer();
+		return container != null ? container.getContainer() : null;
 	}
 
 	public boolean isVisible() {
@@ -96,7 +97,10 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
         if (getItemDefinition().isDeprecated() && isEmpty()) {
         	return false;
         }
-        
+
+        if (container == null) {
+        	return false;           // TODO: ok ?
+        }
         switch (container.getObjectStatus()) {
         	case ADDING : 
         		return canAddDefault() || canAddAndShowEmpty();
@@ -204,7 +208,15 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return false;
 	}
 	private boolean isMetadataContainer() {
-		return getParent().getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE);
+		ContainerWrapper parent = getParent();
+		if (parent == null) {
+			return false;
+		}
+		ItemDefinition<?> definition = parent.getItemDefinition();
+		if (definition == null) {
+			return false;
+		}
+		return definition.getTypeName().equals(MetadataType.COMPLEX_TYPE);
 	}
 
 	@Override

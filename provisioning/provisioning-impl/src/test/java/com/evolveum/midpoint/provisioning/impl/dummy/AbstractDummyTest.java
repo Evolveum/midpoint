@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -104,6 +103,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	protected static final String ACCOUNT_WILL_USERNAME = "Will";
+	protected static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
+	protected static final String ACCOUNT_WILL_PASSWORD_NEW = "3lizab3th123";
 	protected static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
 
 	protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
@@ -119,6 +120,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
 
 	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
 	protected static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
@@ -159,6 +161,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected ResourceType resourceType;
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
+	
+	protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
 	// Testing connector discovery
 	@Autowired(required = true)
