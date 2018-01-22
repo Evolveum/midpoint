@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyEnumValuesModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -186,14 +187,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
 
         this.searchText = searchText;
-        searchModel = new LoadableModel<TasksSearchDto>(false) {
-
-            @Override
-            protected TasksSearchDto load() {
-                return loadTasksSearchDto();
-            }
-        };
-
+        searchModel = LoadableModel.create(this::loadTasksSearchDto, false);
 		refreshModel = new Model<>(new AutoRefreshDto(REFRESH_INTERVAL));
 
         initLayout();
@@ -1587,16 +1581,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
             final IModel<TasksSearchDto> searchModel = (IModel) getDefaultModel();
 
-            DropDownChoice listSelect = new DropDownChoice(ID_STATE,
-                    new PropertyModel(searchModel, TasksSearchDto.F_STATUS),
-                    new AbstractReadOnlyModel<List<TaskDtoExecutionStatusFilter>>() {
-
-                        @Override
-                        public List<TaskDtoExecutionStatusFilter> getObject() {
-                            return createTypeList();
-                        }
-                    },
-                    new EnumChoiceRenderer(this));
+            DropDownChoice listSelect = new DropDownChoice<>(ID_STATE,
+                    new PropertyModel<>(searchModel, TasksSearchDto.F_STATUS),
+                    new ReadOnlyEnumValuesModel<>(TaskDtoExecutionStatusFilter.class),
+                    new EnumChoiceRenderer<>(this));
             listSelect.add(createFilterAjaxBehaviour());
             listSelect.setOutputMarkupId(true);
             listSelect.setNullValid(false);
@@ -1665,14 +1653,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     page.searchFilterPerformed(target);
                 }
             };
-        }
-
-        private List<TaskDtoExecutionStatusFilter> createTypeList() {
-            List<TaskDtoExecutionStatusFilter> list = new ArrayList<TaskDtoExecutionStatusFilter>();
-
-            Collections.addAll(list, TaskDtoExecutionStatusFilter.values());
-
-            return list;
         }
 
         private List<String> createCategoryList() {

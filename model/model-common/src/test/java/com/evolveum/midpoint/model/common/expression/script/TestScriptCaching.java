@@ -89,7 +89,7 @@ public class TestScriptCaching {
     	Protector protector = new ProtectorImpl();
         Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
-		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector);
+		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
 		scriptExpressionfactory.setObjectResolver(resolver);
 		scriptExpressionfactory.setFunctions(functions);
         evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
@@ -171,7 +171,7 @@ public class TestScriptCaching {
 		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-		expression.setFunctions(scriptExpressionfactory.getFunctions());
+		expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
 		return expression;
 	}
 	
