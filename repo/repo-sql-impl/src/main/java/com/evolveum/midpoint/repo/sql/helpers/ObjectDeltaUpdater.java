@@ -194,8 +194,6 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> RObject<T> tryHibernateMerge(RObject<T> object, Session session) {
-        LOGGER.warn("One more attempt to update object {} using standard hibernate merge (slow).", object.toString());
-
         return (RObject) session.merge(object);
     }
 }

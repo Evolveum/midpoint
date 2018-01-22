@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -48,11 +49,13 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation
         @javax.persistence.Index(name = "iReferenceTargetOid", columnList = "targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class RObjectReference<T extends RObject> implements ObjectReference {
+public class RObjectReference<T extends RObject> implements ObjectReference, EntityState {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
     public static final String F_OWNER = "owner";
+
+    private Boolean trans;
 
     private RReferenceOwner referenceType;
 
@@ -68,6 +71,17 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
     private T target;
 
     public RObjectReference() {
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @ForeignKey(name = "fk_reference_owner")
