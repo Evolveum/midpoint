@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.common.LocalizationTestUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 
@@ -57,12 +58,12 @@ public class ExpressionTestUtil {
 	}
 
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector,
-			PrismContext prismContext, SecurityContextManager securityContextManager) {
+			PrismContext prismContext, SecurityContextManager securityContextManager, RepositoryService repositoryService) {
     	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext, LocalizationTestUtil.getLocalizationService());
     	expressionFactory.setObjectResolver(resolver);
 
     	// NOTE: we need to register the evaluator factories to expressionFactory manually here
-    	// this is not spring-wired test. PostConstruct methods are not ivoked here
+    	// this is not spring-wired test. PostConstruct methods are not invoked here
     	
     	// asIs
     	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
@@ -91,10 +92,10 @@ public class ExpressionTestUtil {
     	expressionFactory.registerEvaluatorFactory(generateFactory);
 
     	// script
-    	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
+    	Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector);
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector, repositoryService);
         scriptExpressionFactory.setObjectResolver(resolver);
         scriptExpressionFactory.setFunctions(functions);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);

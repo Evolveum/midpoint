@@ -34,7 +34,6 @@ import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -71,7 +70,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +81,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -324,9 +321,7 @@ public abstract class ShadowCache {
 				validateShadow(resourceShadow, true);
 				return resourceShadow;
 
-			} catch (GenericFrameworkException e) {
-				throw new SystemException(e.getMessage(), e);
-			} catch (ObjectAlreadyExistsException e) {
+			} catch (GenericFrameworkException | ObjectAlreadyExistsException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
 		} finally {
@@ -446,7 +441,7 @@ public abstract class ShadowCache {
 		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
 	}
 
-	private boolean canReturnCachedAfterNotFoundOnResource(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+	private boolean canReturnCachedAfterNotFoundOnResource(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) {
 		if (repositoryShadow.asObjectable().getPendingOperation().isEmpty()) {
 			return false;
 		}
@@ -712,7 +707,7 @@ public abstract class ShadowCache {
 		}
 	}
 	
-	private void validateSchema(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+	private void validateSchema(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (ResourceTypeUtil.isValidateSchema(ctx.getResource())) {
 			ShadowUtil.validateAttributeSchema(shadow, ctx.getObjectClassDefinition());
 		}
@@ -827,7 +822,7 @@ public abstract class ShadowCache {
 					
 				} catch (Exception ex) {
 					LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
-							new Object[] { ex.getClass(), ex.getMessage(), ex });
+							ex.getClass(), ex.getMessage(), ex);
 					try {
 						repoShadow = handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
 								isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
@@ -903,7 +898,8 @@ public abstract class ShadowCache {
 			ProvisioningOperationOptions options,
 			Task task,
 			OperationResult parentResult)
-					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
 		opState.setExistingShadowOid(repoShadow.getOid());
 		
@@ -924,9 +920,9 @@ public abstract class ShadowCache {
 			
 		} catch (Exception ex) {
 			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
-					new Object[] { ex.getClass(), ex.getMessage(), ex });
+					ex.getClass(), ex.getMessage(), ex);
 			try {
-				repoShadow = handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
+				handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
 						isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
 				parentResult.computeStatus();
 				AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue = AsynchronousOperationReturnValue.wrap(null, parentResult.getLastSubresult());
@@ -1188,7 +1184,7 @@ public abstract class ShadowCache {
 							
 							if (pendingDelta.isDelete()) {
 								isDead = true;
-								if (gracePeriod == null) {
+								if (gracePeriod == null) {      // TODO gracePeriod is not null here ... review this please
 									shadowDelta = repoShadow.createDeleteDelta();
 									notificationDeltas.add(pendingDelta);
 									break;
@@ -1267,12 +1263,12 @@ public abstract class ShadowCache {
 		boolean atLeastOneOperationRemains = false;
 		for (PendingOperationType pendingOperation: shadowType.getPendingOperation()) {
 
-			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			//ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			OperationResultStatusType statusType = pendingOperation.getResultStatus();
 			XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
 						
 			if (isCompleted(statusType) && isOverGrace(now, gracePeriod, completionTimestamp)) {
-				LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType==null?null:statusType.value(), pendingOperation);
+				LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType.value(), pendingOperation);
 				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
 			} else {
 				atLeastOneOperationRemains = true;
@@ -1298,7 +1294,7 @@ public abstract class ShadowCache {
 		// Copy to mutable list that is not bound to the prism
 		List<PendingOperationType> sortedList = new ArrayList<>(pendingOperations.size());
 		sortedList.addAll(pendingOperations);
-		Collections.sort(sortedList, (o1,o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()) );
+		sortedList.sort((o1, o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()));
 		return sortedList;
 	}
 
@@ -1346,8 +1342,7 @@ public abstract class ShadowCache {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
 		ctx.assertDefinition();
-		ctx = applyAttributesDefinition(ctx, shadow);
-
+		applyAttributesDefinition(ctx, shadow);
 	}
 
 	public void setProtectedShadow(PrismObject<ShadowType> shadow, OperationResult parentResult)
@@ -1398,8 +1393,7 @@ public abstract class ShadowCache {
 		try {
 			filter.accept(visitor);
 		} catch (TunnelException te) {
-			SchemaException e = (SchemaException) te.getCause();
-			throw e;
+			throw (SchemaException) te.getCause();
 		}
 	}
 
@@ -1438,11 +1432,9 @@ public abstract class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		LOGGER.debug("Handling provisioning exception {}: {}",
-				new Object[] { ex.getClass(), ex.getMessage() });
+		LOGGER.debug("Handling provisioning exception {}: {}", ex.getClass(), ex.getMessage());
 		LOGGER.trace("Handling provisioning exception {}: {}\ndoDiscovery={}, compensate={}",
-				new Object[] { ex.getClass(), ex.getMessage(), 
-						doDiscovery, compensate, ex });
+				ex.getClass(), ex.getMessage(), doDiscovery, compensate, ex);
 
 		return handler.handleError(shadow.asObjectable(), op, ex, doDiscovery, compensate, ctx.getTask(), parentResult)
 				.asPrismObject();
@@ -1658,7 +1650,7 @@ public abstract class ShadowCache {
 				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
 			} else if (attributeFilter.size() < 1) {
 				LOGGER.trace("No attribute filter defined in the query.");
-			} else if (attributeFilter.size() == 1) {
+			} else {
 				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
 			}
 		}
@@ -1715,7 +1707,7 @@ public abstract class ShadowCache {
 					}
 				} else if (subFilters.size() < 1) {
 					continue;
-				} else if (subFilters.size() == 1) {
+				} else {
 					attributeFilter.add(subFilters.iterator().next());
 				}
 
@@ -1935,7 +1927,7 @@ public abstract class ShadowCache {
 							"Configured count object capability to be simulated using a paged search but paged search capability is not present");
 				}
 
-				final Holder<Integer> countHolder = new Holder<Integer>(0);
+				final Holder<Integer> countHolder = new Holder<>(0);
 
 				final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 					@Override
@@ -2993,9 +2985,9 @@ public abstract class ShadowCache {
 		}
 		
 		ProtectedStringType repoProtectedString = (ProtectedStringType) repoProperty.getRealValue();
-		ProtectedStringType expectedProtectedString = new ProtectedStringType();
+		ProtectedStringType expectedProtectedString;
 		if (expectedValue instanceof ProtectedStringType) {
-			expectedProtectedString = (ProtectedStringType)expectedValue;
+			expectedProtectedString = (ProtectedStringType) expectedValue;
 		} else {
 			expectedProtectedString = new ProtectedStringType();
 			expectedProtectedString.setClearValue((String) expectedValue);
