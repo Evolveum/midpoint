@@ -2293,4 +2293,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         userPasswordPs.setClearValue(newPassword);
         return ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE, prismContext, userPasswordPs);
 	}
+	
+	protected PrismObject<ShadowType> getShadowRepo(String shadowOid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getShadowRepo");
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+		assertSuccess(result);
+		return shadow;
+	}
 }

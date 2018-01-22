@@ -589,6 +589,9 @@ public abstract class ShadowCache {
 		accessChecker.checkAdd(ctx, shadowToAdd, parentResult);
 
 		if (shouldExecuteResourceOperationDirectly(ctx)) {
+			
+			LOGGER.trace("ADD {}: resource operation, execution starting", shadowToAdd);
+			
 			try {
 	
 				// RESOURCE OPERATION: add
@@ -608,7 +611,7 @@ public abstract class ShadowCache {
 				return addedShadow.getOid();
 			}
 			
-			LOGGER.debug("Resource operation executed (ADD {}), operation state: {}", shadowToAdd, opState.shortDumpLazily());
+			LOGGER.debug("ADD {}: resource operation executed, operation state: {}", shadowToAdd, opState.shortDumpLazily());
 			
 		} else {
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
@@ -616,7 +619,7 @@ public abstract class ShadowCache {
 			// This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
 			OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
 			delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
-			LOGGER.debug("Resource operation NOT executed, execution pending (ADD {})", shadowToAdd);
+			LOGGER.debug("ADD {}: resource operation NOT executed, execution pending", shadowToAdd);
 		}
 
 		// REPO OPERATION: add
@@ -647,7 +650,7 @@ public abstract class ShadowCache {
 			// RESOURCE OPERATION: add
 			AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, parentResult);
 			opState.processAsyncResult(asyncReturnValue);
-			LOGGER.debug("Resource operation executed (ADD {}), operation state: {}", shadowToAdd, opState.shortDumpLazily());
+			LOGGER.debug("ADD {}: resource operation executed, operation state: {}", shadowToAdd, opState.shortDumpLazily());
 			return opState;
 	
 		} catch (Exception ex) {
@@ -803,16 +806,16 @@ public abstract class ShadowCache {
 		
 		if (shadowManager.isRepositoryOnlyModification(modifications)) {
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
-			LOGGER.debug("Repository-only modification (MODIFY {})", repoShadow);
+			LOGGER.debug("MODIFY {}: repository-only modification", repoShadow);
 			
 		} else {
 			if (shouldExecuteResourceOperationDirectly(ctx)) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDump(modifications));
+				}
+
 				try {
-		
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
-					}
-		
+				
 					AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
 							resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, modifications, parentResult);
 					opState.processAsyncResult(asyncReturnValue);
@@ -840,13 +843,15 @@ public abstract class ShadowCache {
 					return repoShadow.getOid();
 				}
 				
+				LOGGER.debug("MODIFY {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
+				
 			} else {
 				opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
 				// Create dummy subresult with IN_PROGRESS state. 
 				// This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
 				OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
 				delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
-				LOGGER.debug("Resource operation NOT executed, execution pending (MODIFY {})", repoShadow);
+				LOGGER.debug("MODIFY {}: Resource operation NOT executed, execution pending", repoShadow);
 			}
 		}
 
@@ -986,6 +991,9 @@ public abstract class ShadowCache {
 			if (shadow.asObjectable().getFailedOperationType() == null
 					|| (shadow.asObjectable().getFailedOperationType() != null
 							&& FailedOperationTypeType.ADD != shadow.asObjectable().getFailedOperationType())) {
+				
+				LOGGER.trace("DELETE {}: resource deletion, execution starting", shadow);
+				
 				try {
 					
 					AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, parentResult);
@@ -1001,6 +1009,11 @@ public abstract class ShadowCache {
 					}
 					return;
 				}
+				
+				LOGGER.debug("DELETE {}: resource operation executed, operation state: {}", shadow, opState.shortDumpLazily());
+				
+			} else {
+				LOGGER.trace("DELETE {}: resource deletion skipped (failed ADD operation)", shadow);
 			}
 			
 		} else {
@@ -1009,7 +1022,7 @@ public abstract class ShadowCache {
 			// This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
 			OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
 			delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
-			LOGGER.debug("Resource operation NOT executed, execution pending (DELETE {})", shadow);
+			LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", shadow);
 		}
 
 		LOGGER.trace("Deting object with oid {} form repository.", shadow.getOid());
