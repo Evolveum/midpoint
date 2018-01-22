@@ -24,22 +24,24 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.helpers.modify.BasicAttributeHandler;
-import com.evolveum.midpoint.repo.sql.helpers.modify.HqlQuery;
-import com.evolveum.midpoint.repo.sql.helpers.modify.QueryParameter;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -58,33 +60,28 @@ public class ObjectDeltaUpdater {
     public <T extends ObjectType> RObject<T> update(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                     RObject<T> objectToMerge, Session session, OperationResult result) {
 
-        if (1 == 1) {
-            return tryHibernateMerge(objectToMerge, session);
-        }
+//        if (1 == 1) {
+//            return tryHibernateMerge(objectToMerge, session);
+//        }
 
-        // todo improve multitable id bulk strategy
         // todo handle nameCopy/name correctly
 
-        List<HqlQuery> queries = new ArrayList<>();
+        RObject object = session.byId(objectToMerge.getClass()).getReference(oid);
+        object.setVersion(objectToMerge.getVersion());
+        object.setFullObject(objectToMerge.getFullObject());
 
         ManagedType mainEntityType = entityModificationRegistry.getJaxbMapping(type);
 
-        Map<String, QueryParameter> queryParameters = new HashMap<>();
-
-        String queryPath;
-        String parameterPrefix;
         for (ItemDelta delta : modifications) {
-            queryPath = "";
-            parameterPrefix = "";
-
             ManagedType managedType = mainEntityType;
+            Object bean = object;
 
             ItemPath path = delta.getPath();
             Iterator<ItemPathSegment> segments = path.getSegments().iterator();
             while (segments.hasNext()) {
                 ItemPathSegment segment = segments.next();
                 if (!(segment instanceof NameItemPathSegment)) {
-                    throw new SystemException("segment not name item"); // todo proper handling
+                    throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
                 }
 
                 NameItemPathSegment nameSegment = (NameItemPathSegment) segment;
@@ -100,36 +97,39 @@ public class ObjectDeltaUpdater {
                     continue;
                 }
 
-                if (!queryPath.isEmpty()) {
-                    queryPath += ".";
-                }
-
-                queryPath += attribute.getName();
-                parameterPrefix += attribute.getName();
-
                 if (segments.hasNext()) {
                     managedType = entityModificationRegistry.getMapping(attribute.getJavaType());
+                    try {
+                        bean = ((Method) attribute.getJavaMember()).invoke(bean);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex); //todo error handling
+                    }
                     continue;
                 }
 
                 switch (attribute.getPersistentAttributeType()) {
                     case BASIC:
-                        // todo handle QName->String
-                        queryParameters.put(parameterPrefix,
-                                new QueryParameter(queryPath, parameterPrefix, delta.getAnyValue().getRealValue()));
-                        break;
                     case EMBEDDED:
-                        Object realValue = delta.getAnyValue().getRealValue();
-                        if (realValue instanceof PolyString) {
-                            realValue = RPolyString.toRepo((PolyString) realValue);
-
-                            queryParameters.put(parameterPrefix + "orig",
-                                    new QueryParameter(queryPath + ".orig", parameterPrefix + "orig", ((RPolyString) realValue).getOrig()));
-                            queryParameters.put(parameterPrefix + "norm",
-                                    new QueryParameter(queryPath + ".norm", parameterPrefix + "norm", ((RPolyString) realValue).getNorm()));
+                        try {
+                            Object realValue = delta.getAnyValue().getRealValue();
+                            if (realValue instanceof Enum) {
+                                String className = realValue.getClass().getSimpleName();
+                                className = StringUtils.left(className, className.length() - 4);
+                                String repoEnumClass = "com.evolveum.midpoint.repo.sql.data.common.enums.R" + className;
+                                Class clazz = Class.forName(repoEnumClass);
+                                if (SchemaEnum.class.isAssignableFrom(clazz)) {
+                                    realValue = RUtil.getRepoEnumValue(realValue, clazz);
+                                } else {
+                                    throw new SystemException("Can't translate enum value " + realValue);
+                                }
+                            } else if (realValue instanceof PolyString) {
+                                PolyString p = (PolyString) realValue;
+                                realValue = new RPolyString(p.getOrig(), p.getNorm());
+                            }
+                            PropertyUtils.setSimpleProperty(bean, attribute.getName(), realValue);
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex); //todo error handling
                         }
-                        // todo handle 5 more types
-
                         break;
                     case MANY_TO_MANY:
 
@@ -150,35 +150,9 @@ public class ObjectDeltaUpdater {
             }
         }
 
-        String objectRepositoryClass = objectToMerge.getClass().getSimpleName();
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("update ").append(objectRepositoryClass).append(" o set o.version=:version,o.fullObject=:fullObject");
-
-        for (QueryParameter param : queryParameters.values()) {
-            sb.append(",");
-            sb.append(param.getPath()).append("=:").append(param.getParamName());
-        }
-
-        sb.append(" where o.oid=:oid");
-
-        Query query = session.createQuery(sb.toString());
-        query.setParameter("version", objectToMerge.getVersion());
-        query.setParameter("oid", objectToMerge.getOid());
-        query.setParameter("fullObject", objectToMerge.getFullObject());
-
-        for (QueryParameter param : queryParameters.values()) {
-            query.setParameter(param.getParamName(), param.getValue());
-        }
-
-        int rowsCount = query.executeUpdate();
-        LOGGER.trace("Updated {} rows.", rowsCount);
+        session.save(object);
 
         return objectToMerge;
-    }
-
-    private void prepareQueryParametersForAttribute() {
-        // todo implement
     }
 
     /**
@@ -187,10 +161,8 @@ public class ObjectDeltaUpdater {
     public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge, Session session,
                                                     OperationResult result) {
 
-        return tryHibernateMerge(objectToMerge, session); // todo remove
-
+        return tryHibernateMerge(objectToMerge, session);
         // todo implement
-
     }
 
     private <T extends ObjectType> RObject<T> tryHibernateMerge(RObject<T> object, Session session) {
