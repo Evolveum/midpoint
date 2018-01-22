@@ -100,7 +100,7 @@ public class MappingTestEvaluator {
     	prismContext = PrismTestUtil.createInitializedPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
     	protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-    	ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
+    	ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null, null);
 
         mappingFactory = new MappingFactory();
         mappingFactory.setExpressionFactory(expressionFactory);

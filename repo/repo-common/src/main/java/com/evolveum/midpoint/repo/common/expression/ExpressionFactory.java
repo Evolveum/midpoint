@@ -42,7 +42,7 @@ public class ExpressionFactory {
 
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
-	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<ExpressionIdentifier, Expression<?,?>>();
+	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
 	final private PrismContext prismContext;
 	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
 	final private SecurityContextManager securityContextManager;
@@ -68,7 +68,7 @@ public class ExpressionFactory {
 	}
 
 	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
-																						  D outputDefinition, String shortDesc, Task task, OperationResult result)
+			D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
 		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
@@ -80,9 +80,9 @@ public class ExpressionFactory {
 	}
 
 	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
-																							 D outputDefinition, String shortDesc, Task task, OperationResult result)
+			D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
-		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, securityContextManager, prismContext);
+		Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, objectResolver, securityContextManager, prismContext);
 		expression.parse(this, shortDesc, task, result);
 		return expression;
 	}

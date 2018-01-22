@@ -96,7 +96,7 @@ public abstract class AbstractScriptTest {
     	Protector protector = new ProtectorImpl();
         Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
-		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector);
+		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
 		scriptExpressionfactory.setObjectResolver(resolver);
 		scriptExpressionfactory.setFunctions(functions);
 	    localizationService = LocalizationTestUtil.getLocalizationService();
@@ -271,7 +271,7 @@ public abstract class AbstractScriptTest {
 		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-		expression.setFunctions(scriptExpressionfactory.getFunctions());
+		expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
 		return expression;
 	}
 
