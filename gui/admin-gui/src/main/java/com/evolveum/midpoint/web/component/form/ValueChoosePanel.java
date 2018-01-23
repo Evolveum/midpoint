@@ -69,9 +69,6 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	private static final String ID_TEXT = "text";
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_EDIT = "edit";
-
-	protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
-
 	
 	public ValueChoosePanel(String id, IModel<T> value) {
 		super(id, value);
@@ -216,7 +213,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		if (CollectionUtils.isEmpty(supportedTypes)){
 			supportedTypes = WebComponentUtil.createObjectTypeList();
 		}
-		Class<O> defaultType = (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
+		Class<O> defaultType = getDefaultType(supportedTypes);
 		ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
 				getPageBase().getMainPopupBodyId(), defaultType, supportedTypes, false, getPageBase(),
 				filter) {
@@ -237,7 +234,11 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	public List<QName> getSupportedTypes() {
 		return WebComponentUtil.createObjectTypeList();
 	}
-	
+
+	protected Class<O> getDefaultType(List<QName> supportedTypes){
+		return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
+	}
+
 	
 	/*
 	 * TODO - this method contains check, if chosen object already is not in
