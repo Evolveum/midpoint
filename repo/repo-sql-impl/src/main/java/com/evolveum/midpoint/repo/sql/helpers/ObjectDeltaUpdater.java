@@ -68,7 +68,6 @@ public class ObjectDeltaUpdater {
             return merge(objectToMerge, session);
         }
 
-        // todo handle nameCopy/name correctly
         // todo handle extension attributes
 
         RObject object = session.byId(objectToMerge.getClass()).getReference(oid);
@@ -93,11 +92,7 @@ public class ObjectDeltaUpdater {
                 NameItemPathSegment nameSegment = (NameItemPathSegment) segment;
                 String nameLocalPart = nameSegment.getName().getLocalPart();
 
-                Attribute attribute = entityModificationRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
-                if (attribute == null) {
-                    attribute = entityModificationRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
-                }
-
+                Attribute attribute = findAttribute(attributeStep, nameLocalPart);
                 if (attribute == null) {
                     // there's no table/column that needs update
                     break;
@@ -110,6 +105,12 @@ public class ObjectDeltaUpdater {
                 }
 
                 handleAttribute(attribute, attributeStep.bean, delta);
+
+                if ("name".equals(attribute.getName()) && RObject.class.isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
+                    // we also need to handle "nameCopy" column
+                    Attribute nameCopyAttribute = findAttribute(attributeStep, "nameCopy");
+                    handleAttribute(nameCopyAttribute, attributeStep.bean, delta);
+                }
             }
         }
 
@@ -118,6 +119,15 @@ public class ObjectDeltaUpdater {
         LOGGER.debug("Object saved");
 
         return objectToMerge;
+    }
+
+    private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart) {
+        Attribute attribute = entityModificationRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
+        if (attribute != null) {
+            return attribute;
+        }
+
+        return entityModificationRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
     }
 
     private AttributeStep stepThroughAttribute(Attribute attribute, AttributeStep step, Iterator<ItemPathSegment> segments) {
@@ -154,8 +164,11 @@ public class ObjectDeltaUpdater {
                     throw new RuntimeException("Can't go over collection"); // todo error handling
                 }
                 break;
+            case ONE_TO_ONE:
+                // todo implement, it's assignment extension
+                break;
             default:
-                // throw new RuntimeException("Don't know what to do"); // todo error handling
+                // nothing to do for other cases
         }
 
         return step;
@@ -167,18 +180,7 @@ public class ObjectDeltaUpdater {
         switch (attribute.getPersistentAttributeType()) {
             case BASIC:
             case EMBEDDED:
-                // todo qnames
-                // todo how to handle add/delete/replace
-                try {
-                    Object realValue = delta.getAnyValue().getRealValue();
-                    Class outputType = method.getReturnType();
-
-                    realValue = prismEntityMapper.map(realValue, outputType);
-
-                    PropertyUtils.setSimpleProperty(bean, attribute.getName(), realValue);
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex); //todo error handling
-                }
+                handleBasicOrEmbedded(bean, delta, attribute);
                 break;
             case MANY_TO_MANY:
                 // not used in our mappings
@@ -197,6 +199,27 @@ public class ObjectDeltaUpdater {
                 Collection elementCollection = (Collection) invoke(bean, method);
                 handleElementCollection(elementCollection, delta, attribute);
                 break;
+        }
+    }
+
+    private void handleBasicOrEmbedded(Object bean, ItemDelta delta, Attribute attribute) {
+        Class outputType = getRealOutputType(attribute);
+
+        // todo qnames
+
+        Object value;
+        if (delta.isDelete()) {
+            value = null;
+        } else {
+            value = delta.getAnyValue().getRealValue();
+        }
+
+        value = prismEntityMapper.map(value, outputType);
+
+        try {
+            PropertyUtils.setSimpleProperty(bean, attribute.getName(), value);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't set simple property for '" + attribute.getName() + "'", ex);
         }
     }
 

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.springframework.test.annotation.DirtiesContext;
@@ -113,6 +114,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, oid, UserType.F_GIVEN_NAME,
                 prismContext, new PolyString("asdf", "asdf"));
+
+        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
 
         delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
         delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
