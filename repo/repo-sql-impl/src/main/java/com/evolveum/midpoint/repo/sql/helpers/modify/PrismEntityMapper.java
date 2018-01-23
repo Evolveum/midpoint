@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
@@ -32,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * @Author Viliam Repan (lazyman).
  */
 public class PrismEntityMapper {
 
@@ -58,6 +62,10 @@ public class PrismEntityMapper {
             return null;
         }
 
+        if (!supports(input.getClass(), outputType)) {
+            return (O) input;
+        }
+
         Key key = buildKey(input.getClass(), outputType);
         Mapper<I, O> mapper = mappers.get(key);
         if (mapper == null) {
@@ -65,6 +73,41 @@ public class PrismEntityMapper {
         }
 
         return mapper.map(input);
+    }
+
+    public <O> O mapPrismValue(PrismValue input, Class<O> outputType) {
+        if (input instanceof PrismPropertyValue) {
+            return map(input.getRealValue(), outputType);
+        } else if (input instanceof PrismReferenceValue) {
+
+        } else if (input instanceof PrismContainerValue) {
+
+        }
+
+        Class inputType = input.getRealClass();
+
+//            if (value instanceof PrismContainerValue) {
+//                PrismContainerValue containerValue = (PrismContainerValue) value;
+//                results.add(containerValue.getId());
+//            } else if (value instanceof PrismReferenceValue){
+//                Object result = null;//prismEntityMapper.map();
+//                results.add(result);
+//            }
+
+//            Class clazz = value.getRealClass();
+//            ManagedType type = entityModificationRegistry.getJaxbMapping(clazz);
+//            Class repoClass = type.getJavaType();
+//
+//            Object result;
+//            if (Container.class.isAssignableFrom(repoClass)) {
+//
+//            } else {
+//                result = prismEntityMapper.map()
+//            }
+
+        // todo implement transformation from prism to entity
+
+        return (O) input;
     }
 
     private Key buildKey(Class inputType, Class outputType) {

@@ -122,10 +122,15 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
         delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
 
-        ActivationType activation = new ActivationType();
-        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        delta.addModificationAddContainer(
-                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
+//        ActivationType activation = new ActivationType();
+//        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+//        delta.addModificationAddContainer(
+//                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
+
+        AssignmentType ass = new AssignmentType();
+        ass.setId(1L);
+        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+
 
 //        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
 //        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
