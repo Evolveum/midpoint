@@ -114,8 +114,12 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
 					currentTaskDto = prepareTaskDto(taskType, operationTask, result);
+					result.computeStatusIfUnknown();
+					if (!result.isSuccess()) {
+						showResult(result);
+					}
 					return currentTaskDto;
-				} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException e) {
+				} catch (SchemaException e) {
 					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
 				}
 			}
@@ -142,7 +146,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 				}
 			}
 		};
-		edit = false;
 		initLayout();
 	}
 
@@ -162,11 +165,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private TaskType loadTaskTypeChecked(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = loadTaskType(taskOid, operationTask, result);
-
-		if (!result.isSuccess()) {
-			showResult(result);
-		}
-
 		if (taskType == null) {
 			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
 			showResult(result, false);
@@ -182,7 +180,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = null;
-
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.retrieveItemsNamed(
 					TaskType.F_SUBTASK,
@@ -194,17 +191,15 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF)
 			));
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
-			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
 		}
 		return taskType;
 	}
 
-	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		TaskDto taskDto = new TaskDto(task, null, getModelService(), getTaskService(), getModelInteractionService(),
+	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException {
+		return new TaskDto(task, null, getModelService(), getTaskService(), getModelInteractionService(),
 				getTaskManager(), getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
-		return taskDto;
 	}
 
 
@@ -301,7 +296,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return getRefreshPanel();
 	}
 
-	public void refreshTaskModels() {
+	private void refreshTaskModels() {
 		TaskDto oldTaskDto = taskDtoModel.getObject();
 		if (oldTaskDto == null) {
 			LOGGER.warn("Null or empty taskModel");
@@ -320,8 +315,13 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			currentTaskDto = newTaskDto;
 			taskDtoModel.setObject(newTaskDto);
 			objectWrapperModel.setObject(newWrapper);
-		} catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException|RuntimeException|Error e) {
+		} catch (SchemaException|RuntimeException|Error e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, oldTaskDto);
+			result.recordFatalError("Couldn't refresh task: " + e.getMessage(), e);
+		}
+		result.computeStatusIfUnknown();
+		if (!result.isSuccess()) {
+			showResult(result);
 		}
 	}
 
