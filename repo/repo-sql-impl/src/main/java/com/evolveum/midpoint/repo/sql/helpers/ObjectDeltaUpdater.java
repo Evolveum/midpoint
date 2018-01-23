@@ -23,25 +23,18 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
@@ -63,15 +56,19 @@ public class ObjectDeltaUpdater {
     @Autowired
     private EntityModificationRegistry entityModificationRegistry;
 
+    private PrismEntityMapper prismEntityMapper = new PrismEntityMapper();
+
     /**
      * modify
      */
     public <T extends ObjectType> RObject<T> update(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                     RObject<T> objectToMerge, Session session, OperationResult result) {
 
-        if (1 == 1) {
-            return tryHibernateMerge(objectToMerge, session);
-        }
+        LOGGER.debug("Starting to build entity changes based on delta via reference");
+
+//        if (1 == 1) {
+//            return tryHibernateMerge(objectToMerge, session);
+//        }
 
         // todo handle nameCopy/name correctly
 
@@ -162,25 +159,14 @@ public class ObjectDeltaUpdater {
                         // todo qnames
                         // todo how to handle add/delete/replace
                         try {
+
                             Object realValue = delta.getAnyValue().getRealValue();
-                            if (realValue instanceof Enum) {
-                                String className = realValue.getClass().getSimpleName();
-                                className = StringUtils.left(className, className.length() - 4);
-                                String repoEnumClass = "com.evolveum.midpoint.repo.sql.data.common.enums.R" + className;
-                                Class clazz = Class.forName(repoEnumClass);
-                                if (SchemaEnum.class.isAssignableFrom(clazz)) {
-                                    realValue = RUtil.getRepoEnumValue(realValue, clazz);
-                                } else {
-                                    throw new SystemException("Can't translate enum value " + realValue);
-                                }
-                            } else if (realValue instanceof PolyString) {
-                                PolyString p = (PolyString) realValue;
-                                realValue = new RPolyString(p.getOrig(), p.getNorm());
-                            } else if (realValue instanceof ActivationType) {
-                                RActivation ractivation = new RActivation();
-                                RActivation.copyFromJAXB((ActivationType) realValue, ractivation, null);
-                                realValue = ractivation;
+                            Class outputType = ((Method) attribute.getJavaMember()).getReturnType();
+                            if (realValue != null &&
+                                    prismEntityMapper.supports(realValue.getClass(), outputType)) {
+                                realValue = prismEntityMapper.map(realValue, outputType);
                             }
+
                             PropertyUtils.setSimpleProperty(bean, attribute.getName(), realValue);
                         } catch (Exception ex) {
                             throw new RuntimeException(ex); //todo error handling
@@ -191,25 +177,19 @@ public class ObjectDeltaUpdater {
                         // todo throw exception
                         break;
                     case ONE_TO_ONE:
-
+                        // todo implement
                         break;
                     case MANY_TO_ONE:
                         // can't be in delta (probably)
                         // todo throw exception
                         break;
                     case ONE_TO_MANY:
-                        try {
-                            // todo handle types correctly
-                            Collection c = (Collection) ((Method) attribute.getJavaMember()).invoke(bean);
-
-
-                            System.out.println(c);
-                        } catch (Exception ex) {
-                            throw new RuntimeException(ex); // todo error handling
-                        }
+                        // nothing to do here probably
+                        // todo throw exception
                         break;
                     case ELEMENT_COLLECTION:
                         try {
+                            // todo handle add/modify/delete
                             // todo handle types correctly
                             Collection c = (Collection) ((Method) attribute.getJavaMember()).invoke(bean);
                             c.addAll((List) delta.getValuesToAdd().stream().map(i -> ((PrismPropertyValue) i).getRealValue()).collect(Collectors.toList()));
@@ -223,6 +203,8 @@ public class ObjectDeltaUpdater {
 
         session.save(object);
 
+        LOGGER.debug("Object saved");
+
         return objectToMerge;
     }
 
@@ -232,11 +214,11 @@ public class ObjectDeltaUpdater {
     public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge, Session session,
                                                     OperationResult result) {
 
-        return tryHibernateMerge(objectToMerge, session);
+        return merge(objectToMerge, session);
         // todo implement
     }
 
-    private <T extends ObjectType> RObject<T> tryHibernateMerge(RObject<T> object, Session session) {
+    private <T extends ObjectType> RObject<T> merge(RObject<T> object, Session session) {
         return (RObject) session.merge(object);
     }
 }
