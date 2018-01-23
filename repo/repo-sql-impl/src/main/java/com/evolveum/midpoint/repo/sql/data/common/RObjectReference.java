@@ -185,6 +185,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
         if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
         if (type != ref.type) return false;
+        if (relation != ref.relation) return false;
 
         return true;
     }
@@ -196,6 +197,16 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RObjectReference{");
+        sb.append("targetOid='").append(targetOid).append('\'');
+        sb.append(", relation='").append(relation).append('\'');
+        sb.append(", type=").append(type);
+        sb.append('}');
+        return sb.toString();
     }
 
     public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb) {

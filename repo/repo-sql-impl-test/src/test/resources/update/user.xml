@@ -25,4 +25,6 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"/>		<!-- reviewer -->
     </assignment>
+    <parentOrgRef oid="123" type="c:OrgType"/>
+    <parentOrgRef oid="456" type="c:OrgType"/>
 </user>

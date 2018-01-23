@@ -120,15 +120,23 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
         delta.addModificationReplaceProperty(
                 new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
+        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
 
         ActivationType activation = new ActivationType();
         activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
         delta.addModificationAddContainer(
                 new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
-//        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("zxcv","zxcv"));
+//        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+//        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
+//        parentOrgRef.setOid("123");
+//        delta.addModificationDeleteReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
+//
+//        parentOrgRef = new ObjectReferenceType();
+//        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
+//        parentOrgRef.setOid("789");
+//        delta.addModificationAddReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
 
-//        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
 
         // todo create modification for metadata/createApproverRef
 
