@@ -185,7 +185,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
         if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
         if (type != ref.type) return false;
-        if (relation != ref.relation) return false;
+        if (relation != null ? !relation.equals(ref.relation) : ref.relation != null) return false;
 
         return true;
     }

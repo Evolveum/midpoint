@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public class PrismEntityMapper {
         mappers.put(new Key(ObjectReferenceType.class, REmbeddedReference.class), new ObjectReferenceMapper());
         mappers.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
         mappers.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
+        mappers.put(new Key(QName.class, String.class), new QNameMapper());
     }
 
     public boolean supports(Class inputType, Class outputType) {
@@ -120,6 +122,14 @@ public class PrismEntityMapper {
 
     private boolean isSchemaEnum(Class inputType, Class outputType) {
         return Enum.class.isAssignableFrom(inputType) && SchemaEnum.class.isAssignableFrom(outputType);
+    }
+
+    private static class QNameMapper implements Mapper<QName, String> {
+
+        @Override
+        public String map(QName input) {
+            return RUtil.qnameToString(input);
+        }
     }
 
     private static class AutoassignSpecificationMapper implements Mapper<AutoassignSpecificationType, RAutoassignSpecification> {

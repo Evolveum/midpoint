@@ -19,9 +19,9 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>add link user</name>
     <fullName>Add Link</fullName>
-    <activation>
-        <administrativeStatus>enabled</administrativeStatus>
-    </activation>
+    <!--<activation>-->
+        <!--<administrativeStatus>enabled</administrativeStatus>-->
+    <!--</activation>-->
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"/>		<!-- reviewer -->
     </assignment>

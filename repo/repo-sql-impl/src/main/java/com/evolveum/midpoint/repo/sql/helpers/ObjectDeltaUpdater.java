@@ -25,11 +25,13 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Session;
@@ -64,11 +66,11 @@ public class ObjectDeltaUpdater {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
-        if (1 == 1) {
-            return merge(objectToMerge, session);
-        }
+//        if (1 == 1) {
+//            return merge(objectToMerge, session);
+//        }
 
-        // todo handle extension attributes
+        // todo how to generate identifiers correctly now? to repo entities and to full xml
 
         RObject object = session.byId(objectToMerge.getClass()).getReference(oid);
         object.setVersion(objectToMerge.getVersion());
@@ -77,11 +79,17 @@ public class ObjectDeltaUpdater {
         ManagedType mainEntityType = entityModificationRegistry.getJaxbMapping(type);
 
         for (ItemDelta delta : modifications) {
+            ItemPath path = delta.getPath();
+
+            if (isObjectExtensionDelta(path)) {
+                handleObjectExtensionDelta(object, delta);
+                continue;
+            }
+
             AttributeStep attributeStep = new AttributeStep();
             attributeStep.managedType = mainEntityType;
             attributeStep.bean = object;
 
-            ItemPath path = delta.getPath();
             Iterator<ItemPathSegment> segments = path.getSegments().iterator();
             while (segments.hasNext()) {
                 ItemPathSegment segment = segments.next();
@@ -91,6 +99,10 @@ public class ObjectDeltaUpdater {
 
                 NameItemPathSegment nameSegment = (NameItemPathSegment) segment;
                 String nameLocalPart = nameSegment.getName().getLocalPart();
+
+                if (isAssignmentExtensionDelta(attributeStep, nameSegment)) {
+                    handleAssignmentExtensionDelta(attributeStep, delta);
+                }
 
                 Attribute attribute = findAttribute(attributeStep, nameLocalPart);
                 if (attribute == null) {
@@ -114,11 +126,39 @@ public class ObjectDeltaUpdater {
             }
         }
 
+        LOGGER.debug("Saving object");
+
         session.save(object);
 
         LOGGER.debug("Object saved");
 
         return objectToMerge;
+    }
+
+    private boolean isObjectExtensionDelta(ItemPath path) {
+        return path.startsWithName(ObjectType.F_EXTENSION);
+    }
+
+    private boolean isAssignmentExtensionDelta(AttributeStep attributeStep, NameItemPathSegment nameSegment) {
+        if (!(attributeStep.bean instanceof RAssignment)) {
+            return false;
+        }
+
+        if (!AssignmentType.F_EXTENSION.equals(nameSegment.getName())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void handleAssignmentExtensionDelta(AttributeStep attributeStep, ItemDelta delta) {
+        System.out.println(delta);
+        // todo handle assignment extension
+    }
+
+    private void handleObjectExtensionDelta(RObject object, ItemDelta delta) {
+        System.out.println(delta);
+        // todo handle object extension
     }
 
     private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart) {
@@ -136,36 +176,50 @@ public class ObjectDeltaUpdater {
         switch (attribute.getPersistentAttributeType()) {
             case EMBEDDED:
                 step.managedType = entityModificationRegistry.getMapping(attribute.getJavaType());
-                step.bean = invoke(step.bean, method);
+                Object child = invoke(step.bean, method);
+                if (child == null) {
+                    // embedded entity doesn't exist we have to create it first, so it can be populated later
+                    Class childType = getRealOutputType(attribute);
+                    try {
+                        child = childType.newInstance();
+                        PropertyUtils.setSimpleProperty(step.bean, attribute.getName(), child);
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                        throw new SystemException("Couldn't create new instance of '" + childType.getName()
+                                + "', attribute '" + attribute.getName() + "'", ex);
+                    }
+                }
+                step.bean = child;
                 break;
             case ONE_TO_MANY:
+                // object extension is handled separately, only {@link Container} and references are handled here
                 Class clazz = getRealOutputType(attribute);
 
                 IdItemPathSegment id = (IdItemPathSegment) segments.next();
-                // todo handle types correctly
+
                 Collection c = (Collection) invoke(step.bean, method);
-                if (Container.class.isAssignableFrom(clazz)) {
-                    boolean found = false;
-                    for (Container o : (Collection<Container>) c) {
-                        long l = o.getId().longValue();
-                        if (l == id.getId()) {
-                            step.managedType = entityModificationRegistry.getMapping(clazz);
-                            step.bean = o;
+                if (!Container.class.isAssignableFrom(clazz)) {
+                    throw new SystemException("Don't know how to go through collection of '" + getRealOutputType(attribute) + "'");
+                }
 
-                            found = true;
-                            break;
-                        }
-                    }
+                boolean found = false;
+                for (Container o : (Collection<Container>) c) {
+                    long l = o.getId().longValue();
+                    if (l == id.getId()) {
+                        step.managedType = entityModificationRegistry.getMapping(clazz);
+                        step.bean = o;
 
-                    if (!found) {
-                        throw new RuntimeException("Couldn't find container"); // todo error handling
+                        found = true;
+                        break;
                     }
-                } else {
-                    throw new RuntimeException("Can't go over collection"); // todo error handling
+                }
+
+                if (!found) {
+                    throw new RuntimeException("Couldn't find container of type '" + getRealOutputType(attribute)
+                            + "' with id '" + id + "'");
                 }
                 break;
             case ONE_TO_ONE:
-                // todo implement, it's assignment extension
+                // assignment extension is handled separately
                 break;
             default:
                 // nothing to do for other cases
@@ -186,12 +240,13 @@ public class ObjectDeltaUpdater {
                 // not used in our mappings
                 throw new SystemException("Don't know how to handle @ManyToMany relationship, should not happen");
             case ONE_TO_ONE:
-                // todo implement, it's assignment extension
+                // assignment extension is handled separately
                 break;
             case MANY_TO_ONE:
                 // this can't be in delta (probably)
                 throw new SystemException("Don't know how to handle @ManyToOne relationship, should not happen");
             case ONE_TO_MANY:
+                // object extension is handled separately, only {@link Container} and references are handled here
                 Collection oneToMany = (Collection) invoke(bean, method);
                 handleOneToMany(oneToMany, delta, attribute);
                 break;
@@ -204,8 +259,6 @@ public class ObjectDeltaUpdater {
 
     private void handleBasicOrEmbedded(Object bean, ItemDelta delta, Attribute attribute) {
         Class outputType = getRealOutputType(attribute);
-
-        // todo qnames
 
         Object value;
         if (delta.isDelete()) {
