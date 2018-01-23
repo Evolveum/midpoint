@@ -40,6 +40,8 @@ import java.sql.Timestamp;
                 @Index(name = "iExtensionDateDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtDate implements ROExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RObject owner;
     private String ownerOid;
@@ -57,6 +59,17 @@ public class ROExtDate implements ROExtValue {
 
     public ROExtDate(Timestamp value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id

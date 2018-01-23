@@ -46,6 +46,8 @@ public class ROExtReference implements ROExtValue {
     public static final String F_RELATION = "relation";
     public static final String F_TARGET_TYPE = "targetType";
 
+    private Boolean trans;
+
     //owner entity
     private RObject owner;
     private String ownerOid;
@@ -63,6 +65,17 @@ public class ROExtReference implements ROExtValue {
     private String relation;
 
     public ROExtReference() {
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id

@@ -39,6 +39,8 @@ import javax.persistence.*;
                 @Index(name = "iExtensionStringDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtString implements ROExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RObject owner;
     private String ownerOid;
@@ -56,6 +58,17 @@ public class ROExtString implements ROExtValue {
 
     public ROExtString(String value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id

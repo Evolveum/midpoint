@@ -40,6 +40,8 @@ import javax.persistence.*;
                 @Index(name = "iExtensionPolyStringDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtPolyString implements ROExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RObject owner;
     private String ownerOid;
@@ -63,6 +65,17 @@ public class ROExtPolyString implements ROExtValue {
             value = polyString.getOrig();
             norm = polyString.getNorm();
         }
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id
