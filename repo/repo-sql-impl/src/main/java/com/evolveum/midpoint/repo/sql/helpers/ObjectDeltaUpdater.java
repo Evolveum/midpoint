@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -24,15 +25,19 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +49,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author Viliam Repan (lazyman).
@@ -55,6 +64,8 @@ public class ObjectDeltaUpdater {
 
     @Autowired
     private EntityModificationRegistry entityModificationRegistry;
+    @Autowired
+    private PrismContext prismContext;
 
     private PrismEntityMapper prismEntityMapper = new PrismEntityMapper();
 
@@ -66,9 +77,9 @@ public class ObjectDeltaUpdater {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
-//        if (1 == 1) {
-//            return merge(objectToMerge, session);
-//        }
+        if (1 == 1) {
+            return merge(objectToMerge, session);
+        }
 
         // todo how to generate identifiers correctly now? to repo entities and to full xml
 
@@ -81,8 +92,8 @@ public class ObjectDeltaUpdater {
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
 
-            if (isObjectExtensionDelta(path)) {
-                handleObjectExtensionDelta(object, delta);
+            if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
+                handleObjectExtensionOrAttributesDelta(object, delta);
                 continue;
             }
 
@@ -139,6 +150,10 @@ public class ObjectDeltaUpdater {
         return path.startsWithName(ObjectType.F_EXTENSION);
     }
 
+    private boolean isShadowAttributesDelta(ItemPath path) {
+        return path.startsWithName(ShadowType.F_ATTRIBUTES);
+    }
+
     private boolean isAssignmentExtensionDelta(AttributeStep attributeStep, NameItemPathSegment nameSegment) {
         if (!(attributeStep.bean instanceof RAssignment)) {
             return false;
@@ -156,9 +171,96 @@ public class ObjectDeltaUpdater {
         // todo handle assignment extension
     }
 
-    private void handleObjectExtensionDelta(RObject object, ItemDelta delta) {
-        System.out.println(delta);
-        // todo handle object extension
+    private void processObjectExtensionValues(RObject object, Class<? extends ROExtValue> type,
+                                              Consumer<Collection<ROExtValue>> processObjectValues,
+                                              Function<Short, Short> processObjectValuesCount) {
+
+        if (type.equals(ROExtDate.class)) {
+            processObjectValues.accept(object.getDates());
+            Short count = processObjectValuesCount.apply(object.getDatesCount());
+            object.setDatesCount(count);
+        } else if (type.equals(ROExtLong.class)) {
+            processObjectValues.accept(object.getLongs());
+            Short count = processObjectValuesCount.apply(object.getLongsCount());
+            object.setLongsCount(count);
+        } else if (type.equals(ROExtReference.class)) {
+            processObjectValues.accept(object.getReferences());
+            Short count = processObjectValuesCount.apply(object.getReferencesCount());
+            object.setReferencesCount(count);
+        } else if (type.equals(ROExtString.class)) {
+            processObjectValues.accept(object.getStrings());
+            Short count = processObjectValuesCount.apply(object.getStringsCount());
+            object.setStringsCount(count);
+        } else if (type.equals(ROExtPolyString.class)) {
+            processObjectValues.accept(object.getPolys());
+            Short count = processObjectValuesCount.apply(object.getPolysCount());
+            object.setPolysCount(count);
+        } else if (type.equals(ROExtBoolean.class)) {
+            processObjectValues.accept(object.getBooleans());
+            Short count = processObjectValuesCount.apply(object.getBooleansCount());
+            object.setBooleansCount(count);
+        }
+    }
+
+    private void processObjectExtensionDeltaValues(Collection<PrismValue> values, RObject object, RObjectExtensionType ownerType,
+                                                   BiConsumer<Collection<ROExtValue>, Collection<ROExtValue>> processObjectValues,
+                                                   BiFunction<Short, Short, Short> processObjectValuesCount) {
+
+        RAnyConverter converter = new RAnyConverter(prismContext);
+
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+
+        try {
+            Collection<ROExtValue> extValues = new ArrayList<>();
+            for (PrismValue value : values) {
+                ROExtValue extValue = (ROExtValue) converter.convertToRValue(value, false);
+                extValue.setOwner(object);
+                extValue.setOwnerType(ownerType);
+
+                extValues.add(extValue);
+            }
+
+            ROExtValue first = extValues.iterator().next();
+            Class type = first.getClass();
+
+            processObjectExtensionValues(object, type,
+                    (existing) -> processObjectValues.accept(existing, extValues),
+                    (existing) -> processObjectValuesCount.apply(existing, (short) extValues.size()));
+        } catch (SchemaException ex) {
+            throw new SystemException("Couldn't apply object extension attributes", ex);
+        }
+    }
+
+    private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta) {
+        RObjectExtensionType ownerType = null;
+        if (isObjectExtensionDelta(delta.getPath())) {
+            ownerType = RObjectExtensionType.EXTENSION;
+        } else if (isShadowAttributesDelta(delta.getPath())) {
+            ownerType = RObjectExtensionType.ATTRIBUTES;
+        }
+
+        // handle replace
+        if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
+            processObjectExtensionDeltaValues(delta.getValuesToReplace(), object, ownerType,
+                    (existing, fromDelta) -> {
+                        existing.clear();
+                        existing.addAll(fromDelta);
+                    },
+                    (existingCount, fromDeltaCount) -> fromDeltaCount.shortValue());
+            return;
+        }
+
+        // handle delete
+        processObjectExtensionDeltaValues(delta.getValuesToDelete(), object, ownerType,
+                (existing, fromDelta) -> existing.removeAll(fromDelta),
+                (existingCount, fromDeltaCount) -> (short) (existingCount.shortValue() - fromDeltaCount.shortValue()));
+
+        // handle add
+        processObjectExtensionDeltaValues(delta.getValuesToAdd(), object, ownerType,
+                (existing, fromDelta) -> fromDelta.stream().forEach(i -> {i.setTransient(true); existing.add(i);}),
+                (existingCount, fromDeltaCount) -> (short) (existingCount.shortValue() + fromDeltaCount.shortValue()));
     }
 
     private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart) {

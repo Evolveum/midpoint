@@ -119,14 +119,14 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         delta.addModificationAddProperty(new ItemPath(UserType.F_EXTENSION,
                 new QName("http://example.com/p", "weapon")), "glock");
 
-//        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
-//
-//        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
-//        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
+        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
+
+        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
+        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
 //        delta.addModificationAddProperty(UserType.F_EMPLOYEE_TYPE, "one","two");
 //        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
-        delta.addModificationReplaceProperty(
-                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
+//        delta.addModificationReplaceProperty(
+//                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 //        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
 
 //        ActivationType activation = new ActivationType();
@@ -134,9 +134,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 //        delta.addModificationAddContainer(
 //                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
-        AssignmentType ass = new AssignmentType();
-        ass.setId(1L);
-        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+//        AssignmentType ass = new AssignmentType();
+//        ass.setId(1L);
+//        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
 
 
 //        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
