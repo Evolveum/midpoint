@@ -21,7 +21,7 @@ Other features:
 
 - User provisioning and deprovisioning
 - Administration GUI
-- Identity repository implemention (SQL)
+- Identity repository implementation (SQL)
 - Custom schema extensibility
 - Identity synchronization (liveSync, reconciliation, discovery, import)
 - Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
@@ -35,9 +35,9 @@ Other features:
 - Reporting
 - Notifications
 - Local Java APIs, Remote web service interface (SOAP), REST API
-- High availablity (HA) support
+- High availability (HA) support
 
-For more information bout midPoint identity manager please go to:
+For more information about midPoint identity manager please go to:
 http://midpoint.evolveum.com/
 
 For bugtracking system please go to:
@@ -53,5 +53,5 @@ https://github.com/Evolveum/midpoint.git
 git@github.com:Evolveum/midpoint.git
 
 This project is developed under Apache license (version 2.0) You may get copy
-of licence in LICENSE file. Please also see NOTICE file for addtional
+of licence in LICENSE file. Please also see NOTICE file for additional
 copyright statements.
