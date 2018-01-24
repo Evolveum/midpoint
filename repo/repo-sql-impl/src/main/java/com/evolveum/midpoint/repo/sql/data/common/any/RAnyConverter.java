@@ -132,6 +132,10 @@ public class RAnyConverter {
 
         ItemDefinition definition = value.getParent().getDefinition();
 
+        if (!isIndexed(definition, prismContext)) {
+            return null;
+        }
+
         if (value instanceof PrismPropertyValue) {
             PrismPropertyValue propertyValue = (PrismPropertyValue) value;
 
