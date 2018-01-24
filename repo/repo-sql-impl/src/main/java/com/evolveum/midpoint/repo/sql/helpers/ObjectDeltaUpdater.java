@@ -48,6 +48,7 @@ import javax.persistence.metamodel.ManagedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -81,7 +82,14 @@ public class ObjectDeltaUpdater {
             return merge(objectToMerge, session);
         }
 
-        // todo how to generate identifiers correctly now? to repo entities and to full xml
+        // todo how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated on different place than we later create new containers...how to match them
+        // todo mark newly added containers/references as transient
+
+        // todo set proper owner/ownerOid for containers/references
+
+        // todo implement transformation from prism to entity (PrismEntityMapper)
+
+        // todo replace delta can mark entities as transient
 
         RObject object = session.byId(objectToMerge.getClass()).getReference(oid);
         object.setVersion(objectToMerge.getVersion());
@@ -453,7 +461,13 @@ public class ObjectDeltaUpdater {
 
         Method method = (Method) attribute.getJavaMember();
         ParameterizedType parametrized = (ParameterizedType) method.getGenericReturnType();
-        return (Class) parametrized.getActualTypeArguments()[0];
+        Type t = parametrized.getActualTypeArguments()[0];
+        if (t instanceof Class) {
+            return (Class) t;
+        }
+
+        parametrized = (ParameterizedType) t;
+        return (Class) parametrized.getRawType();
     }
 
     private Object invoke(Object object, Method method) {

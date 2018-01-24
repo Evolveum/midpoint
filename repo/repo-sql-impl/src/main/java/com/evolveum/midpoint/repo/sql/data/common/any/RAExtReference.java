@@ -40,6 +40,8 @@ import javax.persistence.*;
         indexes = {@Index(name = "iAExtensionReference", columnNames = {"extensionType", "eName", "targetoid"})})
 public class RAExtReference implements RAExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RAssignmentExtension anyContainer;
     private String ownerOid;
@@ -59,6 +61,17 @@ public class RAExtReference implements RAExtValue {
     private String relation;
 
     public RAExtReference() {
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @ForeignKey(name = "fk_assignment_ext_reference")

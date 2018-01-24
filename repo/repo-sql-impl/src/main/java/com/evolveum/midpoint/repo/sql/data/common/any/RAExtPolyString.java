@@ -38,6 +38,8 @@ import javax.persistence.*;
         indexes = {@Index(name = "iAExtensionPolyString", columnNames = {"extensionType", "eName", "orig"})})
 public class RAExtPolyString implements RAExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RAssignmentExtension anyContainer;
     private String ownerOid;
@@ -63,6 +65,17 @@ public class RAExtPolyString implements RAExtValue {
             value = polyString.getOrig();
             norm = polyString.getNorm();
         }
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @ForeignKey(name = "fk_assignment_ext_poly")

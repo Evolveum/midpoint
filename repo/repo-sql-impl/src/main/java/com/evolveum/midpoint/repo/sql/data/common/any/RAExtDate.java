@@ -38,6 +38,8 @@ import java.sql.Timestamp;
         indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "eName", "dateValue"})})
 public class RAExtDate implements RAExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RAssignmentExtension anyContainer;
     private String ownerOid;
@@ -57,6 +59,17 @@ public class RAExtDate implements RAExtValue {
 
     public RAExtDate(Timestamp value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @ForeignKey(name = "fk_assignment_ext_date")

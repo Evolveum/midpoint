@@ -116,13 +116,13 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, oid, UserType.F_GIVEN_NAME,
                 prismContext, new PolyString("asdf", "asdf"));
 
-        delta.addModificationAddProperty(new ItemPath(UserType.F_EXTENSION,
-                new QName("http://example.com/p", "weapon")), "glock");
-
-        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
-
-        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
-        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
+//        delta.addModificationAddProperty(new ItemPath(UserType.F_EXTENSION,
+//                new QName("http://example.com/p", "weapon")), "glock");
+//
+//        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
+//
+//        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
+//        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
 //        delta.addModificationAddProperty(UserType.F_EMPLOYEE_TYPE, "one","two");
 //        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
 //        delta.addModificationReplaceProperty(
@@ -139,15 +139,15 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 //        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
 
 
-//        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
 //        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
 //        parentOrgRef.setOid("123");
 //        delta.addModificationDeleteReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
 //
-//        parentOrgRef = new ObjectReferenceType();
-//        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
-//        parentOrgRef.setOid("789");
-//        delta.addModificationAddReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
+        parentOrgRef = new ObjectReferenceType();
+        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
+        parentOrgRef.setOid("789");
+        delta.addModificationAddReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
 
 
         // todo create modification for metadata/createApproverRef

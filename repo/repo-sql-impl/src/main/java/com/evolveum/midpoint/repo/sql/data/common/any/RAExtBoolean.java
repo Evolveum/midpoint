@@ -37,6 +37,8 @@ import javax.persistence.*;
         indexes = {@Index(name = "iAExtensionBoolean", columnNames = {"extensionType", "eName", "booleanValue"})})
 public class RAExtBoolean implements RAExtValue {
 
+    private Boolean trans;
+
     //owner entity
     private RAssignmentExtension anyContainer;
     private String ownerOid;
@@ -56,6 +58,17 @@ public class RAExtBoolean implements RAExtValue {
 
     public RAExtBoolean(Boolean value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @ForeignKey(name = "fk_assignment_ext_boolean")
