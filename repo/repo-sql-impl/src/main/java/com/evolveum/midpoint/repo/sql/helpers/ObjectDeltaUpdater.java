@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
@@ -41,12 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -75,18 +78,16 @@ public class ObjectDeltaUpdater {
     /**
      * modify
      */
-    public <T extends ObjectType> RObject<T> update(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-                                                    RObject<T> objectToMerge, Session session, OperationResult result) {
+    public <T extends ObjectType> RObject<T> buildUpdatedObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+                                                    PrismObject<T> prismObject, Session session) {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
-        if (1 == 1) {
-            return merge(objectToMerge, session);
-        }
+        // todo normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
 
         // todo how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated on different place than we later create new containers...how to match them
 
-        // todo set proper owner/ownerOid for containers/references
+        // todo set proper owner/ownerOid/ownerType for containers/references/result and others
 
         // todo implement transformation from prism to entity (PrismEntityMapper)
 
@@ -94,11 +95,8 @@ public class ObjectDeltaUpdater {
 
         // todo mark newly added containers/references as transient
 
-        // todo don't store non indexed extension attributes
-
-        RObject object = session.byId(objectToMerge.getClass()).getReference(oid);
-        object.setVersion(objectToMerge.getVersion());
-        object.setFullObject(objectToMerge.getFullObject());
+        Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
+        RObject<T> object = session.byId(objectClass).getReference(oid);
 
         ManagedType mainEntityType = entityModificationRegistry.getJaxbMapping(type);
 
@@ -150,13 +148,14 @@ public class ObjectDeltaUpdater {
             }
         }
 
-        LOGGER.debug("Saving object");
+        // update version and full xml object
+        String strVersion = prismObject.getVersion();
+        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
+        object.setVersion(version);
 
-        session.save(object);
+        LOGGER.debug("Entity changes applied");
 
-        LOGGER.debug("Object saved");
-
-        return objectToMerge;
+        return object;
     }
 
     private boolean isObjectExtensionDelta(ItemPath path) {
@@ -190,8 +189,6 @@ public class ObjectDeltaUpdater {
         }
 
         processAnyExtensionDeltaValues(delta, null, null, extension, RAssignmentExtensionType.EXTENSION);
-
-        // todo if extension is empty, null it probably
     }
 
     private void processAnyExtensionDeltaValues(Collection<PrismValue> values,

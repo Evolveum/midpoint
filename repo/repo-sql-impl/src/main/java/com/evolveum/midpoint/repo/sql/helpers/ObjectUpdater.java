@@ -253,7 +253,7 @@ public class ObjectUpdater {
     }
 
     public <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject)
-            throws DtoTranslationException, SchemaException {
+            throws SchemaException {
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
@@ -422,22 +422,19 @@ public class ObjectUpdater {
                 if (closureManager.isEnabled()) {
                     originalObject = prismObject.clone();
                 }
+
+                RObject rObject = objectDeltaUpdater.buildUpdatedObject(type, oid, modifications, prismObject, session);
+
                 ItemDelta.applyTo(modifications, prismObject);
 				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
                 // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                 // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
-                // merge and update object
-                // todo remove this createDataObjectFromJAXB [lazyman], it's unnecessary when we're handling deltas manually
-                LOGGER.trace("Translating JAXB to data type.");
-				ObjectTypeUtil.normalizeAllRelations(prismObject);
-				RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
-                rObject.setVersion(rObject.getVersion() + 1);
-
                 updateFullObject(rObject, prismObject);
-                LOGGER.trace("Starting merge.");
-                objectDeltaUpdater.update(type, oid, modifications, rObject, session, result);
+                LOGGER.trace("Starting save.");
+
+                session.save(rObject);
 
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);

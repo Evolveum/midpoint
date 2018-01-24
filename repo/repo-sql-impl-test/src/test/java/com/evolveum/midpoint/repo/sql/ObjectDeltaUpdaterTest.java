@@ -57,8 +57,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
     private static final String FILE_USER = "user.xml";
 
-//    @Autowired
-//    private EntityModificationRegistry entityModificationRegistry;
+    // todo don't store non indexed extension attributes
 
     @Test
     public <T extends ObjectType> void addLinkRef() throws Exception {
