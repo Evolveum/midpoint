@@ -419,14 +419,28 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, RObject parent,
+                                    RepositoryContext repositoryContext) throws DtoTranslationException{
+        copyFromJAXB(jaxb, repo, repositoryContext, null);
+        repo.setOwner(parent);
+    }
+
     public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, RepositoryContext repositoryContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+
+        copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        repo.setOwnerOid(parent.getOid());
+    }
+
+    private static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        if (generatorResult != null) {
+            repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        }
 
-        repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toInteger(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
         repo.setLifecycleState(jaxb.getLifecycleState());

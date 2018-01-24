@@ -16,21 +16,26 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;
@@ -39,6 +44,7 @@ import java.util.Map;
 /**
  * @Author Viliam Repan (lazyman).
  */
+@Component
 public class PrismEntityMapper {
 
     private static final Map<Key, Mapper> mappers = new HashMap<>();
@@ -47,11 +53,19 @@ public class PrismEntityMapper {
         mappers.put(new Key(Enum.class, SchemaEnum.class), new EnumMapper());
         mappers.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
         mappers.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
-        mappers.put(new Key(ObjectReferenceType.class, REmbeddedReference.class), new ObjectReferenceMapper());
+        mappers.put(new Key(ObjectReferenceType.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
         mappers.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
         mappers.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
         mappers.put(new Key(QName.class, String.class), new QNameMapper());
+
+        mappers.put(new Key(ObjectReferenceType.class, RObjectReference.class), new ObjectReferenceMapper());
+        mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
     }
+
+    @Autowired
+    private RepositoryService repositoryService;
+    @Autowired
+    private PrismContext prismContext;
 
     public boolean supports(Class inputType, Class outputType) {
         Key key = buildKey(inputType, outputType);
@@ -60,6 +74,10 @@ public class PrismEntityMapper {
     }
 
     public <I, O> O map(I input, Class<O> outputType) {
+        return map(input, outputType, null);
+    }
+
+    public <I, O> O map(I input, Class<O> outputType, MapperContext context) {
         if (input == null) {
             return null;
         }
@@ -68,44 +86,53 @@ public class PrismEntityMapper {
             return (O) input;
         }
 
+        if (context == null) {
+            context = new MapperContext();
+        }
+        context.setPrismContext(prismContext);
+        context.setRepositoryService(repositoryService);
+
         Key key = buildKey(input.getClass(), outputType);
         Mapper<I, O> mapper = mappers.get(key);
         if (mapper == null) {
             throw new SystemException("Can't map '" + input.getClass() + "' to '" + outputType + "'");
         }
 
-        return mapper.map(input);
+        return mapper.map(input, context);
     }
 
-    public <O> O mapPrismValue(PrismValue input, Class<O> outputType) {
+    //RObjectTextInfo
+    //RLookupTableRow
+    //RAccessCertificationWorkItem
+    //RAssignmentReference
+    //RFocusPhoto
+        //RObjectReference
+    //RObjectDeltaOperation
+    //ROperationExecution
+    //RAccessCertificationCase
+        //RAssignment
+    //RCertWorkItemReference
+    //RTrigger
+    //RExclusion
+    public <O> O mapPrismValue(PrismValue input, Class<O> outputType, MapperContext context) {
         if (input instanceof PrismPropertyValue) {
-            return map(input.getRealValue(), outputType);
+            return map(input.getRealValue(), outputType, context);
         } else if (input instanceof PrismReferenceValue) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setupReferenceValue((PrismReferenceValue) input);
 
+            return map(ref, outputType, context);
         } else if (input instanceof PrismContainerValue) {
+            Class<Containerable> inputType = (Class) input.getRealClass();
+            try {
+                Containerable container = inputType.newInstance();
+                container.setupContainerValue((PrismContainerValue) input);
 
+                return map(container, outputType, context);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex); //todo error handling
+            }
         }
-
-        Class inputType = input.getRealClass();
-
-//            if (value instanceof PrismContainerValue) {
-//                PrismContainerValue containerValue = (PrismContainerValue) value;
-//                results.add(containerValue.getId());
-//            } else if (value instanceof PrismReferenceValue){
-//                Object result = null;//prismEntityMapper.map();
-//                results.add(result);
-//            }
-
-//            Class clazz = value.getRealClass();
-//            ManagedType type = entityModificationRegistry.getJaxbMapping(clazz);
-//            Class repoClass = type.getJavaType();
-//
-//            Object result;
-//            if (Container.class.isAssignableFrom(repoClass)) {
-//
-//            } else {
-//                result = prismEntityMapper.map()
-//            }
 
         // todo implement transformation from prism to entity
 
@@ -124,10 +151,45 @@ public class PrismEntityMapper {
         return Enum.class.isAssignableFrom(inputType) && SchemaEnum.class.isAssignableFrom(outputType);
     }
 
+    private static class AssignmentMapper implements Mapper<AssignmentType, RAssignment> {
+
+        @Override
+        public RAssignment map(AssignmentType input, MapperContext context) {
+            RAssignment ass = new RAssignment();
+
+            RObject owner = (RObject) context.getOwner();
+
+            RepositoryContext repositoryContext =
+                    new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
+
+            try {
+                RAssignment.copyFromJAXB(input, ass, owner, repositoryContext);
+            } catch (DtoTranslationException ex) {
+                throw new SystemException("Couldn't translate assignment to entity", ex);
+            }
+
+            return ass;
+        }
+    }
+
+    private static class ObjectReferenceMapper implements Mapper<ObjectReferenceType, RObjectReference> {
+
+        @Override
+        public RObjectReference map(ObjectReferenceType input, MapperContext context) {
+            RObject owner = (RObject) context.getOwner();
+
+            ItemPath named = context.getDelta().getPath().namedSegmentsOnly();
+            NameItemPathSegment last = named.lastNamed();
+            RReferenceOwner refType = RReferenceOwner.getOwnerByQName(last.getName());
+
+            return RUtil.jaxbRefToRepo(input, context.getPrismContext(), owner, refType);
+        }
+    }
+
     private static class QNameMapper implements Mapper<QName, String> {
 
         @Override
-        public String map(QName input) {
+        public String map(QName input, MapperContext context) {
             return RUtil.qnameToString(input);
         }
     }
@@ -135,7 +197,7 @@ public class PrismEntityMapper {
     private static class AutoassignSpecificationMapper implements Mapper<AutoassignSpecificationType, RAutoassignSpecification> {
 
         @Override
-        public RAutoassignSpecification map(AutoassignSpecificationType input) {
+        public RAutoassignSpecification map(AutoassignSpecificationType input, MapperContext context) {
             RAutoassignSpecification rspec = new RAutoassignSpecification();
             RAutoassignSpecification.copyFromJAXB(input, rspec);
             return rspec;
@@ -145,7 +207,7 @@ public class PrismEntityMapper {
     private static class OperationalStateMapper implements Mapper<OperationalStateType, ROperationalState> {
 
         @Override
-        public ROperationalState map(OperationalStateType input) {
+        public ROperationalState map(OperationalStateType input, MapperContext context) {
             try {
                 ROperationalState rstate = new ROperationalState();
                 ROperationalState.copyFromJAXB(input, rstate);
@@ -156,10 +218,10 @@ public class PrismEntityMapper {
         }
     }
 
-    private static class ObjectReferenceMapper implements Mapper<ObjectReferenceType, REmbeddedReference> {
+    private static class EmbeddedObjectReferenceMapper implements Mapper<ObjectReferenceType, REmbeddedReference> {
 
         @Override
-        public REmbeddedReference map(ObjectReferenceType input) {
+        public REmbeddedReference map(ObjectReferenceType input, MapperContext context) {
             REmbeddedReference rref = new REmbeddedReference();
             REmbeddedReference.copyFromJAXB(input, rref);
             return rref;
@@ -169,7 +231,7 @@ public class PrismEntityMapper {
     private static class ActivationMapper implements Mapper<ActivationType, RActivation> {
 
         @Override
-        public RActivation map(ActivationType input) {
+        public RActivation map(ActivationType input, MapperContext context) {
             try {
                 RActivation ractivation = new RActivation();
                 RActivation.copyFromJAXB(input, ractivation, null);
@@ -184,7 +246,7 @@ public class PrismEntityMapper {
     private static class PolyStringMapper implements Mapper<PolyString, RPolyString> {
 
         @Override
-        public RPolyString map(PolyString input) {
+        public RPolyString map(PolyString input, MapperContext context) {
             return new RPolyString(input.getOrig(), input.getNorm());
         }
     }
@@ -192,7 +254,7 @@ public class PrismEntityMapper {
     private static class EnumMapper implements Mapper<Enum, SchemaEnum> {
 
         @Override
-        public SchemaEnum map(Enum input) {
+        public SchemaEnum map(Enum input, MapperContext context) {
             String repoEnumClass = null;
             try {
                 String className = input.getClass().getSimpleName();
@@ -214,7 +276,7 @@ public class PrismEntityMapper {
 
     private interface Mapper<I, O> {
 
-        O map(I input);
+        O map(I input, MapperContext context);
     }
 
     private static class Key {

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,8 +73,8 @@ public class ObjectDeltaUpdater {
     private EntityModificationRegistry entityModificationRegistry;
     @Autowired
     private PrismContext prismContext;
-
-    private PrismEntityMapper prismEntityMapper = new PrismEntityMapper();
+    @Autowired
+    private PrismEntityMapper prismEntityMapper;
 
     /**
      * modify
@@ -148,10 +149,11 @@ public class ObjectDeltaUpdater {
             }
         }
 
-        // update version and full xml object
+        // update version
         String strVersion = prismObject.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
         object.setVersion(version);
+        // full object column will be updated later
 
         LOGGER.debug("Entity changes applied");
 
@@ -432,11 +434,11 @@ public class ObjectDeltaUpdater {
             case ONE_TO_MANY:
                 // object extension is handled separately, only {@link Container} and references are handled here
                 Collection oneToMany = (Collection) invoke(bean, method);
-                handleOneToMany(oneToMany, delta, attribute);
+                handleOneToMany(oneToMany, delta, attribute, bean);
                 break;
             case ELEMENT_COLLECTION:
                 Collection elementCollection = (Collection) invoke(bean, method);
-                handleElementCollection(elementCollection, delta, attribute);
+                handleElementCollection(elementCollection, delta, attribute, bean);
                 break;
         }
     }
@@ -460,15 +462,15 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute) {
-        handleOneToMany(collection, delta, attribute);
+    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean) {
+        handleOneToMany(collection, delta, attribute, bean);
     }
 
-    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute) {
+    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute, Object bean) {
         Class outputType = getRealOutputType(attribute);
 
         // handle replace
-        Collection valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType);
+        Collection valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
         if (!valuesToReplace.isEmpty()) {
             collection.clear();
             markNewOnesTransientAndAddToExisting(collection, valuesToReplace);
@@ -477,7 +479,7 @@ public class ObjectDeltaUpdater {
         }
 
         // handle delete
-        Collection valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType);
+        Collection valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
         Set<Long> containerIdsToDelete = new HashSet<>();
         for (Object obj : valuesToDelete) {
             if (obj instanceof Container) {
@@ -509,7 +511,7 @@ public class ObjectDeltaUpdater {
         }
 
         // handle add
-        Collection valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType);
+        Collection valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
         markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
     }
 
@@ -523,14 +525,21 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private Collection processDeltaValues(Collection<? extends PrismValue> values, Class outputType) {
+    private Collection processDeltaValues(Collection<? extends PrismValue> values, Class outputType,
+                                          ItemDelta delta, Object bean) {
         if (values == null) {
             return new ArrayList();
         }
 
         Collection results = new ArrayList();
         for (PrismValue value : values) {
-            Object result = prismEntityMapper.mapPrismValue(value, outputType);
+            // todo send object result back together with prismvalue, if it's container, we need to add ID to it
+            MapperContext context = new MapperContext();
+            context.setPrismContext(prismContext);
+            context.setDelta(delta);
+            context.setOwner(bean);
+
+            Object result = prismEntityMapper.mapPrismValue(value, outputType, context);
             results.add(result);
         }
 

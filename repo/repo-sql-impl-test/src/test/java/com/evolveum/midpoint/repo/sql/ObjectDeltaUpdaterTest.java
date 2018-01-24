@@ -115,8 +115,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, oid, UserType.F_GIVEN_NAME,
                 prismContext, new PolyString("asdf", "asdf"));
 
-        delta.addModificationAddProperty(new ItemPath(UserType.F_EXTENSION,
-                new QName("http://example.com/p", "weapon")), "glock");
+//        delta.addModificationAddProperty(new ItemPath(UserType.F_EXTENSION,
+//                new QName("http://example.com/p", "weapon")), "glock");
 
 //        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
 //
@@ -133,12 +133,16 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 //        delta.addModificationAddContainer(
 //                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
-//        AssignmentType ass = new AssignmentType();
-//        ass.setId(1L);
-//        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+        AssignmentType ass = new AssignmentType();
+        ass.setId(1L);
+        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+
+        ass = new AssignmentType();
+        ass.setDescription("asdf");
+        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, ass);
 
 
-        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+//        ObjectReferenceType parentOrgRef = new ObjectReferenceType();
 //        parentOrgRef.setType(OrgType.COMPLEX_TYPE);
 //        parentOrgRef.setOid("123");
 //        delta.addModificationDeleteReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
