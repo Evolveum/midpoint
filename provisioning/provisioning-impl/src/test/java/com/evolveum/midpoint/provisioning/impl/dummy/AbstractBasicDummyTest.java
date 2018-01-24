@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -111,6 +110,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -121,6 +122,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy
@@ -160,7 +162,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test000Integrity() throws Exception {
 		final String TEST_NAME = "test000Integrity";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		display("Dummy resource instance", dummyResource.toString());
 
@@ -194,7 +196,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test010ListConnectors() throws Exception {
 		final String TEST_NAME = "test010ListConnectors";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "."  + TEST_NAME);
 
@@ -245,7 +247,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test012ConnectorRediscovery() {
 		final String TEST_NAME = "test012ConnectorRediscovery";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
 
@@ -253,9 +255,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
 
 		// THEN
-		result.computeStatus();
-		display("discoverLocalConnectors result", result);
-		TestUtil.assertSuccess("discoverLocalConnectors failed", result);
+		assertSuccess("discoverLocalConnectors failed", result);
 		assertTrue("Rediscovered something", discoverLocalConnectors.isEmpty());
 	}
 
@@ -266,7 +266,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test015ListResourcesNoFetch() throws Exception {
 		final String TEST_NAME = "test015ListResourcesNoFetch";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(AbstractBasicDummyTest.class.getName() + "."  + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -276,9 +276,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		SearchResultList<PrismObject<ResourceType>> resources = provisioningService.searchObjects(ResourceType.class, null, options, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("searchObjects result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertFalse("No resources found", resources.isEmpty());
 		for (PrismObject<ResourceType> resource : resources) {
@@ -311,7 +309,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test020Connection() throws Exception {
 		final String TEST_NAME = "test020Connection";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -387,7 +385,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test021Configuration() throws Exception {
 		final String TEST_NAME = "test021Configuration";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
 
@@ -442,7 +440,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test022ParsedSchema() throws Exception {
 		final String TEST_NAME = "test022ParsedSchema";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// THEN
@@ -470,7 +468,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test023RefinedSchema() throws Exception {
 		final String TEST_NAME = "test023RefinedSchema";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// WHEN
@@ -556,7 +554,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test024ParsedSchemaAgain() throws Exception {
 		final String TEST_NAME = "test024ParsedSchemaAgain";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// THEN
@@ -576,7 +574,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test028Capabilities() throws Exception {
 		final String TEST_NAME = "test028Capabilities";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
@@ -658,7 +656,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test029CapabilitiesRepo() throws Exception {
 		final String TEST_NAME = "test029CapabilitiesRepo";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
@@ -856,7 +854,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test040ApplyDefinitionShadow() throws Exception {
 		final String TEST_NAME = "test040ApplyDefinitionShadow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -882,7 +880,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test041ApplyDefinitionAddShadowDelta() throws Exception {
 		final String TEST_NAME = "test041ApplyDefinitionAddShadowDelta";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -909,7 +907,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test042ApplyDefinitionResource() throws Exception {
 		final String TEST_NAME = "test042ApplyDefinitionResource";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -939,7 +937,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test043ApplyDefinitionAddResourceDelta() throws Exception {
 		final String TEST_NAME = "test043ApplyDefinitionAddResourceDelta";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -996,7 +994,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test080TestAttributesToReturn() throws Exception {
 		final String TEST_NAME = "test080TestAttributesToReturn";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -1024,7 +1022,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test090ConnectorStatsAfterSomeUse() throws Exception {
 		final String TEST_NAME = "test090ConnectorStatsAfterSomeUse";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1137,7 +1135,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
-		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
+		assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
@@ -1151,7 +1149,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		// MID-3860
 		assertShadowPasswordMetadata(shadowFromRepo, true, start, end, null, null);
-		assertNoShadowPassword(shadowFromRepo);
+		assertRepoShadowCredentials(shadowFromRepo, ACCOUNT_WILL_PASSWORD);
 		lastPasswordModifyStart = start;
 		lastPasswordModifyEnd = end;
 
@@ -1193,7 +1191,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test102GetAccount() throws Exception {
 		final String TEST_NAME = "test102GetAccount";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
 				+ "." + TEST_NAME);
@@ -1234,7 +1232,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test103GetAccountNoFetch() throws Exception {
 		final String TEST_NAME="test103GetAccountNoFetch";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
 				+ "."+TEST_NAME);
@@ -1252,9 +1250,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		// THEN
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		result.computeStatus();
 		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		display("Retrieved account shadow", shadow);
@@ -1273,7 +1270,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test105ApplyDefinitionModifyDelta() throws Exception {
 		final String TEST_NAME = "test105ApplyDefinitionModifyDelta";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1288,12 +1285,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		provisioningService.applyDefinition(accountDelta, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("applyDefinition result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		accountDelta.checkConsistence(true, true, true);
-		TestUtil.assertSuccess("applyDefinition(modify delta) result", result);
 
 		assertSteadyResource();
 	}
@@ -1306,7 +1300,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test106GetModifiedAccount() throws Exception {
 		final String TEST_NAME = "test106GetModifiedAccount";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
 		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -1319,14 +1313,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -1350,6 +1342,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
+		assertRepoShadowCredentials(shadowRepo, ACCOUNT_WILL_PASSWORD);
 
 		checkConsistency(shadow);
 
@@ -1361,7 +1354,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	@Test
 	public void test999Shutdown() throws Exception {
 		final String TEST_NAME = "test999Shutdown";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// WHEN
 		provisioningService.shutdown();
@@ -1446,5 +1439,27 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		assertNull("Unexpected activation administrativeStatus in repo shadow "+shadowRepo+": "+administrativeStatus, administrativeStatus);
 	}
+	
+	protected void assertRepoShadowCredentials(PrismObject<ShadowType> shadowRepo, String expectedPassword) throws SchemaException, EncryptionException {
+		CredentialsType credentials = shadowRepo.asObjectable().getCredentials();
+		if (expectedPassword == null && credentials == null) {
+			return;
+		}
+		assertNotNull("Missing credentendials in repo shadow "+shadowRepo, credentials);
+		PasswordType passwordType = credentials.getPassword();
+		if (expectedPassword == null && passwordType == null) {
+			return;
+		}
+		assertNotNull("Missing password credential in repo shadow "+shadowRepo, passwordType);
+		// TODO: assert password meta-data
+		assertRepoShadowPasswordValue(shadowRepo, passwordType, expectedPassword);
+	}
+
+	protected void assertRepoShadowPasswordValue(PrismObject<ShadowType> shadowRepo, PasswordType passwordType,
+			String expectedPassword) throws SchemaException, EncryptionException {
+		ProtectedStringType passwordValue = passwordType.getValue();
+		assertNull("Unexpected password value in repo shadow "+shadowRepo, passwordValue);
+	}
+	
 
 }

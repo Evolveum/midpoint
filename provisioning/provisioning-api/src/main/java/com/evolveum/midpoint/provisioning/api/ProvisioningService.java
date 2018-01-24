@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -59,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * <p>
  * Status: public
  * Stability: STABLE, only compatible changes are expected
- * @version 3.4
+ * @version 3.7.1
  * @author Radovan Semancik
  * </p>
  * <p>
@@ -73,12 +75,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Supported object types:
  *   <ul>
  *      <li>Resource</li>
- *      <li>ResourceObjectShadow and all sub-types</li>
+ *      <li>Shadow</li>
  *      <li>Connector</li>
- *   </ul>
- * Supported extra data types:
- *   <ul>
- *   	<li>Resource Objects (Resource Schema)</li>
  *   </ul>
  * </p>
  * <p>
@@ -502,6 +500,15 @@ public interface ProvisioningService {
 	void enterConstraintsCheckerCache();
 
 	void exitConstraintsCheckerCache();
+	
+	/**
+	 * Compare value on the resource with the provided value. This method is used to compare resource attributes
+	 * or passwords, e.g. for the purposes of password policy.
+	 * Note: comparison may be quite an expensive and heavy weight operation, e.g. it may try authenticating the user
+	 * on the resource.
+	 */
+	<O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue, Task task, OperationResult result)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException;
 
 	void shutdown();
 

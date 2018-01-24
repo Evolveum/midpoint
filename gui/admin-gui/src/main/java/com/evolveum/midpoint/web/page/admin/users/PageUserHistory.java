@@ -73,36 +73,28 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
     @Override
     protected ObjectWrapper<UserType> loadObjectWrapper(PrismObject<UserType> user, boolean isReadonly) {
         ObjectWrapper<UserType> objectWrapper = super.loadObjectWrapper(user, true);
-//        objectWrapper.setReadonly(true);
-//        objectWrapper.setShowEmpty(false);
 
         for (ContainerWrapper container : objectWrapper.getContainers()) {
-        	container.setReadonly(true);
-        	
-        	container.getValues().forEach(v -> {
-        		((ContainerValueWrapper ) v).getItems().forEach(item -> ((PropertyOrReferenceWrapper) item).setReadonly(true));
-        		((ContainerValueWrapper ) v).setReadonly(true);
-        		
-        	});
-        	
-//        	container.setReadonly(true);
-//
-//            List<ContainerValueWrapper<?>> containervalues = container.getValues();
-//            container.getValues().stream().forEach(v -> {
-//            	(v.setReadonly(true);
-//            	v.getItems().forEach(i -> ((PropertyOrReferenceWrapper) i).setReadonly(true));
-//            });
-//            List<ItemWrapper> itemWrappers = container.getItems();
-//            for (ItemWrapper item : itemWrappers){
-//                if (item instanceof PropertyWrapper){
-//                    ((PropertyWrapper) item).setReadonly(true);
-//                } else if (item instanceof ReferenceWrapper){
-//                    ((ReferenceWrapper) item).setReadonly(true);
-//                }
-//            }
+            setContainerValuesReadOnlyState(container);
         }
 
         return objectWrapper;
+    }
+
+    private void setContainerValuesReadOnlyState(ContainerWrapper container) {
+        container.setReadonly(true);
+
+        container.getValues().forEach(v -> {
+            ((ContainerValueWrapper) v).getItems().forEach(item -> {
+                if (item instanceof ContainerWrapper) {
+                    setContainerValuesReadOnlyState((ContainerWrapper) item);
+                } else if (item instanceof PropertyOrReferenceWrapper) {
+                    ((PropertyOrReferenceWrapper) item).setReadonly(true);
+                }
+            });
+            ((ContainerValueWrapper) v).setReadonly(true);
+
+        });
     }
 
     @Override

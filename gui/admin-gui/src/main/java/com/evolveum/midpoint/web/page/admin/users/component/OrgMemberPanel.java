@@ -455,20 +455,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return deleteMenuItems;
 	}
 
-	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI)) {
-			return super.createNewMemberInlineMenuItems();
-		}
-		return new ArrayList<>();
-	}
-
-	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI)) {
-			return super.assignNewMemberInlineMenuItems();
-		}
-		return new ArrayList<>();
-	}
-
 	private void deleteMemberPerformed(final QueryScope scope, final QName relation, final AjaxRequestTarget target, String confirmMessageKey) {
 		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource(confirmMessageKey)) {
 			@Override
@@ -494,7 +480,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
 					false, new HeaderMenuAction(this) {
 				private static final long serialVersionUID = 1L;
@@ -506,7 +492,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
 					new HeaderMenuAction(this) {
 						private static final long serialVersionUID = 1L;
@@ -530,7 +516,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems
 					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
 							false, new HeaderMenuAction(this) {
