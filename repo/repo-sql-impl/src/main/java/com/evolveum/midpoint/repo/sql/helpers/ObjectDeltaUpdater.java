@@ -80,7 +80,7 @@ public class ObjectDeltaUpdater {
      * modify
      */
     public <T extends ObjectType> RObject<T> buildUpdatedObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-                                                    PrismObject<T> prismObject, Session session) {
+                                                                PrismObject<T> prismObject, Session session) {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
@@ -198,7 +198,7 @@ public class ObjectDeltaUpdater {
                                                 RObjectExtensionType objectOwnerType,
                                                 RAssignmentExtension assignmentExtension,
                                                 RAssignmentExtensionType assignmentExtensionType,
-                                                BiConsumer<Collection<? extends RAnyValue>, Collection<RAnyValue>> processObjectValues,
+                                                BiConsumer<Collection<? extends RAnyValue>, Collection<PrismEntityPair<RAnyValue>>> processObjectValues,
                                                 BiFunction<Short, Short, Short> processObjectValuesCount) {
 
         RAnyConverter converter = new RAnyConverter(prismContext);
@@ -208,17 +208,17 @@ public class ObjectDeltaUpdater {
         }
 
         try {
-            Collection<RAnyValue> extValues = new ArrayList<>();
+            Collection<PrismEntityPair<RAnyValue>> extValues = new ArrayList<>();
             for (PrismValue value : values) {
                 RAnyValue extValue = converter.convertToRValue(value, object == null);
                 if (extValue == null) {
                     continue;
                 }
 
-                extValues.add(extValue);
+                extValues.add(new PrismEntityPair(value, extValue));
             }
 
-            RAnyValue first = extValues.iterator().next();
+            RAnyValue first = extValues.iterator().next().repository;
             Class type = first.getClass();
 
             if (ROExtValue.class.isAssignableFrom(type)) {
@@ -257,7 +257,7 @@ public class ObjectDeltaUpdater {
             processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
                     (existing, fromDelta) -> {
                         existing.clear();
-                        markNewOnesTransientAndAddToExisting(existing, fromDelta);
+                        markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta);
                     },
                     (existingCount, fromDeltaCount) -> fromDeltaCount.shortValue());
             return;
@@ -270,7 +270,7 @@ public class ObjectDeltaUpdater {
 
         // handle add
         processAnyExtensionDeltaValues(delta.getValuesToAdd(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, fromDelta),
+                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta),
                 (existingCount, fromDeltaCount) -> (short) (existingCount.shortValue() + fromDeltaCount.shortValue()));
     }
 
@@ -470,7 +470,7 @@ public class ObjectDeltaUpdater {
         Class outputType = getRealOutputType(attribute);
 
         // handle replace
-        Collection valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
+        Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
         if (!valuesToReplace.isEmpty()) {
             collection.clear();
             markNewOnesTransientAndAddToExisting(collection, valuesToReplace);
@@ -479,11 +479,11 @@ public class ObjectDeltaUpdater {
         }
 
         // handle delete
-        Collection valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
+        Collection<PrismEntityPair> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
         Set<Long> containerIdsToDelete = new HashSet<>();
-        for (Object obj : valuesToDelete) {
-            if (obj instanceof Container) {
-                Container container = (Container) obj;
+        for (PrismEntityPair pair : valuesToDelete) {
+            if (pair.repository instanceof Container) {
+                Container container = (Container) pair.repository;
 
                 long id = container.getId().longValue();
                 containerIdsToDelete.add(id);
@@ -511,27 +511,27 @@ public class ObjectDeltaUpdater {
         }
 
         // handle add
-        Collection valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
+        Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
         markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
     }
 
-    private void markNewOnesTransientAndAddToExisting(Collection existing, Collection newOnes) {
-        for (Object item : newOnes) {
-            if (item instanceof EntityState) {
-                EntityState es = (EntityState) item;
+    private void markNewOnesTransientAndAddToExisting(Collection existing, Collection<PrismEntityPair<?>> newOnes) {
+        for (PrismEntityPair item : newOnes) {
+            if (item.repository instanceof EntityState) {
+                EntityState es = (EntityState) item.repository; //todo id
                 es.setTransient(true);
             }
-            existing.add(item);
+            existing.add(item.repository);
         }
     }
 
-    private Collection processDeltaValues(Collection<? extends PrismValue> values, Class outputType,
-                                          ItemDelta delta, Object bean) {
+    private Collection<PrismEntityPair> processDeltaValues(Collection<? extends PrismValue> values, Class outputType,
+                                                           ItemDelta delta, Object bean) {
         if (values == null) {
             return new ArrayList();
         }
 
-        Collection results = new ArrayList();
+        Collection<PrismEntityPair> results = new ArrayList();
         for (PrismValue value : values) {
             // todo send object result back together with prismvalue, if it's container, we need to add ID to it
             MapperContext context = new MapperContext();
@@ -540,7 +540,7 @@ public class ObjectDeltaUpdater {
             context.setOwner(bean);
 
             Object result = prismEntityMapper.mapPrismValue(value, outputType, context);
-            results.add(result);
+            results.add(new PrismEntityPair(value, result));
         }
 
         return results;
@@ -588,5 +588,31 @@ public class ObjectDeltaUpdater {
 
         private ManagedType managedType;
         private Object bean;
+    }
+
+    private static class PrismEntityPair<T> {
+
+        private PrismValue prism;
+        private T repository;
+
+        public PrismEntityPair(PrismValue prism, T repository) {
+            this.prism = prism;
+            this.repository = repository;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            PrismEntityPair that = (PrismEntityPair) o;
+
+            return repository != null ? repository.equals(that.repository) : that.repository == null;
+        }
+
+        @Override
+        public int hashCode() {
+            return repository != null ? repository.hashCode() : 0;
+        }
     }
 }

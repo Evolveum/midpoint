@@ -26,6 +26,9 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
+import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
@@ -60,6 +63,8 @@ public class PrismEntityMapper {
 
         mappers.put(new Key(ObjectReferenceType.class, RObjectReference.class), new ObjectReferenceMapper());
         mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
+        mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
+        mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
     }
 
     @Autowired
@@ -108,12 +113,11 @@ public class PrismEntityMapper {
     //RFocusPhoto
         //RObjectReference
     //RObjectDeltaOperation
-    //ROperationExecution
+        //ROperationExecution
     //RAccessCertificationCase
         //RAssignment
     //RCertWorkItemReference
-    //RTrigger
-    //RExclusion
+        //RTrigger
     public <O> O mapPrismValue(PrismValue input, Class<O> outputType, MapperContext context) {
         if (input instanceof PrismPropertyValue) {
             return map(input.getRealValue(), outputType, context);
@@ -149,6 +153,50 @@ public class PrismEntityMapper {
 
     private boolean isSchemaEnum(Class inputType, Class outputType) {
         return Enum.class.isAssignableFrom(inputType) && SchemaEnum.class.isAssignableFrom(outputType);
+    }
+
+    private static class OperationExecutionMapper implements Mapper<OperationExecutionType, ROperationExecution> {
+
+        @Override
+        public ROperationExecution map(OperationExecutionType input, MapperContext context) {
+            ROperationExecution execution = new ROperationExecution();
+
+            RObject owner = (RObject) context.getOwner();
+
+            RepositoryContext repositoryContext =
+                    new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
+
+            try {
+                ROperationExecution.copyFromJAXB(input, execution, owner, repositoryContext);
+            } catch (DtoTranslationException ex) {
+                throw new SystemException("Couldn't translate trigger to entity", ex);
+            }
+
+
+            return execution;
+        }
+    }
+
+    private static class TriggerMapper implements Mapper<TriggerType, RTrigger> {
+
+        @Override
+        public RTrigger map(TriggerType input, MapperContext context) {
+            RTrigger trigger = new RTrigger();
+
+            RObject owner = (RObject) context.getOwner();
+
+            RepositoryContext repositoryContext =
+                    new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
+
+            try {
+                RTrigger.copyFromJAXB(input, trigger, owner, repositoryContext);
+            } catch (DtoTranslationException ex) {
+                throw new SystemException("Couldn't translate trigger to entity", ex);
+            }
+
+
+            return trigger;
+        }
     }
 
     private static class AssignmentMapper implements Mapper<AssignmentType, RAssignment> {

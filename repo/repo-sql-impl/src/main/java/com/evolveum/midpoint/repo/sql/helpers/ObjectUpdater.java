@@ -424,8 +424,13 @@ public class ObjectUpdater {
                 }
 
                 RObject rObject = objectDeltaUpdater.buildUpdatedObject(type, oid, modifications, prismObject, session);
-
+                // apply modifications, ids' for new containers already filled in delta values
                 ItemDelta.applyTo(modifications, prismObject);
+
+                // generate ids for containers that weren't handled in previous step (not processed by repository)
+                PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
+                generator.generate(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+
 				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
                 // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                 // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.

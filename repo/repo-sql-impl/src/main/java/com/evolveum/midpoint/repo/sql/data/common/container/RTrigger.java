@@ -153,14 +153,31 @@ public class RTrigger implements Container {
 
     }
 
+    public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, RObject parent,
+                                    RepositoryContext repositoryContext) throws DtoTranslationException {
+
+        repo.setOwner(parent);
+        copyFromJAXB(jaxb, repo, repositoryContext, null);
+    }
+
     public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, ObjectType parent,
-            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+                                    RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
+
+        repo.setOwnerOid(parent.getOid());
+        copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+    }
+
+    private static void copyFromJAXB(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
-        repo.setOwnerOid(parent.getOid());
+        if (generatorResult != null) {
+            repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        }
+
         repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setHandlerUri(jaxb.getHandlerUri());
