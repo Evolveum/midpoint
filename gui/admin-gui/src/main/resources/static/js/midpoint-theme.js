@@ -34,7 +34,8 @@ function clickFuncWicket6(eventData) {
         || (clickedElement.tagName.toUpperCase() == 'INPUT' 
         && (clickedElement.type.toUpperCase() == 'BUTTON' 
         || clickedElement.type.toUpperCase() == 'SUBMIT')))
-        && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY' ) {
+        && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY'
+        && clickedElement.disabled == 'false') {
         showAjaxStatusSign();
     }
 }

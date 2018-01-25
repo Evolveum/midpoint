@@ -1839,6 +1839,94 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("Empty role with exclusion (2)", roleEmptyExclusion);
         AssignmentType exclusionAssignment = assertExclusion(roleEmptyExclusion, ROLE_PIRATE_OID);
         
+        assertAllow("delete exclusion (2)",
+        		(task, result) -> modifyRoleDeleteAssignment(ROLE_EMPTY_OID, createAssignmentIdOnly(exclusionAssignment.getId()), task, result));
+        
+        // TODO: add exclusion with metadata (should be denied)
+        
+        assertDeny("add minAssignee",
+        		(task, result) -> modifyRolePolicyRule(ROLE_EMPTY_OID, createMinAssigneePolicyRule(1), true, task, result));
+        
+        assertDeny("delete maxAssignee 10 (by value)",
+        		(task, result) -> modifyRolePolicyRule(ROLE_MAXASSIGNEES_10_OID, createMaxAssigneePolicyRule(10), false, task, result));
+        
+        assertDeny("delete maxAssignee 10 (by id)",
+        		(task, result) -> modifyRoleDeleteAssignment(ROLE_MAXASSIGNEES_10_OID, createAssignmentIdOnly(10L), task, result));
+
+        assertDeny("assign role pirate to empty role",
+        		(task, result) -> assignRole(RoleType.class, ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+        
+        roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role without exclusion", roleEmptyExclusion);
+        assertAssignments(roleEmptyExclusion, 0);
+        
+        assertGlobalStateUntouched();
+	}
+
+	/**
+	 * MID-4399
+	 */
+	@Test
+    public void test262AutzJackLimitedRoleAdministratorAndAssignApplicationRoles() throws Exception {
+		final String TEST_NAME = "test260AutzJackLimitedRoleAdministrator";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_APPLICATION_ROLES_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+		assertReadAllow();
+		assertReadDenyRaw();
+        assertAddDeny();
+        assertDeleteDeny();
+        
+        // check ROLE_ASSIGN_APPLICATION_ROLES_OID authorizations
+        
+        assertAllow("assign application role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_APPLICATION_1_OID);
+
+        assertDeny("assign business role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        assertAllow("unassign application role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
+
+        // check ROLE_LIMITED_ROLE_ADMINISTRATOR_OID authorizations
+        
+        assertAddAllow(ROLE_EXCLUSION_PIRATE_FILE);
+        
+        PrismObject<RoleType> roleExclusion = assertGetAllow(RoleType.class, ROLE_EXCLUSION_PIRATE_OID);
+        display("Exclusion role", roleExclusion);
+        assertExclusion(roleExclusion, ROLE_PIRATE_OID);
+//        display("Exclusion role def", roleExclusion.getDefinition());
+		
+		assertAllow("add exclusion (1)",
+        		(task, result) -> modifyRoleAddExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+		
+		PrismObject<RoleType> roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with exclusion (1)", roleEmptyExclusion);
+        assertExclusion(roleEmptyExclusion, ROLE_PIRATE_OID);
+        
+        assertAllow("delete exclusion (1)",
+        		(task, result) -> modifyRoleDeleteExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+        
+        assertAllow("add exclusion (2)",
+        		(task, result) -> modifyRoleAddExclusion(ROLE_EMPTY_OID, ROLE_PIRATE_OID, task, result));
+		
+		roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with exclusion (2)", roleEmptyExclusion);
+        AssignmentType exclusionAssignment = assertExclusion(roleEmptyExclusion, ROLE_PIRATE_OID);
+        
         display("TTTA1");
         assertAllow("delete exclusion (2)",
         		(task, result) -> modifyRoleDeleteAssignment(ROLE_EMPTY_OID, createAssignmentIdOnly(exclusionAssignment.getId()), task, result));
@@ -1864,7 +1952,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         
         assertGlobalStateUntouched();
 	}
-
+	
 	@Test
     public void test270AutzJackModifyPolicyException() throws Exception {
 		final String TEST_NAME = "test270AutzJackModifyPolicyException";
@@ -2084,4 +2172,19 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertSearch(UserType.class, query, expectedDeputyOids);
 	}
 
+
+	@Override
+	protected void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+		super.cleanupAutzTest(userOid);
+		
+		Task task = taskManager.createTaskInstance(TestSecurityAdvanced.class.getName() + ".cleanupAutzTest");
+        OperationResult result = task.getResult();
+        
+		cleanupDelete(RoleType.class, ROLE_EXCLUSION_PIRATE_OID, task, result);
+	}
+
+	
+	
 }

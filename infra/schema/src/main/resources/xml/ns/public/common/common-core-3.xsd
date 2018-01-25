@@ -13212,6 +13212,17 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="lifecycleStateModel" type="tns:LifecycleStateModelType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of lifecycle states and state transitions.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -17463,6 +17474,13 @@
                             <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:annotation>
+                    <!-- Later on the referenced form may also contain title, panelClass and panelUri.
+                         Equivalent elements from this data type may be used to override those specified
+                         in FormType object referenced from this formRef.
+                         However, not all combination have to be supported. E.g. if the FormType object
+                         specifies a declarative form and this FormSpecificationType specifies panelClass
+                         then an error should be raised.
+                          -->
                 </xsd:element>
        			<xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
        				<xsd:annotation>
@@ -17502,9 +17520,22 @@
                 </p>
             </xsd:documentation>
         </xsd:annotation>
+        <!-- Originally (approx. midPoint 3.4) this datat type was meant ony for specificaiton of "declarative"
+             forms that specify fields for items. But later (3.7.1) it was discovered that this should be
+             reused to specify wider range of forms. E.g. parameteric built-in forms (such as "data protection" tab).
+             Or even parametric declarative or custom forms. No schema changes were made in 3.7.1.
+             Use case: specify "data protection" tab filter, layout and columns in just one place in the system
+             (FormType object). And the reuse the specification at several places (e.g. adminGuiConfig in several roles).
+             The schema change was just analysed, planned and clarified in those comments.
+             -->
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
+                	<!-- includeRef and formDefinition are used to specify "declarative" custom form.
+                	     Ideally, this should be insided its own container. But as this was not done
+                	     originally (approx. midPoint 3.4) we cannot change it now. So we leave it as
+                	     it is.
+                	-->
                     <xsd:element name="includeRef" type="tns:ObjectReferenceType"
                                  minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -17521,6 +17552,7 @@
                         It has to be a prism property. -->
                     </xsd:element>
                 </xsd:sequence>
+                <!-- title, panelClass and panelUri from FormSpecificationType should be also present here. -->
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
