@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -446,11 +444,14 @@ public class ObjectDeltaUpdater {
     private void handleBasicOrEmbedded(Object bean, ItemDelta delta, Attribute attribute) {
         Class outputType = getRealOutputType(attribute);
 
+        PrismValue anyPrismValue = delta.getAnyValue();
+
         Object value;
-        if (delta.isDelete()) {
+        if (delta.isDelete()
+                || (delta.isReplace() && (anyPrismValue == null || anyPrismValue.isEmpty()))) {
             value = null;
         } else {
-            value = delta.getAnyValue().getRealValue();
+            value = anyPrismValue.getRealValue();
         }
 
         value = prismEntityMapper.map(value, outputType);
@@ -477,6 +478,10 @@ public class ObjectDeltaUpdater {
 
             return;
         }
+
+        // handle add
+        Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
+        markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
 
         // handle delete
         Collection<PrismEntityPair> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
@@ -509,18 +514,37 @@ public class ObjectDeltaUpdater {
             }
             collection.removeAll(toDelete);
         }
-
-        // handle add
-        Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
-        markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
     }
 
     private void markNewOnesTransientAndAddToExisting(Collection existing, Collection<PrismEntityPair<?>> newOnes) {
+        Set<Integer> usedIds = new HashSet<>();
+        for (Object obj : existing) {
+            if (!(obj instanceof Container)) {
+                continue;
+            }
+
+            Container c = (Container) obj;
+            if (c.getId() != null) {
+                usedIds.add(c.getId());
+            }
+        }
+
+        Integer nextId = 1;
         for (PrismEntityPair item : newOnes) {
             if (item.repository instanceof EntityState) {
-                EntityState es = (EntityState) item.repository; //todo id
+                EntityState es = (EntityState) item.repository;
                 es.setTransient(true);
             }
+
+            if (item.repository instanceof Container) {
+                while (usedIds.contains(nextId)) {
+                    nextId++;
+                }
+
+                ((Container) item.repository).setId(nextId);
+                ((PrismContainerValue) item.prism).setId(nextId.longValue());
+            }
+
             existing.add(item.repository);
         }
     }
@@ -533,7 +557,6 @@ public class ObjectDeltaUpdater {
 
         Collection<PrismEntityPair> results = new ArrayList();
         for (PrismValue value : values) {
-            // todo send object result back together with prismvalue, if it's container, we need to add ID to it
             MapperContext context = new MapperContext();
             context.setPrismContext(prismContext);
             context.setDelta(delta);
