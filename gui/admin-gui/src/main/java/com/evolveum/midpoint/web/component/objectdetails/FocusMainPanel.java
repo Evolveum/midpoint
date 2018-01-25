@@ -18,28 +18,27 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -310,18 +309,17 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
     }
 
     private boolean isAssignmentsModelChanged(){
-//    	if (assignmentsModel == null && assignmentsModel.getObject() == null){
-//    		return false;
-//		}
-//		if (assignmentsModel.getObject().isEmpty()){
-//    		return false;
-//		}
-//		for (AssignmentType assignment : assignmentsModel.getObject()){
-//			//TODO check status
-////			if (UserDtoStatus.DELETE.equals(dto.getStatus()) || UserDtoStatus.ADD.equals(dto.getStatus())){
-//				return true;
-////			}
-//		}
+		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+		ContainerWrapper<AssignmentType> assignmentsWrapper =
+				focusWrapper.findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		if (assignmentsWrapper != null) {
+			for (ContainerValueWrapper assignmentWrapper : assignmentsWrapper.getValues()) {
+				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
+						ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
