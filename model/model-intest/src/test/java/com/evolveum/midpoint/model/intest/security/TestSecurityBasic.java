@@ -1956,8 +1956,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 	/**
 	 * MID-3636 partially
+	 * MID-4399
 	 */
-	@Test(enabled=false)
+	@Test
 	public void test275bAutzJackAssignRequestableOrgs() throws Exception {
 		final String TEST_NAME = "test275bAutzJackAssignRequestableOrgs";
 		displayTestTitle(TEST_NAME);
@@ -1987,7 +1988,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		ObjectQuery query = new ObjectQuery();
 
 		query.addFilter(spec.getFilter());
-		assertSearch(AbstractRoleType.class, query, 6); // set to 6 with requestable org
+		assertSearch(AbstractRoleType.class, query, 9);
 
 		assertAllow("unassign business role from jack",
         		(task, result) -> unassignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result));
