@@ -56,12 +56,12 @@ public class PrismEntityMapper {
         mappers.put(new Key(Enum.class, SchemaEnum.class), new EnumMapper());
         mappers.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
         mappers.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
-        mappers.put(new Key(ObjectReferenceType.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
+        mappers.put(new Key(Referencable.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
         mappers.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
         mappers.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
         mappers.put(new Key(QName.class, String.class), new QNameMapper());
 
-        mappers.put(new Key(ObjectReferenceType.class, RObjectReference.class), new ObjectReferenceMapper());
+        mappers.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
         mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
         mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
         mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
@@ -148,6 +148,10 @@ public class PrismEntityMapper {
             return new Key(Enum.class, SchemaEnum.class);
         }
 
+        if (Referencable.class.isAssignableFrom(inputType)) {
+            return new Key(Referencable.class, outputType);
+        }
+
         return new Key(inputType, outputType);
     }
 
@@ -220,17 +224,25 @@ public class PrismEntityMapper {
         }
     }
 
-    private static class ObjectReferenceMapper implements Mapper<ObjectReferenceType, RObjectReference> {
+    private static class ObjectReferenceMapper implements Mapper<Referencable, RObjectReference> {
 
         @Override
-        public RObjectReference map(ObjectReferenceType input, MapperContext context) {
+        public RObjectReference map(Referencable input, MapperContext context) {
+            ObjectReferenceType objectRef;
+            if (input instanceof ObjectReferenceType) {
+                objectRef = (ObjectReferenceType) input;
+            } else {
+                objectRef = new ObjectReferenceType();
+                objectRef.setupReferenceValue(input.asReferenceValue());
+            }
+
             RObject owner = (RObject) context.getOwner();
 
             ItemPath named = context.getDelta().getPath().namedSegmentsOnly();
             NameItemPathSegment last = named.lastNamed();
             RReferenceOwner refType = RReferenceOwner.getOwnerByQName(last.getName());
 
-            return RUtil.jaxbRefToRepo(input, context.getPrismContext(), owner, refType);
+            return RUtil.jaxbRefToRepo(objectRef, context.getPrismContext(), owner, refType);
         }
     }
 
@@ -266,12 +278,20 @@ public class PrismEntityMapper {
         }
     }
 
-    private static class EmbeddedObjectReferenceMapper implements Mapper<ObjectReferenceType, REmbeddedReference> {
+    private static class EmbeddedObjectReferenceMapper implements Mapper<Referencable, REmbeddedReference> {
 
         @Override
-        public REmbeddedReference map(ObjectReferenceType input, MapperContext context) {
+        public REmbeddedReference map(Referencable input, MapperContext context) {
+            ObjectReferenceType objectRef;
+            if (input instanceof ObjectReferenceType) {
+                objectRef = (ObjectReferenceType) input;
+            } else {
+                objectRef = new ObjectReferenceType();
+                objectRef.setupReferenceValue(input.asReferenceValue());
+            }
+
             REmbeddedReference rref = new REmbeddedReference();
-            REmbeddedReference.copyFromJAXB(input, rref);
+            REmbeddedReference.copyFromJAXB(objectRef, rref);
             return rref;
         }
     }
