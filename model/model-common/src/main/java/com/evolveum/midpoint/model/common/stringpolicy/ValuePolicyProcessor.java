@@ -459,7 +459,7 @@ public class ValuePolicyProcessor {
 				
 				return true;
 			};
-			originResolver.resolve(handler, prohibitedItemType.getOrigin(), shortDesc, task, result);			
+			originResolver.resolve(handler, prohibitedItemType, shortDesc, task, result);			
 		}
 
 		return isAcceptable.booleanValue();

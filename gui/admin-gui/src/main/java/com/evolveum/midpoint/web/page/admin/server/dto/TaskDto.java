@@ -169,7 +169,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	// (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
     public TaskDto(@NotNull TaskType taskType, TaskType parentTaskBean, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
 			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options,
-			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException {
         Validate.notNull(modelService);
         Validate.notNull(taskService);
         Validate.notNull(modelInteractionService);
@@ -191,18 +191,33 @@ public class TaskDto extends Selectable implements InlineMenuable {
         fillInParentTaskAttributes(taskType, parentTaskBean, taskService, options, opTask, thisOpResult);
         fillInOperationResultAttributes(taskType);
         if (options.isRetrieveModelContext()) {
-            fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
+        	try {
+		        fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
+	        } catch (CommonException | RuntimeException e) {
+		        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve model context for task {}", e, taskType);
+		        // TODO make sure that op result contains the error (in common cases it is there)
+	        }
         }
 		if (options.isRetrieveWorkflowContext()) {
 			// TODO fill-in "cheap" wf attributes not only when this option is set
-			fillInWorkflowAttributes(taskType, modelInteractionService, workflowManager, pageBase.getPrismContext(), opTask, thisOpResult);
+			try {
+				fillInWorkflowAttributes(taskType, modelInteractionService, workflowManager, pageBase.getPrismContext(), opTask, thisOpResult);
+			} catch (CommonException | RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve workflow-related attributes from task {}", e, taskType);
+				// TODO make sure that op result contains the error (in common cases it is there)
+			}
 		}
         thisOpResult.computeStatusIfUnknown();
 
         fillFromExtension();
 
-	    fillInChildren(taskType, modelService, taskService, modelInteractionService, taskManager, workflowManager, options,
-			    opTask, parentResult, pageBase);
+        try {
+	        fillInChildren(taskType, modelService, taskService, modelInteractionService, taskManager, workflowManager, options,
+			        opTask, parentResult, pageBase);
+        } catch (CommonException | RuntimeException e) {
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve children task information for task {}", e, taskType);
+	        // TODO make sure that op result contains the error (in common cases it is there)
+        }
 
 		if (options.isCreateHandlerDto()) {
 			handlerDto = HandlerDtoFactory.instance().createDtoForTask(this, pageBase, opTask, thisOpResult);
@@ -217,7 +232,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private void fillInChildren(@NotNull TaskType taskType, ModelService modelService, TaskService taskService,
 			ModelInteractionService modelInteractionService, TaskManager taskManager, WorkflowManager workflowManager,
 			TaskDtoProviderOptions options, Task opTask, OperationResult parentResult, PageBase pageBase)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException {
 		TaskType thisTaskWithChildren = null;
 		for (TaskType child : taskType.getSubtask()) {
 			TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
@@ -325,8 +340,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-        ModelContext ctx = ModelContextUtil.unwrapModelContext(taskType.getModelOperationContext(), modelInteractionService, opTask, result
-        );
+        ModelContext ctx = ModelContextUtil.unwrapModelContext(taskType.getModelOperationContext(), modelInteractionService, opTask, result);
 		if (ctx != null) {
 			modelOperationStatusDto = new ModelOperationStatusDto(ctx, modelInteractionService, opTask, result);
 		}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -1890,6 +1890,230 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="LifecycleStateModelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of lifecycle states and state transitions.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="state" type="tns:LifecycleStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specification of lifecycle state.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LifecycleStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of lifecycle state.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="uri" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier (URI) of the state. This is the value that is used in the
+                            lifecycleState property.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description of the state (e.g. purpose, mechanisms, etc.)
+                            Used for documentation purposes (comment).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            User-friendly name of the state, e.g. for displaying in the user interface.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: activationStatus -->
+            <xsd:element name="entryAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            State entry action. Action that is executed when the state is entered.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exitAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            State exit action. Action that is executed when the state is exited.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="transition" type="tns:LifecycleStateTransitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Transition to another state.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LifecycleStateTransitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of lifecycle state transition.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Short name for the transition. It may be used in log files, user interface, etc.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description of transition purpose, mechanisms, etc.
+                            Used for documentation purposes (comment).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetState" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Identifier (URI) of the state that is the target of the transition.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Condition for automatic state transition. If the condition returns true value
+                            then lifecycle transitions to the target state.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="LifecycleStateActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Short name of the action. It may be used in log files, user interface, etc.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form description of the action purpose, mechanisms, etc.
+                            Used for documentation purposes (comment).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dataReduction" type="tns:LifecycleStateActionDataReductionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Action that reduces (purges) object data.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: assign, (mass) unassign -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="LifecycleStateActionDataReductionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action that reduces (purges) object data.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="purgeItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Remove all values of the item.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: keepItem -->
+            <!-- TODO: keepMetadata? keepOperationalData? -->
         </xsd:sequence>
     </xsd:complexType>
 
