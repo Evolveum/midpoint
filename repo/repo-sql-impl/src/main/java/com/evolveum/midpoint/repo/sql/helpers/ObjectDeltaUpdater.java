@@ -130,29 +130,7 @@ public class ObjectDeltaUpdater {
                     handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta);
                 }
 
-                Attribute attribute = findAttribute(attributeStep, nameLocalPart);
-                if (attribute == null && segments.hasNext()) {
-                    // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
-                    ItemPath subPath = new ItemPath(nameSegment);
-                    while (segments.hasNext()) {
-                        if (!entityRegistry.hasAttributePathOverride(attributeStep.managedType, subPath)) {
-                            subPath = subPath.allUpToLastNamed();
-                            break;
-                        }
-
-                        segment = segments.next();
-                        if (!(segment instanceof NameItemPathSegment)) {
-                            throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
-                        }
-
-                        nameSegment = (NameItemPathSegment) segment;
-
-                        subPath = subPath.append(nameSegment.getName());
-                    }
-
-                    attribute = entityRegistry.findAttributePathOverride(attributeStep.managedType, subPath);
-                }
-
+                Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, nameSegment);
                 if (attribute == null) {
                     // there's no table/column that needs update
                     break;
@@ -167,13 +145,22 @@ public class ObjectDeltaUpdater {
                 handleAttribute(attribute, attributeStep.bean, delta);
 
                 if ("name".equals(attribute.getName()) && RObject.class.isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
-                    // we also need to handle "nameCopy" column
-                    Attribute nameCopyAttribute = findAttribute(attributeStep, "nameCopy");
+                    // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
+                    Attribute nameCopyAttribute = findAttribute(attributeStep, "nameCopy", null, null, null);
                     handleAttribute(nameCopyAttribute, attributeStep.bean, delta);
                 }
             }
         }
 
+        handleObjectCommonAttributes(type, modifications, prismObject, object);
+
+        LOGGER.debug("Entity changes applied");
+
+        return object;
+    }
+
+    private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
+                                              PrismObject<T> prismObject, RObject object) throws SchemaException {
         // update version
         String strVersion = prismObject.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
@@ -189,10 +176,6 @@ public class ObjectDeltaUpdater {
         generator.generate(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
 
         // full object column will be updated later
-
-        LOGGER.debug("Entity changes applied");
-
-        return object;
     }
 
     private <T extends ObjectType> boolean isObjectTextInfoRecomputationNeeded(Class<T> type, Collection<? extends ItemDelta> modifications) {
@@ -405,13 +388,42 @@ public class ObjectDeltaUpdater {
         processAnyExtensionDeltaValues(delta, object, ownerType, null, null);
     }
 
-    private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart) {
+    private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart, ItemPath path,
+                                    Iterator<ItemPathSegment> segments, NameItemPathSegment nameSegment) {
         Attribute attribute = entityRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
         if (attribute != null) {
             return attribute;
         }
 
-        return entityRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
+        attribute = entityRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
+        if (attribute != null) {
+            return attribute;
+        }
+
+        if (!segments.hasNext()) {
+            return null;
+        }
+
+            // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
+        ItemPathSegment segment;
+        ItemPath subPath = new ItemPath(nameSegment);
+        while (segments.hasNext()) {
+            if (!entityRegistry.hasAttributePathOverride(attributeStep.managedType, subPath)) {
+                subPath = subPath.allUpToLastNamed();
+                break;
+            }
+
+            segment = segments.next();
+            if (!(segment instanceof NameItemPathSegment)) {
+                throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
+            }
+
+            nameSegment = (NameItemPathSegment) segment;
+
+            subPath = subPath.append(nameSegment.getName());
+        }
+
+        return entityRegistry.findAttributePathOverride(attributeStep.managedType, subPath);
     }
 
     private AttributeStep stepThroughAttribute(Attribute attribute, AttributeStep step, Iterator<ItemPathSegment> segments) {
