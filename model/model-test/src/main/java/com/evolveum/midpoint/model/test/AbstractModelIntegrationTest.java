@@ -143,11 +143,11 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -4256,33 +4256,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 	
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
-			QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, ItemPath... expectedAllowedItemPaths)
+			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".assertAllowRequestItems");
         OperationResult result = task.getResult();
-        assertAllowRequestItems(userOid, targetRoleOid, expectedDefaultDecision, task, result, expectedAllowedItemQNames);
+        assertAllowRequestAssignmentItems(userOid, targetRoleOid, task, result, expectedAllowedItemPaths);
         assertSuccess(result);
 	}
 
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
-			Task task, OperationResult result, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, Task task, OperationResult result, ItemPath... expectedAllowedItemPaths) 
+			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(userOid);
 		PrismObject<RoleType> target = getRole(targetRoleOid);
 
-		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
-		display("Request decisions for "+target, decisions);
-		assertEquals("Wrong assign default decision", expectedDefaultDecision, decisions.getDefaultDecision());
-		assertEquals("Unexpected number of allowed items", expectedAllowedItemQNames.length, decisions.getItemDecisionMap().size());
+		ItemSecurityConstraints constraints = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
+		display("Request decisions for "+target, constraints);
 
-		decisions.getItemDecisionMap().forEach(
-				(path,decision) -> {
-					assertEquals("wrong item "+path+" decision", AuthorizationDecisionType.ALLOW, decision);
-					QName lastPathName = path.lastNamed().getName();
-					if (!Arrays.stream(expectedAllowedItemQNames).anyMatch(qname -> QNameUtil.match(qname, lastPathName) )) {
-						AssertJUnit.fail("Unexpected path "+path);
-					}
-				}
-		);
+		for (ItemPath expectedAllowedItemPath: expectedAllowedItemPaths) {
+			AuthorizationDecisionType decision = constraints.findItemDecision(expectedAllowedItemPath);
+			assertEquals("Wrong decision for item "+expectedAllowedItemPath, AuthorizationDecisionType.ALLOW, decision);
+		}
 	}
 
 

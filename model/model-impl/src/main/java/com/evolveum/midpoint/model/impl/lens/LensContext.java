@@ -1227,11 +1227,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return lensContext;
 	}
 
-	protected void fixProvisioningTypeInDelta(ObjectDelta delta, Task task, OperationResult result)
+	private void fixProvisioningTypeInDelta(ObjectDelta delta, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (delta != null && delta.getObjectTypeClass() != null
 				&& (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
 						|| ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+			// TODO exception can be thrown here (MID-4391) e.g. if resource does not exist any more; consider what to do
+			// Currently we are on the safe side by making whole conversion fail
 			getProvisioningService().applyDefinition(delta, task, result);
 		}
 	}

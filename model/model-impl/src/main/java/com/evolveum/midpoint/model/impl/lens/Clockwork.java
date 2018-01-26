@@ -1411,6 +1411,7 @@ public class Clockwork {
 					PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
 					PrismContainer<CredentialsType> credentialsContainer = objectToAdd.findContainer(UserType.F_CREDENTIALS);
 					if (credentialsContainer != null) {
+						List<ItemPath> pathsToRemove = new ArrayList<>();
 						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
 							ContainerDelta<?> cdelta = new ContainerDelta(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
 							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
@@ -1418,12 +1419,15 @@ public class Clockwork {
 							LOGGER.trace("AUTZ: credential add {} decision: {}", item.getPath(), cdecision);
 							if (cdecision == AuthorizationDecisionType.ALLOW) {
 								// Remove it from primary delta, so it will not be evaluated later
-								objectToAdd.removeContainer(item.getPath());
+								pathsToRemove.add(item.getPath());
 							} else if (cdecision == AuthorizationDecisionType.DENY) {
 								throw new AuthorizationException("Access denied");
 							} else {
 								// Do nothing. The access will be evaluated later in a normal way
 							}
+						}
+						for (ItemPath pathToRemove: pathsToRemove) {
+							objectToAdd.removeContainer(pathToRemove);
 						}
 					}
 				} else {
