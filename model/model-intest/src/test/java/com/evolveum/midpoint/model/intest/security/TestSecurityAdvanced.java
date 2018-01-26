@@ -32,6 +32,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -2371,6 +2373,101 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
 		assertDeleteDeny();
 
+		assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Test for combination of exceptItem(assignment) with #assign/#unassign authorizations.
+	 */
+	@Test
+    public void test308AutzJackPropExceptAssignmentAssignApplicationRoles() throws Exception {
+		final String TEST_NAME = "test308AutzJackPropExceptAssignmentAssignApplicationRoles";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_ASSIGN_APPLICATION_ROLES_OID);
+		assignRole(USER_JACK_OID, ROLE_PROP_EXCEPT_ASSIGNMENT_OID);
+		modifyJackValidTo();
+		login(USER_JACK_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("Jack", userJack);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, createPolyString(USER_JACK_USERNAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_GIVEN_NAME, createPolyString(USER_JACK_GIVEN_NAME));
+		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, ActivationStatusType.ENABLED);
+		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AGEAD);
+		assertAssignments(userJack, 2);
+
+		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
+		display("Jack's edit schema", userJackEditSchema);
+		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
+		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, true, false, true);
+		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, false);
+		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_TO, true, false, true);
+		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, true, false, true);
+
+		assertAddDeny();
+
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, createPolyString("Captain Jack Sparrow"));
+		assertModifyDeny(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+				JACK_VALID_FROM_LONG_AGO);
+		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+				JACK_VALID_FROM_LONG_AGO);
+		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
+		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
+		assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
+
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
+		
+		assertDeny("assign business 1 role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+		assertAllow("assign application 1 role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
+
+		userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 3);
+        assertAssignedRole(userJack, ROLE_APPLICATION_1_OID);
+        
+        assertDeny("assign business 2 role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
+
+        assertAllow("unassign application 1 role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
+
+        userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 2);
+        
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertRoleTypes(spec, "application", "nonexistent");
+        assertFilter(spec.getFilter(), TypeFilter.class);
+
+        assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
+        		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_FROM,
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_TO);
+		
 		assertGlobalStateUntouched();
 	}
 	
