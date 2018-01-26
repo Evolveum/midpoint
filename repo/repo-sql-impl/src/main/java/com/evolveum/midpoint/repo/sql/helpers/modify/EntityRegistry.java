@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -32,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
+import javax.xml.namespace.QName;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +55,8 @@ public class EntityRegistry {
     private Map<Class, ManagedType> jaxbMappings = new HashMap<>();
 
     private Map<ManagedType, Map<String, Attribute>> attributeNameOverrides = new HashMap<>();
+
+    private Map<ManagedType, Map<ItemPath, Attribute>> attributeNamePathOverrides = new HashMap<>();
 
     @PostConstruct
     public void init() {
@@ -82,6 +86,7 @@ public class EntityRegistry {
 
             // create override map
             Map<String, Attribute> overrides = new HashMap<>();
+            Map<ItemPath, Attribute> pathOverrides = new HashMap<>();
 
             for (Attribute attribute : (Set<Attribute>) entity.getAttributes()) {
                 Class jType = attribute.getJavaType();
@@ -94,13 +99,23 @@ public class EntityRegistry {
                     continue;
                 }
 
-                for (JaxbName name : path.itemPath()) {
-                    overrides.put(name.localPart(), attribute);
+                JaxbName[] names = path.itemPath();
+                if (names.length == 1) {
+                    overrides.put(names[0].localPart(), attribute);
+                } else {
+                    ItemPath customPath = ItemPath.EMPTY_PATH;
+                    for (JaxbName name : path.itemPath()) {
+                        customPath = customPath.append(new QName(name.namespace(), name.localPart()));
+                    }
+                    pathOverrides.put(customPath, attribute);
                 }
             }
 
             if (!overrides.isEmpty()) {
                 attributeNameOverrides.put(entity, overrides);
+            }
+            if (!pathOverrides.isEmpty()) {
+                attributeNamePathOverrides.put(entity, pathOverrides);
             }
         }
 
@@ -130,5 +145,31 @@ public class EntityRegistry {
         }
 
         return overrides.get(nameOverride);
+    }
+
+    public boolean hasAttributePathOverride(ManagedType type, ItemPath pathOverride) {
+        Map<ItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
+        if (overrides == null) {
+            return false;
+        }
+
+        ItemPath namedOnly = pathOverride.namedSegmentsOnly();
+
+        for (ItemPath path : overrides.keySet()) {
+            if (path.startsWith(namedOnly) || path.equals(namedOnly)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Attribute findAttributePathOverride(ManagedType type, ItemPath pathOverride) {
+        Map<ItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
+        if (overrides == null) {
+            return null;
+        }
+
+        return overrides.get(pathOverride);
     }
 }

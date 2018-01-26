@@ -71,7 +71,7 @@ public class ObjectDeltaUpdater {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaUpdater.class);
 
     @Autowired
-    private EntityRegistry entityModificationRegistry;
+    private EntityRegistry entityRegistry;
     @Autowired
     private PrismContext prismContext;
     @Autowired
@@ -97,10 +97,12 @@ public class ObjectDeltaUpdater {
 
         // todo mark newly added containers/references as transient
 
+        // todo validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
+
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
         RObject<T> object = session.byId(objectClass).getReference(oid);
 
-        ManagedType mainEntityType = entityModificationRegistry.getJaxbMapping(type);
+        ManagedType mainEntityType = entityRegistry.getJaxbMapping(type);
 
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
@@ -129,6 +131,28 @@ public class ObjectDeltaUpdater {
                 }
 
                 Attribute attribute = findAttribute(attributeStep, nameLocalPart);
+                if (attribute == null && segments.hasNext()) {
+                    // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
+                    ItemPath subPath = new ItemPath(nameSegment);
+                    while (segments.hasNext()) {
+                        if (!entityRegistry.hasAttributePathOverride(attributeStep.managedType, subPath)) {
+                            subPath = subPath.allUpToLastNamed();
+                            break;
+                        }
+
+                        segment = segments.next();
+                        if (!(segment instanceof NameItemPathSegment)) {
+                            throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
+                        }
+
+                        nameSegment = (NameItemPathSegment) segment;
+
+                        subPath = subPath.append(nameSegment.getName());
+                    }
+
+                    attribute = entityRegistry.findAttributePathOverride(attributeStep.managedType, subPath);
+                }
+
                 if (attribute == null) {
                     // there's no table/column that needs update
                     break;
@@ -382,12 +406,12 @@ public class ObjectDeltaUpdater {
     }
 
     private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart) {
-        Attribute attribute = entityModificationRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
+        Attribute attribute = entityRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
         if (attribute != null) {
             return attribute;
         }
 
-        return entityModificationRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
+        return entityRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
     }
 
     private AttributeStep stepThroughAttribute(Attribute attribute, AttributeStep step, Iterator<ItemPathSegment> segments) {
@@ -395,7 +419,7 @@ public class ObjectDeltaUpdater {
 
         switch (attribute.getPersistentAttributeType()) {
             case EMBEDDED:
-                step.managedType = entityModificationRegistry.getMapping(attribute.getJavaType());
+                step.managedType = entityRegistry.getMapping(attribute.getJavaType());
                 Object child = invoke(step.bean, method);
                 if (child == null) {
                     // embedded entity doesn't exist we have to create it first, so it can be populated later
@@ -425,7 +449,7 @@ public class ObjectDeltaUpdater {
                 for (Container o : (Collection<Container>) c) {
                     long l = o.getId().longValue();
                     if (l == id.getId()) {
-                        step.managedType = entityModificationRegistry.getMapping(clazz);
+                        step.managedType = entityRegistry.getMapping(clazz);
                         step.bean = o;
 
                         found = true;

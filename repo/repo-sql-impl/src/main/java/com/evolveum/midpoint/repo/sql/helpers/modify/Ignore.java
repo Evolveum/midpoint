@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * // todo documentation
+ * Used to ignore some entities when populating {@link EntityRegistry} during initialization
  *
  * @author Viliam Repan (lazyman)
  */

@@ -22,11 +22,9 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
@@ -106,6 +104,7 @@ public class PrismEntityMapper {
         return mapper.map(input, context);
     }
 
+    // todo implement transformation from prism to entity
     //RObjectTextInfo
     //RLookupTableRow
     //RAccessCertificationWorkItem
@@ -133,12 +132,10 @@ public class PrismEntityMapper {
                 container.setupContainerValue((PrismContainerValue) input);
 
                 return map(container, outputType, context);
-            } catch (Exception ex) {
-                throw new RuntimeException(ex); //todo error handling
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new SystemException("Couldn't create instance of container '" + inputType + "'");
             }
         }
-
-        // todo implement transformation from prism to entity
 
         return (O) input;
     }
