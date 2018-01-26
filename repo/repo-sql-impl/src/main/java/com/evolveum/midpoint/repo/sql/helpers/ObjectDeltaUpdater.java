@@ -29,9 +29,11 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -50,7 +52,6 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
-import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -70,7 +71,7 @@ public class ObjectDeltaUpdater {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaUpdater.class);
 
     @Autowired
-    private EntityModificationRegistry entityModificationRegistry;
+    private EntityRegistry entityModificationRegistry;
     @Autowired
     private PrismContext prismContext;
     @Autowired
@@ -79,20 +80,20 @@ public class ObjectDeltaUpdater {
     /**
      * modify
      */
-    public <T extends ObjectType> RObject<T> buildUpdatedObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-                                                                PrismObject<T> prismObject, Session session) {
+    public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+                                                                PrismObject<T> prismObject, Session session) throws SchemaException {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
         // todo normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
 
-        // todo how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated on different place than we later create new containers...how to match them
+        // how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated on different place than we later create new containers...how to match them
 
         // todo set proper owner/ownerOid/ownerType for containers/references/result and others
 
         // todo implement transformation from prism to entity (PrismEntityMapper)
 
-        // todo validate lookup tables and certification campaigns
+        // validate lookup tables and certification campaigns
 
         // todo mark newly added containers/references as transient
 
@@ -153,11 +154,37 @@ public class ObjectDeltaUpdater {
         String strVersion = prismObject.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
         object.setVersion(version);
+
+        // apply modifications, ids' for new containers already filled in delta values
+        ItemDelta.applyTo(modifications, prismObject);
+
+        handleObjectTextInfoChanges(type, modifications, object);
+
+        // generate ids for containers that weren't handled in previous step (not processed by repository)
+        PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
+        generator.generate(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+
         // full object column will be updated later
 
         LOGGER.debug("Entity changes applied");
 
         return object;
+    }
+
+    private <T extends ObjectType> boolean isObjectTextInfoRecomputationNeeded(Class<T> type, Collection<? extends ItemDelta> modifications) {
+        // todo implement
+        return false;
+    }
+
+    private <T extends ObjectType> void handleObjectTextInfoChanges(Class<T> type, Collection<? extends ItemDelta> modifications,
+                                                                    RObject object) {
+        // update object text info if necessary
+        if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
+            return;
+        }
+
+        // todo implement
+        //ItemDelta.findItemDeltasSubPath()
     }
 
     private boolean isObjectExtensionDelta(ItemPath path) {

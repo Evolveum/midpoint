@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.helpers;
+package com.evolveum.midpoint.repo.sql.helpers.modify;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -39,15 +38,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * // todo documentation, cleanup, probably rename class & methods
- *
  * @author Viliam Repan (lazyman)
  */
-
 @Service
-public class EntityModificationRegistry {
+public class EntityRegistry {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EntityModificationRegistry.class);
+    private static final Trace LOGGER = TraceManager.getTrace(EntityRegistry.class);
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -58,15 +54,12 @@ public class EntityModificationRegistry {
 
     private Map<ManagedType, Map<String, Attribute>> attributeNameOverrides = new HashMap<>();
 
-
-    // todo handle RObjectTextInfo
-    // todo handle RAssignmentExtension
-
     @PostConstruct
     public void init() {
-        // todo implement
+        LOGGER.debug("Starting initialization");
 
         metamodel = sessionFactory.getMetamodel();
+
         for (EntityType entity : metamodel.getEntities()) {
             Class javaType = entity.getJavaType();
             Ignore ignore = (Ignore) javaType.getAnnotation(Ignore.class);
@@ -114,12 +107,12 @@ public class EntityModificationRegistry {
         LOGGER.debug("Initialization finished");
     }
 
-    public ManagedType getJaxbMapping(Class type) {
-        return jaxbMappings.get(type);
+    public ManagedType getJaxbMapping(Class jaxbType) {
+        return jaxbMappings.get(jaxbType);
     }
 
-    public ManagedType getMapping(Class type) {
-        return metamodel.managedType(type);
+    public ManagedType getMapping(Class entityType) {
+        return metamodel.managedType(entityType);
     }
 
     public Attribute findAttribute(ManagedType type, String name) {
