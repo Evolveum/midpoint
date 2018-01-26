@@ -22,7 +22,10 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
@@ -35,11 +38,13 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -71,9 +76,11 @@ public class ObjectDeltaUpdater {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaUpdater.class);
 
     @Autowired
-    private EntityRegistry entityRegistry;
-    @Autowired
     private PrismContext prismContext;
+    @Autowired
+    private RepositoryService repositoryService;
+    @Autowired
+    private EntityRegistry entityRegistry;
     @Autowired
     private PrismEntityMapper prismEntityMapper;
 
@@ -169,7 +176,7 @@ public class ObjectDeltaUpdater {
         // apply modifications, ids' for new containers already filled in delta values
         ItemDelta.applyTo(modifications, prismObject);
 
-        handleObjectTextInfoChanges(type, modifications, object);
+        handleObjectTextInfoChanges(type, modifications, prismObject, object);
 
         // generate ids for containers that weren't handled in previous step (not processed by repository)
         PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
@@ -179,19 +186,44 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> boolean isObjectTextInfoRecomputationNeeded(Class<T> type, Collection<? extends ItemDelta> modifications) {
-        // todo implement
+        FullTextSearchConfigurationType config = repositoryService.getFullTextSearchConfiguration();
+        if (!FullTextSearchConfigurationUtil.isEnabled(config)) {
+            return false;
+        }
+
+        Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
+
+        for (ItemDelta modification :modifications) {
+            ItemPath modPath = modification.getPath();
+            ItemPath namesOnly = modPath.namedSegmentsOnly();
+
+            for (ItemPath path : paths) {
+                if (path.startsWith(namesOnly)) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
     private <T extends ObjectType> void handleObjectTextInfoChanges(Class<T> type, Collection<? extends ItemDelta> modifications,
-                                                                    RObject object) {
+                                                                    PrismObject prismObject, RObject object) {
         // update object text info if necessary
         if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
             return;
         }
 
-        // todo implement
-        //ItemDelta.findItemDeltasSubPath()
+        Set<RObjectTextInfo> infos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
+                new RepositoryContext( repositoryService, prismContext));
+
+        if (infos == null || infos.isEmpty()) {
+            object.getTextInfoItems().clear();
+        } else {
+            // todo improve this replace
+            object.getTextInfoItems().clear();
+            object.getTextInfoItems().addAll(infos);
+        }
     }
 
     private boolean isObjectExtensionDelta(ItemPath path) {
