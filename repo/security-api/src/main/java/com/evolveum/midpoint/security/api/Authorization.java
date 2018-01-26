@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +27,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -101,6 +104,39 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	@NotNull
 	public List<ItemPathType> getItem() {
 		return authorizationType.getItem();
+	}
+	
+	@NotNull
+	public List<ItemPathType> getExceptItem() {
+		return authorizationType.getExceptItem();
+	}
+	
+	@NotNull
+	public Collection<ItemPath> getItems() {
+		List<ItemPathType> itemPaths = getItem();
+		// TODO: maybe we can cache the itemPaths here?
+		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
+		for (ItemPathType itemPathType: itemPaths) {
+			ItemPath itemPath = itemPathType.getItemPath();
+			items.add(itemPath);
+		}
+		return items;
+	}
+	
+	@NotNull
+	public Collection<ItemPath> getExceptItems() {
+		List<ItemPathType> itemPaths = getExceptItem();
+		// TODO: maybe we can cache the itemPaths here?
+		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
+		for (ItemPathType itemPathType: itemPaths) {
+			ItemPath itemPath = itemPathType.getItemPath();
+			items.add(itemPath);
+		}
+		return items;
+	}
+	
+	public boolean hasItemSpecification() {
+		return !getItem().isEmpty() || !getExceptItem().isEmpty();
 	}
 
 	public List<OwnedObjectSelectorType> getTarget() {
