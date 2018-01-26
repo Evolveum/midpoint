@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-enforcer-api</artifactId>
-			<version>3.7-SNAPSHOT</version>
+			<version>3.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
