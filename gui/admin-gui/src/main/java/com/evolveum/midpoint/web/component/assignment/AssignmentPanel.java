@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import org.apache.commons.lang.StringUtils;
@@ -30,7 +31,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -440,6 +440,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			value.setSelected(false);
 		});
 		refreshTable(target);
+		reloadSavePreviewButtons(target);
 	}
 
 	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
@@ -511,4 +512,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	}
 
+
+	protected void reloadSavePreviewButtons(AjaxRequestTarget target){
+		FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
+		if (mainPanel != null) {
+			mainPanel.reloadSavePreviewButtons(target);
+		}
+	}
 }
