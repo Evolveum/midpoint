@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2018 Evolveum
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package com.evolveum.midpoint.security.enforcer.api;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
-public interface ObjectSecurityConstraints extends DebugDumpable {
+/**
+ * @author semancik
+ *
+ */
+public interface ItemSecurityConstraints extends DebugDumpable {
 
-	@Deprecated
-	AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase);
-
-	AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase);
-
+	AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath);
+	
 }

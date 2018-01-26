@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -138,7 +138,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	protected WebMarkupContainer headerRow;
 	protected IModel<List<AssignmentInfoDto>> privilegesListModel;
 	protected boolean delegatedToMe;
-	private LoadableModel<ItemSecurityDecisions> decisionsModel;
+	private LoadableModel<ItemSecurityConstraints> itemSecurityConstraintsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
 			LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
@@ -1106,34 +1106,26 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return false;
 	}
 
-	private void initDecisionsModel(){
-		decisionsModel = new LoadableModel<ItemSecurityDecisions>(false) {
+	private void initDecisionsModel() {
+		itemSecurityConstraintsModel = new LoadableModel<ItemSecurityConstraints>(false) {
 			@Override
-			protected ItemSecurityDecisions load() {
-				return loadSecurityDecisions();
+			protected ItemSecurityConstraints load() {
+				return loadSecurityConstraints();
 			}
 		};
 
 	}
 
-	private boolean isItemAllowed(ItemPath itemPath){
-		ItemSecurityDecisions decisions = decisionsModel.getObject();
-		if (itemPath == null || decisions == null || decisions.getItemDecisionMap() == null
-				|| decisions.getItemDecisionMap().size() == 0){
+	private boolean isItemAllowed(ItemPath itemPath) {
+		ItemSecurityConstraints constraints = itemSecurityConstraintsModel.getObject();
+		if (itemPath == null || constraints == null) {
 			return true;
 		}
-		Map<ItemPath, AuthorizationDecisionType> decisionsMap = decisions.getItemDecisionMap();
-		boolean isAllowed = false;
-		for (ItemPath path : decisionsMap.keySet()) {
-			if (path.equivalent(itemPath)
-					&& AuthorizationDecisionType.ALLOW.value().equals(decisionsMap.get(path).value())) {
-				return true;
-			}
-		}
-		return isAllowed;
+		AuthorizationDecisionType decision = constraints.findItemDecision(itemPath);
+		return AuthorizationDecisionType.ALLOW.equals(decision);
 	}
 
-	private ItemSecurityDecisions loadSecurityDecisions(){
+	private ItemSecurityConstraints loadSecurityConstraints() {
 		PageBase pageBase = getPageBase();
 		if (pageBase == null || getModelObject().getTargetRef() == null){
 			return null;
@@ -1159,15 +1151,15 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
 		PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
 				targetObjectOid, pageBase, task, result);
-		ItemSecurityDecisions decisions = null;
+		ItemSecurityConstraints constraints = null;
 		try{
-			decisions =
+			constraints =
 					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 
 		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex){
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
 		}
-		return decisions;
+		return constraints;
 	}
 
 }
