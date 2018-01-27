@@ -294,7 +294,7 @@ public class ObjectDeltaUpdater {
 
             if (ROExtValue.class.isAssignableFrom(type)) {
                 extValues.stream().forEach(item -> {
-                    ROExtValue val = (ROExtValue) item;
+                    ROExtValue val = (ROExtValue) item.repository;
                     val.setOwner(object);
                     val.setOwnerType(objectOwnerType);
                 });
@@ -304,7 +304,7 @@ public class ObjectDeltaUpdater {
                         (existing) -> processObjectValuesCount.apply(existing, (short) extValues.size()));
             } else {
                 extValues.stream().forEach(item -> {
-                    RAExtValue val = (RAExtValue) item;
+                    RAExtValue val = (RAExtValue) item.repository;
                     val.setAnyContainer(assignmentExtension);
                     val.setExtensionType(assignmentExtensionType);
                 });

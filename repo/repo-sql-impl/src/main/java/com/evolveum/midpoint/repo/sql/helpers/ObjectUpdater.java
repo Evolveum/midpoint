@@ -52,6 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.Criteria;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
@@ -434,6 +436,9 @@ public class ObjectUpdater {
                 LOGGER.trace("Starting save.");
 
                 session.save(rObject);
+
+                rObject = session.get(rObject.getClass(), oid);
+                LOGGER.trace("MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
 
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
