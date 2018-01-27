@@ -124,9 +124,9 @@ public class ObjectUpdater {
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
 
-            RObject rObject = createDataObjectFromJAXB(object, operation);
-
             session = baseHelper.beginTransaction();
+
+            RObject rObject = createDataObjectFromJAXB(object, operation);
 
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 

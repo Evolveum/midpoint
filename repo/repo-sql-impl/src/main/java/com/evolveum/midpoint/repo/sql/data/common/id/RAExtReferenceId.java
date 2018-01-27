@@ -17,31 +17,28 @@
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author lazyman
  */
-public class RAExtReferenceId implements Serializable {
+public class RAExtReferenceId extends RAExtBaseId implements Serializable {
 
-    private String ownerOid;
-    private Integer ownerId;
     private String value;
-    private String name;
 
+    @Override
     public String getOwnerOid() {
-        return ownerOid;
+        return super.getOwnerOid();
     }
 
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
+    @Override
     public Integer getOwnerId() {
-        return ownerId;
+        return super.getOwnerId();
     }
 
-    public void setOwnerId(Integer ownerId) {
-        this.ownerId = ownerId;
+    @Override
+    public long getItemId() {
+        return super.getItemId();
     }
 
     public String getValue() {
@@ -52,36 +49,21 @@ public class RAExtReferenceId implements Serializable {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtReferenceId))
+            return false;
+        if (!super.equals(o))
+            return false;
         RAExtReferenceId that = (RAExtReferenceId) o;
-
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-
-        return true;
+        return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override
@@ -89,6 +71,7 @@ public class RAExtReferenceId implements Serializable {
         return "RAReferenceId{" +
                 "ownerOid='" + ownerOid + '\'' +
                 ", ownerId=" + ownerId +
+                ", itemId=" + itemId +
                 ", value='" + value + '\'' +
                 '}';
     }

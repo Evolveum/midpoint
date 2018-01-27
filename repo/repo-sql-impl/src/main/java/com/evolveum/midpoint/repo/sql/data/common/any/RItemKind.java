@@ -18,23 +18,27 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
  */
-public enum RValueType {
+public enum RItemKind {
 
-    PROPERTY(PrismProperty.class, PrismPropertyValue.class),
-    CONTAINER(PrismContainer.class, PrismContainerValue.class),
-    OBJECT(PrismObject.class, PrismContainerValue.class),
-    REFERENCE(PrismReference.class, PrismReferenceValue.class);
+    PROPERTY(PrismProperty.class, PrismPropertyValue.class, PrismPropertyDefinition.class),
+    CONTAINER(PrismContainer.class, PrismContainerValue.class, PrismContainerDefinition.class),
+    OBJECT(PrismObject.class, PrismContainerValue.class, PrismObjectDefinition.class),
+    REFERENCE(PrismReference.class, PrismReferenceValue.class, PrismReferenceDefinition.class);
 
     private Class<? extends Item> itemClass;
     private Class<? extends PrismValue> valueClass;
+    private Class<? extends ItemDefinition> definitionClass;
 
-    private RValueType(Class<? extends Item> itemClass, Class<? extends PrismValue> valueClass) {
+    private RItemKind(Class<? extends Item> itemClass, Class<? extends PrismValue> valueClass,
+            Class<? extends ItemDefinition> definitionClass) {
         this.itemClass = itemClass;
         this.valueClass = valueClass;
+        this.definitionClass = definitionClass;
     }
 
     public Class<? extends PrismValue> getValueClass() {
@@ -45,9 +49,13 @@ public enum RValueType {
         return itemClass;
     }
 
-    public static RValueType getTypeFromItemClass(Class<? extends Item> clazz) {
+	public Class<? extends ItemDefinition> getDefinitionClass() {
+		return definitionClass;
+	}
+
+	public static RItemKind getTypeFromItemClass(Class<? extends Item> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
-        for (RValueType value : RValueType.values()) {
+        for (RItemKind value : RItemKind.values()) {
             if (value.getItemClass().isAssignableFrom(clazz)) {
                 return value;
             }
@@ -56,9 +64,18 @@ public enum RValueType {
         throw new IllegalArgumentException("Unknown enum value type for '" + clazz.getName() + "'.");
     }
 
-    public static RValueType getTypeFromValueClass(Class<? extends PrismValue> clazz) {
+    public static RItemKind getTypeFromItemDefinitionClass(@NotNull Class<? extends ItemDefinition> clazz) {
+        for (RItemKind value : RItemKind.values()) {
+            if (value.getDefinitionClass().isAssignableFrom(clazz)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("Unknown enum value for definition class '" + clazz.getName() + "'.");
+    }
+
+    public static RItemKind getTypeFromValueClass(Class<? extends PrismValue> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
-        for (RValueType value : RValueType.values()) {
+        for (RItemKind value : RItemKind.values()) {
             if (value.getValueClass().isAssignableFrom(clazz)) {
                 return value;
             }

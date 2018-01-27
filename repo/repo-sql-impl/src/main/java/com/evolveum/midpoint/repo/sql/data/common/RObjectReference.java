@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
@@ -34,6 +35,8 @@ import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
+
+import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation;
@@ -171,6 +174,9 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
 
         if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
         if (type != ref.type) return false;
+        if (!Objects.equals(relation, ref.relation)) {
+            return false;
+        }
 
         return true;
     }

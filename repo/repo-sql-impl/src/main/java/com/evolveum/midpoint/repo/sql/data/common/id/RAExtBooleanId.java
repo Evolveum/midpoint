@@ -17,31 +17,28 @@
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author lazyman
  */
-public class RAExtBooleanId implements Serializable {
+public class RAExtBooleanId extends RAExtBaseId implements Serializable {
 
-    private String ownerOid;
-    private Integer ownerId;
     private Boolean value;
-    private String name;
 
+    @Override
     public String getOwnerOid() {
-        return ownerOid;
+        return super.getOwnerOid();
     }
 
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
+    @Override
     public Integer getOwnerId() {
-        return ownerId;
+        return super.getOwnerId();
     }
 
-    public void setOwnerId(Integer ownerId) {
-        this.ownerId = ownerId;
+    @Override
+    public long getItemId() {
+        return super.getItemId();
     }
 
     public Boolean getValue() {
@@ -52,36 +49,22 @@ public class RAExtBooleanId implements Serializable {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RAExtBooleanId raLongId = (RAExtBooleanId) o;
-
-        if (name != null ? !name.equals(raLongId.name) : raLongId.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(raLongId.ownerId) : raLongId.ownerId != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(raLongId.ownerOid) : raLongId.ownerOid != null) return false;
-        if (value != null ? !value.equals(raLongId.value) : raLongId.value != null) return false;
-
-        return true;
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtBooleanId))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtBooleanId that = (RAExtBooleanId) o;
+        return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
+
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override
@@ -89,6 +72,7 @@ public class RAExtBooleanId implements Serializable {
         return "RABooleanId{" +
                 "ownerOid='" + ownerOid + '\'' +
                 ", ownerId=" + ownerId +
+                ", itemId=" + itemId +
                 ", value=" + value +
                 '}';
     }

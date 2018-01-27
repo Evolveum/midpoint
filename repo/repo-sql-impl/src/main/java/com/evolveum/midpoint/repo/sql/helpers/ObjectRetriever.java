@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
-import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
@@ -574,13 +574,13 @@ public class ObjectRetriever {
             // A switch statement used to be here
             // but that caused strange trouble with OpenJDK. This if-then-else works.
             if (item.getDefinition() == null) {
-                RValueType rValType = (RValueType) value[2];
-                if (rValType == RValueType.PROPERTY) {
+                RItemKind rValType = (RItemKind) value[2];
+                if (rValType == RItemKind.PROPERTY) {
                     PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
                     def.setMinOccurs(0);
                     def.setMaxOccurs(-1);
                     item.applyDefinition(def, true);
-                } else if (rValType == RValueType.REFERENCE) {
+                } else if (rValType == RItemKind.REFERENCE) {
                     PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
 	                def.setMinOccurs(0);
 	                def.setMaxOccurs(-1);

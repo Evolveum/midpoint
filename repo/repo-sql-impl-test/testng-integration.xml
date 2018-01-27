@@ -17,7 +17,7 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-    <test name="Startup Tests" parallel="false" preserve-order="true" verbose="10">
+    <test name="Startup Tests" parallel="false" preserve-order="true" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.SpringApplicationContextTest"/>
             <class name="com.evolveum.midpoint.repo.sql.EmbeddedServerModeTest"/>
@@ -27,7 +27,7 @@
     </test>
     <test name="Query Add Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.repo.sql.QueryInterpreter2Test"/>
+            <!--<class name="com.evolveum.midpoint.repo.sql.QueryInterpreter2Test"/>-->
             <class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>
             <class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest"/>
             <class name="com.evolveum.midpoint.repo.sql.AddOverwriteTest"/>

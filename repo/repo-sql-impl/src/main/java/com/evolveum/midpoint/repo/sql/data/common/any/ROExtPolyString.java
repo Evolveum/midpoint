@@ -22,31 +22,19 @@ import com.evolveum.midpoint.repo.sql.data.common.id.ROExtPolyStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
  */
 @Entity
-@IdClass(ROExtPolyStringId.class)
-@Table(name = "m_object_ext_poly")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_poly",
-        indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "eName", "orig"}),
-                @Index(name = "iExtensionPolyStringDef", columnNames = {"owner_oid", "ownerType"})})
-public class ROExtPolyString implements ROExtValue {
-
-    //owner entity
-    private RObject owner;
-    private String ownerOid;
-    private RObjectExtensionType ownerType;
-
-    private boolean dynamic;
-    private String name;
-    private String type;
-    private RValueType valueType;
+//@IdClass(ROExtPolyStringId.class)
+@Table(name = "m_object_ext_poly",
+        indexes = {@Index(name = "iExtensionPolyString", columnList = "ownerType, item_id, orig"),
+                @Index(name = "iExtensionPolyStringDef", columnList = "owner_oid, ownerType")})
+public class ROExtPolyString extends ROExtBase implements ROExtValue {
 
     //orig value
     private String value;
@@ -64,57 +52,53 @@ public class ROExtPolyString implements ROExtValue {
     }
 
     @Id
-    @ForeignKey(name = "fk_object_ext_poly")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_object_ext_poly_owner"))
     @NotQueryable
     public RObject getOwner() {
-        return owner;
+        return super.getOwner();
     }
 
-    @Id
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
-    }
+//    @Id
+//    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+//    public String getOwnerOid() {
+//        return super.getOwnerOid();
+//    }
 
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
-        return ownerType;
+        return super.getOwnerType();
     }
 
     @Id
-    @Column(name = "eName", length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getName() {
-        return name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_object_ext_poly_item"))
+    public RExtItem getItem() {
+        return super.getItem();
     }
 
-    @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getType() {
-        return type;
-    }
+//    @Id
+//    @Column(name = "item_id", insertable = false, updatable = false)
+//    public Long getItemId() {
+//        return super.getItemId();
+//    }
+//
+//    @Override
+//    public void setItemId(Long itemId) {
+//        super.setItemId(itemId);
+//    }
 
-    @Enumerated(EnumType.ORDINAL)
-    public RValueType getValueType() {
-        return valueType;
-    }
-
-    /**
-     * @return true if this property has dynamic definition
-     */
-    @Column(name = "dynamicDef")
-    public boolean isDynamic() {
-        return dynamic;
-    }
-
+    @Id
     @Column(name = "orig")
     public String getValue() {
         return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 
     public String getNorm() {
@@ -125,62 +109,21 @@ public class ROExtPolyString implements ROExtValue {
         this.norm = norm;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public void setValueType(RValueType valueType) {
-        this.valueType = valueType;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setDynamic(boolean dynamic) {
-        this.dynamic = dynamic;
-    }
-
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
-    public void setOwnerType(RObjectExtensionType ownerType) {
-        this.ownerType = ownerType;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtPolyString))
+            return false;
+        if (!super.equals(o))
+            return false;
         ROExtPolyString that = (ROExtPolyString) o;
-
-        if (dynamic != that.dynamic) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (valueType != that.valueType) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        if (norm != null ? !norm.equals(that.norm) : that.norm != null) return false;
-
-        return true;
+        return Objects.equals(value, that.value) &&
+                Objects.equals(norm, that.norm);
     }
 
     @Override
     public int hashCode() {
-        int result = (dynamic ? 1 : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
+        return Objects.hash(super.hashCode(), value, norm);
     }
 }

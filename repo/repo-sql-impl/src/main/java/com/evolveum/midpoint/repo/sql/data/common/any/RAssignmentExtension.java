@@ -42,13 +42,13 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@IdClass(RAssignmentExtensionId.class)
+//@IdClass(RAssignmentExtensionId.class)
 @Table(name = "m_assignment_extension")
 public class RAssignmentExtension implements Serializable {
 
     private RAssignment owner;
-    private String ownerOid;
-    private Integer ownerId;
+//    private String ownerOid;
+//    private Integer ownerId;
 
     private Short stringsCount;
     private Short longsCount;
@@ -64,31 +64,37 @@ public class RAssignmentExtension implements Serializable {
     private Set<RAExtPolyString> polys;
     private Set<RAExtBoolean> booleans;
 
-    @ForeignKey(name = "none")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
+//    @ForeignKey(name = "none")
+//    @MapsId("owner")
+    @Id
+    //@MapsId("owner")
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = {CascadeType.ALL})
+    @JoinColumns(value = {
+            @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
+            @JoinColumn(name = "owner_id", referencedColumnName = "id") },
+            foreignKey = @javax.persistence.ForeignKey(name = "fk_assignment_extension_owner"))
     @NotQueryable
     public RAssignment getOwner() {
         return owner;
     }
 
-    @Id
-    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOwnerOid();
-        }
-        return ownerOid;
-    }
-
-    @Id
-    @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID)
-    public Integer getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
+//    @Id
+//    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+//    public String getOwnerOid() {
+//        if (ownerOid == null && owner != null) {
+//            ownerOid = owner.getOwnerOid();
+//        }
+//        return ownerOid;
+//    }
+//
+//    @Id
+//    @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID)
+//    public Integer getOwnerId() {
+//        if (ownerId == null && owner != null) {
+//            ownerId = owner.getId();
+//        }
+//        return ownerId;
+//    }
 
     @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -204,9 +210,9 @@ public class RAssignmentExtension implements Serializable {
         this.longs = longs;
     }
 
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
+//    public void setOwnerOid(String ownerOid) {
+//        this.ownerOid = ownerOid;
+//    }
 
     public void setStrings(Set<RAExtString> strings) {
         this.strings = strings;
@@ -216,9 +222,9 @@ public class RAssignmentExtension implements Serializable {
         this.owner = owner;
     }
 
-    public void setOwnerId(Integer ownerId) {
-        this.ownerId = ownerId;
-    }
+//    public void setOwnerId(Integer ownerId) {
+//        this.ownerId = ownerId;
+//    }
 
     public void setBooleans(Set<RAExtBoolean> booleans) {
         this.booleans = booleans;
@@ -277,11 +283,11 @@ public class RAssignmentExtension implements Serializable {
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
-        Set<RAnyValue> values = new HashSet<RAnyValue>();
+        Set<RAnyValue> values = new HashSet<>();
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, true));
+                values.addAll(converter.convertToRValue(item, true, null));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

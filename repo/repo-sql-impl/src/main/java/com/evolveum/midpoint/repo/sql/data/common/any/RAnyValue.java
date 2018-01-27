@@ -33,9 +33,9 @@ public interface RAnyValue<T> extends Serializable {
 
     String getType();
 
-    RValueType getValueType();
+    RItemKind getValueType();
 
-    boolean isDynamic();
+//    boolean isDynamic();
 
     T getValue();
 
@@ -43,7 +43,11 @@ public interface RAnyValue<T> extends Serializable {
 
     void setType(String type);
 
-    void setValueType(RValueType valueType);
+    void setValueType(RItemKind valueType);
 
-    void setDynamic(boolean dynamic);
+    RExtItem getItem();
+
+    void setItem(RExtItem item);
+
+//    void setDynamic(boolean dynamic);
 }

@@ -25,6 +25,9 @@ import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -62,9 +65,16 @@ public class SchemaTest {
 
         metadata.addPackage("com.evolveum.midpoint.repo.sql.type");
 
-        SchemaExport export = new SchemaExport();
+	    try {
+		    Files.deleteIfExists(new File(fileName).toPath());
+	    } catch (IOException e) {
+		    // just ignore
+	    }
+
+	    SchemaExport export = new SchemaExport();
         export.setOutputFile(fileName);
         export.setDelimiter(";");
+        export.setFormat(true);
         export.execute(EnumSet.of(TargetType.SCRIPT), SchemaExport.Action.CREATE, metadata.buildMetadata());
     }
 

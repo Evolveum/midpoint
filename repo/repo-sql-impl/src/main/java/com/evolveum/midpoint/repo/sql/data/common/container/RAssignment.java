@@ -45,6 +45,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
@@ -133,7 +134,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.assignmentOwner = assignmentOwner;
     }
 
-    @Id
+    //@Id
     @org.hibernate.annotations.ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -143,6 +144,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return owner;
     }
 
+    @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {

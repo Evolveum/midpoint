@@ -19,32 +19,14 @@ package com.evolveum.midpoint.repo.sql.data.common.id;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author lazyman
  */
-public class ROExtBooleanId implements Serializable {
+public class ROExtBooleanId extends ROExtBaseId implements Serializable {
 
-    private String ownerOid;
-    private RObjectExtensionType ownerType;
     private Boolean value;
-    private String name;
-
-    public String getOwnerOid() {
-        return ownerOid;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
-    public RObjectExtensionType getOwnerType() {
-        return ownerType;
-    }
-
-    public void setOwnerType(RObjectExtensionType ownerType) {
-        this.ownerType = ownerType;
-    }
 
     public Boolean getValue() {
         return value;
@@ -54,40 +36,25 @@ public class ROExtBooleanId implements Serializable {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtBooleanId))
+            return false;
+        if (!super.equals(o))
+            return false;
         ROExtBooleanId that = (ROExtBooleanId) o;
-
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (ownerType != that.ownerType) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-
-        return true;
+        return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override
     public String toString() {
-        return "ROExtBooleanId[" + ownerOid + "," + ownerType + "," + value + "]";
+        return "ROExtBooleanId[" + ownerOid + "," + ownerType + "," + itemId + "," + value + "]";
     }
 }

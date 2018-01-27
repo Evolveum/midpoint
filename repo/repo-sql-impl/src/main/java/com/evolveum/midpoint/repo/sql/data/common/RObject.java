@@ -94,12 +94,12 @@ import java.util.Set;
         @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
         @NamedQuery(name = "listResourceObjectShadows", query = "select s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtString", query = "select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.name, c.type, c.valueType from ROExtLong as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtBoolean", query = "select c.name, c.type, c.valueType from ROExtBoolean as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.item.name, c.item.type, c.item.kind from ROExtDate as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtString", query = "select c.item.name, c.item.type, c.item.kind from ROExtString as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.item.name, c.item.type, c.item.kind from ROExtPolyString as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.item.name, c.item.type, c.item.kind from ROExtLong as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.item.name, c.item.type, c.item.kind from ROExtReference as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtBoolean", query = "select c.item.name, c.item.type, c.item.kind from ROExtBoolean as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "isAnySubordinateAttempt.oneLowerOid", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid=:dOid"),
         @NamedQuery(name = "isAnySubordinateAttempt.moreLowerOids", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (:dOids)"),
         @NamedQuery(name = "get.lookupTableLastId", query = "select max(r.id) from RLookupTableRow r where r.ownerOid = :oid"),
@@ -729,40 +729,40 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return RUtil.getDebugString(this);
     }
 
-    public static void copyFromJAXB(PrismContainerValue containerValue, RObject repo, RepositoryContext repositoryContext,
+    public static void copyFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo, RepositoryContext repositoryContext,
 			RObjectExtensionType ownerType) throws DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
-        Set<RAnyValue> values = new HashSet<RAnyValue>();
+        Set<RAnyValue<?>> values = new HashSet<>();
         try {
             List<Item<?,?>> items = containerValue.getItems();
             //TODO: is this enough? should we try items without definitions?
             if (items != null) {
-                for (Item item : items) {
-                    values.addAll(converter.convertToRValue(item, false));
+                for (Item<?,?> item : items) {
+                    values.addAll(converter.convertToRValue(item, false, null));
                 }
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
-        for (RAnyValue value : values) {
-            ROExtValue ex = (ROExtValue) value;
+        for (RAnyValue<?> value : values) {
+            ROExtValue<?> ex = (ROExtValue<?>) value;
             ex.setOwner(repo);
             ex.setOwnerType(ownerType);
 
             if (value instanceof ROExtDate) {
-                repo.getDates().add(value);
+                repo.getDates().add((ROExtDate) value);
             } else if (value instanceof ROExtLong) {
-                repo.getLongs().add(value);
+                repo.getLongs().add((ROExtLong) value);
             } else if (value instanceof ROExtReference) {
-                repo.getReferences().add(value);
+                repo.getReferences().add((ROExtReference) value);
             } else if (value instanceof ROExtString) {
-                repo.getStrings().add(value);
+                repo.getStrings().add((ROExtString) value);
             } else if (value instanceof ROExtPolyString) {
-                repo.getPolys().add(value);
+                repo.getPolys().add((ROExtPolyString) value);
             } else if (value instanceof ROExtBoolean) {
-                repo.getBooleans().add(value);
+                repo.getBooleans().add((ROExtBoolean) value);
             }
         }
 

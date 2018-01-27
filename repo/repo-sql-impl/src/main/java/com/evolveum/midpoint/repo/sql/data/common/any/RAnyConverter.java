@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
+import org.hibernate.Session;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -47,6 +49,8 @@ import java.util.*;
  * @author lazyman
  */
 public class RAnyConverter {
+
+	public static final ThreadLocal<Session> sessionThreadLocal = new ThreadLocal<>();
 
     private enum ValueType {
 
@@ -127,35 +131,33 @@ public class RAnyConverter {
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws SchemaException, DtoTranslationException {
+    public Set<RAnyValue<?>> convertToRValue(Item<?,?> item, boolean assignment, Session session) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
+        if (session == null) {
+        	session = sessionThreadLocal.get();
+        }
+
         ItemDefinition definition = item.getDefinition();
-        Set<RAnyValue> rValues = new HashSet<>();
+        Set<RAnyValue<?>> rValues = new HashSet<>();
         if (!isIndexed(definition, prismContext)) {
             return rValues;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Converting any values of item {}; definition: {}", item, definition);
-        }
+	    LOGGER.trace("Converting any values of item {}; definition: {}", item, definition);
 
         try {
             RAnyValue rValue;
-            List<PrismValue> values = item.getValues();
+            List<? extends PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismPropertyValue) {
-                    PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-
-                    rValue = extractAndCreateValue(definition, propertyValue, assignment);
+                    rValue = extractAndCreateValue(definition, (PrismPropertyValue<?>) value, assignment);
                 } else if (value instanceof PrismReferenceValue) {
                     if (assignment) {
-                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                        rValue = RAExtReference.createReference(referenceValue);
+                        rValue = RAExtReference.createReference((PrismReferenceValue) value);
                     } else {
-                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                        rValue = ROExtReference.createReference(referenceValue);
+                        rValue = ROExtReference.createReference((PrismReferenceValue) value);
                     }
                 } else if (value == null) {
                     continue;            // shouldn't occur anyway
@@ -163,12 +165,7 @@ public class RAnyConverter {
                     // shouldn't get here because if isIndexed test above
                     throw new AssertionError("Wrong value type: " + value);
                 }
-
-                rValue.setName(RUtil.qnameToString(definition.getName()));
-                rValue.setType(RUtil.qnameToString(definition.getTypeName()));
-                rValue.setValueType(getValueType(value.getParent()));
-                rValue.setDynamic(definition.isDynamic());
-
+                rValue.setItem(ExtItemDictionary.getInstance().findItemByDefinition(definition, session));
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -239,13 +236,13 @@ public class RAnyConverter {
         }
     }
 
-    private RValueType getValueType(Itemable itemable) {
+    private RItemKind getValueType(Itemable itemable) {
         Validate.notNull(itemable, "Value parent must not be null.");
         if (!(itemable instanceof Item)) {
             throw new IllegalArgumentException("Item type '" + itemable.getClass() + "' not supported in 'any' now.");
         }
 
-        return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
+        return RItemKind.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {

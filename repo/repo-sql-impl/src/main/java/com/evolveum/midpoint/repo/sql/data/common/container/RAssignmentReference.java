@@ -48,7 +48,7 @@ public class RAssignmentReference extends RContainerReference {
     private RAssignment owner;
 
     @ForeignKey(name = "fk_assignment_reference")
-    @MapsId("owner")
+    //@MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RAssignment getOwner() {
@@ -56,7 +56,7 @@ public class RAssignmentReference extends RContainerReference {
     }
 
     @Id
-    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     @NotQueryable
     public String getOwnerOid() {
         return super.getOwnerOid();
@@ -64,7 +64,7 @@ public class RAssignmentReference extends RContainerReference {
 
 
     @Id
-    @Column(name = "owner_id")
+    @Column(name = "owner_id", insertable = false, updatable = false)
     @NotQueryable
     public Integer getOwnerId() {
         return super.getOwnerId();
