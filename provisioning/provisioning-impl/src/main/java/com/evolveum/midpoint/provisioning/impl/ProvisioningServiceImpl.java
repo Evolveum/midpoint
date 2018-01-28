@@ -749,7 +749,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#executeScript(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <T extends ObjectType> void executeScript(String resourceOid, ProvisioningScriptType script,
+	public <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		Validate.notNull(resourceOid, "Oid of object for script execution must not be null.");
@@ -760,9 +760,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addArbitraryObjectAsParam("script", script);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
+		Object scriptResult;
 		try {
 
-			resourceManager.executeScript(resourceOid, script, task, result);
+			scriptResult = resourceManager.executeScript(resourceOid, script, task, result);
 
 		} catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error  e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
@@ -772,6 +773,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		result.cleanupResult();
 
+		return scriptResult;
 	}
 
 
