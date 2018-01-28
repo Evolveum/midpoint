@@ -1931,11 +1931,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="uri" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Identifier (URI) of the state. This is the value that is used in the
+                            Identifier of the state. This is the value that is used in the
                             lifecycleState property.
                         </p>
                     </xsd:documentation>
@@ -2023,11 +2023,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="targetState" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+            <xsd:element name="targetState" type="xsd:string" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Identifier (URI) of the state that is the target of the transition.
+                            Identifier of the state that is the target of the transition.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>

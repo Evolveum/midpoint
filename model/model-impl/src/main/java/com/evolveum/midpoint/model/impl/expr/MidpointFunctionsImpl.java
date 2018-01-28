@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -413,6 +416,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public boolean isDirectlyAssigned(ObjectType target) {
 		return isDirectlyAssigned(target.getOid());
+	}
+
+	// EXPERIMENTAL!!
+	@Experimental
+	public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
+		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext == null) {
+			throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with model context");
+		}
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
+		}
+		Collection<EvaluatedAssignmentImpl<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
+		if (nonNegativeEvaluatedAssignments == null) {
+			return false;
+		}
+		for (EvaluatedAssignmentImpl<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+			PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
+			if (target == null) {
+				continue;
+			}
+			Collection<String> targetSubtypes = ObjectTypeUtil.getSubtypeValues((PrismObject) target);
+			if (targetSubtypes.contains(roleSubtype)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

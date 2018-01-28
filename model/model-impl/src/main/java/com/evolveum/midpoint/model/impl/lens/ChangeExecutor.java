@@ -1575,11 +1575,15 @@ public class ChangeExecutor {
 						continue;
 					}
 				}
-				if (!script.getOperation().contains(operation)) {
-					continue;
+				if (operation != null) {
+					if (!script.getOperation().contains(operation)) {
+						continue;
+					}
 				}
-				if (order != null && order != script.getOrder()) {
-					continue;
+				if (order != null) {
+					if (order != null && order != script.getOrder()) {
+						continue;
+					}
 				}
 				// Let's do the most expensive evaluation last
 				if (!evaluateScriptCondition(script, variables, task, result)){
@@ -1630,9 +1634,10 @@ public class ChangeExecutor {
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				result);
+		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, 
+				objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, params, context,
-						objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
+				.evaluateExpressionInContext(expression, params, env);
 
 		Collection<PrismPropertyValue<String>> nonNegativeValues = null;
 		if (outputTriple != null) {
@@ -1684,6 +1689,21 @@ public class ChangeExecutor {
 		if (resourceScripts == null) {
 			return;
 		}
+		
+		executeProvisioningScripts(context, projContext, resourceScripts, ProvisioningOperationTypeType.RECONCILE, order, task, parentResult);
+	}
+	
+	private <T extends ObjectType, F extends ObjectType> Object executeProvisioningScripts(LensContext<F> context, LensProjectionContext projContext,
+			OperationProvisioningScriptsType scripts, ProvisioningOperationTypeType operation, BeforeAfterType order, Task task, OperationResult parentResult) 
+					throws SchemaException, ObjectNotFoundException,
+					ExpressionEvaluationException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ObjectAlreadyExistsException {
+
+		ResourceType resource = projContext.getResource();
+		if (resource == null) {
+			LOGGER.warn("Resource does not exist. Skipping processing reconciliation scripts.");
+			return null;
+		}
 
 		PrismObject<F> user = null;
 		PrismObject<ShadowType> shadow = null;
@@ -1708,26 +1728,40 @@ public class ChangeExecutor {
 		} else if (order == BeforeAfterType.AFTER) {
 			shadow = (PrismObject<ShadowType>) projContext.getObjectNew();
 		} else {
-			throw new IllegalArgumentException("Unknown order " + order);
+			shadow = (PrismObject<ShadowType>) projContext.getObjectCurrent();
 		}
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow,
 				projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
 				context.getSystemConfiguration(), projContext);
+		Object scriptResult = null;
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, projContext, task, parentResult));
 		try {
-		OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
-				projContext.getResourceShadowDiscriminator(), ProvisioningOperationTypeType.RECONCILE, order,
-				variables, context, projContext, task, parentResult);
-		for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
-			Utils.setRequestee(task, context);
-			provisioning.executeScript(resource.getOid(), script, task, parentResult);
-			Utils.clearRequestee(task);
-		}
+			OperationProvisioningScriptsType evaluatedScript = evaluateScript(scripts,
+					projContext.getResourceShadowDiscriminator(), operation, order,
+					variables, context, projContext, task, parentResult);
+			for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
+				Utils.setRequestee(task, context);
+				scriptResult = provisioning.executeScript(resource.getOid(), script, task, parentResult);
+				Utils.clearRequestee(task);
+			}
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 
+		return scriptResult;
 	}
 
+	private <T extends ObjectType, F extends ObjectType> Object executeAdHocProvisioningScript(String resourceOid,
+			String language, String code, Task task, OperationResult parentResult) 
+					throws SchemaException, ObjectNotFoundException,
+					ExpressionEvaluationException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ObjectAlreadyExistsException {
+		OperationProvisioningScriptType script = new OperationProvisioningScriptType();
+		script.setCode(code);
+		script.setLanguage(language);
+		script.setHost(ProvisioningScriptHostType.RESOURCE);
+		
+		return provisioning.executeScript(resourceOid, script, task, parentResult);
+	}
 }

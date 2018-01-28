@@ -69,6 +69,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersona"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersonaPassword"/>
+            <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
