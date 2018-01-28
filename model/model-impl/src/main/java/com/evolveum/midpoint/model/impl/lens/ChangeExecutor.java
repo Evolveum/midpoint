@@ -1752,16 +1752,5 @@ public class ChangeExecutor {
 		return scriptResult;
 	}
 
-	private <T extends ObjectType, F extends ObjectType> Object executeAdHocProvisioningScript(String resourceOid,
-			String language, String code, Task task, OperationResult parentResult) 
-					throws SchemaException, ObjectNotFoundException,
-					ExpressionEvaluationException, CommunicationException, ConfigurationException,
-					SecurityViolationException, ObjectAlreadyExistsException {
-		OperationProvisioningScriptType script = new OperationProvisioningScriptType();
-		script.setCode(code);
-		script.setLanguage(language);
-		script.setHost(ProvisioningScriptHostType.RESOURCE);
-		
-		return provisioning.executeScript(resourceOid, script, task, parentResult);
-	}
+	
 }

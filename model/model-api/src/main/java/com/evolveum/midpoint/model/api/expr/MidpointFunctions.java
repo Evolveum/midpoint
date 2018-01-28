@@ -1105,5 +1105,15 @@ public interface MidpointFunctions {
 	<F extends ObjectType> ModelElementContext<F> getFocusContext();
 
 	ModelProjectionContext getProjectionContext();
+	
+	Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException;
+	
+	Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException;
 
 }

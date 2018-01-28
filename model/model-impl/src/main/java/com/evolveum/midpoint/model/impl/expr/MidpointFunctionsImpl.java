@@ -1617,4 +1617,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public String translate(LocalizableMessageType message) {
 		return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
 	}
+	
+	@Override
+	public Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException {
+		return executeAdHocProvisioningScript(resource.getOid(), language, code);
+	}
+	
+	@Override
+	public Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+					throws SchemaException, ObjectNotFoundException,
+					ExpressionEvaluationException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ObjectAlreadyExistsException {
+		OperationProvisioningScriptType script = new OperationProvisioningScriptType();
+		script.setCode(code);
+		script.setLanguage(language);
+		script.setHost(ProvisioningScriptHostType.RESOURCE);
+		
+		return provisioningService.executeScript(resourceOid, script, getCurrentTask(), getCurrentResult());
+	}
 }
