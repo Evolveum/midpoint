@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
@@ -530,16 +532,15 @@ public class LensUtil {
 		if (expressionType == null) {
 			return true;
 		}
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, task, result);
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
+				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
 
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, context, null, task, result);
+		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
 			return false;
@@ -1047,10 +1048,10 @@ public class LensUtil {
 				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
 				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
-		context.setAdditionalConvertor(additionalConvertor);
+		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
+		eeContext.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, context, task, result);
+				.evaluateExpressionInContext(expression, eeContext, task, result);
 		List<T> results = exprResultTriple.getZeroSet().stream()
 				.map(ppv -> (T) ppv.getRealValue())
 				.collect(Collectors.toList());

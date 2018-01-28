@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,42 +85,23 @@ public class FocusProcessor {
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 
-	@Autowired
-    private InboundProcessor inboundProcessor;
-
-	@Autowired
-    private AssignmentProcessor assignmentProcessor;
-
-	@Autowired
-	private ObjectTemplateProcessor objectTemplateProcessor;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private CredentialsProcessor credentialsProcessor;
-
-	@Autowired
-	private ModelObjectResolver modelObjectResolver;
-
-	@Autowired
-	private ActivationComputer activationComputer;
-
-	@Autowired
-	private ExpressionFactory expressionFactory;
+	@Autowired private InboundProcessor inboundProcessor;
+	@Autowired private AssignmentProcessor assignmentProcessor;
+	@Autowired private ObjectTemplateProcessor objectTemplateProcessor;
+	@Autowired private PrismContext prismContext;
+	@Autowired private CredentialsProcessor credentialsProcessor;
+	@Autowired private ModelObjectResolver modelObjectResolver;
+	@Autowired private ActivationComputer activationComputer;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private MappingEvaluator mappingHelper;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private PolicyRuleProcessor policyRuleProcessor;
+	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired
-    private MappingEvaluator mappingHelper;
-
-	@Autowired
-    private OperationalDataManager metadataManager;
-
-	@Autowired
-	private PolicyRuleProcessor policyRuleProcessor;
 
 	public <O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) 
@@ -260,6 +241,10 @@ public class FocusProcessor {
 		        LensUtil.partialExecute("assignmentsConflicts",
 						() -> assignmentProcessor.checkForAssignmentConflicts(context, result),
 						partialProcessingOptions::getAssignmentsConflicts);
+		        
+		        LensUtil.partialExecute("focusLifecycle",
+						() -> focusLifecycleProcessor.processLifecycle(context, now, task, result),
+						partialProcessingOptions::getFocusLifecycle);
 
 		        // OBJECT TEMPLATE (after assignments)
 

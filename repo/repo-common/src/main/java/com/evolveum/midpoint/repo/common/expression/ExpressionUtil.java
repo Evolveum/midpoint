@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,8 +81,6 @@ import org.jetbrains.annotations.Nullable;
 public class ExpressionUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
-
-	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
 	public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
 			PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
@@ -728,12 +726,15 @@ public class ExpressionUtil {
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
 				shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
-				parentResult);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
+		return getExpressionOutputValue(outputTriple, shortDesc);
+	}
+	
+	public static <V extends PrismValue> V getExpressionOutputValue(PrismValueDeltaSetTriple<V> outputTriple, String shortDesc) throws ExpressionEvaluationException {
 		if (outputTriple == null) {
 			return null;
 		}
@@ -984,9 +985,11 @@ public class ExpressionUtil {
 		}
 	}
 
-	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(ExpressionType conditionExpressionType, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		PrismPropertyDefinition<Boolean> conditionOutputDef = new PrismPropertyDefinitionImpl<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		return expressionFactory.makeExpression(conditionExpressionType, conditionOutputDef, shortDesc, task, result);
+	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(
+			ExpressionType conditionExpressionType,
+			ExpressionFactory expressionFactory,
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), shortDesc, task, result);
 	}
 
 	public static Function<Object, Object> createRefConvertor(QName defaultType) {
@@ -1008,5 +1011,9 @@ public class ExpressionUtil {
 				return o;		// let someone else complain at this
 			}
 		};
+	}
+	
+	public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
+		return new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
 	}
 }

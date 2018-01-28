@@ -16076,6 +16076,7 @@
             <xsd:element name="assignmentsOrg" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="assignmentsMembershipAndDelegate" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="assignmentsConflicts" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="objectTemplateAfterAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="focusCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="focusPolicyRules" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>

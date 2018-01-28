@@ -343,6 +343,7 @@ public interface ProvisioningService {
 	 *            script to execute
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
+	 * @return 
 	 *
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
@@ -357,7 +358,7 @@ public interface ProvisioningService {
 	 * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
 	 */
-	<T extends ObjectType> void executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+	<T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
 	/**
