@@ -357,13 +357,9 @@ public class SchemaTransformer {
 	private <D extends ItemDefinition> void applySecurityConstraintsPhase(D itemDefinition, ObjectSecurityConstraints securityConstraints,
             AuthorizationPhaseType phase) {
 		Validate.notNull(phase);
-		AuthorizationDecisionType defaultReadDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase);
-		AuthorizationDecisionType defaultAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
-		AuthorizationDecisionType defaultModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-		LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}, defaults R={}, A={}, M={}",
-				itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+		LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}", itemDefinition, phase);
 		applySecurityConstraintsItemDef(itemDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints,
-				defaultReadDecision, defaultAddDecision, defaultModifyDecision, phase);
+				null, null, null, phase);
 
 	}
 
@@ -435,7 +431,7 @@ public class SchemaTransformer {
     public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath nameOnlyItemPath, String actionUrl,
 			AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
     	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(nameOnlyItemPath, actionUrl, phase);
-//    	LOGGER.trace("Explicit decision for {}: {}", itemPath, explicitDecision);
+//    	LOGGER.trace("Explicit decision for {} ({} {}): {}", nameOnlyItemPath, actionUrl, phase, explicitDecision);
     	if (explicitDecision != null) {
     		return explicitDecision;
     	} else {

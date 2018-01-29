@@ -10279,7 +10279,29 @@
         <xsd:sequence>
         	<xsd:element name="name" type="xsd:string" minOccurs="0"/>
         	<xsd:element ref="tns:description" minOccurs="0"/>
-        	<xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow"/>
+        	<xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				<p>
+        					Decision that this authorization specifies. If the decision is "allow" (which is the
+        					default) then this authorization allows access. If the decision is "deny" then this
+        					authorization denies access. Denial is a final decisions. If at least one applicable
+        					authorization denies access then the access is always denied, regadless of any other
+        					allow authorizations.
+        				</p>
+        				<p>
+	        				Note: there is subtle (but important) difference between not allowing access and
+	        				denying access. Authorization that denies access specifies a final decision. Denied
+	        				access cannot be allowed by any other authorization. Deny authorization are very
+	        				strong from a security perspective, but it is extremely difficult to combine them
+	        				with other authorizations. Therefore deny authorizations are used very rarely.
+	        				On the other hand if the access is not allowed by a specific authorization then
+	        				it can still be allowed by another authorization. This makes authorizations "mergeable".
+	        				Not allowing access is usually the right approach.
+        				</p>
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="action" type="xsd:anyURI" minOccurs="1" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -10317,10 +10339,48 @@
         	<xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Specification of items that form a scope of this authorization. This autorization will
-        				only affect the items specified in this element. If no items are specified then the
-        				authorization applies to all items in the objects.
+        				<p>
+	        				Specification of items that form a scope of this authorization. This autorization will
+	        				only affect the items specified in this element. If no items are specified then the
+	        				authorization applies to all items in the objects.
+        				</p>
+        				<p>
+        					The item specification must not be combined with exceptItem. One or the other can be
+        					used, but not both. If neither item nor exceptItem is specified then it is assumed
+        					that the authorization applies to all items.
+        				</p>
         			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="exceptItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				<p>
+	        				Specification of items that are excluded from the scope of this authorization.
+	        				I.e. the authorization applies to all the items except those items that are
+	        				specified here.
+        				</p>
+        				<p>
+	        				Note: there is subtle (but important) difference between not allowing access and
+	        				denying access. Authorization that denies access specifies a final decision. Denied
+	        				access cannot be allowed by any other authorization. Deny authorization are very
+	        				strong from a security perspective, but it is extremely difficult to combine them
+	        				with other authorizations. Therefore deny authorizations are used very rarely.
+	        				On the other hand if the access is not allowed by a specific authorization then
+	        				it can still be allowed by another authorization. This makes authorizations "mergeable".
+	        				Not allowing access is usually the right approach.
+	        				The exceptItem specification is a convenient way to "not allow" access to specific
+	        				items.
+        				</p>
+        				<p>
+        					The item specification must not be combined with exceptItem. One or the other can be
+        					used, but not both. If neither item nor exceptItem is specified then it is assumed
+        					that the authorization applies to all items.
+        				</p>
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7.1</a:since>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="target" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
@@ -16016,6 +16076,7 @@
             <xsd:element name="assignmentsOrg" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="assignmentsMembershipAndDelegate" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="assignmentsConflicts" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="objectTemplateAfterAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="focusCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="focusPolicyRules" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,10 @@ package com.evolveum.midpoint.model.intest;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
@@ -38,6 +34,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -47,6 +44,7 @@ import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -64,6 +62,10 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
 	protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
+	
+	protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
+	protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
+	protected static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
 
 	public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
 
@@ -73,14 +75,13 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
 	private String userCleanOid;
 
-	public TestMisc() throws JAXBException {
-		super();
-	}
-
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_SCRIPTY_NAME,
+				RESOURCE_SCRIPTY_FILE, RESOURCE_SCRIPTY_OID, initTask, initResult);
 	}
 
 	@Test
@@ -293,6 +294,37 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertInducedRole(roleAfter, ROLE_PIRATE_OID);
         assertInducedRole(roleAfter, ROLE_SAILOR_OID);
         assertInducements(roleAfter, 2);
+	}
+	
+	@Test
+    public void test500AddHocProvisioningScriptAssignJackResourceScripty() throws Exception {
+		final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 0);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        
+        assertDummyAccount(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+        		"Mr. POLY JACK SPARROW");
 	}
 
 }
