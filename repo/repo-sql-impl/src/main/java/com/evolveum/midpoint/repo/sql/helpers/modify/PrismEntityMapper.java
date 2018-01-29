@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -165,7 +168,7 @@ public class PrismEntityMapper {
         return Enum.class.isAssignableFrom(inputType) && SchemaEnum.class.isAssignableFrom(outputType);
     }
 
-    private static class OperationExecutionMapper implements Mapper<OperationExecutionType, ROperationExecution> {
+    private static class OperationExecutionMapper extends ContainerMapper<OperationExecutionType, ROperationExecution> {
 
         @Override
         public ROperationExecution map(OperationExecutionType input, MapperContext context) {
@@ -182,12 +185,13 @@ public class PrismEntityMapper {
                 throw new SystemException("Couldn't translate trigger to entity", ex);
             }
 
+            lookForContainerIdInOldValues(execution, context);
 
             return execution;
         }
     }
 
-    private static class TriggerMapper implements Mapper<TriggerType, RTrigger> {
+    private static class TriggerMapper extends ContainerMapper<TriggerType, RTrigger> {
 
         @Override
         public RTrigger map(TriggerType input, MapperContext context) {
@@ -204,12 +208,13 @@ public class PrismEntityMapper {
                 throw new SystemException("Couldn't translate trigger to entity", ex);
             }
 
+            lookForContainerIdInOldValues(trigger, context);
 
             return trigger;
         }
     }
 
-    private static class AssignmentMapper implements Mapper<AssignmentType, RAssignment> {
+    private static class AssignmentMapper extends ContainerMapper<AssignmentType, RAssignment> {
 
         @Override
         public RAssignment map(AssignmentType input, MapperContext context) {
@@ -225,6 +230,8 @@ public class PrismEntityMapper {
             } catch (DtoTranslationException ex) {
                 throw new SystemException("Couldn't translate assignment to entity", ex);
             }
+
+            lookForContainerIdInOldValues(ass, context);
 
             return ass;
         }
@@ -356,6 +363,41 @@ public class PrismEntityMapper {
     private interface Mapper<I, O> {
 
         O map(I input, MapperContext context);
+    }
+
+    private static abstract class ContainerMapper<I extends Containerable, O extends Container> implements Mapper<I, O> {
+
+        protected void lookForContainerIdInOldValues(O output, MapperContext context) {
+            if (output == null || output.getId() != null) {
+                return;
+            }
+
+            ItemDelta delta = context.getDelta();
+            if (delta == null) {
+                return;
+            }
+
+            Collection oldValues = delta.getEstimatedOldValues();
+            if (oldValues == null) {
+                return;
+            }
+
+            for (Object object : oldValues) {
+                PrismContainerValue val = null;
+                if (object instanceof Containerable) {
+                    Containerable c = (Containerable)object;
+                    val = c.asPrismContainerValue();
+                } else if (object instanceof PrismContainerValue) {
+                    val = (PrismContainerValue) object;
+                }
+
+                if (val != null && val.getId() != null) {
+                    Long id = val.getId();
+                    output.setId(id.intValue());
+                    break;
+                }
+            }
+        }
     }
 
     private static class Key {
