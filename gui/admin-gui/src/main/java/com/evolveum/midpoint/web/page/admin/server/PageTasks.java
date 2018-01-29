@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyEnumValuesModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -99,6 +100,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -246,6 +248,39 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 addInlineMenuToTaskRow(dto);
 
                 return dto;
+            }
+            
+            @Override
+            public IModel<TaskDto> model(TaskDto object) {
+            	return new LoadableDetachableModel<TaskDto>(object) {
+            		
+            		private static final long serialVersionUID = 1L;
+					private String oid;
+            		
+            		protected void onDetach() {
+            			this.oid = getObject().getOid();
+            		}
+            		
+					@Override
+					protected TaskDto load() {
+						Task task = createSimpleTask("load task");
+						OperationResult result = task.getResult();
+						PrismObject<TaskType> taskType = WebModelServiceUtils.loadObject(TaskType.class, oid, PageTasks.this, task, result);
+						if (taskType == null) {
+							return null;
+						}
+						
+						TaskDto taskDto = null;
+						try {
+							taskDto = new TaskDto(taskType.asObjectable(), null, getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, task, result, PageTasks.this);
+						} catch (SchemaException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						return taskDto;
+					};
+            		
+				};
             }
         };
 
