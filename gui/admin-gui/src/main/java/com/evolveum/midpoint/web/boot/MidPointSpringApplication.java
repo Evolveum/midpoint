@@ -27,6 +27,8 @@ import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -40,6 +42,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.http.HttpStatus;
@@ -48,6 +51,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
+
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -95,11 +100,38 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
     private static final String USER_HOME_PROPERTY_NAME = "user.home";
+    private static ConfigurableApplicationContext applicationContext = null;
 
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
+        String mode = args != null && args.length > 0 ? args[0] : null;
+        
+        if(LOGGER.isDebugEnabled()){
+            LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                    " Application mode:" + mode + " context:" + applicationContext);
+        }
+        
+        if (applicationContext != null && mode != null && "stop".equals(mode)) {
+            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
+                
+                @Override
+                public int getExitCode() {
+                    
+                    return 0;
+                }
+            }));
+            
+        } else {
+            
+            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+            
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                             " Application started context:" + applicationContext);
+            }
+            
+        }
 
-        configureApplication(new SpringApplicationBuilder()).run(args);
     }
 
     @Override
