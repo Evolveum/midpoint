@@ -341,6 +341,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE = new File(TEST_DIR, "role-assign-self-requestable-any-approver.xml");
 	protected static final String ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID = "d3e83cce-bb25-11e7-ae7c-b73d2208bf2a";
+	
+	protected static final File ROLE_UNASSIGN_SELF_REQUESTABLE_FILE = new File(TEST_DIR, "role-unassign-self-requestable.xml");
+	protected static final String ROLE_UNASSIGN_SELF_REQUESTABLE_OID = "7c903f28-04ed-11e8-bb7a-df31e8679d27";
 		
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
@@ -381,7 +384,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 69;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 70;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -465,6 +468,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_UNASSIGN_SELF_REQUESTABLE_FILE, initResult);
 		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
