@@ -133,13 +133,16 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 //        delta.addModificationAddContainer(
 //                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
-        AssignmentType ass = new AssignmentType();
-        ass.setId(1L);
-        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+//        AssignmentType ass = new AssignmentType();
+//        ass.setId(1L);
+//        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+//
+//        ass = new AssignmentType();
+//        ass.setDescription("asdf");
+//        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, ass);
 
-        ass = new AssignmentType();
-        ass.setDescription("asdf");
-        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, ass);
+        delta.addModificationReplaceProperty(
+                new ItemPath(UserType.F_EXTENSION, new QName("http://example.com/p", "loot")), 34);
 
 
 //        ObjectReferenceType parentOrgRef = new ObjectReferenceType();

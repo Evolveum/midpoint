@@ -425,6 +425,25 @@ public class ObjectUpdater {
                     originalObject = prismObject.clone();
                 }
 
+                // old implementation
+//                ItemDelta.applyTo(modifications, prismObject);
+//                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+//                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
+//                // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+//                boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
+//
+//                // merge and update object
+//                LOGGER.trace("Translating JAXB to data type.");
+//                ObjectTypeUtil.normalizeAllRelations(prismObject);
+//                RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+//                rObject.setVersion(rObject.getVersion() + 1);
+//
+//                updateFullObject(rObject, prismObject);
+//                LOGGER.trace("Starting merge.");
+//                session.merge(rObject);
+                // old implementation end
+
+
                 RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, session);
 
 				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
@@ -437,8 +456,15 @@ public class ObjectUpdater {
 
                 session.save(rObject);
 
-                rObject = session.get(rObject.getClass(), oid);
-                LOGGER.trace("MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
+                //todo remove
+//                rObject = session.get(rObject.getClass(), oid);
+//                LOGGER.trace("MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
+//
+//                LOGGER.trace(">>>> FAKE MERGE START");
+//                rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+//                updateFullObject(rObject, prismObject);
+//                session.merge(rObject);
+//                LOGGER.trace(">>>> FAKE MERGE FINISH");
 
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);

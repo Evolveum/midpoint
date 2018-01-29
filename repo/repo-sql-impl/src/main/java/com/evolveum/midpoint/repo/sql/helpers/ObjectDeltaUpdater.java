@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -88,7 +89,7 @@ public class ObjectDeltaUpdater {
      * modify
      */
     public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-                                                                PrismObject<T> prismObject, Session session) throws SchemaException {
+                                                          PrismObject<T> prismObject, Session session) throws SchemaException {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
@@ -167,7 +168,7 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
-                                              PrismObject<T> prismObject, RObject object) throws SchemaException {
+                                                                     PrismObject<T> prismObject, RObject object) throws SchemaException {
         // update version
         String strVersion = prismObject.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
@@ -193,7 +194,7 @@ public class ObjectDeltaUpdater {
 
         Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
 
-        for (ItemDelta modification :modifications) {
+        for (ItemDelta modification : modifications) {
             ItemPath modPath = modification.getPath();
             ItemPath namesOnly = modPath.namedSegmentsOnly();
 
@@ -215,7 +216,7 @@ public class ObjectDeltaUpdater {
         }
 
         Set<RObjectTextInfo> infos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
-                new RepositoryContext( repositoryService, prismContext));
+                new RepositoryContext(repositoryService, prismContext));
 
         if (infos == null || infos.isEmpty()) {
             object.getTextInfoItems().clear();
@@ -264,8 +265,7 @@ public class ObjectDeltaUpdater {
                                                 RObjectExtensionType objectOwnerType,
                                                 RAssignmentExtension assignmentExtension,
                                                 RAssignmentExtensionType assignmentExtensionType,
-                                                BiConsumer<Collection<? extends RAnyValue>, Collection<PrismEntityPair<RAnyValue>>> processObjectValues,
-                                                BiFunction<Short, Short, Short> processObjectValuesCount) {
+                                                BiConsumer<Collection<? extends RAnyValue>, Collection<PrismEntityPair<RAnyValue>>> processObjectValues) {
 
         RAnyConverter converter = new RAnyConverter(prismContext);
 
@@ -287,6 +287,7 @@ public class ObjectDeltaUpdater {
             if (extValues.isEmpty()) {
                 // no changes in indexed values
                 return;
+                // todo can't return if new "values" collection is empty, if it was REPLACE with "nothing" we have to remove proper attributes
             }
 
             RAnyValue first = extValues.iterator().next().repository;
@@ -300,8 +301,7 @@ public class ObjectDeltaUpdater {
                 });
 
                 processObjectExtensionValues(object, type,
-                        (existing) -> processObjectValues.accept(existing, extValues),
-                        (existing) -> processObjectValuesCount.apply(existing, (short) extValues.size()));
+                        (existing) -> processObjectValues.accept(existing, extValues));
             } else {
                 extValues.stream().forEach(item -> {
                     RAExtValue val = (RAExtValue) item.repository;
@@ -310,8 +310,7 @@ public class ObjectDeltaUpdater {
                 });
 
                 processAssignmentExtensionValues(assignmentExtension, type,
-                        (existing) -> processObjectValues.accept(existing, extValues),
-                        (existing) -> processObjectValuesCount.apply(existing, (short) extValues.size()));
+                        (existing) -> processObjectValues.accept(existing, extValues));
             }
         } catch (SchemaException ex) {
             throw new SystemException("Couldn't process extension attributes", ex);
@@ -327,86 +326,144 @@ public class ObjectDeltaUpdater {
         if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
             processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
                     (existing, fromDelta) -> {
+                        ItemDefinition def = delta.getDefinition();
+                        Collection<RAnyValue> filtered = new ArrayList<>();
+                        for (RAnyValue value : existing) {
+                            if (!value.getName().equals(RUtil.qnameToString(def.getName()))
+                                    || !value.getType().equals(RUtil.qnameToString(def.getTypeName()))) {
+                                continue;
+                            }
+
+                            if (value instanceof ROExtValue) {
+                                ROExtValue oValue = (ROExtValue) value;
+                                if (!objectOwnerType.equals(oValue.getOwnerType())) {
+                                    continue;
+                                }
+                            } else if (value instanceof RAExtValue) {
+                                RAExtValue aValue = (RAExtValue) value;
+                                if (!assignmentExtensionType.equals(aValue.getExtensionType())) {
+                                    continue;
+                                }
+                            }
+
+                            filtered.add(value);
+                        }
+
+                        if (fromDelta.isEmpty()) {
+                            // if there are not new values, we just remove existing ones
+                            existing.removeAll(filtered);
+                            return;
+                        }
+
+                        Collection<RAnyValue> toDelete = new ArrayList<>();
+                        Collection<PrismEntityPair<?>> toAdd = new ArrayList<>();
+
+                        Set<Object> justValuesToReplace = new HashSet<>();
+                        for (PrismEntityPair<RAnyValue> pair : fromDelta) {
+                            justValuesToReplace.add(pair.repository.getValue());
+                        }
+
+                        for (RAnyValue value : filtered) {
+                            if (justValuesToReplace.contains(value.getValue())) {
+                                // do not replace with the same one - don't touch
+                                justValuesToReplace.remove(value.getValue());
+                            } else {
+                                toDelete.add(value);
+                            }
+                        }
+
+                        for (PrismEntityPair<RAnyValue> pair : fromDelta) {
+                            if (justValuesToReplace.contains(pair.repository.getValue())) {
+                                toAdd.add(pair);
+                            }
+                        }
+
                         // todo don't remove all if not necessary, just the ones that don't exist in fromDelta,
                         // than add only those items from fromDelta that were not in existing
-                        existing.clear();
-                        markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta);
-                    },
-                    (existingCount, fromDeltaCount) -> fromDeltaCount.shortValue());
+
+                        // todo replace should replace only matching attributes, not everything!!!
+
+                        existing.removeAll(toDelete);
+                        markNewOnesTransientAndAddToExisting(existing, toAdd);
+                    });
             return;
         }
 
         // handle delete
         processAnyExtensionDeltaValues(delta.getValuesToDelete(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> existing.removeAll(fromDelta),
-                (existingCount, fromDeltaCount) -> (short) (existingCount.shortValue() - fromDeltaCount.shortValue()));
+                (existing, fromDelta) -> existing.removeAll(fromDelta));
 
         // handle add
         processAnyExtensionDeltaValues(delta.getValuesToAdd(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta),
-                (existingCount, fromDeltaCount) -> (short) (existingCount.shortValue() + fromDeltaCount.shortValue()));
+                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta));
     }
 
     private void processAssignmentExtensionValues(RAssignmentExtension extension, Class<? extends RAExtValue> type,
-                                                  Consumer<Collection<? extends RAExtValue>> processObjectValues,
-                                                  Function<Short, Short> processObjectValuesCount) {
+                                                  Consumer<Collection<? extends RAExtValue>> processObjectValues) {
 
         if (type.equals(RAExtDate.class)) {
             processObjectValues.accept(extension.getDates());
-            Short count = processObjectValuesCount.apply(extension.getDatesCount());
+            Short count = getCount(extension.getDates());
             extension.setDatesCount(count);
         } else if (type.equals(RAExtLong.class)) {
             processObjectValues.accept(extension.getLongs());
-            Short count = processObjectValuesCount.apply(extension.getLongsCount());
+            Short count = getCount(extension.getLongs());
             extension.setLongsCount(count);
         } else if (type.equals(RAExtReference.class)) {
             processObjectValues.accept(extension.getReferences());
-            Short count = processObjectValuesCount.apply(extension.getReferencesCount());
+            Short count = getCount(extension.getReferences());
             extension.setReferencesCount(count);
         } else if (type.equals(RAExtString.class)) {
             processObjectValues.accept(extension.getStrings());
-            Short count = processObjectValuesCount.apply(extension.getStringsCount());
+            Short count = getCount(extension.getStrings());
             extension.setStringsCount(count);
         } else if (type.equals(RAExtPolyString.class)) {
             processObjectValues.accept(extension.getPolys());
-            Short count = processObjectValuesCount.apply(extension.getPolysCount());
+            Short count = getCount(extension.getPolys());
             extension.setPolysCount(count);
         } else if (type.equals(RAExtBoolean.class)) {
             processObjectValues.accept(extension.getBooleans());
-            Short count = processObjectValuesCount.apply(extension.getBooleansCount());
+            Short count = getCount(extension.getBooleans());
             extension.setBooleansCount(count);
         }
     }
 
     private void processObjectExtensionValues(RObject object, Class<? extends ROExtValue> type,
-                                              Consumer<Collection<ROExtValue>> processObjectValues,
-                                              Function<Short, Short> processObjectValuesCount) {
+                                              Consumer<Collection<ROExtValue>> processObjectValues) {
 
         if (type.equals(ROExtDate.class)) {
             processObjectValues.accept(object.getDates());
-            Short count = processObjectValuesCount.apply(object.getDatesCount());
+            Short count = getCount(object.getDates());
             object.setDatesCount(count);
         } else if (type.equals(ROExtLong.class)) {
             processObjectValues.accept(object.getLongs());
-            Short count = processObjectValuesCount.apply(object.getLongsCount());
+            Short count = getCount(object.getLongs());
             object.setLongsCount(count);
         } else if (type.equals(ROExtReference.class)) {
             processObjectValues.accept(object.getReferences());
-            Short count = processObjectValuesCount.apply(object.getReferencesCount());
+            Short count = getCount(object.getReferences());
             object.setReferencesCount(count);
         } else if (type.equals(ROExtString.class)) {
             processObjectValues.accept(object.getStrings());
-            Short count = processObjectValuesCount.apply(object.getStringsCount());
+            Short count = getCount(object.getStrings());
             object.setStringsCount(count);
         } else if (type.equals(ROExtPolyString.class)) {
             processObjectValues.accept(object.getPolys());
-            Short count = processObjectValuesCount.apply(object.getPolysCount());
+            Short count = getCount(object.getPolys());
             object.setPolysCount(count);
         } else if (type.equals(ROExtBoolean.class)) {
             processObjectValues.accept(object.getBooleans());
-            Short count = processObjectValuesCount.apply(object.getBooleansCount());
+            Short count = getCount(object.getBooleans());
             object.setBooleansCount(count);
         }
+    }
+
+    private Short getCount(Collection collection) {
+        if (collection == null) {
+            return 0;
+        }
+
+        return Integer.valueOf(collection.size()).shortValue();
     }
 
     private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta) {
@@ -436,7 +493,7 @@ public class ObjectDeltaUpdater {
             return null;
         }
 
-            // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
+        // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
         ItemPathSegment segment;
         ItemPath subPath = new ItemPath(nameSegment);
         while (segments.hasNext()) {
@@ -577,6 +634,7 @@ public class ObjectDeltaUpdater {
         // handle replace
         Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
         if (!valuesToReplace.isEmpty()) {
+            // todo fix as the extension replace
             // remove all items from existing which don't exist in valuesToReplace
             // add items from valuesToReplace to existing, only those which aren't already there
 

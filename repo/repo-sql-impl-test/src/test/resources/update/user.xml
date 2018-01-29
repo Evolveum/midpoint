@@ -16,12 +16,16 @@
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:p="http://example.com/p">
     <name>add link user</name>
     <fullName>Add Link</fullName>
     <!--<activation>-->
         <!--<administrativeStatus>enabled</administrativeStatus>-->
     <!--</activation>-->
+    <extension>
+        <p:weapon>sig</p:weapon>
+    </extension>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"/>		<!-- reviewer -->
     </assignment>
