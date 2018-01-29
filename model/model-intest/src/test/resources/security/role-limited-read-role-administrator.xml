@@ -1,0 +1,77 @@
+<!--
+  ~ Copyright (c) 2014-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="b9fcce10-050d-11e8-b668-eb75ab96577d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Limited Read Role Administrator</name>
+    <description>Role administrator with full access to inducement. But read is limited to reduce GUI boalt. (MID-4338)</description>    
+    <authorization>
+    	<name>self-read</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<special>self</special>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>read roles</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>RoleType</type>
+    	</object>
+    	<item>name</item>
+    	<item>description</item>
+    	<item>roleType</item>
+    	<item>lifecycleState</item>
+    	<item>requestable</item>
+    	<item>assignment</item>
+		<item>inducement/construction/strength</item>
+		<item>inducement/construction/resourceRef</item>
+		<item>inducement/construction/attribute/ref</item>
+		<item>inducement/construction/attribute/outbound/strength</item>
+		<item>inducement/construction/attribute/outbound/expression</item>
+		<item>inducement/construction/association/ref</item>
+		<item>inducement/construction/association/outbound/strength</item>
+		<item>inducement/construction/association/outbound/expression</item>
+    </authorization>
+    <authorization>
+    	<name>add roles</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<object>
+    		<type>RoleType</type>
+    	</object>
+		<item>name</item>
+    	<item>description</item>
+    	<item>roleType</item>
+    	<item>lifecycleState</item>
+    	<item>requestable</item>
+    	<item>inducement</item>
+    </authorization>
+    <authorization>
+    	<name>modify roles</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<object>
+    		<type>RoleType</type>
+    	</object>
+    	<item>name</item>
+    	<item>description</item>
+    	<item>roleType</item>
+    	<item>lifecycleState</item>
+    	<item>requestable</item>
+    	<item>inducement</item>
+    </authorization>
+</role>
