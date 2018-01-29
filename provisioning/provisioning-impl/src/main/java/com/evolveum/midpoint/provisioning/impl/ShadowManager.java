@@ -1658,7 +1658,8 @@ public class ShadowManager {
 								currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
 							}
 							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
-								shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
+								PropertyDelta delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
+								delta.setDefinition(currentResourceAttrProperty.getDefinition());
 							}
 						} else {
 							PrismProperty<Object> normalizedCurrentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrProperty.clone();
@@ -1740,6 +1741,7 @@ public class ShadowManager {
 			}
 			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
 			try {
+
 				repositoryService.modifyObject(ShadowType.class, oldRepoShadow.getOid(), shadowDelta.getModifications(), parentResult);
 			} catch (ObjectAlreadyExistsException e) {
 				// This should not happen for shadows

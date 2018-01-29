@@ -1226,6 +1226,7 @@ public abstract class ShadowCache {
 		}
 		
 		if (!shadowDelta.isEmpty()) {
+			applyAttributesDefinition(ctx, shadowDelta);
 			shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
 		}
 		
