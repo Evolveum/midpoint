@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.query.ItemFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -33,13 +34,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  * @author semancik
  */
-public class QueryItemsSpec {
+public class QueryAutzItemPaths extends AutzItemPaths {
 
-	private static final Trace LOGGER = TraceManager.getTrace(QueryItemsSpec.class);
+	private static final Trace LOGGER = TraceManager.getTrace(QueryAutzItemPaths.class);
 
 	private List<ItemPath> requiredItems = new ArrayList<>();
-	private List<ItemPath> allowedItems = new ArrayList<>();
-	private boolean allItemsAllowed = false;
 
 	public List<ItemPath> getRequiredItems() {
 		return requiredItems;
@@ -47,24 +46,6 @@ public class QueryItemsSpec {
 
 	public void addRequiredItem(ItemPath path) {
 		requiredItems.add(path);
-	}
-
-	public List<ItemPath> getAllowedItems() {
-		return allowedItems;
-	}
-
-	public void addAllowedItem(ItemPath path) {
-		allowedItems.add(path);
-	}
-
-	public void addAllowedItems(Authorization autz) {
-		if (autz.getItem().isEmpty()) {
-			allItemsAllowed = true;
-		} else {
-			for (ItemPathType itemPathType: autz.getItem()) {
-				addAllowedItem(itemPathType.getItemPath());
-			}
-		}
 	}
 
 	public void addRequiredItems(ObjectFilter filter) {
@@ -78,41 +59,29 @@ public class QueryItemsSpec {
 
 	public List<ItemPath> evaluateUnsatisfierItems() {
 		List<ItemPath> unsatisfiedItems = new ArrayList<>();
-		if (!allItemsAllowed) {
-			for (ItemPath requiredItem: requiredItems) {
-				if (!ItemPath.containsEquivalent(allowedItems, requiredItem)) {
-					unsatisfiedItems.add(requiredItem);
-				}
+		if (isAllItems()) {
+			return unsatisfiedItems;
+		}
+		for (ItemPath requiredItem: requiredItems) {
+			if (ItemPath.containsEquivalent(getIncludedItems(), requiredItem)) {
+				// allowed
+				continue;
 			}
+			if (!getExcludedItems().isEmpty() && !ItemPath.containsEquivalent(getExcludedItems(), requiredItem)) {
+				// not notAllowed = allowed
+				continue;
+			}
+			unsatisfiedItems.add(requiredItem);
 		}
 		return unsatisfiedItems;
 	}
-
-	public Object shortDump() {
-		StringBuilder sb = new StringBuilder();
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
 		sb.append("required: ");
 		dumpItems(sb, requiredItems);
-		sb.append("; allowed: ");
-		if (allItemsAllowed) {
-			sb.append("[all]");
-		} else {
-			dumpItems(sb, allowedItems);
-		}
-		return sb.toString();
+		sb.append("; ");
+		super.shortDump(sb);
 	}
-
-	private void dumpItems(StringBuilder sb, List<ItemPath> items) {
-		if (items.isEmpty()) {
-			sb.append("[none]");
-		} else {
-			Iterator<ItemPath> iterator = items.iterator();
-			while (iterator.hasNext()) {
-				sb.append(PrettyPrinter.prettyPrint(iterator.next()));
-				if (iterator.hasNext()) {
-					sb.append(",");
-				}
-			}
-		}
-	}
-
+	
 }

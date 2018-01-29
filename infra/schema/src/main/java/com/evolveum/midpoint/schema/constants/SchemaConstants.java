@@ -200,6 +200,8 @@ public abstract class SchemaConstants {
 	 */
 	public static final QName ORG_CONSENT = new QName(NS_ORG, "consent");
 
+	public static final ItemPath PATH_NAME = new ItemPath(ObjectType.F_NAME);
+	public static final ItemPath PATH_DESCRIPTION = new ItemPath(ObjectType.F_DESCRIPTION);
 	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_VALUE);
@@ -231,6 +233,10 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ASSIGNMENT = new ItemPath(FocusType.F_ASSIGNMENT);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
+	public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
+	public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
 	public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
