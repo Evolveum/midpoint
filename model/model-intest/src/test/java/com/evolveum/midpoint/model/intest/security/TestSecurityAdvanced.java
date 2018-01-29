@@ -1742,6 +1742,155 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 	
+	/**
+	 * MID-4204
+	 */
+	@Test
+    public void test252AssignRequestableSelfOtherApporverEmptyDelta() throws Exception {
+		final String TEST_NAME = "test252AssignRequestableSelfOtherApporverEmptyDelta";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID);
+
+        cleanupUnassign(userRumRogersOid, ROLE_APPROVER_OID);
+        cleanupUnassign(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+        
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        final PrismObject<UserType> user1 = getUser(USER_JACK_OID);
+        assertAssignments(user1, 1);
+        assertAssignedRole(user1, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID);
+
+        assertAllow("assign business role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        final PrismObject<UserType> user2 = getUser(USER_JACK_OID);
+        assertAssignments(user2, 2);
+        assertAssignedRole(user2, ROLE_BUSINESS_1_OID);
+
+        // default relation, non-requestable role
+        assertDeny("assign application role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
+
+        assertAllow("unassign business role from jack",
+        		(task, result) -> deleteFocusAssignmentEmptyDelta(user2, ROLE_BUSINESS_1_OID, task, result));
+
+        // wrong relation
+        assertDeny("assign business role to jack (manager)",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, SchemaConstants.ORG_MANAGER, task, result));
+        
+        // requestable role, but assign to a different user
+        assertDeny("assign application role to barbossa",
+        		(task, result) -> assignRole(USER_BARBOSSA_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        assertAllow("assign business role to barbossa (approver)",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, SchemaConstants.ORG_APPROVER, task, result));
+
+        assertAllow("unassign business role to barbossa (approver)",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, SchemaConstants.ORG_APPROVER, task, result));
+
+        assertAllow("assign business role to barbossa (owner)",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, SchemaConstants.ORG_OWNER, task, result));
+
+        final PrismObject<UserType> user3 = getUser(USER_JACK_OID);
+        assertAssignments(user3, 2);
+        assertAssignedRole(user3, ROLE_BUSINESS_2_OID);
+        
+        assertAllow("unassign business role to barbossa (owner)",
+        		(task, result) -> deleteFocusAssignmentEmptyDelta(user3, ROLE_BUSINESS_2_OID, SchemaConstants.ORG_OWNER, task, result));
+
+        final PrismObject<UserType> user4 = getUser(USER_JACK_OID);
+        assertAssignments(user4, 1);
+        
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertAssignments(userBarbossa, 0);
+
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test254AssignUnassignRequestableSelf() throws Exception {
+		final String TEST_NAME = "test254AssignUnassignRequestableSelf";
+        displayTestTitle(TEST_NAME);
+        // GIVENds
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
+        assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+
+        assertAllow("unassign business role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 1);
+        assertAssignedRole(user, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
+        
+        assertDeny("unassign ROLE_UNASSIGN_SELF_REQUESTABLE role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_UNASSIGN_SELF_REQUESTABLE_OID, task, result));
+        
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test256AssignUnassignRequestableSelfEmptyDelta() throws Exception {
+		final String TEST_NAME = "test256AssignUnassignRequestableSelfEmptyDelta";
+        displayTestTitle(TEST_NAME);
+        // GIVENds
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
+        assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        final PrismObject<UserType> user1 = getUser(USER_JACK_OID);
+        assertAssignments(user1, 2);
+        assertAssignedRole(user1, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
+        assertAssignedRole(user1, ROLE_BUSINESS_1_OID);
+
+        assertAllow("unassign business role from jack",
+        		(task, result) -> deleteFocusAssignmentEmptyDelta(user1, ROLE_BUSINESS_1_OID, task, result));
+
+        final PrismObject<UserType> user2 = getUser(USER_JACK_OID);
+        assertAssignments(user2, 1);
+        assertAssignedRole(user2, ROLE_UNASSIGN_SELF_REQUESTABLE_OID);
+        
+        assertDeny("unassign ROLE_UNASSIGN_SELF_REQUESTABLE role from jack",
+        		(task, result) -> deleteFocusAssignmentEmptyDelta(user2, ROLE_UNASSIGN_SELF_REQUESTABLE_OID, task, result));
+        
+        assertGlobalStateUntouched();
+	}
+	
 	@Test
     public void test260AutzJackLimitedRoleAdministrator() throws Exception {
 		final String TEST_NAME = "test260AutzJackLimitedRoleAdministrator";
