@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -93,9 +94,10 @@ public class ObjectDeltaUpdater {
 
         LOGGER.debug("Starting to build entity changes based on delta via reference");
 
-        // todo normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
+        // normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
 
-        // how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated on different place than we later create new containers...how to match them
+        // how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated
+        // on different place than we later create new containers...how to match them
 
         // todo set proper owner/ownerOid/ownerType for containers/references/result and others
 
@@ -103,9 +105,9 @@ public class ObjectDeltaUpdater {
 
         // validate lookup tables and certification campaigns
 
-        // todo mark newly added containers/references as transient
+        // mark newly added containers/references as transient
 
-        // todo validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
+        // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
         RObject<T> object = session.byId(objectClass).getReference(oid);
@@ -182,6 +184,9 @@ public class ObjectDeltaUpdater {
         // generate ids for containers that weren't handled in previous step (not processed by repository)
         PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
         generator.generate(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+
+        // normalize all relations
+        ObjectTypeUtil.normalizeAllRelations(prismObject);
 
         // full object column will be updated later
     }
@@ -290,10 +295,13 @@ public class ObjectDeltaUpdater {
                 // todo can't return if new "values" collection is empty, if it was REPLACE with "nothing" we have to remove proper attributes
             }
 
-            RAnyValue first = extValues.iterator().next().repository;
-            Class type = first.getClass();
+            Class type = null;
+            if (!extValues.isEmpty()) {
+                RAnyValue first = extValues.iterator().next().repository;
+                type = first.getClass();
+            }
 
-            if (ROExtValue.class.isAssignableFrom(type)) {
+            if (object != null) {
                 extValues.stream().forEach(item -> {
                     ROExtValue val = (ROExtValue) item.repository;
                     val.setOwner(object);
@@ -317,6 +325,34 @@ public class ObjectDeltaUpdater {
         }
     }
 
+    private Collection<RAnyValue> filterRAnyValues(Collection<? extends RAnyValue> existing, ItemDefinition def,
+                                                RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
+
+        Collection<RAnyValue> filtered = new ArrayList<>();
+        for (RAnyValue value : existing) {
+            if (!value.getName().equals(RUtil.qnameToString(def.getName()))
+                    || !value.getType().equals(RUtil.qnameToString(def.getTypeName()))) {
+                continue;
+            }
+
+            if (value instanceof ROExtValue) {
+                ROExtValue oValue = (ROExtValue) value;
+                if (!objectOwnerType.equals(oValue.getOwnerType())) {
+                    continue;
+                }
+            } else if (value instanceof RAExtValue) {
+                RAExtValue aValue = (RAExtValue) value;
+                if (!assignmentExtensionType.equals(aValue.getExtensionType())) {
+                    continue;
+                }
+            }
+
+            filtered.add(value);
+        }
+
+        return filtered;
+    }
+
     private void processAnyExtensionDeltaValues(ItemDelta delta,
                                                 RObject object,
                                                 RObjectExtensionType objectOwnerType,
@@ -327,27 +363,7 @@ public class ObjectDeltaUpdater {
             processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
                     (existing, fromDelta) -> {
                         ItemDefinition def = delta.getDefinition();
-                        Collection<RAnyValue> filtered = new ArrayList<>();
-                        for (RAnyValue value : existing) {
-                            if (!value.getName().equals(RUtil.qnameToString(def.getName()))
-                                    || !value.getType().equals(RUtil.qnameToString(def.getTypeName()))) {
-                                continue;
-                            }
-
-                            if (value instanceof ROExtValue) {
-                                ROExtValue oValue = (ROExtValue) value;
-                                if (!objectOwnerType.equals(oValue.getOwnerType())) {
-                                    continue;
-                                }
-                            } else if (value instanceof RAExtValue) {
-                                RAExtValue aValue = (RAExtValue) value;
-                                if (!assignmentExtensionType.equals(aValue.getExtensionType())) {
-                                    continue;
-                                }
-                            }
-
-                            filtered.add(value);
-                        }
+                        Collection<RAnyValue> filtered = filterRAnyValues(existing, def, objectOwnerType, assignmentExtensionType);
 
                         if (fromDelta.isEmpty()) {
                             // if there are not new values, we just remove existing ones
@@ -377,11 +393,6 @@ public class ObjectDeltaUpdater {
                                 toAdd.add(pair);
                             }
                         }
-
-                        // todo don't remove all if not necessary, just the ones that don't exist in fromDelta,
-                        // than add only those items from fromDelta that were not in existing
-
-                        // todo replace should replace only matching attributes, not everything!!!
 
                         existing.removeAll(toDelete);
                         markNewOnesTransientAndAddToExisting(existing, toAdd);

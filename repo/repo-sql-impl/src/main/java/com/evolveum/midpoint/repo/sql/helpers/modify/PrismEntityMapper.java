@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -104,19 +105,27 @@ public class PrismEntityMapper {
         return mapper.map(input, context);
     }
 
-    // todo implement transformation from prism to entity
-    //RObjectTextInfo
-    //RLookupTableRow
-    //RAccessCertificationWorkItem
-    //RAssignmentReference
-    //RFocusPhoto
-        //RObjectReference
-    //RObjectDeltaOperation
-        //ROperationExecution
-    //RAccessCertificationCase
-        //RAssignment
-    //RCertWorkItemReference
-        //RTrigger
+    /**
+     * todo implement transformation from prism to entity
+     * RObjectTextInfo
+     * RLookupTableRow
+     * RAccessCertificationWorkItem
+     * RAssignmentReference
+     * RFocusPhoto                  - handled manually
+     * RObjectReference             - implemented
+     * RObjectDeltaOperation
+     * ROperationExecution          - implemented
+     * RAccessCertificationCase
+     * RAssignment                  - implemented
+     * RCertWorkItemReference
+     * RTrigger                     - implemented
+     *
+     * @param input
+     * @param outputType
+     * @param context
+     * @param <O>
+     * @return
+     */
     public <O> O mapPrismValue(PrismValue input, Class<O> outputType, MapperContext context) {
         if (input instanceof PrismPropertyValue) {
             return map(input.getRealValue(), outputType, context);
@@ -233,6 +242,8 @@ public class PrismEntityMapper {
                 objectRef.setupReferenceValue(input.asReferenceValue());
             }
 
+            ObjectTypeUtil.normalizeRelation(objectRef);
+
             RObject owner = (RObject) context.getOwner();
 
             ItemPath named = context.getDelta().getPath().namedSegmentsOnly();
@@ -287,8 +298,11 @@ public class PrismEntityMapper {
                 objectRef.setupReferenceValue(input.asReferenceValue());
             }
 
+            ObjectTypeUtil.normalizeRelation(objectRef);
+
             REmbeddedReference rref = new REmbeddedReference();
             REmbeddedReference.copyFromJAXB(objectRef, rref);
+
             return rref;
         }
     }
