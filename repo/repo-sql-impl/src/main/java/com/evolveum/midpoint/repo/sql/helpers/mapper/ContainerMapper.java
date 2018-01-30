@@ -29,7 +29,6 @@ import java.util.Collection;
  */
 public abstract class ContainerMapper<I extends Containerable, O extends Container> implements Mapper<I, O> {
 
-    // todo remove this, we have to do full equal comparation in case of id=null
     @Deprecated
     protected void lookForContainerIdInOldValues(O output, MapperContext context) {
         if (output == null || output.getId() != null) {

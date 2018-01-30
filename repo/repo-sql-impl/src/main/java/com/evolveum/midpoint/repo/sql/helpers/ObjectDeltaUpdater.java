@@ -645,40 +645,22 @@ public class ObjectDeltaUpdater {
         Class outputType = getRealOutputType(attribute);
 
         // handle replace
-        Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
-        if (!valuesToReplace.isEmpty()) {
+        if (delta.isReplace()) {
+            Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
             replaceValues(collection, valuesToReplace);
             return;
         }
 
         // handle add
-        Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
-        markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
+        if (delta.isAdd()) {
+            Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
+            markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
+        }
 
         // handle delete
-        Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
-        if (!valuesToDelete.isEmpty()) {
-            Pair<Collection<Object>, Set<Long>> split = splitPrismEntityPairs(valuesToDelete);
-            Collection<Object> repositoryObjectsToDelete = split.getLeft();
-            Set<Long> containerIdsToDelete = split.getRight();
-
-            Collection toDelete = new ArrayList();
-            for (Object obj : collection) {
-                if (obj instanceof Container) {
-                    Container container = (Container) obj;
-
-                    long id = container.getId().longValue();
-                    if (containerIdsToDelete.contains(id)) {
-                        toDelete.add(container);
-                    }
-                } else {
-                    // e.g. RObjectReference
-                    if (repositoryObjectsToDelete.contains(obj)) {
-                        toDelete.add(obj);
-                    }
-                }
-            }
-            collection.removeAll(toDelete);
+        if (delta.isDelete()) {
+            Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
+            deleteValues(collection, valuesToDelete);
         }
     }
 

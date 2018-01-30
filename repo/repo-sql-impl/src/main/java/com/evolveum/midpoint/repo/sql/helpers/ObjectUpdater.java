@@ -458,9 +458,9 @@ public class ObjectUpdater {
                 // new implementation end
 
                 //todo remove, just for debugging
-//                rObject = session.get(rObject.getClass(), oid);
-//                LOGGER.trace("MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
-//
+                rObject = session.get(rObject.getClass(), oid);
+                LOGGER.trace("MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
+
 //                LOGGER.trace(">>>> FAKE MERGE START");
 //                rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
 //                updateFullObject(rObject, prismObject);

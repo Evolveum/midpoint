@@ -19,43 +19,89 @@ package com.evolveum.midpoint.repo.sql.helpers.modify;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class DeltaUpdaterUtils {
 
-    public static void replaceValues(Collection existing, Collection valuesToReplace) {
-        // todo fix as the extension replace
-        // remove all items from existing which don't exist in valuesToReplace
-        // add items from valuesToReplace to existing, only those which aren't already there
+    private static final Trace LOGGER = TraceManager.getTrace(DeltaUpdaterUtils.class);
 
-        // Collection contains objects (non containers) and containers without id, Set contains only available container ids
-        Pair<Collection<Object>, Set<Long>> split = splitPrismEntityPairs(valuesToReplace);
-        Collection<Object> repositoryObjects = split.getLeft();
+    public static void deleteValues(Collection existing, Collection<PrismEntityPair<?>> valuesToDelete) {
+        if (existing.isEmpty() || valuesToDelete.isEmpty()) {
+            return;
+        }
+
+        Collection<Object> repositoryObjects = valuesToDelete.stream().map(pair -> pair.getRepository()).collect(Collectors.toList());
+
+        Pair<Collection<Container>, Set<Long>> split = splitContainers(valuesToDelete);
+        Collection<Container> containersWithoutIds = split.getLeft();
+        if (!containersWithoutIds.isEmpty()) {
+            LOGGER.warn("Container without id found in delete delta, potential operation slowdown as we " +
+                    "need to compare full container against database");
+        }
         Set<Long> containerIds = split.getRight();
 
-        Collection skipAddingTheseObjects = new ArrayList();
-        Collection skipAddingTheseIds = new ArrayList();
         Collection toDelete = new ArrayList();
         for (Object obj : existing) {
             if (obj instanceof Container) {
                 Container container = (Container) obj;
 
                 long id = container.getId().longValue();
-                if (!containerIds.contains(id)) {
+                if (containerIds.contains(id)
+                        || (!containersWithoutIds.isEmpty() && containersWithoutIds.contains(container))) {
+                    toDelete.add(container);
+                }
+            } else {
+                // e.g. RObjectReference
+                if (repositoryObjects.contains(obj)) {
+                    toDelete.add(obj);
+                }
+            }
+        }
+
+        existing.removeAll(toDelete);
+    }
+
+    public static void replaceValues(Collection existing, Collection<PrismEntityPair<?>> valuesToReplace) {
+        if (existing.isEmpty()) {
+            markNewOnesTransientAndAddToExisting(existing, valuesToReplace);
+            return;
+        }
+
+        Collection<Object> repositoryObjects = valuesToReplace.stream().map(pair -> pair.getRepository()).collect(Collectors.toList());
+
+        Pair<Collection<Container>, Set<Long>> split = splitContainers(valuesToReplace);
+        Collection<Container> containersWithoutIds = split.getLeft();
+        if (!containersWithoutIds.isEmpty()) {
+            LOGGER.warn("Container without id found in replace delta, potential operation slowdown as we " +
+                    "need to compare full container against database");
+        }
+        Set<Long> containerIds = split.getRight();
+
+        Collection skipAddingTheseObjects = new ArrayList();
+        Collection skipAddingTheseIds = new ArrayList();
+
+        Collection toDelete = new ArrayList();
+
+        // mark existing object for deletion, skip if they would be replaced with the same value
+        for (Object obj : existing) {
+            if (obj instanceof Container) {
+                Container container = (Container) obj;
+
+                long id = container.getId().longValue();
+                if (!containerIds.contains(id)
+                        || (!containersWithoutIds.isEmpty() && !containersWithoutIds.contains(container))) {
                     toDelete.add(container);
                 } else {
                     skipAddingTheseIds.add(id);
-                }
-
-                if (!repositoryObjects.contains(obj)) {
-                    toDelete.add(container);
-                } else {
                     skipAddingTheseObjects.add(container);
                 }
             } else {
@@ -76,8 +122,11 @@ public class DeltaUpdaterUtils {
             if (obj instanceof Container) {
                 Container container = (Container) obj;
 
-                // todo this will fail as container.getId() returns null at this time
-                // new id was not generated yet
+                if (container.getId() == null && skipAddingTheseObjects.contains(container)) {
+                    iterator.remove();
+                    continue;
+                }
+
                 if (skipAddingTheseIds.contains(container.getId())) {
                     iterator.remove();
                 }
@@ -91,26 +140,25 @@ public class DeltaUpdaterUtils {
         markNewOnesTransientAndAddToExisting(existing, valuesToReplace);
     }
 
-    public static Pair<Collection<Object>, Set<Long>> splitPrismEntityPairs(Collection<PrismEntityPair<?>> collection) {
-        Collection<Object> repositoryObjects = new ArrayList<>();
+    public static Pair<Collection<Container>, Set<Long>> splitContainers(Collection<PrismEntityPair<?>> collection) {
+        Collection<Container> containers = new ArrayList<>();
         Set<Long> containerIds = new HashSet<>();
         for (PrismEntityPair pair : collection) {
-            if (pair.getRepository() instanceof Container) {
-                Container container = (Container) pair.getRepository();
-
-                Integer id = container.getId();
-                if (id == null) {
-                    repositoryObjects.add(pair.getRepository());
-                    continue;
-                }
-
-                containerIds.add(id.longValue());
+            if (!(pair.getRepository() instanceof Container)) {
+                continue;
             }
 
-            repositoryObjects.add(pair.getRepository());
+            Container container = (Container) pair.getRepository();
+
+            Integer id = container.getId();
+            if (id != null) {
+                containerIds.add(id.longValue());
+            } else {
+                containers.add(container);
+            }
         }
 
-        return new ImmutablePair<>(repositoryObjects, containerIds);
+        return new ImmutablePair<>(containers, containerIds);
     }
 
     public static void markNewOnesTransientAndAddToExisting(Collection existing, Collection<PrismEntityPair<?>> newOnes) {
