@@ -21,12 +21,17 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion.User;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.testng.AssertJUnit;
@@ -52,6 +57,8 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
  * Repo tests check just the HQL outcome.
  */
 public class TestQueryBuilder {
+	
+	private static transient Trace LOGGER = TraceManager.getTrace(TestQueryBuilder.class);
 
     public static final QName USER_TYPE_QNAME = new QName(NS_FOO, "UserType");
     public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO, "AssignmentType");
@@ -139,6 +146,32 @@ public class TestQueryBuilder {
         ObjectQuery actual = QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_LOCALITY).eq("Caribbean").build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(createEqual(UserType.F_LOCALITY, UserType.class, null, "Caribbean"));
         compare(actual, expected);
+        
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, getPrismContext())
+        		.item(UserType.F_LOCALITY)
+        			.eq("Caribbean")
+        		.and()
+        			.item(UserType.F_GIVEN_NAME)
+        				.eq("asd")
+        		.and()
+        			.block().item(UserType.F_FAMILY_NAME)
+        				.eq("asdasd")
+        				
+        				.or()
+            			.item(UserType.F_FAMILY_NAME)
+            				.eq("asdasd")
+            				
+            				.and()
+            					.block()
+            						.item(UserType.F_FAMILY_NAME).gt("123")
+            						.and().item(UserType.F_LOCALITY).le("123")
+            						.or().item(UserType.F_DESCRIPTION).isNull()
+            					.endBlock()
+            				.and().item(UserType.F_GIVEN_NAME).eq("123")
+            		.endBlock()
+            			.and().item(UserType.F_FULL_NAME).contains("123").matching(PolyStringNormMatchingRule.NAME)
+            				.build();
+        LOGGER.info("Query:\n {}", query.debugDump());
     }
 
     @Test
@@ -525,6 +558,8 @@ public class TestQueryBuilder {
     protected void compare(ObjectQuery actual, ObjectQuery expected) {
         String exp = expected.debugDump();
         String act = actual.debugDump();
+        
+        LOGGER.info("Generated query:\n {}", act);
         System.out.println("Generated query:\n" + act);
         AssertJUnit.assertEquals("queries do not match", exp, act);
     }

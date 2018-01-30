@@ -56,8 +56,10 @@ public class QueryKey {
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (query != null ? query.hashCode() : 0);
+    	final int prime = 31;
+		int result = 1;
+        result = prime * result + (type != null ? type.hashCode() : 0);
+        result = prime * result + (query != null ? query.hashCode() : 0);
         return result;
     }
 

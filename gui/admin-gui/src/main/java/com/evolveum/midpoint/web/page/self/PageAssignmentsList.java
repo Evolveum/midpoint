@@ -452,40 +452,14 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
             for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+            	
                 for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                     if (!policyRule.containsEnabledAction()) {
                         continue;
                     }
                     // everything other than 'enforce' is a warning
                     boolean isWarning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-                    for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
-                        if (trigger instanceof EvaluatedExclusionTrigger) {
-                            EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
-                            EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
-                            PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
-                            PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
-
-                            AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
-                                    conflictingAssignment.getAssignmentType(true) != null);
-                            AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
-                                    evaluatedAssignment.getAssignmentType(true) != null);
-                            ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
-                            String oid1 = exclusionTargetObj.getOid();
-                            String oid2 = addedAssignmentTargetObj.getOid();
-                            if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
-                                conflictsMap.put(oid1 + oid2, conflict);
-                            } else if (!isWarning) {
-                                // error is stronger than warning, so we replace (potential) warnings with this error
-                                // TODO Kate please review this
-                                if (conflictsMap.containsKey(oid1 + oid2)) {
-                                    conflictsMap.replace(oid1 + oid2, conflict);
-                                }
-                                if (conflictsMap.containsKey(oid2 + oid1)) {
-                                    conflictsMap.replace(oid2 + oid1, conflict);
-                                }
-                            }
-                        }
-                    }
+                    fillInConflictedObjects(evaluatedAssignment, policyRule.getAllTriggers(), isWarning, conflictsMap);
                 }
             }
         } catch (Exception e) {
@@ -495,7 +469,48 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         conflictsList.addAll(conflictsMap.values());
         return conflictsList;
     }
+    
+    private void fillInConflictedObjects(EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
+    	
+    	for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+        	
+       	 if (trigger instanceof EvaluatedExclusionTrigger) {
+              fillInFromEvaluatedExclusionTrigger(evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, isWarning, conflictsMap);
+           } else if (trigger instanceof EvaluatedCompositeTrigger) {
+        	   EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+           	   Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+           	   fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
+           }
+    	} 
+    	
+    }
 
+    private void fillInFromEvaluatedExclusionTrigger(EvaluatedAssignment<UserType> evaluatedAssignment, EvaluatedExclusionTrigger exclusionTrigger, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
+//    	 EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
+         EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
+         PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
+         PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
+
+         AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
+                 conflictingAssignment.getAssignmentType(true) != null);
+         AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
+                 evaluatedAssignment.getAssignmentType(true) != null);
+         ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
+         String oid1 = exclusionTargetObj.getOid();
+         String oid2 = addedAssignmentTargetObj.getOid();
+         if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
+             conflictsMap.put(oid1 + oid2, conflict);
+         } else if (!isWarning) {
+             // error is stronger than warning, so we replace (potential) warnings with this error
+             // TODO Kate please review this
+             if (conflictsMap.containsKey(oid1 + oid2)) {
+                 conflictsMap.replace(oid1 + oid2, conflict);
+             }
+             if (conflictsMap.containsKey(oid2 + oid1)) {
+                 conflictsMap.replace(oid2 + oid1, conflict);
+             }
+         }
+    }
     private boolean onlyWarnings(){
         List<ConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
         for (ConflictDto dto : list){
