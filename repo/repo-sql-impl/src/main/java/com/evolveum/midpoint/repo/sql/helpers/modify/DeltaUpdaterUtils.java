@@ -34,6 +34,7 @@ public class DeltaUpdaterUtils {
         // remove all items from existing which don't exist in valuesToReplace
         // add items from valuesToReplace to existing, only those which aren't already there
 
+        // Collection contains objects (non containers) and containers without id, Set contains only available container ids
         Pair<Collection<Object>, Set<Long>> split = splitPrismEntityPairs(valuesToReplace);
         Collection<Object> repositoryObjects = split.getLeft();
         Set<Long> containerIds = split.getRight();
@@ -50,6 +51,12 @@ public class DeltaUpdaterUtils {
                     toDelete.add(container);
                 } else {
                     skipAddingTheseIds.add(id);
+                }
+
+                if (!repositoryObjects.contains(obj)) {
+                    toDelete.add(container);
+                } else {
+                    skipAddingTheseObjects.add(container);
                 }
             } else {
                 // e.g. RObjectReference
@@ -93,6 +100,7 @@ public class DeltaUpdaterUtils {
 
                 Integer id = container.getId();
                 if (id == null) {
+                    repositoryObjects.add(pair.getRepository());
                     continue;
                 }
 

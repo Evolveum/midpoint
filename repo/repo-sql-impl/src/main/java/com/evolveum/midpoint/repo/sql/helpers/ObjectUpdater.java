@@ -425,7 +425,7 @@ public class ObjectUpdater {
                     originalObject = prismObject.clone();
                 }
 
-                // old implementation
+                // old implementation start
 //                ItemDelta.applyTo(modifications, prismObject);
 //                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
 //                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
@@ -443,7 +443,7 @@ public class ObjectUpdater {
 //                session.merge(rObject);
                 // old implementation end
 
-
+                // new implementation start
                 RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, session);
 
 				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
@@ -455,8 +455,9 @@ public class ObjectUpdater {
                 LOGGER.trace("Starting save.");
 
                 session.save(rObject);
+                // new implementation end
 
-                //todo remove
+                //todo remove, just for debugging
 //                rObject = session.get(rObject.getClass(), oid);
 //                LOGGER.trace("MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
 //
