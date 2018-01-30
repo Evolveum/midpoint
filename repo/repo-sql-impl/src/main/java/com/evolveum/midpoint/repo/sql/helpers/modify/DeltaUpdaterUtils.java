@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.helpers.modify;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -182,13 +183,26 @@ public class DeltaUpdaterUtils {
             }
 
             if (item.getRepository() instanceof Container) {
-                while (usedIds.contains(nextId)) {
-                    nextId++;
-                }
+                PrismContainerValue pcv = (PrismContainerValue) item.getPrism();
 
-                usedIds.add(nextId);
-                ((Container) item.getRepository()).setId(nextId);
-                ((PrismContainerValue) item.getPrism()).setId(nextId.longValue());
+                if (pcv.getId() != null) {
+                    Integer expectedId = pcv.getId().intValue();
+                    if (usedIds.contains(expectedId)) {
+                        throw new SystemException("Can't save prism container value with id '" + expectedId
+                                + "', container with that id already exists.");
+                    }
+
+                    usedIds.add(expectedId);
+                    ((Container) item.getRepository()).setId(expectedId);
+                } else {
+                    while (usedIds.contains(nextId)) {
+                        nextId++;
+                    }
+
+                    usedIds.add(nextId);
+                    ((Container) item.getRepository()).setId(nextId);
+                    ((PrismContainerValue) item.getPrism()).setId(nextId.longValue());
+                }
             }
 
             existing.add(item.getRepository());
