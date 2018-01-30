@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,7 +38,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
-import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,7 +54,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +67,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
+
+import static com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils.*;
 
 /**
  * @author Viliam Repan (lazyman).
@@ -99,9 +101,9 @@ public class ObjectDeltaUpdater {
         // how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated
         // on different place than we later create new containers...how to match them
 
-        // todo set proper owner/ownerOid/ownerType for containers/references/result and others
+        // set proper owner/ownerOid/ownerType for containers/references/result and others
 
-        // todo implement transformation from prism to entity (PrismEntityMapper)
+        // todo implement transformation from prism to entity (PrismEntityMapper), probably ROperationResult missing
 
         // validate lookup tables and certification campaigns
 
@@ -297,13 +299,13 @@ public class ObjectDeltaUpdater {
 
             Class type = null;
             if (!extValues.isEmpty()) {
-                RAnyValue first = extValues.iterator().next().repository;
+                RAnyValue first = extValues.iterator().next().getRepository();
                 type = first.getClass();
             }
 
             if (object != null) {
                 extValues.stream().forEach(item -> {
-                    ROExtValue val = (ROExtValue) item.repository;
+                    ROExtValue val = (ROExtValue) item.getRepository();
                     val.setOwner(object);
                     val.setOwnerType(objectOwnerType);
                 });
@@ -312,7 +314,7 @@ public class ObjectDeltaUpdater {
                         (existing) -> processObjectValues.accept(existing, extValues));
             } else {
                 extValues.stream().forEach(item -> {
-                    RAExtValue val = (RAExtValue) item.repository;
+                    RAExtValue val = (RAExtValue) item.getRepository();
                     val.setAnyContainer(assignmentExtension);
                     val.setExtensionType(assignmentExtensionType);
                 });
@@ -326,7 +328,7 @@ public class ObjectDeltaUpdater {
     }
 
     private Collection<RAnyValue> filterRAnyValues(Collection<? extends RAnyValue> existing, ItemDefinition def,
-                                                RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
+                                                   RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
 
         Collection<RAnyValue> filtered = new ArrayList<>();
         for (RAnyValue value : existing) {
@@ -376,7 +378,7 @@ public class ObjectDeltaUpdater {
 
                         Set<Object> justValuesToReplace = new HashSet<>();
                         for (PrismEntityPair<RAnyValue> pair : fromDelta) {
-                            justValuesToReplace.add(pair.repository.getValue());
+                            justValuesToReplace.add(pair.getRepository().getValue());
                         }
 
                         for (RAnyValue value : filtered) {
@@ -389,7 +391,7 @@ public class ObjectDeltaUpdater {
                         }
 
                         for (PrismEntityPair<RAnyValue> pair : fromDelta) {
-                            if (justValuesToReplace.contains(pair.repository.getValue())) {
+                            if (justValuesToReplace.contains(pair.getRepository().getValue())) {
                                 toAdd.add(pair);
                             }
                         }
@@ -645,59 +647,7 @@ public class ObjectDeltaUpdater {
         // handle replace
         Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
         if (!valuesToReplace.isEmpty()) {
-            // todo fix as the extension replace
-            // remove all items from existing which don't exist in valuesToReplace
-            // add items from valuesToReplace to existing, only those which aren't already there
-
-            Pair<Collection<Object>, Set<Long>> split = splitPrismEntityPairs(valuesToReplace);
-            Collection<Object> repositoryObjects = split.getLeft();
-            Set<Long> containerIds = split.getRight();
-
-            Collection skipAddingTheseObjects = new ArrayList();
-            Collection skipAddingTheseIds = new ArrayList();
-            Collection toDelete = new ArrayList();
-            for (Object obj : collection) {
-                if (obj instanceof Container) {
-                    Container container = (Container) obj;
-
-                    long id = container.getId().longValue();
-                    if (!containerIds.contains(id)) {
-                        toDelete.add(container);
-                    } else {
-                        skipAddingTheseIds.add(id);
-                    }
-                } else {
-                    // e.g. RObjectReference
-                    if (!repositoryObjects.contains(obj)) {
-                        toDelete.add(obj);
-                    } else {
-                        skipAddingTheseObjects.add(obj);
-                    }
-                }
-            }
-            collection.removeAll(toDelete);
-
-            Iterator<PrismEntityPair<?>> iterator = valuesToReplace.iterator();
-            while (iterator.hasNext()) {
-                PrismEntityPair pair = iterator.next();
-                Object obj = pair.repository;
-                if (obj instanceof Container) {
-                    Container container = (Container) obj;
-
-                    // todo this will fail as container.getId() returns null at this time
-                    // new id was not generated yet
-                    if (skipAddingTheseIds.contains(container.getId())) {
-                        iterator.remove();
-                    }
-                } else {
-                    if (skipAddingTheseObjects.contains(obj)) {
-                        iterator.remove();
-                    }
-                }
-            }
-
-            markNewOnesTransientAndAddToExisting(collection, valuesToReplace);
-
+            replaceValues(collection, valuesToReplace);
             return;
         }
 
@@ -729,57 +679,6 @@ public class ObjectDeltaUpdater {
                 }
             }
             collection.removeAll(toDelete);
-        }
-    }
-
-    private Pair<Collection<Object>, Set<Long>> splitPrismEntityPairs(Collection<PrismEntityPair<?>> collection) {
-        Collection<Object> repositoryObjects = new ArrayList<>();
-        Set<Long> containerIds = new HashSet<>();
-        for (PrismEntityPair pair : collection) {
-            if (pair.repository instanceof Container) {
-                Container container = (Container) pair.repository;
-
-                long id = container.getId().longValue();
-                containerIds.add(id);
-            }
-
-            repositoryObjects.add(pair.repository);
-        }
-
-        return new ImmutablePair<>(repositoryObjects, containerIds);
-    }
-
-    private void markNewOnesTransientAndAddToExisting(Collection existing, Collection<PrismEntityPair<?>> newOnes) {
-        Set<Integer> usedIds = new HashSet<>();
-        for (Object obj : existing) {
-            if (!(obj instanceof Container)) {
-                continue;
-            }
-
-            Container c = (Container) obj;
-            if (c.getId() != null) {
-                usedIds.add(c.getId());
-            }
-        }
-
-        Integer nextId = 1;
-        for (PrismEntityPair item : newOnes) {
-            if (item.repository instanceof EntityState) {
-                EntityState es = (EntityState) item.repository;
-                es.setTransient(true);
-            }
-
-            if (item.repository instanceof Container) {
-                while (usedIds.contains(nextId)) {
-                    nextId++;
-                }
-
-                usedIds.add(nextId);
-                ((Container) item.repository).setId(nextId);
-                ((PrismContainerValue) item.prism).setId(nextId.longValue());
-            }
-
-            existing.add(item.repository);
         }
     }
 
@@ -845,31 +744,5 @@ public class ObjectDeltaUpdater {
 
         private ManagedType managedType;
         private Object bean;
-    }
-
-    private static class PrismEntityPair<T> {
-
-        private PrismValue prism;
-        private T repository;
-
-        public PrismEntityPair(PrismValue prism, T repository) {
-            this.prism = prism;
-            this.repository = repository;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            PrismEntityPair that = (PrismEntityPair) o;
-
-            return repository != null ? repository.equals(that.repository) : that.repository == null;
-        }
-
-        @Override
-        public int hashCode() {
-            return repository != null ? repository.hashCode() : 0;
-        }
     }
 }

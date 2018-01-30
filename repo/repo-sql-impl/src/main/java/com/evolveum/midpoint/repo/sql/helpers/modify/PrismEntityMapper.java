@@ -17,32 +17,21 @@
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -166,238 +155,6 @@ public class PrismEntityMapper {
 
     private boolean isSchemaEnum(Class inputType, Class outputType) {
         return Enum.class.isAssignableFrom(inputType) && SchemaEnum.class.isAssignableFrom(outputType);
-    }
-
-    private static class OperationExecutionMapper extends ContainerMapper<OperationExecutionType, ROperationExecution> {
-
-        @Override
-        public ROperationExecution map(OperationExecutionType input, MapperContext context) {
-            ROperationExecution execution = new ROperationExecution();
-
-            RObject owner = (RObject) context.getOwner();
-
-            RepositoryContext repositoryContext =
-                    new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
-
-            try {
-                ROperationExecution.copyFromJAXB(input, execution, owner, repositoryContext);
-            } catch (DtoTranslationException ex) {
-                throw new SystemException("Couldn't translate trigger to entity", ex);
-            }
-
-            lookForContainerIdInOldValues(execution, context);
-
-            return execution;
-        }
-    }
-
-    private static class TriggerMapper extends ContainerMapper<TriggerType, RTrigger> {
-
-        @Override
-        public RTrigger map(TriggerType input, MapperContext context) {
-            RTrigger trigger = new RTrigger();
-
-            RObject owner = (RObject) context.getOwner();
-
-            RepositoryContext repositoryContext =
-                    new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
-
-            try {
-                RTrigger.copyFromJAXB(input, trigger, owner, repositoryContext);
-            } catch (DtoTranslationException ex) {
-                throw new SystemException("Couldn't translate trigger to entity", ex);
-            }
-
-            lookForContainerIdInOldValues(trigger, context);
-
-            return trigger;
-        }
-    }
-
-    private static class AssignmentMapper extends ContainerMapper<AssignmentType, RAssignment> {
-
-        @Override
-        public RAssignment map(AssignmentType input, MapperContext context) {
-            RAssignment ass = new RAssignment();
-
-            RObject owner = (RObject) context.getOwner();
-
-            RepositoryContext repositoryContext =
-                    new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
-
-            try {
-                RAssignment.copyFromJAXB(input, ass, owner, repositoryContext);
-            } catch (DtoTranslationException ex) {
-                throw new SystemException("Couldn't translate assignment to entity", ex);
-            }
-
-            lookForContainerIdInOldValues(ass, context);
-
-            return ass;
-        }
-    }
-
-    private static class ObjectReferenceMapper implements Mapper<Referencable, RObjectReference> {
-
-        @Override
-        public RObjectReference map(Referencable input, MapperContext context) {
-            ObjectReferenceType objectRef;
-            if (input instanceof ObjectReferenceType) {
-                objectRef = (ObjectReferenceType) input;
-            } else {
-                objectRef = new ObjectReferenceType();
-                objectRef.setupReferenceValue(input.asReferenceValue());
-            }
-
-            ObjectTypeUtil.normalizeRelation(objectRef);
-
-            RObject owner = (RObject) context.getOwner();
-
-            ItemPath named = context.getDelta().getPath().namedSegmentsOnly();
-            NameItemPathSegment last = named.lastNamed();
-            RReferenceOwner refType = RReferenceOwner.getOwnerByQName(last.getName());
-
-            return RUtil.jaxbRefToRepo(objectRef, context.getPrismContext(), owner, refType);
-        }
-    }
-
-    private static class QNameMapper implements Mapper<QName, String> {
-
-        @Override
-        public String map(QName input, MapperContext context) {
-            return RUtil.qnameToString(input);
-        }
-    }
-
-    private static class AutoassignSpecificationMapper implements Mapper<AutoassignSpecificationType, RAutoassignSpecification> {
-
-        @Override
-        public RAutoassignSpecification map(AutoassignSpecificationType input, MapperContext context) {
-            RAutoassignSpecification rspec = new RAutoassignSpecification();
-            RAutoassignSpecification.copyFromJAXB(input, rspec);
-            return rspec;
-        }
-    }
-
-    private static class OperationalStateMapper implements Mapper<OperationalStateType, ROperationalState> {
-
-        @Override
-        public ROperationalState map(OperationalStateType input, MapperContext context) {
-            try {
-                ROperationalState rstate = new ROperationalState();
-                ROperationalState.copyFromJAXB(input, rstate);
-                return rstate;
-            } catch (DtoTranslationException ex) {
-                throw new SystemException("Couldn't translate operational state to entity", ex);
-            }
-        }
-    }
-
-    private static class EmbeddedObjectReferenceMapper implements Mapper<Referencable, REmbeddedReference> {
-
-        @Override
-        public REmbeddedReference map(Referencable input, MapperContext context) {
-            ObjectReferenceType objectRef;
-            if (input instanceof ObjectReferenceType) {
-                objectRef = (ObjectReferenceType) input;
-            } else {
-                objectRef = new ObjectReferenceType();
-                objectRef.setupReferenceValue(input.asReferenceValue());
-            }
-
-            ObjectTypeUtil.normalizeRelation(objectRef);
-
-            REmbeddedReference rref = new REmbeddedReference();
-            REmbeddedReference.copyFromJAXB(objectRef, rref);
-
-            return rref;
-        }
-    }
-
-    private static class ActivationMapper implements Mapper<ActivationType, RActivation> {
-
-        @Override
-        public RActivation map(ActivationType input, MapperContext context) {
-            try {
-                RActivation ractivation = new RActivation();
-                RActivation.copyFromJAXB(input, ractivation, null);
-
-                return ractivation;
-            } catch (DtoTranslationException ex) {
-                throw new SystemException("Couldn't translate activation to entity", ex);
-            }
-        }
-    }
-
-    private static class PolyStringMapper implements Mapper<PolyString, RPolyString> {
-
-        @Override
-        public RPolyString map(PolyString input, MapperContext context) {
-            return new RPolyString(input.getOrig(), input.getNorm());
-        }
-    }
-
-    private static class EnumMapper implements Mapper<Enum, SchemaEnum> {
-
-        @Override
-        public SchemaEnum map(Enum input, MapperContext context) {
-            String repoEnumClass = null;
-            try {
-                String className = input.getClass().getSimpleName();
-                className = StringUtils.left(className, className.length() - 4);
-
-                repoEnumClass = "com.evolveum.midpoint.repo.sql.data.common.enums.R" + className;
-                Class clazz = Class.forName(repoEnumClass);
-
-                if (!SchemaEnum.class.isAssignableFrom(clazz)) {
-                    throw new SystemException("Can't translate enum value " + input);
-                }
-
-                return RUtil.getRepoEnumValue(input, clazz);
-            } catch (ClassNotFoundException ex) {
-                throw new SystemException("Couldn't find class '" + repoEnumClass + "' for enum '" + input + "'", ex);
-            }
-        }
-    }
-
-    private interface Mapper<I, O> {
-
-        O map(I input, MapperContext context);
-    }
-
-    private static abstract class ContainerMapper<I extends Containerable, O extends Container> implements Mapper<I, O> {
-
-        protected void lookForContainerIdInOldValues(O output, MapperContext context) {
-            if (output == null || output.getId() != null) {
-                return;
-            }
-
-            ItemDelta delta = context.getDelta();
-            if (delta == null) {
-                return;
-            }
-
-            Collection oldValues = delta.getEstimatedOldValues();
-            if (oldValues == null) {
-                return;
-            }
-
-            for (Object object : oldValues) {
-                PrismContainerValue val = null;
-                if (object instanceof Containerable) {
-                    Containerable c = (Containerable)object;
-                    val = c.asPrismContainerValue();
-                } else if (object instanceof PrismContainerValue) {
-                    val = (PrismContainerValue) object;
-                }
-
-                if (val != null && val.getId() != null) {
-                    Long id = val.getId();
-                    output.setId(id.intValue());
-                    break;
-                }
-            }
-        }
     }
 
     private static class Key {
