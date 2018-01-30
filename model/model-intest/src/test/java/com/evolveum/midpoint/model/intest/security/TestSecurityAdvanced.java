@@ -66,8 +66,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -75,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -93,6 +96,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	
 	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
 	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
+	
+	protected static final File ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-read-role-administrator.xml");
+	protected static final String ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_OID = "b9fcce10-050d-11e8-b668-eb75ab96577d";
 	
 	protected static final File ROLE_EXCLUSION_PIRATE_FILE = new File(TEST_DIR, "role-exclusion-pirate.xml");
 	protected static final String ROLE_EXCLUSION_PIRATE_OID = "cf60ec66-e5a8-11e7-a997-ab32b7ec5fdb";
@@ -121,6 +127,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		super.initSystem(initTask, initResult);
 		
 		repoAddObjectFromFile(ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MAXASSIGNEES_10_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MODIFY_POLICY_EXCEPTION_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_FILE, initResult);
@@ -131,7 +138,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 7;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 8;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -2115,6 +2122,103 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         
         assertGlobalStateUntouched();
 	}
+	
+	/**
+	 * MID-4338
+	 */
+	@Test
+    public void test264AutzJackLimitedReadRoleAdministrator() throws Exception {
+		final String TEST_NAME = "test264AutzJackLimitedReadRoleAdministrator";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertReadDenyRaw();
+
+		assertSearch(UserType.class, null, 1);
+		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+		assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+		assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+
+        assertAddDeny();
+        assertDeleteDeny();
+        
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role", roleEmpty);
+        
+        PrismObjectDefinition<RoleType> roleEmptyEditSchema = getEditObjectDefinition(roleEmpty);
+		display("Exclusion role edit schema", roleEmptyEditSchema);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_NAME, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_DESCRIPTION, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_ROLE_TYPE, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_METADATA, false, false, false);
+		
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_ASSIGNMENT, true, false, false);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
+				true, false, false);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				true, false, false);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
+				true, false, false);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
+				true, false, false);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
+				true, false, false);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
+				true, false, false);
+		
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_INDUCEMENT, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION),
+				true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
+				true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
+				true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT),
+				false, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE),
+				true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND),
+				true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND, MappingType.F_STRENGTH),
+				true, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND, MappingType.F_DESCRIPTION),
+				false, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_MATCHING_RULE),
+				false, true, true);
+		assertItemFlags(roleEmptyEditSchema, 
+				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
+				true, true, true);
+        
+        assertGlobalStateUntouched();
+	}
+
 	
 	@Test
     public void test270AutzJackModifyPolicyException() throws Exception {
