@@ -109,7 +109,7 @@ public class ParamsTypeUtil {
 		return null;
 	}
 
-	public static String extractString(JAXBElement<?> jaxbElement) throws SchemaException {
+	private static String extractString(JAXBElement<?> jaxbElement) throws SchemaException {
 		Object value = jaxbElement.getValue();
 		if (value instanceof RawType){
 			XNode xnode = ((RawType) value).getXnode();

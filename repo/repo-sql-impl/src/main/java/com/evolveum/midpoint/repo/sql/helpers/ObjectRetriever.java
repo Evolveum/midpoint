@@ -40,13 +40,10 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -534,32 +530,7 @@ public class ObjectRetriever {
             lookupTableHelper.updateLoadedLookupTable(prismObject, options, session);
         } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
             caseHelper.updateLoadedCampaign(prismObject, options, session);
-        } 
-        
-//        Visitor visitor = new Visitor() {
-//			@Override
-//			public void visit(Visitable visitable) {
-//				LOGGER.info("normalizing {}", visitable);
-//				if (!(visitable instanceof PrismPropertyValue)) {
-//					return;
-//				}
-//				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-//				Object realValue = pval.getRealValue();
-//				
-//				if (!(realValue instanceof OperationResultType)) {
-//					return;
-//				}
-//				
-//				OperationResultType operationResultType = (OperationResultType) realValue;
-//				resolveOperationResultParams(operationResultType);
-//				
-//			}
-//        };
-//        try {
-//        	prismObject.accept(visitor);
-//        } catch (TunnelException ex) {
-//        	throw new SchemaException(ex.getMessage(), ex);
-//        }
+        }
 
         if (partialValueHolder != null) {
         	partialValueHolder.setValue(prismObject);
@@ -571,45 +542,6 @@ public class ObjectRetriever {
 		return prismObject;
     }
 
-    private void resolveOperationResultParams(OperationResultType operationResultType) {
-    	
-    	if (operationResultType == null) {
-    		return;
-    	}
-    	
-    	operationResultType.setParams(convertParamsToString(operationResultType.getParams()));
-    	operationResultType.setContext(convertParamsToString(operationResultType.getContext()));
-    	operationResultType.setReturns(convertParamsToString(operationResultType.getReturns()));
-		
-		for (OperationResultType subResult : operationResultType.getPartialResults()) {
-			resolveOperationResultParams(subResult);
-		} 
-    }
-    
-    private ParamsType convertParamsToString(ParamsType params) {
-    	if (params == null) {
-    		return null;
-    	}
-    	List<EntryType> entries = params.getEntry();
-		
-		List<EntryType> convertedEntries = new ArrayList<>(entries.size());
-		for (EntryType entry : entries) {
-			if (entry == null || entry.getEntryValue() == null) {
-				continue;
-			}
-			try {
-				String stringValue = ParamsTypeUtil.extractString(entry.getEntryValue());
-				EntryType convertedEntry = new EntryType();
-				convertedEntry.setEntryValue(new JAXBElement<String>(DOMUtil.XSD_STRING, String.class, stringValue));
-				convertedEntries.add(convertedEntry);
-			} catch (SchemaException e) {
-				throw new TunnelException(e);
-			}
-		}
-		ParamsType convertedParams = new ParamsType();
-		convertedParams.getEntry().addAll(convertedEntries);
-		return convertedParams;
-    }
 
     private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
                                                  PrismObject object, Session session) throws SchemaException {

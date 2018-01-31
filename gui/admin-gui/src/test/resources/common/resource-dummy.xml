@@ -45,7 +45,7 @@
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
-<!-- 			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable> -->
+			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
@@ -512,35 +512,6 @@
         </objectType>
 		
 	</schemaHandling>
-	
-	<capabilities>
-      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-         <cap:addRemoveAttributeValues/>
-         <cap:activation>
-            <cap:status/>
-            <cap:lockoutStatus/>
-         </cap:activation>
-         <cap:credentials>
-            <cap:password>
-               <cap:returnedByDefault>false</cap:returnedByDefault>
-            </cap:password>
-         </cap:credentials>
-         <cap:liveSync/>
-         <cap:testConnection/>
-         <cap:create/>
-         <cap:read/>
-         <cap:update/>
-         <cap:delete/>
-         <cap:script>
-            <cap:host>
-               <cap:type>resource</cap:type>
-            </cap:host>
-            <cap:host>
-               <cap:type>connector</cap:type>
-            </cap:host>
-         </cap:script>
-      </configured>
-   </capabilities>
 	
 	<scripts>
 		<script>

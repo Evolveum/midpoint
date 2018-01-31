@@ -101,10 +101,10 @@
 			<groupId>xml-apis</groupId>
 			<artifactId>xml-apis</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>javax.xml.bind</groupId>-->
+			<!--<artifactId>jaxb-api</artifactId>-->
+		<!--</dependency>-->
 
         <!-- SPRING -->
         <dependency>

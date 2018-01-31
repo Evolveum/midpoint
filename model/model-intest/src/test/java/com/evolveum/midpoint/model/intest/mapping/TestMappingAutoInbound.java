@@ -238,10 +238,6 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         display("User after", userHermanAfter);
         userHermanOid = userHermanAfter.getOid();
         assertUser(userHermanAfter, userHermanAfter.getOid(), USER_HERMAN_USERNAME, USER_HERMAN_FULL_NAME, null, null);
-        
-        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
-        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
-        
         assertAssignedRole(userHermanAfter, ROLE_AUTODIDACTIC_OID);
         assertAssignedRole(userHermanAfter, ROLE_AUTOGRAPHIC_OID);
         assertAssignedRole(userHermanAfter, ROLE_AUTOTESTERS_OID);
