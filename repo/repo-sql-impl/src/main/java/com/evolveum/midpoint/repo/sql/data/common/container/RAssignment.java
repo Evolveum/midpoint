@@ -48,6 +48,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -105,7 +106,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     private RAssignmentOwner assignmentOwner;
     //extension
-    private Set<RAssignmentExtension> extension = new HashSet<>();
+    private RAssignmentExtension extension;
     //assignment fields
     private RActivation activation;
     private REmbeddedReference targetRef;
@@ -190,12 +191,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Any(jaxbNameLocalPart = "extension")
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "owner", cascade = CascadeType.ALL)
-//    @JoinColumns(value = {
-//            @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
-//            @JoinColumn(name = "extId", referencedColumnName = "owner_id")
-//    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    public Set<RAssignmentExtension> getExtension() {
+    @JoinColumns(value = {
+            @JoinColumn(name = "owner_oid", referencedColumnName = "owner_owner_oid"),
+            @JoinColumn(name = "id", referencedColumnName = "owner_id")
+    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    public RAssignmentExtension getExtension() {
         return extension;
     }
 
@@ -353,7 +354,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.activation = activation;
     }
 
-    public void setExtension(Set<RAssignmentExtension> extension) {
+    public void setExtension(RAssignmentExtension extension) {
         this.extension = extension;
     }
 
@@ -436,7 +437,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             RAssignmentExtension extension = new RAssignmentExtension();
             extension.setOwner(repo);
 
-            repo.getExtension().add(extension);
+            repo.setExtension(extension);
             RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, RAssignmentExtensionType.EXTENSION,
                     repositoryContext);
         }

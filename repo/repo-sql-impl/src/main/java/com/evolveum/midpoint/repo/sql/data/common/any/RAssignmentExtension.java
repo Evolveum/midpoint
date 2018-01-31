@@ -82,7 +82,7 @@ public class RAssignmentExtension implements Serializable {
 //    }
 
     @Id
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = {})
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumns(value = {
             @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
             @JoinColumn(name = "owner_id", referencedColumnName = "id") },
