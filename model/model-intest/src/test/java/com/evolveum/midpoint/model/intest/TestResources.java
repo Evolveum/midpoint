@@ -573,7 +573,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  5);
 
         assertResourceDummy(resource, true);
 
