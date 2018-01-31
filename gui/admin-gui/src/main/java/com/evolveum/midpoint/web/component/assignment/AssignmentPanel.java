@@ -21,11 +21,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,9 +67,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -136,7 +135,13 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			public boolean isVisible() {
-				return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
+				try {
+					return getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
+							AuthorizationPhaseType.REQUEST, getFocusObject(),
+							null, null, null);
+				} catch (Exception ex){
+					return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
+				}
 			}
 		});
 		assignmentsContainer.add(newObjectIcon);
@@ -528,5 +533,13 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		if (mainPanel != null) {
 			mainPanel.reloadSavePreviewButtons(target);
 		}
+	}
+
+	private PrismObject getFocusObject(){
+		FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
+		if (mainPanel != null) {
+			return mainPanel.getObjectWrapper().getObject();
+		}
+		return null;
 	}
 }
