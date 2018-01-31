@@ -162,6 +162,7 @@ public class ObjectWrapperFactory {
 		List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
 				objectDefinitionForEditing, status, this.result);
 		objectWrapper.setContainers(containerWrappers);
+		objectWrapper.sort();
 
         this.result.computeStatusIfUnknown();
 
