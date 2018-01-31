@@ -1,0 +1,279 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="c0c010c0-d34d-b33f-f00d-111111111111"
+      version="45">
+    <name>jack</name>
+    <description>Where's the rum?</description>
+    <extension xmlns:gen749="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        <gen749:ship>Black Pearl</gen749:ship>
+        <gen749:weapon>pistol</gen749:weapon>
+        <gen749:weapon>mouth</gen749:weapon>
+        <gen749:badLuck>123</gen749:badLuck>
+        <gen749:badLuck>456</gen749:badLuck>
+    </extension>
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000004"
+                  relation="org:default"
+                  type="c:OrgType"/>
+    <parentOrgRef oid="e68ab44b-96cf-4bcf-a48f-f89c14293390"
+                  relation="org:default"
+                  type="c:OrgType"/>
+    <parentOrgRef oid="62ce6b58-93ba-4008-abb2-7af2c1078985"
+                  relation="org:default"
+                  type="c:OrgType"/>
+    <trigger id="1">
+        <timestamp>2018-02-28T13:18:05.056+01:00</timestamp>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/recompute/handler-3</handlerUri>
+    </trigger>
+    <metadata>
+        <createTimestamp>2018-01-31T13:18:05.056+01:00</createTimestamp>
+        <modifyTimestamp>2018-01-31T13:18:18.569+01:00</modifyTimestamp>
+        <modifierRef oid="00000000-0000-0000-0000-000000000002"
+                     relation="org:default"
+                     type="c:UserType"/>
+        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
+        <lastProvisioningTimestamp>2018-01-31T13:18:15.117+01:00</lastProvisioningTimestamp>
+    </metadata>
+    <operationExecution id="6">
+        <timestamp>2018-01-31T13:18:16.706+01:00</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <token>1000000000000000576</token>
+            </executionResult>
+            <objectName>jack</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002"
+                      relation="org:default"
+                      type="c:UserType"/>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+    </operationExecution>
+    <operationExecution id="7">
+        <timestamp>2018-01-31T13:18:17.231+01:00</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <token>1000000000000000593</token>
+            </executionResult>
+            <objectName>jack</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002"
+                      relation="org:default"
+                      type="c:UserType"/>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+    </operationExecution>
+    <operationExecution id="8">
+        <timestamp>2018-01-31T13:18:17.551+01:00</timestamp>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002"
+                      relation="org:default"
+                      type="c:UserType"/>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+    </operationExecution>
+    <operationExecution id="9">
+        <timestamp>2018-01-31T13:18:18.228+01:00</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <token>1000000000000000626</token>
+            </executionResult>
+            <objectName>jack</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002"
+                      relation="org:default"
+                      type="c:UserType"/>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+    </operationExecution>
+    <operationExecution id="4">
+        <timestamp>2018-01-31T13:18:18.822+01:00</timestamp>
+        <operation>
+            <objectDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+            </objectDelta>
+            <executionResult>
+                <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                <status>success</status>
+                <token>1000000000000000643</token>
+            </executionResult>
+            <objectName>jack</objectName>
+        </operation>
+        <status>success</status>
+        <initiatorRef oid="00000000-0000-0000-0000-000000000002"
+                      relation="org:default"
+                      type="c:UserType"/>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+    </operationExecution>
+    <linkRef oid="efb1d031-44c6-4f44-a326-9758ed54c5e1"
+             relation="org:default"
+             type="c:ShadowType"/>
+    <assignment id="1">
+        <metadata>
+            <requestTimestamp>2018-01-31T13:18:07.285+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002"
+                          relation="org:default"
+                          type="c:UserType"/>
+            <createTimestamp>2018-01-31T13:18:08.619+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                        relation="org:default"
+                        type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+        </metadata>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000204"
+                         relation="org:default"
+                         type="c:ResourceType"/>
+            <kind>account</kind>
+        </construction>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <assignment id="2">
+        <metadata>
+            <requestTimestamp>2018-01-31T13:18:15.881+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002"
+                          relation="org:default"
+                          type="c:UserType"/>
+            <createTimestamp>2018-01-31T13:18:16.044+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                        relation="org:default"
+                        type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <originMappingName>Org mapping</originMappingName>
+        </metadata>
+        <targetRef oid="00000000-8888-6666-0000-100000000004"
+                   relation="org:default"
+                   type="c:OrgType"/>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <assignment id="3">
+        <metadata>
+            <requestTimestamp>2018-01-31T13:18:16.784+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002"
+                          relation="org:default"
+                          type="c:UserType"/>
+            <createTimestamp>2018-01-31T13:18:17.016+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                        relation="org:default"
+                        type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <originMappingName>Org mapping</originMappingName>
+        </metadata>
+        <targetRef oid="e68ab44b-96cf-4bcf-a48f-f89c14293390"
+                   relation="org:default"
+                   type="c:OrgType"/>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <assignment id="5">
+        <metadata>
+            <requestTimestamp>2018-01-31T13:18:17.654+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002"
+                          relation="org:default"
+                          type="c:UserType"/>
+            <createTimestamp>2018-01-31T13:18:17.948+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                        relation="org:default"
+                        type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <originMappingName>Org mapping</originMappingName>
+        </metadata>
+        <targetRef oid="62ce6b58-93ba-4008-abb2-7af2c1078985"
+                   relation="org:default"
+                   type="c:OrgType"/>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+        <enableTimestamp>2018-01-31T13:18:07.315+01:00</enableTimestamp>
+    </activation>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <roleMembershipRef oid="00000000-8888-6666-0000-100000000004"
+                       relation="org:default"
+                       type="c:OrgType"/>
+    <roleMembershipRef oid="e68ab44b-96cf-4bcf-a48f-f89c14293390"
+                       relation="org:default"
+                       type="c:OrgType"/>
+    <roleMembershipRef oid="62ce6b58-93ba-4008-abb2-7af2c1078985"
+                       relation="org:default"
+                       type="c:OrgType"/>
+    <fullName>Jackie Sparrow</fullName>
+    <givenName>Jackie</givenName>
+    <familyName>Sparrow</familyName>
+    <additionalName>Jackie</additionalName>
+    <honorificPrefix>Cpt.</honorificPrefix>
+    <honorificSuffix>PhD.</honorificSuffix>
+    <locale>CA</locale>
+    <timezone>High Seas/Tortuga</timezone>
+    <emailAddress>jack.sparrow@evolveum.com</emailAddress>
+    <telephoneNumber>1 222 3456789</telephoneNumber>
+    <employeeNumber>ydBMhWPo</employeeNumber>
+    <employeeType>BARTENDER</employeeType>
+    <costCenter>X000</costCenter>
+    <organizationalUnit>F0004</organizationalUnit>
+    <organizationalUnit>FD001</organizationalUnit>
+    <organizationalUnit>FD003</organizationalUnit>
+    <locality>Tortuga</locality>
+    <credentials>
+        <password>
+            <value>
+                <t:encryptedData>
+                    <t:encryptionMethod>
+                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+                    </t:encryptionMethod>
+                    <t:keyInfo>
+                        <t:keyName>+8NEoa28j1JQimuenBNIqv5Tt3o=</t:keyName>
+                    </t:keyInfo>
+                    <t:cipherData>
+                        <t:cipherValue>iGhcbOGoptI8qYbViQbMh5nbjZHQg2ZmPY1VDyMdwtOom1mLdERI418WeQ30Eg2l</t:cipherValue>
+                    </t:cipherData>
+                </t:encryptedData>
+            </value>
+        </password>
+    </credentials>
+</user>
