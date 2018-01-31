@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.testing;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,7 +62,7 @@ public class ResourceCarefulAntUtil {
 
 			@Override
 			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
-				assertEquals("Wrong descripion in iteration "+iteration, "Blah "+iteration, resource.asObjectable().getDescription());
+				assertEquals("Wrong description in iteration "+iteration, "Blah "+iteration, resource.asObjectable().getDescription());
 			}
 		});
 
@@ -75,7 +77,12 @@ public class ResourceCarefulAntUtil {
 			}
 			@Override
 			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
-				assertEquals("Wrong schemaHandling in iteration "+iteration, schemaHandling, resource.asObjectable().getSchemaHandling());
+				if (!schemaHandling.equals(resource.asObjectable().getSchemaHandling())) {
+					System.out.println("Expected: " + PrismUtil.serializeQuietly(prismContext, schemaHandling));
+					System.out.println("Real: " + PrismUtil.serializeQuietly(prismContext, resource.asObjectable().getSchemaHandling()));
+					fail("Wrong schemaHandling in iteration" + iteration);
+				}
+				//assertEquals("Wrong schemaHandling in iteration "+iteration, schemaHandling, resource.asObjectable().getSchemaHandling());
 			}
 		});
 

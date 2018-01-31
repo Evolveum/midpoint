@@ -95,7 +95,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
 	private static final int MAX_RANDOM_SEQUENCE_ITERATIONS = 15;
 
-	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<CarefulAnt<ResourceType>>();
+	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<>();
 	private static CarefulAnt<ResourceType> descriptionAnt;
 	private static String lastVersion;
 	private static Random rnd = new Random();
@@ -1136,8 +1136,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
 
 	@Test
-    public void test840RadomModifySequence() throws Exception {
-    	final String TEST_NAME = "test840RadomModifySequence";
+    public void test840RandomModifySequence() throws Exception {
+    	final String TEST_NAME = "test840RandomModifySequence";
     	displayTestTitle(TEST_NAME);
 
     	Task task = createTask(TEST_NAME);
