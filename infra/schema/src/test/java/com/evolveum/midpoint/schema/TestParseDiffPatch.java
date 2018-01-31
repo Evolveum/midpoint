@@ -918,4 +918,22 @@ public class TestParseDiffPatch {
 		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 	}
 
+	@Test(enabled = false)
+	public void testDiffSameValues() throws Exception {
+		PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
+		PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
+
+		Collection<? extends ItemDelta> differences = before.diffModifications(after, true, true);
+
+		assertEquals(1, differences.size());
+		System.out.println(differences.iterator().next().debugDump());
+
+		PrismObject<ResourceType> differencesApplied = before.clone();
+		ItemDelta.applyTo(differences, differencesApplied);
+
+		System.out.println(differencesApplied.debugDump());
+		assertEquals("'after' is different from the object with differences applied", after, differencesApplied);
+	}
+
+
 }
