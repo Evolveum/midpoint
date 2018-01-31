@@ -21,19 +21,25 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.assignment.GenericAbstractRoleAssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -53,6 +59,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -204,6 +212,18 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		assignmentsTabPanel = new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
         return assignmentsTabPanel;
 	}
+	
+	protected WebMarkupContainer createFocusDataProtectionTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		assignmentsTabPanel = new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage) {
+			
+			 @Override
+			protected AssignmentPanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
+				return new GenericAbstractRoleAssignmentPanel(panelId, model);
+			}
+			
+		};
+        return assignmentsTabPanel;
+	}
 
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new ObjectHistoryTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
@@ -281,6 +301,42 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					@Override
 					public String getCount() {
 						return Integer.toString(countAssignments());
+					}
+				});
+		
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
+		tabs.add(
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public WebMarkupContainer createPanel(String panelId) {
+						return createFocusDataProtectionTabPanel(panelId, parentPage);
+					}
+
+					@Override
+					public String getCount() {
+						PrismObject<F> focus = getObjectModel().getObject().getObject();
+						List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+						int count = 0;
+						for (AssignmentType assignment : assignments) {
+							if (assignment.getTargetRef() == null) {
+								continue;
+							}
+							if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
+								Task task = parentPage.createSimpleTask("load data protection obejcts");
+								PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), parentPage, task, task.getResult());
+								
+								if (org != null) {
+									if (org.asObjectable().getOrgType().contains("access")) {
+										count++;
+									}
+								}
+							}
+						}
+						
+						return String.valueOf(count);
 					}
 				});
 
