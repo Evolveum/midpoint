@@ -73,6 +73,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -138,7 +139,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	protected WebMarkupContainer headerRow;
 	protected IModel<List<AssignmentInfoDto>> privilegesListModel;
 	protected boolean delegatedToMe;
-	private LoadableModel<ItemSecurityConstraints> itemSecurityConstraintsModel;
+	private LoadableDetachableModel<ItemSecurityConstraints> itemSecurityConstraintsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
 			LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
@@ -1107,7 +1108,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	private void initDecisionsModel() {
-		itemSecurityConstraintsModel = new LoadableModel<ItemSecurityConstraints>(false) {
+		itemSecurityConstraintsModel = new LoadableDetachableModel<ItemSecurityConstraints>() {
 			@Override
 			protected ItemSecurityConstraints load() {
 				return loadSecurityConstraints();

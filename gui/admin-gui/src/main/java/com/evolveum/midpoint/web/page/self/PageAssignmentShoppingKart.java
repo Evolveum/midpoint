@@ -186,25 +186,25 @@ public class PageAssignmentShoppingKart extends PageSelf {
     }
 
     private void initProvider() {
-            provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(PageAssignmentShoppingKart.this, AbstractRoleType.class) {
-                private static final long serialVersionUID = 1L;
+        provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(PageAssignmentShoppingKart.this, AbstractRoleType.class) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
+            @Override
+            public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
 
-                    AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, PageAssignmentShoppingKart.this);
-                    if (!getRoleCatalogStorage().isMultiUserRequest()) {
-                        dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
-                        dto.setDefualtAssignmentConstraints(getRoleCatalogStorage().getShoppingCartConfigurationDto().getDefaultAssignmentConstraints());
-                    }
-                    return dto;
+                AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, PageAssignmentShoppingKart.this);
+                if (!getRoleCatalogStorage().isMultiUserRequest()) {
+                    dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
+                    dto.setDefualtAssignmentConstraints(getRoleCatalogStorage().getShoppingCartConfigurationDto().getDefaultAssignmentConstraints());
                 }
+                return dto;
+            }
 
-                @Override
-                public ObjectQuery getQuery() {
-                    return createContentQuery(null);
-                }
-            };
+            @Override
+            public ObjectQuery getQuery() {
+                return createContentQuery(null);
+            }
+        };
     }
 
     private void initHeaderPanel(Form mainForm){
@@ -224,40 +224,40 @@ public class PageAssignmentShoppingKart extends PageSelf {
         treePanelContainer.setOutputMarkupId(true);
         contentPanel.add(treePanelContainer);
 
-            OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL,
-                    Model.of(!isCatalogOidEmpty() ? getRoleCatalogStorage().getShoppingCartConfigurationDto().getRoleCatalogOid() : ""),
-                    false, PageAssignmentShoppingKart.this, "AssignmentShoppingCartPanel.treeTitle") {
-                private static final long serialVersionUID = 1L;
+        OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL,
+                Model.of(!isCatalogOidEmpty() ? getRoleCatalogStorage().getShoppingCartConfigurationDto().getRoleCatalogOid() : ""),
+                false, PageAssignmentShoppingKart.this, "AssignmentShoppingCartPanel.treeTitle") {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
-                                                       AjaxRequestTarget target) {
-                    PageAssignmentShoppingKart.this.selectTreeItemPerformed(selected, target);
-                }
+            @Override
+            protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+                                                   AjaxRequestTarget target) {
+                PageAssignmentShoppingKart.this.selectTreeItemPerformed(selected, target);
+            }
 
-                protected List<InlineMenuItem> createTreeMenu() {
-                    return new ArrayList<>();
-                }
+            protected List<InlineMenuItem> createTreeMenu() {
+                return new ArrayList<>();
+            }
 
-                @Override
-                protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
-                    return new ArrayList<>();
-                }
+            @Override
+            protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+                return new ArrayList<>();
+            }
 
-                @Override
-                protected OrgTreeStateStorage getOrgTreeStateStorage(){
-                    return getRoleCatalogStorage();
-                }
-            };
-            treePanel.setOutputMarkupId(true);
-            treePanelContainer.add(new VisibleEnableBehaviour(){
-                private static final long serialVersionUID = 1L;
-                @Override
-                public boolean isVisible(){
-                    return AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject()) &&
-                            !isCatalogOidEmpty();
-                }
-            });
+            @Override
+            protected OrgTreeStateStorage getOrgTreeStateStorage(){
+                return getRoleCatalogStorage();
+            }
+        };
+        treePanel.setOutputMarkupId(true);
+        treePanelContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible(){
+                return AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject()) &&
+                        !isCatalogOidEmpty();
+            }
+        });
         treePanelContainer.add(treePanel);
 
         initCatalogItemsPanel(contentPanel);
@@ -371,7 +371,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
             @Override
             protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
                 super.singleUserSelectionPerformed(target, user);
-                viewTypeModel.setObject(AssignmentViewType.USER_TYPE);
                 getRoleCatalogStorage().setAssignmentsUserOwner(user);
 
                 initProvider();
@@ -390,9 +389,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
             protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
                 super.onDeleteSelectedUsersPerformed(target);
                 getRoleCatalogStorage().setAssignmentsUserOwner(null);
-                if (getRoleCatalogStorage().getShoppingCartConfigurationDto().getViewTypeList().size() > 0) {
-                    viewTypeModel.setObject(getRoleCatalogStorage().getShoppingCartConfigurationDto().getViewTypeList().get(0));
-                }
                 initProvider();
                 searchModel.reset();
 
@@ -432,7 +428,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
             @Override
             public boolean isEnabled(){
-                return !AssignmentViewType.USER_TYPE.equals(viewTypeModel.getObject());
+                return getRoleCatalogStorage().getAssignmentsUserOwner() == null;
             }
         });
         viewSelect.setOutputMarkupId(true);
@@ -470,14 +466,16 @@ public class PageAssignmentShoppingKart extends PageSelf {
             }
             addOrgMembersFilter(oid, memberQuery);
         }
-        if (AssignmentViewType.USER_TYPE.equals(viewTypeModel.getObject())) {
+        if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
             UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
             List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());
             ObjectFilter oidsFilter = InOidFilter.createInOid(assignmentTargetObjectOidsList);
             memberQuery.addFilter(oidsFilter);
         }
         memberQuery.addFilter(getAssignableRolesFilter());
-        addViewTypeFilter(memberQuery);
+        if (getRoleCatalogStorage().getAssignmentsUserOwner() == null) {
+            addViewTypeFilter(memberQuery);
+        }
         if (memberQuery == null) {
             memberQuery = new ObjectQuery();
         }

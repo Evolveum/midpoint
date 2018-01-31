@@ -1907,14 +1907,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (breadcrumbs.size() > 2) {
             return true;
         }
-        if (breadcrumbs.size() == 2) {
-            BreadcrumbPageClass breadcrumb = null;
-            if ((breadcrumbs.get(breadcrumbs.size() - 2)) instanceof BreadcrumbPageClass) {
-                breadcrumb = (BreadcrumbPageClass) breadcrumbs.get(breadcrumbs.size() - 2);
-            }
-            if (breadcrumb != null && breadcrumb.getPage() != null) {
+        if (breadcrumbs.size() == 2 && (breadcrumbs.get(breadcrumbs.size() - 2)) != null) {
                 return true;
-            }
         }
 
         return false;

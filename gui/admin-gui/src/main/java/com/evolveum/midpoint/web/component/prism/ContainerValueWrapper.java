@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -59,6 +60,8 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 /**
  * @author lazyman
@@ -281,61 +284,54 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		this.selected = selected;
 	}
 
-	public void sort(final PageBase pageBase) {
+	public void sort() {
+		Collator collator = Collator.getInstance(WebModelServiceUtils.getLocale());
 		if (isSorted()) {
-			Collator collator = Collator.getInstance(pageBase.getLocale());
 			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
-					ItemDefinition id1 = pw1.getItemDefinition();
-					ItemDefinition id2 = pw2.getItemDefinition();
-					String str1 = (id1 != null ? (id1.getDisplayName() != null
-							? (pageBase.createStringResource(id1.getDisplayName()) != null
-									&& StringUtils.isNotEmpty(pageBase.createStringResource(id1.getDisplayName()).getString())
-											? pageBase.createStringResource(id1.getDisplayName()).getString()
-											: id1.getDisplayName())
-							: (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : ""))
-							: "");
-					String str2 = (id2 != null ? (id2.getDisplayName() != null
-							? (pageBase.createStringResource(id2.getDisplayName()) != null
-									&& StringUtils.isNotEmpty(pageBase.createStringResource(id2.getDisplayName()).getString())
-											? pageBase.createStringResource(id2.getDisplayName()).getString()
-											: id2.getDisplayName())
-							: (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : ""))
-							: "");
-					//return str1.compareToIgnoreCase(str2);
-					return collator.compare(str1, str2);
+					return compareByDisplayNames(pw1, pw2, collator);
 				}
 			});
 		} else {
-			final int[] maxOrderArray = new int[3];
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
 					ItemDefinition id1 = pw1.getItemDefinition();
 					ItemDefinition id2 = pw2.getItemDefinition();
 
-					// we need to find out the value of the biggest displayOrder
-					// to put
-					// properties with null display order to the end of the list
-					int displayOrder1 = (id1 != null && id1.getDisplayOrder() != null) ? id1.getDisplayOrder() : 0;
-					int displayOrder2 = (id2 != null && id2.getDisplayOrder() != null) ? id2.getDisplayOrder() : 0;
-					if (maxOrderArray[0] == 0) {
-						maxOrderArray[0] = displayOrder1 > displayOrder2 ? displayOrder1 + 1 : displayOrder2 + 1;
+					int displayOrder1 = (id1 == null || id1.getDisplayOrder() == null) ? Integer.MAX_VALUE : id1.getDisplayOrder();
+					int displayOrder2 = (id2 == null || id2.getDisplayOrder() == null) ? Integer.MAX_VALUE : id2.getDisplayOrder();
+					if (displayOrder1 == displayOrder2){
+						return compareByDisplayNames(pw1, pw2, collator);
+					} else {
+						return Integer.compare(displayOrder1, displayOrder2);
 					}
-					maxOrderArray[1] = displayOrder1;
-					maxOrderArray[2] = displayOrder2;
-
-					int maxDisplayOrder = NumberUtils.max(maxOrderArray);
-					maxOrderArray[0] = maxDisplayOrder + 1;
-
-					return Integer.compare(id1 != null && id1.getDisplayOrder() != null ? id1.getDisplayOrder() : maxDisplayOrder,
-							id2 != null && id2.getDisplayOrder() != null ? id2.getDisplayOrder() : maxDisplayOrder);
 				}
 			});
 		}
+	}
+
+	private int compareByDisplayNames(ItemWrapper pw1, ItemWrapper pw2, Collator collator){
+		ItemDefinition id1 = pw1.getItemDefinition();
+		ItemDefinition id2 = pw2.getItemDefinition();
+		String str1 = (id1 != null ? (id1.getDisplayName() != null
+				? (createStringResource(id1.getDisplayName()) != null
+				&& StringUtils.isNotEmpty(createStringResource(id1.getDisplayName()).getString())
+				? createStringResource(id1.getDisplayName()).getString()
+				: id1.getDisplayName())
+				: (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : ""))
+				: "");
+		String str2 = (id2 != null ? (id2.getDisplayName() != null
+				? (createStringResource(id2.getDisplayName()) != null
+				&& StringUtils.isNotEmpty(createStringResource(id2.getDisplayName()).getString())
+				? createStringResource(id2.getDisplayName()).getString()
+				: id2.getDisplayName())
+				: (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : ""))
+				: "");
+		return collator.compare(str1, str2);
 	}
 
 	@Override

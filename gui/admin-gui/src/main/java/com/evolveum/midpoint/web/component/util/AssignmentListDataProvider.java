@@ -120,7 +120,7 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Contain
     	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
-    private List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
+    protected List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
     	List<ContainerValueWrapper<AssignmentType>> list = model.getObject();
 
     	if (list == null || list.isEmpty()) {
