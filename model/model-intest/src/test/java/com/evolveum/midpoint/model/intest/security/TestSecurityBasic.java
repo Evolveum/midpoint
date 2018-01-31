@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1745,8 +1745,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertRoleTypes(spec, "application", "nonexistent");
         assertFilter(spec.getFilter(), TypeFilter.class);
 
-        assertAllowRequestItems(USER_JACK_OID, ROLE_APPLICATION_1_OID, null,
-        		AssignmentType.F_TARGET_REF, ActivationType.F_VALID_FROM, ActivationType.F_VALID_TO);
+        assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
+        		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_FROM,
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_TO);
 
         assertGlobalStateUntouched();
 	}
@@ -1797,7 +1799,11 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertRoleTypes(spec);
         assertFilter(spec.getFilter(), TypeFilter.class);
 
-        assertAllowRequestItems(USER_JACK_OID, ROLE_APPLICATION_1_OID, AuthorizationDecisionType.ALLOW);
+        assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
+        		SchemaConstants.PATH_ASSIGNMENT_DESCRIPTION,
+        		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_FROM,
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_TO);
 
         assertGlobalStateUntouched();
 	}
@@ -1956,8 +1962,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 	/**
 	 * MID-3636 partially
+	 * MID-4399
 	 */
-	@Test(enabled=false)
+	@Test
 	public void test275bAutzJackAssignRequestableOrgs() throws Exception {
 		final String TEST_NAME = "test275bAutzJackAssignRequestableOrgs";
 		displayTestTitle(TEST_NAME);
@@ -1987,7 +1994,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		ObjectQuery query = new ObjectQuery();
 
 		query.addFilter(spec.getFilter());
-		assertSearch(AbstractRoleType.class, query, 6); // set to 6 with requestable org
+		assertSearch(AbstractRoleType.class, query, 9);
 
 		assertAllow("unassign business role from jack",
         		(task, result) -> unassignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result));

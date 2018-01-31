@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>SystemConfiguration</name>
+    <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
+    <logging>
+    	<rootLoggerAppender>File Appender</rootLoggerAppender>
+    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+      	</classLogger>
+        <c:classLogger>
+            <c:level>TRACE</c:level>
+            <c:package>com.evolveum.midpoint.notifications</c:package>
+        </c:classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+    
+    <defaultObjectPolicyConfiguration>
+    	<type>UserType</type>
+    	<subtype>employee</subtype>
+   		<lifecycleStateModel>
+   			<state>
+   				<name>active</name>
+   				<transition>
+   					<name>archival</name>
+   					<targetState>archived</targetState>
+   					<condition>
+   						<script>
+   							<code>!midpoint.hasActiveAssignmentTargetSubtype('dataProcessingBasis')</code>
+   						</script>
+   					</condition>
+   				</transition>
+   			</state>
+   			<state>
+   				<name>archived</name>
+   				<entryAction>
+   					<name>archival-data-reduction</name>
+   					<dataReduction>
+   						<purgeItem>telephoneNumber</purgeItem>
+   					</dataReduction>
+   				</entryAction>
+   			</state>
+   		</lifecycleStateModel>
+    </defaultObjectPolicyConfiguration>
+    
+    <notificationConfiguration>
+		<handler>
+			<simplePolicyRuleNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:policyRuleNotifier</transport>
+			</simplePolicyRuleNotifier>
+		</handler>
+		<handler>
+            <accountActivationNotifier>
+                <recipientExpression>
+					<script>
+						<code>requestee.getEmailAddress()</code>
+					</script>
+				</recipientExpression>
+                <transport>dummy:accountActivationNotifier</transport>
+                <confirmationMethod>link</confirmationMethod>
+            </accountActivationNotifier>
+        </handler>
+        <handler>
+            <accountPasswordNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:accountPasswordNotifier</transport>
+            </accountPasswordNotifier>
+        </handler>
+        <handler>
+            <userPasswordNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:userPasswordNotifier</transport>
+            </userPasswordNotifier>
+        </handler>
+        <handler>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-SUCCESS</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <status>failure</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-FAILURE</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <operation>add</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-ADD-SUCCESS</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <operation>delete</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-DELETE-SUCCESS</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier</transport>
+            </simpleUserNotifier>
+        </handler>
+        <handler>
+            <chained>
+                <operation>add</operation>
+            </chained>
+            <chained>
+                <simpleUserNotifier>
+                    <recipientExpression>
+                        <value>recipient@evolveum.com</value>
+                    </recipientExpression>
+                    <transport>dummy:simpleUserNotifier-ADD</transport>
+                </simpleUserNotifier>
+            </chained>
+        </handler>
+        <handler>
+            <chained>
+                <operation>delete</operation>
+            </chained>
+            <chained>
+                <simpleUserNotifier>
+                    <recipientExpression>
+                        <value>recipient@evolveum.com</value>
+                    </recipientExpression>
+                    <transport>dummy:simpleUserNotifier-DELETE</transport>
+                </simpleUserNotifier>
+            </chained>
+        </handler>
+        <handler>
+            <status>failure</status>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-FAILURE</transport>
+            </simpleUserNotifier>
+        </handler>
+        <handler>
+            <category>customEvent</category>
+            <operation>delete</operation>
+            <status>failure</status>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.subtype == 'type2'
+                    </code>
+                </script>
+            </expressionFilter>
+            <generalNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <subjectExpression>
+                    <value>Failure notification of type 2</value>
+                </subjectExpression>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>$event.object.get(0).value</code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:CustomType2</transport>
+            </generalNotifier>
+        </handler>
+        <mail>
+            <redirectToFile>target/mail-notifications.log</redirectToFile>
+        </mail>
+    </notificationConfiguration>
+    
+    <internals>
+        <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
+    </internals>
+    
+    
+</systemConfiguration>

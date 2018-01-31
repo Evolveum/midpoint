@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,18 +72,17 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -176,7 +175,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, {}",
 				getUsername(midPointPrincipal), operationUrl, phase, params.shortDump());
 		}
-		final Collection<ItemPath> allowedItems = new ArrayList<>();
+		final AutzItemPaths allowedItems = new AutzItemPaths();
 		Collection<Authorization> authorities = getAuthorities(midPointPrincipal);
 		if (authorities != null) {
 			for (GrantedAuthority authority: authorities) {
@@ -236,18 +235,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					// authority is applicable to this situation. now we can process the decision.
 					AuthorizationDecisionType autzDecision = autz.getDecision();
 					if (autzDecision == null || autzDecision.equals(AuthorizationDecisionType.ALLOW)) {
-						// if there is more than one role which specify
-						// different authz (e.g one role specify allow for whole
-						// object, the other role specify allow only for some
-						// attributes. this ended with allow for whole object (MID-2018)
-						Collection<ItemPath> allowed = getItems(autz);
-						if (decision.equals(AccessDecision.ALLOW) && allowedItems.isEmpty()){
-							LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
-						} else if (decision.equals(AccessDecision.ALLOW) && allowed.isEmpty()){
-							allowedItems.clear();
-						} else {
-							allowedItems.addAll(allowed);
-						}
+						allowedItems.collectItems(autz);
 						LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
 						decision = AccessDecision.ALLOW;
 						// Do NOT break here. Other authorization statements may still deny the operation
@@ -273,7 +261,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		if (decision.equals(AccessDecision.ALLOW)) {
 			// Still check allowedItems. We may still deny the operation.
-			if (allowedItems.isEmpty()) {
+			if (allowedItems.isAllItems()) {
 				// This means all items are allowed. No need to check anything
 				LOGGER.trace("  Empty list of allowed items, operation allowed");
 			} else {
@@ -301,7 +289,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decision;
 	}
 	
-	private AccessDecision decideAllowedItems(final ItemPath itemPath, final Collection<ItemPath> allowedItems, final AuthorizationPhaseType phase, final boolean removingContainer) {
+	private AccessDecision decideAllowedItems(final ItemPath itemPath, final AutzItemPaths allowedItems, final AuthorizationPhaseType phase, final boolean removingContainer) {
 		if (isAllowedItem(itemPath, allowedItems, phase, removingContainer)) {
 			return AccessDecision.ALLOW;
 		} else {
@@ -485,14 +473,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private boolean isAllowedItem(ItemPath nameOnlyItemPath, Collection<ItemPath> allowedItems, AuthorizationPhaseType phase, boolean removingContainer) {
+	private boolean isAllowedItem(ItemPath nameOnlyItemPath, AutzItemPaths allowedItems, AuthorizationPhaseType phase, boolean removingContainer) {
 		if (removingContainer && isInList(nameOnlyItemPath, AuthorizationConstants.OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE)) {
 			return true;
 		}
 		if (AuthorizationPhaseType.EXECUTION.equals(phase) && isInList(nameOnlyItemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)) {
 			return true;
 		}
-		return isInList(nameOnlyItemPath, allowedItems);
+		return allowedItems.isApplicable(nameOnlyItemPath);
 	}
 	
 	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
@@ -813,39 +801,57 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
 		List<ItemPathType> itemPaths = autz.getItem();
 		if (itemPaths == null || itemPaths.isEmpty()) {
-			// No item constraints. Applicable for all items.
-			LOGGER.trace("  items empty");
-			return true;
+			List<ItemPathType> exceptItems = autz.getExceptItem();
+			if (exceptItems.isEmpty()) {
+				// No item constraints. Applicable for all items.
+				LOGGER.trace("  items empty");
+				return true;
+			} else {
+				return isApplicableItem(autz, object, delta, exceptItems, false);
+			}
+		} else {
+			return isApplicableItem(autz, object, delta, itemPaths, true);
 		}
+		
+	}
+
+	private <O extends ObjectType> boolean isApplicableItem(Authorization autz, 
+			PrismObject<O> object, ObjectDelta<O> delta, List<ItemPathType> itemPaths, boolean positive) 
+					throws SchemaException {
 		for (ItemPathType itemPathType: itemPaths) {
 			ItemPath itemPath = itemPathType.getItemPath();
 			if (delta == null) {
 				if (object != null) {
 					if (object.containsItem(itemPath, false)) {
-						LOGGER.trace("  applicable object item "+itemPath);
-						return true;
+						if (positive) {
+							LOGGER.trace("  applicable object item "+itemPath);
+							return true;
+						} else {
+							LOGGER.trace("  excluded object item "+itemPath);
+							return false;
+						}
 					}
 				}
 			} else {
 				ItemDelta<?,?> itemDelta = delta.findItemDelta(itemPath);
 				if (itemDelta != null && !itemDelta.isEmpty()) {
-					LOGGER.trace("  applicable delta item "+itemPath);
-					return true;
+					if (positive) {
+						LOGGER.trace("  applicable delta item "+itemPath);
+						return true;
+					} else {
+						LOGGER.trace("  excluded delta item "+itemPath);
+						return false;
+					}
 				}
 			}
 		}
-		LOGGER.trace("  no applicable item");
-		return false;
-	}
-
-	private Collection<ItemPath> getItems(Authorization autz) {
-		List<ItemPathType> itemPaths = autz.getItem();
-		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
-		for (ItemPathType itemPathType: itemPaths) {
-			ItemPath itemPath = itemPathType.getItemPath();
-			items.add(itemPath);
+		if (positive) {
+			LOGGER.trace("  no applicable item");
+			return false;
+		} else {
+			LOGGER.trace("  no excluded item");
+			return true;
 		}
-		return items;
 	}
 
 	/**
@@ -958,29 +964,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 				// skip target applicability evaluation. We do not have a target here
 
-				List<String> actions = autz.getAction();
-				AuthorizationPhaseType phase = autz.getPhase();
-				AuthorizationDecisionType decision = autz.getDecision();
-				if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
-					Collection<ItemPath> items = getItems(autz);
-					if (items == null || items.isEmpty()) {
-						applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.ALLOW);
-					} else {
-						for (ItemPath item: items) {
-							applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.ALLOW);
-						}
-					}
-				} else {
-					Collection<ItemPath> items = getItems(autz);
-					if (items == null || items.isEmpty()) {
-						applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.DENY);
-					} else {
-						for (ItemPath item: items) {
-							applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.DENY);
-						}
-					}
-				}
-
+				objectSecurityConstraints.applyAuthorization(autz);
 			}
 		}
 
@@ -990,56 +974,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		return objectSecurityConstraints;
-	}
-
-	private void applyItemDecision(Map<ItemPath, ItemSecurityConstraintsImpl> itemConstraintMap, ItemPath item,
-			List<String> actions, AuthorizationPhaseType phase, AuthorizationDecisionType decision) {
-		ItemSecurityConstraintsImpl entry = itemConstraintMap.computeIfAbsent(item, k -> new ItemSecurityConstraintsImpl());
-		applyDecision(entry.getActionDecisionMap(), actions, phase, decision);
-	}
-
-	private void applyDecision(Map<String, PhaseDecisionImpl> actionDecisionMap,
-			List<String> actions, AuthorizationPhaseType phase, AuthorizationDecisionType decision) {
-		for (String action: actions) {
-			if (phase == null) {
-				applyDecisionRequest(actionDecisionMap, action, decision);
-				applyDecisionExecution(actionDecisionMap, action, decision);
-			} else if (phase == AuthorizationPhaseType.REQUEST){
-				applyDecisionRequest(actionDecisionMap, action, decision);
-			} else if (phase == AuthorizationPhaseType.EXECUTION) {
-				applyDecisionExecution(actionDecisionMap, action, decision);
-			} else {
-				throw new IllegalArgumentException("Unknown phase "+phase);
-			}
-		}
-	}
-
-	private void applyDecisionRequest(Map<String, PhaseDecisionImpl> actionDecisionMap,
-			String action, AuthorizationDecisionType decision) {
-		PhaseDecisionImpl phaseDecision = actionDecisionMap.get(action);
-		if (phaseDecision == null) {
-			phaseDecision = new PhaseDecisionImpl();
-			phaseDecision.setRequestDecision(decision);
-			actionDecisionMap.put(action, phaseDecision);
-		} else if (phaseDecision.getRequestDecision() == null ||
-				// deny overrides
-				(phaseDecision.getRequestDecision() == AuthorizationDecisionType.ALLOW && decision == AuthorizationDecisionType.DENY)) {
-			phaseDecision.setRequestDecision(decision);
-		}
-	}
-
-	private void applyDecisionExecution(Map<String, PhaseDecisionImpl> actionDecisionMap,
-			String action, AuthorizationDecisionType decision) {
-		PhaseDecisionImpl phaseDecision = actionDecisionMap.get(action);
-		if (phaseDecision == null) {
-			phaseDecision = new PhaseDecisionImpl();
-			phaseDecision.setExecDecision(decision);
-			actionDecisionMap.put(action, phaseDecision);
-		} else if (phaseDecision.getExecDecision() == null ||
-				// deny overrides
-				(phaseDecision.getExecDecision() == AuthorizationDecisionType.ALLOW && decision == AuthorizationDecisionType.DENY)) {
-			phaseDecision.setExecDecision(decision);
-		}
 	}
 
 	@Override
@@ -1120,7 +1054,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
 
-		QueryItemsSpec queryItemsSpec = new QueryItemsSpec();
+		QueryAutzItemPaths queryItemsSpec = new QueryAutzItemPaths();
 		queryItemsSpec.addRequiredItems(origFilter); // MID-3916
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("  phase={}, initial query items spec {}", phase, queryItemsSpec.shortDump());
@@ -1379,11 +1313,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								securityFilterAllow = ObjectQueryUtil.filterOr(securityFilterAllow, autzObjSecurityFilter);
 							}
 							if (!ObjectQueryUtil.isNone(autzObjSecurityFilter)) {
-								queryItemsSpec.addAllowedItems(autz);
+								queryItemsSpec.collectItems(autz);
 							}
 						} else {
 							// deny
-							if (autz.getItem() != null && !autz.getItem().isEmpty()) {
+							if (autz.hasItemSpecification()) {
 								// This is a tricky situation. We have deny authorization, but it only denies access to
 								// some items. Therefore we need to find the objects and then filter out the items.
 								// Therefore do not add this authorization into the filter.
@@ -1493,7 +1427,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	 * Very rudimentary and experimental implementation.
 	 */
 	private ObjectFilter processRoleRelationFilter(MidPointPrincipal principal, Authorization autz,
-			RoleRelationObjectSpecificationType specRoleRelation, QueryItemsSpec queryItemsSpec, ObjectFilter origFilter) {
+			RoleRelationObjectSpecificationType specRoleRelation, AutzItemPaths queryItemsSpec, ObjectFilter origFilter) {
 		ObjectFilter refRoleFilter = null;
 		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole())) {
 			// This could mean that we will need to add filters for all roles in
@@ -1599,10 +1533,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal,
+	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal,
 			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		ItemSecurityDecisions decisions = new ItemSecurityDecisions();
+		ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
 
 		for(Authorization autz: getAuthorities(midPointPrincipal)) {
 			String autzHumanReadableDesc = autz.getHumanReadableDesc();
@@ -1641,41 +1575,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 
 			// authority is applicable to this situation. now we can process the decision.
-			AuthorizationDecisionType decision = autz.getDecision();
-			if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
-				Collection<ItemPath> items = getItems(autz);
-				if (items.isEmpty()) {
-					LOGGER.trace("    {}: ALLOW all items (but continue evaluation)", autzHumanReadableDesc);
-					if (decisions.getDefaultDecision() != AuthorizationDecisionType.DENY) {
-						decisions.setDefaultDecision(AuthorizationDecisionType.ALLOW);
-					}
-				} else {
-					for(ItemPath item: items) {
-						LOGGER.trace("    {}: ALLOW item {} (but continue evaluation)", autzHumanReadableDesc, item);
-						if (decisions.getItemDecisionMap().get(item) != AuthorizationDecisionType.DENY) {
-							decisions.getItemDecisionMap().put(item, AuthorizationDecisionType.ALLOW);
-						}
-					}
-				}
-			} else {
-				Collection<ItemPath> items = getItems(autz);
-				if (items.isEmpty()) {
-					LOGGER.trace("    {}: DENY all items (breaking evaluation)", autzHumanReadableDesc);
-					// Total deny. Reset everything. Return just deny
-					decisions = new ItemSecurityDecisions();
-					decisions.setDefaultDecision(AuthorizationDecisionType.DENY);
-					break;
-				} else {
-					for(ItemPath item: items) {
-						LOGGER.trace("    {}: DENY item {} (but continue evaluation)", autzHumanReadableDesc, item);
-						decisions.getItemDecisionMap().put(item, AuthorizationDecisionType.DENY);
-					}
-				}
-			}
-
+			itemConstraints.collectItems(autz);
 		}
 
-		return decisions;
+		return itemConstraints;
 	}
 
 	@Override

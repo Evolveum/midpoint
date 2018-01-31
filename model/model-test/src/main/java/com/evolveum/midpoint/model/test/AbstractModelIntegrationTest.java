@@ -143,11 +143,11 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -1038,6 +1038,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		modelService.executeChanges(deltas, options, task, result);
 	}
+		
+	protected <F extends FocusType> void deleteFocusAssignmentEmptyDelta(PrismObject<F> existingFocus, String targetOid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		deleteFocusAssignmentEmptyDelta(existingFocus, targetOid, null, null, task, result);
+	}
+	
+	protected <F extends FocusType> void deleteFocusAssignmentEmptyDelta(PrismObject<F> existingFocus, String targetOid, QName relation, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		deleteFocusAssignmentEmptyDelta(existingFocus, targetOid, relation, null, task, result);
+	}
+	
+	protected <F extends FocusType> void deleteFocusAssignmentEmptyDelta(PrismObject<F> existingFocus, String targetOid, QName relation, 
+			ModelExecuteOptions options, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createAssignmentFocusEmptyDeleteDelta(existingFocus, targetOid, relation);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
+		modelService.executeChanges(deltas, options, task, result);
+	}
 
 	protected <F extends FocusType> void unassign(Class<F> focusClass, String focusOid, AssignmentType currentAssignment, ModelExecuteOptions options, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -1120,7 +1138,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return assignmentDelta;
 	}
-
+	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(long id, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
@@ -1131,6 +1149,38 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			assignmentDelta.addValueToDelete(cval);
 		}
 		return assignmentDelta;
+	}
+	
+	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentEmptyDeleteModification(PrismObject<F> existingFocus, String roleOid, QName relation) throws SchemaException {
+		AssignmentType existingAssignment = findAssignment(existingFocus, roleOid, relation);
+		return createAssignmentModification(existingAssignment.getId(), false);
+	}
+
+	protected <F extends FocusType> AssignmentType findAssignment(PrismObject<F> existingFocus, String targetOid, QName relation) {
+		for (AssignmentType assignmentType : existingFocus.asObjectable().getAssignment()) {
+			if (assignmentMatches(assignmentType, targetOid, relation)) {
+				return assignmentType;
+			}
+		}
+		return null;
+	}
+
+	protected boolean assignmentMatches(AssignmentType assignmentType, String targetOid, QName relation) {
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef == null) {
+			return false;
+		}
+		return referenceMatches(targetRef, targetOid, relation);
+	}
+
+	private boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName relation) {
+		if (targetOid != null && !targetOid.equals(ref.getOid())) {
+			return false;
+		}
+		if (relation != null && !QNameUtil.match(relation, ref.getRelation())) {
+			return false;
+		}
+		return true;
 	}
 
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation,
@@ -1160,6 +1210,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return ObjectDelta.createModifyDelta(userOid, modifications, focusClass, prismContext);
 	}
 
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusEmptyDeleteDelta(PrismObject<F> existingFocus, String roleOid, QName relation) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentEmptyDeleteModification(existingFocus, roleOid, relation)));
+		return ObjectDelta.createModifyDelta(existingFocus.getOid(), modifications, existingFocus.getCompileTimeClass(), prismContext);
+	}
+	
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		return createAssignmentModification(resourceOid, ShadowKindType.ACCOUNT, intent, add);
 	}
@@ -4256,33 +4312,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 	
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
-			QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, ItemPath... expectedAllowedItemPaths)
+			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".assertAllowRequestItems");
         OperationResult result = task.getResult();
-        assertAllowRequestItems(userOid, targetRoleOid, expectedDefaultDecision, task, result, expectedAllowedItemQNames);
+        assertAllowRequestAssignmentItems(userOid, targetRoleOid, task, result, expectedAllowedItemPaths);
         assertSuccess(result);
 	}
 
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
-			Task task, OperationResult result, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, Task task, OperationResult result, ItemPath... expectedAllowedItemPaths) 
+			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(userOid);
 		PrismObject<RoleType> target = getRole(targetRoleOid);
 
-		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
-		display("Request decisions for "+target, decisions);
-		assertEquals("Wrong assign default decision", expectedDefaultDecision, decisions.getDefaultDecision());
-		assertEquals("Unexpected number of allowed items", expectedAllowedItemQNames.length, decisions.getItemDecisionMap().size());
+		ItemSecurityConstraints constraints = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
+		display("Request decisions for "+target, constraints);
 
-		decisions.getItemDecisionMap().forEach(
-				(path,decision) -> {
-					assertEquals("wrong item "+path+" decision", AuthorizationDecisionType.ALLOW, decision);
-					QName lastPathName = path.lastNamed().getName();
-					if (!Arrays.stream(expectedAllowedItemQNames).anyMatch(qname -> QNameUtil.match(qname, lastPathName) )) {
-						AssertJUnit.fail("Unexpected path "+path);
-					}
-				}
-		);
+		for (ItemPath expectedAllowedItemPath: expectedAllowedItemPaths) {
+			AuthorizationDecisionType decision = constraints.findItemDecision(expectedAllowedItemPath);
+			assertEquals("Wrong decision for item "+expectedAllowedItemPath, AuthorizationDecisionType.ALLOW, decision);
+		}
 	}
 
 

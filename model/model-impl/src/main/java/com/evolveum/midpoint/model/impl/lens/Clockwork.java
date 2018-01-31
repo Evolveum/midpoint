@@ -1411,6 +1411,7 @@ public class Clockwork {
 					PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
 					PrismContainer<CredentialsType> credentialsContainer = objectToAdd.findContainer(UserType.F_CREDENTIALS);
 					if (credentialsContainer != null) {
+						List<ItemPath> pathsToRemove = new ArrayList<>();
 						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
 							ContainerDelta<?> cdelta = new ContainerDelta(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
 							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
@@ -1418,12 +1419,15 @@ public class Clockwork {
 							LOGGER.trace("AUTZ: credential add {} decision: {}", item.getPath(), cdecision);
 							if (cdecision == AuthorizationDecisionType.ALLOW) {
 								// Remove it from primary delta, so it will not be evaluated later
-								objectToAdd.removeContainer(item.getPath());
+								pathsToRemove.add(item.getPath());
 							} else if (cdecision == AuthorizationDecisionType.DENY) {
 								throw new AuthorizationException("Access denied");
 							} else {
 								// Do nothing. The access will be evaluated later in a normal way
 							}
+						}
+						for (ItemPath pathToRemove: pathsToRemove) {
+							objectToAdd.removeContainer(pathToRemove);
 						}
 					}
 				} else {
@@ -1485,16 +1489,14 @@ public class Clockwork {
 		if (focusAssignmentDelta == null) {
 			return;
 		}
-		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = focusAssignmentDelta.getValueChanges(plusMinusZero);
+		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = determineChangedAssignmentValues(context.getFocusContext(), focusAssignmentDelta, plusMinusZero);
 		for (PrismContainerValue<AssignmentType> changedAssignmentValue: changedAssignmentValues) {
 			AssignmentType changedAssignment = changedAssignmentValue.getRealValue();
 			ObjectReferenceType targetRef = changedAssignment.getTargetRef();
 			if (targetRef == null || targetRef.getOid() == null) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("{} of non-target assignment not allowed",
-							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1));
-				}
-				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
+				String operationDesc = assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1);
+				LOGGER.debug("{} of non-target assignment not allowed", operationDesc);
+				securityEnforcer.failAuthorization(operationDesc, getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
 				assert false;    // just to keep static checkers happy
 			}
 			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
@@ -1546,6 +1548,30 @@ public class Clockwork {
 			}
 			securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context),  autzParams, result);
 		}
+	}
+
+	private <F extends ObjectType> Collection<PrismContainerValue<AssignmentType>> determineChangedAssignmentValues(LensFocusContext<F> focusContext,
+			ContainerDelta<AssignmentType> assignmentDelta, PlusMinusZero plusMinusZero) {
+		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = assignmentDelta.getValueChanges(plusMinusZero);
+		if (plusMinusZero == PlusMinusZero.PLUS) {
+			return changedAssignmentValues;
+		}
+		Collection<PrismContainerValue<AssignmentType>> processedChangedAssignmentValues = new ArrayList<>(changedAssignmentValues.size());
+		PrismObject<F> existingObject = focusContext.getObjectCurrentOrOld();
+		PrismContainer<AssignmentType> existingAssignmentContainer = existingObject.findContainer(FocusType.F_ASSIGNMENT);
+		for (PrismContainerValue<AssignmentType> changedAssignmentValue : changedAssignmentValues) {
+			if (changedAssignmentValue.isIdOnly()) {
+				if (existingAssignmentContainer != null) {
+					PrismContainerValue<AssignmentType> existingAssignmentValue = existingAssignmentContainer.findValue(changedAssignmentValue.getId());
+					if (existingAssignmentValue != null) {
+						processedChangedAssignmentValues.add(existingAssignmentValue);
+					}
+				}
+			} else {
+				processedChangedAssignmentValues.add(changedAssignmentValue);
+			}
+		}
+		return processedChangedAssignmentValues;
 	}
 
 	private <F extends ObjectType> void reclaimSequences(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
