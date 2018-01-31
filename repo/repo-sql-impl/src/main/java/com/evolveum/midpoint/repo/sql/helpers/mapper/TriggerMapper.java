@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
-import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
@@ -35,11 +34,8 @@ public class TriggerMapper extends ContainerMapper<TriggerType, RTrigger> {
 
         RObject owner = (RObject) context.getOwner();
 
-        RepositoryContext repositoryContext =
-                new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
-
         try {
-            RTrigger.copyFromJAXB(input, trigger, owner, repositoryContext);
+            RTrigger.copyFromJAXB(input, trigger, owner, context.getRepositoryContext());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate trigger to entity", ex);
         }

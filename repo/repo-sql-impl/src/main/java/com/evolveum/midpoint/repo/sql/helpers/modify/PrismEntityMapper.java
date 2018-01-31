@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.helpers.modify;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
@@ -85,8 +86,7 @@ public class PrismEntityMapper {
         if (context == null) {
             context = new MapperContext();
         }
-        context.setPrismContext(prismContext);
-        context.setRepositoryService(repositoryService);
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
 
         Key key = buildKey(input.getClass(), outputType);
         Mapper<I, O> mapper = mappers.get(key);

@@ -54,7 +54,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -114,7 +113,7 @@ public class ObjectDeltaUpdater {
         // preprocess modifications
         PrismObject changed = prismObject.clone();
         ItemDelta.applyTo(modifications, changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, false,true);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, false, true);
 
         // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
@@ -679,7 +678,7 @@ public class ObjectDeltaUpdater {
         Collection<PrismEntityPair> results = new ArrayList();
         for (PrismValue value : values) {
             MapperContext context = new MapperContext();
-            context.setPrismContext(prismContext);
+            context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
             context.setDelta(delta);
             context.setOwner(bean);
 

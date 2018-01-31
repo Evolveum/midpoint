@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -47,11 +46,8 @@ public class AssignmentMapper extends ContainerMapper<AssignmentType, RAssignmen
 
         RObject owner = (RObject) context.getOwner();
 
-        RepositoryContext repositoryContext =
-                new RepositoryContext(context.getRepositoryService(), context.getPrismContext());
-
         try {
-            RAssignment.copyFromJAXB(input, ass, owner, repositoryContext);
+            RAssignment.copyFromJAXB(input, ass, owner, context.getRepositoryContext());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate assignment to entity", ex);
         }

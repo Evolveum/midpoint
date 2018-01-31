@@ -20,34 +20,34 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 
 /**
  * @author Viliam Repan (lazyman).
  */
 public class MapperContext {
 
-    private PrismContext prismContext;
-    private RepositoryService repositoryService;
+    private RepositoryContext repositoryContext;
 
     private Object owner;
 
     private ItemDelta delta;
     private PrismValue value;
 
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
+    public RepositoryContext getRepositoryContext() {
+        return repositoryContext;
     }
 
-    public void setRepositoryService(RepositoryService repositoryService) {
-        this.repositoryService = repositoryService;
+    public void setRepositoryContext(RepositoryContext repositoryContext) {
+        this.repositoryContext = repositoryContext;
+    }
+
+    public RepositoryService getRepositoryService() {
+        return repositoryContext.repositoryService;
     }
 
     public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    public void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
+        return repositoryContext.prismContext;
     }
 
     public Object getOwner() {
