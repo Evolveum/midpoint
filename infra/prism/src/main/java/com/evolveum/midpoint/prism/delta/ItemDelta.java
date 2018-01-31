@@ -1351,24 +1351,21 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 		if (valuesToReplace != null) {
 			item.replaceAll(PrismValue.cloneCollection(valuesToReplace));
-			// Application of delta might have removed values therefore leaving empty items.
-			// Those needs to be cleaned-up (removed) as empty item is not a legal state.
-			cleanupAllTheWayUp(item);
-			return;
-		}
-		if (valuesToAdd != null) {
-			if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
-				item.replaceAll(PrismValue.cloneCollection(valuesToAdd));
-			} else {
-                for (V valueToAdd : valuesToAdd) {
-                    if (!item.containsEquivalentValue(valueToAdd)) {
-                        item.add(valueToAdd.clone());
-                    }
-                }
+		} else {
+			if (valuesToDelete != null) {
+				item.removeAll(valuesToDelete);
 			}
-		}
-		if (valuesToDelete != null) {
-			item.removeAll(valuesToDelete);
+			if (valuesToAdd != null) {
+				if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
+					item.replaceAll(PrismValue.cloneCollection(valuesToAdd));
+				} else {
+					for (V valueToAdd : valuesToAdd) {
+						if (!item.containsEquivalentValue(valueToAdd)) {
+							item.add(valueToAdd.clone());
+						}
+					}
+				}
+			}
 		}
 		// Application of delta might have removed values therefore leaving empty items.
 		// Those needs to be cleaned-up (removed) as empty item is not a legal state.

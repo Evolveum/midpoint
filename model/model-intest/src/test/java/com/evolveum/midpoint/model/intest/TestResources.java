@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -1134,6 +1133,17 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     	singleModify(descriptionAnt, -1, task, result);
     }
+
+//	@Test
+//    public void test835ModifySchemaHandling() throws Exception {
+//    	final String TEST_NAME = "test835ModifySchemaHandling";
+//    	displayTestTitle(TEST_NAME);
+//
+//    	Task task = createTask(TEST_NAME);
+//        OperationResult result = task.getResult();
+//		CarefulAnt<ResourceType> ant = ants.get(1);
+//		singleModify(ant, 0, task, result);
+//    }
 
 	@Test
     public void test840RandomModifySequence() throws Exception {
