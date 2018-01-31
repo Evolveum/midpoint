@@ -58,14 +58,14 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     private Long recordId;
 
     //delta
-    private String delta;
+    private String delta;               // todo byte[], zip base on useZip option in sql repository config
     private String checksum;
     private String deltaOid;
     private RChangeType deltaType;
 
     //operation result
     private ROperationResultStatus status;
-    private String fullResult;
+    private String fullResult;          // todo byte[], zip base on useZip option in sql repository config
 
     // additional info from ObjectDeltaOperationType
     private RPolyString objectName;
