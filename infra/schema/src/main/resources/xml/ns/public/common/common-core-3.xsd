@@ -2799,7 +2799,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>UserType.nickName</a:displayName>
+		                    	<a:displayName>UserType.nickname</a:displayName>
 		                    	<a:displayOrder>140</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>

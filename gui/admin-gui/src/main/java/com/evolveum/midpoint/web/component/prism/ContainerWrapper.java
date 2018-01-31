@@ -308,9 +308,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 //		return wrapper;
 //	}
 
-	public void sort(final PageBase pageBase) {
+	public void sort() {
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
-			valueWrapper.sort(pageBase);
+			valueWrapper.sort();
 		}
 	}
 
