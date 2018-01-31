@@ -945,8 +945,7 @@ public class TestParseDiffPatch {
 
         PrismObject changed = before.clone();
         ItemDelta.applyTo(modifications, changed);
-        // maybe isLiteral=true? what is that for?
-        Collection<? extends ItemDelta> processedModifications = before.diffModifications(changed, false,true);
+        Collection<? extends ItemDelta> processedModifications = before.diffModifications(changed, true, true);
 
         assertEquals(1, processedModifications.size());
         ItemDelta d = processedModifications.iterator().next();
