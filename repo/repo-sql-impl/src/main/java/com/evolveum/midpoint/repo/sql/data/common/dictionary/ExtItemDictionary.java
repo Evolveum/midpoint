@@ -103,7 +103,7 @@ public class ExtItemDictionary {
 		if (item == null) {
 			LOGGER.debug("Ext item for " + key + " not found even in current items; creating it.");
 			item = RExtItem.createFromDefinition(definition);
-			//session.persist(item);
+			session.persist(item);
 			System.out.println("Persisted item definition: " + item);
 		}
 		return item;

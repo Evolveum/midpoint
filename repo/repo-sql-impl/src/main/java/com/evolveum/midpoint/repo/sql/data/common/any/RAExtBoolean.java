@@ -42,7 +42,7 @@ public class RAExtBoolean extends RAExtBase<Boolean> implements RAExtValue<Boole
 
     @Id
 //    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = {CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumns(value = {
             @JoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "owner_owner_oid"),
             @JoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_id") },

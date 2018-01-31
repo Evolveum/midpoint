@@ -38,7 +38,7 @@ import javax.persistence.*;
  */
 @JaxbType(type = ObjectReferenceType.class)
 @Entity
-@IdClass(RCObjectReferenceId.class)
+//@IdClass(RCObjectReferenceId.class)
 @Table(name = "m_assignment_reference", indexes = {
         @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
@@ -47,6 +47,7 @@ public class RAssignmentReference extends RContainerReference {
 
     private RAssignment owner;
 
+    @Id
     @ForeignKey(name = "fk_assignment_reference")
     //@MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,20 +56,19 @@ public class RAssignmentReference extends RContainerReference {
         return owner;
     }
 
-    @Id
-    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
-    @NotQueryable
-    public String getOwnerOid() {
-        return super.getOwnerOid();
-    }
+//    @Id
+//    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
+//    @NotQueryable
+//    public String getOwnerOid() {
+//        return super.getOwnerOid();
+//    }
 
-
-    @Id
-    @Column(name = "owner_id", insertable = false, updatable = false)
-    @NotQueryable
-    public Integer getOwnerId() {
-        return super.getOwnerId();
-    }
+//    @Id
+//    @Column(name = "owner_id", insertable = false, updatable = false)
+//    @NotQueryable
+//    public Integer getOwnerId() {
+//        return super.getOwnerId();
+//    }
 
     //@MapsId("target")
     @ForeignKey(name="none")

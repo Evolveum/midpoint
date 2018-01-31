@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
+import java.beans.Transient;
 import java.util.Objects;
 
 abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> {
@@ -33,6 +34,16 @@ abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> 
 	public RAssignmentExtension getAnyContainer() {
 		return anyContainer;
 	}
+
+//	@Transient
+//	public String getAssignmentOwnerOid() {
+//		return anyContainer != null ? anyContainer.getAssignmentOwnerOid() : null;
+//	}
+
+//	@Transient
+//	public Integer getAssignmentId() {
+//		return anyContainer != null ? anyContainer.getAssignmentId() : null;
+//	}
 
 	@Override
 	public void setAnyContainer(RAssignmentExtension anyContainer) {
@@ -58,13 +69,22 @@ abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> 
 		if (!super.equals(o))
 			return false;
 		RAExtBase<?> raExtBase = (RAExtBase<?>) o;
-		return Objects.equals(getAnyContainer(), raExtBase.getAnyContainer()) &&
+		return /*Objects.equals(getAssignmentOwnerOid(), raExtBase.getAssignmentOwnerOid()) &&
+				Objects.equals(getAssignmentId(), raExtBase.getAssignmentId()) && */
 				getExtensionType() == raExtBase.getExtensionType();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), getAnyContainer(), getExtensionType());
+		return Objects.hash(super.hashCode(), /*getAssignmentOwnerOid(), getAssignmentId(), */ getExtensionType());
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{" +
+				"item=" + getItem() +
+				", value=" + getValue() +
+				'}';
 	}
 
 	//	public RObject getOwner() {

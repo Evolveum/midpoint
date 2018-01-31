@@ -307,6 +307,9 @@ public class ObjectUpdater {
 
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
+//        session.flush();
+//        String oid = rObject.getOid();
+        //String oid = (String) session.save(rObject);
         lookupTableHelper.addLookupTableRows(session, rObject, false);
         caseHelper.addCertificationCampaignCases(session, rObject, false);
 
@@ -339,6 +342,7 @@ public class ObjectUpdater {
 
             closureManager.updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE, closureContext);
 
+            LOGGER.trace("Invoking session.delete(object)");
             session.delete(object);
             if (LookupTableType.class.equals(type)) {
                 lookupTableHelper.deleteLookupTableRows(session, oid);

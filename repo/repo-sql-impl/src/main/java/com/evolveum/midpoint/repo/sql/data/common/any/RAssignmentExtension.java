@@ -20,22 +20,19 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -47,7 +44,7 @@ import java.util.Set;
 public class RAssignmentExtension implements Serializable {
 
     private RAssignment owner;
-//    private String ownerOid;
+//    private String ownerOwnerOid;
 //    private Integer ownerId;
 
     private Short stringsCount;
@@ -64,11 +61,28 @@ public class RAssignmentExtension implements Serializable {
     private Set<RAExtPolyString> polys;
     private Set<RAExtBoolean> booleans;
 
-//    @ForeignKey(name = "none")
-//    @MapsId("owner")
+//    @Id
+//    @Column(name = "owner_owner_oid")
+//    public String getOwnerOwnerOid() {
+//        return ownerOwnerOid;
+//    }
+//
+//    public void setOwnerOwnerOid(String ownerOwnerOid) {
+//        this.ownerOwnerOid = ownerOwnerOid;
+//    }
+//
+//    @Id
+//    @Column(name = "owner_id")
+//    public Integer getOwnerId() {
+//        return ownerId;
+//    }
+//
+//    public void setOwnerId(Integer ownerId) {
+//        this.ownerId = ownerId;
+//    }
+
     @Id
-    //@MapsId("owner")
-    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = {})
     @JoinColumns(value = {
             @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
             @JoinColumn(name = "owner_id", referencedColumnName = "id") },
@@ -76,6 +90,16 @@ public class RAssignmentExtension implements Serializable {
     @NotQueryable
     public RAssignment getOwner() {
         return owner;
+    }
+
+    @Transient
+    public String getAssignmentOwnerOid() {
+        return owner != null ? owner.getOwnerOid() : null;
+    }
+
+    @Transient
+    public Integer getAssignmentId() {
+        return owner != null ? owner.getId() : null;
     }
 
 //    @Id
@@ -96,8 +120,7 @@ public class RAssignmentExtension implements Serializable {
 //        return ownerId;
 //    }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtBoolean> getBooleans() {
         if (booleans == null) {
             booleans = new HashSet<>();
@@ -105,8 +128,7 @@ public class RAssignmentExtension implements Serializable {
         return booleans;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -114,8 +136,7 @@ public class RAssignmentExtension implements Serializable {
         return longs;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
@@ -123,8 +144,7 @@ public class RAssignmentExtension implements Serializable {
         return strings;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtDate> getDates() {
         if (dates == null) {
             dates = new HashSet<>();
@@ -132,8 +152,7 @@ public class RAssignmentExtension implements Serializable {
         return dates;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtReference> getReferences() {
         if (references == null) {
             references = new HashSet<>();
@@ -141,8 +160,7 @@ public class RAssignmentExtension implements Serializable {
         return references;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();
@@ -236,38 +254,32 @@ public class RAssignmentExtension implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (this == o)
+            return true;
+        if (!(o instanceof RAssignmentExtension))
+            return false;
         RAssignmentExtension that = (RAssignmentExtension) o;
-
-        if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
-        if (datesCount != null ? !datesCount.equals(that.datesCount) : that.datesCount != null) return false;
-        if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
-        if (longsCount != null ? !longsCount.equals(that.longsCount) : that.longsCount != null) return false;
-        if (polys != null ? !polys.equals(that.polys) : that.polys != null) return false;
-        if (polysCount != null ? !polysCount.equals(that.polysCount) : that.polysCount != null) return false;
-        if (references != null ? !references.equals(that.references) : that.references != null) return false;
-        if (referencesCount != null ? !referencesCount.equals(that.referencesCount) : that.referencesCount != null)
-            return false;
-        if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
-        if (stringsCount != null ? !stringsCount.equals(that.stringsCount) : that.stringsCount != null) return false;
-        if (booleans != null ? !booleans.equals(that.booleans) : that.booleans != null) return false;
-        if (booleansCount != null ? !booleansCount.equals(that.booleansCount) : that.booleansCount != null)
-            return false;
-
-        return true;
+        return //Objects.equals(getAssignmentOwnerOid(), that.getAssignmentOwnerOid()) &&
+                //Objects.equals(getAssignmentId(), that.getAssignmentId()) &&
+                Objects.equals(stringsCount, that.stringsCount) &&
+                Objects.equals(longsCount, that.longsCount) &&
+                Objects.equals(datesCount, that.datesCount) &&
+                Objects.equals(referencesCount, that.referencesCount) &&
+                Objects.equals(polysCount, that.polysCount) &&
+                Objects.equals(booleansCount, that.booleansCount);// &&
+//                Objects.equals(strings, that.strings) &&
+//                Objects.equals(longs, that.longs) &&
+//                Objects.equals(dates, that.dates) &&
+//                Objects.equals(references, that.references) &&
+//                Objects.equals(polys, that.polys) &&
+//                Objects.equals(booleans, that.booleans);
     }
 
     @Override
     public int hashCode() {
-        int result = stringsCount != null ? stringsCount.hashCode() : 0;
-        result = 31 * result + (longsCount != null ? longsCount.hashCode() : 0);
-        result = 31 * result + (datesCount != null ? datesCount.hashCode() : 0);
-        result = 31 * result + (referencesCount != null ? referencesCount.hashCode() : 0);
-        result = 31 * result + (polysCount != null ? polysCount.hashCode() : 0);
-        result = 31 * result + (booleansCount != null ? booleansCount.hashCode() : 0);
-        return result;
+        return Objects
+                .hash(/*getAssignmentOwnerOid(), getAssignmentId(), */stringsCount, longsCount, datesCount, referencesCount,
+                        polysCount, booleansCount);
     }
 
     public static void copyFromJAXB(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
@@ -318,5 +330,24 @@ public class RAssignmentExtension implements Serializable {
         repo.setReferencesCount((short) repo.getReferences().size());
         repo.setLongsCount((short) repo.getLongs().size());
         repo.setBooleansCount((short) repo.getBooleans().size());
+    }
+
+    @Override
+    public String toString() {
+        return "RAssignmentExtension{" +
+//                "owner=" + (owner != null ? owner.getOwner() + ":" + owner.getId() : "null" ) +
+//                ", strings=" + strings +
+//                ", longs=" + longs +
+//                ", dates=" + dates +
+//                ", references=" + references +
+//                ", polys=" + polys +
+//                ", booleans=" + booleans +
+                "strings#=" + stringsCount +
+                ", longs#=" + longsCount +
+                ", dates#=" + datesCount +
+                ", references#=" + referencesCount +
+                ", polys#=" + polysCount +
+                ", booleans#=" + booleansCount +
+                '}';
     }
 }

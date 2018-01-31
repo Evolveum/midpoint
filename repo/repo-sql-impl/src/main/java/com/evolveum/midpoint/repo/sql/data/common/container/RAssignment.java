@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.query.definition.Any;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -47,7 +48,6 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -105,7 +105,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     private RAssignmentOwner assignmentOwner;
     //extension
-    private RAssignmentExtension extension;
+    private Set<RAssignmentExtension> extension = new HashSet<>();
     //assignment fields
     private RActivation activation;
     private REmbeddedReference targetRef;
@@ -189,15 +189,13 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return resourceRef;
     }
 
-    @org.hibernate.annotations.ForeignKey(name = "none")
-    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
-    @OneToOne(optional = true, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns(value = {
-            @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id")
-    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    public RAssignmentExtension getExtension() {
+    @Any(jaxbNameLocalPart = "extension")
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "owner", cascade = CascadeType.ALL)
+//    @JoinColumns(value = {
+//            @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
+//            @JoinColumn(name = "extId", referencedColumnName = "owner_id")
+//    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    public Set<RAssignmentExtension> getExtension() {
         return extension;
     }
 
@@ -355,7 +353,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.activation = activation;
     }
 
-    public void setExtension(RAssignmentExtension extension) {
+    public void setExtension(Set<RAssignmentExtension> extension) {
         this.extension = extension;
     }
 
@@ -438,7 +436,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             RAssignmentExtension extension = new RAssignmentExtension();
             extension.setOwner(repo);
 
-            repo.setExtension(extension);
+            repo.getExtension().add(extension);
             RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, RAssignmentExtensionType.EXTENSION,
                     repositoryContext);
         }
