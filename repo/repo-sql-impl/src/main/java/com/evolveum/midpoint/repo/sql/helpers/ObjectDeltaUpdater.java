@@ -114,7 +114,7 @@ public class ObjectDeltaUpdater {
         // preprocess modifications
         PrismObject changed = prismObject.clone();
         ItemDelta.applyTo(modifications, changed);
-        modifications = prismObject.diffModifications(changed, false,true);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, false,true);
 
         // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
@@ -122,7 +122,7 @@ public class ObjectDeltaUpdater {
 
         ManagedType mainEntityType = entityRegistry.getJaxbMapping(type);
 
-        for (ItemDelta delta : modifications) {
+        for (ItemDelta delta : processedModifications) {
             ItemPath path = delta.getPath();
 
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
@@ -170,7 +170,7 @@ public class ObjectDeltaUpdater {
             }
         }
 
-        handleObjectCommonAttributes(type, modifications, prismObject, object);
+        handleObjectCommonAttributes(type, processedModifications, prismObject, object);
 
         LOGGER.debug("Entity changes applied");
 
