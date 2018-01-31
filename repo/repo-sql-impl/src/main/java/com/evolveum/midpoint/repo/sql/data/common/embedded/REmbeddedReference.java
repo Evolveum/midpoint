@@ -127,7 +127,12 @@ public class REmbeddedReference implements ObjectReference {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+        final StringBuilder sb = new StringBuilder("REmbeddedReference{");
+        sb.append("targetOid='").append(targetOid).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", relation='").append(relation).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {

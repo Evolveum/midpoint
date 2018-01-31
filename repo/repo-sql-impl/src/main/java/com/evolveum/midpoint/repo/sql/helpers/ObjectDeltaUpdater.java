@@ -111,6 +111,12 @@ public class ObjectDeltaUpdater {
 
         // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
 
+        // preprocess modifications
+        PrismObject changed = prismObject.clone();
+        ItemDelta.applyTo(modifications, changed);
+        modifications = prismObject.diffModifications(changed, false,true);
+
+        // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
         RObject<T> object = session.byId(objectClass).getReference(oid);
 
@@ -654,7 +660,7 @@ public class ObjectDeltaUpdater {
         // handle add
         if (delta.isAdd()) {
             Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
-            markNewOnesTransientAndAddToExisting(collection, valuesToAdd);
+            addValues(collection, valuesToAdd);
         }
 
         // handle delete

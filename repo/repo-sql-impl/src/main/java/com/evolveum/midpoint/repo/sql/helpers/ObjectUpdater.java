@@ -452,9 +452,10 @@ public class ObjectUpdater {
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
                 updateFullObject(rObject, prismObject);
-                LOGGER.trace("Starting save.");
 
+                LOGGER.trace("Starting save.");
                 session.save(rObject);
+                LOGGER.trace("Save finished.");
                 // new implementation end
 
                 //todo remove, just for debugging

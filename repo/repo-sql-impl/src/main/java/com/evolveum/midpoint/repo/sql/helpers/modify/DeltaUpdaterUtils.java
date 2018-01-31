@@ -35,6 +35,10 @@ public class DeltaUpdaterUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeltaUpdaterUtils.class);
 
+    public static void addValues(Collection existing, Collection<PrismEntityPair<?>> valuesToAdd) {
+        markNewOnesTransientAndAddToExisting(existing, valuesToAdd);
+    }
+
     public static void deleteValues(Collection existing, Collection<PrismEntityPair<?>> valuesToDelete) {
         if (existing.isEmpty() || valuesToDelete.isEmpty()) {
             return;
