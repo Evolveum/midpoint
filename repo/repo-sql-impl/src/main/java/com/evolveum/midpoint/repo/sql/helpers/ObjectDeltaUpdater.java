@@ -113,7 +113,7 @@ public class ObjectDeltaUpdater {
         // preprocess modifications
         PrismObject changed = prismObject.clone();
         ItemDelta.applyTo(modifications, changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, false, true);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, true, true);
 
         // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
