@@ -917,40 +917,4 @@ public class TestParseDiffPatch {
 
 		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 	}
-
-	@Test
-    public void testReplaceMultivalueDiff() throws Exception {
-        PrismObject<UserType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "user-extension-before.xml"));
-
-        ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, before.getOid(), getPrismContext());
-        PropertyDelta pd = delta.addModificationReplaceProperty(
-                new ItemPath(UserType.F_EXTENSION, new QName("badLuck")),
-                123L);
-
-
-        // this is causing the problem, if commented out delta is ok
-        PrismValue v = (PrismValue) pd.getValuesToReplace().iterator().next();
-        v.setOriginType(OriginType.USER_POLICY);
-        v.setOriginObject(before.asObjectable());
-        // end
-
-        PrismPropertyValue v1 = (PrismPropertyValue) PrismPropertyValue.fromRealValue(123L);
-        v1.setParent(pd);
-        PrismPropertyValue v2 = (PrismPropertyValue) PrismPropertyValue.fromRealValue(456L);
-        v2.setParent(pd);
-        pd.addEstimatedOldValues(v1, v2);
-        getPrismContext().adopt(delta);
-
-        Collection<? extends ItemDelta> modifications = delta.getModifications();
-
-        PrismObject changed = before.clone();
-        ItemDelta.applyTo(modifications, changed);
-        Collection<? extends ItemDelta> processedModifications = before.diffModifications(changed, true, true);
-
-        assertEquals(1, processedModifications.size());
-        ItemDelta d = processedModifications.iterator().next();
-        assertTrue(d.isDelete());
-        assertFalse(d.isAdd());
-        assertFalse(d.isReplace());
-    }
 }
