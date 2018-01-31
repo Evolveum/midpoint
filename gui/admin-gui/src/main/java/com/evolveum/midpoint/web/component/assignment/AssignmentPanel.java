@@ -169,6 +169,12 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			public ObjectQuery getQuery() {
 				return createObjectQuery();
 			}
+			
+			@Override
+			protected List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
+				List<ContainerValueWrapper<AssignmentType>> resultList = super.searchThroughList();
+				return postSearch(resultList);
+			}
 
 		};
 
@@ -202,6 +208,10 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		assignmentTable.setCurrentPage(getAssignmentsStorage().getPaging());
 		return assignmentTable;
 
+	}
+	
+	protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+		return assignments;
 	}
 
 	protected AssignmentsTabStorage getAssignmentsStorage() {
