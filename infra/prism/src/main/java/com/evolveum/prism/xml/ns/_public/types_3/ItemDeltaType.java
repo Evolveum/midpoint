@@ -582,13 +582,14 @@ public class ItemDeltaType implements Serializable, Cloneable {
 				return false;
 		} else if (!path.equals(other.path))
 			return false;
-		if (value == null) {
-			if (other.value != null)
+		// use of isEmpty is a hack: should be fixed soon!
+		if (value == null || value.isEmpty()) {
+			if (other.value != null && !other.value.isEmpty())
 				return false;
 		} else if (!MiscUtil.unorderedCollectionEquals(value, other.value))
 			return false;
-		if (estimatedOldValue == null) {
-			if (other.estimatedOldValue != null)
+		if (estimatedOldValue == null || estimatedOldValue.isEmpty()) {
+			if (other.estimatedOldValue != null && !other.estimatedOldValue.isEmpty())
 				return false;
 		} else if (!MiscUtil.unorderedCollectionEquals(estimatedOldValue, other.estimatedOldValue))
 			return false;
