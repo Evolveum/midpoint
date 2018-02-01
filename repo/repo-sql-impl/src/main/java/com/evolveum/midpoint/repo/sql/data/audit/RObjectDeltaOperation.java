@@ -267,8 +267,8 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             }
 
             if (operation.getExecutionResult() != null) {
-            	ItemDefinition def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
-                RUtil.copyResultFromJAXB(def, SchemaConstantsGenerated.C_OPERATION_RESULT, operation.getExecutionResult().createOperationResultType(),
+                RUtil.copyResultFromJAXB(SchemaConstantsGenerated.C_OPERATION_RESULT,
+                        operation.getExecutionResult().createOperationResultType(),
                         auditDelta, prismContext);
             }
 

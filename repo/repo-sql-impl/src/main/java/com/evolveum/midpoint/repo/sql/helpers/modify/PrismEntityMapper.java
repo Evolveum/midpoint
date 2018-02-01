@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
@@ -57,6 +58,8 @@ public class PrismEntityMapper {
         mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
         mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
         mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
+
+        mappers.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
     }
 
     @Autowired
@@ -68,6 +71,16 @@ public class PrismEntityMapper {
         Key key = buildKey(inputType, outputType);
 
         return mappers.containsKey(key);
+    }
+
+    public <I, O> Mapper<I, O> getMapper(Class<I> inputType, Class<O> outputType) {
+        Key key = buildKey(inputType, outputType);
+        Mapper<I, O> mapper = mappers.get(key);
+        if (mapper == null) {
+            throw new SystemException("Can't map '" + inputType + "' to '" + outputType + "'");
+        }
+
+        return mapper;
     }
 
     public <I, O> O map(I input, Class<O> outputType) {

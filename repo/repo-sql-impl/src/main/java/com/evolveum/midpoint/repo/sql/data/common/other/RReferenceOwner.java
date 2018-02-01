@@ -29,47 +29,54 @@ import javax.xml.namespace.QName;
  */
 public enum RReferenceOwner {
 
-    OBJECT_PARENT_ORG(ObjectType.F_PARENT_ORG_REF),      // 0
+    OBJECT_PARENT_ORG(ObjectType.class, ObjectType.F_PARENT_ORG_REF),      // 0
 
-    USER_ACCOUNT(UserType.F_LINK_REF),                   // 1
+    USER_ACCOUNT(FocusType.class, FocusType.F_LINK_REF),                   // 1
 
-    RESOURCE_BUSINESS_CONFIGURATON_APPROVER(ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
+    RESOURCE_BUSINESS_CONFIGURATON_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
 
-    ROLE_APPROVER(RoleType.F_APPROVER_REF),              // 3
+    ROLE_APPROVER(AbstractRoleType.class, AbstractRoleType.F_APPROVER_REF),              // 3
 
     /**
      * @deprecated
      */
     @Deprecated
-    SYSTEM_CONFIGURATION_ORG_ROOT(null),                 // 4
+    SYSTEM_CONFIGURATION_ORG_ROOT(SystemConfigurationType.class, null),                 // 4
 
-    CREATE_APPROVER(MetadataType.F_CREATE_APPROVER_REF), // 5
+    CREATE_APPROVER(ObjectType.class, MetadataType.F_CREATE_APPROVER_REF), // 5
 
-    MODIFY_APPROVER(MetadataType.F_MODIFY_APPROVER_REF), // 6
+    MODIFY_APPROVER(ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF), // 6
 
-    INCLUDE(ObjectTemplateType.F_INCLUDE_REF),           // 7
+    INCLUDE(ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),           // 7
 
-    ROLE_MEMBER(FocusType.F_ROLE_MEMBERSHIP_REF),        // 8
+    ROLE_MEMBER(FocusType.class, FocusType.F_ROLE_MEMBERSHIP_REF),        // 8
 
-    DELEGATED(FocusType.F_DELEGATED_REF),                // 9
+    DELEGATED(FocusType.class, FocusType.F_DELEGATED_REF),                // 9
 
-    PERSONA(FocusType.F_PERSONA_REF);                    // 10
+    PERSONA(FocusType.class, FocusType.F_PERSONA_REF);                    // 10
 
+    private Class<? extends ObjectType> typeClass;
     private QName elementName;
 
-    RReferenceOwner(QName elementName) {
+    RReferenceOwner(Class<? extends ObjectType> typeClass, QName elementName) {
+        this.typeClass = typeClass;
         this.elementName = elementName;
+    }
+
+    public Class<? extends ObjectType> getTypeClass() {
+        return typeClass;
     }
 
     public QName getElementName() {
         return elementName;
     }
 
-    public static RReferenceOwner getOwnerByQName(QName qname) {
+    public static RReferenceOwner getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
+        Validate.notNull(typeClass, "Jaxb type class must not be null");
         Validate.notNull(qname, "QName must not be null");
 
         for (RReferenceOwner owner : values()) {
-            if (qname.equals(owner.getElementName())) {
+            if (qname.equals(owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {
                 return owner;
             }
         }

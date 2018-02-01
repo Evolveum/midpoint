@@ -21,11 +21,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -46,9 +48,11 @@ public class ObjectReferenceMapper implements Mapper<Referencable, RObjectRefere
 
         RObject owner = (RObject) context.getOwner();
 
+        Class<? extends ObjectType> jaxbObjectType = RObjectType.getType(owner.getClass()).getJaxbClass();
+
         ItemPath named = context.getDelta().getPath().namedSegmentsOnly();
         NameItemPathSegment last = named.lastNamed();
-        RReferenceOwner refType = RReferenceOwner.getOwnerByQName(last.getName());
+        RReferenceOwner refType = RReferenceOwner.getOwnerByQName(jaxbObjectType, last.getName());
 
         return RUtil.jaxbRefToRepo(objectRef, context.getPrismContext(), owner, refType);
     }

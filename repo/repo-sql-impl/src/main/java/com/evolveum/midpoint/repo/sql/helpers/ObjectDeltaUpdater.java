@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
@@ -35,23 +36,20 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -145,6 +143,12 @@ public class ObjectDeltaUpdater {
 
                 if (isAssignmentExtensionDelta(attributeStep, nameSegment)) {
                     handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta);
+                    continue;
+                }
+
+                if (isOperationResult(delta)) {
+                    handleOperationResult(attributeStep.bean, delta);
+                    continue;
                 }
 
                 Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, nameSegment);
@@ -174,6 +178,36 @@ public class ObjectDeltaUpdater {
         LOGGER.debug("Entity changes applied");
 
         return object;
+    }
+
+    private boolean isOperationResult(ItemDelta delta) {
+        ItemDefinition def = delta.getDefinition();
+        return OperationResultType.COMPLEX_TYPE.equals(def.getTypeName());
+    }
+
+    private void handleOperationResult(Object bean, ItemDelta delta) {
+        if (!(bean instanceof OperationResult)) {
+            return;
+        }
+
+        PrismValue value = null;
+        if (!delta.isDelete()) {
+            value = delta.getAnyValue();
+        }
+
+        MapperContext context = new MapperContext();
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setDelta(delta);
+        context.setOwner(bean);
+
+        if (value != null) {
+            prismEntityMapper.mapPrismValue(value, OperationResult.class, context);
+        } else {
+            // todo clean this up
+            // we know that mapper supports mapping null value, but still this code smells
+            Mapper mapper = prismEntityMapper.getMapper(OperationResultType.class, OperationResult.class);
+            mapper.map(null, context);
+        }
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
@@ -717,8 +751,7 @@ public class ObjectDeltaUpdater {
     /**
      * add with overwrite
      */
-    public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge, Session session,
-                                                    OperationResult result) {
+    public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge, Session session) {
 
         return merge(objectToMerge, session); // todo implement
     }

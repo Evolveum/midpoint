@@ -49,7 +49,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Metamodel;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
@@ -57,22 +56,15 @@ import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
-import org.hibernate.persister.entity.JoinedSubclassEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import javax.persistence.Table;
-import javax.persistence.metamodel.ManagedType;
 import javax.xml.namespace.QName;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -282,11 +274,16 @@ public final class RUtil {
         }
     }
 
-    public static void copyResultFromJAXB(ItemDefinition parentDef, QName itemName, OperationResultType jaxb,
+    public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
                                           OperationResult repo, PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
 
         if (jaxb == null) {
+            repo.setStatus(null);
+            if (repo instanceof OperationResultFull) {
+                ((OperationResultFull) repo).setFullResult(null);
+            }
+
             return;
         }
 
@@ -433,6 +430,10 @@ public final class RUtil {
     }
 
     public static byte[] getByteArrayFromXml(String xml, boolean compress) {
+        if (xml == null) {
+            return null;
+        }
+
         byte[] array;
 
         GZIPOutputStream gzip = null;
@@ -458,6 +459,10 @@ public final class RUtil {
     }
 
     public static String getXmlFromByteArray(byte[] array, boolean compressed) {
+        if (array == null) {
+            return null;
+        }
+
         String xml;
 
         GZIPInputStream gzip = null;

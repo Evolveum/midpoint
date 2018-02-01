@@ -438,7 +438,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
             repo.setWfEndTimestamp(wfc.getEndTimestamp());
         }
 
-        RUtil.copyResultFromJAXB(taskDefinition, jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
+        RUtil.copyResultFromJAXB(jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
     }
 
     @Override

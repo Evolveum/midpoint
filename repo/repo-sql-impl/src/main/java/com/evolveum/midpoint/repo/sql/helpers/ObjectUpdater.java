@@ -223,7 +223,7 @@ public class ObjectUpdater {
 
         updateFullObject(rObject, object);
 
-        RObject merged = objectDeltaUpdater.update(object, rObject, session, result);
+        RObject merged = objectDeltaUpdater.update(object, rObject, session);
         lookupTableHelper.addLookupTableRows(session, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(session, rObject, oldObject != null);
 
