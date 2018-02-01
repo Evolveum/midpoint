@@ -16,10 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -917,4 +914,20 @@ public class TestParseDiffPatch {
 
 		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 	}
+
+	@Test
+    public void testReplaceModelOperationContext() throws Exception {
+        PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(TaskType.class, prismObject.getOid(), getPrismContext());
+        delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
+
+        PrismObject changed = prismObject.clone();
+        ItemDelta.applyTo(delta.getModifications(), changed);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, true, true);
+
+        ItemDelta.applyTo(processedModifications, prismObject);
+
+        assertNull(prismObject.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT));
+    }
 }
