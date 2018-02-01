@@ -107,11 +107,13 @@ public class ItemDeltaType implements Serializable, Cloneable {
 
     @XmlElement(required = true)
     @Raw
-    protected List<Object> value;           // Object is here to show as xsd:anyType in WSDL
+    @NotNull
+    protected final List<Object> value = new ArrayList<>();           // Object is here to show as xsd:anyType in WSDL
 
     @XmlElement(required = true)
     @Raw
-    protected List<Object> estimatedOldValue;           // Object is here to show as xsd:anyType in WSDL
+    @NotNull
+    protected final List<Object> estimatedOldValue = new ArrayList<>();           // Object is here to show as xsd:anyType in WSDL
 
     /**
      * Gets the value of the modificationType property.
@@ -171,9 +173,6 @@ public class ItemDeltaType implements Serializable, Cloneable {
      */
     @NotNull
     public List<RawType> getValue() {
-    	if (value == null){
-    		value = new ArrayList<>();
-    	}
         return (List<RawType>) (List) value;        // brutal hack
     }
 
@@ -200,9 +199,6 @@ public class ItemDeltaType implements Serializable, Cloneable {
 
 	@NotNull
     public List<RawType> getEstimatedOldValue() {
-    	if (estimatedOldValue == null){
-    		estimatedOldValue = new ArrayList<>();
-    	}
         return (List<RawType>) (List) estimatedOldValue;        // brutal hack
     }
 
@@ -230,7 +226,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
     public static class Value implements Serializable, Cloneable {
 
         @XmlAnyElement(lax = true)
-        protected List<Object> any;
+        protected final List<Object> any = new ArrayList<>();
 
         /**
          * Gets the value of the any property.
@@ -255,10 +251,8 @@ public class ItemDeltaType implements Serializable, Cloneable {
          *
          *
          */
+        @NotNull
         public List<Object> getAny() {
-            if (any == null) {
-                any = new ArrayList<Object>();
-            }
             return this.any;
         }
 
@@ -274,7 +268,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((any == null) ? 0 : any.hashCode());
+			result = prime * result + any.hashCode();
 			return result;
 		}
 
@@ -287,10 +281,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
 			if (getClass() != obj.getClass())
 				return false;
 			Value other = (Value) obj;
-			if (any == null) {
-				if (other.any != null)
-					return false;
-			} else if (!JAXBUtil.compareElementList(any, other.any, false))
+			if (!JAXBUtil.compareElementList(any, other.any, false))
 				return false;
 			return true;
 		}
@@ -562,7 +553,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
 		result = prime
 				* result
 				+ ((modificationType == null) ? 0 : modificationType.hashCode());
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		result = prime * result + value.hashCode();
 		return result;
 	}
 
@@ -583,15 +574,9 @@ public class ItemDeltaType implements Serializable, Cloneable {
 		} else if (!path.equals(other.path))
 			return false;
 		// use of isEmpty is a hack: should be fixed soon!
-		if (value == null || value.isEmpty()) {
-			if (other.value != null && !other.value.isEmpty())
-				return false;
-		} else if (!MiscUtil.unorderedCollectionEquals(value, other.value))
+		if (!MiscUtil.unorderedCollectionEquals(value, other.value))
 			return false;
-		if (estimatedOldValue == null || estimatedOldValue.isEmpty()) {
-			if (other.estimatedOldValue != null && !other.estimatedOldValue.isEmpty())
-				return false;
-		} else if (!MiscUtil.unorderedCollectionEquals(estimatedOldValue, other.estimatedOldValue))
+		if (!MiscUtil.unorderedCollectionEquals(estimatedOldValue, other.estimatedOldValue))
 			return false;
 		return true;
 	}
