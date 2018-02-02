@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -42,7 +43,7 @@ import javax.persistence.*;
 @Table(name = "m_assignment_reference", indexes = {
         @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
-@Persister(impl = MidPointSingleTablePersister.class)
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAssignmentReference extends RContainerReference {
 
     private RAssignment owner;

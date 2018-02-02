@@ -21,7 +21,6 @@ import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.persister.spi.PersisterCreationContext;
 
 import java.io.Serializable;
@@ -31,7 +30,7 @@ import java.io.Serializable;
  *
  * @author mederly
  */
-public class MidPointIdProvidingSingleTableEntityPersister extends SingleTableEntityPersister {
+public class MidPointIdProvidingSingleTableEntityPersister extends MidPointSingleTablePersister {
 
 	public MidPointIdProvidingSingleTableEntityPersister(PersistentClass persistentClass,
 			EntityRegionAccessStrategy cacheAccessStrategy,

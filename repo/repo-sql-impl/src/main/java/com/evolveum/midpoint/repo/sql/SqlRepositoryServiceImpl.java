@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -550,13 +551,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
-	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                    invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                     return;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
+        } catch (Throwable t) {
+            LOGGER.debug("Got exception while processing the modifications on {}:{}:\n", type, oid, DebugUtil.debugDump(modifications), t);
+            throw t;
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
