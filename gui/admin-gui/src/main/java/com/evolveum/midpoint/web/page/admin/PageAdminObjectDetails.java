@@ -217,7 +217,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			@Override
 			protected ObjectWrapper<O> load() {
-				return loadObjectWrapper(objectToEdit, isReadonly);
+				ObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
+				wrapper.sort();
+				return wrapper;
 			}
 		};
 
