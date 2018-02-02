@@ -34,6 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -124,7 +125,6 @@ public class RAnyConverter {
 
     private RAnyValue extractAndCreateValue(ItemDefinition def, PrismPropertyValue propertyValue, boolean assignment)
             throws SchemaException {
-
         ValueType type = getValueType(def.getTypeName());
         Object extractedValue = extractValue(propertyValue, type.getValueType());
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
@@ -148,9 +148,9 @@ public class RAnyConverter {
 	    LOGGER.trace("Converting any values of item {}; definition: {}", item, definition);
 
         try {
-            RAnyValue rValue;
             List<? extends PrismValue> values = item.getValues();
             for (PrismValue value : values) {
+                RAnyValue rValue;
                 if (value instanceof PrismPropertyValue) {
                     rValue = extractAndCreateValue(definition, (PrismPropertyValue<?>) value, assignment);
                 } else if (value instanceof PrismReferenceValue) {
@@ -245,6 +245,7 @@ public class RAnyConverter {
         return RItemKind.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
+    @NotNull
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
         ItemDefinition definition = value.getParent().getDefinition();
         //todo raw types

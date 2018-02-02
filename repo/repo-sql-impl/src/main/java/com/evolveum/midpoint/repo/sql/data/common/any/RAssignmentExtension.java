@@ -23,9 +23,11 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 
 import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -41,6 +43,7 @@ import java.util.Set;
 @Entity
 //@IdClass(RAssignmentExtensionId.class)
 @Table(name = "m_assignment_extension")
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAssignmentExtension implements Serializable {
 
     private RAssignment owner;

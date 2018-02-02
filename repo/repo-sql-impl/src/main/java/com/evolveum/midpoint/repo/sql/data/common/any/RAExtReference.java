@@ -21,7 +21,9 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RAExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -32,6 +34,7 @@ import javax.persistence.*;
 //@IdClass(RAExtReferenceId.class)
 @Table(name = "m_assignment_ext_reference",
         indexes = {@Index(name = "iAExtensionReference", columnList= "item_id, targetoid")})
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAExtReference extends RAExtBase<String> implements RAExtValue<String> {
 
     //this is target oid

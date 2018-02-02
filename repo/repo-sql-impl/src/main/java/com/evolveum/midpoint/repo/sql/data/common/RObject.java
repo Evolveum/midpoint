@@ -59,6 +59,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -311,8 +312,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @NotQueryable
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<ROExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -321,8 +321,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @NotQueryable
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<ROExtBoolean> getBooleans() {
         if (booleans == null) {
             booleans = new HashSet<>();
@@ -331,8 +330,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @NotQueryable
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<ROExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
@@ -341,8 +339,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @NotQueryable
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<ROExtDate> getDates() {
         if (dates == null) {
             dates = new HashSet<>();
@@ -351,8 +348,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @NotQueryable
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<ROExtReference> getReferences() {
         if (references == null) {
             references = new HashSet<>();
@@ -361,8 +357,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @NotQueryable
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<ROExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();

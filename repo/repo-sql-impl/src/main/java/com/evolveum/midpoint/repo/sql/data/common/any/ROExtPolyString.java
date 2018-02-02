@@ -21,7 +21,9 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtPolyStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -34,6 +36,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_poly",
         indexes = {@Index(name = "iExtensionPolyString", columnList = "ownerType, item_id, orig"),
                 @Index(name = "iExtensionPolyStringDef", columnList = "owner_oid, ownerType")})
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class ROExtPolyString extends ROExtBase implements ROExtValue {
 
     //orig value
@@ -52,7 +55,7 @@ public class ROExtPolyString extends ROExtBase implements ROExtValue {
     }
 
     @Id
-    @MapsId("owner")
+//    @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_object_ext_poly_owner"))
     @NotQueryable

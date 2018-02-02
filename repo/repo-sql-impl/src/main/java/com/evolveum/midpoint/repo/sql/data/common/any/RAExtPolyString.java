@@ -20,7 +20,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtPolyStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -32,6 +34,7 @@ import java.util.Objects;
 //@IdClass(RAExtPolyStringId.class)
 @Table(name = "m_assignment_ext_poly",
         indexes = {@Index(name = "iAExtensionPolyString", columnList= "item_id, orig")})
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<String> {
 
     //orig value

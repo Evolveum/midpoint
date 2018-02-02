@@ -23,7 +23,9 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -37,6 +39,7 @@ import java.util.Objects;
         indexes = {
                 @Index(name = "iExtensionReference", columnList = "ownerType, item_id, targetoid"),
                 @Index(name = "iExtensionReferenceDef", columnList = "owner_oid, ownerType")})
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class ROExtReference extends ROExtBase implements ROExtValue {
 
     public static final String F_TARGET_OID = "value";
@@ -53,7 +56,7 @@ public class ROExtReference extends ROExtBase implements ROExtValue {
     }
 
     @Id
-    @MapsId("owner")
+//    @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_object_ext_reference_owner"))
     @NotQueryable

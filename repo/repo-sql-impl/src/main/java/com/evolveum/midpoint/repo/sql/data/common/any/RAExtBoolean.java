@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -29,6 +31,7 @@ import java.util.Objects;
 @Table(name = "m_assignment_ext_boolean"
 		/*,
         indexes = {@Index(name = "iAExtensionBoolean", columnList= "item_id, booleanValue")} */)
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAExtBoolean extends RAExtBase<Boolean> implements RAExtValue<Boolean> {
 
     private Boolean value;

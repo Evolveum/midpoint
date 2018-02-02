@@ -19,7 +19,9 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtLongId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -31,6 +33,7 @@ import java.util.Objects;
 //@IdClass(RAExtLongId.class)
 @Table(name = "m_assignment_ext_long",
         indexes = {@Index(name = "iAExtensionLong", columnList= "item_id, longValue")})
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAExtLong extends RAExtBase<Long>  implements RAExtValue<Long> {
 
     private Long value;

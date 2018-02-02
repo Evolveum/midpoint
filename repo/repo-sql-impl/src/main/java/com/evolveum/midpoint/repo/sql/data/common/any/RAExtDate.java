@@ -19,7 +19,9 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtDateId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointIdProvidingSingleTableEntityPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -32,6 +34,7 @@ import java.util.Objects;
 //@IdClass(RAExtDateId.class)
 @Table(name = "m_assignment_ext_date",
         indexes = {@Index(name = "iAExtensionDate", columnList= "item_id, dateValue")})
+@Persister(impl = MidPointIdProvidingSingleTableEntityPersister.class)
 public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timestamp> {
 
     private Timestamp value;
