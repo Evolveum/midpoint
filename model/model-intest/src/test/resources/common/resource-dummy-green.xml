@@ -132,8 +132,12 @@
 				<inbound>
 					<strength>strong</strength>
 					<expression>
-						<script>
-							<code>'The crew of ' + input</code>
+						<script><!-- MID-4405 -->
+							<code>
+								assert configuration != null : 'no configuration'
+								assert configuration.getLogging() != null : 'no logging in configuration'
+								'The crew of ' + input
+							</code>
 						</script>
 					</expression>
 					<target>

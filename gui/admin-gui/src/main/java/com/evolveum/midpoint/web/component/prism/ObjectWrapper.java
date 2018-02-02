@@ -311,8 +311,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		}
 	}
 
-	public void sort(PageBase pageBase) {
-		getContainers().forEach(ContainerWrapper -> ContainerWrapper.sort(pageBase));
+	public void sort() {
+		getContainers().forEach(ContainerWrapper -> ContainerWrapper.sort());
 //		ContainerWrapper main = findMainContainerWrapper();
 //		if (main != null) {
 //			main.sort(pageBase);

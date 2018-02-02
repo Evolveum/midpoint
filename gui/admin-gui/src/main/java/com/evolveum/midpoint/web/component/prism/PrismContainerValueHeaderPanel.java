@@ -122,7 +122,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
             public void onClick(AjaxRequestTarget target) {
         		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
         		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
-        		containerValueWrapper.sort(getPageBase());
+        		containerValueWrapper.sort();
 
                 onButtonClick(target);
             }
