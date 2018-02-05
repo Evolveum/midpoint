@@ -28,6 +28,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -35,13 +36,16 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * @author lazyman
  */
-public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
+public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryBeanPostProcessor.class);
     private static final String TRUNCATE_FUNCTION = "cleanupTestDatabase";
     private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabaseProc";
 
+    @Autowired
     private ApplicationContext context;
+    @Autowired
+    private QueryCountInterceptor queryCountInterceptor;
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -66,6 +70,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
         LOGGER.info("Deleting objects from database.");
 
         SessionFactory sessionFactory = (SessionFactory) bean;
+        sessionFactory.withOptions().interceptor(queryCountInterceptor);
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
@@ -116,10 +121,5 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         return bean;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
-        this.context = context;
     }
 }

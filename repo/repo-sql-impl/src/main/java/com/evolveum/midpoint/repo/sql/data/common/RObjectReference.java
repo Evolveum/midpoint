@@ -218,7 +218,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, ObjectReference repo) {
+    public static ObjectReference copyFromJAXB(ObjectReferenceType jaxb, ObjectReference repo) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
@@ -226,6 +226,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
 		repo.setRelation(qnameToString(normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
+
+        return repo;
 	}
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {

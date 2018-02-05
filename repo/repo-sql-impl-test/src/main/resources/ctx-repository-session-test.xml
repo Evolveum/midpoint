@@ -75,7 +75,7 @@
             </list>
         </property>
         <property name="entityInterceptor">
-            <bean class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
+            <ref bean="testInterceptor"/>
         </property>
     </bean>
 
