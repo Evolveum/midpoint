@@ -124,6 +124,8 @@ public class ObjectDeltaUpdater {
         for (ItemDelta delta : processedModifications) {
             ItemPath path = delta.getPath();
 
+            LOGGER.trace("Processing delta with path '{}'", path);
+
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
                 handleObjectExtensionOrAttributesDelta(object, delta);
                 continue;

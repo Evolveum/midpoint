@@ -266,6 +266,29 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(u.getEmployeeType(), set);
     }
 
+    @Test
+    public void test180ModifyMetadataChannel() throws Exception {
+        OperationResult result = new OperationResult("test170ModifyEmployeeTypeAndMetadataCreateChannel");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        ObjectReferenceType ref = createRef(UserType.COMPLEX_TYPE, "111");
+        delta.addModificationReplaceReference(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF), ref.asReferenceValue());
+        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "zxcv");
+
+        queryCountInterceptor.startCounter();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+
+        Session session = factory.openSession();
+        RUser u = session.get(RUser.class, userOid);
+
+        AssertJUnit.assertEquals("zxcv", u.getCreateChannel());
+        AssertJUnit.assertEquals(1, u.getCreateApproverRef().size());
+
+        assertReferences((Collection) u.getCreateApproverRef(),
+                RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+    }
 
     public <T extends ObjectType> void addLinkRef() throws Exception {
         String oid = null;
@@ -295,8 +318,5 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
 //        delta.addModificationReplaceProperty(
 //                new ItemPath(UserType.F_EXTENSION, new QName("http://example.com/p", "loot")), 34);
-
-
-        // todo create modification for metadata/createApproverRef
     }
 }
