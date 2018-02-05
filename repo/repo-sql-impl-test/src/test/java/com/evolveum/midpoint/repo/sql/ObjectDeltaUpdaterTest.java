@@ -98,8 +98,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     public void test100UpdateGivenNameAndActivation() throws Exception {
         OperationResult result = new OperationResult("test100UpdateGivenNameAndActivation");
 
-        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, UserType.F_GIVEN_NAME,
-                prismContext, new PolyString("ášdf", "asdf"));
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("ášdf", "asdf"));
+        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("ášdf", "asdf"));
         delta.addModificationReplaceProperty(
                 new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 
@@ -110,6 +111,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         Session session = factory.openSession();
         RUser u = session.get(RUser.class, userOid);
+
+        AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getName());
+        AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getNameCopy());
 
         AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getGivenName());
         AssertJUnit.assertEquals(RActivationStatus.DISABLED, u.getActivation().getAdministrativeStatus());
@@ -289,6 +293,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         assertReferences((Collection) u.getCreateApproverRef(),
                 RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
     }
+
+    // todo activation status enum is probably not translated correctly
 
     public <T extends ObjectType> void addLinkRef() throws Exception {
         String oid = null;

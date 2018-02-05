@@ -114,7 +114,7 @@ public class PrismEntityMapper {
 
     /**
      * todo implement transformation from prism to entity
-     * RObjectTextInfo
+     * RObjectTextInfo              - handled manually
      * RLookupTableRow
      * RAccessCertificationWorkItem
      * RAssignmentReference
