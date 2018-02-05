@@ -82,11 +82,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
 	protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
 
+	protected static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
+	protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
+
 
 	private static final String ACCOUNT_STAN_USERNAME = "stan";
 	private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 
 	private static final String EMPLOYEE_TYPE_MAROONED = "marooned";
+	private static final String EMPLOYEE_TYPE_USELESS = "useless";
 
 	private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
@@ -104,8 +108,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(ROLE_AUTOGRAPHIC_FILE, initResult);
 
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
 	}
 
 	protected int getNumberOfRoles() {
@@ -133,9 +139,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("no system config", systemConfiguration);
         List<ObjectPolicyConfigurationType> defaultObjectPolicyConfiguration = systemConfiguration.asObjectable().getDefaultObjectPolicyConfiguration();
         assertNotNull("No object policy", defaultObjectPolicyConfiguration);
-        assertEquals("Wrong object policy size", 4, defaultObjectPolicyConfiguration.size());       // third + fourth are conflict resolution rules
+        assertEquals("Wrong object policy size", 5, defaultObjectPolicyConfiguration.size());       // last two are conflict resolution rules
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
+        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_USELESS, USER_TEMPLATE_USELESS_OID);
 
         assertRoles(getNumberOfRoles());
 	}
@@ -2696,4 +2703,36 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userJack, 2);
 		assertLinks(userJack, 1);
 	}
+
+	/**
+	 * Setting employee type to marooned. This should cause switch to different user template.
+	 */
+	@Test
+	public void test970ModifyUserGuybrushEmployeeTypeUseless() throws Exception {
+		final String TEST_NAME = "test970ModifyUserGuybrushEmployeeTypeUseless";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+		assertAssignedNoRole(userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, EMPLOYEE_TYPE_USELESS);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+
+		AssignmentType uselessAssignment = assertAssignedRole(userAfter, ROLE_USELESS_OID);
+		assertEquals("Wrong originMappingName", "assignment-for-useless-role", uselessAssignment.getMetadata().getOriginMappingName());
+	}
+
 }
