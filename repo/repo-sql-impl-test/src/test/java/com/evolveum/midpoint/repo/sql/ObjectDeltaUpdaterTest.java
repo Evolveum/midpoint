@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,8 +29,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,6 +47,8 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 //import com.evolveum.midpoint.repo.sql.helpers.EntityModificationRegistry;
 //import com.evolveum.midpoint.repo.sql.helpers.ObjectDeltaUpdater;
@@ -174,7 +171,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
-        AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
 
         Session session = factory.openSession();
         RUser u = session.get(RUser.class, userOid);
@@ -246,18 +243,32 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test170ModifyEmployeeTypeAndMetadataCreateChannel() throws Exception {
+        OperationResult result = new OperationResult("test170ModifyEmployeeTypeAndMetadataCreateChannel");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        delta.addModificationAddProperty(UserType.F_EMPLOYEE_TYPE, "one", "two");
+        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
+
+        queryCountInterceptor.startCounter();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+
+        Session session = factory.openSession();
+        RUser u = session.get(RUser.class, userOid);
+
+        AssertJUnit.assertEquals("asdf", u.getCreateChannel());
+        Set set = new HashSet<>();
+        set.add("one");
+        set.add("two");
+        AssertJUnit.assertEquals(u.getEmployeeType(), set);
+    }
+
 
     public <T extends ObjectType> void addLinkRef() throws Exception {
-
-        OperationResult result = new OperationResult("add linkref");
-
-        PrismObject<UserType> user = prismContext.parseObject(new File(DATA_FOLDER, FILE_USER));
-
-        String oid = repositoryService.addObject(user, new RepoAddOptions(), result);
-        AssertJUnit.assertNotNull(oid);
-
-        result.computeStatusIfUnknown();
-        AssertJUnit.assertTrue(result.isSuccess());
+        String oid = null;
 
 //        ObjectDelta delta = ObjectDelta.createModificationAddReference(UserType.class, oid, UserType.F_LINK_REF,
 //                prismContext, "123");
@@ -265,15 +276,6 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, oid, UserType.F_GIVEN_NAME,
                 prismContext, new PolyString("asdf", "asdf"));
 
-//        delta.addModificationAddProperty(new ItemPath(UserType.F_EXTENSION,
-//                new QName("http://example.com/p", "weapon")), "glock");
-
-//        delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("super name"));
-//
-//        delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("one"));
-//        delta.addModificationReplaceProperty(UserType.F_FAMILY_NAME, new PolyString("one"));
-//        delta.addModificationAddProperty(UserType.F_EMPLOYEE_TYPE, "one","two");
-//        delta.addModificationReplaceProperty(new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "asdf");
 //        delta.addModificationReplaceProperty(
 //                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 //        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
@@ -296,8 +298,5 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
 
         // todo create modification for metadata/createApproverRef
-        queryCountInterceptor.startCounter();
-
-        repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
     }
 }

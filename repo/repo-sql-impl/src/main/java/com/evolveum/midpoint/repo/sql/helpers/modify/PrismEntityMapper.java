@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
@@ -60,6 +61,7 @@ public class PrismEntityMapper {
         mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
 
         mappers.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
+        mappers.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
     }
 
     @Autowired

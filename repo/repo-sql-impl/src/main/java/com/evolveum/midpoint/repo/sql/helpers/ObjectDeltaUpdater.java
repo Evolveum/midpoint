@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo;
@@ -65,6 +66,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils.*;
 
@@ -151,6 +153,10 @@ public class ObjectDeltaUpdater {
                     continue;
                 }
 
+                if (isMetadata(delta)) {
+                    handleMetadata(attributeStep.bean, delta);
+                }
+
                 Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, nameSegment);
                 if (attribute == null) {
                     // there's no table/column that needs update
@@ -180,6 +186,36 @@ public class ObjectDeltaUpdater {
         return object;
     }
 
+    private boolean isMetadata(ItemDelta delta) {
+        ItemPath named = delta.getPath().namedSegmentsOnly();
+        return new ItemPath(ObjectType.F_METADATA).equals(named) || new ItemPath(AssignmentType.F_METADATA).equals(named);
+    }
+
+    private void handleMetadata(Object bean, ItemDelta delta) {
+        if (!(bean instanceof Metadata)) {
+            throw new SystemException("Bean is not instance of " + Metadata.class + ", shouldn't happen");
+        }
+
+        PrismValue value = null;
+        if (!delta.isDelete()) {
+            value = delta.getAnyValue();
+        }
+
+        MapperContext context = new MapperContext();
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setDelta(delta);
+        context.setOwner(bean);
+
+        if (value != null) {
+            prismEntityMapper.mapPrismValue(value, Metadata.class, context);
+        } else {
+            // todo clean this up
+            // we know that mapper supports mapping null value, but still this code smells
+            Mapper mapper = prismEntityMapper.getMapper(MetadataType.class, Metadata.class);
+            mapper.map(null, context);
+        }
+    }
+
     private boolean isOperationResult(ItemDelta delta) {
         ItemDefinition def = delta.getDefinition();
         return OperationResultType.COMPLEX_TYPE.equals(def.getTypeName());
@@ -187,7 +223,7 @@ public class ObjectDeltaUpdater {
 
     private void handleOperationResult(Object bean, ItemDelta delta) {
         if (!(bean instanceof OperationResult)) {
-            return;
+            throw new SystemException("Bean is not instance of " + OperationResult.class + ", shouldn't happen");
         }
 
         PrismValue value = null;
@@ -443,7 +479,10 @@ public class ObjectDeltaUpdater {
 
         // handle delete
         processAnyExtensionDeltaValues(delta.getValuesToDelete(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> existing.removeAll(fromDelta));
+                (existing, fromDelta) -> {
+                    Collection filtered = fromDelta.stream().map(i -> i.getRepository()).collect(Collectors.toList());
+                    existing.removeAll(filtered);
+                });
 
         // handle add
         processAnyExtensionDeltaValues(delta.getValuesToAdd(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
