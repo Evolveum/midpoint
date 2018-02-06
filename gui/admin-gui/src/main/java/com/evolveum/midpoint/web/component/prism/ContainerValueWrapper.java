@@ -18,12 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -285,7 +280,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public void sort() {
-		Collator collator = Collator.getInstance(WebModelServiceUtils.getLocale());
+		Locale locale = WebModelServiceUtils.getLocale();
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		Collator collator = Collator.getInstance(locale);
 		if (isSorted()) {
 			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
