@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schrodinger.component;
+package com.evolveum.midpoint.schrodinger.component.common;
 
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.page.LoginPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.component.Component;
 import org.openqa.selenium.By;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class LoggedUser {
+public class Table<T> extends Component<T> {
 
-    public LoginPage logout() {
-        SelenideElement userMenu =  $(".dropdown.user.user-menu");
+    public Table(T parent, SelenideElement parentElement) {
+        super(parent, parentElement);
+    }
 
-        userMenu.$(By.cssSelector(".dropdown-toggle")).click();
-        userMenu.$(By.cssSelector(".user-footer"))
-                .$(Schrodinger.byElementAttributeValue("input", "type", "submit")).click();
+    public Search<T> search() {
+        SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
-        //todo implement
+        return new Search(this, searchElement);
+    }
 
-        return new LoginPage();
+    public Paging<T> paging() {
+        SelenideElement pagingElement = getParentElement().$(By.className("boxed-table-footer-paging"));
+
+        return new Paging(this, pagingElement);
     }
 }

@@ -12,5 +12,34 @@ public class SystemTab extends Component<SystemPage> {
     public SystemTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
+
+    public void auditRecordsCleanupInterval(String interval) {
+        // todo implement
+    }
+
+    public String auditRecordsCleanupInterval() {
+        // todo implement
+        return null;
+    }
+
+    public void closedCertificationCampaignsCleanupInterval(String interval) {
+        // todo implement
+    }
+
+    public String closedCertificationCampaignsCleanupInterval() {
+        // todo implement
+        return null;
+    }
+
+    public void operationExecutionResultsCleanupInterval(String interval) {
+        // todo implement
+    }
+
+    public String operationExecutionResultsCleanupInterval() {
+        // todo implement
+        return null;
+    }
+
+
 }
 
