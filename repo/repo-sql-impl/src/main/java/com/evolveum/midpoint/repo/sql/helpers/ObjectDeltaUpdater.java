@@ -42,6 +42,7 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
@@ -740,6 +741,11 @@ public class ObjectDeltaUpdater {
         // handle delete
         if (delta.isDelete()) {
             Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
+            valuesToDelete.stream().forEach(pair -> {
+                if (pair.getRepository() instanceof EntityState) {
+                    ((EntityState) pair.getRepository()).setTransient(false);
+                }
+            });
             deleteValues(collection, valuesToDelete);
         }
     }

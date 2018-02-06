@@ -458,17 +458,6 @@ public class ObjectUpdater {
                 LOGGER.trace("Save finished.");
                 // new implementation end
 
-                //todo remove, just for debugging
-//                LOGGER.trace(">>>> LOADING MODIFIED OBJECT");
-//                rObject = session.get(rObject.getClass(), oid);
-//                LOGGER.trace(">>>> MODIFIED OBJECT\n{}", ToStringBuilder.reflectionToString(rObject, ToStringStyle.MULTI_LINE_STYLE));
-
-//                LOGGER.trace(">>>> FAKE MERGE START");
-//                rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
-//                updateFullObject(rObject, prismObject);
-//                session.merge(rObject);
-//                LOGGER.trace(">>>> FAKE MERGE FINISH");
-
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
                 }

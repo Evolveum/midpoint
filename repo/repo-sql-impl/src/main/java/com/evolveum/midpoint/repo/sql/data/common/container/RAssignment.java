@@ -299,6 +299,22 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
+
+        if (!Boolean.TRUE.equals(trans)) {
+            return;
+        }
+
+        if (getCreateApproverRef() != null) {
+            for (RContainerReference ref : getCreateApproverRef()) {
+                ref.setTransient(true);
+            }
+        }
+
+        if (getModifyApproverRef() != null) {
+            for (RContainerReference ref : getModifyApproverRef()) {
+                ref.setTransient(true);
+            }
+        }
     }
 
     public void setOwner(RObject owner) {

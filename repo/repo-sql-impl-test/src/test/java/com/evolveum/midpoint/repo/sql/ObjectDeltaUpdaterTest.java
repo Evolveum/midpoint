@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 //import com.evolveum.midpoint.repo.sql.helpers.EntityModificationRegistry;
@@ -101,6 +103,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         delta.addModificationReplaceProperty(UserType.F_NAME, new PolyString("ášdf", "asdf"));
         delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("ášdf", "asdf"));
+        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
         delta.addModificationReplaceProperty(
                 new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 
@@ -110,13 +113,20 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
 
         Session session = factory.openSession();
-        RUser u = session.get(RUser.class, userOid);
+        try {
+            RUser u = session.get(RUser.class, userOid);
 
-        AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getName());
-        AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getNameCopy());
+            AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getName());
+            AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getNameCopy());
 
-        AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getGivenName());
-        AssertJUnit.assertEquals(RActivationStatus.DISABLED, u.getActivation().getAdministrativeStatus());
+            AssertJUnit.assertEquals(new RPolyString("ášdf", "asdf"), u.getGivenName());
+
+            AssertJUnit.assertEquals(u.getLocale(), "en-US");
+
+            AssertJUnit.assertEquals(RActivationStatus.DISABLED, u.getActivation().getAdministrativeStatus());
+        } finally {
+            session.close();
+        }
     }
 
     @Test
@@ -132,9 +142,13 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(2, queryCountInterceptor.getQueryCount());
 
         Session session = factory.openSession();
-        RUser u = session.get(RUser.class, userOid);
+        try {
+            RUser u = session.get(RUser.class, userOid);
 
-        assertAnyValues(u.getLongs(), LOOT);
+            assertAnyValues(u.getLongs(), LOOT);
+        } finally {
+            session.close();
+        }
     }
 
     private void assertAnyValues(Collection<? extends RAnyValue> collection, QName name, Object... values) {
@@ -178,19 +192,61 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
 
         Session session = factory.openSession();
-        RUser u = session.get(RUser.class, userOid);
+        try {
+            RUser u = session.get(RUser.class, userOid);
 
-        assertAnyValues(u.getStrings(), WEAPON, "weapon1", "weapon2");
+            assertAnyValues(u.getStrings(), WEAPON, "weapon1", "weapon2");
+        } finally {
+            session.close();
+        }
     }
 
     @Test
-    public void test140AddAssignment() throws Exception {
-        // todo implement
-    }
+    public void test140AddDeleteAssignment() throws Exception {
+        OperationResult result = new OperationResult("test140AddDeleteAssignment");
 
-    @Test
-    public void test150DeleteAssignment() throws Exception {
-        // todo impelment
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+
+        AssignmentType ass = new AssignmentType();
+        ass.setId(1L);
+        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
+
+        ass = new AssignmentType();
+        ass.setDescription("asdf");
+        ass.setTargetRef(createRef(OrgType.COMPLEX_TYPE, "444"));
+        MetadataType metadata = new MetadataType();
+        metadata.setCreateChannel("zzz");
+        metadata.getModifyApproverRef().add(createRef(UserType.COMPLEX_TYPE, "555"));
+        ass.setMetadata(metadata);
+        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, ass);
+
+        queryCountInterceptor.startCounter();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        // todo this should be only 7 queries, these two aren't expected:
+        // select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
+        // select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
+        AssertJUnit.assertEquals(9, queryCountInterceptor.getQueryCount());
+
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            Set<RAssignment> assignments = u.getAssignments();
+            AssertJUnit.assertEquals(1, assignments.size());
+
+            RAssignment a = assignments.iterator().next();
+            AssertJUnit.assertEquals("zzz", a.getCreateChannel());
+
+            ObjectReferenceType targetRef = a.getTargetRef().toJAXB(prismContext);
+            AssertJUnit.assertEquals(createRef(OrgType.COMPLEX_TYPE, "444", SchemaConstants.ORG_DEFAULT), targetRef);
+
+            assertReferences((Collection) a.getModifyApproverRef(),
+                    RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "555", SchemaConstants.ORG_DEFAULT), new RObjectReference())
+            );
+        } finally {
+            session.close();
+        }
     }
 
     @Test
@@ -210,11 +266,15 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
 
         Session session = factory.openSession();
-        RUser u = session.get(RUser.class, userOid);
+        try {
+            RUser u = session.get(RUser.class, userOid);
 
-        assertReferences((Collection) u.getParentOrgRef(),
-                RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "456", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
-                RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+            assertReferences((Collection) u.getParentOrgRef(),
+                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "456", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
+                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+        } finally {
+            session.close();
+        }
     }
 
     private ObjectReferenceType createRef(QName type, String oid) {
@@ -225,6 +285,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setType(type);
         ref.setOid(oid);
+        ref.setRelation(relation);
 
         return ref;
     }
@@ -235,7 +296,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         for (ObjectReference ref : collection) {
             boolean found = false;
             for (ObjectReference exp : expected) {
-                if (ref.equals(exp)) {
+                if (Objects.equals(exp.getRelation(), ref.getRelation())
+                        && Objects.equals(exp.getTargetOid(), ref.getTargetOid())
+                        && Objects.equals(exp.getType(), ref.getType())) {
                     found = true;
                     break;
                 }
@@ -246,6 +309,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             }
         }
     }
+
 
     @Test
     public void test170ModifyEmployeeTypeAndMetadataCreateChannel() throws Exception {
@@ -294,8 +358,6 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
     }
 
-    // todo activation status enum is probably not translated correctly
-
     public <T extends ObjectType> void addLinkRef() throws Exception {
         String oid = null;
 
@@ -307,22 +369,10 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
 //        delta.addModificationReplaceProperty(
 //                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
-//        delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
 
 //        ActivationType activation = new ActivationType();
 //        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
 //        delta.addModificationAddContainer(
 //                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
-
-//        AssignmentType ass = new AssignmentType();
-//        ass.setId(1L);
-//        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, ass);
-//
-//        ass = new AssignmentType();
-//        ass.setDescription("asdf");
-//        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, ass);
-
-//        delta.addModificationReplaceProperty(
-//                new ItemPath(UserType.F_EXTENSION, new QName("http://example.com/p", "loot")), 34);
     }
 }
