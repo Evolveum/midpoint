@@ -20,9 +20,9 @@
         xmlns:p="http://example.com/p">
     <name>add link user</name>
     <fullName>Add Link</fullName>
-    <!--<activation>-->
-        <!--<administrativeStatus>enabled</administrativeStatus>-->
-    <!--</activation>-->
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
     <extension>
         <p:weapon>sig</p:weapon>
     </extension>
@@ -31,4 +31,6 @@
     </assignment>
     <parentOrgRef oid="123" type="c:OrgType"/>
     <parentOrgRef oid="456" type="c:OrgType"/>
+    <linkRef oid="123" type="c:ShadowType"/>
+    <linkRef oid="456" type="c:ShadowType"/>
 </user>

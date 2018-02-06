@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor;
@@ -46,14 +47,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 import java.util.Objects;
-import java.util.Set;
-
-//import com.evolveum.midpoint.repo.sql.helpers.EntityModificationRegistry;
-//import com.evolveum.midpoint.repo.sql.helpers.ObjectDeltaUpdater;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -124,6 +119,32 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(u.getLocale(), "en-US");
 
             AssertJUnit.assertEquals(RActivationStatus.DISABLED, u.getActivation().getAdministrativeStatus());
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
+    public void test115DeleteActivation() throws Exception {
+        OperationResult result = new OperationResult("test115DeleteActivation");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+
+        ActivationType activation = new ActivationType();
+        activation.setAdministrativeStatus(ActivationStatusType.DISABLED);
+
+        delta.addModificationDeleteContainer(UserType.F_ACTIVATION, activation.asPrismContainerValue());
+
+        queryCountInterceptor.startCounter();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(3, queryCountInterceptor.getQueryCount());
+
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            AssertJUnit.assertNull(u.getActivation());
         } finally {
             session.close();
         }
@@ -250,11 +271,72 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test145AddActivationToAssignment() throws Exception {
+        OperationResult result = new OperationResult("test145AddActivationToAssignment");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+
+        ActivationType activation = new ActivationType();
+        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+        delta.addModificationAddContainer(
+                new ItemPath(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
+
+        queryCountInterceptor.startCounter();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            Set<RAssignment> assignments = u.getAssignments();
+            AssertJUnit.assertEquals(1, assignments.size());
+
+            RAssignment a = assignments.iterator().next();
+            RActivation act = a.getActivation();
+            AssertJUnit.assertNotNull(act);
+
+            AssertJUnit.assertEquals(RActivationStatus.ENABLED, act.getAdministrativeStatus());
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
+    public void test150AddDeleteLinkRef() throws Exception {
+        OperationResult result = new OperationResult("test150AddDeleteLinkRef");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        ObjectReferenceType linkRef = createRef(ShadowType.COMPLEX_TYPE, "456");
+        delta.addModificationDeleteReference(UserType.F_LINK_REF, linkRef.asReferenceValue());
+
+        linkRef = createRef(ShadowType.COMPLEX_TYPE, "789");
+        delta.addModificationAddReference(UserType.F_LINK_REF, linkRef.asReferenceValue());
+
+        queryCountInterceptor.startCounter();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            assertReferences((Collection) u.getLinkRef(),
+                    RObjectReference.copyFromJAXB(createRef(ShadowType.COMPLEX_TYPE, "123", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
+                    RObjectReference.copyFromJAXB(createRef(ShadowType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
     public void test160AddDeleteParentRef() throws Exception {
         OperationResult result = new OperationResult("test160AddDeleteParentRef");
 
         ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        ObjectReferenceType parentOrgRef = createRef(OrgType.COMPLEX_TYPE, "123");
+        ObjectReferenceType parentOrgRef = createRef(OrgType.COMPLEX_TYPE, "456");
         delta.addModificationDeleteReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
 
         parentOrgRef = createRef(OrgType.COMPLEX_TYPE, "789");
@@ -270,7 +352,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             RUser u = session.get(RUser.class, userOid);
 
             assertReferences((Collection) u.getParentOrgRef(),
-                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "456", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
+                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "123", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
                     RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
         } finally {
             session.close();
@@ -309,7 +391,6 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             }
         }
     }
-
 
     @Test
     public void test170ModifyEmployeeTypeAndMetadataCreateChannel() throws Exception {
@@ -356,23 +437,5 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         assertReferences((Collection) u.getCreateApproverRef(),
                 RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
-    }
-
-    public <T extends ObjectType> void addLinkRef() throws Exception {
-        String oid = null;
-
-//        ObjectDelta delta = ObjectDelta.createModificationAddReference(UserType.class, oid, UserType.F_LINK_REF,
-//                prismContext, "123");
-
-        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, oid, UserType.F_GIVEN_NAME,
-                prismContext, new PolyString("asdf", "asdf"));
-
-//        delta.addModificationReplaceProperty(
-//                new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
-
-//        ActivationType activation = new ActivationType();
-//        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
-//        delta.addModificationAddContainer(
-//                new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
     }
 }
