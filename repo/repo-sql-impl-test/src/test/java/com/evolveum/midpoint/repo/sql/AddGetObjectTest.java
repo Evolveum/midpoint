@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,7 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
@@ -566,8 +565,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            Query query = session.createSQLQuery("select id from m_assignment where owner_oid=:oid");
-            query.setString("oid", OID);
+            Query query = session.createNativeQuery("select id from m_assignment where owner_oid=:oid");
+            query.setParameter("oid", OID);
             List<Short> dbShorts = new ArrayList<>();
             for (Number n : (List<Number>) query.list()) {
                 dbShorts.add(n.shortValue());

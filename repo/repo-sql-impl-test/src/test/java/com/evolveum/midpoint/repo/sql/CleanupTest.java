@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,7 +41,6 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
-import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -207,7 +206,6 @@ public class CleanupTest extends BaseSQLRepoTest {
          } finally {
              session.close();
          }
-
 	}
 
 	private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
