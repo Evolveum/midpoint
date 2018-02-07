@@ -23,7 +23,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {

@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import java.io.Serializable;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;

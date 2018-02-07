@@ -3,7 +3,6 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 
 /**

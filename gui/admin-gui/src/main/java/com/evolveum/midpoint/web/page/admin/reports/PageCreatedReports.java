@@ -78,7 +78,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto.Operation;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
