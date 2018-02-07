@@ -23,7 +23,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
-import org.apache.commons.lang.Validate;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 
