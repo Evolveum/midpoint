@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 
 import java.io.Serializable;

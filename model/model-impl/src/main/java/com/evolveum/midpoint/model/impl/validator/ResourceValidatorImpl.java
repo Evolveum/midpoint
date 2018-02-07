@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.model.impl.validator;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.validator.Issue;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;

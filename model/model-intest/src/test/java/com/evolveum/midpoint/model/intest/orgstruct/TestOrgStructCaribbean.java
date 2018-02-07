@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.orgstruct;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.io.File;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
