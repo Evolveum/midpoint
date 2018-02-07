@@ -41,7 +41,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FlushMode;
-import org.hibernate.SQLQuery;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
@@ -60,7 +59,6 @@ import java.sql.Types;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 

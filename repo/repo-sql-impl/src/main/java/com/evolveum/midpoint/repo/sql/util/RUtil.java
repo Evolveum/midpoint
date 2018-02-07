@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.LogicalFilter;

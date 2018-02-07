@@ -40,7 +40,6 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import java.util.HashSet;
