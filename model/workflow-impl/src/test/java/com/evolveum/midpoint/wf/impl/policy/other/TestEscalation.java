@@ -45,8 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayCollection;
 import static org.testng.AssertJUnit.*;
 
 /**
