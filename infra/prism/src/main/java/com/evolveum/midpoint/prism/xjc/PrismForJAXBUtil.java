@@ -32,7 +32,6 @@ import javax.xml.namespace.QName;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
