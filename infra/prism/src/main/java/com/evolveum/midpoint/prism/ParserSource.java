@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
