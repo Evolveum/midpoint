@@ -17,22 +17,18 @@ package com.evolveum.midpoint.testing.sanity;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertEqualsPolyString;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertParentConsistency;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValues;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
