@@ -8,9 +8,6 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import java.util.List;
 
 /**
  * A job enhanced with PrimaryChangeProcessor-specific features.

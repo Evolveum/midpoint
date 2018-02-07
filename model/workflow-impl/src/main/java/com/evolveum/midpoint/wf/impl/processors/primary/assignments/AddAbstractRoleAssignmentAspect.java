@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
