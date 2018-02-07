@@ -45,7 +45,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.*;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
