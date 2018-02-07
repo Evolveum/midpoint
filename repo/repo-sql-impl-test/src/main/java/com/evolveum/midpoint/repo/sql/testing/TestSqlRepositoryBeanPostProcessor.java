@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -31,7 +31,6 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author lazyman
@@ -78,11 +77,11 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
             Query query;
             if (useProcedure(factory.getSqlConfiguration())) {
                 LOGGER.info("Using truncate procedure.");
-                query = session.createSQLQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
+                query = session.createNativeQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
                 query.executeUpdate();
             } else {
                 LOGGER.info("Using truncate function.");
-                query = session.createSQLQuery("select " + TRUNCATE_FUNCTION + "();");
+                query = session.createNativeQuery("select " + TRUNCATE_FUNCTION + "();");
                 query.uniqueResult();
             }
 

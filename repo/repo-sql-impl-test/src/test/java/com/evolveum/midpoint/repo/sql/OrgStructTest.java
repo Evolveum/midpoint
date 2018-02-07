@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -348,14 +348,14 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     private List<ROrgClosure> getOrgClosure(String ancestorOid, String descendantOid, Session session) {
         Query query = session.createQuery("from ROrgClosure where ancestorOid=:aOid and descendantOid=:dOid");
-        query.setString("aOid", ancestorOid);
-        query.setString("dOid", descendantOid);
+        query.setParameter("aOid", ancestorOid);
+        query.setParameter("dOid", descendantOid);
         return query.list();
     }
 
     private List<ROrgClosure> getOrgClosureByDescendant(String descendantOid, Session session) {
         Query query = session.createQuery("from ROrgClosure where descendantOid=:oid");
-        query.setString("oid", descendantOid);
+        query.setParameter("oid", descendantOid);
         return query.list();
     }
 

@@ -123,10 +123,16 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW, 2, F_VALUE).replace()
                 .item(F_ROW, 3, F_LABEL).replace(new PolyString("label 3"))
                 .item(F_ROW, 3, F_LAST_CHANGE_TIMESTAMP)
-                    .replace(XmlTypeConverter.createXMLGregorianCalendar(new Date(99, 10, 10)))
+                    .replace(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 10, 10)))
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0, Arrays.asList("key 1", "2 key"));
+    }
+
+    private Date createDate(int year, int month, int day) {
+	    Calendar c = Calendar.getInstance();
+	    c.set(year, month, day);
+	    return c.getTime();
     }
 
     @Test
@@ -201,7 +207,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType rowNoId = new LookupTableRowType(prismContext);
         rowNoId.setKey("key new");
         rowNoId.setValue("value new");
-        rowNoId.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date(99, 3, 4)));
+        rowNoId.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 3, 4)));
 
         LookupTableRowType rowNoId2 = new LookupTableRowType(prismContext);
         rowNoId2.setKey("key new 2");
@@ -286,7 +292,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType rowNoId = new LookupTableRowType(prismContext);
         rowNoId.setKey("key new new");
         rowNoId.setValue("value new new");
-        rowNoId.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date(99, 3, 4)));
+        rowNoId.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 3, 4)));
 
         LookupTableRowType row5 = new LookupTableRowType(prismContext);
         row5.setKey("key 5");
@@ -310,7 +316,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row5.setId(5L);         // dangerous
         row5.setKey("key 5 plus");
         row5.setValue("value 5 plus");
-        row5.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date(99, 3, 10)));
+        row5.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 3, 10)));
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
                 .item(F_ROW).replace(row5)
