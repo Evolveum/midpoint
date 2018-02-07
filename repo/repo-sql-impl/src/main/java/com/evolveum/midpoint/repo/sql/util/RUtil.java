@@ -69,6 +69,7 @@ import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -294,7 +295,7 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                ((OperationResultFull) repo).setFullResult(full);
+                ((OperationResultFull) repo).setFullResult(full.getBytes(StandardCharsets.UTF_8));
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }

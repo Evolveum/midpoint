@@ -5,7 +5,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
  */
 public interface OperationResultFull extends OperationResult {
 
-    String getFullResult();
+    byte[] getFullResult();
 
-    void setFullResult(String fullResult);
+    void setFullResult(byte[] fullResult);
 }
