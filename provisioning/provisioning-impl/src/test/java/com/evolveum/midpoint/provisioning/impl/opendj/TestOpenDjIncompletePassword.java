@@ -16,9 +16,7 @@
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 
