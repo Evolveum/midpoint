@@ -292,7 +292,7 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                ((OperationResultFull) repo).setFullResult(full.getBytes(StandardCharsets.UTF_8));
+                ((OperationResultFull) repo).setFullResult(RUtil.getByteArrayFromXml(full, true));
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }
