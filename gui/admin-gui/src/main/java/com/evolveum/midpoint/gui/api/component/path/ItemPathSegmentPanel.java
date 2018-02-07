@@ -1,10 +1,7 @@
 package com.evolveum.midpoint.gui.api.component.path;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -21,7 +18,6 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteItemDefi
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 

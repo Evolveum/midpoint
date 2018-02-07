@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
