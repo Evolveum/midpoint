@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import org.hibernate.dialect.MySQL57InnoDBDialect;
-import org.hibernate.dialect.MySQL5InnoDBDialect;
 
 import java.sql.Types;
 

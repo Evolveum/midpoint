@@ -2,7 +2,6 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 

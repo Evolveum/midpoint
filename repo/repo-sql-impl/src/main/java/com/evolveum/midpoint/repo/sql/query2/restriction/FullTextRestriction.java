@@ -26,11 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.MatchMode;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author mederly

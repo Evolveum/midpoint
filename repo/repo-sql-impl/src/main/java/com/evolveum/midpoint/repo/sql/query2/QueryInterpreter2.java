@@ -49,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.criterion.Projections;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

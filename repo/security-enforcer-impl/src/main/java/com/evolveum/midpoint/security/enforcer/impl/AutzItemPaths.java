@@ -15,20 +15,10 @@
  */
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import com.evolveum.midpoint.prism.query.ItemFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.PositiveNegativeItemPaths;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Helper class to SecurityEnforcer, used to evaluate item authorizations.
