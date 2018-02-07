@@ -103,7 +103,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
         try {
             Query query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
-            query.setParameter(0, oid);
+            query.setParameter(1, oid);
 
             Number count = (Number) query.uniqueResult();
             AssertJUnit.assertEquals(count.longValue(), 0L);

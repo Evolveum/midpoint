@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class TestUnitObjectWrapperFactory extends AbstractGuiUnitTest {
 
-//	@Test
+	@Test
     public void testCreateWrapperUser() throws Exception {
 		final String TEST_NAME = "testCreateWrapperUser";
 		TestUtil.displayTestTitle(TEST_NAME);
