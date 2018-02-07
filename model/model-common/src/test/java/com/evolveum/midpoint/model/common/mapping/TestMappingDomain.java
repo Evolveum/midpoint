@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
-import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.IOException;
