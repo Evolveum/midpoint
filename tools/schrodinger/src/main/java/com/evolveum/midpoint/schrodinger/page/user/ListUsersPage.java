@@ -5,7 +5,7 @@ import com.evolveum.midpoint.schrodinger.component.user.UsersTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import org.openqa.selenium.By;
 
-import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).

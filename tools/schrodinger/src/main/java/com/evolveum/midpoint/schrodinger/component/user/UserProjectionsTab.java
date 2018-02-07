@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schrodinger.component.user;
 
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
 
 /**

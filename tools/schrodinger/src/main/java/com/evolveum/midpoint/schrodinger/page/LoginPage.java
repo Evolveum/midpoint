@@ -4,9 +4,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.lang3.Validate;
 import org.openqa.selenium.By;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$x;
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.*;
 
 /**
  * Created by Viliam Repan (lazyman).
