@@ -19,7 +19,6 @@ package com.evolveum.midpoint.prism.query.builder;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Here is the language structure:
