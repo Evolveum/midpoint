@@ -2,7 +2,6 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
