@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
