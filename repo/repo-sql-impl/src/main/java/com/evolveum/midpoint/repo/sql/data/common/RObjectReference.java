@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
@@ -46,7 +45,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation
 @Entity
 @IdClass(RObjectReferenceId.class)
 @Table(name = "m_reference", indexes = {
-        @javax.persistence.Index(name = "iReferenceTargetOid", columnList = "targetOid")
+        @Index(name = "iReferenceTargetOid", columnList = "targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RObjectReference<T extends RObject> implements ObjectReference, EntityState {
@@ -84,7 +83,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         this.trans = trans;
     }
 
-    @ForeignKey(name = "fk_reference_owner")
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_reference_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
@@ -102,10 +101,9 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         return ownerOid;
     }
 
-    //@MapsId("target")
-    @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true, targetEntity = RObject.class)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     public T getTarget() {
