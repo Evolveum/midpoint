@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -24,17 +25,21 @@ import org.apache.commons.lang.Validate;
  */
 public enum RValueType {
 
-    PROPERTY(PrismProperty.class, PrismPropertyValue.class),
-    CONTAINER(PrismContainer.class, PrismContainerValue.class),
-    OBJECT(PrismObject.class, PrismContainerValue.class),
-    REFERENCE(PrismReference.class, PrismReferenceValue.class);
+    PROPERTY(PrismProperty.class, PrismPropertyValue.class, PropertyDelta.class),
+    CONTAINER(PrismContainer.class, PrismContainerValue.class, ContainerDelta.class),
+    OBJECT(PrismObject.class, PrismContainerValue.class, null),
+    REFERENCE(PrismReference.class, PrismReferenceValue.class, ReferenceDelta.class);
 
     private Class<? extends Item> itemClass;
     private Class<? extends PrismValue> valueClass;
+    private Class<? extends ItemDelta> deltaClass;
 
-    private RValueType(Class<? extends Item> itemClass, Class<? extends PrismValue> valueClass) {
+    RValueType(Class<? extends Item> itemClass,
+                       Class<? extends PrismValue> valueClass,
+                       Class<? extends ItemDelta> deltaClass) {
         this.itemClass = itemClass;
         this.valueClass = valueClass;
+        this.deltaClass = deltaClass;
     }
 
     public Class<? extends PrismValue> getValueClass() {
@@ -43,6 +48,10 @@ public enum RValueType {
 
     public Class<? extends Item> getItemClass() {
         return itemClass;
+    }
+
+    public Class<? extends ItemDelta> getDeltaClass() {
+        return deltaClass;
     }
 
     public static RValueType getTypeFromItemClass(Class<? extends Item> clazz) {
@@ -60,6 +69,17 @@ public enum RValueType {
         Validate.notNull(clazz, "Class must not be null.");
         for (RValueType value : RValueType.values()) {
             if (value.getValueClass().isAssignableFrom(clazz)) {
+                return value;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown enum value type for '" + clazz.getName() + "'.");
+    }
+
+    public static RValueType getTypeFromDeltaClass(Class<? extends ItemDelta> clazz) {
+        Validate.notNull(clazz, "Class must not be null.");
+        for (RValueType value : RValueType.values()) {
+            if (value.getDeltaClass() != null && value.getDeltaClass().isAssignableFrom(clazz)) {
                 return value;
             }
         }

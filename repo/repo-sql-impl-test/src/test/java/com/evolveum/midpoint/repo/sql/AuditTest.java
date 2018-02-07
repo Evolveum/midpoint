@@ -17,17 +17,21 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -103,6 +107,27 @@ public class AuditTest extends BaseSQLRepoTest {
 		assertEquals("Wrong # of properties", 1, loaded.getProperties().size());
 		assertEquals("Wrong prop values", new HashSet<>(Collections.singletonList("val")), loaded.getPropertyValues("prop"));
 		assertEquals("Wrong # of references", 0, loaded.getReferences().size());
+	}
+
+	@Test
+	public void testAudit() {
+		AuditEventRecord record = new AuditEventRecord();
+		record.setChannel("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import");
+		record.setEventIdentifier("1511974895961-0-1");
+		record.setEventStage(AuditEventStage.EXECUTION);
+		record.setEventType(AuditEventType.ADD_OBJECT);
+
+		ObjectDeltaOperation delta = new ObjectDeltaOperation();
+		delta.setObjectDelta(ObjectDelta.createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
+				prismContext, "123"));
+		record.getDeltas().add(delta);
+
+		delta = new ObjectDeltaOperation();
+		delta.setObjectDelta(ObjectDelta.createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
+				prismContext, "124"));
+		record.getDeltas().add(delta);
+
+		auditService.audit(record, new SimpleTaskAdapter());
 	}
 
 	private AuditEventRecord getAuditEventRecord(int expectedCount, int index) {

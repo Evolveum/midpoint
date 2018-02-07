@@ -54,7 +54,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
         for (int i = 0; i < COUNT; i++) {
             List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
             for (PrismObject obj : elements) {
-                prismContext.serializeObjectToString(obj, PrismContext.LANG_XML);
+                prismContext.serializerFor(PrismContext.LANG_XML).serialize(obj);
             }
         }
         LOGGER.info("xxx>> time: {}", (System.currentTimeMillis() - time));
@@ -239,7 +239,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
     private void writeObject(ObjectType obj, Writer writer) throws IOException, SchemaException {
         PrismObject prism = obj.asPrismObject();
         prismContext.adopt(prism);
-        writer.write(prismContext.serializeObjectToString(prism, PrismContext.LANG_XML));
+        writer.write(prismContext.serializerFor(PrismContext.LANG_XML).serialize(prism));
         writer.write('\n');
     }
 

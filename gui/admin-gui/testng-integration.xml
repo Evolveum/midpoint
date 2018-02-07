@@ -19,7 +19,7 @@
 	<test name="Web Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
         	<class name="com.evolveum.midpoint.web.TestCleanStartup"/>
-        	<class name="com.evolveum.midpoint.web.TestIntegrationObjectWrapperFactory"/>
+        	<!--<class name="com.evolveum.midpoint.web.TestIntegrationObjectWrapperFactory"/>-->
         	<class name="com.evolveum.midpoint.web.TestIntegrationSecurity"/>
         </classes>
     </test>

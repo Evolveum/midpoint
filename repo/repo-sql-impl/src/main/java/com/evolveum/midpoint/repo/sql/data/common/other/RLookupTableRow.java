@@ -4,6 +4,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -11,7 +12,6 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -21,6 +21,7 @@ import java.util.Date;
 /**
  * @author Viliam Repan (lazyman)
  */
+@Ignore
 @Entity
 @Table(indexes = {
 //todo create indexes after lookup api is created (when we know how we will search through lookup table [lazyman]
@@ -47,7 +48,8 @@ public class RLookupTableRow implements Container<RLookupTable> {
     private XMLGregorianCalendar lastChangeTimestamp;
 
     @Id
-    @ForeignKey(name = "fk_lookup_table_owner")
+
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_lookup_table_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @Override

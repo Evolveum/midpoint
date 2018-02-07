@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import com.evolveum.midpoint.repo.sql.util.EntityState;
+
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public interface RAnyValue<T> extends Serializable {
+public interface RAnyValue<T> extends Serializable, EntityState {
 
     String F_VALUE = "value";
 

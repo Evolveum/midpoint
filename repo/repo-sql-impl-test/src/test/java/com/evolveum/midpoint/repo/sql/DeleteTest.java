@@ -24,8 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -101,8 +101,8 @@ public class DeleteTest extends BaseSQLRepoTest {
 
         Session session = getFactory().openSession();
         try {
-            SQLQuery query = session.createSQLQuery("select count(*) from m_trigger where owner_oid = ?");
-            query.setString(0, oid);
+            Query query = session.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
+            query.setParameter(1, oid);
 
             Number count = (Number) query.uniqueResult();
             AssertJUnit.assertEquals(count.longValue(), 0L);

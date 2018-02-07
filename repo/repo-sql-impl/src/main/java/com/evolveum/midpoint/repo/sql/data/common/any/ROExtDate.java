@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtDateId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -30,6 +31,7 @@ import java.sql.Timestamp;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(ROExtDateId.class)
 @Table(name = "m_object_ext_date")
@@ -37,6 +39,8 @@ import java.sql.Timestamp;
         indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "eName", "dateValue"}),
                 @Index(name = "iExtensionDateDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtDate implements ROExtValue {
+
+    private Boolean trans;
 
     //owner entity
     private RObject owner;
@@ -55,6 +59,17 @@ public class ROExtDate implements ROExtValue {
 
     public ROExtDate(Timestamp value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id

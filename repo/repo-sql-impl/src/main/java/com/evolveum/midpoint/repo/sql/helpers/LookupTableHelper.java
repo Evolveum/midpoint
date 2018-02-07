@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -168,15 +168,15 @@ public class LookupTableHelper {
 
     private void deleteRowById(Session session, String tableOid, Long id) {
         Query query = session.getNamedQuery("delete.lookupTableDataRow");
-        query.setString("oid", tableOid);
-        query.setInteger("id", RUtil.toInteger(id));
+        query.setParameter("oid", tableOid);
+        query.setParameter("id", RUtil.toInteger(id));
         query.executeUpdate();
     }
 
     private void deleteRowByKey(Session session, String tableOid, String key) {
         Query query = session.getNamedQuery("delete.lookupTableDataRowByKey");
-        query.setString("oid", tableOid);
-        query.setString("key", key);
+        query.setParameter("oid", tableOid);
+        query.setParameter("key", key);
         query.executeUpdate();
     }
 

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -81,7 +81,7 @@ public class DBValidator {
     }
 
     private static final void validate(String sql, String message, Session session) {
-        Query query = session.createSQLQuery(sql);
+        Query query = session.createNativeQuery(sql);
         List nullAssignments = query.list();
         if (!nullAssignments.isEmpty()) {
             throw new SystemException(message + Arrays.deepToString(nullAssignments.toArray()));

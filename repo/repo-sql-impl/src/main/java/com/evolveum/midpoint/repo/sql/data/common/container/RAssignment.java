@@ -134,10 +134,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Id
-    @org.hibernate.annotations.ForeignKey(name = "fk_assignment_owner")
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinTable(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     @NotQueryable
     public RObject getOwner() {
         return owner;
@@ -187,7 +186,6 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return resourceRef;
     }
 
-    @org.hibernate.annotations.ForeignKey(name = "none")
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -211,9 +209,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    //@JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
@@ -246,7 +242,6 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-//    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
@@ -277,8 +272,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @ElementCollection
-    @org.hibernate.annotations.ForeignKey(name = "fk_assignment_policy_situation")
-    @CollectionTable(name = "m_assignment_policy_situation", joinColumns = {
+    @CollectionTable(name = "m_assignment_policy_situation",
+            foreignKey = @ForeignKey(name = "fk_assignment_policy_situation"),
+            joinColumns = {
             @JoinColumn(name = "assignment_oid", referencedColumnName = "owner_oid"),
             @JoinColumn(name = "assignment_id", referencedColumnName = "id")
     })
@@ -299,6 +295,22 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
+
+        if (!Boolean.TRUE.equals(trans)) {
+            return;
+        }
+
+        if (getCreateApproverRef() != null) {
+            for (RContainerReference ref : getCreateApproverRef()) {
+                ref.setTransient(true);
+            }
+        }
+
+        if (getModifyApproverRef() != null) {
+            for (RContainerReference ref : getModifyApproverRef()) {
+                ref.setTransient(true);
+            }
+        }
     }
 
     public void setOwner(RObject owner) {
@@ -419,14 +431,28 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, RObject parent,
+                                    RepositoryContext repositoryContext) throws DtoTranslationException{
+        copyFromJAXB(jaxb, repo, repositoryContext, null);
+        repo.setOwner(parent);
+    }
+
     public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, RepositoryContext repositoryContext,
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+
+        copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        repo.setOwnerOid(parent.getOid());
+    }
+
+    private static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        if (generatorResult != null) {
+            repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        }
 
-        repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toInteger(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
         repo.setLifecycleState(jaxb.getLifecycleState());

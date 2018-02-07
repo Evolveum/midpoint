@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 /**
  * @author lazyman
  */
+@Ignore
 @IdClass(RFocusPhotoId.class)
 @Entity
 @Table(name = "m_focus_photo")

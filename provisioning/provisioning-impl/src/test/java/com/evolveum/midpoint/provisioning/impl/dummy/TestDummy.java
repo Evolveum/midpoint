@@ -474,7 +474,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Meathook");
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
-		newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666L);
+		newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666);
 		newAccount.setEnabled(true);
 		newAccount.setPassword("parrotMonster");
 		dummyResource.addAccount(newAccount);
@@ -509,8 +509,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 					meathookAccountOid = object.getOid();
 					seenMeathookHolder.setValue(true);
 					try {
-						Long loot = ShadowUtil.getAttributeValue(object, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-						assertEquals("Wrong meathook's loot", (Long)666L, loot);
+						Integer loot = ShadowUtil.getAttributeValue(object, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
+						assertEquals("Wrong meathook's loot", 666, (int) loot);
 					} catch (SchemaException e) {
 						throw new SystemException(e.getMessage(), e);
 					}
@@ -3762,7 +3762,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
 		DummyAccount newAccount = new DummyAccount(BLACKBEARD_USERNAME);
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
-		newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
+		newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
 		newAccount.setEnabled(true);
 		newAccount.setPassword("shiverMEtimbers");
 		dummyResource.addAccount(newAccount);
@@ -3805,7 +3805,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertAttribute(currentShadow,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
 		assertAttribute(currentShadow,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
@@ -3867,7 +3867,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertAttribute(currentShadow,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
 		assertAttribute(currentShadow,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);

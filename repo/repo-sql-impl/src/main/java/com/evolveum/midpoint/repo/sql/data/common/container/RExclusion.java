@@ -34,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConst
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
 
@@ -49,7 +48,6 @@ import javax.persistence.*;
 @JaxbType(type = ExclusionPolicyConstraintType.class)
 @Entity
 @IdClass(RContainerId.class)
-@ForeignKey(name = "fk_exclusion")
 @Deprecated
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RExclusion implements Container {
@@ -76,7 +74,7 @@ public class RExclusion implements Container {
     }
 
     @Id
-    @ForeignKey(name = "fk_exclusion_owner")
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_exclusion_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable

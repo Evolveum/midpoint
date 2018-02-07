@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectTextInfoId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
@@ -44,6 +45,7 @@ import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_N
 /**
  * @author mederly
  */
+@Ignore
 @Entity
 @IdClass(RObjectTextInfoId.class)
 @Table(name = TABLE_NAME)

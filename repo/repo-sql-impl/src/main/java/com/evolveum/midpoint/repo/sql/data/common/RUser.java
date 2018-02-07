@@ -369,8 +369,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 
-        ItemDefinition def = jaxb.asPrismObject().getDefinition();
-        RUtil.copyResultFromJAXB(def, jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
+        RUtil.copyResultFromJAXB(jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));

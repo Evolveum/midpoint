@@ -5,8 +5,8 @@ import org.openqa.selenium.By;
 
 import java.io.File;
 
-import static com.evolveum.midpoint.schrodinger.util.Utils.*;
 import static com.codeborne.selenide.Selenide.$;
+import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 
 /**
  * Created by Viliam Repan (lazyman).

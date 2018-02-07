@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -28,6 +29,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
+@Ignore
 @IdClass(ROrgClosureId.class)
 @Entity
 @Table(name = "m_org_closure",

@@ -52,9 +52,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
@@ -96,6 +97,9 @@ public class ObjectUpdater {
 
     @Autowired
     private OrgClosureManager closureManager;
+
+    @Autowired
+    private ObjectDeltaUpdater objectDeltaUpdater;
 
     @Autowired
     private PrismContext prismContext;
@@ -218,7 +222,8 @@ public class ObjectUpdater {
         }
 
         updateFullObject(rObject, object);
-        RObject merged = (RObject) session.merge(rObject);
+
+        RObject merged = objectDeltaUpdater.update(object, rObject, session);
         lookupTableHelper.addLookupTableRows(session, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(session, rObject, oldObject != null);
 
@@ -250,7 +255,7 @@ public class ObjectUpdater {
     }
 
     public <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject)
-            throws DtoTranslationException, SchemaException {
+            throws SchemaException {
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
@@ -419,21 +424,40 @@ public class ObjectUpdater {
                 if (closureManager.isEnabled()) {
                     originalObject = prismObject.clone();
                 }
-                ItemDelta.applyTo(modifications, prismObject);
+
+                // old implementation start
+//                ItemDelta.applyTo(modifications, prismObject);
+//                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+//                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
+//                // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+//                boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
+//
+//                // merge and update object
+//                LOGGER.trace("Translating JAXB to data type.");
+//                ObjectTypeUtil.normalizeAllRelations(prismObject);
+//                RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+//                rObject.setVersion(rObject.getVersion() + 1);
+//
+//                updateFullObject(rObject, prismObject);
+//                LOGGER.trace("Starting merge.");
+//                session.merge(rObject);
+                // old implementation end
+
+                // new implementation start
+                RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, session);
+
 				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
                 // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                 // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
-                // merge and update object
-                LOGGER.trace("Translating JAXB to data type.");
-				ObjectTypeUtil.normalizeAllRelations(prismObject);
-				RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
-                rObject.setVersion(rObject.getVersion() + 1);
-
                 updateFullObject(rObject, prismObject);
-                LOGGER.trace("Starting merge.");
-                session.merge(rObject);
+
+                LOGGER.trace("Starting save.");
+                session.save(rObject);
+                LOGGER.trace("Save finished.");
+                // new implementation end
+
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
                 }

@@ -22,26 +22,14 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.xml.namespace.QName;
+import javax.persistence.*;
 
 import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
@@ -65,10 +53,8 @@ public class REmbeddedReference implements ObjectReference {
         return relation;
     }
 
-    //@MapsId("target")
-    @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     public RObject getTarget() {
@@ -127,7 +113,12 @@ public class REmbeddedReference implements ObjectReference {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+        final StringBuilder sb = new StringBuilder("REmbeddedReference{");
+        sb.append("targetOid='").append(targetOid).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", relation='").append(relation).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {

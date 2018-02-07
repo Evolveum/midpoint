@@ -16,6 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
+
 /**
  * This is just helper enumeration for different types of reference entities
  * used in many relationships.
@@ -24,29 +29,58 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
  */
 public enum RReferenceOwner {
 
-    OBJECT_PARENT_ORG,          // 0
+    OBJECT_PARENT_ORG(ObjectType.class, ObjectType.F_PARENT_ORG_REF),      // 0
 
-    USER_ACCOUNT,               // 1
+    USER_ACCOUNT(FocusType.class, FocusType.F_LINK_REF),                   // 1
 
-    RESOURCE_BUSINESS_CONFIGURATON_APPROVER,    // 2
+    RESOURCE_BUSINESS_CONFIGURATON_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
 
-    ROLE_APPROVER,              // 3
+    ROLE_APPROVER(AbstractRoleType.class, AbstractRoleType.F_APPROVER_REF),              // 3
 
     /**
      * @deprecated
      */
     @Deprecated
-    SYSTEM_CONFIGURATION_ORG_ROOT,  // 4
+    SYSTEM_CONFIGURATION_ORG_ROOT(SystemConfigurationType.class, null),                 // 4
 
-    CREATE_APPROVER,            // 5
+    CREATE_APPROVER(ObjectType.class, MetadataType.F_CREATE_APPROVER_REF), // 5
 
-    MODIFY_APPROVER,            // 6
+    MODIFY_APPROVER(ObjectType.class, MetadataType.F_MODIFY_APPROVER_REF), // 6
 
-    INCLUDE,                    // 7
+    INCLUDE(ObjectTemplateType.class, ObjectTemplateType.F_INCLUDE_REF),           // 7
 
-    ROLE_MEMBER,                // 8
+    ROLE_MEMBER(FocusType.class, FocusType.F_ROLE_MEMBERSHIP_REF),        // 8
 
-    DELEGATED,                // 9
+    DELEGATED(FocusType.class, FocusType.F_DELEGATED_REF),                // 9
 
-    PERSONA                     // 10
+    PERSONA(FocusType.class, FocusType.F_PERSONA_REF);                    // 10
+
+    private Class<? extends ObjectType> typeClass;
+    private QName elementName;
+
+    RReferenceOwner(Class<? extends ObjectType> typeClass, QName elementName) {
+        this.typeClass = typeClass;
+        this.elementName = elementName;
+    }
+
+    public Class<? extends ObjectType> getTypeClass() {
+        return typeClass;
+    }
+
+    public QName getElementName() {
+        return elementName;
+    }
+
+    public static RReferenceOwner getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
+        Validate.notNull(typeClass, "Jaxb type class must not be null");
+        Validate.notNull(qname, "QName must not be null");
+
+        for (RReferenceOwner owner : values()) {
+            if (qname.equals(owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {
+                return owner;
+            }
+        }
+
+        throw new IllegalArgumentException("Can't find owner for qname '" + qname + "'");
+    }
 }

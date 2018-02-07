@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -62,6 +63,7 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @Table(name = RAuditEventRecord.TABLE_NAME, indexes = {
     @Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP)}) // TODO correct index name

@@ -16,7 +16,7 @@
 
 package schrodinger;
 
-import com.evolveum.midpoint.schrodinger.component.Paging;
+import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.testng.annotations.Test;
 

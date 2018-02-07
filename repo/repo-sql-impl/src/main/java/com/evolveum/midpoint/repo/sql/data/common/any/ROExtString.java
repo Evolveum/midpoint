@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -29,6 +30,7 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(ROExtStringId.class)
 @Table(name = "m_object_ext_string")
@@ -36,6 +38,8 @@ import javax.persistence.*;
         indexes = {@Index(name = "iExtensionString", columnNames = {"ownerType", "eName", "stringValue"}),
                 @Index(name = "iExtensionStringDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtString implements ROExtValue {
+
+    private Boolean trans;
 
     //owner entity
     private RObject owner;
@@ -54,6 +58,17 @@ public class ROExtString implements ROExtValue {
 
     public ROExtString(String value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id

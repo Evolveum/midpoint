@@ -18,9 +18,11 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import javax.persistence.*;
 
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import org.hibernate.annotations.ForeignKey;
 
+@Ignore
 @Entity
 @IdClass(RAuditItemId.class)
 @Table(name = RAuditItem.TABLE_NAME, indexes = {

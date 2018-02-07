@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -42,6 +43,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME)
@@ -264,8 +266,8 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             }
 
             if (operation.getExecutionResult() != null) {
-            	ItemDefinition def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
-                RUtil.copyResultFromJAXB(def, SchemaConstantsGenerated.C_OPERATION_RESULT, operation.getExecutionResult().createOperationResultType(),
+                RUtil.copyResultFromJAXB(SchemaConstantsGenerated.C_OPERATION_RESULT,
+                        operation.getExecutionResult().createOperationResultType(),
                         auditDelta, prismContext);
             }
 

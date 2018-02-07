@@ -904,8 +904,8 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	addModificationReplaceProperty(new ItemPath(propertyQName), propertyValues);
     }
 
-    public <X> void addModificationReplaceProperty(ItemPath propertyPath, X... propertyValues) {
-    	fillInModificationReplaceProperty(this, propertyPath, propertyValues);
+    public <X> PropertyDelta<X> addModificationReplaceProperty(ItemPath propertyPath, X... propertyValues) {
+    	return fillInModificationReplaceProperty(this, propertyPath, propertyValues);
     }
 
     public <X> void addModificationReplaceReference(ItemPath refPath, PrismReferenceValue... refValues) {
@@ -976,7 +976,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	return objectDelta;
     }
 
-    protected static <O extends Objectable, X> void fillInModificationReplaceProperty(ObjectDelta<O> objectDelta,
+    protected static <O extends Objectable, X> PropertyDelta<X> fillInModificationReplaceProperty(ObjectDelta<O> objectDelta,
     		ItemPath propertyPath, X... propertyValues) {
     	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyPath);
     	if (propertyValues != null) {
@@ -984,6 +984,8 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	    	propertyDelta.setValuesToReplace(valuesToReplace);
 	    	objectDelta.addModification(propertyDelta);
     	}
+
+    	return propertyDelta;
     }
 
     protected static <O extends Objectable, X> void fillInModificationAddProperty(ObjectDelta<O> objectDelta,

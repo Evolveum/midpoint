@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -95,7 +94,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
 	private static final int MAX_RANDOM_SEQUENCE_ITERATIONS = 15;
 
-	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<CarefulAnt<ResourceType>>();
+	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<>();
 	private static CarefulAnt<ResourceType> descriptionAnt;
 	private static String lastVersion;
 	private static Random rnd = new Random();
@@ -573,7 +572,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  5);
 
         assertResourceDummy(resource, true);
 
@@ -1135,9 +1134,20 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     	singleModify(descriptionAnt, -1, task, result);
     }
 
+//	@Test
+//    public void test835ModifySchemaHandling() throws Exception {
+//    	final String TEST_NAME = "test835ModifySchemaHandling";
+//    	displayTestTitle(TEST_NAME);
+//
+//    	Task task = createTask(TEST_NAME);
+//        OperationResult result = task.getResult();
+//		CarefulAnt<ResourceType> ant = ants.get(1);
+//		singleModify(ant, 0, task, result);
+//    }
+
 	@Test
-    public void test840RadomModifySequence() throws Exception {
-    	final String TEST_NAME = "test840RadomModifySequence";
+    public void test840RandomModifySequence() throws Exception {
+    	final String TEST_NAME = "test840RandomModifySequence";
     	displayTestTitle(TEST_NAME);
 
     	Task task = createTask(TEST_NAME);

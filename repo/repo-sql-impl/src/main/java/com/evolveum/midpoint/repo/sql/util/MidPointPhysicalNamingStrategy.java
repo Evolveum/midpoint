@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.google.common.base.CaseFormat;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
@@ -25,6 +27,8 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
  * Created by Viliam Repan (lazyman).
  */
 public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStandardImpl {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointPhysicalNamingStrategy.class);
 
     @Override
     public Identifier toPhysicalTableName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
@@ -37,6 +41,19 @@ public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStanda
         name = "m_" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
         name = RUtil.fixDBSchemaObjectNameLength(name);
 
-        return new Identifier(name, identifier.isQuoted());
+        Identifier i = new Identifier(name, identifier.isQuoted());
+
+        LOGGER.trace("toPhysicalTableName {} -> {}", identifier, i);
+
+        return i;
+    }
+
+    @Override
+    public Identifier toPhysicalColumnName(Identifier name, JdbcEnvironment context) {
+        Identifier i = super.toPhysicalColumnName(name, context);
+
+        LOGGER.trace("toPhysicalColumnName {} -> {}", name, i);
+
+        return i;
     }
 }

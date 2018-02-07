@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtBooleanId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -29,6 +30,7 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(ROExtBooleanId.class)
 @Table(name = "m_object_ext_boolean")
@@ -36,6 +38,8 @@ import javax.persistence.*;
         indexes = {@Index(name = "iExtensionBoolean", columnNames = {"ownerType", "eName", "booleanValue"}),
                 @Index(name = "iExtensionBooleanDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtBoolean implements ROExtValue {
+
+    private Boolean trans;
 
     //owner entity
     private RObject owner;
@@ -54,6 +58,17 @@ public class ROExtBoolean implements ROExtValue {
 
     public ROExtBoolean(Boolean value) {
         this.value = value;
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Id

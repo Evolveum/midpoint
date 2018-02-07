@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -296,7 +296,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            Query query = session.createSQLQuery("select count(*) from m_assignment where owner_oid=:oid and id=:id");
+            Query query = session.createNativeQuery("select count(*) from m_assignment where owner_oid=:oid and id=:id");
             query.setParameter("oid", delta.getOid());
             query.setParameter("id", 4);
             Number number = (Number) query.uniqueResult();

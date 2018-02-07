@@ -61,4 +61,14 @@ public enum RObjectType {
 
         throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
     }
+
+    public static <T extends ObjectType> RObjectType getByJaxbType(Class<T> clazz) {
+        for (RObjectType type : RObjectType.values()) {
+            if (type.getJaxbClass().equals(clazz)) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
+    }
 }

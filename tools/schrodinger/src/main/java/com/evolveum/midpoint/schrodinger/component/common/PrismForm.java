@@ -1,0 +1,108 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.schrodinger.component.common;
+
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
+
+import javax.xml.namespace.QName;
+
+import static com.codeborne.selenide.Selenide.$;
+
+/**
+ * Created by Viliam Repan (lazyman).
+ */
+public class PrismForm<T> extends Component<T> {
+
+    public PrismForm(T parent, SelenideElement parentElement) {
+        super(parent, parentElement);
+    }
+
+    public PrismForm<T> addAttributeValue(String name, String value) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() == 1) {
+            values.first().$(By.className("form-control")).setValue(value);
+        }
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> removeAttributeValue(String name, String value) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> showEmptyAttributes(String containerName, String value) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> addAttributeValue(QName name, String value) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() == 1) {
+            values.first().$(By.className("form-control")).setValue(value);
+        }
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> setAttributeValue(QName name, String value) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> removeAttributeValue(QName name, String value) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> changeAttributeValue(QName name, String oldValue, String newValue) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> showEmptyAttributes(QName containerName, String value) {
+        // todo implement
+        return this;
+    }
+
+    private SelenideElement findProperValueContainer() {
+        return null;
+    }
+
+    private SelenideElement findProperty(String name) {
+        return $(Schrodinger.byElementAttributeValue(null, "contains",
+                Schrodinger.DATA_S_QNAME, "#" + name));
+    }
+
+    private SelenideElement findProperty(QName qname) {
+        String name = Schrodinger.qnameToString(qname);
+        return $(Schrodinger.byDataQName(name));
+    }
+}

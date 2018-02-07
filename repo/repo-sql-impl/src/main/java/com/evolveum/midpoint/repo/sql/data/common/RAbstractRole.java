@@ -37,11 +37,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.hibernate.annotations.*;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,12 +56,12 @@ import java.util.Set;
                         value = "ABSTRACT_ROLE")}, collectionType = RAssignment.class)})
 
 @Entity
-@ForeignKey(name = "fk_abstract_role")
-@org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
-        indexes = {
-				@Index(name = "iAbstractRoleIdentifier", columnNames = "identifier"),
-				@Index(name = "iRequestable", columnNames = "requestable"),
-                @Index(name = "iAutoassignEnabled", columnNames = "autoassign_enabled")})
+@org.hibernate.annotations.ForeignKey(name = "fk_abstract_role")
+@Table(indexes = {
+        @Index(name = "iAbstractRoleIdentifier", columnList = "identifier"),
+        @Index(name = "iRequestable", columnList = "requestable"),
+        @Index(name = "iAutoassignEnabled", columnList = "autoassign_enabled")
+})
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
@@ -91,7 +92,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     }
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RExclusion> getExclusion() {
         if (exclusion == null) {
@@ -102,7 +102,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 3")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference<RFocus>> getApproverRef() {
         if (approverRef == null) {

@@ -24,10 +24,12 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
+import javax.persistence.Transient;
 import java.util.Objects;
 
 /**
@@ -41,11 +43,13 @@ import java.util.Objects;
  * almost all the code.
  *
  */
-public abstract class RContainerReference extends RReference implements ObjectReference {
+public abstract class RContainerReference extends RReference implements ObjectReference, EntityState {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
     public static final String F_OWNER = "owner";
+
+    private Boolean trans;
 
     private RCReferenceOwner referenceType;
 
@@ -91,6 +95,16 @@ public abstract class RContainerReference extends RReference implements ObjectRe
 
     public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
+    }
+
+    @Transient
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @Override

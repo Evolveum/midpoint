@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -31,12 +32,15 @@ import javax.persistence.*;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(RAExtReferenceId.class)
 @Table(name = "m_assignment_ext_reference")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_reference",
         indexes = {@Index(name = "iAExtensionReference", columnNames = {"extensionType", "eName", "targetoid"})})
 public class RAExtReference implements RAExtValue {
+
+    private Boolean trans;
 
     //owner entity
     private RAssignmentExtension anyContainer;
@@ -57,6 +61,17 @@ public class RAExtReference implements RAExtValue {
     private String relation;
 
     public RAExtReference() {
+    }
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
     }
 
     @ForeignKey(name = "fk_assignment_ext_reference")

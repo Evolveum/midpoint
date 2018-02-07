@@ -21,6 +21,12 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
+    <bean id="queryCountInterceptor" class="com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor"/>
+
+    <bean id="entityStateInterceptor" class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
+
+    <bean id="testInterceptor" class="com.evolveum.midpoint.repo.sql.testing.TestInterceptor"/>
+
     <bean id="testSqlRepositoryBeanPostProcessor" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
     <bean id="testSqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory" primary="true"

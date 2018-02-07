@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -126,6 +127,42 @@ public class RAnyConverter {
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
+    public RAnyValue convertToRValue(PrismValue value, boolean assignment) throws SchemaException {
+        RAnyValue rValue;
+
+        ItemDefinition definition = value.getParent().getDefinition();
+
+        if (!isIndexed(definition, prismContext)) {
+            return null;
+        }
+
+        if (value instanceof PrismPropertyValue) {
+            PrismPropertyValue propertyValue = (PrismPropertyValue) value;
+
+            rValue = extractAndCreateValue(definition, propertyValue, assignment);
+        } else if (value instanceof PrismReferenceValue) {
+            if (assignment) {
+                PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                rValue = RAExtReference.createReference(referenceValue);
+            } else {
+                PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                rValue = ROExtReference.createReference(referenceValue);
+            }
+        } else if (value == null) {
+            return null;            // shouldn't occur anyway
+        } else {
+            // shouldn't get here because if isIndexed test above
+            throw new AssertionError("Wrong value type: " + value);
+        }
+
+        rValue.setName(RUtil.qnameToString(definition.getName()));
+        rValue.setType(RUtil.qnameToString(definition.getTypeName()));
+        rValue.setValueType(getValueType(value.getParent()));
+        rValue.setDynamic(definition.isDynamic());
+
+        return rValue;
+    }
+
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
     public Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
@@ -145,30 +182,7 @@ public class RAnyConverter {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                if (value instanceof PrismPropertyValue) {
-                    PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-
-                    rValue = extractAndCreateValue(definition, propertyValue, assignment);
-                } else if (value instanceof PrismReferenceValue) {
-                    if (assignment) {
-                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                        rValue = RAExtReference.createReference(referenceValue);
-                    } else {
-                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                        rValue = ROExtReference.createReference(referenceValue);
-                    }
-                } else if (value == null) {
-                    continue;            // shouldn't occur anyway
-                } else {
-                    // shouldn't get here because if isIndexed test above
-                    throw new AssertionError("Wrong value type: " + value);
-                }
-
-                rValue.setName(RUtil.qnameToString(definition.getName()));
-                rValue.setType(RUtil.qnameToString(definition.getTypeName()));
-                rValue.setValueType(getValueType(value.getParent()));
-                rValue.setDynamic(definition.isDynamic());
-
+                rValue = convertToRValue(value, assignment);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -241,11 +255,11 @@ public class RAnyConverter {
 
     private RValueType getValueType(Itemable itemable) {
         Validate.notNull(itemable, "Value parent must not be null.");
-        if (!(itemable instanceof Item)) {
-            throw new IllegalArgumentException("Item type '" + itemable.getClass() + "' not supported in 'any' now.");
+        if (itemable instanceof Item) {
+            return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
         }
 
-        return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
+        return RValueType.getTypeFromDeltaClass(((ItemDelta) itemable).getClass());
     }
 
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {

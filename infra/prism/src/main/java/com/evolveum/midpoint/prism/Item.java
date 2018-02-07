@@ -550,11 +550,14 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
                 delta.addValueToDelete(valueClone);
             }
     	} else {
+    		if (delta.getDefinition() == null && other.getDefinition() != null) {
+    			delta.setDefinition(other.getDefinition().clone());
+		    }
     		// the other exists, this means that we need to compare the values one by one
-    		Collection<PrismValue> outstandingOtheValues = new ArrayList<PrismValue>(other.getValues().size());
-    		outstandingOtheValues.addAll(other.getValues());
+    		Collection<PrismValue> outstandingOtherValues = new ArrayList<PrismValue>(other.getValues().size());
+    		outstandingOtherValues.addAll(other.getValues());
     		for (PrismValue thisValue : getValues()) {
-    			Iterator<PrismValue> iterator = outstandingOtheValues.iterator();
+    			Iterator<PrismValue> iterator = outstandingOtherValues.iterator();
     			boolean found = false;
     			while (iterator.hasNext()) {
     				PrismValue otherValue = iterator.next();
@@ -581,9 +584,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 					delta.addValueToDelete(thisValue.clone());
 				}
             }
-    		// outstandingOtheValues are those values that the other has and we could not
+    		// outstandingOtherValues are those values that the other has and we could not
     		// match them to any of our values. These must be new values to add
-    		for (PrismValue outstandingOtherValue : outstandingOtheValues) {
+    		for (PrismValue outstandingOtherValue : outstandingOtherValues) {
     			delta.addValueToAdd(outstandingOtherValue.clone());
             }
     		// Some deltas may need to be polished a bit. E.g. transforming
