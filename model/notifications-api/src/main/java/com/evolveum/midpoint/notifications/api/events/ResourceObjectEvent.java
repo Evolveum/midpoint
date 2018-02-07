@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

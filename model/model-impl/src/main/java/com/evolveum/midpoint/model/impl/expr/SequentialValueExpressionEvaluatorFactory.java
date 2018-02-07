@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;

@@ -19,8 +19,6 @@ package com.evolveum.midpoint.web.security;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
-import org.springframework.security.web.csrf.CsrfException;
-import org.springframework.security.web.csrf.InvalidCsrfTokenException;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
 import javax.servlet.ServletException;
