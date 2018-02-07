@@ -81,11 +81,11 @@ public class ROperationExecution implements Container<RObject<?>> {
         this.setOwner(owner);
     }
 
-    @Id
-    @org.hibernate.annotations.ForeignKey(name = "fk_op_exec_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @NotQueryable
+	@Id
+	@JoinColumn(foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
+	@MapsId("owner")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@NotQueryable
 	@Override
     public RObject<?> getOwner() {
         return owner;

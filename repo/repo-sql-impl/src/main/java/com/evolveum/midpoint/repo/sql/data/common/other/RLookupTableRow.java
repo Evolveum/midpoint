@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -49,7 +48,8 @@ public class RLookupTableRow implements Container<RLookupTable> {
     private XMLGregorianCalendar lastChangeTimestamp;
 
     @Id
-    @ForeignKey(name = "fk_lookup_table_owner")
+
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_lookup_table_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @Override

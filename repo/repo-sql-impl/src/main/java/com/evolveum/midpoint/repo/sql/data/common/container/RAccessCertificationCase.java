@@ -96,7 +96,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @Id
-    @org.hibernate.annotations.ForeignKey(name = "fk_acc_cert_case_owner")
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
@@ -121,7 +121,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
 
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAccessCertificationWorkItem> getWorkItems() {
         return workItems;

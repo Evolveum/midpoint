@@ -25,6 +25,7 @@ import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -43,6 +44,11 @@ public class SchemaTest {
     }
 
     private void createSQLSchema(String fileName, String dialect) {
+        File file = new File(fileName);
+        if (file.exists()) {
+            file.delete();
+        }
+
         MetadataSources metadata = new MetadataSources(
                 new StandardServiceRegistryBuilder()
                         .applySetting("hibernate.implicit_naming_strategy", new MidPointImplicitNamingStrategy())
