@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
-import static org.testng.AssertJUnit.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
