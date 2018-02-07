@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
