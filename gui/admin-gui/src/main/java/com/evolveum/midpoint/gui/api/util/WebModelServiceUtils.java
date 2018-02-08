@@ -577,7 +577,7 @@ public class WebModelServiceUtils {
                 }
             }
         }
-        return null;
+        return MidPointApplication.getDefaultLocale();
     }
 
     public static TimeZone getTimezone() {

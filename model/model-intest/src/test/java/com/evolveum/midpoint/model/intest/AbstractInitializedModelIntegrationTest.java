@@ -68,7 +68,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
 	private static final int NUMBER_OF_IMPORTED_USERS = 4;
-	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
+	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
 	@Autowired(required = true)
 	protected MappingFactory mappingFactory;
@@ -252,6 +252,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_JUDGE_DEPRECATED_FILE, initResult);
 		repoAddObjectFromFile(ROLE_THIEF_FILE, initResult);
 		repoAddObjectFromFile(ROLE_EMPTY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_USELESS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, initResult);

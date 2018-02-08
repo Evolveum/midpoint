@@ -32,6 +32,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -186,13 +187,18 @@ public class LensUtil {
 		return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
 	}
 
-	public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
-			MappingType mapping) throws SchemaException {
-		List<V> rv = new ArrayList<>();
-		for (V value : values) {
-			rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
-		}
-		return rv;
+//	public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
+//			MappingType mapping) throws SchemaException {
+//		List<V> rv = new ArrayList<>();
+//		for (V value : values) {
+//			rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
+//		}
+//		return rv;
+//	}
+
+	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, mapping::getIdentifier);
 	}
 
 	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
@@ -206,6 +212,7 @@ public class LensUtil {
 		V cloned = (V) value.clone();
 		if (isAssignment && cloned instanceof PrismContainerValue) {
 			String originMappingName = originMappingNameSupplier.get();
+			LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
 			if (originMappingName != null) {
 				//noinspection unchecked
 				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
@@ -224,8 +231,6 @@ public class LensUtil {
 		}
 		return null;
 	}
-
-	
 
     public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status, XMLGregorianCalendar now,
     		PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {

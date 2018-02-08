@@ -130,6 +130,16 @@
 							$c:user/c:locality
 						</path>
 					</source>
+					<expression>
+						<script>
+							<code>
+								def evaluateNew = midpoint.isEvaluateNew()
+								log.debug("Location outbound evaluateNew: {} : {}", evaluateNew, locality)
+								assert evaluateNew != null : "null evaluateNew"
+								return locality
+							</code>
+						</script>
+					</expression>
 				</outbound>
 				<inbound>
 					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
