@@ -48,7 +48,6 @@ create table m_abstract_role (approvalProcess varchar(255), autoassign_enabled b
 create table m_case (name_norm varchar(255), name_orig varchar(255), oid varchar(36) not null, primary key (oid));
 create table m_connector (connectorBundle varchar(255), connectorHostRef_relation varchar(157), connectorHostRef_targetOid varchar(36), connectorHostRef_type integer, connectorType varchar(255), connectorVersion varchar(255), framework varchar(255), name_norm varchar(255), name_orig varchar(255), oid varchar(36) not null, primary key (oid));
 create table m_connector_host (hostname varchar(255), name_norm varchar(255), name_orig varchar(255), port varchar(255), oid varchar(36) not null, primary key (oid));
-create table m_exclusion (id integer not null, owner_oid varchar(36) not null, policy integer, targetRef_relation varchar(157), targetRef_targetOid varchar(36), targetRef_type integer, primary key (id, owner_oid));
 create table m_focus (administrativeStatus integer, archiveTimestamp timestamp, disableReason varchar(255), disableTimestamp timestamp, effectiveStatus integer, enableTimestamp timestamp, validFrom timestamp, validTo timestamp, validityChangeTimestamp timestamp, validityStatus integer, hasPhoto boolean default false not null, oid varchar(36) not null, primary key (oid));
 create table m_form (name_norm varchar(255), name_orig varchar(255), oid varchar(36) not null, primary key (oid));
 create table m_function_library (name_norm varchar(255), name_orig varchar(255), oid varchar(36) not null, primary key (oid));
@@ -209,7 +208,6 @@ alter table m_abstract_role add constraint fk_abstract_role foreign key (oid) re
 alter table m_case add constraint fk_case foreign key (oid) references m_object;
 alter table m_connector add constraint fk_connector foreign key (oid) references m_object;
 alter table m_connector_host add constraint fk_connector_host foreign key (oid) references m_object;
-alter table m_exclusion add constraint fk_exclusion_owner foreign key (owner_oid) references m_object;
 alter table m_focus add constraint fk_focus foreign key (oid) references m_object;
 alter table m_form add constraint fk_form foreign key (oid) references m_object;
 alter table m_function_library add constraint fk_function_library foreign key (oid) references m_object;

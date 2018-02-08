@@ -549,15 +549,6 @@ CREATE TABLE m_connector_host (
   oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_exclusion (
-  id                  INT                                   NOT NULL,
-  owner_oid           NVARCHAR(36) COLLATE database_default NOT NULL,
-  policy              INT,
-  targetRef_relation  NVARCHAR(157) COLLATE database_default,
-  targetRef_targetOid NVARCHAR(36) COLLATE database_default,
-  targetRef_type      INT,
-  PRIMARY KEY (id, owner_oid)
-);
 CREATE TABLE m_focus (
   administrativeStatus    INT,
   archiveTimestamp        DATETIME2,
@@ -1022,8 +1013,6 @@ ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_exclusion
-  ADD CONSTRAINT fk_exclusion_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_form

@@ -44,8 +44,7 @@ create table m_abstract_role (approvalProcess varchar2(255 char), autoassign_ena
 create table m_case (name_norm varchar2(255 char), name_orig varchar2(255 char), oid varchar2(36 char) not null, primary key (oid)) initrans 30;
 create table m_connector (connectorBundle varchar2(255 char), connectorHostRef_relation varchar2(157 char), connectorHostRef_targetOid varchar2(36 char), connectorHostRef_type number(10,0), connectorType varchar2(255 char), connectorVersion varchar2(255 char), framework varchar2(255 char), name_norm varchar2(255 char), name_orig varchar2(255 char), oid varchar2(36 char) not null, primary key (oid)) initrans 30;
 create table m_connector_host (hostname varchar2(255 char), name_norm varchar2(255 char), name_orig varchar2(255 char), port varchar2(255 char), oid varchar2(36 char) not null, primary key (oid)) initrans 30;
-create table m_exclusion (id number(10,0) not null, owner_oid varchar2(36 char) not null, policy number(10,0), targetRef_relation varchar2(157 char), targetRef_targetOid varchar2(36 char), targetRef_type number(10,0), primary key (id, owner_oid)) initrans 30;
-create table m_focus (administrativeStatus number(10,0), archiveTimestamp timestamp, disableReason varchar2(255 char), disableTimestamp timestamp, effectiveStatus number(10,0), enableTimestamp timestamp, validFrom timestamp, validTo timestamp, validityChangeTimestamp timestamp, validityStatus number(10,0), hasPhoto number(1,0) default 0 not null, oid varchar2(36 char) not null, primary key (oid)) initrans 30;
+create table m_focus (administrativeStatus number(10,0), archiveTimestamp timestamp, disableReason varchar2(255 char), disableTimestamp timestamp, effectiveStatus number(10,0), enableTimestamp timestamp, validFrom timestamp, validTo timestamp, validityChangeTimestamp timestamp, validityStatus number(10,0), hasPhoto number(1,0) default false not null, oid varchar2(36 char) not null, primary key (oid)) initrans 30;
 create table m_form (name_norm varchar2(255 char), name_orig varchar2(255 char), oid varchar2(36 char) not null, primary key (oid)) initrans 30;
 create table m_function_library (name_norm varchar2(255 char), name_orig varchar2(255 char), oid varchar2(36 char) not null, primary key (oid)) initrans 30;
 create table m_generic_object (name_norm varchar2(255 char), name_orig varchar2(255 char), objectType varchar2(255 char), oid varchar2(36 char) not null, primary key (oid)) initrans 30;
@@ -205,7 +204,6 @@ alter table m_abstract_role add constraint fk_abstract_role foreign key (oid) re
 alter table m_case add constraint fk_case foreign key (oid) references m_object;
 alter table m_connector add constraint fk_connector foreign key (oid) references m_object;
 alter table m_connector_host add constraint fk_connector_host foreign key (oid) references m_object;
-alter table m_exclusion add constraint fk_exclusion_owner foreign key (owner_oid) references m_object;
 alter table m_focus add constraint fk_focus foreign key (oid) references m_object;
 alter table m_form add constraint fk_form foreign key (oid) references m_object;
 alter table m_function_library add constraint fk_function_library foreign key (oid) references m_object;
