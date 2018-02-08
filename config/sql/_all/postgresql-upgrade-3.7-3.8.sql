@@ -17,3 +17,5 @@ SELECT setval('m_audit_event_id_seq', (SELECT max(id) + 1 FROM m_audit_event), F
 SELECT setval('m_audit_prop_value_id_seq', (SELECT max(id) + 1 FROM m_audit_prop_value), FALSE);
 SELECT setval('m_audit_ref_value_id_seq', (SELECT max(id) + 1 FROM m_audit_ref_value), FALSE);
 
+DROP TABLE m_exclusion;
+
