@@ -161,7 +161,12 @@
 					<expression>
 						<script>
 							<allowEmptyValues>false</allowEmptyValues>
-							<code>'The crew of ' + input</code>
+							<code>
+								def evaluateNew = midpoint.isEvaluateNew()
+								log.debug("Ship inbound evaluateNew: {} : {}", evaluateNew, input)
+								assert evaluateNew != null : "null evaluateNew"
+								'The crew of ' + input
+							</code>
 						</script>
 					</expression>
 					<target>
