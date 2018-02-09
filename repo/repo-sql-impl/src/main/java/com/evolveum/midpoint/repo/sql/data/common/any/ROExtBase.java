@@ -76,9 +76,7 @@ abstract public class ROExtBase extends RAnyBase implements ROExtValue {
 		if (!super.equals(o))
 			return false;
 		ROExtBase roExtBase = (ROExtBase) o;
-		return Objects.equals(getOwnerOid(), roExtBase.getOwnerOid()) &&
-				getOwnerType() == roExtBase.getOwnerType() &&
-				Objects.equals(getItem(), roExtBase.getItem());
+		return Objects.equals(getOwnerOid(), roExtBase.getOwnerOid()) && getOwnerType() == roExtBase.getOwnerType();
 	}
 
 	@Override

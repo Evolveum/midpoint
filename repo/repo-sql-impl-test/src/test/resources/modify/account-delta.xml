@@ -1,0 +1,57 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<account xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="c0c010c0-d34d-b44f-f11d-33322212dddd" version="4">
+    <name>Will</name>
+    <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" relation="org:default" type="tns:ResourceType"/>
+    <objectClass xmlns:qn638="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">qn638:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <exists>true</exists>
+    <attributes xmlns:gen701="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ShadowAttributesType">
+        <gen701:loot>42</gen701:loot>
+        <gen701:ship>Interceptor</gen701:ship>
+        <icfs:name>Will</icfs:name>
+        <gen701:weapon>sword</gen701:weapon>
+        <gen701:weapon>love</gen701:weapon>
+        <gen701:fullname>Will Turner</gen701:fullname>
+        <icfs:uid>Will</icfs:uid>
+        <gen701:title>Very Nice Pirate</gen701:title>
+    </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <enableTimestamp>2013-05-30T12:30:42.000Z</enableTimestamp>
+    </activation>
+    <credentials>
+        <password>
+            <metadata>
+                <createTimestamp>2018-02-09T17:56:10.247+01:00</createTimestamp>
+            </metadata>
+            <value>
+                <t:hashedData>
+                    <t:digestMethod>
+                        <t:algorithm>http://prism.evolveum.com/xml/ns/public/crypto/algorithm/pbkd-3#PBKDF2WithHmacSHA512</t:algorithm>
+                        <t:salt>HKzD5A==</t:salt>
+                        <t:workFactor>10000</t:workFactor>
+                    </t:digestMethod>
+                    <t:digestValue>EoinMIfh0zp2Q7tA6C0oYTxKfcd7nasYE0ThzQYn7rg=</t:digestValue>
+                </t:hashedData>
+            </value>
+        </password>
+    </credentials>
+    <cachingMetadata>
+        <retrievalTimestamp>2018-02-09T17:56:11.605+01:00</retrievalTimestamp>
+    </cachingMetadata>
+</account>
