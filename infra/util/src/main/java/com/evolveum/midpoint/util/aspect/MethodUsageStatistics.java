@@ -39,7 +39,7 @@ import java.util.List;
  * */
 public class MethodUsageStatistics {
 
-    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     private long min = Long.MAX_VALUE;
     private long max = 0;
