@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.repo.sql.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -109,6 +110,7 @@ public class BaseHelper {
 				}
 			});
 		}
+		RAnyConverter.sessionThreadLocal.set(session);      // TODO fix this hack
 		return session;
 	}
 
@@ -151,6 +153,7 @@ public class BaseHelper {
 		if (result != null && result.isUnknown()) {
 			result.computeStatus();
 		}
+		RAnyConverter.sessionThreadLocal.set(null);  // TODO fix this hack
 	}
 
 	public void handleGeneralException(Exception ex, Session session, OperationResult result) {

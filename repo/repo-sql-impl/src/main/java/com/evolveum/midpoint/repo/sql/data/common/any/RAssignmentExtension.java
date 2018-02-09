@@ -297,7 +297,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, true));
+                values.addAll(converter.convertToRValue(item, true, null));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -328,5 +328,24 @@ public class RAssignmentExtension implements Serializable, EntityState {
         repo.setReferencesCount((short) repo.getReferences().size());
         repo.setLongsCount((short) repo.getLongs().size());
         repo.setBooleansCount((short) repo.getBooleans().size());
+    }
+
+    @Override
+    public String toString() {
+        return "RAssignmentExtension{" +
+//                "owner=" + (owner != null ? owner.getOwner() + ":" + owner.getId() : "null" ) +
+//                ", strings=" + strings +
+//                ", longs=" + longs +
+//                ", dates=" + dates +
+//                ", references=" + references +
+//                ", polys=" + polys +
+//                ", booleans=" + booleans +
+                "strings#=" + stringsCount +
+                ", longs#=" + longsCount +
+                ", dates#=" + datesCount +
+                ", references#=" + referencesCount +
+                ", polys#=" + polysCount +
+                ", booleans#=" + booleansCount +
+                '}';
     }
 }

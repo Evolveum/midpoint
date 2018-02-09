@@ -35,17 +35,9 @@ public interface RAnyValue<T> extends Serializable, EntityState {
 
     String getType();
 
-    RValueType getValueType();
-
-    boolean isDynamic();
-
     T getValue();
 
-    void setName(String name);
+    RExtItem getItem();
 
-    void setType(String type);
-
-    void setValueType(RValueType valueType);
-
-    void setDynamic(boolean dynamic);
+    void setItem(RExtItem item);
 }

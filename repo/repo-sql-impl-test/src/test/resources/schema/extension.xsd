@@ -189,4 +189,72 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="AssignmentExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:AssignmentType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Weapon</a:displayName>
+                        <a:displayOrder>120</a:displayOrder>
+                        <a:help>The tool of mass slaughter</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shipName" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Ship Name</a:displayName>
+                        <a:displayOrder>100</a:displayOrder>
+                        <a:help>Name of yar scurvy vessel</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="loot" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                        <a:displayName>Loot</a:displayName>
+                        <a:displayOrder>150</a:displayOrder>
+                        <a:help>KEY_LOOT</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="funeralDate" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Funeral</a:displayName>
+                        <a:displayOrder>160</a:displayOrder>
+                        <a:help>Dead men tell no tales</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="overrideActivation" type="c:ActivationStatusType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sshPubKey" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                        <a:displayName>Ssh Public Key</a:displayName>
+                        <a:displayOrder>119</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:skipAutogeneration" />
+            <xsd:element ref="tns:shipName" />
+            <xsd:element ref="tns:dead" />
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>

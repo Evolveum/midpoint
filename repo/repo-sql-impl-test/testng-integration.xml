@@ -29,6 +29,7 @@
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.QueryInterpreter2Test"/>
             <class name="com.evolveum.midpoint.repo.sql.DeleteTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.DeleteTestSimple"/>
             <class name="com.evolveum.midpoint.repo.sql.AddGetObjectTest"/>
             <class name="com.evolveum.midpoint.repo.sql.AddOverwriteTest"/>
             <class name="com.evolveum.midpoint.repo.sql.EncodingTest"/>

@@ -23,6 +23,10 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBoolean;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
@@ -59,6 +63,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
@@ -497,7 +502,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with ( l.ownerType = :ownerType and l.name = :name )\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.name = :name )\n" +
                     "where\n" +
                     "  ( g.name.norm = :norm and l.value = :value )\n";
 
@@ -528,8 +533,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with ( l.ownerType = :ownerType and l.name = :name )\n" +
-                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.name = :name2 )\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.name = :name )\n" +
+                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.item.name = :name2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    g.name.norm = :norm and\n" +
@@ -558,7 +563,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.name = :name )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
                     "where\n" +
                     "  s2.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -578,8 +583,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.name = :name )\n" +
-                    "    left join s.longs l with ( l.ownerType = :ownerType2 and l.name = :name2 )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
+                    "    left join s.longs l with ( l.ownerType = :ownerType2 and l.item.name = :name2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    s2.value = :value and\n" +
@@ -621,8 +626,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.name = :name )\n" +
-                    "    left join s.strings s3 with ( s3.ownerType = :ownerType2 and s3.name = :name2 )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
+                    "    left join s.strings s3 with ( s3.ownerType = :ownerType2 and s3.item.name = :name2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    s.intent = :intent or\n" +
@@ -1098,7 +1103,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.name = :name )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
@@ -2690,7 +2695,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  o.booleansCount\n" +
                     "from\n" +
                     "  RObject o\n" +
-                    "    left join o.strings s with ( s.ownerType = :ownerType and s.name = :name )\n" +
+                    "    left join o.strings s with ( s.ownerType = :ownerType and s.item.name = :name )\n" +
                     "where\n" +
                     "  (\n" +
                     "    o.objectTypeClass = :objectTypeClass and\n" +
@@ -2961,7 +2966,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.strings s with ( s.ownerType = :ownerType and s.name = :name )\n" +
+                    "    left join g.strings s with ( s.ownerType = :ownerType and s.item.name = :name )\n" +
                     "where\n" +
                     "  s.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -3034,7 +3039,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.booleans b with ( b.ownerType = :ownerType and b.name = :name )\n" +
+                    "    left join g.booleans b with ( b.ownerType = :ownerType and b.item.name = :name )\n" +
                     "where\n" +
                     "  b.value = :value\n";
 
@@ -3090,11 +3095,27 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
                     "    left join a.extension e\n" +
-                    "    left join e.booleans b with b.name = :name\n" +
+                    "    left join e.booleans b with b.item.name = :name\n" +
                     "where\n" +
                     "  b.value = :value";
             assertEqualsIgnoreWhitespace(expected, real);
 
+            // include dependency on for this code org.hibernate.javax.persistence:hibernate-jpa-2.1-api:jar:1.0.0.Final:compile
+//            CriteriaQuery<RAssignment> aQ = session.getCriteriaBuilder().createQuery(RAssignment.class);
+//            aQ.select(aQ.from(RAssignment.class));
+//            List<RAssignment> aList = session.createQuery(aQ).getResultList();
+//            System.out.println("RAssignment: " + aList);
+//
+//            CriteriaQuery<RAssignmentExtension> aeQ = session.getCriteriaBuilder().createQuery(RAssignmentExtension.class);
+//            aeQ.select(aeQ.from(RAssignmentExtension.class));
+//            List<RAssignmentExtension> aeList = session.createQuery(aeQ).getResultList();
+//            System.out.println("RAssignmentExtension: " + aeList);
+//
+//            CriteriaQuery<RAExtBoolean> aebQ = session.getCriteriaBuilder().createQuery(RAExtBoolean.class);
+//            aebQ.select(aebQ.from(RAExtBoolean.class));
+//            List<RAExtBoolean> aebList = session.createQuery(aebQ).getResultList();
+//            System.out.println("RAExtBoolean: " + aebList);
+//
             OperationResult result = new OperationResult("search");
             List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class,
                     objectQuery, null, result);
@@ -3137,7 +3158,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  RUser u\n"
 					+ "    left join u.strings s with (\n"
 					+ "	      s.ownerType = :ownerType and\n"
-					+ "	      s.name = :name\n"
+					+ "	      s.item.name = :name\n"
 					+ ")\n"
 					+ "where\n"
 					+ "  s.value = :value\n";
@@ -3168,7 +3189,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  RGenericObject g\n"
 					+ "    left join g.references r with (\n"
 					+ "       r.ownerType = :ownerType and\n"
-					+ "       r.name = :name\n"
+					+ "       r.item.name = :name\n"
 					+ "    )\n"
 					+ "where\n"
 					+ "  (\n"

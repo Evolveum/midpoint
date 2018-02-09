@@ -196,7 +196,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
 
         RAnyConverter converter = new RAnyConverter(prismContext);
-        Set<RAnyValue> values = converter.convertToRValue(item, false);
+        Set<RAnyValue<?>> values = converter.convertToRValue(item, false, session);
 
         AssertJUnit.assertEquals("Expected only one enum value, but was " + values.size(), 1, values.size());
 

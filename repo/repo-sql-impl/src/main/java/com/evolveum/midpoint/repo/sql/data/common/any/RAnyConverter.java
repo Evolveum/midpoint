@@ -17,14 +17,13 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -33,6 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
+import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -48,6 +50,9 @@ import java.util.*;
  * @author lazyman
  */
 public class RAnyConverter {
+
+    // temporary
+    public static final ThreadLocal<Session> sessionThreadLocal = new ThreadLocal<>();
 
     private enum ValueType {
 
@@ -127,8 +132,12 @@ public class RAnyConverter {
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
-    public RAnyValue convertToRValue(PrismValue value, boolean assignment) throws SchemaException {
+    public RAnyValue convertToRValue(PrismValue value, boolean assignment, @Nullable Session session) throws SchemaException {
         RAnyValue rValue;
+
+        if (session == null) {
+            session = sessionThreadLocal.get();
+        }
 
         ItemDefinition definition = value.getParent().getDefinition();
 
@@ -148,28 +157,23 @@ public class RAnyConverter {
                 PrismReferenceValue referenceValue = (PrismReferenceValue) value;
                 rValue = ROExtReference.createReference(referenceValue);
             }
-        } else if (value == null) {
-            return null;            // shouldn't occur anyway
         } else {
             // shouldn't get here because if isIndexed test above
             throw new AssertionError("Wrong value type: " + value);
         }
 
-        rValue.setName(RUtil.qnameToString(definition.getName()));
-        rValue.setType(RUtil.qnameToString(definition.getTypeName()));
-        rValue.setValueType(getValueType(value.getParent()));
-        rValue.setDynamic(definition.isDynamic());
+        rValue.setItem(ExtItemDictionary.getInstance().findItemByDefinition(definition, session));
 
         return rValue;
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws SchemaException, DtoTranslationException {
+    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment, @Nullable Session session) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
         ItemDefinition definition = item.getDefinition();
-        Set<RAnyValue> rValues = new HashSet<>();
+        Set<RAnyValue<?>> rValues = new HashSet<>();
         if (!isIndexed(definition, prismContext)) {
             return rValues;
         }
@@ -182,7 +186,7 @@ public class RAnyConverter {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                rValue = convertToRValue(value, assignment);
+                rValue = convertToRValue(value, assignment, session);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -253,15 +257,16 @@ public class RAnyConverter {
         }
     }
 
-    private RValueType getValueType(Itemable itemable) {
-        Validate.notNull(itemable, "Value parent must not be null.");
-        if (itemable instanceof Item) {
-            return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
-        }
+//    private RItemKind getItemKind(Itemable itemable) {
+//        Validate.notNull(itemable, "Value parent must not be null.");
+//        if (itemable instanceof Item) {
+//            return RItemKind.getTypeFromItemClass(((Item) itemable).getClass());
+//        }
+//
+//        return RItemKind.getTypeFromDeltaClass(((ItemDelta) itemable).getClass());
+//    }
 
-        return RValueType.getTypeFromDeltaClass(((ItemDelta) itemable).getClass());
-    }
-
+    @NotNull
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
         ItemDefinition definition = value.getParent().getDefinition();
         //todo raw types
@@ -271,7 +276,7 @@ public class RAnyConverter {
             object = getRealRepoValue(definition, (Element) object);
         } else if (object instanceof RawType) {
             RawType raw = (RawType) object;
-            object = raw.getParsedRealValue(returnType);
+            object = raw.getParsedRealValue(returnType);        // todo this can return null!
         } else {
             object = getAggregatedRepoObject(object);
         }
@@ -337,6 +342,7 @@ public class RAnyConverter {
      * @param value
      * @return
      */
+    @NotNull
     public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
         ValueType willBeSaveAs = definition == null ? null : getValueType(definition.getTypeName());
         QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();

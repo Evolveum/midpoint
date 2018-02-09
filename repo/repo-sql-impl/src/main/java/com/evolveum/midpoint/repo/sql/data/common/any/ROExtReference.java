@@ -37,26 +37,15 @@ import javax.persistence.*;
 @Entity
 @IdClass(ROExtReferenceId.class)
 @Table(name = "m_object_ext_reference")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_reference",
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_reference"
+        /*,
         indexes = {@Index(name = "iExtensionReference", columnNames = {"ownerType", "eName", "targetoid"}),
-                @Index(name = "iExtensionReferenceDef", columnNames = {"owner_oid", "ownerType"})})
-public class ROExtReference implements ROExtValue {
+                @Index(name = "iExtensionReferenceDef", columnNames = {"owner_oid", "ownerType"})} */)
+public class ROExtReference extends ROExtBase {
 
     public static final String F_TARGET_OID = "value";
     public static final String F_RELATION = "relation";
     public static final String F_TARGET_TYPE = "targetType";
-
-    private Boolean trans;
-
-    //owner entity
-    private RObject owner;
-    private String ownerOid;
-    private RObjectExtensionType ownerType;
-
-    private boolean dynamic;
-    private String name;
-    private String type;
-    private RValueType valueType;
 
     //this is target oid
     private String value;
@@ -67,64 +56,39 @@ public class ROExtReference implements ROExtValue {
     public ROExtReference() {
     }
 
-    @Transient
-    @Override
-    public Boolean isTransient() {
-        return trans;
-    }
-
-    @Override
-    public void setTransient(Boolean trans) {
-        this.trans = trans;
-    }
-
     @Id
-    @ForeignKey(name = "fk_object_ext_reference")
+    @ForeignKey(name = "fk_o_ext_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {
-        return owner;
+        return super.getOwner();
     }
 
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
+        return super.getOwnerOid();
     }
 
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
-        return ownerType;
+        return super.getOwnerType();
+    }
+
+    @MapsId("item")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_o_ext_reference_item"))
+    public RExtItem getItem() {
+        return super.getItem();
     }
 
     @Id
-    @Column(name = "eName", length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getName() {
-        return name;
-    }
-
-    @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getType() {
-        return type;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    public RValueType getValueType() {
-        return valueType;
-    }
-
-    /**
-     * @return true if this property has dynamic definition
-     */
-    @Column(name = "dynamicDef")
-    public boolean isDynamic() {
-        return dynamic;
+    @Column(name = "item_id", insertable = false, updatable = false)
+    public Integer getItemId() {
+        return super.getItemId();
     }
 
     @Column(name = "targetoid", length = RUtil.COLUMN_LENGTH_OID)
@@ -146,71 +110,12 @@ public class ROExtReference implements ROExtValue {
         this.value = value;
     }
 
-    public void setValueType(RValueType valueType) {
-        this.valueType = valueType;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setDynamic(boolean dynamic) {
-        this.dynamic = dynamic;
-    }
-
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
-    public void setOwnerType(RObjectExtensionType ownerType) {
-        this.ownerType = ownerType;
-    }
-
     public void setTargetType(RObjectType targetType) {
         this.targetType = targetType;
     }
 
     public void setRelation(String relation) {
         this.relation = relation;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ROExtReference that = (ROExtReference) o;
-
-        if (dynamic != that.dynamic) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
-        if (targetType != that.targetType) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        if (valueType != that.valueType) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (dynamic ? 1 : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (targetType != null ? targetType.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
-
-        return result;
     }
 
     public static PrismReferenceValue createReference(ROExtReference repo) {

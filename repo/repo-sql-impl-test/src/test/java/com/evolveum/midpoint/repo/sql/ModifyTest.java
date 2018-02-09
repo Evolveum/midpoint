@@ -83,6 +83,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
 
+    private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
+    private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
+
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -497,8 +500,6 @@ public class ModifyTest extends BaseSQLRepoTest {
     	final String TEST_NAME = "test130ExtensionModify";
     	TestUtil.displayTestTitle(TEST_NAME);
 
-        final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
-
         File userFile = new File(TEST_DIR, "user-with-extension.xml");
         //add first user
         PrismObject<UserType> user = prismContext.parseObject(userFile);
@@ -591,6 +592,83 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals(1, shadows.size());
 
         System.out.println("shadow: " + shadows.get(0).debugDump());
+    }
+
+    private String accountOid;
+
+    @Test
+    public void test142ModifyAccountAttributeSameValue() throws Exception {
+        final String TEST_NAME = "test142ModifyAccountAttributeSameValue";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(new File(TEST_DIR, "account-attribute.xml"));
+        repositoryService.addObject(account, null, result);
+        accountOid = account.getOid();
+
+        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .replace("account123")
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        AssertJUnit.assertNotNull(afterModify);
+        ShadowType afterFirstModifyType = afterModify.asObjectable();
+        System.out.println("shadow: " + afterModify.debugDump());
+    }
+
+    @Test
+    public void test144ModifyAccountAttributeDifferent() throws Exception {
+        final String TEST_NAME = "test144ModifyAccountAttributeDifferent";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        assertNotNull("account-attribute was not imported in previous tests", accountOid);
+
+        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .replace("account-new")
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        AssertJUnit.assertNotNull(afterModify);
+        ShadowType afterFirstModifyType = afterModify.asObjectable();
+        System.out.println("shadow: " + afterModify.debugDump());
+    }
+
+    @Test
+    public void test148ModifyAssignmentExtension() throws Exception {
+        final String TEST_NAME = "test148ModifyAssignmentExtension";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
+        repositoryService.addObject(user, null, result);
+
+        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(QNAME_WEAPON, DOMUtil.XSD_STRING, prismContext);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
+                .replace("knife")
+                .asItemDeltas();
+
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
+
+        PrismObject<UserType> afterModify = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        AssertJUnit.assertNotNull(afterModify);
+        UserType afterFirstModifyType = afterModify.asObjectable();
+        System.out.println("user: " + afterModify.debugDump());
     }
 
     private String roleOid;
