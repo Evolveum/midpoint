@@ -38,7 +38,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author lazyman
@@ -49,9 +48,10 @@ import java.nio.charset.StandardCharsets;
 @Table(name = RObjectDeltaOperation.TABLE_NAME)
 public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
+    private static final long serialVersionUID = -1065600513263271161L;
+
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
-    private static final long serialVersionUID = -1065600513263271161L;
 
     private Boolean trans;
 
@@ -259,8 +259,11 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
+
                 String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
-                auditDelta.setDelta(RUtil.getByteArrayFromXml(xmlDelta, true));
+                byte[] data = RUtil.getByteArrayFromXml(xmlDelta, true);
+                auditDelta.setDelta(data);
+
                 auditDelta.setDeltaOid(delta.getOid());
                 auditDelta.setDeltaType(RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
             }
@@ -282,17 +285,23 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         return auditDelta;
     }
 
-    public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext) throws DtoTranslationException {
+    public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext)
+            throws DtoTranslationException {
+
         ObjectDeltaOperation odo = new ObjectDeltaOperation();
         try {
-            String deltaString = new String(operation.getDelta());
-            if (deltaString != null) {
-                ObjectDeltaType delta = prismContext.parserFor(deltaString).parseRealValue(ObjectDeltaType.class);
+            if (operation.getDelta() != null) {
+                byte[] data = operation.getDelta();
+                String xmlDelta = RUtil.getXmlFromByteArray(data, true);
+
+                ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
-            String fullResultString = new String(operation.getFullResult());
-            if (fullResultString != null) {
-                OperationResultType resultType = prismContext.parserFor(fullResultString).parseRealValue(OperationResultType.class);
+            if (operation.getFullResult() != null) {
+                byte[] data = operation.getFullResult();
+                String xmlResult = RUtil.getXmlFromByteArray(data, true);
+
+                OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
             odo.setObjectName(RPolyString.fromRepo(operation.getObjectName()));

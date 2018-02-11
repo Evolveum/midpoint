@@ -290,24 +290,29 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                ((OperationResultFull) repo).setFullResult(RUtil.getByteArrayFromXml(full, true));
+                byte[] data = RUtil.getByteArrayFromXml(full, true);
+                ((OperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }
         }
     }
 
-    public static String computeChecksum(Object... objects) {
-        StringBuilder builder = new StringBuilder();
-        for (Object object : objects) {
-            if (object == null) {
-                continue;
+    public static String computeChecksum(byte[]... objects) {
+        try {
+            List<InputStream> list = new ArrayList<>();
+            for (byte[] data : objects) {
+                if (data == null) {
+                    continue;
+                }
+                list.add(new ByteArrayInputStream(data));
             }
+            SequenceInputStream sis = new SequenceInputStream(Collections.enumeration(list));
 
-            builder.append(object.toString());
+            return DigestUtils.md5Hex(sis);
+        } catch (IOException ex) {
+            throw new SystemException(ex);
         }
-
-        return DigestUtils.md5Hex(builder.toString());
     }
 
     public static <T extends SchemaEnum> T getRepoEnumValue(Object object, Class<T> type) {
