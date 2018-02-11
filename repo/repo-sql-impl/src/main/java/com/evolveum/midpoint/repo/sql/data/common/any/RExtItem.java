@@ -92,7 +92,7 @@ public class RExtItem {
 	}
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	public Integer getId() {
 		return id;
