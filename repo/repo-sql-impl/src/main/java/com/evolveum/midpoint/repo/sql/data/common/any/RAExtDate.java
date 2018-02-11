@@ -24,6 +24,7 @@ import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -92,5 +93,17 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
 
     public void setValue(Timestamp value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtDate))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtDate that = (RAExtDate) o;
+        return Objects.equals(value, that.value);
     }
 }

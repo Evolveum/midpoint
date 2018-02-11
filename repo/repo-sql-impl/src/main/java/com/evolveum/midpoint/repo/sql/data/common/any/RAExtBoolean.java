@@ -25,6 +25,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -93,5 +94,17 @@ public class RAExtBoolean extends RAExtBase<Boolean> implements RAExtValue<Boole
 
     public void setValue(Boolean value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtBoolean))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtBoolean that = (RAExtBoolean) o;
+        return Objects.equals(value, that.value);
     }
 }

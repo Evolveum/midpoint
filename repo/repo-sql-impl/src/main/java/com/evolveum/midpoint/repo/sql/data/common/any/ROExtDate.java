@@ -27,6 +27,7 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -92,5 +93,17 @@ public class ROExtDate extends ROExtBase {
 
     public void setValue(Timestamp value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtDate))
+            return false;
+        if (!super.equals(o))
+            return false;
+        ROExtDate that = (ROExtDate) o;
+        return Objects.equals(value, that.value);
     }
 }

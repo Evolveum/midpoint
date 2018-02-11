@@ -108,7 +108,6 @@ public class ROExtString extends ROExtBase {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(super.hashCode(), value);
     }
 }

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -112,6 +113,18 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtReference))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtReference that = (RAExtReference) o;
+        return Objects.equals(value, that.value);
     }
 
     public static PrismReferenceValue createReference(RAExtReference repo) {

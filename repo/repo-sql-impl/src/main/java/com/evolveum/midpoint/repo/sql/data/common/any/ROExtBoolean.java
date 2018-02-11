@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -91,5 +92,17 @@ public class ROExtBoolean extends ROExtBase {
 
     public void setValue(Boolean value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtBoolean))
+            return false;
+        if (!super.equals(o))
+            return false;
+        ROExtBoolean that = (ROExtBoolean) o;
+        return Objects.equals(value, that.value);
     }
 }

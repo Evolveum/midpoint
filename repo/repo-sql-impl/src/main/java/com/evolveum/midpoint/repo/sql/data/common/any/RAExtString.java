@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -91,5 +92,17 @@ public class RAExtString extends RAExtBase<String> implements RAExtValue<String>
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtString))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtString that = (RAExtString) o;
+        return Objects.equals(value, that.value);
     }
 }

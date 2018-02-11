@@ -26,6 +26,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -108,5 +109,17 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RAExtPolyString))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtPolyString that = (RAExtPolyString) o;
+        return Objects.equals(value, that.value);
     }
 }

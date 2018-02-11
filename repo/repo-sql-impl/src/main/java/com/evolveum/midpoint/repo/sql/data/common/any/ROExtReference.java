@@ -29,6 +29,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -116,6 +117,18 @@ public class ROExtReference extends ROExtBase {
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtReference))
+            return false;
+        if (!super.equals(o))
+            return false;
+        ROExtReference that = (ROExtReference) o;
+        return Objects.equals(value, that.value);
     }
 
     public static PrismReferenceValue createReference(ROExtReference repo) {

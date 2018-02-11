@@ -27,6 +27,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -106,5 +107,17 @@ public class ROExtPolyString extends ROExtBase {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtPolyString))
+            return false;
+        if (!super.equals(o))
+            return false;
+        ROExtPolyString that = (ROExtPolyString) o;
+        return Objects.equals(value, that.value);
     }
 }

@@ -26,6 +26,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -91,5 +92,17 @@ public class ROExtLong extends ROExtBase {
 
     public void setValue(Long value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ROExtLong))
+            return false;
+        if (!super.equals(o))
+            return false;
+        ROExtLong that = (ROExtLong) o;
+        return Objects.equals(value, that.value);
     }
 }
