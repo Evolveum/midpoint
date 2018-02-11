@@ -64,6 +64,7 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -289,7 +290,7 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                ((OperationResultFull) repo).setFullResult(full);
+                ((OperationResultFull) repo).setFullResult(RUtil.getByteArrayFromXml(full, true));
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }
