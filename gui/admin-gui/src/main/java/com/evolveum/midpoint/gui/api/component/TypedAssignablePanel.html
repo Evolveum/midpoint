@@ -7,20 +7,7 @@
   ~
   ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ Unless required by applicable law or agr	<div class="form-inline search-form">
-        <div class="row">
-            <div class="form-group col-md-12">
-                <label>
-                    <wicket:message key="roleMemberPanel.type"/>
-                </label>
-                <select class="form-control input-sm" wicket:id="type"/>
-                <label>
-                    <wicket:message key="AssignmentEditorPanel.relation"/>
-                </label>
-                <select class="form-control input-sm" wicket:id="relation"/>
-            </div>
-        </div>
-	</div>eed to in writing, software
+  ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
@@ -44,26 +31,32 @@
 	        	    </label>
 	          	  	<span wicket:id="relation" />
 	          	</div>
+				<div class="col-md-3" wicket:id="orgTreeViewContainer">
+					<input type="checkbox" wicket:id="orgTreeView" />
+					<label>
+	              		<wicket:message key="TypedAssignablePanel.orgTreeView"/>
+	        	    </label>
+	          	</div>
             </div>
         </div>
-		<div wicket:id="countContainer">
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedResources" /></label> 
-				<label wicket:id="resourcesSelected" />
-			</div>
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedRoles" /></label> 
-				<label wicket:id="rolesSelected" />
-			</div>
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedOrgs" /></label> 
-				<label wicket:id="orgSelected" />
-			</div>
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedServices" /></label> 
-				<label wicket:id="servicesSelected" />
-			</div>
-		</div>
+		<!--<div wicket:id="countContainer">-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedResources" /></label> -->
+				<!--<label wicket:id="resourcesSelected" />-->
+			<!--</div>-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedRoles" /></label> -->
+				<!--<label wicket:id="rolesSelected" />-->
+			<!--</div>-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedOrgs" /></label> -->
+				<!--<label wicket:id="orgSelected" />-->
+			<!--</div>-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedServices" /></label> -->
+				<!--<label wicket:id="servicesSelected" />-->
+			<!--</div>-->
+		<!--</div>-->
 	</div>
 
 	<div wicket:id="tablesContainer" style="margin: 5px;">
@@ -71,6 +64,7 @@
 		<div wicket:id="resourceTable"></div>
 		<div wicket:id="orgTable"></div>
 		<div wicket:id="serviceTable"></div>
+		<div wicket:id="orgTreeViewPanel"></div>
 	</div>
 	
 	<p align="center">

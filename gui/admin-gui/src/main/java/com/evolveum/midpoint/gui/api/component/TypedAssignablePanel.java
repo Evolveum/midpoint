@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -30,13 +31,18 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.CheckPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -71,6 +77,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	private static final String ID_ROLE_TABLE = "roleTable";
 	private static final String ID_RESOURCE_TABLE = "resourceTable";
 	private static final String ID_ORG_TABLE = "orgTable";
+	private static final String ID_ORG_TREE_VIEW = "orgTreeView";
+	private static final String ID_ORG_TREE_VIEW_CONTAINER = "orgTreeViewContainer";
+	private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
 	private static final String ID_SELECTED_ROLES = "rolesSelected";
 	private static final String ID_SELECTED_RESOURCES = "resourcesSelected";
@@ -88,6 +97,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     protected IModel<ObjectTypes> typeModel;
+    private IModel<Boolean> orgTreeViewModel;
 
 	public TypedAssignablePanel(String id, final Class<T> type) {
 		super(id);
@@ -104,6 +114,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 				return ObjectTypes.getObjectType(type);
 			}
 		};
+    	orgTreeViewModel = Model.of(false);
 	}
 
 	@Override
@@ -124,8 +135,30 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		PopupObjectListPanel<T> listServicePanel = createObjectListPanel(ID_SERVICE_TABLE, ID_SELECTED_SERVICES, ObjectTypes.SERVICE);
 		tablesContainer.add(listServicePanel);
 
-		WebMarkupContainer countContainer = createCountContainer();
-		add(countContainer);
+		OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
+				ID_ORG_TREE_VIEW_PANEL, true, getPageBase()) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs, AjaxRequestTarget target) {
+				TypedAssignablePanel.this.assignButtonClicked(target, (List<T>)selectedOrgs);
+			}
+		};
+		orgTreePanel.setOutputMarkupId(true);
+		orgTreePanel.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return OrgType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName()) && isOrgTreeViewSelected();
+			}
+		});
+		tablesContainer.add(orgTreePanel);
+
+		//todo now it's usually hiden by object list panel - bad layout; need to discuss: if count panel should be visible
+		//after org tree panel is added
+//		WebMarkupContainer countContainer = createCountContainer();
+//		add(countContainer);
 
 
 		AjaxButton addButton = new AjaxButton(ID_BUTTON_ASSIGN,
@@ -135,11 +168,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				List<T> selected = getSelectedData(ID_ROLE_TABLE);
-				selected.addAll(getSelectedData(ID_RESOURCE_TABLE));
-				selected.addAll(getSelectedData(ID_ORG_TABLE));
-				selected.addAll(getSelectedData(ID_SERVICE_TABLE));
-				TypedAssignablePanel.this.addPerformed(target, selected, getSelectedRelation());
+				TypedAssignablePanel.this.assignButtonClicked(target, new ArrayList<>());
 			}
 		};
 
@@ -147,14 +176,27 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 			private static final long serialVersionUID = 1L;
 
-//			@Override
-//			public boolean isVisible() {
-//				return multiselect;
-//			}
+			@Override
+			public boolean isVisible() {
+				return !isOrgTreeViewSelected();
+			}
 		});
 
 		add(addButton);
 	}
+
+	private void assignButtonClicked(AjaxRequestTarget target, List<T> selectedOrgs){
+		List<T> selected = getSelectedData(ID_ROLE_TABLE);
+		selected.addAll(getSelectedData(ID_RESOURCE_TABLE));
+		selected.addAll(getSelectedData(ID_SERVICE_TABLE));
+		if (isOrgTreeViewSelected()){
+			selected.addAll(selectedOrgs);
+		} else {
+			selected.addAll(getSelectedData(ID_ORG_TABLE));
+		}
+		addPerformed(target, selected, getSelectedRelation());
+	}
+
 
 	protected void initAssignmentParametersPanel(){
 		DropDownChoicePanel<ObjectTypes> typeSelect = new DropDownChoicePanel<>(
@@ -181,7 +223,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
             @Override
             public boolean isEnabled(){
-                return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject());
+                return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
             }
 
             @Override
@@ -194,6 +236,35 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         relationSelector.setOutputMarkupPlaceholderTag(true);
         add(relationSelector);
 
+        WebMarkupContainer orgTreeViewContainer = new WebMarkupContainer(ID_ORG_TREE_VIEW_CONTAINER);
+		orgTreeViewContainer.setOutputMarkupId(true);
+		orgTreeViewContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				boolean res= OrgType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
+				return res;
+			}
+		});
+		add(orgTreeViewContainer);
+
+		CheckBox orgTreeViewCheckbox = new CheckBox(ID_ORG_TREE_VIEW, orgTreeViewModel);
+		orgTreeViewCheckbox.add(new AjaxEventBehavior("change") {
+			@Override
+			protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
+				orgTreeViewModel.setObject(!orgTreeViewModel.getObject());
+				ajaxRequestTarget.add(TypedAssignablePanel.this);
+			}
+		});
+		orgTreeViewCheckbox.setOutputMarkupId(true);
+		orgTreeViewContainer.add(orgTreeViewCheckbox);
+
+	}
+
+	private boolean isOrgTreeViewSelected(){
+		CheckBox checkPanel = (CheckBox) TypedAssignablePanel.this.get(ID_ORG_TREE_VIEW_CONTAINER).get(ID_ORG_TREE_VIEW);
+		return checkPanel.getModel().getObject();
 	}
 
 	private List<T> getSelectedData(String id){
@@ -230,8 +301,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	}
 
 	private void refreshCounts(AjaxRequestTarget target) {
-		addOrReplace(createCountContainer());
-		target.add(get(ID_COUNT_CONTAINER));
+//		addOrReplace(createCountContainer());
+//		target.add(get(ID_COUNT_CONTAINER));
 	}
 
 	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final ObjectTypes type) {
@@ -283,6 +354,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 			@Override
 			public boolean isVisible() {
+				if (typeModel.getObject().getTypeQName().equals(OrgType.COMPLEX_TYPE)){
+					return type.equals(typeModel.getObject()) && !isOrgTreeViewSelected();
+				}
 				return type.equals(typeModel.getObject());
 			}
 		});
