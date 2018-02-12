@@ -17,21 +17,18 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -148,26 +145,12 @@ public class PageDebugView extends PageAdminConfiguration {
             //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
             Class type = ObjectType.class;
             StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
-            if (objectType != null && StringUtils.isNotBlank(objectType.toString())){
+            if (objectType != null && StringUtils.isNotBlank(objectType.toString())) {
             	type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
             }
 
             // TODO make this configurable (or at least do not show campaign cases in production)
-            if (UserType.class.isAssignableFrom(type)) {
-                options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-            }
-            if (LookupTableType.class.isAssignableFrom(type)) {
-                options.add(SelectorOptions.create(LookupTableType.F_ROW,
-                        GetOperationOptions.createRetrieve(
-                        		new RelationalValueSearchQuery(
-                        				ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
-            }
-            if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-                options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-            }
-
+            WebModelServiceUtils.addIncludeOptionsForExportOrView(options, type);
             PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
 
             PrismContext context = application.getPrismContext();
