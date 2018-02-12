@@ -6,10 +6,7 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<policyItemDefinition>
-		<target>
-			<path>parentOrgRef</path>
-		</target>
-		<valuePolicyRef oid="00000000-0000-0000-1111-000000000003" type="c:ValuePolicyType"/>
-		<execute>true</execute>
+		<value>Ad123456</value>
 	</policyItemDefinition>
+	
 </policyItemsDefinition>

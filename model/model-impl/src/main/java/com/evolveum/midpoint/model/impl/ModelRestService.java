@@ -172,7 +172,10 @@ public class ModelRestService {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE_RPC);
 
-		return generateValue(null, policyItemsDefinition, task, parentResult);
+		Response response = generateValue(null, policyItemsDefinition, task, parentResult);
+		finishRequest(task);
+		
+		return response;
 	}
 	
 	private <O extends ObjectType> Response generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult){
@@ -183,7 +186,6 @@ public class ModelRestService {
 			try {
 				modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
 				parentResult.computeStatusIfUnknown();
-
 				if (parentResult.isSuccess()) {
 					response = RestServiceUtil.createResponse(Response.Status.OK, policyItemsDefinition, parentResult, true);
 				} else {
@@ -191,7 +193,7 @@ public class ModelRestService {
 				}
 
 			} catch (Exception ex) {
-				parentResult.computeStatus();
+				parentResult.recordFatalError("Failed to generate value, " + ex.getMessage(), ex);
 				response = RestServiceUtil.handleException(parentResult, ex);
 			}
 		}
