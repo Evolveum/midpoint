@@ -35,6 +35,8 @@ import java.util.function.Predicate;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -1370,6 +1372,22 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		String msg = LOG_PREFIX_DENY+"Error "+action+" of "+type.getSimpleName()+":"+desc + "("+e+")";
 		System.out.println(msg);
 		LOGGER.info(msg);
+	}
+	
+	protected <O extends ObjectType> void asAdministrator(Attempt attempt) throws Exception {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".asAdministrator");
+        OperationResult result = task.getResult();
+        MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
+        login(USER_ADMINISTRATOR_USERNAME);
+        try {
+        	attempt.run(task, result);
+        } catch (Throwable e) {
+        	login(origPrincipal);
+        	throw e;
+		}
+        login(origPrincipal);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 
 	protected <O extends ObjectType> void assertDeny(String opname, Attempt attempt) throws Exception {

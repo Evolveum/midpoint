@@ -2120,6 +2120,29 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("Empty role without exclusion", roleEmptyExclusion);
         assertAssignments(roleEmptyExclusion, 0);
         
+        asAdministrator(
+        		(task, result) -> deleteObject(RoleType.class, ROLE_EMPTY_OID));
+        
+        // MID-4443
+        display("TTT1");
+        assertAddAllow(ROLE_EMPTY_FILE);
+        
+        asAdministrator(
+        		(task, result) -> deleteObject(RoleType.class, ROLE_EMPTY_OID));
+        
+        PrismObject<RoleType> roleEmpty2 = parseObject(ROLE_EMPTY_FILE);
+        AssignmentType appliationRoleAssignment = new AssignmentType();
+        ObjectReferenceType appliationRoleTargetRef = new ObjectReferenceType();
+        appliationRoleTargetRef.setOid(ROLE_APPLICATION_1_OID);
+        appliationRoleTargetRef.setType(RoleType.COMPLEX_TYPE);
+		appliationRoleAssignment.setTargetRef(appliationRoleTargetRef);
+		roleEmpty2.asObjectable().getAssignment().add(appliationRoleAssignment);
+		
+		// MID-4443
+		display("TTT2");
+		assertAllow("Add empty role with application role assignment",
+				(task, result) -> addObject(roleEmpty2));
+        
         assertGlobalStateUntouched();
 	}
 	
