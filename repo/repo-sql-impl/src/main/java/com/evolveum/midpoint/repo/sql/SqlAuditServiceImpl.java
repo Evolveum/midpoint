@@ -644,7 +644,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 	}
 
 	private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
-		if (getConfiguration().isUsingMySQL()) {    // todo use correct getter in 3.8
+		if (getConfiguration().isUsingMySqlCompatible()) {
 			return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
 		} else {
 			// todo consider using join for other databases as well
