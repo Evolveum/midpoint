@@ -141,8 +141,8 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 	protected static final File TASK_PROPAGATION_MANUAL_GROUPING_FILE = new File(TEST_DIR, "task-propagation-manual-grouping.xml");
 	protected static final String TASK_PROPAGATION_MANUAL_GROUPING_OID = "b84a2c46-f0b5-11e7-baff-d35c2f14080f";
 	
-	protected static final File TASK_PROPAGATION_SEMI_MANUAL_GROUPING_FILE = new File(TEST_DIR, "task-propagation-semi-manual-grouping.xml");
-	protected static final String TASK_PROPAGATION_SEMI_MANUAL_GROUPING_OID = "01db4542-f224-11e7-8833-bbe6634814e7";
+	protected static final File TASK_PROPAGATION_MULTI_FILE = new File(TEST_DIR, "task-propagation-multi.xml");
+	protected static final String TASK_PROPAGATION_MULTI_OID = "01db4542-f224-11e7-8833-bbe6634814e7";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractGroupingManualResourceTest.class);
 
