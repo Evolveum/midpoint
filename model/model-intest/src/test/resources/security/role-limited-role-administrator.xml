@@ -37,6 +37,7 @@
     	<item>roleType</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
+    	<item>delegable</item>
     	<item>inducement</item>
     	<item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
@@ -51,6 +52,7 @@
     	<item>roleType</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
+    	<item>delegable</item>
     	<item>inducement</item>
     	<item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
@@ -65,6 +67,7 @@
     	<item>roleType</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
+    	<item>delegable</item>
     	<item>inducement</item>
     	<item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
