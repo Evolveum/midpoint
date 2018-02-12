@@ -95,7 +95,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 	protected boolean hasMultivalueInterests() {
 		return false;
 	}
-
+	
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);

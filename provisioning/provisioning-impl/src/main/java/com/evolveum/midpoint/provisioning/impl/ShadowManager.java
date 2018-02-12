@@ -1589,12 +1589,14 @@ public class ShadowManager {
 				if (resourceAttr == null && repoAttr == null) {
 					continue;
 				}
+				ResourceAttribute<Object> normalizedResourceAttribute = resourceAttr.clone();
+				normalizeAttribute(normalizedResourceAttribute, attrDef);
 				if (repoAttr == null) {
 					attrDelta = attrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
-					attrDelta.setValuesToReplace(PrismValue.cloneCollection(resourceAttr.getValues()));
+					attrDelta.setValuesToReplace(PrismValue.cloneCollection(normalizedResourceAttribute.getValues()));
 				} else {
-					attrDelta = repoAttr.diff(resourceAttr);
-//					LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", repoAttr==null?null:repoAttr.debugDump(1), resourceAttr==null?null:resourceAttr.debugDump(1), attrDelta==null?null:attrDelta.debugDump(1));
+					attrDelta = repoAttr.diff(normalizedResourceAttribute);
+//					LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", repoAttr==null?null:repoAttr.debugDump(1), normalizedResourceAttribute==null?null:normalizedResourceAttribute.debugDump(1), attrDelta==null?null:attrDelta.debugDump(1));
 				}
 				if (attrDelta != null && !attrDelta.isEmpty()) {
 					normalizeDelta(attrDelta, attrDef);
