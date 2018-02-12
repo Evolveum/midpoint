@@ -83,6 +83,7 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.task" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.consistency" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
