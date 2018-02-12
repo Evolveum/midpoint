@@ -83,12 +83,12 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 	
 	@Override
 	protected String getPropagationTaskOid() {
-		return TASK_PROPAGATION_SEMI_MANUAL_GROUPING_OID;
+		return TASK_PROPAGATION_MULTI_OID;
 	}
 
 	@Override
 	protected File getPropagationTaskFile() {
-		return TASK_PROPAGATION_SEMI_MANUAL_GROUPING_FILE;
+		return TASK_PROPAGATION_MULTI_FILE;
 	}
 
 	@Override
