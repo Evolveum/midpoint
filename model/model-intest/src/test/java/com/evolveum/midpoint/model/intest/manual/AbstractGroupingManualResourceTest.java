@@ -124,6 +124,8 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 	protected static final File RESOURCE_SEMI_MANUAL_GROUPING_FILE = new File(TEST_DIR, "resource-semi-manual-grouping.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_GROUPING_OID = "9eddca88-f222-11e7-98dc-cb6e4b08800c";
 
+	protected static final File RESOURCE_SEMI_MANUAL_GROUPING_PROPOSED_FILE = new File(TEST_DIR, "resource-semi-manual-grouping-proposed.xml");
+	
 	protected static final File ROLE_ONE_MANUAL_GROUPING_FILE = new File(TEST_DIR, "role-one-manual-grouping.xml");
 	protected static final String ROLE_ONE_MANUAL_GROUPING_OID = "bc586500-f092-11e7-9cda-f7cd4203a755";
 	
@@ -939,6 +941,8 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
 		cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
 	}
+	
+//	TODO: test400: create -> modify -> propagation
 	
 	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
 		assertShadowDead(shadow);

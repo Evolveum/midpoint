@@ -644,6 +644,20 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 	}
 
 	private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
+		if (getConfiguration().isUsingMySQL()) {    // todo use correct getter in 3.8
+			return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
+		} else {
+			// todo consider using join for other databases as well
+			return createDeleteQueryAsSubquery(objectTable, tempTable, idColumnName);
+		}
+	}
+
+	private String createDeleteQueryAsJoin(String objectTable, String tempTable, String idColumnName) {
+		return "DELETE FROM main, temp USING " + objectTable + " AS main INNER JOIN " + tempTable + " as temp "
+				+ "WHERE main." + idColumnName + " = temp.id";
+	}
+
+	private String createDeleteQueryAsSubquery(String objectTable, String tempTable, String idColumnName) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("delete from ").append(objectTable);
 		sb.append(" where ").append(idColumnName).append(" in (select id from ").append(tempTable)
