@@ -1387,10 +1387,12 @@ public class Clockwork {
 							authorizeAssignmentRequest(context, ModelAuthorizationAction.ASSIGN.getUrl(),
 									object, ownerResolver, PlusMinusZero.PLUS, true, task, result);
 
-							// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
-							// rid of that assignment
-							authorizeAssignmentRequest(context, ModelAuthorizationAction.UNASSIGN.getUrl(),
-									object, ownerResolver,PlusMinusZero.MINUS, false, task, result);
+							if (!primaryDelta.isAdd()) {
+								// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
+								// rid of that assignment
+								authorizeAssignmentRequest(context, ModelAuthorizationAction.UNASSIGN.getUrl(),
+										object, ownerResolver,PlusMinusZero.MINUS, false, task, result);
+							}
 						}
 					}
 					// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another

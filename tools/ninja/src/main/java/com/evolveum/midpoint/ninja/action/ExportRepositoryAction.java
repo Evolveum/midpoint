@@ -22,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -74,6 +75,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         if (options.isRaw()) {
             opts = GetOperationOptions.createRawCollection();
         }
+        addIncludeOptionsForExport(opts, type.getClassDefinition());
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
 
@@ -120,10 +122,13 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         PrismContext prismContext = context.getPrismContext();
         PrismSerializer<String> serializer = prismContext.xmlSerializer();
 
-        Collection<SelectorOptions<GetOperationOptions>> opts = Collections.emptyList();
+        Collection<SelectorOptions<GetOperationOptions>> opts;
         if (options.isRaw()) {
             opts = GetOperationOptions.createRawCollection();
+        } else {
+            opts = new ArrayList<>();
         }
+        addIncludeOptionsForExport(opts, type.getClassDefinition());
 
         ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context);
 

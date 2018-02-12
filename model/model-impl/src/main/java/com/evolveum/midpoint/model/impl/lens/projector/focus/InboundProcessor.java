@@ -765,6 +765,7 @@ public class InboundProcessor {
     	variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
+    	variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
     	variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
     	    	
     	Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT);

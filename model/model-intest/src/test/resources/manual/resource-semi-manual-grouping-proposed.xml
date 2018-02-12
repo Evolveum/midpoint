@@ -25,13 +25,9 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:rext="http://midpoint.evolveum.com/xml/ns/samples/resource">
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 								  
-	<name>Semi-Manual Grouping CSV Resource</name>
-	
-	<extension>
-		<rext:provisioning>propagated</rext:provisioning>
-	</extension>
+	<name>Semi-Manual Proposed Grouping CSV Resource</name>
 	
 	<connectorRef type="ConnectorType">
 		<filter>
@@ -104,6 +100,7 @@
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<attribute>
 				<ref>ri:username</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 				    <strength>strong</strength>
 				    <source>
@@ -149,6 +146,10 @@
 	
 	<consistency>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
+		<useProposedShadows>true</useProposedShadows>
+		<recordPendingOperations>all</recordPendingOperations>
+		<avoidDuplicateOperations>true</avoidDuplicateOperations>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 		<operationGroupingInterval>PT2M</operationGroupingInterval>
 	</consistency>
