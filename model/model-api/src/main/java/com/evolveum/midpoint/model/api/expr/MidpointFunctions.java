@@ -1115,5 +1115,18 @@ public interface MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException,
 			ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectAlreadyExistsException;
+	
+	/**
+	 * Returns indication whether a script code is evaluating a new value.
+	 * If this method returns true value then the script code is evaluating "new" value.
+	 * That means a value that is going to be set to target, e.g.
+	 * value from "add" or "replace" parts of the delta.
+	 * If this method returns false value then the script code is evaluating "old" value.
+	 * That means a value that is used for the purposes of removing values from target,
+	 * e.g. value from "delete" part of the delta or values from an existing object.
+	 * If this method returns null then the old/new status cannot be determined or this
+	 * method is invoked in a situation when such a distinction is not applicable.
+	 */
+	Boolean isEvaluateNew();
 
 }
