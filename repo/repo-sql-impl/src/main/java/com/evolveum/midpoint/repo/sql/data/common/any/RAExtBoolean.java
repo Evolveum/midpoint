@@ -17,12 +17,10 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtBooleanId;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -33,9 +31,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(RAExtBooleanId.class)
-@Table(name = "m_assignment_ext_boolean")
-@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_boolean"
-        /*, indexes = {@Index(name = "iAExtensionBoolean", columnNames = {"extensionType", "eName", "booleanValue"})} */)
+@Table(name = "m_assignment_ext_boolean", indexes = {
+        @Index(name = "iAExtensionBoolean", columnList = "booleanValue")
+})
 public class RAExtBoolean extends RAExtBase<Boolean> implements RAExtValue<Boolean> {
 
     private Boolean value;

@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -37,11 +36,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(ROExtReferenceId.class)
-@Table(name = "m_object_ext_reference")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_reference"
-        /*,
-        indexes = {@Index(name = "iExtensionReference", columnNames = {"ownerType", "eName", "targetoid"}),
-                @Index(name = "iExtensionReferenceDef", columnNames = {"owner_oid", "ownerType"})} */)
+@Table(name = "m_object_ext_reference", indexes = {
+        @Index(name = "iExtensionString", columnList = "targetoid")
+})
 public class ROExtReference extends ROExtBase {
 
     public static final String F_TARGET_OID = "value";

@@ -71,7 +71,7 @@ public class SchemaTest {
         SchemaExport export = new SchemaExport();
         export.setOutputFile(fileName);
         export.setDelimiter(";");
-        export.setFormat(true);
+//        export.setFormat(true);
         export.execute(EnumSet.of(TargetType.SCRIPT), SchemaExport.Action.CREATE, metadata.buildMetadata());
     }
 

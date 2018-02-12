@@ -31,10 +31,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(RAExtStringId.class)
-@Table(name = "m_assignment_ext_string")
-@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_string"
-        /*,
-        indexes = {@Index(name = "iAExtensionString", columnNames = {"extensionType", "eName", "stringValue"})} */)
+@Table(name = "m_assignment_ext_string", indexes = {
+        @Index(name = "iAExtensionString", columnList = "stringValue")
+})
 public class RAExtString extends RAExtBase<String> implements RAExtValue<String> {
 
     private String value;

@@ -33,11 +33,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(ROExtBooleanId.class)
-@Table(name = "m_object_ext_boolean")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_boolean"
-        /*,
-        indexes = {@Index(name = "iExtensionBoolean", columnNames = {"ownerType", "eName", "booleanValue"}),
-                @Index(name = "iExtensionBooleanDef", columnNames = {"owner_oid", "ownerType"})} */)
+@Table(name = "m_object_ext_boolean", indexes = {
+        @Index(name = "iExtensionString", columnList = "booleanValue")
+})
 public class ROExtBoolean extends ROExtBase {
 
     private Boolean value;

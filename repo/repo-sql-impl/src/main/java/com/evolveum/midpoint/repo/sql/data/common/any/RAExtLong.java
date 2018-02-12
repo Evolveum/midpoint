@@ -17,12 +17,10 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtLongId;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -33,10 +31,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(RAExtLongId.class)
-@Table(name = "m_assignment_ext_long")
-@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_long"
-        /*,
-        indexes = {@Index(name = "iAExtensionLong", columnNames = {"extensionType", "eName", "longValue"})} */)
+@Table(name = "m_assignment_ext_long", indexes = {
+        @Index(name = "iAExtensionLong", columnList = "longValue")
+})
 public class RAExtLong extends RAExtBase<Long> implements RAExtValue<Long> {
 
     private Long value;

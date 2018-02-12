@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -35,11 +34,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(ROExtPolyStringId.class)
-@Table(name = "m_object_ext_poly")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_poly"
-        /*,
-        indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "eName", "orig"}),
-                @Index(name = "iExtensionPolyStringDef", columnNames = {"owner_oid", "ownerType"})} */)
+@Table(name = "m_object_ext_poly", indexes = {
+        @Index(name = "iExtensionString", columnList = "orig")
+})
 public class ROExtPolyString extends ROExtBase {
 
     //orig value

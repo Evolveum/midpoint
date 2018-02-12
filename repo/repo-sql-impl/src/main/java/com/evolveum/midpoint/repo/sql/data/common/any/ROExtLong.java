@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -34,11 +33,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(ROExtLongId.class)
-@Table(name = "m_object_ext_long")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_long"
-        /*,
-        indexes = {@Index(name = "iExtensionLong", columnNames = {"ownerType", "eName", "longValue"}),
-                @Index(name = "iExtensionLongDef", columnNames = {"owner_oid", "ownerType"})} */)
+@Table(name = "m_object_ext_long", indexes = {
+        @Index(name = "iExtensionString", columnList = "longValue")
+})
 public class ROExtLong extends ROExtBase {
 
     private Long value;

@@ -32,10 +32,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(RAExtDateId.class)
-@Table(name = "m_assignment_ext_date")
-@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_date"
-        /*,
-        indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "eName", "dateValue"})} */)
+@Table(name = "m_assignment_ext_date", indexes = {
+        @Index(name = "iAExtensionDate", columnList = "dateValue")
+})
 public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timestamp> {
 
     private Timestamp value;

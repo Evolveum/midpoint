@@ -724,6 +724,12 @@ CREATE INDEX iOrgRefTargetOid
   ON m_assignment (orgRef_targetOid);
 CREATE INDEX iResourceRefTargetOid
   ON m_assignment (resourceRef_targetOid);
+create index iAExtensionBoolean on m_assignment_ext_boolean (booleanValue);
+create index iAExtensionDate on m_assignment_ext_date (dateValue);
+create index iAExtensionLong on m_assignment_ext_long (longValue);
+create index iAExtensionPolyString on m_assignment_ext_poly (orig);
+create index iAExtensionReference on m_assignment_ext_reference (targetoid);
+create index iAExtensionString on m_assignment_ext_string (stringValue);
 CREATE INDEX iAssignmentReferenceTargetOid
   ON m_assignment_reference (targetOid);
 CREATE INDEX iTimestampValue
@@ -744,6 +750,12 @@ CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
   ON m_object (lifecycleState);
+create index iExtensionString on m_object_ext_boolean (booleanValue);
+create index iExtensionString on m_object_ext_date (dateValue);
+create index iExtensionString on m_object_ext_long (longValue);
+create index iExtensionString on m_object_ext_poly (orig);
+create index iExtensionString on m_object_ext_reference (targetoid);
+create index iExtensionString on m_object_ext_string (stringValue);
 CREATE INDEX iOpExecTaskOid
   ON m_operation_execution (taskRef_targetOid);
 CREATE INDEX iOpExecInitiatorOid

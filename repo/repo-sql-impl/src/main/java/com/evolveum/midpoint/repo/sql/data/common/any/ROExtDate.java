@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -35,11 +34,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 @IdClass(ROExtDateId.class)
-@Table(name = "m_object_ext_date")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_date"
-		/*,
-        indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "eName", "dateValue"}),
-                @Index(name = "iExtensionDateDef", columnNames = {"owner_oid", "ownerType"})} */)
+@Table(name = "m_object_ext_date", indexes = {
+        @Index(name = "iExtensionString", columnList = "dateValue")
+})
 public class ROExtDate extends ROExtBase {
 
     private Timestamp value;
