@@ -205,6 +205,7 @@ public class LensUtil {
 		//noinspection unchecked
 		V cloned = (V) value.clone();
 		if (isAssignment && cloned instanceof PrismContainerValue) {
+			((PrismContainerValue) cloned).setId(null);
 			String originMappingName = originMappingNameSupplier.get();
 			if (originMappingName != null) {
 				//noinspection unchecked
