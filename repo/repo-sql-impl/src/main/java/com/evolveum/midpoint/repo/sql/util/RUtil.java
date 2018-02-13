@@ -63,7 +63,6 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
