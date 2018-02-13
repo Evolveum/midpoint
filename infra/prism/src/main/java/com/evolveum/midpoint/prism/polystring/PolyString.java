@@ -163,6 +163,26 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return this.orig.substring(from,to);
 	}
 
+	/**
+	 * Helper function that checks whether this original string begins with the specified value.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	public boolean startsWith(String value) {
+		return this.orig.startsWith(value);
+	}
+
+	/**
+	 * Helper function that checks whether this original string ends with the specified value.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	public boolean endsWith(String value) {
+		return this.orig.endsWith(value);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
