@@ -438,4 +438,18 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         assertReferences((Collection) u.getCreateApproverRef(),
                 RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
     }
+
+    @Test
+    public void test250ModifyShadow() throws Exception {
+        // todo implement
+        //account-delta.xml
+//        [
+//        attributes/ship
+//            REPLACE: Flying Dutchman
+//        attributes/title
+//            DELETE: Very Nice Pirate
+//        cachingMetadata
+//            REPLACE: CachingMetadataType(retrievalTimestamp:2018-02-09T18:30:10.423+01:00)
+//        ]
+    }
 }

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -260,6 +261,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						TaskDto taskDto = null;
 						try {
 							taskDto = new TaskDto(taskType.asObjectable(), null, getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, task, result, PageTasks.this);
+							taskDto.setSelected(object.isSelected());
 						} catch (SchemaException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -525,7 +527,26 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private List<IColumn<TaskDto, String>> initTaskColumns() {
         List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
 
-        IColumn column = new CheckBoxHeaderColumn<>();
+        IColumn column = new CheckBoxHeaderColumn<TaskDto>()
+        {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TaskDto> rowModel) {
+                TaskDtoProvider taskTableProvider = (TaskDtoProvider) table.getDataProvider();
+                List<TaskDto> objects = taskTableProvider.getAvailableData();
+                if (objects == null || objects.isEmpty()) {
+                    return;
+                }
+                objects.forEach(taskDto -> {
+                    if (taskDto.getOid().equals(rowModel.getObject().getOid())){
+                        boolean selected = rowModel.getObject().isSelected();
+                        taskDto.setSelected(selected);
+                    }
+                });
+                super.onUpdateRow(target, table, rowModel);
+            }
+        };
         columns.add(column);
 
         column = createTaskNameColumn(this, "pageTasks.task.name");

@@ -3160,6 +3160,37 @@ public class TestMapping extends AbstractMappingTest {
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Some say elaine -- administrator");
 	}
+	
+	@Test
+    public void test302ModifyGuybrushLocality() throws Exception {
+		final String TEST_NAME = "test302ModifyGuybrushLocality";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString("Forbidden dodecahedron"));
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
+				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+
+        // Check account in dummy resource
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        display("Dummy account", dummyAccount);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+        		"Forbidden dodecahedron");
+	}
 
 	@Test
     public void test309UnassignGuybrushDummyYellow() throws Exception {

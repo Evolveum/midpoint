@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedNamedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -64,6 +63,7 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -247,7 +247,6 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
         for (RObjectType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
@@ -290,24 +289,29 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                ((OperationResultFull) repo).setFullResult(full);
+                byte[] data = RUtil.getByteArrayFromXml(full, true);
+                ((OperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }
         }
     }
 
-    public static String computeChecksum(Object... objects) {
-        StringBuilder builder = new StringBuilder();
-        for (Object object : objects) {
-            if (object == null) {
-                continue;
+    public static String computeChecksum(byte[]... objects) {
+        try {
+            List<InputStream> list = new ArrayList<>();
+            for (byte[] data : objects) {
+                if (data == null) {
+                    continue;
+                }
+                list.add(new ByteArrayInputStream(data));
             }
+            SequenceInputStream sis = new SequenceInputStream(Collections.enumeration(list));
 
-            builder.append(object.toString());
+            return DigestUtils.md5Hex(sis);
+        } catch (IOException ex) {
+            throw new SystemException(ex);
         }
-
-        return DigestUtils.md5Hex(builder.toString());
     }
 
     public static <T extends SchemaEnum> T getRepoEnumValue(Object object, Class<T> type) {

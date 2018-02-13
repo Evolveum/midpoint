@@ -87,3 +87,5 @@ ALTER TABLE m_audit_delta ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) 
 ALTER TABLE m_audit_item ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_prop_value ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+
+DROP TABLE m_exclusion;

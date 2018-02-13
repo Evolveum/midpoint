@@ -16,12 +16,11 @@
 
 package com.evolveum.midpoint.web.component;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.wicket.util.resource.AbstractResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloadBehavior {
 
@@ -30,16 +29,13 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 	private String contentType = "text";
 	private String fileName = null;
 
-
 	public AjaxDownloadBehaviorFromStream() {
 		super();
 	}
 
 	public AjaxDownloadBehaviorFromStream(boolean addAntiCache) {
 		super(addAntiCache);
-
 	}
-
 
 	@Override
 	public IResourceStream getResourceStream() {
@@ -49,16 +45,16 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 			return null;
 		}
 
-		IResourceStream resourceStream = new AbstractResourceStream(){
-
+		return new AbstractResourceStream() {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public String getContentType() {
 				return contentType;
 			}
 
 			@Override
-			public InputStream getInputStream() throws ResourceStreamNotFoundException {
+			public InputStream getInputStream() {
 			    return byteStream;
             }
 
@@ -66,9 +62,7 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 			public void close() throws IOException {
 				byteStream.close();
 			}
-
 		};
-		return resourceStream;
 	}
 
     protected abstract InputStream initStream();

@@ -32,11 +32,12 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SchrodingerComponentInitListener implements IComponentInitializationListener {
+public class SchrodingerComponentInitListener implements IComponentInitializationListener, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchrodingerComponentInitListener.class);
 

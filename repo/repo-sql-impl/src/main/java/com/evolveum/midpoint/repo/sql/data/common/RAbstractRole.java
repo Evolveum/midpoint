@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RAutoassignSpecification;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -67,7 +66,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 	private String identifier;
 	private String riskLevel;
 	private RPolyString displayName;
-    private Set<RExclusion> exclusion;
     private Boolean requestable;
     private Set<RObjectReference<RFocus>> approverRef;
     private String approvalProcess;
@@ -88,15 +86,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     @Transient
     public Set<RAssignment> getInducement() {
         return getAssignments(RAssignmentOwner.ABSTRACT_ROLE);
-    }
-
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RExclusion> getExclusion() {
-        if (exclusion == null) {
-            exclusion = new HashSet<>();
-        }
-        return exclusion;
     }
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 3")
@@ -129,10 +118,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
 	public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
-    }
-
-    public void setExclusion(Set<RExclusion> exclusion) {
-        this.exclusion = exclusion;
     }
 
     public void setApprovalProcess(String approvalProcess) {
@@ -178,7 +163,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
         if (riskLevel != null ? !riskLevel.equals(that.riskLevel) : that.riskLevel != null) return false;
         if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
-        if (exclusion != null ? !exclusion.equals(that.exclusion) : that.exclusion != null) return false;
         if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null) return false;
         if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null) return false;
         if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null)
@@ -222,13 +206,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             RAssignment.copyFromJAXB(inducement, rInducement, jaxb, repositoryContext, generatorResult);
 
             repo.getAssignments().add(rInducement);
-        }
-
-        for (ExclusionPolicyConstraintType exclusion : jaxb.getExclusion()) {
-            RExclusion rExclusion = new RExclusion(repo);
-            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, repositoryContext, generatorResult);
-
-            repo.getExclusion().add(rExclusion);
         }
 
         for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {

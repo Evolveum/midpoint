@@ -1637,4 +1637,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		
 		return provisioningService.executeScript(resourceOid, script, getCurrentTask(), getCurrentResult());
 	}
+	
+	@Override
+	public Boolean isEvaluateNew() {
+		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+		if (scriptContext == null) {
+			return null;
+		}
+		return scriptContext.isEvaluateNew();
+	}
 }

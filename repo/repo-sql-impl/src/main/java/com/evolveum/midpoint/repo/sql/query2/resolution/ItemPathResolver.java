@@ -147,7 +147,7 @@ public class ItemPathResolver {
             if (anyLinkDef.getOwnerType() != null) {        // null for assignment extensions
                 conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", anyLinkDef.getOwnerType()));
             }
-            conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME,
+            conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".item." + RAnyValue.F_NAME,
                     RUtil.qnameToString(anyLinkDef.getItemName())));
             condition = conjunction;
         }

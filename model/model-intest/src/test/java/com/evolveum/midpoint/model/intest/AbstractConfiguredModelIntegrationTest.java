@@ -254,6 +254,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
 	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
 
+	protected static final File ROLE_USELESS_FILE = new File(COMMON_DIR, "role-useless.xml");
+	protected static final String ROLE_USELESS_OID = "12345111-1111-2222-1111-831209543124";
+
 	protected static final File ROLE_SAILOR_FILE = new File(COMMON_DIR, "role-sailor.xml");
 	protected static final String ROLE_SAILOR_OID = "12345111-1111-2222-1111-121212111113";
 	protected static final String ROLE_SAILOR_DRINK = "grog";

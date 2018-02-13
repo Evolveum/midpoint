@@ -295,7 +295,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private <O extends ObjectType> AccessDecision determineObjectDecision(PrismContainer<O> object, ItemDecisionFunction itemDecitionFunction) {
-		return determineContainerDecision(object.getValue(), itemDecitionFunction, false, "object");
+		AccessDecision containerDecision = determineContainerDecision(object.getValue(), itemDecitionFunction, false, "object");
+		if (containerDecision == null && object.isEmpty()) {
+			// There are no items in the object. Therefore there is no item that is allowed. Therefore decision is DEFAULT.
+			// But also there is no item that is denied or not allowed. 
+			// This is a corner case. But this approach is often used by GUI to determine if
+			// a specific class of object is allowed, e.g. if it is allowed to create (some) roles. This is used to
+			// determine whether to display a particular menu item.
+			// Therefore we should allow such cases.
+			return AccessDecision.ALLOW;
+		}
+		return containerDecision;
 	}
 
 	private <C extends Containerable, O extends ObjectType> AccessDecision determineContainerDeltaDecision(ContainerDelta<C> cdelta, PrismObject<O> currentObject, ItemDecisionFunction itemDecitionFunction) {

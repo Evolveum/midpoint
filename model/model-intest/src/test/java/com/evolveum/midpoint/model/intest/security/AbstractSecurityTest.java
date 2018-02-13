@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +34,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -72,10 +75,13 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -91,6 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -1367,6 +1374,40 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		String msg = LOG_PREFIX_DENY+"Error "+action+" of "+type.getSimpleName()+":"+desc + "("+e+")";
 		System.out.println(msg);
 		LOGGER.info(msg);
+	}
+	
+	protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
+        OperationResult result = task.getResult();
+        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
+        assertTrue("Expected isAuthorized for "+QNameUtil.uriToQName(operationUrl).getLocalPart()+" with "+params+", but we are not authorized", authorized);
+        result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected <O extends ObjectType, T extends ObjectType> void assertIsNotAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
+        OperationResult result = task.getResult();
+        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
+        assertFalse("Expected not isAuthorized for "+QNameUtil.uriToQName(operationUrl).getLocalPart()+" with "+params+", but we are authorized", authorized);
+        result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+		
+	protected <O extends ObjectType> void asAdministrator(Attempt attempt) throws Exception {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".asAdministrator");
+        OperationResult result = task.getResult();
+        MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
+        login(USER_ADMINISTRATOR_USERNAME);
+        try {
+        	attempt.run(task, result);
+        } catch (Throwable e) {
+        	login(origPrincipal);
+        	throw e;
+		}
+        login(origPrincipal);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 
 	protected <O extends ObjectType> void assertDeny(String opname, Attempt attempt) throws Exception {

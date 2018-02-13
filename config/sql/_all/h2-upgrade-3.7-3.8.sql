@@ -4,3 +4,5 @@ ALTER TABLE m_audit_prop_value
   ALTER COLUMN id BIGINT AUTO_INCREMENT;
 ALTER TABLE m_audit_ref_value
   ALTER COLUMN id BIGINT AUTO_INCREMENT;
+
+DROP TABLE m_exclusion;

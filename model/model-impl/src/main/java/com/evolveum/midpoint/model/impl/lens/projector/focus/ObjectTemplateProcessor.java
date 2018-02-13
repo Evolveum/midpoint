@@ -300,6 +300,7 @@ public class ObjectTemplateProcessor {
 
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
 			ItemPath itemPath = entry.getKey();
+			boolean isAssignment = SchemaConstants.PATH_ASSIGNMENT.equivalent(itemPath);
 			DeltaSetTriple<? extends ItemValueWithOrigin<?,?>> outputTriple = entry.getValue();
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
@@ -328,7 +329,7 @@ public class ObjectTemplateProcessor {
 			consolidator.setContextDescription(contextDesc);
 			consolidator.setStrengthSelector(StrengthSelector.ALL);
 			
-			ItemDelta itemDelta = consolidator.consolidateToDelta();
+			@NotNull ItemDelta itemDelta = consolidator.consolidateToDelta();
 
 			// Do a quick version of reconciliation. There is not much to reconcile as both the source and the target
 			// is focus. But there are few cases to handle, such as strong mappings, and sourceless normal mappings.
@@ -340,7 +341,7 @@ public class ObjectTemplateProcessor {
 			for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
 
 				PrismValueDeltaSetTripleProducer<?, ?> mapping = zeroSetIvwo.getMapping();
-				if ((mapping.getStrength() == null || mapping.getStrength() == MappingStrengthType.NORMAL)) {
+				if (mapping.getStrength() == null || mapping.getStrength() == MappingStrengthType.NORMAL) {
 					if (aprioriItemDelta != null && !aprioriItemDelta.isEmpty()) {
 						continue;
 					}
@@ -350,7 +351,7 @@ public class ObjectTemplateProcessor {
 					LOGGER.trace("Adding zero values from normal mapping {}, a-priori delta: {}, isSourceless: {}",
 							mapping, aprioriItemDelta, mapping.isSourceless());
 				} else if (mapping.getStrength() == MappingStrengthType.WEAK) {
-					if ((itemNew != null && !itemNew.isEmpty()) || (itemDelta != null && itemDelta.addsAnyValue())) {
+					if (itemNew != null && !itemNew.isEmpty() || itemDelta.addsAnyValue()) {
 						continue;
 					}
 					LOGGER.trace("Adding zero values from weak mapping {}, itemNew: {}, itemDelta: {}",
@@ -362,7 +363,7 @@ public class ObjectTemplateProcessor {
 				PrismValue valueFromZeroSet = zeroSetIvwo.getItemValue();
 				if (itemNew == null || !itemNew.containsRealValue(valueFromZeroSet)) {
 					LOGGER.trace("Reconciliation will add value {} for item {}. Existing item: {}", valueFromZeroSet, itemPath, itemNew);
-					itemDelta.addValuesToAdd(valueFromZeroSet.clone());
+					itemDelta.addValuesToAdd(LensUtil.cloneAndApplyMetadata(valueFromZeroSet, isAssignment, mapping));
 				}
 			}
 
@@ -376,7 +377,8 @@ public class ObjectTemplateProcessor {
 					LOGGER.trace("Non-tolerant item with resulting REPLACE delta => doing nothing");
 				} else {
 					for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
-						itemDelta.addValuesToAdd(zeroSetIvwo.getItemValue().clone());
+						// TODO aren't values added twice (regarding addValuesToAdd called ~10 lines above)?
+						itemDelta.addValuesToAdd(LensUtil.cloneAndApplyMetadata(zeroSetIvwo.getItemValue(), isAssignment, zeroSetIvwo.getMapping()));
 					}
 					itemDelta.addToReplaceDelta();
 					LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values: {}", itemDelta.getValuesToReplace());

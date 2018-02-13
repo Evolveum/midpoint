@@ -126,9 +126,9 @@ public class ObjectUpdater {
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
 
-            RObject rObject = createDataObjectFromJAXB(object, operation);
-
             session = baseHelper.beginTransaction();
+
+            RObject rObject = createDataObjectFromJAXB(object, operation);
 
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
@@ -253,7 +253,7 @@ public class ObjectUpdater {
     }
 
     public <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject)
-            throws SchemaException {
+            throws DtoTranslationException, SchemaException {
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 

@@ -38,6 +38,7 @@
     	<item>roleType</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
+    	<item>delegable</item>
     	<item>assignment</item>
 		<item>inducement/construction/strength</item>
 		<item>inducement/construction/resourceRef</item>
@@ -59,6 +60,7 @@
     	<item>roleType</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
+    	<item>delegable</item>
     	<item>inducement</item>
     </authorization>
     <authorization>
@@ -72,6 +74,7 @@
     	<item>roleType</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
+    	<item>delegable</item>
     	<item>inducement</item>
     </authorization>
 </role>

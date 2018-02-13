@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -65,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -2118,6 +2122,43 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         roleEmptyExclusion = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
         display("Empty role without exclusion", roleEmptyExclusion);
         assertAssignments(roleEmptyExclusion, 0);
+        
+        asAdministrator(
+        		(task, result) -> deleteObject(RoleType.class, ROLE_EMPTY_OID));
+        
+        // MID-4443
+        assertAddAllow(ROLE_EMPTY_FILE);
+        
+        asAdministrator(
+        		(task, result) -> deleteObject(RoleType.class, ROLE_EMPTY_OID));
+        
+        PrismObject<RoleType> roleEmpty2 = parseObject(ROLE_EMPTY_FILE);
+        AssignmentType appliationRoleAssignment = new AssignmentType();
+        ObjectReferenceType appliationRoleTargetRef = new ObjectReferenceType();
+        appliationRoleTargetRef.setOid(ROLE_APPLICATION_1_OID);
+        appliationRoleTargetRef.setType(RoleType.COMPLEX_TYPE);
+		appliationRoleAssignment.setTargetRef(appliationRoleTargetRef);
+		roleEmpty2.asObjectable().getAssignment().add(appliationRoleAssignment);
+		
+		// MID-4443
+		assertAllow("Add empty role with application role assignment",
+				(task, result) -> addObject(roleEmpty2));
+		
+		// MID-4369
+		// Empty role as object. Really empty: no items there at all.
+		PrismObject<RoleType> testRoleObject = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class).instantiate();
+		// There are no items in this empty role. Therefore there is no item that is allowed. But also no item that
+		// is denied or not allowed. This is a corner case. But this approach is often used by GUI to determine if
+		// a specific class of object is allowed, e.g. if it is allowed to create (some) roles. This is used to
+		// determine whether to display a particular menu item.
+		assertTrue(testRoleObject.isEmpty());
+		assertIsAuthorized(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.REQUEST,
+				AuthorizationParameters.Builder.buildObject(testRoleObject), null);
+		
+		testRoleObject.asObjectable().setRiskLevel("hazardous");
+		assertFalse(testRoleObject.isEmpty());
+		assertIsNotAuthorized(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.REQUEST,
+				AuthorizationParameters.Builder.buildObject(testRoleObject), null);
         
         assertGlobalStateUntouched();
 	}

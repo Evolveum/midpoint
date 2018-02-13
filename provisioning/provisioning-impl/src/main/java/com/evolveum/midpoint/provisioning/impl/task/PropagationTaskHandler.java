@@ -51,8 +51,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * @author semancik
- *
+ * Task handler for provisioning propagation of one resource.
+ * 
+ * We assume that there will be few resources with a lot of changes each.
+ * 
+ * @author Radovan Semancik
  */
 @Component
 public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, PropagationResultHandler> {
@@ -112,7 +115,7 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 	}
 
 	@Override
-	protected ObjectQuery createQuery(PropagationResultHandler handler, TaskRunResult runResult, Task task,
+	protected ObjectQuery createQuery(PropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -120,9 +123,6 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 				.and()
 				.exists(ShadowType.F_PENDING_OPERATION)
 			.buildFilter();
-//		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
-//				.exists(ShadowType.F_PENDING_OPERATION)
-//			.buildFilter();
 
 		query.setFilter(filter);
 		return query;
