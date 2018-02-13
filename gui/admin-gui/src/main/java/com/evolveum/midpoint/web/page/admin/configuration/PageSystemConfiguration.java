@@ -75,6 +75,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class PageSystemConfiguration extends PageAdminConfiguration {
 
 	public static final String SELECTED_TAB_INDEX = "tab";
+	public static final String SELECTED_SERVER_INDEX = "mailServerIndex";
+	public static final String SERVER_LIST_SIZE = "mailServerListSize";
 
 	public static final int CONFIGURATION_TAB_BASIC = 0;
 	public static final int CONFIGURATION_TAB_NOTIFICATION = 1;
@@ -172,7 +174,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				notificationConfigPanel = new NotificationConfigPanel(panelId,
-						new PropertyModel<NotificationConfigurationDto>(model, "notificationConfig"));
+						new PropertyModel<NotificationConfigurationDto>(model, "notificationConfig"), getPageParameters());
 				return notificationConfigPanel;
 			}
 		});
@@ -375,6 +377,12 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		int index = getTabPanel().getSelectedTab();
 
 		PageParameters params = new PageParameters();
+		StringValue mailServerIndex = target.getPageParameters().get(SELECTED_SERVER_INDEX);
+		StringValue mailServerSize = target.getPageParameters().get(SERVER_LIST_SIZE);
+		if (mailServerIndex !=null){
+			params.add(SELECTED_SERVER_INDEX,mailServerIndex);
+		}
+		params.add(SERVER_LIST_SIZE,mailServerSize);
 		params.add(SELECTED_TAB_INDEX, index);
 		PageSystemConfiguration page = new PageSystemConfiguration(params);
 		setResponsePage(page);
