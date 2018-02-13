@@ -130,21 +130,21 @@ CREATE TABLE m_assignment_ext_boolean (
   anyContainer_owner_id        INT                                   NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   booleanValue                 BIT                                   NOT NULL,
-  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id,, booleanValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, booleanValue)
 );
 CREATE TABLE m_assignment_ext_date (
   item_id                      INT                                   NOT NULL,
   anyContainer_owner_id        INT                                   NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   dateValue                    DATETIME2                             NOT NULL,
-  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id,, dateValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, dateValue)
 );
 CREATE TABLE m_assignment_ext_long (
   item_id                      INT                                   NOT NULL,
   anyContainer_owner_id        INT                                   NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   longValue                    BIGINT                                NOT NULL,
-  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id,, longValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, longValue)
 );
 CREATE TABLE m_assignment_ext_poly (
   item_id                      INT                                    NOT NULL,
@@ -152,7 +152,7 @@ CREATE TABLE m_assignment_ext_poly (
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   orig                         NVARCHAR(255) COLLATE database_default NOT NULL,
   norm                         NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id,, orig)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, orig)
 );
 CREATE TABLE m_assignment_ext_reference (
   item_id                      INT                                   NOT NULL,
@@ -161,14 +161,14 @@ CREATE TABLE m_assignment_ext_reference (
   targetoid                    NVARCHAR(36) COLLATE database_default NOT NULL,
   relation                     NVARCHAR(157) COLLATE database_default,
   targetType                   INT,
-  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id,, targetoid)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, targetoid)
 );
 CREATE TABLE m_assignment_ext_string (
   item_id                      INT                                    NOT NULL,
   anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   stringValue                  NVARCHAR(255) COLLATE database_default NOT NULL,
-  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id,, stringValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, stringValue)
 );
 CREATE TABLE m_assignment_extension (
   owner_id        INT                                   NOT NULL,
