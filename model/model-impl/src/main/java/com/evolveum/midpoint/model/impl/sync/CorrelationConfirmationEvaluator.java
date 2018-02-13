@@ -62,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
 import java.util.HashSet;
 import java.util.Set;
 

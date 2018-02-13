@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.model.IModel;
 
 /**

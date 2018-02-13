@@ -19,10 +19,8 @@ import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 

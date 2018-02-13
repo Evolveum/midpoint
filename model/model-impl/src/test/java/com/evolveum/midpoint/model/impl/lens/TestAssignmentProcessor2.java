@@ -60,12 +60,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeCollection;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * Comprehensive test of assignment evaluator and processor.

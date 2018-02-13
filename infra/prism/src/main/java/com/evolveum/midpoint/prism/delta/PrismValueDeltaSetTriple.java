@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;

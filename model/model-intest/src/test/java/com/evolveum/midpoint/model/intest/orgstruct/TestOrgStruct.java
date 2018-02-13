@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.orgstruct;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -69,8 +68,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author semancik

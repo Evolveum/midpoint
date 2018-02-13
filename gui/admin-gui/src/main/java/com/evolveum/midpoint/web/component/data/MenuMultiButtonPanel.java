@@ -18,13 +18,11 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

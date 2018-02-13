@@ -19,7 +19,6 @@ package com.evolveum.midpoint.model.impl.scripting.helpers;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

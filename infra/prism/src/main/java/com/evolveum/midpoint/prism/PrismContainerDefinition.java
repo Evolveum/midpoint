@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

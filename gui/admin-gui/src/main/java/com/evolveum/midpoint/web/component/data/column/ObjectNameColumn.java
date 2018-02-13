@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;

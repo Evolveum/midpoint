@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.common.refinery;
 
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
-import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * @author mederly

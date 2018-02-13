@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.model.impl.security;
 
-import java.io.IOException;
-
 import javax.ws.rs.container.ContainerRequestContext;
 
 import org.apache.cxf.configuration.security.AuthorizationPolicy;

@@ -17,36 +17,9 @@
 package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.MarkupStream;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.springframework.security.web.WebAttributes;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 /**
  * Page with no authorizations. It is used for testing: to make sure that nobody can access this page.

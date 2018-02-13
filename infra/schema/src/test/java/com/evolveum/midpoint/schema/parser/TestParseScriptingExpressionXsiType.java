@@ -17,7 +17,6 @@ package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;

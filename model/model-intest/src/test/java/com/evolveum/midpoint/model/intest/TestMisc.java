@@ -34,7 +34,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;

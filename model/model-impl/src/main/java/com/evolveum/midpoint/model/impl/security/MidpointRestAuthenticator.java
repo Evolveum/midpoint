@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.impl.security;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;

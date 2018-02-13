@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.session;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;

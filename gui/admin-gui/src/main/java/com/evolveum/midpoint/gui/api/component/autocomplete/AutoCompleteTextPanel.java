@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.web.component.prism.PrismValuePanel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;

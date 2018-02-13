@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -61,7 +60,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;

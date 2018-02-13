@@ -21,7 +21,6 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
 import javax.persistence.Transient;
-import java.util.Objects;
 
 /**
  * @author lazyman

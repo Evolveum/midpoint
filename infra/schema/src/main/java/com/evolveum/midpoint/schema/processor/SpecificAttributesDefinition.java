@@ -16,13 +16,6 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * @author mederly
  */

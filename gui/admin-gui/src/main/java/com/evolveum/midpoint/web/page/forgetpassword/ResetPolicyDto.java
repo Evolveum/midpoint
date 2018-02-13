@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;

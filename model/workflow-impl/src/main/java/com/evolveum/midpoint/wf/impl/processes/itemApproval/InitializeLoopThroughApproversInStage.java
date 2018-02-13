@@ -32,7 +32,6 @@ import org.activiti.engine.delegate.JavaDelegate;
 import java.util.*;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.SKIP;
 
 /**
  * @author mederly

@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;

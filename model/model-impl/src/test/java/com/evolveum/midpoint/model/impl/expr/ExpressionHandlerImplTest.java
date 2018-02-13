@@ -21,10 +21,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

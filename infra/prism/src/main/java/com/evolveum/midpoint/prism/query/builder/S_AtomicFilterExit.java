@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 /**
  * @author mederly
  */

@@ -68,7 +68,6 @@ import java.util.*;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;

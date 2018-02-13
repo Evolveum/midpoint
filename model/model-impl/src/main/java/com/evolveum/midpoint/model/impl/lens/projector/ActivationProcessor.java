@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -78,7 +77,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).

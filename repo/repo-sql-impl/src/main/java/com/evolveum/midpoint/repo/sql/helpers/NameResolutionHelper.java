@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.transform.Transformers;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 

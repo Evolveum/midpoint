@@ -16,15 +16,10 @@
 
 package com.evolveum.midpoint.common.refinery;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author mederly

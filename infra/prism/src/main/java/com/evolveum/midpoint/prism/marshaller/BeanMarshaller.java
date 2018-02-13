@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 import java.lang.reflect.*;
 import java.util.*;

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 

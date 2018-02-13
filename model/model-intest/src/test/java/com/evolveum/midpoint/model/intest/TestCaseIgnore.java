@@ -53,7 +53,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**

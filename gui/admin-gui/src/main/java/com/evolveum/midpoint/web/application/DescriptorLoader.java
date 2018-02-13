@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.util.ExactMatchMountedMapper;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.DescriptorType;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.ObjectFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 

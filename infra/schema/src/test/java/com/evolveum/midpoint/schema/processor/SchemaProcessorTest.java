@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;

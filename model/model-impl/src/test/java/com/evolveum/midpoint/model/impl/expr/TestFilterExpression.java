@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.impl.expr;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.io.IOException;

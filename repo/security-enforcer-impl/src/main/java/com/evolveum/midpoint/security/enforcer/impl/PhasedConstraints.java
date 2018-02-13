@@ -17,7 +17,6 @@ package com.evolveum.midpoint.security.enforcer.impl;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 /**

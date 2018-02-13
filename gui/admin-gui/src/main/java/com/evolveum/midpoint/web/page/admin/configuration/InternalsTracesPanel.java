@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 

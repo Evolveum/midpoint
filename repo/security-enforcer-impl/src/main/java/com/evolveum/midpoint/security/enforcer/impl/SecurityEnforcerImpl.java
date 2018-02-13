@@ -18,14 +18,11 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;

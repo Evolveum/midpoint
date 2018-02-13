@@ -17,10 +17,6 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly

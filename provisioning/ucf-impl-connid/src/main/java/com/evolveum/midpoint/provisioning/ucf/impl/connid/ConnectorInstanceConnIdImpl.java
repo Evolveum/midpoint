@@ -112,7 +112,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;

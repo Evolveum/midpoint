@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.web;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
