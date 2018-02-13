@@ -750,11 +750,11 @@ CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
   ON m_object (lifecycleState);
-create index iExtensionString on m_object_ext_boolean (booleanValue);
-create index iExtensionString on m_object_ext_date (dateValue);
-create index iExtensionString on m_object_ext_long (longValue);
-create index iExtensionString on m_object_ext_poly (orig);
-create index iExtensionString on m_object_ext_reference (targetoid);
+create index iExtensionBoolean on m_object_ext_boolean (booleanValue);
+create index iExtensionDate on m_object_ext_date (dateValue);
+create index iExtensionLong on m_object_ext_long (longValue);
+create index iExtensionPolyString on m_object_ext_poly (orig);
+create index iExtensionReference on m_object_ext_reference (targetoid);
 create index iExtensionString on m_object_ext_string (stringValue);
 CREATE INDEX iOpExecTaskOid
   ON m_operation_execution (taskRef_targetOid);

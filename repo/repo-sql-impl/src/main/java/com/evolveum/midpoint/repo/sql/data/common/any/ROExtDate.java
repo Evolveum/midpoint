@@ -35,7 +35,7 @@ import java.util.Objects;
 @Entity
 @IdClass(ROExtDateId.class)
 @Table(name = "m_object_ext_date", indexes = {
-        @Index(name = "iExtensionString", columnList = "dateValue")
+        @Index(name = "iExtensionDate", columnList = "dateValue")
 })
 public class ROExtDate extends ROExtBase {
 

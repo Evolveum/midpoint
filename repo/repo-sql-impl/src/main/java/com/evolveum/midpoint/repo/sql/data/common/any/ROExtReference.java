@@ -37,7 +37,7 @@ import java.util.Objects;
 @Entity
 @IdClass(ROExtReferenceId.class)
 @Table(name = "m_object_ext_reference", indexes = {
-        @Index(name = "iExtensionString", columnList = "targetoid")
+        @Index(name = "iExtensionReference", columnList = "targetoid")
 })
 public class ROExtReference extends ROExtBase {
 
