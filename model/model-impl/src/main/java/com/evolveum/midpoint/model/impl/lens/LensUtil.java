@@ -211,6 +211,7 @@ public class LensUtil {
 		//noinspection unchecked
 		V cloned = (V) value.clone();
 		if (isAssignment && cloned instanceof PrismContainerValue) {
+			((PrismContainerValue) cloned).setId(null);
 			String originMappingName = originMappingNameSupplier.get();
 			LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
 			if (originMappingName != null) {
