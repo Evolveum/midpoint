@@ -89,7 +89,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXECUTE = "policy-generate-execute";
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE = "policy-generate-password-execute";
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE = "policy-generate-honorific-prefix-execute";
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT = "policy-generate-explicit";
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT_NO_VALUE_POLICY = "policy-generate-explicit-no-value-policy";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT = "policy-validate-explicit";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY = "policy-validate-explicit-no-value-policy";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD = "policy-validate-implicit-password";
@@ -1133,7 +1136,59 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
+	@Test
+	public void test516validateValueExplicitNoValuePolicy() throws Exception {
+		final String TEST_NAME = "test516validateValueExplicitNoValuePolicy";
+		displayTestTitle(this, TEST_NAME);
 
+		WebClient client = prepareClient();
+		client.path("/rpc/validate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		traceResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
+
+	}
+	
+
+	@Test
+	public void test517generateValueExplicit() throws Exception {
+		final String TEST_NAME = "test517generateValueExplicit";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/rpc/generate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		traceResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
 	@Test
 	public void test600modifySecurityQuestionAnswer() throws Exception {
 		final String TEST_NAME = "test600modifySecurityQuestionAnswer";
