@@ -221,6 +221,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         }
     }
 
+    @NotNull
     public Collection<? extends ItemDelta<?,?>> getModifications() {
         return modifications;
     }

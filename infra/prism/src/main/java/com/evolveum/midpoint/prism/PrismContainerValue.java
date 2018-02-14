@@ -1096,7 +1096,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (thisValue.getItems() !=  null) {
 			for (Item<?,?> thisItem: thisValue.getItems()) {
 				Item otherItem = other.findItem(thisItem.getElementName());
-				if (!isLiteral) {
+				if (!isLiteral) {       // here should be perhaps ignoreMetadata instead
 					ItemDefinition itemDef = thisItem.getDefinition();
 					if (itemDef == null && other.getDefinition() != null) {
 						itemDef = other.getDefinition().findItemDefinition(thisItem.getElementName());
@@ -1118,7 +1118,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 					// Already processed in previous loop
 					continue;
 				}
-				if (!isLiteral) {
+				if (!isLiteral) {       // here should be perhaps ignoreMetadata instead
 					ItemDefinition itemDef = otherItem.getDefinition();
 					if (itemDef == null && thisValue.getDefinition() != null) {
 						itemDef = thisValue.getDefinition().findItemDefinition(otherItem.getElementName());
