@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+<filter>
+	<equal>
+        <path xmlns:s="http://midpoint.evolveum.com/blabla">c:attributes/s:fooNonExisting</path>
+        <value xsi:type="xsd:string">uid=jbond,ou=People,dc=example,dc=com</value>
+    </equal>
+</filter>
+</query>

@@ -21,7 +21,9 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Session;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.HashMap;
@@ -92,17 +94,28 @@ public class ExtItemDictionary {
 	//	}
 
 	@NotNull
+	public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, @NotNull Session session) {
+		return createOrFindItemByDefinitionInternal(definition, session, true);
+	}
+
+	@Nullable
 	public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition, @NotNull Session session) {
+		return createOrFindItemByDefinitionInternal(definition, session, false);
+	}
+
+	@Contract("_, _, true -> !null")
+	private synchronized RExtItem createOrFindItemByDefinitionInternal(@NotNull ItemDefinition<?> definition, @NotNull Session session,
+			boolean create) {
 		boolean fetchedNow = fetchItemsIfNeeded(session);
 		RExtItem.Key key = RExtItem.createKeyFromDefinition(definition);
 		RExtItem item = itemsByKey.get(key);
 		if (item == null && !fetchedNow) {
-			LOGGER.debug("Ext item for " + key + " not found, fetching all items.");
+			LOGGER.debug("Ext item for {} not found, fetching all items.", key);
 			fetchItems(session);
 			item = itemsByKey.get(key);
 		}
-		if (item == null) {
-			LOGGER.debug("Ext item for " + key + " not found even in current items; creating it.");
+		if (item == null && create) {
+			LOGGER.debug("Ext item for {} not found even in current items; creating it.", key);
 			item = RExtItem.createFromDefinition(definition);
 			session.persist(item);
 			System.out.println("Persisted item definition: " + item);
