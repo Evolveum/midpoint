@@ -45,7 +45,7 @@ import java.util.*;
  * @author mederly
  */
 public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
-    private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectClassDefinition.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RefinedResourceSchemaImpl.class);
     private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName() + ".parsedResourceSchema";
     private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName() + ".refinedSchema";
 
