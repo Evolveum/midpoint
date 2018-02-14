@@ -141,7 +141,7 @@ public class RAnyConverter {
 
         ItemDefinition definition = value.getParent().getDefinition();
 
-        if (!isIndexed(definition, prismContext)) {
+        if (!isIndexed(definition, value.getParent().getElementName(), prismContext)) {
             return null;
         }
 
@@ -174,7 +174,7 @@ public class RAnyConverter {
 
         ItemDefinition definition = item.getDefinition();
         Set<RAnyValue<?>> rValues = new HashSet<>();
-        if (!isIndexed(definition, prismContext)) {
+        if (!isIndexed(definition, item.getElementName(), prismContext)) {
             return rValues;
         }
 
@@ -200,7 +200,8 @@ public class RAnyConverter {
         return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
     }
 
-    private static boolean isIndexed(ItemDefinition definition, PrismContext prismContext) throws SchemaException {
+    private static boolean isIndexed(ItemDefinition definition, QName elementName, PrismContext prismContext)
+            throws SchemaException {
         if (definition instanceof PrismContainerDefinition) {
             return false;
         }
@@ -209,7 +210,7 @@ public class RAnyConverter {
         }
         if (!(definition instanceof PrismPropertyDefinition)) {
             throw new UnsupportedOperationException("Unknown definition type '"
-                    + definition + "', can't say if it's indexed or not.");
+                    + definition + "', can't say if '" + elementName + "' is indexed or not.");
         }
 
         PrismPropertyDefinition pDefinition = (PrismPropertyDefinition) definition;
@@ -312,8 +313,9 @@ public class RAnyConverter {
      */
     public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
             SchemaException, QueryException {
-        if (!isIndexed(definition, prismContext)) {
-            throw new QueryException("Can't query non-indexed value, definition " + definition);
+        if (!isIndexed(definition, definition.getName(), prismContext)) {
+            throw new QueryException("Can't query non-indexed value for '" + definition.getName()
+                    + "', definition " + definition);
         }
         QName typeName = definition.getTypeName();
 
