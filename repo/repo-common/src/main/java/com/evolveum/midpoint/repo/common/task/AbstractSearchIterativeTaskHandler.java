@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.FilterUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -491,7 +492,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     		return null;
     	}
     	SearchFilterType filterType = objectRef.getFilter();
-    	if (filterType == null) {
+    	if (filterType == null || FilterUtils.isFilterEmpty(filterType)) {
     		return null;
     	}
     	QueryType queryType = new QueryType();
