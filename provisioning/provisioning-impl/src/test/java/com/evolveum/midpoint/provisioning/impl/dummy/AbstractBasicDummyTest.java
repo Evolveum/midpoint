@@ -1082,10 +1082,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		account.checkConsistence();
 
-		// We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
-		// definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
-		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, 
-				GetOperationOptions.createRawCollection(), result);
+		PrismObject<ShadowType> accountRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		// Added account is slightly different case. Even not-returned-by-default attributes are stored in the cache.
 		checkRepoAccountShadowWill(accountRepo, start, end);
 
@@ -1140,8 +1137,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, null, result);
+		PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.debugDump());
 
@@ -1218,7 +1214,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountWill(shadow, result, startTs, endTs);
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
 
 		checkConsistency(shadow);
@@ -1336,7 +1332,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertEquals("Unexpected number of attributes", 7, attributes.size());
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWillBasic(shadowRepo, startTs, endTs, null);
 
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");

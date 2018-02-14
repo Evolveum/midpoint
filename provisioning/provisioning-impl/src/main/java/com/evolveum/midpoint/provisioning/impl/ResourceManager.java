@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -984,10 +985,8 @@ public class ResourceManager {
 			}
 		}
 	
-	private PropertyDelta<?> createResourceAvailabilityStatusDelta(PrismObject<ResourceType> resource, AvailabilityStatusType status) {
-		PropertyDelta<?> statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.getDefinition(), status);
-		statusDelta.setParentPath(new ItemPath(ResourceType.F_OPERATIONAL_STATE));
-		return statusDelta;
+	private PropertyDelta<AvailabilityStatusType> createResourceAvailabilityStatusDelta(PrismObject<ResourceType> resource, AvailabilityStatusType status) {
+		return PropertyDelta.createModificationReplaceProperty(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS, resource.getDefinition(), status);
 	}
 
 	/**

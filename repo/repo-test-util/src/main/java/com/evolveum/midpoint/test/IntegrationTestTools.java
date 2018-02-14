@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -595,7 +596,7 @@ public class IntegrationTestTools {
 
 		ObjectQuery query = createAllShadowsQuery(resourceType, prismContext);
 
-		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, GetOperationOptions.createRawCollection(), result);
 		LOGGER.trace("Checking {} shadows, query:\n{}", allShadows.size(), query.debugDump());
 
 		for (PrismObject<ShadowType> shadow: allShadows) {

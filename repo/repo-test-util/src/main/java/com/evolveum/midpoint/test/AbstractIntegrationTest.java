@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -2291,7 +2292,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected PrismObject<ShadowType> getShadowRepo(String shadowOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("getShadowRepo");
-		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+		// We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
+		// definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, GetOperationOptions.createRawCollection(), result);
 		assertSuccess(result);
 		return shadow;
 	}

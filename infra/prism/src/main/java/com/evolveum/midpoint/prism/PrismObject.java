@@ -274,6 +274,21 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return objectDelta;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?,?>> modifications) {
+		if (modifications == null) {
+    		return null;
+    	}
+    	Collection narrowedModifications = new ArrayList<>(modifications.size());
+    	for (ItemDelta<?, ?> modification: modifications) {
+    		ItemDelta<?, ?> narrowedModifiacation = modification.narrow(this);
+    		if (narrowedModifiacation != null && !narrowedModifiacation.isEmpty()) {
+    			narrowedModifications.add(narrowedModifiacation);
+    		}
+    	}
+    	return narrowedModifications;
+	}
+	
 	public ObjectDelta<O> createDelta(ChangeType changeType) {
 		ObjectDelta<O> delta = new ObjectDelta<>(getCompileTimeClass(), changeType, getPrismContext());
 		delta.setOid(getOid());

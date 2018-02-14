@@ -925,9 +925,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
     }
 
-    public void setPropertyRealValue(QName propertyName, Object realValue, PrismContext prismContext) throws SchemaException {
+    public <T> void setPropertyRealValue(QName propertyName, T realValue, PrismContext prismContext) throws SchemaException {
 		checkMutability();
-    	PrismProperty<?> property = findOrCreateProperty(propertyName);
+    	PrismProperty<T> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
         if (property.getPrismContext() == null) {
             property.setPrismContext(prismContext);

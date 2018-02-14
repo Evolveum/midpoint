@@ -1528,7 +1528,96 @@ public class TestDelta {
 		PrismAsserts.assertNoDelete(narrowedDelta);
 		assertTrue("Delta not empty", narrowedDelta.isEmpty());
 	}
+	
+	@Test
+    public void testObjectDeltaNarrow01() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaNarrow01 ]===\n");
 
+		// GIVEN
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
+				UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "blabla", "bubu");
+		System.out.println("userDelta:");
+		System.out.println(userDelta.debugDump(1));
+
+		PrismObject<UserType> user = createUserNoAssignment();
+		System.out.println("User:");
+		System.out.println(user.debugDump(1));
+
+		// WHEN
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		System.out.println("Narrowed delta:");
+		System.out.println(narrowedDelta.debugDump(1));
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 1);
+        PropertyDelta<String> narrowedAdditionalNamesDelta = narrowedDelta.findPropertyDelta(UserType.F_ADDITIONAL_NAMES);
+        assertNotNull("No additionalNames delta after summarize", narrowedAdditionalNamesDelta);
+		PrismAsserts.assertNoReplace(narrowedAdditionalNamesDelta);
+        PrismAsserts.assertAdd(narrowedAdditionalNamesDelta, "blabla", "bubu");
+		PrismAsserts.assertNoDelete(narrowedAdditionalNamesDelta);
+	}
+
+	@Test
+    public void testObjectDeltaNarrow02() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaNarrow02 ]===\n");
+
+		// GIVEN
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
+				UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "blabla", "bubu");
+		System.out.println("userDelta:");
+		System.out.println(userDelta.debugDump(1));
+
+		PrismObject<UserType> user = createUserNoAssignment();
+		user.setPropertyRealValue(UserType.F_ADDITIONAL_NAMES, "bubu");
+		System.out.println("User:");
+		System.out.println(user.debugDump(1));
+
+		// WHEN
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		System.out.println("Narrowed delta:");
+		System.out.println(narrowedDelta.debugDump(1));
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 1);
+        PropertyDelta<String> narrowedAdditionalNamesDelta = narrowedDelta.findPropertyDelta(UserType.F_ADDITIONAL_NAMES);
+        assertNotNull("No additionalNames delta after summarize", narrowedAdditionalNamesDelta);
+		PrismAsserts.assertNoReplace(narrowedAdditionalNamesDelta);
+        PrismAsserts.assertAdd(narrowedAdditionalNamesDelta, "blabla");
+		PrismAsserts.assertNoDelete(narrowedAdditionalNamesDelta);
+	}
+
+	@Test
+    public void testObjectDeltaNarrow03() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaNarrow03 ]===\n");
+
+		// GIVEN
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
+				UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "blabla", "bubu");
+		System.out.println("userDelta:");
+		System.out.println(userDelta.debugDump(1));
+
+		PrismObject<UserType> user = createUserNoAssignment();
+		user.setPropertyRealValues(UserType.F_ADDITIONAL_NAMES, "bubu", "blabla");
+		System.out.println("User:");
+		System.out.println(user.debugDump(1));
+
+		// WHEN
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		System.out.println("Narrowed delta:");
+		System.out.println(narrowedDelta.debugDump(1));
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 0);
+	}
 
 	private PrismObject<UserType> createUser() throws SchemaException {
 

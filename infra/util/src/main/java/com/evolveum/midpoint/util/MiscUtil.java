@@ -103,7 +103,11 @@ public class MiscUtil {
 	 * Only zero vs non-zero value of comparator is important.
 	 */
 	public static <T> boolean unorderedCollectionCompare(Collection<T> a, Collection<T> b, final Comparator<T> comparator) {
-		return unorderedCollectionEquals(a, b, (xa, xb) -> comparator.compare(xa, xb) == 0);
+		if (comparator == null) {
+			return unorderedCollectionEquals(a, b);
+		} else {
+			return unorderedCollectionEquals(a, b, (xa, xb) -> comparator.compare(xa, xb) == 0);
+		}
 	}
 
 	/**

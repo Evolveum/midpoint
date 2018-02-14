@@ -236,12 +236,23 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         addValue(value);
     }
 
-	public void setRealValue(Object realValue) {
+	public void setRealValue(T realValue) {
 		if (realValue == null) {
 			// Just make sure there are no values
 			clear();
 		} else {
-			setValue(new PrismPropertyValue(realValue));
+			setValue(new PrismPropertyValue<>(realValue));
+		}
+    }
+	
+	public void setRealValues(T... realValues) {
+		clear();
+		if (realValues == null || realValues.length == 0) {
+			// nothing to do, already cleared
+		} else {
+			for (T realValue: realValues) {
+				addValue(new PrismPropertyValue<>(realValue));
+			}
 		}
     }
 

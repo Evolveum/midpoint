@@ -245,10 +245,16 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     	return null;
     }
 
-    public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
+    public <T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException {
 		checkMutability();
-    	PrismProperty<?> property = findOrCreateProperty(propertyName);
+    	PrismProperty<T> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
+    }
+    
+    public <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException {
+		checkMutability();
+    	PrismProperty<T> property = findOrCreateProperty(propertyName);
+    	property.setRealValues(realValues);
     }
 
     public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {

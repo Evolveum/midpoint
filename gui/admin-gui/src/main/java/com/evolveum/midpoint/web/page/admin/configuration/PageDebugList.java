@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017 Evolveum
+/* Copyright (c) 2010-2018 Evolveum
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -926,7 +926,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		PrismPropertyDefinition rawDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN, getPrismContext());
-		PrismProperty<QName> rawProp = rawDef.instantiate();
+		PrismProperty<Boolean> rawProp = rawDef.instantiate();
 		rawProp.setRealValue(raw);
 		task.setExtensionProperty(rawProp);
 

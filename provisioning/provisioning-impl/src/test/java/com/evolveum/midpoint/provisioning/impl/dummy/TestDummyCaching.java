@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ public class TestDummyCaching extends TestDummy {
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertEquals("Unexpected number of attributes", 7, attributes.size());
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
 
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
@@ -210,7 +210,7 @@ public class TestDummyCaching extends TestDummy {
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 		assertEquals("Unexpected number of attributes", 7, attributes.size());
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
 
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");

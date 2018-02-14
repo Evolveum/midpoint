@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -788,7 +788,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	public ItemDelta<?, ?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
-		PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
+		PrismProperty<Object> property = (PrismProperty<Object>) definition.instantiate();
 		property.setRealValue(realValue);
 		//        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
 		//        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));

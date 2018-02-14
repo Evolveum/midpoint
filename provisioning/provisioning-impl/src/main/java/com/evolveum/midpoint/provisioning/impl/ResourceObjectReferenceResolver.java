@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,6 +152,7 @@ public class ResourceObjectReferenceResolver {
 	/**
 	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(ProvisioningContext ctx,
 			Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -170,10 +171,10 @@ public class ResourceObjectReferenceResolver {
 		}
 		RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
 		Collection primaryIdentifiers = new ArrayList<>();
-		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
+		for (PrismProperty property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
-				ResourceAttribute<?> primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
+				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
 						attrDef, prismContext);
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
@@ -186,6 +187,7 @@ public class ResourceObjectReferenceResolver {
 	/**
 	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
 	 */
+	@SuppressWarnings("unchecked")
 	private ResourceObjectIdentification resolvePrimaryIdentifiers(ProvisioningContext ctx,
 			ResourceObjectIdentification identification, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -211,7 +213,8 @@ public class ResourceObjectReferenceResolver {
 		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
-				ResourceAttribute<?> primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
+				@SuppressWarnings("rawtypes")
+				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
 						attrDef, prismContext);
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);

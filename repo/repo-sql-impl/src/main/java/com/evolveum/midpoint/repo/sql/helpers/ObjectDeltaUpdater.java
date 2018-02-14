@@ -47,6 +47,7 @@ import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -112,9 +113,7 @@ public class ObjectDeltaUpdater {
         // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
 
         // preprocess modifications
-        PrismObject changed = prismObject.clone();
-        ItemDelta.applyTo(modifications, changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, true, true);
+        Collection<? extends ItemDelta> processedModifications = prismObject.narrowModifications((Collection<? extends ItemDelta<?, ?>>) modifications);
 
         // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
@@ -219,8 +218,11 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private boolean isOperationResult(ItemDelta delta) {
+    private boolean isOperationResult(ItemDelta delta) throws SchemaException {
         ItemDefinition def = delta.getDefinition();
+        if (def == null) {
+        	throw new SchemaException("No definition in delta for item "+delta.getPath());
+        }
         return OperationResultType.COMPLEX_TYPE.equals(def.getTypeName());
     }
 

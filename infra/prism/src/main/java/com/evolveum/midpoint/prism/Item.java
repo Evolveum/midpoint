@@ -544,6 +544,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     		boolean ignoreMetadata, boolean isLiteral) {
     	ItemDelta delta = createDelta();
     	if (other == null) {
+    		if (delta.getDefinition() == null && this.getDefinition() != null) {
+    			delta.setDefinition(this.getDefinition().clone());
+    		}
     		//other doesn't exist, so delta means delete all values
             for (PrismValue value : getValues()) {
             	PrismValue valueClone = value.clone();

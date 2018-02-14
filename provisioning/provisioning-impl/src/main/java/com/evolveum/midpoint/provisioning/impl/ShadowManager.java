@@ -1821,7 +1821,7 @@ public class ShadowManager {
 			ObjectDelta<ShadowType> shadowDelta = currentRepoShadow.createModifyDelta();
 			for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
 				if (item instanceof PrismProperty<?>) {
-					PrismProperty<?> attrProperty = (PrismProperty<?>)item;
+					PrismProperty<Object> attrProperty = (PrismProperty<Object>)item;
 					RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(attrProperty.getElementName());
 					if (attrDef == null) {
 						// No definition for this property, it should not be in the shadow
@@ -1829,6 +1829,7 @@ public class ShadowManager {
 						oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(attrProperty.getValues()));
 						shadowDelta.addModification(oldRepoAttrPropDelta);
 					} else {
+						attrProperty.applyDefinition(attrDef);
 						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
 						List<PrismPropertyValue> valuesToAdd = null;
 						List<PrismPropertyValue> valuesToDelete = null;

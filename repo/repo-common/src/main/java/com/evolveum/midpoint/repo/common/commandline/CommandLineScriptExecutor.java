@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class CommandLineScriptExecutor {
 	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 	    			sourceDefinition.setMaxOccurs(1);
 	    			PrismProperty<String> sourceProperty = sourceDefinition.instantiate();
-	    			sourceProperty.setRealValue(defaultObject);
+	    			sourceProperty.setRealValue(defaultObject==null?null:defaultObject.toString());
 	    			sourceItem = sourceProperty;
 	    		} else {
 	    			sourceItem = null;
