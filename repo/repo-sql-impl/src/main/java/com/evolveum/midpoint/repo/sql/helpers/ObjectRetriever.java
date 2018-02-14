@@ -515,19 +515,24 @@ public class ObjectRetriever {
             //we store it because provisioning now sends it to repo, but it should be transient
             prismObject.removeContainer(ShadowType.F_ASSOCIATION);
 
-            LOGGER.debug("Loading definitions for shadow attributes.");
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            if (GetOperationOptions.isRaw(rootOptions)) {
+                LOGGER.debug("Loading definitions for shadow attributes.");
 
-            Short[] counts = result.getCountProjection();
-            Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
+                Short[] counts = result.getCountProjection();
+                Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
 
-            for (int i = 0; i < classes.length; i++) {
-                if (counts[i] == null || counts[i] == 0) {
-                    continue;
+                for (int i = 0; i < classes.length; i++) {
+                    if (counts[i] == null || counts[i] == 0) {
+                        continue;
+                    }
+
+                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
                 }
-
-                applyShadowAttributeDefinitions(classes[i], prismObject, session);
+                LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
+            } else {
+                LOGGER.debug("Not loading definitions for shadow attributes, raw=false");
             }
-            LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
             lookupTableHelper.updateLoadedLookupTable(prismObject, options, session);
         } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
