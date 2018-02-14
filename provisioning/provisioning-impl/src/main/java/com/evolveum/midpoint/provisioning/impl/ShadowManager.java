@@ -1649,6 +1649,9 @@ public class ShadowManager {
 							}
 							attrAddDelta.addValueToAdd(new PrismPropertyValue(normalizedRealValue));
 						}
+						if (attrAddDelta.getDefinition().getTypeName() == null) {
+							throw new SchemaException("No definition in "+attrAddDelta);
+						}
 						shadowDelta.addModification(attrAddDelta);
 					} else {
 						if (attrDef.isSingleValue()) {
@@ -1662,6 +1665,9 @@ public class ShadowManager {
 							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
 								PropertyDelta delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
 								delta.setDefinition(currentResourceAttrProperty.getDefinition());
+								if (delta.getDefinition().getTypeName() == null) {
+									throw new SchemaException("No definition in "+delta);
+								}
 							}
 						} else {
 							PrismProperty<Object> normalizedCurrentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrProperty.clone();
@@ -1678,6 +1684,9 @@ public class ShadowManager {
 //									attrDiff==null?null:attrDiff.debugDump(1));
 							if (attrDiff != null && !attrDiff.isEmpty()) {
 								attrDiff.setParentPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+								if (attrDiff.getDefinition().getTypeName() == null) {
+									throw new SchemaException("No definition in "+attrDiff);
+								}
 								shadowDelta.addModification(attrDiff);
 							}
 							
@@ -1697,6 +1706,9 @@ public class ShadowManager {
 					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
 					oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(oldRepoAttrProperty.getValues()));
+					if (oldRepoAttrPropDelta.getDefinition().getTypeName() == null) {
+						throw new SchemaException("No definition in "+oldRepoAttrPropDelta);
+					}
 					shadowDelta.addModification(oldRepoAttrPropDelta);
 				}
 			}
@@ -1743,8 +1755,9 @@ public class ShadowManager {
 			}
 			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
 			try {
-
+				
 				repositoryService.modifyObject(ShadowType.class, oldRepoShadow.getOid(), shadowDelta.getModifications(), parentResult);
+				
 			} catch (ObjectAlreadyExistsException e) {
 				// This should not happen for shadows
 				throw new SystemException(e.getMessage(), e);

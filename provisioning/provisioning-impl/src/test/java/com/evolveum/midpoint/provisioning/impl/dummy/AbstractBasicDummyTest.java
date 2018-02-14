@@ -1082,7 +1082,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		account.checkConsistence();
 
-		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		// We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
+		// definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
+		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, 
+				GetOperationOptions.createRawCollection(), result);
 		// Added account is slightly different case. Even not-returned-by-default attributes are stored in the cache.
 		checkRepoAccountShadowWill(accountRepo, start, end);
 

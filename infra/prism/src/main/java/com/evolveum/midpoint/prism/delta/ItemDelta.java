@@ -1831,11 +1831,6 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
@@ -1846,7 +1841,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		sb.append(path);
 
 		if (definition != null && DebugUtil.isDetailedDebugDump()) {
-			sb.append(" def");
+			sb.append(" ").append(definition);
 		}
 
 		if (valuesToReplace != null) {
