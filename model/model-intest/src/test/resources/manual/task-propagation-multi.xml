@@ -38,6 +38,7 @@
 				<q:value>propagated</q:value>
 			</q:equal>
 		</filter>
+		<resolutionTime>run</resolutionTime>
 	</objectRef> 
 	
 	<recurrence>single</recurrence>

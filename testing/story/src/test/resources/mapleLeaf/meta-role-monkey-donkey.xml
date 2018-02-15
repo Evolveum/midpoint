@@ -6,9 +6,9 @@
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="301188c5-2545-4123-96ed-8aabda7c3710"
+      oid="7384756g-2545-4123-96ed-8aabda7c3710"
       version="11">
-   <name>Squirel</name>
+   <name>Metarole Monkey,Donkey</name>
    <inducement id="4">
       <construction>
          <resourceRef oid="10000000-0000-0000-0000-000000000000"
@@ -16,19 +16,17 @@
                       type="c:ResourceType"></resourceRef>
          <attribute id="5">
             <c:ref>ri:initials</c:ref>
-            <exclusiveStrong>true</exclusiveStrong>
             <tolerant>false</tolerant>
             <outbound>
-               <exclusive>true</exclusive>
-               <tolerant>false</tolerant>
                <strength>strong</strength>
                <expression>
                   <value>monkey</value>
                   <value>donkey</value>
-                  <value>squirel</value>
                </expression>
             </outbound>
          </attribute>
       </construction>
+      <order>2</order>
+      <focusType>UserType</focusType>
    </inducement>
 </role>

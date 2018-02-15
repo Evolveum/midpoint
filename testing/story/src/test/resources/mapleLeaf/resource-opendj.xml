@@ -88,6 +88,15 @@
             </outbound>
          </attribute>
          <attribute>
+            <ref>ri:cn</ref>
+            <displayName>Surname</displayName>
+            <outbound>
+               <source>
+                  <path>fullName</path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
             <ref>ri:uid</ref>
             <displayName>Login name</displayName>
             <secondaryIdentifier>true</secondaryIdentifier>
@@ -119,7 +128,7 @@
                <expression>
                   <script>
                      <code>
-						'CN='+name + iterationToken+',OU=People,DC=example,DC=com'
+						'uid='+name + iterationToken+',ou=People,dc=example,dc=com'
 					 </code>
                   </script>
                </expression>
@@ -127,13 +136,9 @@
          </attribute>
          <attribute id="24">
             <c:ref>ri:initials</c:ref>
-            <exclusiveStrong>true</exclusiveStrong>
+            <tolerant>false</tolerant>
             <outbound>
-               <strength>normal</strength>
-               <tolerant>false</tolerant>
-               <source>
-               	<path>assignment</path>
-               </source>
+               <strength>weak</strength>
                <expression>
                   <value>monkey</value>
                   <value>donkey</value>
@@ -165,6 +170,37 @@
                </inbound>
             </administrativeStatus>
          </activation>
+         <credentials>
+         	<password>
+         		<outbound>
+         			<source>
+         				<path>credentials/password/value</path>
+         			</source>
+         			<source>
+         				<path>credentials/password/forceChange</path>
+         			</source>
+         			<expression>
+         				<script>
+         					<code>
+         						log.info("###### value " + value)
+         						return value;
+         					</code>
+         				</script>
+         			</expression>
+         			<condition>
+         				<script>
+         					<code>
+         						if (!midpoint.isEvaluateNew()) {
+         							return false;
+         						}
+         					
+	         					return forceChange == null || !forceChange.asBoolean()
+         					</code>
+         				</script>
+         			</condition>
+         		</outbound>
+         	</password>
+         </credentials>
       </objectType>
       <objectType>
          <kind>entitlement</kind>

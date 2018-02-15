@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -114,6 +116,17 @@ public class WebModelServiceUtils {
         if (definition == null) {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
+        }
+        if (reference.getOid() == null) {
+        	if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
+        		// Runtime reference resolution. Ignore it for now. Later we maybe would want to resolve it here.
+        		// But it may resolve to several objects ....
+        		return null;
+        	} else {
+        		LOGGER.error("Null OID in reference {}", reference);
+        		// Throw an exception instead? Maybe not. We want GUI to be robust.
+        		return null;
+        	}
         }
         return loadObject(definition.getCompileTimeClass(), reference.getOid(), createNoFetchCollection(), page, task, result);
     }
