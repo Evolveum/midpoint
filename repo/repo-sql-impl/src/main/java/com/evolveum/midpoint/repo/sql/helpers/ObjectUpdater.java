@@ -202,7 +202,7 @@ public class ObjectUpdater {
         if (originalOid != null) {
             try {
                 oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true, result);
-                ObjectDelta<T> delta = object.diff(oldObject);
+                ObjectDelta<T> delta = oldObject.diff(object, false, true);
                 modifications = delta.getModifications();
 
                 LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}", originalOid, modifications);

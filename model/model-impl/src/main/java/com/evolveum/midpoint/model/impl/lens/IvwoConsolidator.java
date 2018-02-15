@@ -399,7 +399,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         if (itemContainer != null) {
         	itemNew = itemContainer.findItem(itemPath);
         }
-		if (!hasValue(itemNew, itemDelta)) {
+        if (!hasValue(itemNew, itemDelta)) {
 			// The application of computed delta results in no value, apply weak mappings
 			Collection<? extends ItemValueWithOrigin<V,D>> nonNegativePvwos = ivwoTriple.getNonNegativeValues();
 			Collection<ItemValueWithOrigin<V,D>> valuesToAdd = selectWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS);
@@ -466,6 +466,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 	private Collection<ItemValueWithOrigin<V,D>> collectIvwosFromSet(V pvalue, Collection<? extends ItemValueWithOrigin<V,D>> deltaSet, boolean keepValidInvalid) throws SchemaException {
     	Collection<ItemValueWithOrigin<V,D>> ivwos = new ArrayList<>();
         for (ItemValueWithOrigin<V,D> setIvwo : deltaSet) {
+        	if (!shouldProcessMapping(setIvwo.getMapping().getStrength())) {
+        		continue;
+        	}
         	if (!setIvwo.isValid()) {
         		if (!keepValidInvalid) {
         			continue;
@@ -481,6 +484,21 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
         return ivwos;
     }
+	
+	private boolean shouldProcessMapping(MappingStrengthType mappingStrength) {
+		
+		if (mappingStrength == MappingStrengthType.STRONG && !strengthSelector.isStrong()) {
+			return false;
+		}
+		if (mappingStrength == MappingStrengthType.NORMAL && !strengthSelector.isNormal()) {
+			return false;
+		}
+		if (mappingStrength == MappingStrengthType.WEAK && !strengthSelector.isWeak()) {
+			return false;
+		}
+		
+		return true;
+	}
 	
 	private <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> selectWeakValues(Collection<? extends ItemValueWithOrigin<V,D>> pvwos, OriginType origin) {
 		Collection<ItemValueWithOrigin<V,D>> values = new ArrayList<>();
