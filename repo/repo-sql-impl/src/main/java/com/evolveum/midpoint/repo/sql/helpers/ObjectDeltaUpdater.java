@@ -95,7 +95,7 @@ public class ObjectDeltaUpdater {
     public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                           PrismObject<T> prismObject, Session session) throws SchemaException {
 
-        LOGGER.debug("Starting to build entity changes based on delta via reference");
+        LOGGER.debug("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
 
         // normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
 
@@ -114,6 +114,9 @@ public class ObjectDeltaUpdater {
 
         // preprocess modifications
         Collection<? extends ItemDelta> processedModifications = prismObject.narrowModifications((Collection<? extends ItemDelta<?, ?>>) modifications);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+        }
 
         // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
@@ -124,7 +127,9 @@ public class ObjectDeltaUpdater {
         for (ItemDelta delta : processedModifications) {
             ItemPath path = delta.getPath();
 
-            LOGGER.trace("Processing delta with path '{}'", path);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Processing delta with path '{}'", path);
+            }
 
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
                 handleObjectExtensionOrAttributesDelta(object, delta);
