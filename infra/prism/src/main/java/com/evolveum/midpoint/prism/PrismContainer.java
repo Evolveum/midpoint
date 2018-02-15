@@ -787,10 +787,25 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
     @Override
 	public boolean containsEquivalentValue(PrismContainerValue<C> value) {
-    	if (value.getId() == null) {
+    	if (value.isIdOnly()) {
+    		PrismContainerValue<C> myValue = findValue(value.getId());
+    		return myValue != null;
+    	} else if (value.getId() == null) {
     		return super.contains(value, true);
     	} else {
     		return super.contains(value, false);
+    	}
+	}
+    
+    @Override
+	public boolean containsEquivalentValue(PrismContainerValue<C> value, Comparator<PrismContainerValue<C>> comparator) {
+    	if (value.isIdOnly()) {
+    		PrismContainerValue<C> myValue = findValue(value.getId());
+    		return myValue != null;
+    	} else if (value.getId() == null) {
+    		return super.contains(value, true, comparator);
+    	} else {
+    		return super.contains(value, false, comparator);
     	}
 	}
 

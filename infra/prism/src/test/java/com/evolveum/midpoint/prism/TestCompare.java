@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,10 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
+ * @see TestEquals
  * @author semancik
- *
  */
-public abstract class TestCompare {
+public abstract class TestCompare extends AbstractPrismTest {
 
 	private static final QName REF_QNAME = new QName(NS_FOO, "ref");
 	private static final QName REF_TYPE_QNAME = new QName(NS_FOO, "RefType");;
@@ -63,18 +63,13 @@ public abstract class TestCompare {
 		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
 	}
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
-
 	/**
 	 * Parse the same files twice, compare the results.
 	 */
 	@Test
 	public void testCompareJack() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testCompareJack ]===");
+		final String TEST_NAME="testCompareJack";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -104,7 +99,8 @@ public abstract class TestCompare {
 	 */
 	@Test
 	public void testDiffJack() throws Exception {
-		System.out.println("===[ testDiffJack ]===");
+		final String TEST_NAME="testDiffJack";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -163,7 +159,8 @@ public abstract class TestCompare {
 	 */
 	@Test
 	public void testDiffJackLiteral() throws Exception {
-		System.out.println("===[ testDiffJackLiteral ]===");
+		final String TEST_NAME="testDiffJackLiteral";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -215,7 +212,8 @@ public abstract class TestCompare {
 
 	@Test
 	public void testDiffPatchRoundTrip() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testDiffPatchRoundTrip ]===");
+		final String TEST_NAME="testDiffPatchRoundTrip";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -244,7 +242,8 @@ public abstract class TestCompare {
 
 	@Test
 	public void testEqualsReferenceValues() throws Exception {
-		System.out.println("===[ testEqualsReferenceValues ]===");
+		final String TEST_NAME="testEqualsReferenceValues";
+		displayTestTitle(TEST_NAME);
 
 		PrismContext prismContext = constructInitializedPrismContext();
 
@@ -318,7 +317,8 @@ public abstract class TestCompare {
 
 	@Test
 	public void testEqualsReferenceValuesSchema() throws Exception {
-		System.out.println("===[ testEqualsReferenceValuesSchema ]===");
+		final String TEST_NAME="testEqualsReferenceValuesSchema";
+		displayTestTitle(TEST_NAME);
 
 		PrismContext prismContext = constructInitializedPrismContext();
 
@@ -415,28 +415,4 @@ public abstract class TestCompare {
 
 	}
 
-	@Test(enabled = false)				// normalization no longer removes empty values
-	public void testEqualsBrokenAssignmentActivation() throws Exception {
-		System.out.println("===[ testEqualsReferenceValues ]===");
-
-		// GIVEN
-		PrismObjectDefinition<UserType> userDef = PrismInternalTestUtil.getUserTypeDefinition();
-		PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
-		PrismContainer<AssignmentType> goodAssignment = assignmentDef.instantiate(UserType.F_ASSIGNMENT);
-		PrismContainer<AssignmentType> brokenAssignment = goodAssignment.clone();
-		assertEquals("Not equals after clone", goodAssignment, brokenAssignment);
-		// lets break one of these ...
-		PrismContainerValue<AssignmentType> emptyValue = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
-		brokenAssignment.add(emptyValue);
-
-		// WHEN
-		assertFalse("Unexpected equals", goodAssignment.equals(brokenAssignment));
-
-		brokenAssignment.normalize();
-		assertEquals("Not equals after normalize(bad)", goodAssignment, brokenAssignment);
-
-		goodAssignment.normalize();
-		assertEquals("Not equals after normalize(good)", goodAssignment, brokenAssignment);
-
-	}
 }

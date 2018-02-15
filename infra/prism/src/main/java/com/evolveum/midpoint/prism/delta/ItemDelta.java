@@ -924,7 +924,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	    			Iterator<V> iterator = clone.valuesToDelete.iterator();
 	    			while (iterator.hasNext()) {
 	    				V valueToDelete = iterator.next();
-	    				if (!currentItem.contains(valueToDelete, true, comparator)) {
+	    				if (!currentItem.containsEquivalentValue(valueToDelete, comparator)) {
 	    					iterator.remove();
 	    				}
 	    			}
@@ -935,8 +935,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	    		if (clone.valuesToAdd != null) {
 	    			Iterator<V> iterator = clone.valuesToAdd.iterator();
 	    			while (iterator.hasNext()) {
-	    				V valueToDelete = iterator.next();
-	    				if (currentItem.contains(valueToDelete, true, comparator)) {
+	    				V valueToAdd = iterator.next();
+	    				if (currentItem.containsEquivalentValue(valueToAdd, comparator)) {
 	    					iterator.remove();
 	    				}
 	    			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.io.IOException;
 import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -28,9 +27,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.delta.*;
 
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
@@ -43,26 +40,17 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
-public class TestDelta {
-
-	private static final String USER_FOO_OID = "01234567";
-
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
+public class TestDelta extends AbstractPrismTest {
 
 	@Test
     public void testDeltaPaths() throws Exception {
-		System.out.println("\n\n===[ testDeltaPaths ]===\n");
+		final String TEST_NAME="testDeltaPaths";
+		displayTestTitle(TEST_NAME);
 
 		PrismPropertyDefinition<String> descDefinition = new PrismPropertyDefinitionImpl<>(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
@@ -78,7 +66,7 @@ public class TestDelta {
 
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 		ObjectDelta<UserType> assObjDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
 		ItemDelta<?,?> assDelta1 = assObjDelta1.getModifications().iterator().next();
@@ -113,7 +101,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge01() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge01 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge01";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -139,7 +128,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge02() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge02 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge02";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -165,7 +155,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge03() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge03 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge03";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -193,7 +184,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge04() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge04 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge04";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -221,7 +213,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge05() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge05 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge05";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -248,7 +241,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge06() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge06 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge06";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -275,7 +269,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge10() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge10 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge10";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -301,7 +296,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge11() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge11 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge11";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -328,7 +324,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge12() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge12 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge12";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -355,7 +352,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge13() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge13 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge13";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -381,7 +379,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaMerge20() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaMerge20 ]===\n");
+		final String TEST_NAME="testPropertyDeltaMerge20";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -408,7 +407,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaSwallow01() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaSwallow01 ]===\n");
+		final String TEST_NAME="testPropertyDeltaSwallow01";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -439,7 +439,8 @@ public class TestDelta {
 
 	@Test
     public void testSummarize01() throws Exception {
-		System.out.println("\n\n===[ testSummarize01 ]===\n");
+		final String TEST_NAME="testSummarize01";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -473,7 +474,8 @@ public class TestDelta {
 
 	@Test
     public void testSummarize02() throws Exception {
-		System.out.println("\n\n===[ testSummarize02 ]===\n");
+		final String TEST_NAME="testSummarize02";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -507,7 +509,8 @@ public class TestDelta {
 
 	@Test
     public void testSummarize05() throws Exception {
-		System.out.println("\n\n===[ testSummarize05 ]===\n");
+		final String TEST_NAME="testSummarize05";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -543,7 +546,8 @@ public class TestDelta {
 
     @Test
     public void testSummarize06() throws Exception {
-        System.out.println("\n\n===[ testSummarize06 ]===\n");
+    	final String TEST_NAME="testSummarize06";
+		displayTestTitle(TEST_NAME);
 
         // GIVEN
         PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinitionImpl(UserType.F_PARENT_ORG_REF,
@@ -577,11 +581,12 @@ public class TestDelta {
 
 	@Test
     public void testAddPropertyMulti() throws Exception {
-		System.out.println("\n\n===[ testAddPropertyMulti ]===\n");
+		final String TEST_NAME="testAddPropertyMulti";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// User
-		PrismObject<UserType> user = createUser();
+		PrismObject<UserType> user = createUserFooPatlama();
 
 		//Delta
     	ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, UserType.F_ADDITIONAL_NAMES,
@@ -600,16 +605,17 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentSameNullIdApplyToObject() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentSameNullIdApplyToObject ]===\n");
+		final String TEST_NAME="testAddAssignmentSameNullIdApplyToObject";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// User
-		PrismObject<UserType> user = createUser();
+		PrismObject<UserType> user = createUserFooPatlama();
 
 		//Delta
     	PrismContainerValue<AssignmentType> assignmentValue = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue);
@@ -629,13 +635,14 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentSameNullIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentSameNullIdSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentSameNullIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -643,7 +650,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -665,13 +672,14 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentDifferentNullIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentDifferentNullIdSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentDifferentNullIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -679,7 +687,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -702,13 +710,14 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentDifferentFirstIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentDifferentFirstIdSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentDifferentFirstIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -716,7 +725,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -739,13 +748,14 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentDifferentSecondIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentDifferentSecondIdSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentDifferentSecondIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// The value id is null
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -753,7 +763,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -776,13 +786,14 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentDifferentTwoIdsSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentDifferentTwoIdsSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentDifferentTwoIdsSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -790,7 +801,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -813,13 +824,14 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentDifferentIdSameSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentDifferentIdConflictSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentDifferentIdSameSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -827,7 +839,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -850,13 +862,14 @@ public class TestDelta {
 	// MID-1296
 	@Test(enabled=false)
     public void testAddAssignmentDifferentIdConflictSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentDifferentIdConflictSwallow ]===\n");
+		final String TEST_NAME="testAddAssignmentDifferentIdConflictSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
@@ -864,7 +877,7 @@ public class TestDelta {
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -876,17 +889,18 @@ public class TestDelta {
 
 	@Test
     public void testAddDeltaAddAssignmentDifferentNoIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddDeltaAddAssignmentDifferentNoIdSwallow ]===\n");
+		final String TEST_NAME="testAddDeltaAddAssignmentDifferentNoIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
-		PrismObject<UserType> user = createUser();
+		PrismObject<UserType> user = createUserFooPatlama();
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createAddDelta(user);
 
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// null container ID
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -912,17 +926,18 @@ public class TestDelta {
 
 	@Test
     public void testAddDeltaNoAssignmentAddAssignmentDifferentNoIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddDeltaNoAssignmentAddAssignmentDifferentNoIdSwallow ]===\n");
+		final String TEST_NAME="testAddDeltaNoAssignmentAddAssignmentDifferentNoIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createAddDelta(user);
 
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	// null container ID
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -944,17 +959,18 @@ public class TestDelta {
 
 	@Test
     public void testAddDeltaNoAssignmentAddAssignmentDifferentIdSwallow() throws Exception {
-		System.out.println("\n\n===[ testAddDeltaNoAssignmentAddAssignmentDifferentIdSwallow ]===\n");
+		final String TEST_NAME="testAddDeltaNoAssignmentAddAssignmentDifferentIdSwallow";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta 1
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 		ObjectDelta<UserType> userDelta1 = ObjectDelta.createAddDelta(user);
 
 		//Delta 2
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
-    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra", PrismTestUtil.getPrismContext());
+    	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
     	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
@@ -976,11 +992,12 @@ public class TestDelta {
 
 	@Test
     public void testAddAssignmentActivationDifferentNullIdApplyToObject() throws Exception {
-		System.out.println("\n\n===[ testAddAssignmentActivationDifferentNullIdApplyToObject ]===\n");
+		final String TEST_NAME="testAddAssignmentActivationDifferentNullIdApplyToObject";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// User
-		PrismObject<UserType> user = createUser();
+		PrismObject<UserType> user = createUserFooPatlama();
 
 		//Delta
     	PrismContainerValue<ActivationType> activationValue = new PrismContainerValue<ActivationType>(PrismTestUtil.getPrismContext());
@@ -1012,7 +1029,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaApplyToAdd() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaApplyToAdd ]===\n");
+		final String TEST_NAME="testObjectDeltaApplyToAdd";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
@@ -1030,7 +1048,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaApplyToDelete() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaApplyToDelete ]===\n");
+		final String TEST_NAME="testObjectDeltaApplyToDelete";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
@@ -1048,7 +1067,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaApplyToReplace() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaApplyToReplace ]===\n");
+		final String TEST_NAME="testObjectDeltaApplyToReplace";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
@@ -1066,7 +1086,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaApplyToReplaceEmpty() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaApplyToReplaceEmpty ]===\n");
+		final String TEST_NAME="testObjectDeltaApplyToReplaceEmpty";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
@@ -1084,7 +1105,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaFindItemDeltaModifyProperty() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaFindItemDeltaModifyProperty ]===\n");
+		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyProperty";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
     	ObjectDelta<UserType> userDelta = createDeltaForFindItem();
@@ -1102,7 +1124,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaFindItemDeltaModifyPropertyInContainer() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaFindItemDeltaModifyPropertyInContainer ]===\n");
+		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyPropertyInContainer";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		ObjectDelta<UserType> userDelta = createDeltaForFindItem();
 		System.out.println("Object delta:\n"+userDelta.debugDump());
@@ -1145,7 +1168,8 @@ public class TestDelta {
 	 */
 	@Test
     public void testObjectDeltaUnion01Simple() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaUnion01Simple ]===\n");
+		final String TEST_NAME="testObjectDeltaUnion01Simple";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta
@@ -1166,7 +1190,8 @@ public class TestDelta {
 	 */
 	@Test
     public void testObjectDeltaUnion01Metadata() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaUnion01Metadata ]===\n");
+		final String TEST_NAME="testObjectDeltaUnion01Metadata";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
@@ -1204,7 +1229,8 @@ public class TestDelta {
 	 */
 	@Test
     public void testObjectDeltaUnion02() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaUnion02 ]===\n");
+		final String TEST_NAME="testObjectDeltaUnion02";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta
@@ -1231,7 +1257,8 @@ public class TestDelta {
 	 */
 	@Test
     public void testObjectDeltaUnion03() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaUnion03 ]===\n");
+		final String TEST_NAME="testObjectDeltaUnion03";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		//Delta
@@ -1265,7 +1292,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaSummarizeModifyAdd() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyAdd ]===\n");
+		final String TEST_NAME="testObjectDeltaSummarizeModifyAdd";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
@@ -1287,7 +1315,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaSummarizeModifyReplace() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyReplace ]===\n");
+		final String TEST_NAME="testObjectDeltaSummarizeModifyReplace";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID,
@@ -1309,7 +1338,8 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaSummarizeModifyMix() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyMix ]===\n");
+		final String TEST_NAME="testObjectDeltaSummarizeModifyMix";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
@@ -1333,10 +1363,11 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaSummarizeAddModifyMix() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaSummarizeAddModifyMix ]===\n");
+		final String TEST_NAME="testObjectDeltaSummarizeAddModifyMix";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
-		PrismObject<UserType> user = createUser();
+		PrismObject<UserType> user = createUserFooPatlama();
 		ObjectDelta<UserType> userDelta0 = ObjectDelta.createAddDelta(user);
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
     			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
@@ -1360,7 +1391,8 @@ public class TestDelta {
 
     @Test
     public void testObjectDeltaSummarizeAddModifySameRefValues() throws Exception {
-        System.out.println("\n\n===[ testObjectDeltaSummarizeAddModifySameRefValues ]===\n");
+    	final String TEST_NAME="testObjectDeltaSummarizeAddModifySameRefValues";
+		displayTestTitle(TEST_NAME);
         // GIVEN
 
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
@@ -1392,7 +1424,8 @@ public class TestDelta {
     }
 	@Test
     public void testDeltaComplex() throws Exception {
-		System.out.println("\n\n===[ testDeltaComplex ]===\n");
+		final String TEST_NAME="testDeltaComplex";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
@@ -1451,7 +1484,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaNarrow01() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaNarrow01 ]===\n");
+		final String TEST_NAME="testPropertyDeltaNarrow01";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -1461,7 +1495,7 @@ public class TestDelta {
 		delta.addValueToAdd(new PrismPropertyValue<String>("blabla"));
 		delta.addValueToAdd(new PrismPropertyValue<String>("bubu"));
 
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 
 		// WHEN
 		PropertyDelta<String> narrowedDelta = delta.narrow(user);
@@ -1477,7 +1511,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaNarrow02() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaNarrow02 ]===\n");
+		final String TEST_NAME="testPropertyDeltaNarrow02";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -1487,7 +1522,7 @@ public class TestDelta {
 		delta.addValueToAdd(new PrismPropertyValue<String>("blabla"));
 		delta.addValueToAdd(new PrismPropertyValue<String>("bubu"));
 
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 		user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
 
 		// WHEN
@@ -1504,7 +1539,8 @@ public class TestDelta {
 
 	@Test
     public void testPropertyDeltaNarrow03() throws Exception {
-		System.out.println("\n\n===[ testPropertyDeltaNarrow03 ]===\n");
+		final String TEST_NAME="testPropertyDeltaNarrow03";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
@@ -1513,7 +1549,7 @@ public class TestDelta {
 		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta.addValueToAdd(new PrismPropertyValue<String>("bubu"));
 
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 		user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
 
 		// WHEN
@@ -1531,25 +1567,25 @@ public class TestDelta {
 	
 	@Test
     public void testObjectDeltaNarrow01() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaNarrow01 ]===\n");
+		final String TEST_NAME="testObjectDeltaNarrow01";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
-				UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "blabla", "bubu");
-		System.out.println("userDelta:");
-		System.out.println(userDelta.debugDump(1));
+				UserType.F_ADDITIONAL_NAMES, getPrismContext(), "blabla", "bubu");
+		display("userDelta", userDelta);
 
-		PrismObject<UserType> user = createUserNoAssignment();
-		System.out.println("User:");
-		System.out.println(user.debugDump(1));
+		PrismObject<UserType> user = createUserFoo();
+		display("user", user);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
 
 		// THEN
-		System.out.println("Narrowed delta:");
-		System.out.println(narrowedDelta.debugDump(1));
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
 
 		PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 1);
@@ -1562,26 +1598,26 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaNarrow02() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaNarrow02 ]===\n");
+		final String TEST_NAME="testObjectDeltaNarrow02";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
-				UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "blabla", "bubu");
-		System.out.println("userDelta:");
-		System.out.println(userDelta.debugDump(1));
+				UserType.F_ADDITIONAL_NAMES, getPrismContext(), "blabla", "bubu");
+		display("userDelta", userDelta);
 
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 		user.setPropertyRealValue(UserType.F_ADDITIONAL_NAMES, "bubu");
-		System.out.println("User:");
-		System.out.println(user.debugDump(1));
+		display("user", user);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
 
 		// THEN
-		System.out.println("Narrowed delta:");
-		System.out.println(narrowedDelta.debugDump(1));
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
 
 		PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 1);
@@ -1594,54 +1630,147 @@ public class TestDelta {
 
 	@Test
     public void testObjectDeltaNarrow03() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaNarrow03 ]===\n");
+		final String TEST_NAME="testObjectDeltaNarrow03";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
-				UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "blabla", "bubu");
-		System.out.println("userDelta:");
-		System.out.println(userDelta.debugDump(1));
+				UserType.F_ADDITIONAL_NAMES, getPrismContext(), "blabla", "bubu");
+		display("userDelta", userDelta);
 
-		PrismObject<UserType> user = createUserNoAssignment();
+		PrismObject<UserType> user = createUserFoo();
 		user.setPropertyRealValues(UserType.F_ADDITIONAL_NAMES, "bubu", "blabla");
-		System.out.println("User:");
-		System.out.println(user.debugDump(1));
+		display("user", user);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
 
 		// THEN
-		System.out.println("Narrowed delta:");
-		System.out.println(narrowedDelta.debugDump(1));
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
 
 		PrismAsserts.assertIsModify(narrowedDelta);
         PrismAsserts.assertModifications(narrowedDelta, 0);
 	}
+	
+	@Test
+    public void testObjectDeltaNarrowAssignmen01() throws Exception {
+		final String TEST_NAME="testObjectDeltaNarrowAssignmen01";
+		displayTestTitle(TEST_NAME);
 
-	private PrismObject<UserType> createUser() throws SchemaException {
+		// GIVEN
 
-		PrismObject<UserType> user = createUserNoAssignment();
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, getPrismContext(), createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION));
+		display("userDelta", userDelta);
 
-		PrismContainer<AssignmentType> assignment = user.findOrCreateContainer(UserType.F_ASSIGNMENT);
-    	PrismContainerValue<AssignmentType> assignmentValue = assignment.createNewValue();
-    	assignmentValue.setId(123L);
-    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", PrismTestUtil.getPrismContext());
+		PrismObject<UserType> user = createUserFoo();
+		addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
+		display("user", user);
 
-    	return user;
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 0);
 	}
+	
+	@Test
+    public void testObjectDeltaNarrowAssignmen02() throws Exception {
+		final String TEST_NAME="testObjectDeltaNarrowAssignmen02";
+		displayTestTitle(TEST_NAME);
 
-	private PrismObject<UserType> createUserNoAssignment() throws SchemaException {
-		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		// GIVEN
 
-		PrismObject<UserType> user = userDef.instantiate();
-		user.setOid(USER_FOO_OID);
-		user.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("foo"));
-		PrismProperty<PolyString> anamesProp = user.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
-		anamesProp.addRealValue(PrismTestUtil.createPolyString("foobar"));
-		
-    	return user;
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, getPrismContext(), createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null));
+		display("userDelta", userDelta);
+
+		PrismObject<UserType> user = createUserFoo();
+		addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
+		display("user", user);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 0);
 	}
+	
+	@Test
+    public void testObjectDeltaNarrowAssignmen11() throws Exception {
+		final String TEST_NAME="testObjectDeltaNarrowAssignmen11";
+		displayTestTitle(TEST_NAME);
 
+		// GIVEN
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, getPrismContext(), createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION));
+		display("userDelta", userDelta);
+
+		PrismObject<UserType> user = createUserFoo();
+		addAssignment(user, ASSIGNMENT_PATLAMA_ID, ASSIGNMENT_PATLAMA_DESCRIPTION);
+		addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
+		display("user", user);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 1);
+        assertAssignmentDelete(narrowedDelta, 1);
+        assertAssignmentDelete(narrowedDelta, null, ASSIGNMENT_PATLAMA_DESCRIPTION);
+        assertAssignmentAdd(narrowedDelta, 0);
+        assertAssignmentReplace(narrowedDelta, 0);
+	}
+	
+	@Test
+    public void testObjectDeltaNarrowAssignmen12() throws Exception {
+		final String TEST_NAME="testObjectDeltaNarrowAssignmen12";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, getPrismContext(), createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null));
+		display("userDelta", userDelta);
+
+		PrismObject<UserType> user = createUserFoo();
+		addAssignment(user, ASSIGNMENT_PATLAMA_ID, ASSIGNMENT_PATLAMA_DESCRIPTION);
+		addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
+		display("user", user);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Narrowed delta", narrowedDelta);
+
+		PrismAsserts.assertIsModify(narrowedDelta);
+        PrismAsserts.assertModifications(narrowedDelta, 1);
+        assertAssignmentDelete(narrowedDelta, 1);
+        assertAssignmentDelete(narrowedDelta, ASSIGNMENT_PATLAMA_ID, null);
+        assertAssignmentAdd(narrowedDelta, 0);
+        assertAssignmentReplace(narrowedDelta, 0);
+	}
 
 }

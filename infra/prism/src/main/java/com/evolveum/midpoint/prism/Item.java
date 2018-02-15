@@ -372,6 +372,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     public boolean containsEquivalentValue(V value) {
     	return contains(value, true);
     }
+    
+    public boolean containsEquivalentValue(V value, Comparator<V> comparator) {
+    	return contains(value, true, comparator);
+    }
 
     public boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator) {
     	if (comparator == null){

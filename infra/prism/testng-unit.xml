@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 			<class name="com.evolveum.midpoint.prism.TestCompareXml"/>
 			<class name="com.evolveum.midpoint.prism.TestCompareJson"/>
 			<class name="com.evolveum.midpoint.prism.TestCompareYaml"/>
+			<class name="com.evolveum.midpoint.prism.TestEquals"/>
             <class name="com.evolveum.midpoint.prism.TestXmlSerialization"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismObjectConstruction"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismSchemaConstruction"/>

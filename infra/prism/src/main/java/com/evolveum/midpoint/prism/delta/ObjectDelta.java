@@ -1101,7 +1101,8 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     	return objectDelta;
     }
 
-    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type,
+    @SafeVarargs
+	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type,
     		String oid, QName containerName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
     }
