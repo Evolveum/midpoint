@@ -32,7 +32,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;

@@ -17,8 +17,6 @@ package com.evolveum.midpoint.util.exception;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 
-import java.util.List;
-
 /**
  * @author semancik
  *

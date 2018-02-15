@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.web.page.login;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -10,8 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

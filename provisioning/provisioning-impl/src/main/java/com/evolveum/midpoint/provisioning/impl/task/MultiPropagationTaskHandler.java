@@ -22,11 +22,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
@@ -37,18 +33,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Task handler for provisioning propagation of many resources.

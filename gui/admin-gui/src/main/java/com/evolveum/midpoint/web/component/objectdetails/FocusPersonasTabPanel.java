@@ -32,14 +32,9 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;

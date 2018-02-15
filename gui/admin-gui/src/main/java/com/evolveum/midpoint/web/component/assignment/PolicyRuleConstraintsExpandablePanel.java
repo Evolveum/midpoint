@@ -1,20 +1,9 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 /**
  * Created by honchar

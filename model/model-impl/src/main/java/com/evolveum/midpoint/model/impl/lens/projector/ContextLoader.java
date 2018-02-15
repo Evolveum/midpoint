@@ -21,8 +21,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

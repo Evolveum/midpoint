@@ -30,6 +30,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;

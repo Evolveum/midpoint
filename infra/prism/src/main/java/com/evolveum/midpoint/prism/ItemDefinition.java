@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.function.Consumer;
 

@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Used to retrieve definition from 'global definition store' - i.e. store that contains a group of related definition(s),

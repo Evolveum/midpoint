@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.security.api;
 
-import java.util.function.Predicate;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;

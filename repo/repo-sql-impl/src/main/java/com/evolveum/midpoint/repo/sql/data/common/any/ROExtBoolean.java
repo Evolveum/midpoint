@@ -34,7 +34,7 @@ import java.util.Objects;
 @Entity
 @IdClass(ROExtBooleanId.class)
 @Table(name = "m_object_ext_boolean", indexes = {
-        @Index(name = "iExtensionString", columnList = "booleanValue")
+        @Index(name = "iExtensionBoolean", columnList = "booleanValue")
 })
 public class ROExtBoolean extends ROExtBase {
 

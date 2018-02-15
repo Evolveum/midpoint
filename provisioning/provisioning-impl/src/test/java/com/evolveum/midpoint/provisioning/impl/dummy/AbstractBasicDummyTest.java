@@ -26,7 +26,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

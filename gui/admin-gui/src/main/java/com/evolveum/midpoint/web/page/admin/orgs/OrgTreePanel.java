@@ -41,7 +41,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiFeature;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.FeatureVisibleEnableBehaviour;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;

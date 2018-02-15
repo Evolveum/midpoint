@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.web.page.self.dto;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**

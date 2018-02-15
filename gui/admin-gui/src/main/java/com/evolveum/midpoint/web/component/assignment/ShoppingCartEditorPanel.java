@@ -16,17 +16,12 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar.

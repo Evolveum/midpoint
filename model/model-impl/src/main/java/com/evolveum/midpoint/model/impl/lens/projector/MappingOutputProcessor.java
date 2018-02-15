@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;

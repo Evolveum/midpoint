@@ -17,11 +17,9 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.RepositoryFactory;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;

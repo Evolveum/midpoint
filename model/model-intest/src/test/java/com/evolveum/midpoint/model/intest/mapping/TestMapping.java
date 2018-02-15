@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest.mapping;
 
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,7 +36,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

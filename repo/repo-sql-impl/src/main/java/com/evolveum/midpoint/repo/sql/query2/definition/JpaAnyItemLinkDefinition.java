@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
@@ -29,11 +30,13 @@ import javax.xml.namespace.QName;
 public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefinition> {
 
     final private RObjectExtensionType ownerType;
+    final private ItemDefinition<?> itemDefinition;
 
-    JpaAnyItemLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification,
+    JpaAnyItemLinkDefinition(ItemDefinition<?> itemDefinition, String jpaName, CollectionSpecification collectionSpecification,
             RObjectExtensionType ownerType, JpaDataNodeDefinition targetDefinition) {
-        super(jaxbName, jpaName, collectionSpecification, false, targetDefinition);
+        super(itemDefinition.getName(), jpaName, collectionSpecification, false, targetDefinition);
         this.ownerType = ownerType;
+        this.itemDefinition = itemDefinition;
     }
 
     public RObjectExtensionType getOwnerType() {
@@ -42,5 +45,9 @@ public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefin
 
     public QName getItemName() {
         return ((NameItemPathSegment) getItemPathSegment()).getName();
+    }
+
+    public ItemDefinition<?> getItemDefinition() {
+        return itemDefinition;
     }
 }

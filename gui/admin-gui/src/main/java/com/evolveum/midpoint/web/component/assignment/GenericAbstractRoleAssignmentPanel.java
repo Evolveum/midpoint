@@ -21,19 +21,14 @@ import java.util.List;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPanel {
 

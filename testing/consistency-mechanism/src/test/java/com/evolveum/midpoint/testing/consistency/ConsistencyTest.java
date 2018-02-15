@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.testing.consistency;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
@@ -26,7 +24,6 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +37,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;

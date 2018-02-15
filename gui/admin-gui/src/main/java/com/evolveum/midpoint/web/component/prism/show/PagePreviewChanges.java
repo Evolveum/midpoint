@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;

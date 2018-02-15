@@ -162,7 +162,7 @@ public class RAnyConverter {
             throw new AssertionError("Wrong value type: " + value);
         }
 
-        rValue.setItem(ExtItemDictionary.getInstance().findItemByDefinition(definition, session));
+        rValue.setItem(ExtItemDictionary.getInstance().createOrFindItemDefinition(definition, session));
 
         return rValue;
     }

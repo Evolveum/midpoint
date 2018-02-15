@@ -34,7 +34,7 @@ import java.util.Objects;
 @Entity
 @IdClass(ROExtLongId.class)
 @Table(name = "m_object_ext_long", indexes = {
-        @Index(name = "iExtensionString", columnList = "longValue")
+        @Index(name = "iExtensionLong", columnList = "longValue")
 })
 public class ROExtLong extends ROExtBase {
 

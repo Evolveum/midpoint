@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
 

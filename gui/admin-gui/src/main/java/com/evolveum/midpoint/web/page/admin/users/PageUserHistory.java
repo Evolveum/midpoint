@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;

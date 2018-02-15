@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class OrFilter extends NaryLogicalFilter {

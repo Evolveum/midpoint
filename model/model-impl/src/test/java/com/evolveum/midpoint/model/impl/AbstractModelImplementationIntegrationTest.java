@@ -47,7 +47,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Consumer;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**

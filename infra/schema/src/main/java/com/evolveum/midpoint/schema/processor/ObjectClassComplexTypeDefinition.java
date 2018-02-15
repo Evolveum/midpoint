@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;

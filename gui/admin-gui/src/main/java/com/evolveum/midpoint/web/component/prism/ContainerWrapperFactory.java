@@ -23,9 +23,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -36,8 +33,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
-import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;

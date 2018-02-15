@@ -130,21 +130,21 @@ CREATE TABLE m_assignment_ext_boolean (
   anyContainer_owner_id        INT                                   NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   booleanValue                 BIT                                   NOT NULL,
-  PRIMARY KEY (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, booleanValue)
 );
 CREATE TABLE m_assignment_ext_date (
   item_id                      INT                                   NOT NULL,
   anyContainer_owner_id        INT                                   NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   dateValue                    DATETIME2                             NOT NULL,
-  PRIMARY KEY (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, dateValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, dateValue)
 );
 CREATE TABLE m_assignment_ext_long (
   item_id                      INT                                   NOT NULL,
   anyContainer_owner_id        INT                                   NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   longValue                    BIGINT                                NOT NULL,
-  PRIMARY KEY (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, longValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, longValue)
 );
 CREATE TABLE m_assignment_ext_poly (
   item_id                      INT                                    NOT NULL,
@@ -152,7 +152,7 @@ CREATE TABLE m_assignment_ext_poly (
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   orig                         NVARCHAR(255) COLLATE database_default NOT NULL,
   norm                         NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, orig)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, orig)
 );
 CREATE TABLE m_assignment_ext_reference (
   item_id                      INT                                   NOT NULL,
@@ -161,14 +161,14 @@ CREATE TABLE m_assignment_ext_reference (
   targetoid                    NVARCHAR(36) COLLATE database_default NOT NULL,
   relation                     NVARCHAR(157) COLLATE database_default,
   targetType                   INT,
-  PRIMARY KEY (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, targetoid)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, targetoid)
 );
 CREATE TABLE m_assignment_ext_string (
   item_id                      INT                                    NOT NULL,
   anyContainer_owner_id        INT                                    NOT NULL,
   anyContainer_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   stringValue                  NVARCHAR(255) COLLATE database_default NOT NULL,
-  PRIMARY KEY (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue)
+  PRIMARY KEY ( anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, stringValue)
 );
 CREATE TABLE m_assignment_extension (
   owner_id        INT                                   NOT NULL,
@@ -315,21 +315,21 @@ CREATE TABLE m_object_ext_boolean (
   owner_oid    NVARCHAR(36) COLLATE database_default NOT NULL,
   ownerType    INT                                   NOT NULL,
   booleanValue BIT                                   NOT NULL,
-  PRIMARY KEY (item_id, owner_oid, ownerType, booleanValue)
+  PRIMARY KEY (owner_oid, ownerType, item_id, booleanValue)
 );
 CREATE TABLE m_object_ext_date (
   item_id   INT                                   NOT NULL,
   owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   ownerType INT                                   NOT NULL,
   dateValue DATETIME2                             NOT NULL,
-  PRIMARY KEY (item_id, owner_oid, ownerType, dateValue)
+  PRIMARY KEY (owner_oid, ownerType, item_id, dateValue)
 );
 CREATE TABLE m_object_ext_long (
   item_id   INT                                   NOT NULL,
   owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   ownerType INT                                   NOT NULL,
   longValue BIGINT                                NOT NULL,
-  PRIMARY KEY (item_id, owner_oid, ownerType, longValue)
+  PRIMARY KEY (owner_oid, ownerType, item_id, longValue)
 );
 CREATE TABLE m_object_ext_poly (
   item_id   INT                                    NOT NULL,
@@ -337,7 +337,7 @@ CREATE TABLE m_object_ext_poly (
   ownerType INT                                    NOT NULL,
   orig      NVARCHAR(255) COLLATE database_default NOT NULL,
   norm      NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY (item_id, owner_oid, ownerType, orig)
+  PRIMARY KEY (owner_oid, ownerType, item_id, orig)
 );
 CREATE TABLE m_object_ext_reference (
   item_id    INT                                   NOT NULL,
@@ -346,14 +346,14 @@ CREATE TABLE m_object_ext_reference (
   targetoid  NVARCHAR(36) COLLATE database_default NOT NULL,
   relation   NVARCHAR(157) COLLATE database_default,
   targetType INT,
-  PRIMARY KEY (item_id, owner_oid, ownerType, targetoid)
+  PRIMARY KEY (owner_oid, ownerType, item_id, targetoid)
 );
 CREATE TABLE m_object_ext_string (
   item_id     INT                                    NOT NULL,
   owner_oid   NVARCHAR(36) COLLATE database_default  NOT NULL,
   ownerType   INT                                    NOT NULL,
   stringValue NVARCHAR(255) COLLATE database_default NOT NULL,
-  PRIMARY KEY (item_id, owner_oid, ownerType, stringValue)
+  PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 );
 CREATE TABLE m_object_text_info (
   owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
@@ -750,11 +750,11 @@ CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
   ON m_object (lifecycleState);
-create index iExtensionString on m_object_ext_boolean (booleanValue);
-create index iExtensionString on m_object_ext_date (dateValue);
-create index iExtensionString on m_object_ext_long (longValue);
-create index iExtensionString on m_object_ext_poly (orig);
-create index iExtensionString on m_object_ext_reference (targetoid);
+create index iExtensionBoolean on m_object_ext_boolean (booleanValue);
+create index iExtensionDate on m_object_ext_date (dateValue);
+create index iExtensionLong on m_object_ext_long (longValue);
+create index iExtensionPolyString on m_object_ext_poly (orig);
+create index iExtensionReference on m_object_ext_reference (targetoid);
 create index iExtensionString on m_object_ext_string (stringValue);
 CREATE INDEX iOpExecTaskOid
   ON m_operation_execution (taskRef_targetOid);

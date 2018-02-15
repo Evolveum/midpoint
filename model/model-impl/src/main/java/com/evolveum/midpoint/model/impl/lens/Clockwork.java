@@ -67,7 +67,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;

@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;

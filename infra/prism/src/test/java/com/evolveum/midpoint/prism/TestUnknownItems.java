@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.annotations.BeforeSuite;

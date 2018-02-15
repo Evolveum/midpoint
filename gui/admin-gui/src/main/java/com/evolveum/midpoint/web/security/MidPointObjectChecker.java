@@ -17,18 +17,13 @@ package com.evolveum.midpoint.web.security;
 
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
-
 import org.apache.wicket.core.util.objects.checker.IObjectChecker;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author semancik

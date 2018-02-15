@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;

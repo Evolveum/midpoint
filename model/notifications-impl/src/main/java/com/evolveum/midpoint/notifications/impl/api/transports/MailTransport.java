@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -31,6 +32,8 @@ import java.util.Objects;
 //@IdClass(ROExtStringId.class)
 @Table(name = "m_ext_item")
 public class RExtItem {
+
+	public static final String F_ID = "id";
 
 	private Integer id;
 	//	private boolean dynamic;
@@ -144,6 +147,7 @@ public class RExtItem {
 		return new Key(name, type, kind);
 	}
 
+	@NotNull
 	public static RExtItem createFromDefinition(ItemDefinition<?> definition) {
 		return new RExtItem(createKeyFromDefinition(definition));
 	}

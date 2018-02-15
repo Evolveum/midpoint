@@ -22,13 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

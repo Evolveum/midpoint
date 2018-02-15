@@ -33,9 +33,8 @@ public class AnyPropertyRestriction extends PropertyRestriction {
 
     private static final Trace LOGGER = TraceManager.getTrace(AnyPropertyRestriction.class);
 
-
     public AnyPropertyRestriction(InterpretationContext context, PropertyValueFilter filter, JpaEntityDefinition baseEntityDefinition,
-                                  Restriction parent, JpaLinkDefinition jpaLinkDefinition) {
+            Restriction parent, JpaLinkDefinition jpaLinkDefinition) {
         super(context, filter, baseEntityDefinition, parent, jpaLinkDefinition);
     }
 
@@ -52,7 +51,4 @@ public class AnyPropertyRestriction extends PropertyRestriction {
             return addIsNotNullIfNecessary(c, propertyValuePath);
         }
     }
-
-
-
 }

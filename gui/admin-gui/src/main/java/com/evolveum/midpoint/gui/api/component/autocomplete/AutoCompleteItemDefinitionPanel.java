@@ -16,13 +16,10 @@
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,9 +28,7 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTe
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.convert.IConverter;
 
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
 public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {

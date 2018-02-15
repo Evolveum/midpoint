@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import javax.xml.namespace.QName;
 import java.util.List;
 
 /**

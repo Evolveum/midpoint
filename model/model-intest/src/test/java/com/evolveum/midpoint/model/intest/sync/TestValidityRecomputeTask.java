@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest.sync;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.util.ArrayList;

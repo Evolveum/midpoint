@@ -41,7 +41,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
@@ -71,7 +70,6 @@ import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.FrameworkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -100,8 +98,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Implementation of the UCF Connector Manager API interface for ConnId framework.

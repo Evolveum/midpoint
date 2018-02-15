@@ -14,7 +14,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar.

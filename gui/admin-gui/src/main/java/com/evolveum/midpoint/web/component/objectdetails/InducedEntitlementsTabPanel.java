@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.InducedEntitlementsPanel;
-import com.evolveum.midpoint.web.component.assignment.InducementsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;

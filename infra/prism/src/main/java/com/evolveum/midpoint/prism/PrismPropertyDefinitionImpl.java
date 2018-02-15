@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 

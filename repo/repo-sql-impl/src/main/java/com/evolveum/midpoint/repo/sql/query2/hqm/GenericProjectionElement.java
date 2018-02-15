@@ -16,11 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 /**
  * @author mederly
  */

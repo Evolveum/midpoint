@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;

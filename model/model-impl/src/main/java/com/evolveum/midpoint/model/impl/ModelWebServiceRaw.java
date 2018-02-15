@@ -64,9 +64,6 @@ import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
 import javax.xml.ws.soap.SOAPFaultException;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  *
  * @author mederly

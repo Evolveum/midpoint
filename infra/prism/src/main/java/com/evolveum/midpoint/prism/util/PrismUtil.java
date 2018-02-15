@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;

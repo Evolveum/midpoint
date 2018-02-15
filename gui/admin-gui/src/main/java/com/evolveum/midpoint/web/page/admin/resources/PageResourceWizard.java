@@ -42,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;

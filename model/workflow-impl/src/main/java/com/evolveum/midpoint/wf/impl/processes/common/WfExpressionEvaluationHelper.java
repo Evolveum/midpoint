@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.*;
@@ -45,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getExpressionFactory;
 

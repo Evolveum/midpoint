@@ -221,4 +221,8 @@ public class RootHibernateQuery extends HibernateQuery {
     public Condition createCompareXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {
         return new PropertyPropertyComparisonCondition(this, leftSidePropertyPath, rightSidePropertyPath, operator, ignoreCase);
     }
+
+    public Condition createFalse() {
+        return new ConstantCondition(this, false);
+    }
 }

@@ -20,13 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;

@@ -15,11 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,8 +27,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.internals.TestingPaths;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;

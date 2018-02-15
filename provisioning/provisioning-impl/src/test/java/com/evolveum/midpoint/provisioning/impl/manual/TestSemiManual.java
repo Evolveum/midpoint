@@ -19,8 +19,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.manual;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;

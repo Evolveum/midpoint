@@ -33,7 +33,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

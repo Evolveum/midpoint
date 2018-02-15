@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;

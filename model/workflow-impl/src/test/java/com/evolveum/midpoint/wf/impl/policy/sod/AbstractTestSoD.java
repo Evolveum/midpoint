@@ -16,26 +16,19 @@
 package com.evolveum.midpoint.wf.impl.policy.sod;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,9 +40,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Testing approvals of role SoD: assigning roles that are in conflict.

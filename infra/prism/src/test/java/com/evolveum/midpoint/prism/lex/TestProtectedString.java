@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.TestProtector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;

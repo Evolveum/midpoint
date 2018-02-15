@@ -26,9 +26,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.h2.Driver;
 import org.h2.tools.Server;
-import org.hibernate.dialect.H2Dialect;
 
 import java.io.File;
 import java.io.IOException;

@@ -70,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -84,7 +83,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCre
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik

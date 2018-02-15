@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.common.expression.functions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 /**
  * @author semancik

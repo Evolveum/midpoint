@@ -17,27 +17,14 @@ package com.evolveum.midpoint.model.intest.mapping;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,16 +32,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

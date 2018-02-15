@@ -18,8 +18,6 @@ package com.evolveum.midpoint.prism.query;
 
 import java.util.List;
 
-import com.evolveum.midpoint.util.DebugUtil;
-
 public abstract class NaryLogicalFilter extends LogicalFilter {
 	
 	public NaryLogicalFilter() {

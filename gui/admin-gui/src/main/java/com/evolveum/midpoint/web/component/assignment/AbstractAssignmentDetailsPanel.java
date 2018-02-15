@@ -20,29 +20,20 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;

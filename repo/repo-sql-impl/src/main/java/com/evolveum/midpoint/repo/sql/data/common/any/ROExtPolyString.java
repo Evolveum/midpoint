@@ -35,7 +35,7 @@ import java.util.Objects;
 @Entity
 @IdClass(ROExtPolyStringId.class)
 @Table(name = "m_object_ext_poly", indexes = {
-        @Index(name = "iExtensionString", columnList = "orig")
+        @Index(name = "iExtensionPolyString", columnList = "orig")
 })
 public class ROExtPolyString extends ROExtBase {
 

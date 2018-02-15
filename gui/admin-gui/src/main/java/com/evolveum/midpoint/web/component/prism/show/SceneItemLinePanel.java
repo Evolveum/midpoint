@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;

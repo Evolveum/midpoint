@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;

@@ -64,7 +64,7 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
         } else {
             throw new QueryException("Unsupported 'any' item: " + itemDefinition);
         }
-		JpaLinkDefinition<?> linkDefinition = new JpaAnyItemLinkDefinition(itemDefinition.getName(), jpaName, collSpec, getOwnerType(), jpaNodeDefinition);
+		JpaLinkDefinition<?> linkDefinition = new JpaAnyItemLinkDefinition(itemDefinition, jpaName, collSpec, getOwnerType(), jpaNodeDefinition);
 		return new DataSearchResult<>(linkDefinition, ItemPath.EMPTY_PATH);
 
 	}

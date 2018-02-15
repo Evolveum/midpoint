@@ -57,7 +57,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.*;
 
 /**

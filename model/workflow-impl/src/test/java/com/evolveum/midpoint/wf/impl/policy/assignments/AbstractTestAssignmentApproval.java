@@ -52,7 +52,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
