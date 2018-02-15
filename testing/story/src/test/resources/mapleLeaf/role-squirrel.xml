@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="301188c5-2545-4123-96ed-8aabda7c3710"
+      version="11">
+   <name>Squirel</name>
+   <assignment>
+   		<targetRef oid="7384756g-2545-4123-96ed-8aabda7c3710" type="RoleType" /> <!-- meta role monkey, donkey -->
+   </assignment>
+   <inducement id="4">
+      <construction>
+         <resourceRef oid="10000000-0000-0000-0000-000000000000"
+                      relation="org:default"
+                      type="c:ResourceType"></resourceRef>
+         <attribute id="5">
+            <c:ref>ri:initials</c:ref>
+            <tolerant>false</tolerant>
+            <outbound>
+               <strength>strong</strength>
+               <expression>
+                  <value>squirrel</value>
+               </expression>
+            </outbound>
+         </attribute>
+      </construction>
+   </inducement>
+</role>

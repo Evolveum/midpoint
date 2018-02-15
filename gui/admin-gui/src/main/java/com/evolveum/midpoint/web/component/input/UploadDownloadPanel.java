@@ -56,14 +56,13 @@ public class UploadDownloadPanel extends InputPanel {
         fileUpload.add(new AjaxFormSubmitBehavior(form, "change")
         {
             @Override
-            protected void onSubmit ( AjaxRequestTarget target )
-            {
+            protected void onSubmit(AjaxRequestTarget target) {
                 super.onSubmit(target);
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }
 
             @Override
-            protected void onError (AjaxRequestTarget target){
+            protected void onError(AjaxRequestTarget target) {
                 super.onError(target);
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }

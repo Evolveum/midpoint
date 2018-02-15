@@ -14,20 +14,33 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+  
+  <!-- MID-4440 -->
 
 <task oid="01db4542-f224-11e7-8833-bbe6634814e7"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:rext="http://midpoint.evolveum.com/xml/ns/samples/resource">
 								  
-	<name>Propagation: Grouping Semi Manual Resource</name>
+	<name>Propagation: propagated provisioning resources</name>
 	
 	<taskIdentifier>01db4542-f224-11e7-8833-bbe6634814e7</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/handler-3</handlerUri>
-	<objectRef oid="9eddca88-f222-11e7-98dc-cb6e4b08800c" type="ResourceType"/> <!-- Semi Manual Grouping -->
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/multi-handler-3</handlerUri>
+	<objectRef type="ResourceType">
+		<filter>
+			<q:equal>
+				<q:path>extension/provisioning</q:path>
+				<q:value>propagated</q:value>
+			</q:equal>
+		</filter>
+		<resolutionTime>run</resolutionTime>
+	</objectRef> 
+	
 	<recurrence>single</recurrence>
 	
 </task>

@@ -180,6 +180,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected String willSecondLastCaseOid;
 
 	protected String accountJackOid;
+	protected String accountDrakeOid;
 
 	protected XMLGregorianCalendar accountJackReqestTimestampStart;
 	protected XMLGregorianCalendar accountJackReqestTimestampEnd;
@@ -207,6 +208,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		importObjectFromFile(getRoleTwoFile(), initResult);
 
 		addObject(USER_JACK_FILE);
+		addObject(USER_DRAKE_FILE);
 
 		PrismObject<UserType> userWill = createUserWill();
 		addObject(userWill, initTask, initResult);
@@ -1052,6 +1054,265 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowPassword(shadowModelFuture);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	protected boolean are9xxTestsEnabled() {
+		// Disabled by default. These are intense parallel tests and they will fail for resources
+		// that do not have extra consistency checks and do not use proposed shadows.
+		return false;
+	}
+	
+
+	protected int getConcurrentTestNumberOfThreads() {
+		return 4;
+	}
+
+	protected int getConcurrentTestRandomStartDelayRangeAssign() { 
+		return 1000;
+	}
+
+	protected int getConcurrentTestRandomStartDelayRangeUnassign() {
+		return 5;
+	}
+	
+	/**
+	 * Set up roles used in parallel tests.
+	 */
+	@Test
+	public void test900SetUpRoles() throws Exception {
+		final String TEST_NAME = "test900SetUpRoles";
+		displayTestTitle(TEST_NAME);
+		if (!are9xxTestsEnabled()) {
+			displaySkip(TEST_NAME);
+			return;
+		}
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		SystemConfigurationType systemConfiguration = getSystemConfiguration();
+		display("System config", systemConfiguration);
+		ConflictResolutionActionType conflictResolutionAction = systemConfiguration.getDefaultObjectPolicyConfiguration().get(0).getConflictResolution().getAction();
+		if (!ConflictResolutionActionType.RECOMPUTE.equals(conflictResolutionAction) && !ConflictResolutionActionType.RECONCILE.equals(conflictResolutionAction)) {
+			fail("Wrong conflict resolution action: " + conflictResolutionAction);
+		}
+		
+
+		for (int i = 0; i < getConcurrentTestNumberOfThreads(); i++) {
+			PrismObject<RoleType> role = parseObject(getRoleOneFile());
+			role.setOid(getRoleOid(i));
+			role.asObjectable().setName(createPolyStringType(getRoleName(i)));
+			List<ResourceAttributeDefinitionType> outboundAttributes = role.asObjectable().getInducement().get(0).getConstruction().getAttribute();
+			if (hasMultivalueInterests()) {
+				ExpressionType outboundExpression = outboundAttributes.get(0).getOutbound().getExpression();
+				JAXBElement jaxbElement = outboundExpression.getExpressionEvaluator().get(0);
+				jaxbElement.setValue(getRoleInterest(i));
+			} else {
+				outboundAttributes.remove(0);
+			}
+			addObject(role);
+		}
+	}
+
+	protected String getRoleOid(int i) {
+		return String.format("f363260a-8d7a-11e7-bd67-%012d", i);
+	}
+
+	protected String getRoleName(int i) {
+		return String.format("role-%012d", i);
+	}
+
+	protected String getRoleInterest(int i) {
+		return String.format("i%012d", i);
+	}
+	
+
+	// MID-4047, MID-4112
+	@Test
+	public void test910ConcurrentRolesAssign() throws Exception {
+		final String TEST_NAME = "test910ConcurrentRolesAssign";
+		displayTestTitle(TEST_NAME);
+		if (!are9xxTestsEnabled()) {
+			displaySkip(TEST_NAME);
+			return;
+		}
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		int numberOfCasesBefore = getObjectCount(CaseType.class);
+		PrismObject<UserType> userBefore = getUser(USER_DRAKE_OID);
+		display("user before", userBefore);
+		assertLinks(userBefore, 0);
+
+		final long TIMEOUT = 60000L;
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		ParallelTestThread[] threads = multithread(TEST_NAME,
+				(i) -> {
+					login(userAdministrator);
+					Task localTask = createTask(TEST_NAME + ".local");
+
+					assignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localTask.getResult());
+
+				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeAssign());
+
+		// THEN
+		displayThen(TEST_NAME);
+		waitForThreads(threads, TIMEOUT);
+
+		PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
+		display("user after", userAfter);
+		assertAssignments(userAfter, getConcurrentTestNumberOfThreads());
+		assertEquals("Wrong # of links", 1, userAfter.asObjectable().getLinkRef().size());
+		accountDrakeOid = userAfter.asObjectable().getLinkRef().get(0).getOid();
+
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountDrakeOid, null, result);
+		display("Repo shadow", shadowRepo);
+		assertShadowNotDead(shadowRepo);
+		
+		assertTest910ShadowRepo(shadowRepo, task, result);
+
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountDrakeOid, options, task, result);
+		display("Shadow after (model, future)", shadowModel);
+
+//		assertObjects(CaseType.class, numberOfCasesBefore + getConcurrentTestNumberOfThreads());
+	}
+	
+	protected void assertTest910ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
+		assertShadowNotDead(shadowRepo);
+		ObjectDeltaType addPendingDelta = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (delta.getChangeType() == ChangeTypeType.ADD) {
+				ObjectType objectToAdd = delta.getObjectToAdd();
+				display("Pending ADD object", objectToAdd.asPrismObject());
+				if (addPendingDelta != null) {
+					fail("More than one add pending delta found:\n"+addPendingDelta+"\n"+delta);
+				}
+				addPendingDelta = delta;
+			}
+			if (delta.getChangeType() == ChangeTypeType.DELETE) {
+				fail("Unexpected delete pending delta found:\n"+delta);
+			}
+			if (isActivationStatusModifyDelta(delta, ActivationStatusType.ENABLED)) {
+				fail("Unexpected enable pending delta found:\n"+delta);
+			}
+		}
+		assertNotNull("No add pending delta", addPendingDelta);
+	}
+	
+	// MID-4112
+	@Test
+	public void test919ConcurrentRoleUnassign() throws Exception {
+		final String TEST_NAME = "test919ConcurrentRoleUnassign";
+		displayTestTitle(TEST_NAME);
+		if (!are9xxTestsEnabled()) {
+			displaySkip(TEST_NAME);
+			return;
+		}
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		int numberOfCasesBefore = getObjectCount(CaseType.class);
+		PrismObject<UserType> userBefore = getUser(USER_DRAKE_OID);
+		display("user before", userBefore);
+		assertAssignments(userBefore, getConcurrentTestNumberOfThreads());
+
+		final long TIMEOUT = 60000L;
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		ParallelTestThread[] threads = multithread(TEST_NAME,
+				(i) -> {
+					display("Thread "+Thread.currentThread().getName()+" START");
+					login(userAdministrator);
+					Task localTask = createTask(TEST_NAME + ".local");
+					OperationResult localResult = localTask.getResult();
+
+					unassignRole(USER_DRAKE_OID, getRoleOid(i), localTask, localResult);
+
+					localResult.computeStatus();
+
+					display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
+
+				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeUnassign());
+
+		// THEN
+		displayThen(TEST_NAME);
+		waitForThreads(threads, TIMEOUT);
+
+		PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
+		display("user after", userAfter);
+		assertAssignments(userAfter, 0);
+		assertEquals("Wrong # of links", 1, userAfter.asObjectable().getLinkRef().size());
+
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountDrakeOid, null, result);
+		display("Repo shadow", shadowRepo);
+		
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountDrakeOid, null, task, result);
+		display("Shadow after (model)", shadowModel);
+		
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class, accountDrakeOid, options, task, result);
+		display("Shadow after (model, future)", shadowModelFuture);
+
+		assertTest919ShadowRepo(shadowRepo, task, result);
+
+		assertTest919ShadowFuture(shadowModelFuture, task, result);
+		
+//		assertObjects(CaseType.class, numberOfCasesBefore + getConcurrentTestNumberOfThreads() + 1);
+	}
+
+	protected void assertTest919ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
+		ObjectDeltaType deletePendingDelta = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (delta.getChangeType() == ChangeTypeType.ADD) {
+				ObjectType objectToAdd = delta.getObjectToAdd();
+				display("Pending ADD object", objectToAdd.asPrismObject());
+			}
+			if (delta.getChangeType() == ChangeTypeType.DELETE) {
+				if (deletePendingDelta != null) {
+					fail("More than one delete pending delta found:\n"+deletePendingDelta+"\n"+delta);
+				}
+				deletePendingDelta = delta;
+			}
+		}
+		assertNotNull("No delete pending delta", deletePendingDelta);
+	}
+	
+	protected boolean isActivationStatusModifyDelta(ObjectDeltaType delta, ActivationStatusType expected) throws SchemaException {
+		if (delta.getChangeType() != ChangeTypeType.MODIFY) {
+			return false;
+		}
+		for (ItemDeltaType itemDelta: delta.getItemDelta()) {
+			ItemPath deltaPath = itemDelta.getPath().getItemPath();
+			if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(deltaPath)) {
+				List<RawType> value = itemDelta.getValue();
+				PrismProperty<ActivationStatusType> parsedItem = (PrismProperty<ActivationStatusType>)(Item)
+						value.get(0).getParsedItem(getUserDefinition().findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS));
+				ActivationStatusType status = parsedItem.getRealValue();
+				display("Delta status " + status, itemDelta);
+				if (expected.equals(status)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	protected void assertTest919ShadowFuture(PrismObject<ShadowType> shadowModelFuture, Task task,
+			OperationResult result) {
+		assertShadowDead(shadowModelFuture);
 	}
 	
 	protected void assertAccountWillAfterFillNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {

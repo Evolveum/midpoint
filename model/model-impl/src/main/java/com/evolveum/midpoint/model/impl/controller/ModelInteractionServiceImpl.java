@@ -874,10 +874,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public <O extends ObjectType> void generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException   {
-		String oid = object.getOid();
+		
 		OperationResult result = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
 
-			Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+			
 			ValuePolicyType valuePolicy = null;
 			try {
 				valuePolicy = getValuePolicy(object, task, result);
@@ -892,23 +892,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			Collection<PropertyDelta<?>> deltasToExecute = new ArrayList<>();
 			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
 				OperationResult generateValueResult = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
-
-				ItemPath path = getPath(policyItemDefinition);
-				if (path == null) {
-					LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
-					generateValueResult.recordFatalError("No item path defined in the target for policy item definition. Cannot generate value");
-					continue;
-				}
-
-				result.addArbitraryObjectAsParam("policyItemPath", path);
-
-				PrismPropertyDefinition<?> propertyDef = getItemDefinition(object, path);
-				if (propertyDef == null) {
-					LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path, object);
-					generateValueResult.recordFatalError("No definition for property " + path + " in object " + object + ". Is the path referencing prism property?");
-					continue;
-				}
-
+				
 				LOGGER.trace("Default value policy: {}" , valuePolicy);
 				try {
 					generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
@@ -919,7 +903,37 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					policyItemDefinition.setResult(generateValueResult.createOperationResultType());
 					continue;
 				}
-				collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef);
+				
+				//TODO: not sure about the bulk actions here
+				ItemPath path = getPath(policyItemDefinition);
+				if (path == null) {
+					if (isExecute(policyItemDefinition)) {
+						LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
+						generateValueResult.recordFatalError(
+								"No item path defined in the target for policy item definition. Cannot generate value");
+						continue;
+					}
+				}
+	
+				PrismPropertyDefinition<?> propertyDef = null;
+				if (path != null) {
+					result.addArbitraryObjectAsParam("policyItemPath", path);
+					
+					propertyDef = getItemDefinition(object, path);
+					if (propertyDef == null) {
+						if (isExecute(policyItemDefinition)) {
+							LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path,
+									object);
+							generateValueResult.recordFatalError("No definition for property " + path + " in object " + object
+									+ ". Is the path referencing prism property?");
+							continue;
+						}
+		
+					}
+				}
+			// end of not sure
+				
+				collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef, generateValueResult);
 				generateValueResult.computeStatusIfUnknown();
 			}
 			result.computeStatus();
@@ -928,8 +942,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 		try {
 			if (!deltasToExecute.isEmpty()) {
-
-				modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
+				if (object == null) {
+					LOGGER.error("Cannot execute changes for generated values, no object specified in request.");
+					result.recordFatalError("Cannot execute changes for generated values, no object specified in request.");
+					throw new SchemaException("Cannot execute changes for generated values, no object specified in request.");
+				}
+					String oid = object.getOid();
+					Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+					modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
+				
 			}
 		} catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException
 				| CommunicationException | ConfigurationException | ObjectAlreadyExistsException
@@ -942,6 +963,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	}
 
+	private boolean isExecute(PolicyItemDefinitionType policyItemDefinition) {
+		if (policyItemDefinition.isExecute() == null) {
+			return false;
+		}
+		
+		return policyItemDefinition.isExecute().booleanValue();
+	}
 	private ItemPath getPath(PolicyItemDefinitionType policyItemDefinition){
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
 
@@ -970,22 +998,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	private <O extends ObjectType> void collectDeltasForGeneratedValuesIfNeeded(PrismObject<O> object,
 			PolicyItemDefinitionType policyItemDefinition, Collection<PropertyDelta<?>> deltasToExecute, ItemPath path,
-			PrismPropertyDefinition<?> itemDef) throws SchemaException {
+			PrismPropertyDefinition<?> itemDef, OperationResult result) throws SchemaException {
 
 		Object value = policyItemDefinition.getValue();
 
-		if (ProtectedStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
-			ProtectedStringType pst = new ProtectedStringType();
-			pst.setClearValue((String) value);
-			value = pst;
-		} else if (PolyStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
-			value = new PolyString((String) value);
+		if (itemDef != null){
+			if (ProtectedStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
+				ProtectedStringType pst = new ProtectedStringType();
+				pst.setClearValue((String) value);
+				value = pst;
+			} else if (PolyStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
+				value = new PolyString((String) value);
+			}
 		}
-		PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
-		propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
-		if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
-			deltasToExecute.add(propertyDelta);
+		if (object == null && isExecute(policyItemDefinition)) {
+			LOGGER.warn("Cannot apply generated changes and cannot execute them becasue there is no target object specified.");
+			result.recordFatalError("Cannot apply generated changes and cannot execute them becasue there is no target object specified.");
+			return;
 		}
+		if (object != null) {
+			PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
+			propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
+			if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
+				deltasToExecute.add(propertyDelta);
+			}
+		}
+		
 	}
 
 	private <O extends ObjectType> void generateValue(PrismObject<O> object, ValuePolicyType defaultPolicy,
@@ -994,11 +1032,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException {
 
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		if (target == null || ItemPath.isNullOrEmpty(target.getPath())) {
+		if ((target == null || ItemPath.isNullOrEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
 			LOGGER.error("Target item path must be defined");
 			throw new SchemaException("Target item path must be defined");
 		}
-		ItemPath targetPath = target.getPath().getItemPath();
+		ItemPath targetPath = null;
+		
+		if (target != null) {
+			targetPath = target.getPath().getItemPath();
+		}
 
 		ValuePolicyType valuePolicy = resolveValuePolicy(policyItemDefinition, defaultPolicy, task, result);
 		LOGGER.trace("Value policy used for generating new value : {}", valuePolicy);

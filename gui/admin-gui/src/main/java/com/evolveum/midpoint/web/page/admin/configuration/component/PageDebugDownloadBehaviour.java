@@ -2,9 +2,9 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -30,6 +30,7 @@ import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -102,7 +103,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
 
         Writer writer = null;
         try {
-            LOGGER.debug("Creating file '{}'.", new Object[]{file.getAbsolutePath()});
+            LOGGER.debug("Creating file '{}'.", file.getAbsolutePath());
             writer = createWriter(file);
             LOGGER.debug("Exporting objects.");
             dumpHeader(writer);
@@ -153,29 +154,24 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
     private <T extends ObjectType> void dumpObjectsToStream(final Writer writer, OperationResult result) throws Exception {
         final PageBase page = getPage();
 
-        ResultHandler handler = new ResultHandler() {
-
-            @Override
-            public boolean handle(PrismObject object, OperationResult parentResult) {
-                try {
-                    String xml = page.getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
-                    writer.write('\t');
-                    writer.write(xml);
-                    writer.write('\n');
-                } catch (IOException ex) {
-                    throw new SystemException(ex.getMessage(), ex);
-                } catch (SchemaException ex) {
-                    throw new SystemException(ex.getMessage(), ex);
-                }
-
-                return true;
+        ResultHandler handler = (object, parentResult) -> {
+            try {
+                String xml = page.getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
+                writer.write('\t');
+                writer.write(xml);
+                writer.write('\n');
+            } catch (IOException|SchemaException ex) {
+                throw new SystemException(ex.getMessage(), ex);
             }
+            return true;
         };
 
         ModelService service = page.getModelService();
         GetOperationOptions options = GetOperationOptions.createRaw();
         options.setResolveNames(true);
-        service.searchObjectsIterative(type, query, handler, SelectorOptions.createCollection(options),
+        Collection<SelectorOptions<GetOperationOptions>> optionsCollection = SelectorOptions.createCollection(options);
+        WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsCollection, type);
+        service.searchObjectsIterative(type, query, handler, optionsCollection,
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }
 

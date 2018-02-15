@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.FilterUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -58,8 +59,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author semancik
@@ -423,7 +426,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     /**
      * Handler parameter may be used to pass task instance state between the calls.
      */
-	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
+	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException;
 
     // useful e.g. to specify noFetch options for shadow-related queries
     protected Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
@@ -476,7 +479,29 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     }
 
     protected QueryType getObjectQueryTypeFromTask(Task task) {
-        return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+    	QueryType queryType = getObjectQueryTypeFromTaskObjectRef(task);
+    	if (queryType != null) {
+    		return queryType;
+    	}
+    	return getObjectQueryTypeFromTaskExtension(task);
+    }
+    
+    protected QueryType getObjectQueryTypeFromTaskObjectRef(Task task) {
+    	ObjectReferenceType objectRef = task.getObjectRef();
+    	if (objectRef == null) {
+    		return null;
+    	}
+    	SearchFilterType filterType = objectRef.getFilter();
+    	if (filterType == null || FilterUtils.isFilterEmpty(filterType)) {
+    		return null;
+    	}
+    	QueryType queryType = new QueryType();
+    	queryType.setFilter(filterType);
+    	return queryType;
+    }
+    
+    protected QueryType getObjectQueryTypeFromTaskExtension(Task task) {
+    	return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
     }
 
     protected IterationMethodType getIterationMethodFromTask(Task task) {

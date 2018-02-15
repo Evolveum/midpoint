@@ -51,16 +51,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Task handler for provisioning propagation of one resource.
+ * Task handler for provisioning propagation of many resources.
  * 
- * We assume that there will be few resources with a lot of changes each.
+ * The search in this task handler is somehow reversed. The task is searching for resources
+ * and then the task internally looks for pending changes.
+ * 
+ * Here we assume that there will be large number of resources, but there will be much smaller
+ * number of changes.
  * 
  * @author Radovan Semancik
+ *
  */
 @Component
-public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, PropagationResultHandler> {
+public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHandler<ResourceType, MultiPropagationResultHandler> {
 	
-	public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
+	public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/multi-handler-3";
 	
 	// WARNING! This task handler is efficiently singleton!
  	// It is a spring bean and it is supposed to handle all search task instances
@@ -68,13 +73,12 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
  	// all tasks of a specified type
 
     @Autowired private TaskManager taskManager;
-    @Autowired private ProvisioningService provisioningService;
     @Autowired private ShadowCacheFactory shadowCacheFactory;
     
-    private static final Trace LOGGER = TraceManager.getTrace(PropagationTaskHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationTaskHandler.class);
     
-    public PropagationTaskHandler() {
-        super("Provisioning propagation", OperationConstants.PROVISIONING_PROPAGATION);
+    public MultiPropagationTaskHandler() {
+        super("Provisioning propagation (multi)", OperationConstants.PROVISIONING_PROPAGATION);
         setLogFinishInfo(true);
         setPreserveStatistics(false);
         setEnableSynchronizationStatistics(false);
@@ -86,21 +90,11 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
     }
     
     @Override
-	protected PropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected MultiPropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
     	
-    	String resourceOid = coordinatorTask.getObjectOid();
-    	PrismObject<ResourceType> resource;
-    	try {
-			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, coordinatorTask, opResult);
-		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
-				| SecurityViolationException | ExpressionEvaluationException e) {
-			opResult.recordFatalError("Error resolving resource oid=" + resourceOid, e);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return null;
-		}
     	ShadowCache shadowCache = shadowCacheFactory.getShadowCache(ShadowCacheFactory.Mode.STANDARD);
-    	PropagationResultHandler handler = new PropagationResultHandler(coordinatorTask, getTaskOperationPrefix(), taskManager, shadowCache, resource);
+    	MultiPropagationResultHandler handler = new MultiPropagationResultHandler(coordinatorTask, getTaskOperationPrefix(), taskManager, repositoryService, shadowCache);
     	return handler;
     }
 
@@ -115,22 +109,17 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 	}
 
 	@Override
-	protected ObjectQuery createQuery(PropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
+	protected ObjectQuery createQuery(MultiPropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) throws SchemaException {
-		ObjectQuery query = new ObjectQuery();
-		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
-				.item(ShadowType.F_RESOURCE_REF).ref(handler.getResource().getOid())
-				.and()
-				.exists(ShadowType.F_PENDING_OPERATION)
-			.buildFilter();
-
-		query.setFilter(filter);
-		return query;
+		ObjectQuery objectQuery = createQueryFromTask(handler, runResult, coordinatorTask, opResult);
+		LOGGER.trace("Resource query: {}", objectQuery);
+		return objectQuery;
+		
 	}
 
 	@Override
 	protected Class<? extends ObjectType> getType(Task task) {
-		return ShadowType.class;
+		return ResourceType.class;
 	}
 
 }

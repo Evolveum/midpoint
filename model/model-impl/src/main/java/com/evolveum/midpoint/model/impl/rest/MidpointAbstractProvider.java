@@ -128,7 +128,6 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 
 		T object;
 		try {
-			LOGGER.info("type of request: {}", type);
 			if (PrismObject.class.isAssignableFrom(type)) {
 				object = (T) parser.parse();
 			} else {

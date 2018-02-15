@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.api.util;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
@@ -28,15 +29,14 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -116,6 +116,17 @@ public class WebModelServiceUtils {
         if (definition == null) {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
+        }
+        if (reference.getOid() == null) {
+        	if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
+        		// Runtime reference resolution. Ignore it for now. Later we maybe would want to resolve it here.
+        		// But it may resolve to several objects ....
+        		return null;
+        	} else {
+        		LOGGER.error("Null OID in reference {}", reference);
+        		// Throw an exception instead? Maybe not. We want GUI to be robust.
+        		return null;
+        	}
         }
         return loadObject(definition.getCompileTimeClass(), reference.getOid(), createNoFetchCollection(), page, task, result);
     }
@@ -674,5 +685,30 @@ public class WebModelServiceUtils {
 	    } finally {
 	    	result.computeStatusIfUnknown();
 	    }
+	}
+
+	// deduplicate with Action.addIncludeOptionsForExport (ninja module)
+	public static void addIncludeOptionsForExportOrView(Collection<SelectorOptions<GetOperationOptions>> options,
+			Class<? extends ObjectType> type) {
+		// todo fix this brutal hack (related to checking whether to include particular options)
+		boolean all = type == null
+				|| Objectable.class.equals(type)
+				|| com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(type)
+				|| ObjectType.class.equals(type);
+
+		if (all || UserType.class.isAssignableFrom(type)) {
+			options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
+					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+		}
+		if (all || LookupTableType.class.isAssignableFrom(type)) {
+			options.add(SelectorOptions.create(LookupTableType.F_ROW,
+					GetOperationOptions.createRetrieve(
+							new RelationalValueSearchQuery(
+									ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
+		}
+		if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
+			options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
+					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+		}
 	}
 }
