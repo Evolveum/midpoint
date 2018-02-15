@@ -1400,11 +1400,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
             items.add(createResourcesItems());
         }
-// TODO uncomment after ValuePolicies pages are finished
-//        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
-//                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-//            items.add(createValuePolicieItems());
-//        }
+ //TODO uncomment after ValuePolicies pages are finished
+     /*   if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createValuePolicieItems());
+        }*/
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
