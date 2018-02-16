@@ -68,7 +68,7 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
