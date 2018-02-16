@@ -100,6 +100,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author semancik
@@ -1660,12 +1661,30 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		Collection<PrismValue> rv = new HashSet<>();
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-			for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
-				if (path.equivalent(mapping.getOutputPath())) {
-					PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
-					if (outputTriple != null) {
-						rv.addAll(outputTriple.getNonNegativeValues());
+			if (evaluatedAssignment.isValid()) {
+				for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
+					if (path.equivalent(mapping.getOutputPath())) {
+						PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+						if (outputTriple != null) {
+							rv.addAll(outputTriple.getNonNegativeValues());
+						}
 					}
+				}
+			}
+		}
+		// Ugly hack - MID-4452 - When having an assignment giving focusMapping, and the assignment is being deleted, the
+		// focus mapping is evaluated in wave 0 (results correctly being pushed to the minus set), but also in wave 1.
+		// The results are sent to zero set; and they are not applied only because they are already part of a priori delta.
+		// This causes problems here.
+		//
+		// Until MID-4452 is fixed, here we manually delete the values from the result.
+		LensFocusContext<ObjectType> focusContext = lensContext.getFocusContext();
+		if (focusContext != null) {
+			ObjectDelta<ObjectType> delta = focusContext.getDelta();
+			if (delta != null) {
+				ItemDelta<PrismValue, ItemDefinition> targetItemDelta = delta.findItemDelta(path);
+				if (targetItemDelta != null) {
+					rv.removeAll(emptyIfNull(targetItemDelta.getValuesToDelete()));
 				}
 			}
 		}
