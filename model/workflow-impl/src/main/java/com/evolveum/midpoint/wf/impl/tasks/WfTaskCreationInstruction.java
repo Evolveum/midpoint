@@ -374,7 +374,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		if (taskObject != null) {
 			task.setObjectRef(taskObject.getOid(), taskObject.getDefinition().getTypeName());
 		} else if (parentTask != null && parentTask.getObjectRef() != null) {
-			task.setObjectRef(parentTask.getObjectRef());
+			task.setObjectRef(parentTask.getObjectRef().clone());
 		}
 		if (task.getName() == null || task.getName().toPolyString().isEmpty()) {
 			task.setName(taskName);

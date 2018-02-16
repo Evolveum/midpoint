@@ -53,9 +53,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -873,6 +871,22 @@ public final class WebComponentUtil {
 	}
 
 
+	public static <IW extends ItemWrapper, C extends Containerable> PropertyModel createPrismPropertySingleValueModel(IModel<ContainerValueWrapper<C>> containerModel,
+																													QName attributeName){
+		//todo should be refactored: wrap with some new  model
+		PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(containerModel, "properties");
+		List<IW> propertiesList = propertiesModel.getObject();
+		for (final IW property : propertiesList){
+			if (property.getName().equals(attributeName)){
+				List<ValueWrapper> valuesList = property.getValues();
+				if (valuesList.size() == 1) {
+					return new PropertyModel<>(valuesList.get(0).getValue(), "value");
+				}
+
+			}
+		}
+		return null;
+	}
 
 	private static List<DisplayableValue> getDisplayableValues(PrismPropertyDefinition def) {
 		List<DisplayableValue> values = null;
