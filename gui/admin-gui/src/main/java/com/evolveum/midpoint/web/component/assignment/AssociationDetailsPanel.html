@@ -21,26 +21,33 @@
         <div class="container-fluid prism-object">
 
             <div class="row">
+            <label class="col-md-1 pull-left"><h4>
+                <wicket:message key="AssociationDetailsPanel.AssociationHeader" />
+            </h4></label>
+                <button wicket:id="removeAssociation" wicket:message="title:PrismObjectPanel.deleteContainer"
+                        class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+            </div>
+            <div class="row">
                 <div class="container-fluid prism-container">
                     <div class="prism-properties">
 
                         <div>
                             <div class="row prism-property">
                                 <div class="col-xs-3">
-                                    <span><wicket:message key="ConstructionType.kind"/></span>
+                                    <span><wicket:message key="ResourceObjectAssociationType.ref"/></span>
                                 </div>
                                 <div class="col-xs-8">
-                                    <div wicket:id="kindField"/>
+                                    <div wicket:id="refField"/>
                                 </div>
                             </div>
                         </div>
                         <div class="stripe">
                             <div class="row prism-property">
                                 <div class="col-xs-3">
-                                    <span><wicket:message key="ConstructionType.intent"/></span>
+                                    <span><wicket:message key="AssociationDetailsPanel.expressionPanel"/></span>
                                 </div>
                                 <div class="col-xs-8">
-                                    <div wicket:id="intentField"/>
+                                    <div wicket:id="expressionPanel"/>
                                 </div>
                             </div>
                         </div>
@@ -49,9 +56,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div wicket:id="associationContainer" >
-        <div wicket:id="association" />
     </div>
 </wicket:panel>
 </html>
