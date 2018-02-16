@@ -126,15 +126,16 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-                if (model.getObject().getName().equals(AssignmentType.F_CONSTRUCTION)){
-                    ConstructionDetailsPanel panel = new ConstructionDetailsPanel("value", item.getModel());
-                    panel.setOutputMarkupId(true);
-                    item.add(panel);
-                } else {
+			    //todo simplified construction panel will be in the gui starting from 3.8
+//                if (model.getObject().getName().equals(AssignmentType.F_CONSTRUCTION)){
+//                    ConstructionDetailsPanel panel = new ConstructionDetailsPanel("value", item.getModel());
+//                    panel.setOutputMarkupId(true);
+//                    item.add(panel);
+//                } else {
                     ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
                     containerPanel.setOutputMarkupId(true);
                     item.add(containerPanel);
-                }
+//                }
 				
 			}
 			

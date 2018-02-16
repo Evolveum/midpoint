@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,9 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit all();
     S_AtomicFilterExit none();
     S_AtomicFilterExit undefined();
-    S_ConditionEntry item(QName... names) ;
-    S_ConditionEntry item(ItemPath path) ;
+    S_ConditionEntry item(QName... names);
+    S_ConditionEntry item(String... names);
+    S_ConditionEntry item(ItemPath path);
     S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition);
     S_ConditionEntry itemWithDef(ItemDefinition itemDefinition, QName... names);        // experimental
     S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names);

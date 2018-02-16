@@ -32,14 +32,13 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -58,6 +57,8 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
 
     private static final String ID_KIND_FIELD = "kindField";
     private static final String ID_INTENT_FIELD = "intentField";
+    private static final String ID_ASSOCIATION_CONTAINER = "associationContainer";
+    private static final String ID_ASSOCIATION = "association";
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionDetailsPanel.class);
     private static final String DOT_CLASS = ConstructionDetailsPanel.class.getName() + ".";
@@ -98,7 +99,7 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
 
     private void initLayout(){
         DropDownChoicePanel kindDropDown = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND_FIELD,
-                getPropertyModelForConstructionAttribute(ConstructionType.F_KIND), ConstructionDetailsPanel.this);
+                WebComponentUtil.createPrismPropertySingleValueModel(getModel(), ConstructionType.F_KIND), ConstructionDetailsPanel.this);
         kindDropDown.setOutputMarkupId(true);
         kindDropDown.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -111,9 +112,32 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
         add(kindDropDown);
 
         DropDownChoicePanel intentDropDown = new DropDownChoicePanel(ID_INTENT_FIELD,
-        getPropertyModelForConstructionAttribute(ConstructionType.F_INTENT), getIntentAvailableValuesModel());
+        WebComponentUtil.createPrismPropertySingleValueModel(getModel(), ConstructionType.F_INTENT), getIntentAvailableValuesModel());
         intentDropDown.setOutputMarkupId(true);
         add(intentDropDown);
+
+
+        ListView<ContainerValueWrapper<ResourceObjectAssociationType>> associationDetailsPanel =
+                new ListView<ContainerValueWrapper<ResourceObjectAssociationType>>(ID_ASSOCIATION_CONTAINER, getAssociationsModel()){
+                        @Override
+                        protected void populateItem(ListItem<ContainerValueWrapper<ResourceObjectAssociationType>> item) {
+                        item.add(new AssociationDetailsPanel(ID_ASSOCIATION, item.getModel(),
+                                (ConstructionType)ConstructionDetailsPanel.this.getModelObject().getContainerValue().asContainerable()));
+                    }
+                };
+        associationDetailsPanel.setOutputMarkupId(true);
+        add(associationDetailsPanel);
+    }
+
+    private PropertyModel<List<ContainerValueWrapper<ResourceObjectAssociationType>>> getAssociationsModel(){
+//        PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(get, "properties");
+        List<ItemWrapper> propertiesList = getModelObject().getItems();
+        for (ItemWrapper property : propertiesList){
+            if (property.getName().equals(ConstructionType.F_ASSOCIATION)){
+                return new PropertyModel<List<ContainerValueWrapper<ResourceObjectAssociationType>>>(property, "values");
+            }
+        }
+        return null;
     }
 
     private IModel<List<String>> getIntentAvailableValuesModel(){
@@ -142,55 +166,6 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
                 return availableIntentValues;
             }
         };
-    }
-
-    private PropertyModel getPropertyModelForConstructionAttribute(QName attributeName){
-        //todo should be refactored. 1) relocate 2) wrap by some new kind of model
-        PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(getModel(), "properties");
-        List<IW> propertiesList = propertiesModel.getObject();
-        for (final IW property : propertiesList){
-            if (property.getName().equals(attributeName)){
-                IModel<IW> itemWrapperModel = new IModel<IW>() {
-                    @Override
-                    public IW getObject() {
-                        return property;
-                    }
-
-                    @Override
-                    public void setObject(IW iw) {
-                        propertiesList.set(propertiesList.indexOf(property), iw);
-                    }
-
-                    @Override
-                    public void detach() {
-
-                    }
-                };
-                PropertyModel<List<ValueWrapper>> valuesModel = new PropertyModel<>(itemWrapperModel, "values");
-                List<ValueWrapper> valuesList = valuesModel.getObject();
-                if (valuesList.size() > 0) {
-                    IModel<ValueWrapper> valueWrapperModel = new IModel<ValueWrapper>() {
-                        @Override
-                        public ValueWrapper getObject() {
-                            return valuesList.get(0);
-                        }
-
-                        @Override
-                        public void setObject(ValueWrapper valueWrapper) {
-                            valuesList.set(0, valueWrapper);
-                        }
-
-                        @Override
-                        public void detach() {
-
-                        }
-                    };
-                    return new PropertyModel<>(valueWrapperModel, "value.value");
-                }
-
-            }
-        }
-        return null;
     }
 
     private DropDownChoicePanel getKindDropdownComponent(){

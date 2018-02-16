@@ -72,6 +72,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -165,13 +166,23 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		if (propagationTaskOid == null) {
 			addTask(getPropagationTaskFile());
 			propagationTaskOid = getPropagationTaskOid();
+			assertNewPropagationTask();
 			waitForTaskStart(propagationTaskOid, true);
 		} else {
 			restartTask(propagationTaskOid);
 		}
-		waitForTaskFinish(propagationTaskOid, true);
+		Task finishedTask = waitForTaskFinish(propagationTaskOid, true);
+		assertFinishedPropagationTask(finishedTask);
 	}
 
+	protected void assertNewPropagationTask() throws Exception {
+		
+	}
+	
+	protected void assertFinishedPropagationTask(Task finishedTask) {
+		
+	}
+	
 	protected abstract String getPropagationTaskOid();
 	
 	protected abstract File getPropagationTaskFile();
