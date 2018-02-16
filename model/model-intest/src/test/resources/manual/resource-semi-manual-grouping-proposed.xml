@@ -25,9 +25,14 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:rext="http://midpoint.evolveum.com/xml/ns/samples/resource">
 								  
 	<name>Semi-Manual Proposed Grouping CSV Resource</name>
+	
+	<extension>
+		<rext:provisioning>propagated</rext:provisioning>
+	</extension>
 	
 	<connectorRef type="ConnectorType">
 		<filter>
