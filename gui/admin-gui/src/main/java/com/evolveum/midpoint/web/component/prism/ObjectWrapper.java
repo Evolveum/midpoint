@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -474,7 +474,15 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("ObjectWrapper(");
-		builder.append(ContainerWrapper.getDisplayNameFromItem(object));
+		if (displayName == null) {
+			if (object == null) {
+				builder.append("null");
+			} else {
+				builder.append(object.getElementName());
+			}
+		} else {
+			builder.append(displayName);
+		}
 		builder.append(" (");
 		builder.append(status);
 		builder.append(") ");
