@@ -346,6 +346,11 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     public S_ConditionEntry item(QName... names) {
         return item(new ItemPath(names));
     }
+    
+    @Override
+    public S_ConditionEntry item(String... names) {
+        return item(new ItemPath(names));
+    }
 
     @Override
     public S_ConditionEntry item(ItemPath itemPath) {

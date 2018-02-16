@@ -109,13 +109,23 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		if (propagationTaskOid == null) {
 			addTask(getPropagationTaskFile());
 			propagationTaskOid = getPropagationTaskOid();
+			assertNewPropagationTask();
 			waitForTaskStart(propagationTaskOid, true);
 		} else {
 			restartTask(propagationTaskOid);
 		}
-		waitForTaskFinish(propagationTaskOid, true);
+		Task finishedTask = waitForTaskFinish(propagationTaskOid, true);
+		assertFinishedPropagationTask(finishedTask);
 	}
 
+	protected void assertNewPropagationTask() throws Exception {
+		
+	}
+	
+	protected void assertFinishedPropagationTask(Task finishedTask) {
+		
+	}
+	
 	protected abstract String getPropagationTaskOid();
 	
 	protected abstract File getPropagationTaskFile();

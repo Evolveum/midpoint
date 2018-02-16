@@ -260,7 +260,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
@@ -288,7 +288,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -341,7 +341,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test004Configuration() throws Exception {
 		final String TEST_NAME = "test004Configuration";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
@@ -366,7 +366,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test005ParsedSchema() throws Exception {
 		final String TEST_NAME = "test005ParsedSchema";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
@@ -412,7 +412,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test006Capabilities() throws Exception {
 		final String TEST_NAME = "test006Capabilities";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()+"."+TEST_NAME);

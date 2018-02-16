@@ -463,14 +463,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     }
 
     protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        Class<? extends ObjectType> objectClass = getType(task);
-        LOGGER.trace("Object class = {}", objectClass);
+        Class<? extends ObjectType> objectType = getType(task);
+        LOGGER.trace("Object type = {}", objectType);
 
         QueryType queryFromTask = getObjectQueryTypeFromTask(task);
         if (queryFromTask != null) {
-            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(objectClass, queryFromTask, prismContext);
+            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(objectType, queryFromTask, prismContext);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Using object query from the task: {}", query.debugDump());
+                LOGGER.trace("Using object query from the task:\n{}", query.debugDump(1));
             }
             return query;
         } else {

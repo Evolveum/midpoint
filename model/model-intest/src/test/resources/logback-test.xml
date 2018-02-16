@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
 	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor" level="DEBUG" />
@@ -83,7 +83,7 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.task" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.task" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning.consistency" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
@@ -114,6 +114,7 @@
     <logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 	<logger name="com.evolveum.midpoint.repo.cache" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo.common.task" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.SystemObjectCache" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.AuditController" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />

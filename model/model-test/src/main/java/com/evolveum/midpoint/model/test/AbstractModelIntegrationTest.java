@@ -2694,52 +2694,77 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.waitFor("Waiting for " + taskOid + " close/suspend", checker, timeout, sleepTime);
 	}
 
-	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
-		waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+	protected Task waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
+		return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
-		waitForTaskFinish(taskOid, checkSubresult, timeout, false);
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
+		return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
 	}
 
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
-		Checker checker = new Checker() {
-			@Override
-			public boolean check() throws CommonException {
+		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		return checker.getLastTask();
+	}
+
+	private class TaskFinishChecker implements Checker {
+		private final String taskOid;
+		private final OperationResult waitResult;
+		private final boolean checkSubresult;
+		private final boolean errorOk;
+		private final int timeout;
+		private Task freshTask;
+		
+		public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
+				boolean errorOk, int timeout) {
+			super();
+			this.taskOid = taskOid;
+			this.waitResult = waitResult;
+			this.checkSubresult = checkSubresult;
+			this.errorOk = errorOk;
+			this.timeout = timeout;
+		}
+
+		@Override
+		public boolean check() throws CommonException {
+			freshTask = taskManager.getTask(taskOid, waitResult);
+			OperationResult result = freshTask.getResult();
+			if (verbose) display("Check result", result);
+			if (isError(result, checkSubresult)) {
+				if (errorOk) {
+					return true;
+				} else {
+					AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
+				}
+			}
+			if (isUnknown(result, checkSubresult)) {
+				return false;
+			}
+//			assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+			return !isInProgress(result, checkSubresult);
+		}
+		
+		@Override
+		public void timeout() {
+			try {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
-				if (verbose) display("Check result", result);
-				if (isError(result, checkSubresult)) {
-					if (errorOk) {
-						return true;
-					} else {
-						AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
-					}
-				}
-				if (isUnknown(result, checkSubresult)) {
-					return false;
-				}
-//				assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
-				return !isInProgress(result, checkSubresult);
+				LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+				assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Exception during task refresh: {}", e,e);
+			} catch (SchemaException e) {
+				LOGGER.error("Exception during task refresh: {}", e,e);
 			}
-			@Override
-			public void timeout() {
-				try {
-					Task freshTask = taskManager.getTask(taskOid, waitResult);
-					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
-					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
-				} catch (SchemaException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
-				}
-			}
-		};
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		}
+		
+		public Task getLastTask() {
+			return freshTask;
+		}
 	}
-
+	
 	protected void waitForTaskStart(String taskOid, boolean checkSubresult) throws Exception {
 		waitForTaskStart(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
