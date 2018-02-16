@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 /**
  * @author lazyman
@@ -184,17 +185,21 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			}
 	}
 
+	// TODO: unify with PropertyOrReferenceWrapper.getDisplayName()
 	@Override
 	public String getDisplayName() {
-		if (StringUtils.isNotEmpty(displayName)) {
-			return displayName;
+		if (displayName == null) {
+			// Lazy loading of a localized name.
+			// We really want to remember a processed name in the wrapper.
+			// getDisplatName() method may be called many times, e.g. during sorting.
+			displayName = getDisplayNameFromItem(container);
 		}
-		return getDisplayNameFromItem(container);
+		return displayName;
 	}
-
+	
 	@Override
-	public void setDisplayName(String name) {
-		this.displayName = name;
+	public void setDisplayName(String displayName) {
+		this.displayName = localizeName(displayName);
 	}
 
 	@Override
@@ -210,16 +215,22 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		Validate.notNull(item, "Item must not be null.");
 
 		String displayName = item.getDisplayName();
-		if (StringUtils.isEmpty(displayName)) {
-			QName name = item.getElementName();
-			if (name != null) {
-				displayName = name.getLocalPart();
-			} else {
-				displayName = item.getDefinition().getTypeName().getLocalPart();
-			}
+		if (!StringUtils.isEmpty(displayName)) {
+			return localizeName(displayName);
 		}
+		
+		QName name = item.getElementName();
+		if (name != null) {
+			displayName = name.getLocalPart();
+		} else {
+			displayName = item.getDefinition().getTypeName().getLocalPart();
+		}
+		
+		return localizeName(displayName);
+	}
 
-		return displayName;
+	static String localizeName(String nameKey) {
+		return ColumnUtils.createStringResource(nameKey).getString();
 	}
 
 	public boolean hasChanged() {
@@ -236,10 +247,18 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("ContainerWrapper(");
-		builder.append(getDisplayNameFromItem(container));
-		builder.append(" (");
+		if (displayName == null) {
+			if (container == null) {
+				builder.append("null");
+			} else {
+				builder.append(container.getElementName());
+			}
+		} else {
+			builder.append(displayName);
+		}
+		builder.append(" [");
 		builder.append(status);
-		builder.append(") ");
+		builder.append("] ");
 		builder.append(getValues() == null ? null : getValues().size());
 		builder.append(" items)");
 		return builder.toString();

@@ -45,7 +45,10 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	protected I item;
 	protected ValueStatus status;
 	protected List<ValueWrapper> values;
+	
+	// processed and localized display name
 	protected String displayName;
+	
 	protected boolean readonly;
 	private boolean isStripe;
 	private boolean showEmpty;
@@ -143,17 +146,21 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	        return container;
 	    }
 
+	// TODO: unify with ContainerWrapper.getDisplayName()
 	@Override
 	public String getDisplayName() {
-		if (StringUtils.isNotEmpty(displayName)) {
-			return displayName;
+		if (displayName == null) {
+			// Lazy loading of a localized name.
+			// We really want to remember a processed name in the wrapper.
+			// getDisplatName() method may be called many times, e.g. during sorting.
+			displayName = ContainerWrapper.getDisplayNameFromItem(item);
 		}
-		return ContainerWrapper.getDisplayNameFromItem(item);
+		return displayName;
 	}
-
+	
 	@Override
 	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
+		this.displayName = ContainerWrapper.localizeName(displayName);
 	}
 
 	public ValueStatus getStatus() {

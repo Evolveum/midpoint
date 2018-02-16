@@ -314,24 +314,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 	}
 
-	private int compareByDisplayNames(ItemWrapper pw1, ItemWrapper pw2, Collator collator){
-		ItemDefinition id1 = pw1.getItemDefinition();
-		ItemDefinition id2 = pw2.getItemDefinition();
-		String str1 = (id1 != null ? (id1.getDisplayName() != null
-				? (createStringResource(id1.getDisplayName()) != null
-				&& StringUtils.isNotEmpty(createStringResource(id1.getDisplayName()).getString())
-				? createStringResource(id1.getDisplayName()).getString()
-				: id1.getDisplayName())
-				: (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : ""))
-				: "");
-		String str2 = (id2 != null ? (id2.getDisplayName() != null
-				? (createStringResource(id2.getDisplayName()) != null
-				&& StringUtils.isNotEmpty(createStringResource(id2.getDisplayName()).getString())
-				? createStringResource(id2.getDisplayName()).getString()
-				: id2.getDisplayName())
-				: (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : ""))
-				: "");
-		return collator.compare(str1, str2);
+	private int compareByDisplayNames(ItemWrapper pw1, ItemWrapper pw2, Collator collator) {
+		return collator.compare(pw1.getDisplayName(), pw2.getDisplayName());
 	}
 
 	@Override

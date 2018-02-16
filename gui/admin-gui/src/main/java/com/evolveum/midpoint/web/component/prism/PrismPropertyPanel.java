@@ -353,6 +353,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             public String getObject() {
                 IW wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
+                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
+                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
                 String displayNameValueByKey = PageBase.createStringResourceStatic(PrismPropertyPanel.this, displayName).getString();
                 return StringUtils.isEmpty(displayNameValueByKey) ?
                         getString(displayName, null, displayName) : displayNameValueByKey;
