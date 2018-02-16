@@ -916,7 +916,9 @@ public class ChangeExecutor {
 
 		} finally {
 
+			LOGGER.info("RRRR1: {}", result);
 			result.computeStatus();
+			LOGGER.info("RRRR2: {}", result);
 			if (objectContext != null) {
 				if (!objectDelta.hasCompleteDefinition()) {
 					throw new SchemaException("object delta does not have complete definition");
