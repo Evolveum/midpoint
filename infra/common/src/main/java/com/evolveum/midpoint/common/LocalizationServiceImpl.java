@@ -58,12 +58,12 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(buildSource(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH, null));
 
         // model security messages as fallback
-        ResourceBundleMessageSource modelSecurity = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource modelSecurity = new CachedResourceBundleMessageSource();
         modelSecurity.setBasename("com.evolveum.midpoint.security");
         sources.add(modelSecurity);
 
         // spring security messages as a fallback
-        ResourceBundleMessageSource springSecurity = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource springSecurity = new CachedResourceBundleMessageSource();
         springSecurity.setBasename("org.springframework.security.messages");
         sources.add(springSecurity);
     }
@@ -137,7 +137,7 @@ public class LocalizationServiceImpl implements LocalizationService {
     }
 
     private ResourceBundleMessageSource buildSource(String basename, ClassLoader classLoader) {
-        ResourceBundleMessageSource source = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource source = new CachedResourceBundleMessageSource();
         source.setDefaultEncoding(StandardCharsets.UTF_8.name());
         source.setFallbackToSystemLocale(false);
         source.setBasename(basename);

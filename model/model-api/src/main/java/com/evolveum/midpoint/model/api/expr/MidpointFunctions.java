@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -1129,4 +1131,12 @@ public interface MidpointFunctions {
 	 */
 	Boolean isEvaluateNew();
 
+	/**
+	 * Returns all non-negative values from all focus mappings (targeted to given path)
+	 * from all non-negative evaluated assignments.
+	 *
+	 * Highly experimental. Use at your own risk.
+	 */
+	@NotNull
+	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
 }

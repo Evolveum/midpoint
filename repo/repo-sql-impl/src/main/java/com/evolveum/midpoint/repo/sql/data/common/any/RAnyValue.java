@@ -31,6 +31,8 @@ public interface RAnyValue<T> extends Serializable, EntityState {
 
     String F_TYPE = "type";
 
+    String F_ITEM = "item";
+
     String getName();
 
     String getType();

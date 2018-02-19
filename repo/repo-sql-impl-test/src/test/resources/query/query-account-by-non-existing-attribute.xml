@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,14 +15,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
-    <div wicket:id="displayName"/>
-    <div wicket:id="specificContainers" />
-    <div class="container-fluid prism-object" wicket:id="basicAssignmentPanel" />
-    <div class="container-fluid prism-object" wicket:id="activationPanel" />
- </wicket:panel>
-</body>
-</html>
+<query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+<filter>
+	<equal>
+        <path xmlns:s="http://midpoint.evolveum.com/blabla">c:attributes/s:fooNonExisting</path>
+        <value xsi:type="xsd:string">uid=jbond,ou=People,dc=example,dc=com</value>
+    </equal>
+</filter>
+</query>

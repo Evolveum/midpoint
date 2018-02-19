@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
@@ -103,13 +105,32 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreter2Test.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
 
-    private static final QName SKIP_AUTOGENERATION = new QName("http://example.com/p", "skipAutogeneration");
+    private static final QName FOO_QNAME = new QName("http://midpoint.evolveum.com/blabla", "foo");
+    private static final QName SHOE_SIZE_QNAME = new QName("http://example.com/xml/ns/mySchema", "shoeSize");
+    private static final QName A1_QNAME = new QName("", "a1");
+    private static final QName STRING_TYPE_QNAME = new QName("http://example.com/p", "stringType");
+    private static final QName INT_TYPE_QNAME = new QName("http://example.com/p", "intType");
+    private static final QName LONG_TYPE_QNAME = new QName("http://example.com/p", "longType");
+    private static final QName WEAPON_QNAME = new QName("http://example.com/p", "weapon");
+    private static final QName OVERRIDE_ACTIVATION_QNAME = new QName("http://example.com/p", "overrideActivation");
+    private static final QName ACTIVATION_STATUS_TYPE_QNAME = new QName(SchemaConstants.NS_C, ActivationStatusType.class.getSimpleName());
+    private static final QName SKIP_AUTOGENERATION_QNAME = new QName("http://example.com/p", "skipAutogeneration");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
+
+    private RExtItem fooDefinition;
+    private RExtItem shoeSizeDefinition;
+    private RExtItem a1Definition;
+    private RExtItem stringTypeDefinition;
+    private RExtItem intTypeDefinition;
+    private RExtItem longTypeDefinition;
+    private RExtItem weaponDefinition;
+    private RExtItem overrideActivationDefinition;
+    private RExtItem skipAutogenerationDefinition;
 
     @BeforeClass
     public void beforeClass() throws Exception {
@@ -124,8 +145,29 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             repositoryService.addObject(object, null, result);
         }
 
+        prepareItemDefinitions();
+
         result.recomputeStatus();
         assertTrue(result.isSuccess());
+    }
+
+    private void prepareItemDefinitions() {
+        Session session = open();
+        try {
+            ExtItemDictionary d = ExtItemDictionary.getInstance();
+            fooDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(FOO_QNAME, DOMUtil.XSD_STRING, prismContext), session);
+            shoeSizeDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(SHOE_SIZE_QNAME, DOMUtil.XSD_INT, prismContext), session);
+            a1Definition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(A1_QNAME, DOMUtil.XSD_STRING, prismContext), session);
+            stringTypeDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(STRING_TYPE_QNAME, DOMUtil.XSD_STRING, prismContext), session);
+            intTypeDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(INT_TYPE_QNAME, DOMUtil.XSD_INT, prismContext), session);
+            longTypeDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Long>(LONG_TYPE_QNAME, DOMUtil.XSD_LONG, prismContext), session);
+            weaponDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(WEAPON_QNAME, DOMUtil.XSD_STRING, prismContext), session);
+            overrideActivationDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<ActivationStatusType>(OVERRIDE_ACTIVATION_QNAME,
+                    ACTIVATION_STATUS_TYPE_QNAME, prismContext), session);
+            skipAutogenerationDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Boolean>(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN, prismContext), session);
+        } finally {
+            close(session);
+        }
     }
 
     @Test
@@ -496,13 +538,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.name = :name )\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.id = :id )\n" +
                     "where\n" +
                     "  ( g.name.norm = :norm and l.value = :value )\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
 
-			assertEquals("Wrong property URI for 'intType'", "http://example.com/p#intType", realQuery.getQuerySource().getParameters().get("name").getValue());
+			assertEquals("Wrong property ID for 'intType'", intTypeDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
         } finally {
             close(session);
         }
@@ -527,8 +569,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.name = :name )\n" +
-                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.item.name = :name2 )\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.id = :id )\n" +
+                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.item.id = :id2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    g.name.norm = :norm and\n" +
@@ -540,15 +582,34 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             // note l and l2 cannot be merged as they point to different extension properties (intType, longType)
             assertEqualsIgnoreWhitespace(expected, real);
 
-			assertEquals("Wrong property URI for 'intType'", "http://example.com/p#intType", source.getParameters().get("name").getValue());
-			assertEquals("Wrong property URI for 'longType'", "http://example.com/p#longType", source.getParameters().get("name2").getValue());
+			assertEquals("Wrong property ID for 'intType'", intTypeDefinition.getId(), source.getParameters().get("id").getValue());
+			assertEquals("Wrong property ID for 'longType'", longTypeDefinition.getId(), source.getParameters().get("id2").getValue());
         } finally {
             close(session);
         }
     }
 
     @Test
-    public void test072QueryAccountByAttribute() throws Exception {
+    public void test072QueryAccountByNonExistingAttribute() throws Exception {
+        Session session = open();
+        try {
+            String real = getInterpretedQuery2(session, ShadowType.class,
+                    new File(TEST_DIR, "query-account-by-non-existing-attribute.xml"));
+            String expected = "select\n" +
+                    "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
+                    "from\n" +
+                    "  RShadow s\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and 1=0 )\n" +
+                    "where\n" +
+                    "  s2.value = :value\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test073QueryAccountByAttribute() throws Exception {
         Session session = open();
         try {
             String real = getInterpretedQuery2(session, ShadowType.class,
@@ -557,7 +618,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
                     "where\n" +
                     "  s2.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -577,8 +638,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
-                    "    left join s.longs l with ( l.ownerType = :ownerType2 and l.item.name = :name2 )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
+                    "    left join s.longs l with ( l.ownerType = :ownerType2 and l.item.id = :id2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    s2.value = :value and\n" +
@@ -586,8 +647,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  )";
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
 
-			assertEquals("Wrong property URI for 'a1'", "#a1", realQuery.getQuerySource().getParameters().get("name").getValue());
-			assertEquals("Wrong property URI for 'shoeSize'", "http://example.com/xml/ns/mySchema#shoeSize", realQuery.getQuerySource().getParameters().get("name2").getValue());
+			assertEquals("Wrong property ID for 'a1'", a1Definition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
+			assertEquals("Wrong property ID for 'shoeSize'", shoeSizeDefinition.getId(), realQuery.getQuerySource().getParameters().get("id2").getValue());
         } finally {
             close(session);
         }
@@ -620,8 +681,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
-                    "    left join s.strings s3 with ( s3.ownerType = :ownerType2 and s3.item.name = :name2 )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
+                    "    left join s.strings s3 with ( s3.ownerType = :ownerType2 and s3.item.id = :id2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    s.intent = :intent or\n" +
@@ -646,8 +707,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
-			assertEquals("Wrong property URI for 'foo'", "http://midpoint.evolveum.com/blabla#foo", realQuery.getQuerySource().getParameters().get("name").getValue());
-			assertEquals("Wrong property URI for 'stringType'", "http://example.com/p#stringType", realQuery.getQuerySource().getParameters().get("name2").getValue());
+			assertEquals("Wrong property ID for 'foo'", fooDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
+			assertEquals("Wrong property ID for 'stringType'", stringTypeDefinition.getId(), realQuery.getQuerySource().getParameters().get("id2").getValue());
 
             System.out.println("Query parameters: " + realQuery.getQuerySource().getParameters());
         } finally {
@@ -1097,7 +1158,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.name = :name )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
@@ -2689,14 +2750,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  o.booleansCount\n" +
                     "from\n" +
                     "  RObject o\n" +
-                    "    left join o.strings s with ( s.ownerType = :ownerType and s.item.name = :name )\n" +
+                    "    left join o.strings s with ( s.ownerType = :ownerType and s.item.id = :id )\n" +
                     "where\n" +
                     "  (\n" +
                     "    o.objectTypeClass = :objectTypeClass and\n" +
                     "    s.value = :value\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
-			assertEquals("Wrong property URI for 'weapon'", "http://example.com/p#weapon", realQuery.getQuerySource().getParameters().get("name").getValue());
+			assertEquals("Wrong property ID for 'weapon'", weaponDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
 
 		} finally {
             close(session);
@@ -2960,7 +3021,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.strings s with ( s.ownerType = :ownerType and s.item.name = :name )\n" +
+                    "    left join g.strings s with ( s.ownerType = :ownerType and s.item.id = :id )\n" +
                     "where\n" +
                     "  s.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -3017,7 +3078,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery objectQuery = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
-                    .item(ObjectType.F_EXTENSION, SKIP_AUTOGENERATION).eq(true)
+                    .item(ObjectType.F_EXTENSION, SKIP_AUTOGENERATION_QNAME).eq(true)
                     .build();
             objectQuery.setUseNewQueryInterpreter(true);
 
@@ -3033,12 +3094,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.booleans b with ( b.ownerType = :ownerType and b.item.name = :name )\n" +
+                    "    left join g.booleans b with ( b.ownerType = :ownerType and b.item.id = :id )\n" +
                     "where\n" +
                     "  b.value = :value\n";
 
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
-			assertEquals("Wrong property URI for 'skipAutogeneration'", "http://example.com/p#skipAutogeneration", realQuery.getQuerySource().getParameters().get("name").getValue());
+			assertEquals("Wrong property ID for 'skipAutogeneration'", skipAutogenerationDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
 
 			OperationResult result = new OperationResult("search");
             List<PrismObject<GenericObjectType>> objects = repositoryService.searchObjects(GenericObjectType.class,
@@ -3069,10 +3130,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
             PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
-            PrismPropertyDefinition propDef = ((PrismContainerDefinitionImpl) assignmentDef).createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
+            PrismPropertyDefinition propDef = ((PrismContainerDefinitionImpl) assignmentDef).createPropertyDefinition(
+                    SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = QueryBuilder.queryFor(UserType.class, prismContext)
-                    .itemWithDef(propDef, F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION).eq(true)
+                    .itemWithDef(propDef, F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION_QNAME).eq(true)
                     .build();
             objectQuery.setUseNewQueryInterpreter(true);
 
@@ -3089,7 +3151,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
                     "    left join a.extension e\n" +
-                    "    left join e.booleans b with b.item.name = :name\n" +
+                    "    left join e.booleans b with b.item.id = :id\n" +
                     "where\n" +
                     "  b.value = :value";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -3139,7 +3201,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         	ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 					.item(F_EXTENSION, new QName("overrideActivation")).eq(ActivationStatusType.ENABLED)
 					.build();
-			String real = getInterpretedQuery2(session, UserType.class, query);
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            String real = realQuery.getQuery().getQueryString();
             String expected = "select\n"
 					+ "  u.oid, u.fullObject,\n"
 					+ "  u.stringsCount,\n"
@@ -3152,11 +3215,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  RUser u\n"
 					+ "    left join u.strings s with (\n"
 					+ "	      s.ownerType = :ownerType and\n"
-					+ "	      s.item.name = :name\n"
+					+ "	      s.item.id = :id\n"
 					+ ")\n"
 					+ "where\n"
 					+ "  s.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
+            assertEquals("Wrong property ID for 'overrideActivation'", overrideActivationDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
         } finally {
             close(session);
         }
@@ -3183,7 +3247,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  RGenericObject g\n"
 					+ "    left join g.references r with (\n"
 					+ "       r.ownerType = :ownerType and\n"
-					+ "       r.item.name = :name\n"
+					+ "       r.item.id = :id\n"
 					+ "    )\n"
 					+ "where\n"
 					+ "  (\n"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -308,9 +308,9 @@ public class ProgressReporter implements ProgressListener {
         }
         Task task = application.createSimpleTask("getResourceName");
         OperationResult result = new OperationResult("getResourceName");
-        Collection<SelectorOptions<GetOperationOptions>> raw = SelectorOptions.createCollection(GetOperationOptions.createRaw());       // todo what about security?
+        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createNoFetchCollection();
         try {
-            PrismObject<ResourceType> object = application.getModel().getObject(ResourceType.class, oid, raw, task, result);
+            PrismObject<ResourceType> object = application.getModel().getObject(ResourceType.class, oid, options, task, result);
             name = PolyString.getOrig(object.asObjectable().getName());
         } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine the name of resource {}", e, oid);

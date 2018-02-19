@@ -1495,14 +1495,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public ObjectReferenceType getObjectRef() {
-		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
-		if (objectRef == null) {
-			return null;
-		}
-		ObjectReferenceType objRefType = new ObjectReferenceType();
-		objRefType.setOid(objectRef.getOid());
-		objRefType.setType(objectRef.getValue().getTargetType());
-		return objRefType;
+		return taskPrism.asObjectable().getObjectRef();
 	}
 
 	@Override

@@ -233,9 +233,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         	return Integer.MAX_VALUE;
         }
         int count = 0;
-        OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
+        Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
+        OperationResult result = task.getResult();
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             Integer counted = getModel().countObjects(type, getQuery(), options, task, result);
             count = defaultIfNull(counted, 0);
         } catch (Exception ex) {
@@ -244,8 +244,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         } finally {
             result.computeStatusIfUnknown();
         }
-
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+        
+        if (!WebComponentUtil.isSuccessOrHandledError(result) && !result.isNotApplicable()) {
             getPage().showResult(result);
             // Let us do nothing. The error will be shown on the page and a count of 0 will be used.
 	        // Redirecting to the error page does more harm than good (see also MID-4306).

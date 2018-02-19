@@ -173,10 +173,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test100UserJackAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -216,10 +216,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -258,10 +258,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
 		final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -305,7 +305,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 //        TestUtil.displayTestTile(this, TEST_NAME);
 //
 //        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+//        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 //
@@ -336,10 +336,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
 		final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -405,10 +405,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test212UserSharptoothAssignAccountRecovery() throws Exception {
 		final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -455,10 +455,10 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	}
 
 	public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -493,13 +493,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
 		final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		//GIVEN
 		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
 				USER_AFET_NAME, USER_AFET_FULLNAME);
 		String shadowOidBefore = getSingleLinkOid(user);
-		Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
 		// WHEN
@@ -521,7 +521,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // ... and again ...
 
-        task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        task = createTask(TEST_NAME);
         result = task.getResult();
 
 		// WHEN
@@ -542,56 +542,49 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
 	/**
 	 * Assign account to user, delete the account shadow (not the account), recompute the user.
-	 * We expect ObjectAlreadyExistsException.
+	 * We expect an error.
 	 *
 	 * This is tried on the red dummy resource where there is no synchronization.
 	 */
 	@Test
     public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
 		final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		//GIVEN
-		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME,
+		PrismObject<UserType> userBefore = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME,
 				USER_BFET_NAME, USER_BFET_FULLNAME);
-		Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        try {
-	        // WHEN
-        	recomputeUser(user.getOid(), task, result);
+        // WHEN
+        displayWhen(TEST_NAME);
+    	recomputeUser(userBefore.getOid(), task, result);
 
-	        AssertJUnit.fail("Unexpected success");
-        } catch (ObjectAlreadyExistsException e) {
-        	// this is expected
-        	result.computeStatus();
-        	TestUtil.assertFailure(result);
-        }
+    	// THEN
+    	displayThen(TEST_NAME);
+    	assertPartialError(result);
 
-        user = getUser(user.getOid());
-        display("User after", user);
-        assertNoLinkedAccount(user);
+    	PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+        display("User after", userAfter);
+        assertNoLinkedAccount(userAfter);
 
         // and again ...
 
-        task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        task = createTask(TEST_NAME);
         result = task.getResult();
 
-        try {
-	        // WHEN
-        	recomputeUser(user.getOid(), task, result);
+        // WHEN
+        displayWhen(TEST_NAME);
+    	recomputeUser(userAfter.getOid(), task, result);
+    	
+    	// THEN
+    	displayThen(TEST_NAME);
+    	assertPartialError(result);
 
-	        AssertJUnit.fail("Unexpected success");
-        } catch (ObjectAlreadyExistsException e) {
-        	// this is expected
-        	result.computeStatus();
-        	TestUtil.assertFailure(result);
-        }
-
-        user = getUser(user.getOid());
-        display("User after", user);
-        assertNoLinkedAccount(user);
-
+        userAfter = getUser(userAfter.getOid());
+        display("User after", userAfter);
+        assertNoLinkedAccount(userAfter);
 	}
 
 	/**
@@ -603,14 +596,14 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
 		final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		//GIVEN
 		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME,
 				RESOURCE_DUMMY_YELLOW_OID, RESOURCE_DUMMY_YELLOW_NAME,
 				USER_CFET_NAME, USER_CFET_FULLNAME);
 		String shadowOidBefore = getSingleLinkOid(user);
-		Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
 		// WHEN
@@ -632,7 +625,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
         // ... and again ...
 
-        task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        task = createTask(TEST_NAME);
         result = task.getResult();
 
 		// WHEN

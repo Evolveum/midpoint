@@ -264,6 +264,7 @@ public class MiscUtil {
         }
     }
 
+	@SafeVarargs
 	public static <T> Collection<T> createCollection(T... items) {
 		Collection<T> collection = new ArrayList<T>(items.length);
 		for (T item: items) {
