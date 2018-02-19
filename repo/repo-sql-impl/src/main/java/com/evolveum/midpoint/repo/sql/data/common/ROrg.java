@@ -45,6 +45,7 @@ import java.util.Set;
 public class ROrg extends RAbstractRole<OrgType> {
 
     private RPolyString nameCopy;
+    @Deprecated //todo remove collection in 3.9
     private Set<String> orgType;
     private String costCenter;
     private RPolyString locality;

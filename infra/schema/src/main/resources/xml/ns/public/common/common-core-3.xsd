@@ -192,6 +192,22 @@
                 </xsd:annotation>
             </xsd:element>
 
+			<xsd:element name="subType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Type of the object. It is used to distinguish what a specific object
+							represents. Whether it is a different kind of organizational unit, project,
+							team, or different kind of user, etc.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ObjectType.subType</a:displayName>
+						<a:displayOrder>15</a:displayOrder>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
 			<xsd:element name="fetchResult" type="tns:OperationResultType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -3032,10 +3048,15 @@
                                 	reasons it is used in a more generic way to mean general type of user.
                                 	Therefore it can be used to distinguish employees from customers, etc.
                                 </p>
+								<p>
+									DEPRECATED: Use ObjectType.subType
+								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.employeeType</a:displayName>
                                 <a:displayOrder>410</a:displayOrder>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11078,9 +11099,14 @@
                                         <li>asset</li>
                                     </ul>
                                 </p>
+								<p>
+									DEPRECATED: use ObjectType.subType
+								</p>
                     		</xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>RoleType.roleType</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -11531,10 +11557,15 @@
                                         <li>realm</li>
                                     </ul>
                                 </p>
+								<p>
+									DEPRECATED: Use ObjectType.subType
+								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>OrgType.type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11691,10 +11722,15 @@
                                         <li>device</li>
                                     </ul>
                                 </p>
+								<p>
+									DEPRECATED: Use ObjectType.subType
+								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ServiceType.type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

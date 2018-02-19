@@ -45,6 +45,7 @@ import java.util.Set;
 public class RService extends RAbstractRole<ServiceType> {
 
     private RPolyString nameCopy;
+    @Deprecated //todo remove collection in 3.9
     private Set<String> serviceType;
     private RPolyString locality;
     private Integer displayOrder;

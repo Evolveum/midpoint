@@ -44,6 +44,7 @@ import java.util.Collection;
 public class RRole extends RAbstractRole<RoleType> {
 
     private RPolyString nameCopy;
+    @Deprecated //todo remove in 3.9
     private String roleType;
 
     public String getRoleType() {
