@@ -177,7 +177,11 @@ public class ContainerWrapperFactory {
 			}		
 			
 			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, isItemReadOnly(association.getDefinition(), shadowValueWrapper), shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
-			associationValueWrapper.setDisplayName(refinedAssocationDefinition.getDisplayName());
+			String displayName = refinedAssocationDefinition.getDisplayName();
+			if (displayName == null) {
+				displayName = refinedAssocationDefinition.getName().getLocalPart();
+			}
+			associationValueWrapper.setDisplayName(displayName);
 			S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext());
 			List<ObjectFilter> orFilterClauses = new ArrayList<>();
 			refinedAssocationDefinition.getIntents()

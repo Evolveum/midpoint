@@ -140,7 +140,7 @@ public class ObjectWrapperFactory {
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
-			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) {
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) throws SchemaException {
         return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
                 objectClassDefinitionForEditing, status, null);
     }
@@ -148,7 +148,7 @@ public class ObjectWrapperFactory {
     private <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
 			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
-			OperationResult result) {
+			OperationResult result) throws SchemaException {
 
         if (result == null) {
             this.result = new OperationResult(CREATE_OBJECT_WRAPPER);
@@ -175,7 +175,7 @@ public class ObjectWrapperFactory {
     }
 
     private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainerWrappers(ObjectWrapper<O> oWrapper,
-			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, OperationResult pResult) {
+			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, OperationResult pResult) throws SchemaException {
         OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
         List<ContainerWrapper<? extends Containerable>> containerWrappers = new ArrayList<>();
@@ -189,10 +189,9 @@ public class ObjectWrapperFactory {
 
                 addContainerWrappers(containerWrappers, oWrapper, object, null, result);
         } catch (SchemaException | RuntimeException e) {
-            //TODO: shouldn't be this exception thrown????
             LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", e);
-            result.recordFatalError("Error occurred during container wrapping, reason: " + e.getMessage(),
-                    e);
+            result.recordFatalError("Error occurred during container wrapping, reason: " + e.getMessage(), e);
+            throw e;
         }
 
         containerWrappers.sort(new ItemWrapperComparator());
