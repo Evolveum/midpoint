@@ -26,6 +26,8 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -164,8 +166,10 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		display("Repo shadow", shadowRepo);
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME.toLowerCase());
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_BIGMOUTH_FULLNAME);
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
+				new RawType(new PrismPropertyValue(USER_BIGMOUTH_NAME.toLowerCase()), ATTR_USERNAME_QNAME, prismContext));
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
+				new RawType(new PrismPropertyValue(USER_BIGMOUTH_FULLNAME), ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);
@@ -215,8 +219,10 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		display("Repo shadow", shadowRepo);
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_BIGMOUTH_NAME.toLowerCase());
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_BIGMOUTH_FULLNAME);
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
+				new RawType(new PrismPropertyValue(USER_BIGMOUTH_NAME.toLowerCase()), ATTR_USERNAME_QNAME, prismContext));
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
+				new RawType(new PrismPropertyValue(USER_BIGMOUTH_FULLNAME), ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);
