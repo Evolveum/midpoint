@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -176,12 +173,12 @@ public class ObjectDeltaUpdater {
                     continue;
                 }
 
-                handleAttribute(attribute, attributeStep.bean, delta);
+                handleAttribute(attribute, attributeStep.bean, delta, prismObject);
 
                 if ("name".equals(attribute.getName()) && RObject.class.isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
                     // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
                     Attribute nameCopyAttribute = findAttribute(attributeStep, "nameCopy", null, null, null);
-                    handleAttribute(nameCopyAttribute, attributeStep.bean, delta);
+                    handleAttribute(nameCopyAttribute, attributeStep.bean, delta, prismObject);
                 }
             }
         }
@@ -674,7 +671,7 @@ public class ObjectDeltaUpdater {
         return step;
     }
 
-    private void handleAttribute(Attribute attribute, Object bean, ItemDelta delta) {
+    private void handleAttribute(Attribute attribute, Object bean, ItemDelta delta, PrismObject prismObject) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
@@ -694,11 +691,11 @@ public class ObjectDeltaUpdater {
             case ONE_TO_MANY:
                 // object extension is handled separately, only {@link Container} and references are handled here
                 Collection oneToMany = (Collection) invoke(bean, method);
-                handleOneToMany(oneToMany, delta, attribute, bean);
+                handleOneToMany(oneToMany, delta, attribute, bean, prismObject);
                 break;
             case ELEMENT_COLLECTION:
                 Collection elementCollection = (Collection) invoke(bean, method);
-                handleElementCollection(elementCollection, delta, attribute, bean);
+                handleElementCollection(elementCollection, delta, attribute, bean, prismObject);
                 break;
         }
     }
@@ -725,17 +722,19 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean) {
-        handleOneToMany(collection, delta, attribute, bean);
+    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject) {
+        handleOneToMany(collection, delta, attribute, bean, prismObject);
     }
 
-    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute, Object bean) {
+    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject) {
         Class outputType = getRealOutputType(attribute);
+
+        Item item = prismObject.findItem(delta.getPath());
 
         // handle replace
         if (delta.isReplace()) {
             Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
-            replaceValues(collection, valuesToReplace);
+            replaceValues(collection, valuesToReplace, item);
             return;
         }
 
@@ -753,7 +752,7 @@ public class ObjectDeltaUpdater {
                     ((EntityState) pair.getRepository()).setTransient(false);
                 }
             });
-            deleteValues(collection, valuesToDelete);
+            deleteValues(collection, valuesToDelete, item);
         }
     }
 
