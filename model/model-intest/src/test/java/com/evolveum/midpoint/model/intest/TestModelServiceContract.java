@@ -275,7 +275,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -833,7 +834,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -903,7 +905,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -971,7 +974,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
 
 		// Check shadow (if it is unchanged)
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account (if it is unchanged)
@@ -1132,7 +1136,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 72);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 67);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userAfter);
@@ -1146,7 +1150,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -1226,7 +1231,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1309,7 +1315,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1376,7 +1383,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Account OID changed", accountJackOid, accountJackOidAfter);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1508,7 +1516,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -1599,7 +1608,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		assertLinked(userJack, accountJackOid);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -1752,7 +1762,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -1962,7 +1973,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2032,7 +2044,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2236,7 +2249,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2365,7 +2379,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, USER_JACK_USERNAME);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -2494,7 +2509,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, USER_JACK_USERNAME);
 
         // Check account
@@ -2553,7 +2569,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2622,7 +2639,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2724,7 +2742,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userAfter);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account
@@ -2792,7 +2811,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
         // Check account - the original fullName should not be changed
@@ -2918,7 +2938,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertPasswordMetadata(userBlackbeard, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "blackbeard");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -3008,7 +3029,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertPasswordMetadata(userMorgan, true, startTime, endTime);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "morgan");
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -3078,7 +3100,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         display("Shadow repo", accountShadowRepo);
         assertDummyAccountShadowRepo(accountShadowRepo, accountOid, "sirhenry");
 
@@ -3255,7 +3278,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountJackBlueOid = getSingleLinkOid(userJackAfter);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackBlueOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackBlueOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
 
@@ -3322,7 +3346,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         String accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), result);
         assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
 
         // Check account
