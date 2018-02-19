@@ -37,18 +37,33 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.Application;
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.protocol.http.WicketFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockFilterConfig;
+import org.springframework.mock.web.MockServletContext;
+import org.springframework.web.context.WebApplicationContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 /**
  * @author lazyman
@@ -60,6 +75,9 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
+    private MidPointApplication application;
+    
+    @Autowired private ApplicationContext appContext;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
 
@@ -67,6 +85,46 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 	}
+    
+    @PostConstruct
+    public void setupApplication() throws ServletException {
+    	
+    	display("PostContruct");
+    	Set<String> applicationKeys = Application.getApplicationKeys();
+    	for (String key: Application.getApplicationKeys()) {
+    		display("App "+key, Application.get(key));
+    	}
+    	
+    	application = createInitializedMidPointApplication();
+    }
+    
+    private MidPointApplication createInitializedMidPointApplication() throws ServletException {
+		MidPointApplication application = new MidPointApplication();
+    	WicketFilter wicketFilter = new WicketFilter(application);
+    	MockServletContext servletContext = new MockServletContext();
+    	WebApplicationContext wac = new MockWebApplicationContext(appContext, servletContext);
+    	servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+    	MockFilterConfig filterConfig = new MockFilterConfig(servletContext, "midpoint");
+    	filterConfig.addInitParameter("applicationClassName", MidPointApplication.class.getName());
+		wicketFilter.init(filterConfig);
+		application.setWicketFilter(wicketFilter);
+		application.setServletContext(servletContext);
+    	new DescriptorLoader().loadData(application);
+    	ThreadContext.setApplication(application);
+    	application.initApplication();
+    	ThreadContext.setApplication(null);
+    	return application;
+	}
+    
+    @BeforeMethod
+    public void beforeMethodApplication() {
+    	ThreadContext.setApplication(application);
+    }
+    
+    @AfterMethod
+    public void afterMethodApplication() {
+    	ThreadContext.setApplication(null);
+    }
 
 	@BeforeClass
     public void beforeClass() throws Exception {
