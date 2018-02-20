@@ -127,7 +127,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
      		}
          }
     }
-
+    
+    @Override
+    protected boolean checkOrderingSettings() {
+        return true;
+    }
 
     @Override
     public Iterator<SelectableBean<O>> internalIterator(long offset, long pageSize) {

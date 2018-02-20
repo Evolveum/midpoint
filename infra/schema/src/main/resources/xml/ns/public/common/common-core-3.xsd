@@ -17159,6 +17159,7 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
+				<xsd:element name="default" type="tns:GuiObjectListType" minOccurs="0"/>
            		<xsd:element name="objectList" type="tns:GuiObjectListType" minOccurs="0" maxOccurs="unbounded"/>
            		<xsd:element name="includeDefaultLists" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
            			<xsd:annotation>
@@ -17192,6 +17193,7 @@
            		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
            		<!-- TODO: number of results per page (MID-1931) -->
            		<!-- TODO: later: export settings (GuiExportSettingsType) -->
+				<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0"/>
            	</xsd:sequence>
     </xsd:complexType>
     
