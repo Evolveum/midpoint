@@ -2660,6 +2660,44 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
+					<xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									The name, identifier or code of the cost center to which the user belongs.
+								</p>
+								<p>
+									Please note that organization objects (OrgType) also have a costCenter property.
+									Therefore it is usual that if a user belongs to an organization the costCenter from
+									the organization is used. Therefore this property is usually used only for users that
+									do not belong to any organization or for users that have different cost center than
+									the one defined by the organization.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.costCenter</a:displayName>
+								<a:displayOrder>420</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Primary locality of the user, the place where
+									the user usually works, the country, city or
+									building that he belongs to. The specific meaning
+									and form of this property is deployment-specific.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.locality</a:displayName>
+								<a:displayOrder>450</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     
 				</xsd:sequence>
             </xsd:extension>
@@ -3061,27 +3099,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	The name, identifier or code of the cost center to which the user belongs.
-                                </p>
-                            	<p>
-                                	Please note that organization objects (OrgType) also have a costCenter property.
-                                	Therefore it is usual that if a user belongs to an organization the costCenter from
-                                	the organization is used. Therefore this property is usually used only for users that
-                                	do not belong to any organization or for users that have different cost center than
-                                	the one defined by the organization.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.costCenter</a:displayName>
-                                <a:displayOrder>420</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="organization" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3122,23 +3139,6 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.organizationalUnit</a:displayName>
                                 <a:displayOrder>440</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Primary locality of the user, the place where
-	                                the user usually works, the country, city or
-	                                building that he belongs to. The specific meaning
-	                                and form of this property is deployment-specific.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.locality</a:displayName>
-                                <a:displayOrder>450</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11586,37 +11586,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	The name, identifier or code of the cost center that applies to this org.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>OrgType.CostCenter</a:displayName>
-                                <a:displayOrder>200</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Primary locality of the org, the place where
-	                                the org is usually placed, the country, city or
-	                                building that it belongs to. The specific meaning
-	                                and form of this property is deployment-specific.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>OrgType.locality</a:displayName>
-                                <a:displayOrder>210</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="mailDomain" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11735,22 +11704,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Informal description of the place where the service is located. 
-	                                E.g. the location where the printer is placed, the name of the
-	                                datacenter, etc.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ServiceType.locality</a:displayName>
-                                <a:displayOrder>210</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

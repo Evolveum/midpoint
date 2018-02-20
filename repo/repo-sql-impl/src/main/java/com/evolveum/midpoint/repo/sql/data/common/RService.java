@@ -40,14 +40,12 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_service")
-//@Table(uniqueConstraints = @UniqueConstraint(name = "uc_service_name", columnNames = {"name_norm"}))
 @Persister(impl = MidPointJoinedPersister.class)
 public class RService extends RAbstractRole<ServiceType> {
 
     private RPolyString nameCopy;
     @Deprecated //todo remove collection in 3.9
     private Set<String> serviceType;
-    private RPolyString locality;
     private Integer displayOrder;
 
     @AttributeOverrides({
@@ -69,15 +67,6 @@ public class RService extends RAbstractRole<ServiceType> {
 
     public void setDisplayOrder(Integer displayOrder) {
         this.displayOrder = displayOrder;
-    }
-
-    @Embedded
-    public RPolyString getLocality() {
-        return locality;
-    }
-
-    public void setLocality(RPolyString locality) {
-        this.locality = locality;
     }
 
     @ElementCollection
@@ -105,14 +94,13 @@ public class RService extends RAbstractRole<ServiceType> {
         if (nameCopy != null ? !nameCopy.equals(rService.nameCopy) : rService.nameCopy != null) return false;
         if (serviceType != null ? !serviceType.equals(rService.serviceType) : rService.serviceType != null)
             return false;
-        if (locality != null ? !locality.equals(rService.locality) : rService.locality != null) return false;
         return displayOrder != null ? displayOrder.equals(rService.displayOrder) : rService.displayOrder == null;
 
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{nameCopy, serviceType, locality, displayOrder});
+        return Arrays.hashCode(new Object[]{nameCopy, serviceType, displayOrder});
     }
 
     public static void copyFromJAXB(ServiceType jaxb, RService repo, RepositoryContext repositoryContext,
@@ -120,7 +108,6 @@ public class RService extends RAbstractRole<ServiceType> {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setDisplayOrder(jaxb.getDisplayOrder());
-        repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setServiceType(RUtil.listToSet(jaxb.getServiceType()));
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }

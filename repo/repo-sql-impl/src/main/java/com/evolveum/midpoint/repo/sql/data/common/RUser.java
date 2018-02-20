@@ -47,8 +47,7 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),           // TODO correct indices names
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
-                @Index(name = "iGivenName", columnNames = "givenName_orig"),
-                @Index(name = "iLocality", columnNames = "locality_orig")})
+                @Index(name = "iGivenName", columnNames = "givenName_orig")})
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RUser extends RFocus<UserType> implements OperationResult {
@@ -66,8 +65,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Deprecated //todo remove collection in 3.9
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
-    private RPolyString localityUser;
-    private String costCenter;
     private String locale;
     private String timezone;
     private RPolyString title;
@@ -135,16 +132,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return givenName;
     }
 
-    @JaxbName(localPart = "locality")
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "orig", column = @Column(name = "locality_orig")),
-            @AttributeOverride(name = "norm", column = @Column(name = "locality_norm"))
-    })
-    public RPolyString getLocalityUser() {
-        return localityUser;
-    }
-
     @Index(name = "iEmployeeNumber")            // TODO correct index name
     public String getEmployeeNumber() {
         return employeeNumber;
@@ -171,10 +158,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
 
     public void setNameCopy(RPolyString nameCopy) {
         this.nameCopy = nameCopy;
-    }
-
-    public String getCostCenter() {
-        return costCenter;
     }
 
     public String getLocale() {
@@ -206,10 +189,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
 
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
-    }
-
-    public void setCostCenter(String costCenter) {
-        this.costCenter = costCenter;
     }
 
     public void setLocale(String locale) {
@@ -268,10 +247,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.honorificSuffix = honorificSuffix;
     }
 
-    public void setLocalityUser(RPolyString locality) {
-        this.localityUser = locality;
-    }
-
     public void setOrganizationalUnit(Set<RPolyString> organizationalUnit) {
         this.organizationalUnit = organizationalUnit;
     }
@@ -306,7 +281,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
             return false;
         if (honorificSuffix != null ? !honorificSuffix.equals(rUser.honorificSuffix) : rUser.honorificSuffix != null)
             return false;
-        if (localityUser != null ? !localityUser.equals(rUser.localityUser) : rUser.localityUser != null) return false;
         if (organizationalUnit != null ? !organizationalUnit.equals(rUser.organizationalUnit) : rUser.organizationalUnit != null)
             return false;
         if (telephoneNumber != null ? !telephoneNumber.equals(rUser.telephoneNumber) : rUser.telephoneNumber != null)
@@ -317,7 +291,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         if (preferredLanguage != null ? !preferredLanguage.equals(rUser.preferredLanguage) :
                 rUser.preferredLanguage != null) return false;
         if (timezone != null ? !timezone.equals(rUser.timezone) : rUser.timezone != null) return false;
-        if (costCenter != null ? !costCenter.equals(rUser.costCenter) : rUser.costCenter != null) return false;
         if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
         if (status != rUser.status) return false;
 
@@ -334,8 +307,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         result = 31 * result + (honorificPrefix != null ? honorificPrefix.hashCode() : 0);
         result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
-        result = 31 * result + (localityUser != null ? localityUser.hashCode() : 0);
-        result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locale != null ? locale.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
         result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
@@ -357,12 +328,10 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setHonorificPrefix(RPolyString.copyFromJAXB(jaxb.getHonorificPrefix()));
         repo.setHonorificSuffix(RPolyString.copyFromJAXB(jaxb.getHonorificSuffix()));
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
-        repo.setLocalityUser(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setAdditionalName(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
         repo.setEmailAddress(jaxb.getEmailAddress());
         repo.setTelephoneNumber(jaxb.getTelephoneNumber());
 
-        repo.setCostCenter(jaxb.getCostCenter());
         repo.setLocale(jaxb.getLocale());
         repo.setTimezone(jaxb.getTimezone());
         repo.setPreferredLanguage(jaxb.getPreferredLanguage());

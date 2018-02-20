@@ -47,8 +47,6 @@ public class ROrg extends RAbstractRole<OrgType> {
     private RPolyString nameCopy;
     @Deprecated //todo remove collection in 3.9
     private Set<String> orgType;
-    private String costCenter;
-    private RPolyString locality;
     private Boolean tenant;
     private Integer displayOrder;
 
@@ -65,19 +63,10 @@ public class ROrg extends RAbstractRole<OrgType> {
         this.nameCopy = nameCopy;
     }
 
-    public String getCostCenter() {
-        return costCenter;
-    }
-
-    @Embedded
-    public RPolyString getLocality() {
-        return locality;
-    }
-
     @ElementCollection
-    @ForeignKey(name = "fk_org_org_type")
     @CollectionTable(name = "m_org_org_type", joinColumns = {
-            @JoinColumn(name = "org_oid", referencedColumnName = "oid")
+            @JoinColumn(name = "org_oid", referencedColumnName = "oid",
+                    foreignKey = @javax.persistence.ForeignKey(name = "fk_org_org_type"))
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getOrgType() {
@@ -91,14 +80,6 @@ public class ROrg extends RAbstractRole<OrgType> {
 
     public void setDisplayOrder(Integer displayOrder) {
         this.displayOrder = displayOrder;
-    }
-
-    public void setCostCenter(String costCenter) {
-        this.costCenter = costCenter;
-    }
-
-    public void setLocality(RPolyString locality) {
-        this.locality = locality;
     }
 
     public void setOrgType(Set<String> orgType) {
@@ -122,8 +103,6 @@ public class ROrg extends RAbstractRole<OrgType> {
         ROrg that = (ROrg) o;
 
         if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (costCenter != null ? !costCenter.equals(that.costCenter) : that.costCenter != null) return false;
-        if (locality != null ? !locality.equals(that.locality) : that.locality != null) return false;
         if (orgType != null ? !orgType.equals(that.orgType) : that.orgType != null) return false;
         if (tenant != null ? !tenant.equals(that.tenant) : that.tenant != null) return false;
 
@@ -135,19 +114,15 @@ public class ROrg extends RAbstractRole<OrgType> {
         int result = super.hashCode();
         result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (orgType != null ? orgType.hashCode() : 0);
-        result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
-        result = 31 * result + (locality != null ? locality.hashCode() : 0);
         result = 31 * result + (tenant != null ? tenant.hashCode() : 0);
         return result;
     }
 
     public static void copyFromJAXB(OrgType jaxb, ROrg repo, RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult) throws DtoTranslationException {
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setCostCenter(jaxb.getCostCenter());
-        repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
         repo.setTenant(jaxb.isTenant());
     }
