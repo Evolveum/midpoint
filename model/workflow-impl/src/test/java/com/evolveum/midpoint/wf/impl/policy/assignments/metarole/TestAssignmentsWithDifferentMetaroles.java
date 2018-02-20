@@ -489,7 +489,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole29Oid);
-		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("comment1"));
+		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("administrator :: comment1"));
 	}
 
 	private void assertAssignmentMetadata(PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
@@ -610,7 +610,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole29Oid);
-		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("comment2"));
+		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("administrator :: comment2"));
 	}
 
 	@Test
@@ -742,7 +742,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jack = getUser(userJackOid);
 		display("jack", jack);
 		assertAssignedRoles(jack, roleRole28Oid);
-		assertAssignmentMetadata(jack, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("comment3"), emptySet(), emptySet());
+		assertAssignmentMetadata(jack, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("administrator :: comment3"), emptySet(), emptySet());
 	}
 
 	@Test
@@ -854,7 +854,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole28Oid);
-		assertAssignmentMetadata(jackAfter, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("comment3"), singleton(USER_ADMINISTRATOR_OID), singleton("comment4"));
+		assertAssignmentMetadata(jackAfter, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("administrator :: comment3"), singleton(USER_ADMINISTRATOR_OID), singleton("administrator :: comment4"));
 	}
 
 	@Test

@@ -918,7 +918,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
         display("administrator", userAdministrator);
         AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_SUPERUSER_OID);
-        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("no comment"));
+        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("administrator: no comment"));
     }
 
     @Test
