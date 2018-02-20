@@ -1,0 +1,73 @@
+version: 1
+
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=hogwarts,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: hogwarts
+member: uid=nobody,ou=People,dc=example,dc=com
+description: Hogwarts organization structure. Include all students, staff, t
+ eachers etc.
+
+dn: cn=Minister of magic,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: Minister of magic
+member: uid=nobody,ou=People,dc=example,dc=com
+member: uid=c.fudge,ou=People,dc=example,dc=com
+
+dn: cn=quiddich-griffindor,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: quiddich-griffindor
+member: uid=nobody,ou=People,dc=example,dc=com
+
+dn: cn=quiddich-ravenclaw,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: quiddich-ravenclaw
+member: uid=nobody,ou=People,dc=example,dc=com
+
+dn: cn=quiddich-slytherin,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: quiddich-slytherin
+member: uid=nobody,ou=People,dc=example,dc=com
+
+dn: cn=quiddich,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: quiddich
+member: uid=nobody,ou=People,dc=example,dc=com
+
+dn: cn=quiddich-hufflepuff,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: quiddich-hufflepuff
+member: uid=nobody,ou=People,dc=example,dc=com
+
+dn: cn=herbologyTeacher,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: herbologyTeacher
+member: uid=nobody,dc=example,dc=com
+
+dn: cn=potionsTeacher,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: potionsTeacher
+member: uid=nobody,dc=example,dc=com
+
+dn: cn=defenceAgainstDarkArts,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: defenceAgainstDarkArts
+member: uid=nobody,dc=example,dc=com
+
+dn: cn=transfigurationTeacher,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: transfigurationTeacher
+member: uid=nobody,dc=example,dc=com
+
+dn: cn=duellingClassroomAccess,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: duellingClassroomAccess
+member: uid=nobody,dc=example,dc=com
