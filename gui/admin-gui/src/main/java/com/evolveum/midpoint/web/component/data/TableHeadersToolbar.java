@@ -25,6 +25,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.util.string.Strings;
 
 /**
@@ -38,6 +39,14 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
     @Override
     protected WebMarkupContainer newSortableHeader(String headerId, final String property, final ISortStateLocator locator) {
+        IDataProvider provider = getTable().getDataProvider();
+        if (provider instanceof BaseSortableDataProvider) {
+            BaseSortableDataProvider sortableDataProvider = (BaseSortableDataProvider) provider;
+            if (sortableDataProvider.isOrderingDisabled()) {
+                return new WebMarkupContainer(headerId);
+            }
+        }
+
         return new AjaxFallbackOrderByBorder(headerId, property, locator) {
 
             @Override

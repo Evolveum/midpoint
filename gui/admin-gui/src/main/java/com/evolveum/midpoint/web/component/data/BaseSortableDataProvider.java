@@ -193,7 +193,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return false;
     }
 
-    protected boolean isOrderingDisabled() {
+    public boolean isOrderingDisabled() {
+        if (!checkOrderingSettings()) {
+            return false;
+        }
+
         PageBase page = (PageBase) component.getPage();
         AdminGuiConfigurationType config = page.getPrincipal().getAdminGuiConfiguration();
         if (config == null) {
@@ -216,7 +220,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         Integer o = safeLongToInteger(offset);
         Integer size = safeLongToInteger(pageSize);
         List<ObjectOrdering> orderings = null;
-        if (!checkOrderingSettings() || !isOrderingDisabled()) {
+        if (!isOrderingDisabled()) {
             orderings = createObjectOrderings(getSort());
         }
         return ObjectPaging.createPaging(o, size, orderings);
