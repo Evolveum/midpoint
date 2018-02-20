@@ -46,6 +46,7 @@
             <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousOrg"/>
             <class name="com.evolveum.midpoint.testing.story.TestDelivery"/>
             <class name="com.evolveum.midpoint.testing.story.TestLdapVirtualGroup"/>
+            <class name="com.evolveum.midpoint.testing.story.TestMapleLeaf"/>
         </classes>
     </test>
 </suite>

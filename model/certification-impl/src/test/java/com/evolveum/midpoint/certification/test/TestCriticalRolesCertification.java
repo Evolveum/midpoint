@@ -1025,7 +1025,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("administrator", userAdministrator);
         AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_COO_OID);
         assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
-                new HashSet<>(asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID, USER_CHEESE_OID)), singleton("ok"));
+                new HashSet<>(asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID, USER_CHEESE_OID)), singleton("administrator: ok"));
     }
 
 }

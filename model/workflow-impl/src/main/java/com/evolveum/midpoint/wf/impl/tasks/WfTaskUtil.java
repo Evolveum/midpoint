@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -27,14 +28,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
+import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
@@ -65,6 +70,9 @@ public class WfTaskUtil {
     @Autowired private WfConfiguration wfConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioningService;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private TaskManager taskManager;
+    @Autowired private WorkflowManager workflowManager;
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
 
@@ -192,7 +200,7 @@ public class WfTaskUtil {
         return ref != null ? ref.getOid() : null;
     }
 
-    public void deleteModelOperationContext(Task task) throws SchemaException, ObjectNotFoundException {
+    public void deleteModelOperationContext(Task task) throws SchemaException {
         task.setModelOperationContext(null);
     }
 
@@ -210,11 +218,17 @@ public class WfTaskUtil {
     }
 
     public Collection<String> getApproverCommentsFromTaskTree(Task task, OperationResult result) throws SchemaException {
+    	Task opTask = taskManager.createTaskInstance();
         Collection<String> rv = new HashSet<>();
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        PerformerCommentsFormattingType formatting = systemConfiguration != null &&
+                systemConfiguration.asObjectable().getWorkflowConfiguration() != null ?
+                systemConfiguration.asObjectable().getWorkflowConfiguration().getApproverCommentsFormatting() : null;
+        PerformerCommentsFormatter formatter = workflowManager.createPerformerCommentsFormatter(formatting);
         List<Task> tasks = task.listSubtasksDeeply(result);
         tasks.add(task);
         for (Task aTask : tasks) {
-            rv.addAll(getApproverComments(WfContextUtil.getWorkflowContext(aTask.getTaskPrismObject())));
+            rv.addAll(getApproverComments(WfContextUtil.getWorkflowContext(aTask.getTaskPrismObject()), formatter, opTask, result));
         }
         return rv;
     }
@@ -229,15 +243,20 @@ public class WfTaskUtil {
     }
 
     @NotNull
-    private static Collection<String> getApproverComments(WfContextType wfc) {
-        return wfc == null ? emptySet() : wfc.getEvent().stream()
+    private static Collection<String> getApproverComments(WfContextType wfc, PerformerCommentsFormatter formatter,
+		    Task opTask, OperationResult result) {
+        if (wfc == null) {
+            return emptySet();
+        }
+        return wfc.getEvent().stream()
                 .flatMap(MiscUtil.instancesOf(WorkItemCompletionEventType.class))
-                .filter(e -> ApprovalUtils.isApproved(e.getOutput()) && e.getInitiatorRef() != null && StringUtils.isNotEmpty(e.getOutput().getComment()))
-                .map(e -> e.getOutput().getComment())
+		        .filter(e -> ApprovalUtils.isApproved(e.getOutput()) && e.getInitiatorRef() != null)
+		        .map(e -> formatter.formatComment(e, opTask, result))
+		        .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
-    // handlers are stored in the list in the order they should be executed; so the last one has to be pushed first
+	// handlers are stored in the list in the order they should be executed; so the last one has to be pushed first
     void pushHandlers(Task task, List<UriStackEntry> handlers) {
         for (int i = handlers.size()-1; i >= 0; i--) {
             UriStackEntry entry = handlers.get(i);

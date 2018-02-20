@@ -1,0 +1,58 @@
+<role oid="2dadd243-687d-4b4c-80cd-09ddfe4cbf59"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>metarole-approval-role-approvers-all</name>
+    <description>Requests to assign role holding this metarole will be approved by the role approver(s) using "all must approve" method</description>
+    <displayName>Metarole: approval by the role approver(s) - all must approve</displayName>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                	<operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>10</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <level>
+                            <name>User's manager</name>
+                            <approverExpression>
+                                <script>
+                                    <code>midpoint.getManagersOidsExceptUser(object)</code>
+                                </script>
+                            </approverExpression>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </level>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                	<operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>20</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <level>
+                            <name>Role approvers (all)</name>
+                            <approverRelation>owner</approverRelation>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </level>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role> 

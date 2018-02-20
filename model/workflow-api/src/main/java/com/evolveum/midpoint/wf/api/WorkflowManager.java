@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -151,4 +152,6 @@ public interface WorkflowManager {
 	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException;
+
+	PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting);
 }
