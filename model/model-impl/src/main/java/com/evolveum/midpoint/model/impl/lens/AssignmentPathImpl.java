@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -149,12 +150,15 @@ public class AssignmentPathImpl implements AssignmentPath {
 		return protoRole;
 	}
 
-	/**
-	 * Shallow clone.
-	 */
+	@Override
 	public AssignmentPathImpl clone() {
+		return cloneFirst(size());
+	}
+
+	@Override
+	public AssignmentPathImpl cloneFirst(int n) {
 		AssignmentPathImpl clone = new AssignmentPathImpl(prismContext);
-		clone.segments.addAll(this.segments);
+		clone.segments.addAll(this.segments.subList(0, n));
 		return clone;
 	}
 
@@ -245,5 +249,29 @@ public class AssignmentPathImpl implements AssignmentPath {
 	@Override
 	public ExtensionType collectExtensions(int startAt) throws SchemaException {
 		return AssignmentPathUtil.collectExtensions(this, startAt, prismContext);
+	}
+
+	@Override
+	public boolean matches(@NotNull List<OrderConstraintsType> orderConstraints) {
+		if (isEmpty()) {
+			throw new UnsupportedOperationException("Checking order constraints on empty assignment path is not currently supported.");
+		} else {
+			return last().matches(orderConstraints);
+		}
+	}
+
+	@Override
+	public boolean equivalent(AssignmentPath other) {
+		if (size() != other.size()) {
+			return false;
+		}
+		for (int i = 0; i < segments.size(); i++) {
+			AssignmentPathSegment segment = segments.get(i);
+			AssignmentPathSegment otherSegment = other.getSegments().get(i);
+			if (!segment.equivalent(otherSegment)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

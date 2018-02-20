@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -140,6 +141,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	protected static final File ROLE_CRIMINAL_FILE = new File(TEST_DIR, "role-criminal.xml");
 	protected static final String ROLE_CRIMINAL_OID = "f6deb182-55a3-11e7-b519-27bdcd6d9490";
 
+	protected static final File ROLE_SELF_EXCLUSION_FILE = new File(TEST_DIR, "role-self-exclusion.xml");
+	protected static final String ROLE_SELF_EXCLUSION_OID = "9577bd6c-dd5d-48e5-bbb1-554bba5db9be";
+
+	protected static final File ROLE_SELF_EXCLUSION_MANAGER_MEMBER_FILE = new File(TEST_DIR, "role-self-exclusion-manager-member.xml");
+	protected static final String ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID = "aeed4751-fad6-4c4e-9ece-c793128e0c13";
+
 	private static final File CONFIG_WITH_GLOBAL_RULES_EXCLUSION_FILE = new File(TEST_DIR, "global-policy-rules-exclusion.xml");
 	private static final File CONFIG_WITH_GLOBAL_RULES_SOD_APPROVAL_FILE = new File(TEST_DIR, "global-policy-rules-sod-approval.xml");
 
@@ -169,6 +176,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		repoAddObjectFromFile(ROLE_CITIZEN_US_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MINISTER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CRIMINAL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_EXCLUSION_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_EXCLUSION_MANAGER_MEMBER_FILE, initResult);
 	}
 
 	@Test
@@ -294,7 +303,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
-
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
@@ -318,7 +326,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
-
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -344,7 +351,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
-
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
@@ -368,7 +374,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
-
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -560,6 +565,125 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_PREFIX + excludedRoleName);
 			assignment.getPolicyException().add(policyException);
 		};
+	}
+
+	@Test
+	public void test190DifferentRelations() throws Exception {
+		final String TEST_NAME = "test190DifferentRelations";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
+		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+
+		try {
+			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+		} finally {
+			unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, SchemaConstants.ORG_APPROVER, task, result);
+			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		}
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	@Test
+	public void test191DifferentRelationsDeprecatedCase1() throws Exception {
+		final String TEST_NAME = "test191DifferentRelationsCase1";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, true)));
+		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+
+		try {
+			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+		} finally {
+			unassignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, SchemaConstants.ORG_APPROVER, task, result);
+			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		}
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	@Test
+	public void test192DifferentRelationsDeprecatedCase2() throws Exception {
+		final String TEST_NAME = "test191DifferentRelationsCase1";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, true)));
+		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+
+		try {
+			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+		} finally {
+			unassignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, task, result);
+			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_APPROVER, task, result);
+		}
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	@Test
+	public void test193BothRelationsApprover() throws Exception {
+		final String TEST_NAME = "test193BothRelationsApprover";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
+		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+
+		try {
+			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+		} finally {
+			unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, SchemaConstants.ORG_APPROVER, task, result);
+			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_APPROVER, task, result);
+		}
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	@Test
+	public void test194MemberAndManager() throws Exception {
+		final String TEST_NAME = "test194MemberAndManager";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true)));
+		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, null, null, true)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+
+		try {
+			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+
+			AssertJUnit.fail("Expected policy violation, but it went well");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+		} finally {
+			unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, SchemaConstants.ORG_MANAGER, task, result);
+			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT, task, result);
+		}
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 
 	/**
@@ -1547,6 +1671,75 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         display("User after", userAfter);
         assertNotAssignedRole(userAfter, ROLE_CRIMINAL_OID);
         assertNotAssignedRole(userAfter, ROLE_MINISTER_OID);
+	}
+
+	/**
+	 * This does not work because of current optimizations regarding non-default relations:
+	 * "2018-02-19 17:02:15,977 [main] DEBUG (c.e.m.model.impl.lens.AssignmentEvaluator): Skipping processing of assignment target 9577bd6c-dd5d-48e5-bbb1-554bba5db9be because
+	 *     relation {http://midpoint.evolveum.com/xml/ns/public/common/org-3}approver is configured for recompute skip (mode=ZERO)"
+	 *
+	 * i.e. it works only when evaluateAllAssignmentRelationsOnRecompute option is set
+	 */
+	@Test(enabled = false)
+	public void test950JackSelfExclusion() throws Exception {
+		final String TEST_NAME = "test950JackSelfExclusion";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// This should go well
+		assignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_APPROVER, task, result);
+
+		assertSuccess(result);
+
+		try {
+			// This should die
+			ModelExecuteOptions options = new ModelExecuteOptions();
+//			options.setEvaluateAllAssignmentRelationsOnRecompute(true);
+			assignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_OWNER, options, task, result);
+
+			fail("Expected policy violation after adding second self-exclusion role, but it went well");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			//assertMessage(e, "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time");
+			result.computeStatus();
+			assertFailure(result);
+		}
+
+		unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_APPROVER, task, result);
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	@Test
+	public void test952JackSelfExclusionManagerMember() throws Exception {
+		final String TEST_NAME = "test952JackSelfExclusionManagerMember";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// This should go well
+		assignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID, SchemaConstants.ORG_DEFAULT, task, result);
+
+		assertSuccess(result);
+
+		try {
+			// This should die
+			assignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID, SchemaConstants.ORG_MANAGER, task, result);
+
+			fail("Expected policy violation after adding second self-exclusion role, but it went well");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			//assertMessage(e, "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time");
+			result.computeStatus();
+			assertFailure(result);
+		}
+
+		unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID, SchemaConstants.ORG_DEFAULT, task, result);
+
+		assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 
 	private PrismObject<UserType> assignRolePolicyFailure(String TEST_NAME, String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SecurityViolationException {
