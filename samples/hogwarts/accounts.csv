@@ -1,4 +1,4 @@
-§,firstname,lastname,memberOf,managerOf,disabled,password
+login,firstname,lastname,memberOf,managerOf,disabled,password
 h.potter,Harry,Potter,Hogwarts/Students/Gryffindor,quiddich-griffindor,false,asd123
 h.granger,Hermione,Granger,Hogwarts/Students/Gryffindor,,false,huGHa
 r.weasley,Ron,Weasley,Hogwarts/Students/Gryffindor,,false,asd123
