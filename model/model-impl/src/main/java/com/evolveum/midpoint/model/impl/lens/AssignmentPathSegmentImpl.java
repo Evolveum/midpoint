@@ -631,4 +631,25 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	public void setLastEqualOrderSegmentIndex(Integer lastEqualOrderSegmentIndex) {
 		this.lastEqualOrderSegmentIndex = lastEqualOrderSegmentIndex;
 	}
+
+	@Override
+	public boolean matches(@NotNull List<OrderConstraintsType> orderConstraints) {
+		return computeMatchingOrder(evaluationOrder, null, orderConstraints);
+	}
+
+	// preliminary implementation; use only to compare segments in paths (pointing to the same target OID)
+	// that are to be checked for equivalency
+	@Override
+	public boolean equivalent(AssignmentPathSegment otherSegment) {
+		if (!ObjectTypeUtil.relationsEquivalent(relation, otherSegment.getRelation())) {
+			return false;
+		}
+		if (target == null && otherSegment.getTarget() == null) {
+			return true;            // TODO reconsider this in general case
+		}
+		if (target == null || otherSegment.getTarget() == null) {
+			return false;
+		}
+		return java.util.Objects.equals(target.getOid(), otherSegment.getTarget().getOid());
+	}
 }
