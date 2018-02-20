@@ -52,7 +52,9 @@ import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -106,7 +108,11 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -1463,5 +1469,73 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		ExpressionVariables vars = new ExpressionVariables();
 		vars.addVariableDefinitions(variables);
 		return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
+	}
+
+	@Override
+	public CredentialResetResponseType requestCredentialsReset(PrismObject<UserType> user, String credentialsId,
+			CredentialsResetPolicyType resetMethod, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+	
+//		CredentialSourceType credentialSource = resetMethod.getNewCredentialSource();
+//		
+//		CredentialSourceTypeType credentialSourceType = null;
+//		if (credentialSource != null) {
+//		 credentialSourceType = credentialSource.getCredentialSource();
+//		}
+		
+//		SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
+//		
+//		String authenticationName = resetMethod.getAuthenticationName();
+//		if (authenticationName != null) {
+//			AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil
+//					.getAuthenticationPolicy(authenticationName, securityPolicyType);
+//		}
+		
+		
+		ValuePolicyType valuePolicyType = getValuePolicy(user, task, parentResult);
+		String newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);		
+//		if (credentialSourceType == null) {
+//			ValuePolicyType valuePolicyType = getValuePolicy(user, task, parentResult);
+//			newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);			
+//		} else {
+//			switch(credentialSourceType) {
+//				case GENERATE: 
+//					ValuePolicyType valuePolicyType = getValuePolicy(user, task, parentResult);
+//					newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);
+//					break;
+//				default:
+//					valuePolicyType = getValuePolicy(user, task, parentResult);
+//					newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);
+//					break;
+//			}
+//		}
+		
+		ProtectedStringType newProtectedPassword = new ProtectedStringType();
+		newProtectedPassword.setClearValue(newPassword);
+		ObjectDelta<UserType> passwordObjectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+				SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newPassword);
+
+		if (BooleanUtils.isTrue(resetMethod.isForceChange())) {
+			passwordObjectDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, Boolean.TRUE);
+		}
+
+		Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
+				MiscUtil.createCollection(passwordObjectDelta), ModelExecuteOptions.createRaw(), task, parentResult);
+
+		parentResult.recomputeStatus();
+
+		CredentialResetResponseType response = new CredentialResetResponseType();
+		response.setNewCredential(newPassword);
+		// TODO work with the result
+		LocalizableMessage message = LocalizableMessageBuilder.buildFallbackMessage("Reset password successfull.");
+
+		response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
+		
+		
+		
+		
+//		cacheRepositoryService.modifyObject(type, oid, modifications, parentResult);
+		return response;
 	}
 }
