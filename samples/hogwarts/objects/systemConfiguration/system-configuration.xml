@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                     xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     oid="00000000-0000-0000-0000-000000000001"
+                     version="20">
+   <name>SystemConfiguration</name>
+   <globalSecurityPolicyRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                            oid="00000000-0000-0000-0000-000000000120"
+                            relation="org:default"
+                            type="tns:SecurityPolicyType"><!-- Default Security Policy --></globalSecurityPolicyRef>
+   <logging>
+      <classLogger>
+         <level>INFO</level>
+         <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
+      </classLogger>
+      <classLogger>
+         <level>INFO</level>
+         <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
+      </classLogger>
+      <classLogger>
+         <level>OFF</level>
+         <package>com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever</package>
+      </classLogger>
+      <classLogger>
+         <level>INFO</level>
+         <package>com.evolveum.midpoint.security.enforcer.impl</package>
+      </classLogger>
+      <classLogger>
+         <level>OFF</level>
+         <package>net.sf.jasperreports.engine.fill.JRFillDataset</package>
+      </classLogger>
+      <classLogger>
+         <level>WARN</level>
+         <package>org.apache.wicket.resource.PropertiesFactory</package>
+      </classLogger>
+      <classLogger>
+         <level>WARN</level>
+         <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
+      </classLogger>
+      <classLogger>
+         <level>OFF</level>
+         <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
+      </classLogger>
+      <classLogger>
+         <level>OFF</level>
+         <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
+      </classLogger>
+      <classLogger>
+         <level>ERROR</level>
+         <package>org.springframework.context.support.ResourceBundleMessageSource</package>
+      </classLogger>
+      <classLogger>
+         <level>ERROR</level>
+         <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
+      </classLogger>
+      <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                name="MIDPOINT_LOG"
+                xsi:type="c:FileAppenderConfigurationType">
+         <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+         <fileName>${midpoint.home}/log/midpoint.log</fileName>
+         <filePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</filePattern>
+         <maxHistory>10</maxHistory>
+         <maxFileSize>100MB</maxFileSize>
+         <append>true</append>
+      </appender>
+      <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                name="MIDPOINT_PROFILE_LOG"
+                xsi:type="c:FileAppenderConfigurationType">
+         <pattern>%date %level: %msg%n</pattern>
+         <fileName>${midpoint.home}/log/midpoint-profile.log</fileName>
+         <filePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
+         <maxHistory>10</maxHistory>
+         <maxFileSize>100MB</maxFileSize>
+         <append>true</append>
+      </appender>
+      <rootLoggerAppender>MIDPOINT_LOG</rootLoggerAppender>
+      <rootLoggerLevel>INFO</rootLoggerLevel>
+      <auditing>
+         <enabled>false</enabled>
+         <details>false</details>
+      </auditing>
+   </logging>
+   <defaultObjectPolicyConfiguration id="2">
+      <type>c:OrgType</type>
+      <objectTemplateRef oid="10000000-0000-0000-0000-000000000231"
+                         relation="org:default"
+                         type="c:ObjectTemplateType"><!-- Org Template --></objectTemplateRef>
+   </defaultObjectPolicyConfiguration>
+   <defaultObjectPolicyConfiguration id="5">
+      <type>c:UserType</type>
+      <objectTemplateRef oid="10000000-0000-0000-0000-000000000222"
+                         relation="org:default"
+                         type="c:ObjectTemplateType"><!-- User Template --></objectTemplateRef>
+   </defaultObjectPolicyConfiguration>
+   <defaultObjectPolicyConfiguration id="8">
+      <type>UserType</type>
+      <subtype>employee</subtype>
+      <lifecycleStateModel>
+         <state id="9">
+            <name>active</name>
+            <transition id="11">
+               <name>archival</name>
+               <targetState>archived</targetState>
+               <condition>
+                  <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:type="c:ScriptExpressionEvaluatorType">
+                     <code>!midpoint.hasActiveAssignmentTargetSubtype('access')</code>
+                  </script>
+               </condition>
+            </transition>
+         </state>
+         <state id="10">
+            <name>archived</name>
+            <entryAction id="12">
+               <name>archival-data-reduction</name>
+               <dataReduction>
+                  <c:purgeItem>telephoneNumber</c:purgeItem>
+               </dataReduction>
+            </entryAction>
+         </state>
+      </lifecycleStateModel>
+   </defaultObjectPolicyConfiguration>
+   <notificationConfiguration>
+      <mail>
+         <debug>false</debug>
+      </mail>
+   </notificationConfiguration>
+   <profilingConfiguration>
+      <enabled>false</enabled>
+      <requestFilter>false</requestFilter>
+      <performanceStatistics>false</performanceStatistics>
+      <model>false</model>
+      <repository>false</repository>
+      <provisioning>false</provisioning>
+      <ucf>false</ucf>
+      <synchronizationService>false</synchronizationService>
+      <taskManager>false</taskManager>
+      <workflow>false</workflow>
+   </profilingConfiguration>
+   <cleanupPolicy>
+      <auditRecords>
+         <maxAge>P3M</maxAge>
+      </auditRecords>
+      <closedTasks>
+         <maxAge>P1M</maxAge>
+      </closedTasks>
+   </cleanupPolicy>
+   <internals>
+      <enableExperimentalCode>false</enableExperimentalCode>
+   </internals>
+   <adminGuiConfiguration>
+      <userDashboardLink>
+         <targetUrl>/self/profile</targetUrl>
+         <label>Profile</label>
+         <description>View/edit your profile</description>
+         <icon>
+            <cssClass>fa fa-user</cssClass>
+         </icon>
+         <color>green</color>
+         <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
+         <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
+      </userDashboardLink>
+      <userDashboardLink>
+         <targetUrl>/self/credentials</targetUrl>
+         <label>Credentials</label>
+         <description>View/edit your credentials</description>
+         <icon>
+            <cssClass>fa fa-shield</cssClass>
+         </icon>
+         <color>blue</color>
+         <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>
+         <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
+      </userDashboardLink>
+      <userDashboardLink>
+         <targetUrl>/admin/users</targetUrl>
+         <label>List users</label>
+         <icon>
+            <cssClass>fa fa-users</cssClass>
+         </icon>
+         <color>red</color>
+         <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
+      </userDashboardLink>
+      <userDashboardLink>
+         <targetUrl>/admin/resources</targetUrl>
+         <label>List resources</label>
+         <icon>
+            <cssClass>fa fa-database</cssClass>
+         </icon>
+         <color>purple</color>
+         <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
+      </userDashboardLink>
+   </adminGuiConfiguration>
+</systemConfiguration>

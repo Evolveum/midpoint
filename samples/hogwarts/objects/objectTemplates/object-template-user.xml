@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="10000000-0000-0000-0000-000000000222"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+    <name>User Template</name>
+    
+    <mapping>
+    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+		<strength>strong</strength>
+    	<source>
+    		<path>$user/givenName</path>
+    	</source>
+    	<source>
+    		<path>$user/familyName</path>
+    	</source>
+    	<expression>
+			<script>
+				<code>
+					givenName + ' ' + familyName
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>$user/fullName</path>
+    	</target>
+    	<condition>
+     		<script>
+    			<code>givenName != null &amp;&amp; familyName != null</code>
+    		</script>  
+    	</condition>
+    </mapping>
+    
+    <mapping>
+    	<name>end user role</name>
+		<strength>strong</strength>
+		<source>
+			<path>name</path>
+		</source>
+    	<expression>
+            <assignmentTargetSearch>
+            	<targetType>c:RoleType</targetType>
+            	<oid>00000000-0000-0000-0000-000000000008</oid>
+            </assignmentTargetSearch>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+    			<code>
+    				!name?.getOrig()?.equals("administrator")
+    			</code>
+    		</script>
+    	</condition>
+    </mapping>
+    
+    <mapping>
+    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+		<strength>strong</strength>
+    	<expression>
+			<script>
+				<code>
+						orgs = midpoint.getParentOrgs(focus, "default", "access")
+					for (org in orgs) {
+					
+						if (org == null || org.name == null) {
+							continue
+						} 
+											
+						name = org.name.orig
+					
+						if (name.equals("Professors") || name.equals("Auxiliary")) {
+							return "employee";
+						}
+					
+						if (name.equals("Gryffindor") || name.equals("Hufflepuff") || name.equals("Ravenclaw") || name.equals("Slytherin")) {
+							return "student";
+						}
+					}
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>employeeType</path>
+    	</target>
+    	<condition>
+    		<script>
+    			<code>
+    				focus != null
+    			</code>
+    		</script>
+    	</condition>
+    </mapping>
+    
+</objectTemplate>
