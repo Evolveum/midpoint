@@ -58,14 +58,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NamedQueries;
-import org.hibernate.annotations.NamedQuery;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.util.Collection;
@@ -152,7 +159,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private RObjectType objectTypeClass;
     //ObjectType searchable fields
     private RPolyString name;
-    private Set<String> subType;
     private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
     private REmbeddedReference tenantRef;
@@ -418,19 +424,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return objectTypeClass;
     }
 
-    @ElementCollection
-    @CollectionTable(name = "m_object_subtype", joinColumns = {
-            @JoinColumn(name = "object_oid", referencedColumnName = "oid", foreignKey = @javax.persistence.ForeignKey(name = "fk_object_subtype"))
-    })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getSubType() {
-        return subType;
-    }
-
-    public void setSubType(Set<String> subType) {
-        this.subType = subType;
-    }
-
     @Transient
     public Boolean isTransient() {
         return trans;
@@ -644,7 +637,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (textInfoItems != null ? !textInfoItems.equals(rObject.textInfoItems) : rObject.textInfoItems != null) return false;
         if (operationExecutions != null ? !operationExecutions.equals(rObject.operationExecutions) : rObject.operationExecutions != null) return false;
-        if (subType != null ? !subType.equals(rObject.subType) : rObject.subType != null) return false;
 
         return true;
     }
@@ -667,7 +659,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @Deprecated
     protected static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
-                                                            Collection<SelectorOptions<GetOperationOptions>> options) {
+                                                            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -675,9 +668,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
         jaxb.setLifecycleState(repo.getLifecycleState());
-        if (repo.getSubType() != null) {
-            jaxb.getSubType().addAll(repo.getSubType());
-        }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
             List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
@@ -699,8 +689,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setObjectTypeClass(RObjectType.getType(ClassMapper.getHQLTypeClass(jaxb.getClass())));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setLifecycleState(jaxb.getLifecycleState());
-
-        repo.setSubType(RUtil.listToSet(jaxb.getSubType()));
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb

@@ -63,7 +63,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private String emailAddress;
     private String telephoneNumber;
     private String employeeNumber;
-    @Deprecated //todo remove collection in 3.9
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
     private RPolyString localityUser;
