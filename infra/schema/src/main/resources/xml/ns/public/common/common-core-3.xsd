@@ -3825,7 +3825,7 @@
             </xsd:appinfo>
         </xsd:annotation>
        	<xsd:sequence>
-       		<xsd:element name="order" type="xsd:int" minOccurs="0" maxOccurs="1" default="1">
+       		<xsd:element name="order" type="xsd:int" minOccurs="0" default="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Exact order to match. This is a short-hand for setting both
@@ -3833,7 +3833,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Minimum matching order. Applicable only if "order" element is not set.
@@ -3841,7 +3841,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Maximum matching order. Applicable only if "order" element is not set.
@@ -3849,7 +3849,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						The new value for order for this relation (or summary order), to be used when
@@ -3857,7 +3857,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-    		<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+    		<xsd:element name="relation" type="xsd:QName" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
