@@ -73,6 +73,12 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     private RPolyString localityFocus;
     private String costCenter;
 
+    private String emailAddress;
+    private String telephoneNumber;
+    private String locale;
+    private String timezone;
+    private String preferredLanguage;
+
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
@@ -182,6 +188,46 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         return costCenter;
     }
 
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public String getTelephoneNumber() {
+        return telephoneNumber;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
+    }
+
+    public void setTelephoneNumber(String telephoneNumber) {
+        this.telephoneNumber = telephoneNumber;
+    }
+
     public void setCostCenter(String costCenter) {
         this.costCenter = costCenter;
     }
@@ -233,6 +279,14 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         if (policySituation != null ? !policySituation.equals(other.policySituation) : other.policySituation != null) return false;
         if (localityFocus != null ? !localityFocus.equals(other.localityFocus) : other.localityFocus != null) return false;
         if (costCenter != null ? !costCenter.equals(other.costCenter) : other.costCenter != null) return false;
+        if (emailAddress != null ? !emailAddress.equals(other.emailAddress) : other.emailAddress != null) return false;
+        if (telephoneNumber != null ? !telephoneNumber.equals(other.telephoneNumber) : other.telephoneNumber != null)
+            return false;
+        if (locale != null ? !locale.equals(other.locale) : other.locale != null) return false;
+        if (preferredLanguage != null ? !preferredLanguage.equals(other.preferredLanguage) :
+                other.preferredLanguage != null) return false;
+        if (timezone != null ? !timezone.equals(other.timezone) : other.timezone != null) return false;
+
 
         return true;
     }
@@ -243,6 +297,9 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
         result = 31 * result + (localityFocus != null ? localityFocus.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
+        result = 31 * result + (locale != null ? locale.hashCode() : 0);
+        result = 31 * result + (preferredLanguage != null ? preferredLanguage.hashCode() : 0);
+        result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
 
         return result;
     }

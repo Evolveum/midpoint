@@ -59,17 +59,12 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private RPolyString additionalName;
     private RPolyString honorificPrefix;
     private RPolyString honorificSuffix;
-    private String emailAddress;
-    private String telephoneNumber;
     private String employeeNumber;
     @Deprecated //todo remove collection in 3.9
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
-    private String locale;
-    private String timezone;
     private RPolyString title;
     private RPolyString nickName;
-    private String preferredLanguage;
     private Set<RPolyString> organization;
     //operation result
     private ROperationResultStatus status;
@@ -89,10 +84,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return additionalName;
     }
 
-    public String getEmailAddress() {
-        return emailAddress;
-    }
-
     @ElementCollection
     @ForeignKey(name = "fk_user_org_unit")
     @CollectionTable(name = "m_user_organizational_unit", joinColumns = {
@@ -101,10 +92,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganizationalUnit() {
         return organizationalUnit;
-    }
-
-    public String getTelephoneNumber() {
-        return telephoneNumber;
     }
 
     @ElementCollection
@@ -160,21 +147,9 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.nameCopy = nameCopy;
     }
 
-    public String getLocale() {
-        return locale;
-    }
-
     @Embedded
     public RPolyString getNickName() {
         return nickName;
-    }
-
-    public String getPreferredLanguage() {
-        return preferredLanguage;
-    }
-
-    public String getTimezone() {
-        return timezone;
     }
 
     @Embedded
@@ -191,10 +166,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.status = status;
     }
 
-    public void setLocale(String locale) {
-        this.locale = locale;
-    }
-
     public void setOrganization(Set<RPolyString> organization) {
         this.organization = organization;
     }
@@ -203,24 +174,12 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.nickName = nickName;
     }
 
-    public void setPreferredLanguage(String preferredLanguage) {
-        this.preferredLanguage = preferredLanguage;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
     public void setTitle(RPolyString title) {
         this.title = title;
     }
 
     public void setAdditionalName(RPolyString additionalName) {
         this.additionalName = additionalName;
-    }
-
-    public void setEmailAddress(String emailAddress) {
-        this.emailAddress = emailAddress;
     }
 
     public void setEmployeeNumber(String employeeNumber) {
@@ -251,10 +210,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.organizationalUnit = organizationalUnit;
     }
 
-    public void setTelephoneNumber(String telephoneNumber) {
-        this.telephoneNumber = telephoneNumber;
-    }
-
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
@@ -270,7 +225,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         if (nameCopy != null ? !nameCopy.equals(rUser.nameCopy) : rUser.nameCopy != null) return false;
         if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
-        if (emailAddress != null ? !emailAddress.equals(rUser.emailAddress) : rUser.emailAddress != null) return false;
         if (employeeNumber != null ? !employeeNumber.equals(rUser.employeeNumber) : rUser.employeeNumber != null)
             return false;
         if (employeeType != null ? !employeeType.equals(rUser.employeeType) : rUser.employeeType != null) return false;
@@ -283,14 +237,8 @@ public class RUser extends RFocus<UserType> implements OperationResult {
             return false;
         if (organizationalUnit != null ? !organizationalUnit.equals(rUser.organizationalUnit) : rUser.organizationalUnit != null)
             return false;
-        if (telephoneNumber != null ? !telephoneNumber.equals(rUser.telephoneNumber) : rUser.telephoneNumber != null)
-            return false;
-        if (locale != null ? !locale.equals(rUser.locale) : rUser.locale != null) return false;
         if (title != null ? !title.equals(rUser.title) : rUser.title != null) return false;
         if (nickName != null ? !nickName.equals(rUser.nickName) : rUser.nickName != null) return false;
-        if (preferredLanguage != null ? !preferredLanguage.equals(rUser.preferredLanguage) :
-                rUser.preferredLanguage != null) return false;
-        if (timezone != null ? !timezone.equals(rUser.timezone) : rUser.timezone != null) return false;
         if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
         if (status != rUser.status) return false;
 
@@ -307,11 +255,8 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         result = 31 * result + (honorificPrefix != null ? honorificPrefix.hashCode() : 0);
         result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
-        result = 31 * result + (locale != null ? locale.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
         result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
-        result = 31 * result + (preferredLanguage != null ? preferredLanguage.hashCode() : 0);
-        result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
 
         return result;

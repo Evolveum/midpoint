@@ -2698,6 +2698,125 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+
+					<xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Indicates user's preferred language, usually for the purpose of localizing
+									user interfaces. The format is IETF language tag defined in BCP 47, where
+									underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+									language code optionally followed by ISO 3166-1 two letter country code
+									separated by underscore. The languages that do not have coutry-specific
+									variants are usually specified by using a two-letter coutry code ("sk",
+									"cs", "tr"). Languages with coutry-specific variants have country-specific
+									subtags ("pt_BR", "zn_CN").
+									If no value is specified in this property then system default locale is assumed.
+								</p>
+								<p>
+									Examples:
+									<ul>
+										<li>en_US</li>
+										<li>sk</li>
+										<li>cs</li>
+										<li>pt_BR</li>
+									</ul>
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.preferredLanguage</a:displayName>
+								<a:displayOrder>200</a:displayOrder>
+								<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000200" type="tns:LookupTableType"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Defines user's preference in displaying currency, dates and other items
+									related to location and culture. The format is IETF language tag defined in BCP 47, where
+									underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+									language code optionally followed by ISO 3166-1 two letter country code
+									separated by underscore. The languages that do not have coutry-specific
+									variants are usually specified by using a two-letter coutry code ("sk",
+									"cs", "tr"). Languages with coutry-specific variants have country-specific
+									subtags ("pt_BR", "zn_CN").
+									If not specified then system default locale is assumed.
+								</p>
+								<p>
+									Examples:
+									<ul>
+										<li>en_US</li>
+										<li>sk</li>
+										<li>cs</li>
+										<li>pt_BR</li>
+									</ul>
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.locale</a:displayName>
+								<a:displayOrder>210</a:displayOrder>
+								<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000210" type="tns:LookupTableType"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="timezone" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
+									format. If not specified then system default timezone is assumed.
+								</p>
+								<p>
+									Examples:
+									<ul>
+										<li>Europe/Bratislava</li>
+									</ul>
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.timezone</a:displayName>
+								<a:displayOrder>220</a:displayOrder>
+								<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000220" type="tns:LookupTableType"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									E-Mail address of the user, org. unit, etc. This is the address
+									supposed to be used for communication with the
+									user, org. unit, etc. E.g. IDM system may send notifications
+									to the e-mail address. It is NOT supposed to be
+									full-featured e-mail address data structure
+									e.g. for the purpose of complex address-book application.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.emailAddress</a:displayName>
+								<a:displayOrder>300</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Primary telephone number of the user, org. unit, etc.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.telephoneNumber</a:displayName>
+								<a:displayOrder>310</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     
 				</xsd:sequence>
             </xsd:extension>
@@ -2932,125 +3051,6 @@
 		                    	<a:displayName>UserType.title</a:displayName>
 		                    	<a:displayOrder>170</a:displayOrder>
 		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
-                    <xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Indicates user's preferred language, usually for the purpose of localizing
-	                                user interfaces. The format is IETF language tag defined in BCP 47, where
-	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
-	                                language code optionally followed by ISO 3166-1 two letter country code 
-	                                separated by underscore. The languages that do not have coutry-specific
-	                                variants are usually specified by using a two-letter coutry code ("sk", 
-	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
-	                                subtags ("pt_BR", "zn_CN").
-	                                If no value is specified in this property then system default locale is assumed.
-                                </p>
-								<p>
-                                Examples:
-                                    <ul>
-                                        <li>en_US</li>
-                                        <li>sk</li>
-                                        <li>cs</li>
-                                        <li>pt_BR</li>
-                                    </ul>
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>UserType.preferredLanguage</a:displayName>
-		                    	<a:displayOrder>200</a:displayOrder>
-		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000200" type="tns:LookupTableType"/>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Defines user's preference in displaying currency, dates and other items
-	                                related to location and culture. The format is IETF language tag defined in BCP 47, where
-	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
-	                                language code optionally followed by ISO 3166-1 two letter country code 
-	                                separated by underscore. The languages that do not have coutry-specific
-	                                variants are usually specified by using a two-letter coutry code ("sk", 
-	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
-	                                subtags ("pt_BR", "zn_CN").
-	                                If not specified then system default locale is assumed.
-                                </p>
-								<p>
-                                Examples:
-                                    <ul>
-                                        <li>en_US</li>
-                                        <li>sk</li>
-                                        <li>cs</li>
-                                        <li>pt_BR</li>
-                                    </ul>
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>UserType.locale</a:displayName>
-		                    	<a:displayOrder>210</a:displayOrder>
-		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000210" type="tns:LookupTableType"/>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="timezone" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
-	                                format. If not specified then system default timezone is assumed.
-                                </p>
-								<p>
-                                Examples:
-                                    <ul>
-                                        <li>Europe/Bratislava</li>
-                                    </ul>
-                                </p> 
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>UserType.timezone</a:displayName>
-		                    	<a:displayOrder>220</a:displayOrder>
-		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000220" type="tns:LookupTableType"/>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                E-Mail address of the user. This is the address
-	                                supposed to be used for communication with the
-	                                user. E.g. IDM system may send notifications
-	                                to the e-mail address. It is NOT supposed to be
-	                                full-featured e-mail address data structure
-	                                e.g. for the purpose of complex address-book application.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.EmailAddress</a:displayName>
-                                <a:displayOrder>300</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	Primary telephone number of the user.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.telephoneNumber</a:displayName>
-                                <a:displayOrder>310</a:displayOrder>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
