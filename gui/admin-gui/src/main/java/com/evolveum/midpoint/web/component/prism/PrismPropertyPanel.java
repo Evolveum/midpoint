@@ -65,7 +65,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private boolean labelContainerVisible = true;
 
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
-        super(id);
+        super(id, model);
         Validate.notNull(model, "no model");
         this.pageBase = pageBase;
 
