@@ -532,5 +532,39 @@
 	</xsd:complexType>
 	<xsd:element name="policyItemTarget" type="tns:PolicyItemTargetType"/>
 
+	
+	<xsd:complexType name="ExecuteCredentialResetRequestType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="resetMethod" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="password" type="xsd:string" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="executeCredentialResetRequest" type="tns:ExecuteCredentialResetRequestType"/>
+	
+	<xsd:complexType name="ExecuteCredentialResetResponseType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="message" type="c:LocalizableMessageType" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="executeCredentialResetResponse" type="tns:ExecuteCredentialResetResponseType"/>
+	
+
 </xsd:schema>
 
