@@ -61,7 +61,7 @@ public abstract class AbstractPolyStringNormalizer implements PolyStringNormaliz
 		StringBuilder out = new StringBuilder(s.length());
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
-			if (c >= lowerCode || c <= upperCode) {
+			if (c >= lowerCode && c <= upperCode) {
 				out.append(c);
 			}
 		}

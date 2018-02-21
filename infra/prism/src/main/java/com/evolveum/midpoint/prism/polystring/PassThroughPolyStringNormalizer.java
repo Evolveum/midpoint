@@ -19,14 +19,11 @@ package com.evolveum.midpoint.prism.polystring;
  * @author semancik
  *
  */
-public class PassThroughPolyStringNormalizer implements PolyStringNormalizer {
+public class PassThroughPolyStringNormalizer extends AbstractPolyStringNormalizer {
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.polystring.PolyStringNormalizer#normalize(java.lang.String)
-	 */
 	@Override
-	public String normalize(String orig) {
-		return orig;
+	protected String normalizeCore(String s) {
+		return s;
 	}
 
 }
