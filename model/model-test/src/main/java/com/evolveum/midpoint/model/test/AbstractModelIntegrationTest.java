@@ -2329,7 +2329,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ObjectPolicyConfigurationType oldPolicy = oldValue.asContainerable();
 			ObjectReferenceType oldObjectTemplateRef = oldPolicy.getObjectTemplateRef();
 			if (oldObjectTemplateRef != null) {
-				if (objectTemplateOid.equals(oldObjectTemplateRef.getOid())) {
+				if (oldObjectTemplateRef.getOid().equals(objectTemplateOid)) {
 					// Already set
 					return;
 				}
