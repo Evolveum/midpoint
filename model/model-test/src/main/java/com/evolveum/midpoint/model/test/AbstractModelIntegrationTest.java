@@ -2326,6 +2326,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<? extends ItemDelta> modifications = new ArrayList<>();
 
 		if (oldValue != null) {
+			ObjectPolicyConfigurationType oldPolicy = oldValue.asContainerable();
+			ObjectReferenceType oldObjectTemplateRef = oldPolicy.getObjectTemplateRef();
+			if (oldObjectTemplateRef != null) {
+				if (oldObjectTemplateRef.getOid().equals(objectTemplateOid)) {
+					// Already set
+					return;
+				}
+			}
 			ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = ContainerDelta.createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
 					SystemConfigurationType.class, prismContext, oldValue.clone());
 			((Collection)modifications).add(deleteDelta);

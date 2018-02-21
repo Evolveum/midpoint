@@ -1040,7 +1040,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		// This has default lookup def in schema
 		PrismPropertyDefinition<String> timezoneDef = editDef.findPropertyDefinition(UserType.F_TIMEZONE);
 		assertNotNull("No definition for timezone in user", timezoneDef);
-		assertEquals("Wrong timezone displayName", "UserType.timezone", timezoneDef.getDisplayName());
+		assertEquals("Wrong timezone displayName", "FocusType.timezone", timezoneDef.getDisplayName());
 		assertTrue("timezone not readable", timezoneDef.canRead());
 		valueEnumerationRef = timezoneDef.getValueEnumerationRef();
 		assertNotNull("No valueEnumerationRef for timezone", valueEnumerationRef);
@@ -1720,7 +1720,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
-		assertEquals("Wrong preferredLanguage displayName", "UserType.preferredLanguage", preferredLanguageDef.getDisplayName());
+		assertEquals("Wrong preferredLanguage displayName", "FocusType.preferredLanguage", preferredLanguageDef.getDisplayName());
 		assertTrue("preferredLanguage not readable", preferredLanguageDef.canRead());
 		assertTrue("preferredLanguage not creatable", preferredLanguageDef.canAdd());
 		assertTrue("preferredLanguage not modifiable", preferredLanguageDef.canModify());
