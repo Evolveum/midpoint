@@ -19,8 +19,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -28,14 +26,11 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-
 import java.util.Collection;
 import java.util.Set;
 
@@ -43,14 +38,15 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name="uc_user_name", columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),           // TODO correct indices names
-                @Index(name = "iFamilyName", columnNames = "familyName_orig"),
-                @Index(name = "iGivenName", columnNames = "givenName_orig")})
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_user_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iFullName", columnList = "fullName_orig"),
+                @Index(name = "iFamilyName", columnList = "familyName_orig"),
+                @Index(name = "iGivenName", columnList = "givenName_orig"),
+                @Index(name = "iEmployeeNumber", columnList = "employeeNumber")})
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RUser extends RFocus<UserType> implements OperationResult {
+public class RUser extends RFocus<UserType> {
 
     private RPolyString nameCopy;
     private RPolyString fullName;
@@ -66,8 +62,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private RPolyString title;
     private RPolyString nickName;
     private Set<RPolyString> organization;
-    //operation result
-    private ROperationResultStatus status;
 
     @ElementCollection
     @ForeignKey(name = "fk_user_organization")
@@ -119,7 +113,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return givenName;
     }
 
-    @Index(name = "iEmployeeNumber")            // TODO correct index name
     public String getEmployeeNumber() {
         return employeeNumber;
     }
@@ -155,15 +148,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Embedded
     public RPolyString getTitle() {
         return title;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    public ROperationResultStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ROperationResultStatus status) {
-        this.status = status;
     }
 
     public void setOrganization(Set<RPolyString> organization) {
@@ -240,7 +224,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         if (title != null ? !title.equals(rUser.title) : rUser.title != null) return false;
         if (nickName != null ? !nickName.equals(rUser.nickName) : rUser.nickName != null) return false;
         if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
-        if (status != rUser.status) return false;
 
         return true;
     }
@@ -257,13 +240,12 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
         result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
 
         return result;
     }
 
     public static void copyFromJAXB(UserType jaxb, RUser repo, RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult) throws DtoTranslationException {
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
         RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
@@ -282,8 +264,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setPreferredLanguage(jaxb.getPreferredLanguage());
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
-
-        RUtil.copyResultFromJAXB(jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
