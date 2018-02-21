@@ -419,9 +419,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		boolean rv = true;
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (!itemWrapper.checkRequired(pageBase)) {
-				rv = false;
+		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
+			if (!valueWrapper.checkRequired(pageBase)) {
+				rv = false;     // not returning directly as we want to go through all the values
 			}
 		}
 		return rv;
