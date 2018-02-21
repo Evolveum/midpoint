@@ -18,12 +18,12 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -41,9 +41,12 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -74,8 +77,9 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 	@Autowired private WfTaskUtil wfTaskUtil;
 	@Autowired private MiscDataUtil miscDataUtil;
 	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
-	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private TaskManager taskManager;
+	@Autowired private RepositoryService repositoryService;
+	@Autowired private WfExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -309,5 +313,10 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 		} finally {
 			result.recordSuccessIfUnknown();
 		}
+	}
+
+	@Override
+	public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
+		return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
 	}
 }

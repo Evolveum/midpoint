@@ -77,6 +77,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 * This is what assignmentPath (Engineer->Employee->(maybe some metarole)->rule) and directOwner (Employee) are for.
 	 *
 	 * For global policy rules, assignmentPath is the path to the target object that matched global policy rule.
+	 *
+	 * TODO When it can be null?
 	 */
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;

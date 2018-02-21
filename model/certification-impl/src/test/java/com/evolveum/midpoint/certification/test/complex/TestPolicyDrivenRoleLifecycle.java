@@ -58,7 +58,7 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-certification-test-with-workflows.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertificationTest {
 

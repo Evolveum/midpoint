@@ -111,7 +111,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 				if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
 					continue;
 				}
-				if (ExclusionConstraintEvaluator.matches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry, "hasAssignment constraint")) {
+				if (ExclusionConstraintEvaluator.oidMatches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry, "hasAssignment constraint")) {
 					if (shouldExist) {
 						// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
 						return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
