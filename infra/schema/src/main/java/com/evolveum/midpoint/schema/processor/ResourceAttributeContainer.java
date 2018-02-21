@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 
@@ -40,8 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author Radovan Semancik
  *
  */
-public final class ResourceAttributeContainer extends PrismContainer {
-
+public final class ResourceAttributeContainer extends PrismContainer<ShadowAttributesType> {
     private static final long serialVersionUID = 8878851067509560312L;
 
     /**
@@ -153,13 +153,13 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if resource object has multiple secondary identifiers
 	 */
-	public PrismProperty getSecondaryIdentifier() {
+	public <T> PrismProperty<T> getSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
 		if (secondaryIdentifiers.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
 		for (PrismProperty<?> p : secondaryIdentifiers){
-			return p;
+			return (PrismProperty<T>) p;
 		}
 		return null;
 	}
@@ -213,7 +213,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public ResourceAttribute getDescriptionAttribute() {
+	public ResourceAttribute<String> getDescriptionAttribute() {
 		if (getDefinition() == null) {
 			return null;
 		}
@@ -395,13 +395,18 @@ public final class ResourceAttributeContainer extends PrismContainer {
 
 	@Override
 	public ResourceAttributeContainer clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+	}
+	
+	@Override
+	public ResourceAttributeContainer cloneComplex(CloneStrategy strategy) {
 		ResourceAttributeContainer clone = new ResourceAttributeContainer(getElementName(), getDefinition(), getPrismContext());
-		copyValues(clone);
+		copyValues(strategy, clone);
 		return clone;
 	}
 
-	protected void copyValues(ResourceAttributeContainer clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, ResourceAttributeContainer clone) {
+		super.copyValues(strategy, clone);
 		// Nothing to copy
 	}
 
@@ -410,7 +415,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
 			ConsistencyCheckScope scope) {
 		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
-		List<PrismContainerValue> values = getValues();
+		List<PrismContainerValue<ShadowAttributesType>> values = getValues();
 		if (values == null) {
 			throw new IllegalStateException("Null values in ResourceAttributeContainer");
 		}

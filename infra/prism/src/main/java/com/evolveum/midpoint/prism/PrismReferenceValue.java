@@ -613,19 +613,20 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
     @Override
     public PrismReferenceValue clone() {
-		return clone(true);
+    	return cloneComplex(CloneStrategy.LITERAL);
 	}
-
-    public PrismReferenceValue clone(boolean copyFullObject) {
+    
+    @Override
+    public PrismReferenceValue cloneComplex(CloneStrategy strategy) {
         PrismReferenceValue clone = new PrismReferenceValue(getOid(), getOriginType(), getOriginObject());
-        copyValues(clone, copyFullObject);
+        copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismReferenceValue clone, boolean copyFullObject) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismReferenceValue clone) {
+		super.copyValues(strategy, clone);
 		clone.targetType = this.targetType;
-		if (this.object != null && copyFullObject) {
+		if (this.object != null && strategy == CloneStrategy.LITERAL) {
 			clone.object = this.object.clone();
 		}
 		clone.description = this.description;

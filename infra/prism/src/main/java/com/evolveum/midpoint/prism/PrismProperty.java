@@ -436,15 +436,20 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 
 	@Override
     public PrismProperty<T> clone() {
+        return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismProperty<T> cloneComplex(CloneStrategy strategy) {
         PrismProperty<T> clone = new PrismProperty<T>(getElementName(), getDefinition(), prismContext);
-        copyValues(clone);
+        copyValues(strategy, clone);
         return clone;
     }
 
-    protected void copyValues(PrismProperty<T> clone) {
-        super.copyValues(clone);
+    protected void copyValues(CloneStrategy strategy, PrismProperty<T> clone) {
+        super.copyValues(strategy, clone);
         for (PrismPropertyValue<T> value : getValues()) {
-            clone.addValue(value.clone());
+            clone.addValue(value.cloneComplex(strategy));
         }
     }
 

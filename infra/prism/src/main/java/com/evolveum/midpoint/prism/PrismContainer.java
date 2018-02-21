@@ -753,17 +753,22 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
 	@Override
     public PrismContainer<C> clone() {
-    	PrismContainer<C> clone = new PrismContainer<C>(getElementName(), getDefinition(), prismContext);
-        copyValues(clone);
+		return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismContainer<C> cloneComplex(CloneStrategy strategy) {
+    	PrismContainer<C> clone = new PrismContainer<>(getElementName(), getDefinition(), prismContext);
+        copyValues(strategy, clone);
         return clone;
     }
 
-    protected void copyValues(PrismContainer<C> clone) {
-        super.copyValues(clone);
+    protected void copyValues(CloneStrategy strategy, PrismContainer<C> clone) {
+        super.copyValues(strategy, clone);
         clone.compileTimeClass = this.compileTimeClass;
         for (PrismContainerValue<C> pval : getValues()) {
             try {
-				clone.add(pval.clone());
+				clone.add(pval.cloneComplex(strategy));
 			} catch (SchemaException e) {
 				// This should not happen
 				throw new SystemException("Internal Error: "+e.getMessage(),e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1335,19 +1335,27 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 	}
 
-	public PrismContainerValue<C> clone() {	// TODO resolve also the definition?
-    	PrismContainerValue<C> clone = new PrismContainerValue<>(getOriginType(), getOriginObject(), getParent(), getId(),
+	@Override
+	public PrismContainerValue<C> clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+	public PrismContainerValue<C> cloneComplex(CloneStrategy strategy) {	// TODO resolve also the definition?
+    	PrismContainerValue<C> clone = new PrismContainerValue<>(getOriginType(), getOriginObject(), getParent(), null,
 				this.complexTypeDefinition, this.prismContext);
-    	copyValues(clone);
+    	copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismContainerValue<C> clone) {
-		super.copyValues(clone);
-		clone.id = this.id;
+	protected void copyValues(CloneStrategy strategy, PrismContainerValue<C> clone) {
+		super.copyValues(strategy, clone);
+		if (strategy == CloneStrategy.LITERAL) {
+			clone.id = this.id;
+		}
 		if (this.items != null) {
 			for (Item<?,?> item : this.items) {
-				Item<?,?> clonedItem = item.clone();
+				Item<?,?> clonedItem = item.cloneComplex(strategy);
 				clonedItem.setParent(clone);
 				if (clone.items == null) {
 					clone.items = new ArrayList<>(this.items.size());
@@ -1356,7 +1364,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-
+	
 	protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
 		// special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
 		PrismContainerable parent = getParent();

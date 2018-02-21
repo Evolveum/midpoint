@@ -2796,7 +2796,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
+        display("System config before", getSystemConfiguration());
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, result);
+        display("System config after", getSystemConfiguration());
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);

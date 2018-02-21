@@ -220,15 +220,20 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 
 	@Override
     public PrismReference clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismReference cloneComplex(CloneStrategy strategy) {
     	PrismReference clone = new PrismReference(getElementName(), getDefinition(), prismContext);
-        copyValues(clone);
+        copyValues(strategy, clone);
         return clone;
     }
 
-    protected void copyValues(PrismReference clone) {
-        super.copyValues(clone);
+    protected void copyValues(CloneStrategy strategy, PrismReference clone) {
+        super.copyValues(strategy, clone);
         for (PrismReferenceValue value : getValues()) {
-            clone.add(value.clone());
+            clone.add(value.cloneComplex(strategy));
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,9 +97,14 @@ public class PrismObjectValue<O extends Objectable> extends PrismContainerValue<
 
 	@Override
 	public PrismObjectValue<O> clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+	}
+	
+	@Override
+	public PrismObjectValue<O> cloneComplex(CloneStrategy strategy) {
 		PrismObjectValue<O> clone = new PrismObjectValue<>(
 				getOriginType(), getOriginObject(), getParent(), getId(), complexTypeDefinition, this.prismContext, oid, version);
-		copyValues(clone);
+		copyValues(strategy, clone);
 		return clone;
 	}
 

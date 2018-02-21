@@ -338,13 +338,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 	@Override
     public PrismPropertyValue<T> clone() {
-        PrismPropertyValue clone = new PrismPropertyValue(getOriginType(), getOriginObject());
-        copyValues(clone);
+        return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismPropertyValue<T> cloneComplex(CloneStrategy strategy) {
+        PrismPropertyValue<T> clone = new PrismPropertyValue<>(getOriginType(), getOriginObject());
+        copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismPropertyValue clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismPropertyValue<T> clone) {
+		super.copyValues(strategy, clone);
 		clone.value = CloneUtil.clone(this.value);
 		if (this.expression != null) {
 			clone.expression = this.expression.clone();

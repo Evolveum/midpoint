@@ -678,9 +678,18 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 	}
 
+    /**
+     * Literal clone.
+     */
     public abstract Item clone();
 
-    protected void copyValues(Item clone) {
+    /**
+     * Complex clone with different cloning strategies.
+     * @see CloneStrategy
+     */
+    public abstract Item cloneComplex(CloneStrategy strategy);
+    
+    protected void copyValues(CloneStrategy strategy, Item clone) {
         clone.elementName = this.elementName;
         clone.definition = this.definition;
         clone.prismContext = this.prismContext;

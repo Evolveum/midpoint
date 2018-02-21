@@ -50,6 +50,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -968,7 +969,7 @@ public class AssignmentProcessor {
 				}
 			}
 			if (!found) {
-				PrismReferenceValue ref = reference.clone(false);		// using copyObject=false instead of calling canonicalize()
+				PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);		// clone without full object instead of calling canonicalize()
 				if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
 					ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
 				}

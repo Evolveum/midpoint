@@ -2326,6 +2326,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<? extends ItemDelta> modifications = new ArrayList<>();
 
 		if (oldValue != null) {
+			ObjectPolicyConfigurationType oldPolicy = oldValue.asContainerable();
+			ObjectReferenceType oldObjectTemplateRef = oldPolicy.getObjectTemplateRef();
+			if (oldObjectTemplateRef != null) {
+				if (objectTemplateOid.equals(oldObjectTemplateRef.getOid())) {
+					// Already set
+					return;
+				}
+			}
 			ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = ContainerDelta.createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
 					SystemConfigurationType.class, prismContext, oldValue.clone());
 			((Collection)modifications).add(deleteDelta);
@@ -2341,7 +2349,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
 						SystemConfigurationType.class, prismContext, newFocusPolicyType);
 			} else {
-				PrismContainerValue<ObjectPolicyConfigurationType> newValue = oldValue.clone();
+				PrismContainerValue<ObjectPolicyConfigurationType> newValue = oldValue.cloneComplex(CloneStrategy.REUSE);
 				addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
 						SystemConfigurationType.class, prismContext, newValue);
 				newFocusPolicyType = newValue.asContainerable();
@@ -2422,6 +2430,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		display("Modifications of system object "+oid, modifications);
 		repositoryService.modifyObject(type, oid, modifications, parentResult);
 		invalidateSystemObjectsCache();
 	}

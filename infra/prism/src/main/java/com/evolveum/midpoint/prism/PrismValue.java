@@ -295,10 +295,19 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return clonedCollection;
 	}
+	
+	/**
+     * Literal clone.
+     */
+    public abstract PrismValue clone();
 
-	public abstract PrismValue clone();
+    /**
+     * Complex clone with different cloning strategies.
+     * @see CloneStrategy
+     */
+    public abstract PrismValue cloneComplex(CloneStrategy strategy);
 
-	protected void copyValues(PrismValue clone) {
+	protected void copyValues(CloneStrategy strategy, PrismValue clone) {
 		clone.originType = this.originType;
 		clone.originObject = this.originObject;
 		// Do not clone parent. The clone will most likely go to a different prism
@@ -312,10 +321,15 @@ public abstract class PrismValue implements IPrismValue {
 
 	@NotNull
 	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
+		return cloneCollectionComplex(CloneStrategy.LITERAL, values);
+	}
+
+	@NotNull
+	public static <T extends PrismValue> Collection<T> cloneCollectionComplex(CloneStrategy strategy, Collection<T> values) {
 		Collection<T> clones = new ArrayList<T>();
 		if (values != null) {
 			for (T value : values) {
-				clones.add((T) value.clone());
+				clones.add((T) value.cloneComplex(strategy));
 			}
 		}
 		return clones;
