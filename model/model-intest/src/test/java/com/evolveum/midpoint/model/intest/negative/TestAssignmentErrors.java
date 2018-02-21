@@ -548,45 +548,54 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	 *
 	 * This is tried on the red dummy resource where there is no synchronization.
 	 */
+	//TODO: after fixing uniqueness check in ProjectionValueProcessor, change the test little bit
+	//see git commit: 7052f9628a76815d27a119090a97ec57fbdebaec
 	@Test
-    public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
+	public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
 		final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-		displayTestTitle(TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
-		//GIVEN
-		PrismObject<UserType> userBefore = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME,
-				USER_BFET_NAME, USER_BFET_FULLNAME);
-		Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
+		// GIVEN
+		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID,
+				RESOURCE_DUMMY_RED_NAME, USER_BFET_NAME, USER_BFET_FULLNAME);
+		Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
 
-        // WHEN
-        displayWhen(TEST_NAME);
-    	recomputeUser(userBefore.getOid(), task, result);
+		try {
+			// WHEN
+			recomputeUser(user.getOid(), task, result);
 
-    	// THEN
-    	displayThen(TEST_NAME);
-    	assertPartialError(result);
+			AssertJUnit.fail("Unexpected success");
+		} catch (ObjectAlreadyExistsException e) {
+			// this is expected
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
 
-    	PrismObject<UserType> userAfter = getUser(userBefore.getOid());
-        display("User after", userAfter);
-        assertNoLinkedAccount(userAfter);
+		user = getUser(user.getOid());
+		display("User after", user);
+		assertNoLinkedAccount(user);
 
-        // and again ...
+		// and again ...
 
-        task = createTask(TEST_NAME);
-        result = task.getResult();
+		task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+		result = task.getResult();
 
-        // WHEN
-        displayWhen(TEST_NAME);
-    	recomputeUser(userAfter.getOid(), task, result);
-    	
-    	// THEN
-    	displayThen(TEST_NAME);
-    	assertPartialError(result);
+		try {
+			// WHEN
+			recomputeUser(user.getOid(), task, result);
 
-        userAfter = getUser(userAfter.getOid());
-        display("User after", userAfter);
-        assertNoLinkedAccount(userAfter);
+			AssertJUnit.fail("Unexpected success");
+		} catch (ObjectAlreadyExistsException e) {
+			// this is expected
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
+
+		user = getUser(user.getOid());
+		display("User after", user);
+		assertNoLinkedAccount(user);
+
 	}
 
 	/**
