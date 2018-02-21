@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.ConfigurableNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -57,7 +60,7 @@ public class PrismContextImpl implements PrismContext {
 
 	@NotNull private final SchemaRegistryImpl schemaRegistry;
 	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;
-	@NotNull private final PolyStringNormalizer defaultPolyStringNormalizer;			// TODO make non-final when needed
+	@NotNull private PolyStringNormalizer defaultPolyStringNormalizer;
 	@NotNull private final PrismUnmarshaller prismUnmarshaller;
 	@NotNull private final PrismMarshaller prismMarshaller;
 	@NotNull private final BeanMarshaller beanMarshaller;
@@ -93,7 +96,12 @@ public class PrismContextImpl implements PrismContext {
 		this.prismMarshaller = new PrismMarshaller(beanMarshaller);
 		this.jaxbDomHack = new JaxbDomHack(lexicalProcessorRegistry.domProcessor(), this);
 
-		defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
+		try {
+			configurePolyStringNormalizer(null);
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			// Should not happen
+			throw new SystemException(e.getMessage(), e);
+		}
 	}
 
 	public static PrismContextImpl create(@NotNull SchemaRegistryImpl schemaRegistry) {
@@ -107,6 +115,39 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public void initialize() throws SchemaException, SAXException, IOException {
 		schemaRegistry.initialize();
+	}
+
+	@Override
+	public void configurePolyStringNormalizer(PolyStringNormalizerConfigurationType configuration) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		if (configuration == null) {
+			defaultPolyStringNormalizer = new AlphanumericPolyStringNormalizer();
+			return;
+		}
+		
+		String className = configuration.getClassName();
+		if (className == null) {
+			defaultPolyStringNormalizer = new AlphanumericPolyStringNormalizer();
+		} else {
+			String fullClassName = getNormalizerFullClassName(className);
+			Class<?> normalizerClass;
+			try {
+				normalizerClass = Class.forName(fullClassName);
+			} catch (ClassNotFoundException e) {
+				throw new ClassNotFoundException("Cannot find class "+fullClassName+": "+e.getMessage(), e);
+			}
+			defaultPolyStringNormalizer = (PolyStringNormalizer) normalizerClass.newInstance();
+		}
+		
+		if (defaultPolyStringNormalizer instanceof ConfigurableNormalizer) {
+			((ConfigurableNormalizer)defaultPolyStringNormalizer).configure(configuration);
+		}
+	}
+
+	private String getNormalizerFullClassName(String shortClassName) {
+		if (shortClassName.contains(".")) {
+			return shortClassName;
+		}
+		return AlphanumericPolyStringNormalizer.class.getPackage().getName() + "." + shortClassName;
 	}
 
 	public static boolean isAllowSchemalessSerialization() {

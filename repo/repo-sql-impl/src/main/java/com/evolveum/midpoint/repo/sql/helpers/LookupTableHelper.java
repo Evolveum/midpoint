@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -271,7 +271,7 @@ public class LookupTableHelper {
                 param = "label.norm";
 
                 PolyString poly = new PolyString(value);
-                poly.recompute(new PrismDefaultPolyStringNormalizer());
+                poly.recompute(new AlphanumericPolyStringNormalizer());
                 value = poly.getNorm();
             }
             switch (queryDef.getSearchType()) {
