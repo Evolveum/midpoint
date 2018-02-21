@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 
@@ -41,7 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author Radovan Semancik
  *
  */
-public final class ResourceAttributeContainer extends PrismContainer<ShadowAttributesType> {
+@SuppressWarnings("rawtypes")
+public final class ResourceAttributeContainer extends PrismContainer {
     private static final long serialVersionUID = 8878851067509560312L;
 
     /**
@@ -415,7 +415,7 @@ public final class ResourceAttributeContainer extends PrismContainer<ShadowAttri
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
 			ConsistencyCheckScope scope) {
 		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
-		List<PrismContainerValue<ShadowAttributesType>> values = getValues();
+		List<PrismContainerValue> values = getValues();
 		if (values == null) {
 			throw new IllegalStateException("Null values in ResourceAttributeContainer");
 		}
