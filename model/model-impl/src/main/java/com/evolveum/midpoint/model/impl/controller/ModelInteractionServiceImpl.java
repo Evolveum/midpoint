@@ -64,6 +64,8 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
@@ -73,6 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1472,70 +1475,64 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public CredentialResetResponseType requestCredentialsReset(PrismObject<UserType> user, String credentialsId,
-			CredentialsResetPolicyType resetMethod, Task task, OperationResult parentResult)
+	public ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user,
+			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-	
-//		CredentialSourceType credentialSource = resetMethod.getNewCredentialSource();
-//		
-//		CredentialSourceTypeType credentialSourceType = null;
-//		if (credentialSource != null) {
-//		 credentialSourceType = credentialSource.getCredentialSource();
-//		}
-		
-//		SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
-//		
-//		String authenticationName = resetMethod.getAuthenticationName();
-//		if (authenticationName != null) {
-//			AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil
-//					.getAuthenticationPolicy(authenticationName, securityPolicyType);
-//		}
 		
 		
-		ValuePolicyType valuePolicyType = getValuePolicy(user, task, parentResult);
-		String newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);		
-//		if (credentialSourceType == null) {
-//			ValuePolicyType valuePolicyType = getValuePolicy(user, task, parentResult);
-//			newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);			
-//		} else {
-//			switch(credentialSourceType) {
-//				case GENERATE: 
-//					ValuePolicyType valuePolicyType = getValuePolicy(user, task, parentResult);
-//					newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);
-//					break;
-//				default:
-//					valuePolicyType = getValuePolicy(user, task, parentResult);
-//					newPassword = generateValue(valuePolicyType, 8, false, user, "generate password for user", task, parentResult);
-//					break;
-//			}
-//		}
+		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
+		
+		String resetMethod = executeCredentialResetRequest.getResetMethod();
+		if (StringUtils.isBlank(resetMethod)) {
+			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			throw new SchemaException(localizableMessage);
+			
+		}
+		
+		SecurityPolicyType securityPolicy = getSecurityPolicy(user, task, parentResult);
+		CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
+		//TODO: search according tot he credentialID and others
+		if (resetPolicyType == null) {
+			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.configuration", null, "Failed to execute reset password. Bad configuration.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			throw new SchemaException(localizableMessage);
+		}
+		
+		if (!resetMethod.equals(resetPolicyType.getName())) {
+			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.methid", null, "Failed to execute reset password. Bad method.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			throw new SchemaException(localizableMessage);
+		}
 		
 		ProtectedStringType newProtectedPassword = new ProtectedStringType();
-		newProtectedPassword.setClearValue(newPassword);
+		newProtectedPassword.setClearValue(executeCredentialResetRequest.getPassword());
 		ObjectDelta<UserType> passwordObjectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
-				SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newPassword);
+				SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
 
-		if (BooleanUtils.isTrue(resetMethod.isForceChange())) {
+		if (BooleanUtils.isTrue(resetPolicyType.isForceChange())) {
 			passwordObjectDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, Boolean.TRUE);
 		}
 
+		try {
 		Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
 				MiscUtil.createCollection(passwordObjectDelta), ModelExecuteOptions.createRaw(), task, parentResult);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException 
+			| SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
+//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.failed", null, "Failed to execute reset password. Bad method.");
+//			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
+			throw e;
+		}
 
 		parentResult.recomputeStatus();
-
-		CredentialResetResponseType response = new CredentialResetResponseType();
-		response.setNewCredential(newPassword);
-		// TODO work with the result
-		LocalizableMessage message = LocalizableMessageBuilder.buildFallbackMessage("Reset password successfull.");
-
+		LocalizableMessage message = new SingleLocalizableMessage("execute.reset.credential.successful", null, "Reset password was successful");
 		response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		
-		
-		
-		
-//		cacheRepositoryService.modifyObject(type, oid, modifications, parentResult);
 		return response;
 	}
+	
+	
+
 }

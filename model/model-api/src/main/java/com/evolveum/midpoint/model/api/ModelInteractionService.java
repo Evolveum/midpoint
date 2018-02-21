@@ -33,6 +33,8 @@ import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -328,8 +330,8 @@ public interface ModelInteractionService {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException;
 	
-	public CredentialResetResponseType requestCredentialsReset(PrismObject<UserType> focus, String credentialsId,
-			CredentialsResetPolicyType resetMethod, Task task, OperationResult result)
+	public ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user, 
+			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 }
