@@ -192,6 +192,22 @@
                 </xsd:annotation>
             </xsd:element>
 
+			<xsd:element name="subType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Type of the object. It is used to distinguish what a specific object
+							represents. Whether it is a different kind of organizational unit, project,
+							team, or different kind of user, etc.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ObjectType.subType</a:displayName>
+						<a:displayOrder>15</a:displayOrder>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
 			<xsd:element name="fetchResult" type="tns:OperationResultType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -2644,6 +2660,163 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
+					<xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									The name, identifier or code of the cost center to which the user belongs.
+								</p>
+								<p>
+									Please note that organization objects (OrgType) also have a costCenter property.
+									Therefore it is usual that if a user belongs to an organization the costCenter from
+									the organization is used. Therefore this property is usually used only for users that
+									do not belong to any organization or for users that have different cost center than
+									the one defined by the organization.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.costCenter</a:displayName>
+								<a:displayOrder>420</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Primary locality of the user, the place where
+									the user usually works, the country, city or
+									building that he belongs to. The specific meaning
+									and form of this property is deployment-specific.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.locality</a:displayName>
+								<a:displayOrder>450</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Indicates user's preferred language, usually for the purpose of localizing
+									user interfaces. The format is IETF language tag defined in BCP 47, where
+									underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+									language code optionally followed by ISO 3166-1 two letter country code
+									separated by underscore. The languages that do not have coutry-specific
+									variants are usually specified by using a two-letter coutry code ("sk",
+									"cs", "tr"). Languages with coutry-specific variants have country-specific
+									subtags ("pt_BR", "zn_CN").
+									If no value is specified in this property then system default locale is assumed.
+								</p>
+								<p>
+									Examples:
+									<ul>
+										<li>en_US</li>
+										<li>sk</li>
+										<li>cs</li>
+										<li>pt_BR</li>
+									</ul>
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.preferredLanguage</a:displayName>
+								<a:displayOrder>200</a:displayOrder>
+								<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000200" type="tns:LookupTableType"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Defines user's preference in displaying currency, dates and other items
+									related to location and culture. The format is IETF language tag defined in BCP 47, where
+									underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+									language code optionally followed by ISO 3166-1 two letter country code
+									separated by underscore. The languages that do not have coutry-specific
+									variants are usually specified by using a two-letter coutry code ("sk",
+									"cs", "tr"). Languages with coutry-specific variants have country-specific
+									subtags ("pt_BR", "zn_CN").
+									If not specified then system default locale is assumed.
+								</p>
+								<p>
+									Examples:
+									<ul>
+										<li>en_US</li>
+										<li>sk</li>
+										<li>cs</li>
+										<li>pt_BR</li>
+									</ul>
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.locale</a:displayName>
+								<a:displayOrder>210</a:displayOrder>
+								<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000210" type="tns:LookupTableType"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="timezone" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
+									format. If not specified then system default timezone is assumed.
+								</p>
+								<p>
+									Examples:
+									<ul>
+										<li>Europe/Bratislava</li>
+									</ul>
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.timezone</a:displayName>
+								<a:displayOrder>220</a:displayOrder>
+								<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000220" type="tns:LookupTableType"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									E-Mail address of the user, org. unit, etc. This is the address
+									supposed to be used for communication with the
+									user, org. unit, etc. E.g. IDM system may send notifications
+									to the e-mail address. It is NOT supposed to be
+									full-featured e-mail address data structure
+									e.g. for the purpose of complex address-book application.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.emailAddress</a:displayName>
+								<a:displayOrder>300</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Primary telephone number of the user, org. unit, etc.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FocusType.telephoneNumber</a:displayName>
+								<a:displayOrder>310</a:displayOrder>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     
 				</xsd:sequence>
             </xsd:extension>
@@ -2880,125 +3053,6 @@
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    
-                    <xsd:element name="preferredLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Indicates user's preferred language, usually for the purpose of localizing
-	                                user interfaces. The format is IETF language tag defined in BCP 47, where
-	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
-	                                language code optionally followed by ISO 3166-1 two letter country code 
-	                                separated by underscore. The languages that do not have coutry-specific
-	                                variants are usually specified by using a two-letter coutry code ("sk", 
-	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
-	                                subtags ("pt_BR", "zn_CN").
-	                                If no value is specified in this property then system default locale is assumed.
-                                </p>
-								<p>
-                                Examples:
-                                    <ul>
-                                        <li>en_US</li>
-                                        <li>sk</li>
-                                        <li>cs</li>
-                                        <li>pt_BR</li>
-                                    </ul>
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>UserType.preferredLanguage</a:displayName>
-		                    	<a:displayOrder>200</a:displayOrder>
-		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000200" type="tns:LookupTableType"/>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="locale" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Defines user's preference in displaying currency, dates and other items
-	                                related to location and culture. The format is IETF language tag defined in BCP 47, where
-	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
-	                                language code optionally followed by ISO 3166-1 two letter country code 
-	                                separated by underscore. The languages that do not have coutry-specific
-	                                variants are usually specified by using a two-letter coutry code ("sk", 
-	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
-	                                subtags ("pt_BR", "zn_CN").
-	                                If not specified then system default locale is assumed.
-                                </p>
-								<p>
-                                Examples:
-                                    <ul>
-                                        <li>en_US</li>
-                                        <li>sk</li>
-                                        <li>cs</li>
-                                        <li>pt_BR</li>
-                                    </ul>
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>UserType.locale</a:displayName>
-		                    	<a:displayOrder>210</a:displayOrder>
-		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000210" type="tns:LookupTableType"/>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="timezone" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
-	                                format. If not specified then system default timezone is assumed.
-                                </p>
-								<p>
-                                Examples:
-                                    <ul>
-                                        <li>Europe/Bratislava</li>
-                                    </ul>
-                                </p> 
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		                    	<a:displayName>UserType.timezone</a:displayName>
-		                    	<a:displayOrder>220</a:displayOrder>
-		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000220" type="tns:LookupTableType"/>
-		                    </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="emailAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                E-Mail address of the user. This is the address
-	                                supposed to be used for communication with the
-	                                user. E.g. IDM system may send notifications
-	                                to the e-mail address. It is NOT supposed to be
-	                                full-featured e-mail address data structure
-	                                e.g. for the purpose of complex address-book application.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.EmailAddress</a:displayName>
-                                <a:displayOrder>300</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	Primary telephone number of the user.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.telephoneNumber</a:displayName>
-                                <a:displayOrder>310</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 
                     <xsd:element name="employeeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -3032,31 +3086,15 @@
                                 	reasons it is used in a more generic way to mean general type of user.
                                 	Therefore it can be used to distinguish employees from customers, etc.
                                 </p>
+								<p>
+									DEPRECATED: Use ObjectType.subType
+								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.employeeType</a:displayName>
                                 <a:displayOrder>410</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	The name, identifier or code of the cost center to which the user belongs.
-                                </p>
-                            	<p>
-                                	Please note that organization objects (OrgType) also have a costCenter property.
-                                	Therefore it is usual that if a user belongs to an organization the costCenter from
-                                	the organization is used. Therefore this property is usually used only for users that
-                                	do not belong to any organization or for users that have different cost center than
-                                	the one defined by the organization.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.costCenter</a:displayName>
-                                <a:displayOrder>420</a:displayOrder>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3101,23 +3139,6 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.organizationalUnit</a:displayName>
                                 <a:displayOrder>440</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Primary locality of the user, the place where
-	                                the user usually works, the country, city or
-	                                building that he belongs to. The specific meaning
-	                                and form of this property is deployment-specific.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>UserType.locality</a:displayName>
-                                <a:displayOrder>450</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3825,7 +3846,7 @@
             </xsd:appinfo>
         </xsd:annotation>
        	<xsd:sequence>
-       		<xsd:element name="order" type="xsd:int" minOccurs="0" maxOccurs="1" default="1">
+       		<xsd:element name="order" type="xsd:int" minOccurs="0" default="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Exact order to match. This is a short-hand for setting both
@@ -3833,7 +3854,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Minimum matching order. Applicable only if "order" element is not set.
@@ -3841,7 +3862,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Maximum matching order. Applicable only if "order" element is not set.
@@ -3849,7 +3870,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						The new value for order for this relation (or summary order), to be used when
@@ -3857,7 +3878,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-    		<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+    		<xsd:element name="relation" type="xsd:QName" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
@@ -11078,9 +11099,14 @@
                                         <li>asset</li>
                                     </ul>
                                 </p>
+								<p>
+									DEPRECATED: use ObjectType.subType
+								</p>
                     		</xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>RoleType.roleType</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -11531,10 +11557,15 @@
                                         <li>realm</li>
                                     </ul>
                                 </p>
+								<p>
+									DEPRECATED: Use ObjectType.subType
+								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>OrgType.type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11555,37 +11586,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="costCenter" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	The name, identifier or code of the cost center that applies to this org.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>OrgType.CostCenter</a:displayName>
-                                <a:displayOrder>200</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Primary locality of the org, the place where
-	                                the org is usually placed, the country, city or
-	                                building that it belongs to. The specific meaning
-	                                and form of this property is deployment-specific.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>OrgType.locality</a:displayName>
-                                <a:displayOrder>210</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="mailDomain" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11691,30 +11691,19 @@
                                         <li>device</li>
                                     </ul>
                                 </p>
+								<p>
+									DEPRECATED: Use ObjectType.subType
+								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ServiceType.type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.8</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Informal description of the place where the service is located. 
-	                                E.g. the location where the printer is placed, the name of the
-	                                datacenter, etc.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ServiceType.locality</a:displayName>
-                                <a:displayOrder>210</a:displayOrder>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -14586,7 +14575,15 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-		<xsd:element name="name" type="xsd:string" minOccurs="0">
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			</xsd:element>
+			<xsd:element name="authenticationName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="deliveryType" type="tns:DeliveryType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
 			</xsd:element>
@@ -14597,6 +14594,79 @@
 			
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="CredentialSourceType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+			<a:container/>
+		</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="credentialSource" type="tns:CredentialSourceTypeType" minOccurs="0" maxOccurs="1">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="CredentialSourceTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="generate">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GENERATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	
+	<xsd:simpleType name="DeliveryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="gui">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GUI"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="CredentialResetResponseType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="newCredential" type="xsd:string" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	
 	
 	<xsd:complexType name="AbstractAuthenticationPolicyType">
 		<xsd:annotation>
@@ -17123,6 +17193,7 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
+				<xsd:element name="default" type="tns:GuiObjectListType" minOccurs="0"/>
            		<xsd:element name="objectList" type="tns:GuiObjectListType" minOccurs="0" maxOccurs="unbounded"/>
            		<xsd:element name="includeDefaultLists" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
            			<xsd:annotation>
@@ -17156,6 +17227,7 @@
            		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
            		<!-- TODO: number of results per page (MID-1931) -->
            		<!-- TODO: later: export settings (GuiExportSettingsType) -->
+				<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0"/>
            	</xsd:sequence>
     </xsd:complexType>
     

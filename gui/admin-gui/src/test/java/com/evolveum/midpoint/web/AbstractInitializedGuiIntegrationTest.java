@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web;
 
 import static org.testng.AssertJUnit.assertNotNull;
+
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import org.testng.annotations.Test;
@@ -71,10 +72,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
 
-		importObjectFromFile(ROLE_MAPMAKER_FILE);
-		
-		MidPointApplication application = new MidPointApplication();
-		new DescriptorLoader().loadData(application);
+		importObjectFromFile(ROLE_MAPMAKER_FILE);	
 	}
 
 	@Test

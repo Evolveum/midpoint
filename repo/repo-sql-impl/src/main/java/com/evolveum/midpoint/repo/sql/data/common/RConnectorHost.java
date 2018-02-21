@@ -16,22 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import org.hibernate.annotations.Persister;
-
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -108,15 +100,5 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
-    }
-
-    @Override
-    public ConnectorHostType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        ConnectorHostType object = new ConnectorHostType();
-        RUtil.revive(object, prismContext);
-        RConnectorHost.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

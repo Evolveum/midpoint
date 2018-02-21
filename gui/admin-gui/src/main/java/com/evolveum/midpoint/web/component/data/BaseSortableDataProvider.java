@@ -34,6 +34,8 @@ import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListsType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -187,9 +189,42 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         };
     }
 
-	protected ObjectPaging createPaging(long offset, long pageSize) {
-		return ObjectPaging.createPaging(safeLongToInteger(offset), safeLongToInteger(pageSize), createObjectOrderings(getSort()));
-	}
+    protected boolean checkOrderingSettings() {
+        return false;
+    }
+
+    public boolean isOrderingDisabled() {
+        if (!checkOrderingSettings()) {
+            return false;
+        }
+
+        PageBase page = (PageBase) component.getPage();
+        AdminGuiConfigurationType config = page.getPrincipal().getAdminGuiConfiguration();
+        if (config == null) {
+            return false;
+        }
+        GuiObjectListsType lists = config.getObjectLists();
+        if (lists == null) {
+            return false;
+        }
+
+        GuiObjectListType def = lists.getDefault();
+        if (def == null) {
+            return false;
+        }
+
+        return def.isDisableSorting();
+    }
+
+    protected ObjectPaging createPaging(long offset, long pageSize) {
+        Integer o = safeLongToInteger(offset);
+        Integer size = safeLongToInteger(pageSize);
+        List<ObjectOrdering> orderings = null;
+        if (!isOrderingDisabled()) {
+            orderings = createObjectOrderings(getSort());
+        }
+        return ObjectPaging.createPaging(o, size, orderings);
+    }
 
 	/**
 	 * Could be overridden in subclasses.

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -27,8 +26,6 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.hibernate.annotations.ForeignKey;
@@ -36,7 +33,6 @@ import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -210,17 +206,5 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         repo.setEnd(jaxb.getEndTimestamp());
         repo.setState(RUtil.getRepoEnumValue(jaxb.getState(), RAccessCertificationCampaignState.class));
         repo.setStageNumber(jaxb.getStageNumber());
-    }
-
-    @Override
-    public AccessCertificationCampaignType toJAXB(PrismContext prismContext,
-                                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        AccessCertificationCampaignType object = new AccessCertificationCampaignType();
-        RUtil.revive(object, prismContext);
-        RAccessCertificationCampaign.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

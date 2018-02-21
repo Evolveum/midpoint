@@ -144,6 +144,11 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         return getAvailableData().iterator();
     }
 
+    @Override
+    protected boolean checkOrderingSettings() {
+        return true;
+    }
+
     protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
         getPage().showResult(result);
         throw new RestartResponseException(PageError.class);

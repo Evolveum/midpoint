@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -89,6 +90,13 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 	 */
 	ObjectType getProtoRole();
 
+	/**
+	 * Shallow clone.
+	 */
+	AssignmentPath clone();
+
+	AssignmentPath cloneFirst(int n);
+
 	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
 
 	ExtensionType collectExtensions(int startAt) throws SchemaException;
@@ -104,4 +112,17 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 		return getSegment(index);
 	}
 
+	/**
+	 * Returns true if the path matches specified order constraints. All of them must match.
+	 * Although there are some defaults, it is recommended to specify constraints explicitly.
+	 * Currently not supported on empty paths.
+	 *
+	 * Not all parts of OrderConstraintsType are supported. Namely, resetOrder item has no meaning here.
+	 */
+	boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+
+	/**
+	 * Preliminary (limited) implementation. To be used to compare paths pointing to the same target object. Use with care.
+	 */
+	boolean equivalent(AssignmentPath other);
 }

@@ -41,10 +41,15 @@ public class MidPointStringResourceLoader implements IStringResourceLoader {
 
     @Override
     public String loadStringResource(Component component, String key, Locale locale, String style, String variation) {
+    	if (resourceLoader == null) {
+    		// Just for tests
+    		return key;
+    	}
+    	
         if (locale == null) {
             locale = Session.exists() ? Session.get().getLocale() : Locale.getDefault();
         }
-
+        
         return resourceLoader.translate(key, null, locale);
     }
 }

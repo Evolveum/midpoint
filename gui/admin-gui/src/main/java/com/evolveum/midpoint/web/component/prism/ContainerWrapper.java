@@ -230,6 +230,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	static String localizeName(String nameKey) {
+		Validate.notNull(nameKey, "Null localization key");
 		return ColumnUtils.createStringResource(nameKey).getString();
 	}
 

@@ -326,4 +326,9 @@ public interface ModelInteractionService {
 			Map<QName, Object> variables, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException;
+	
+	public CredentialResetResponseType requestCredentialsReset(PrismObject<UserType> focus, String credentialsId,
+			CredentialsResetPolicyType resetMethod, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 }

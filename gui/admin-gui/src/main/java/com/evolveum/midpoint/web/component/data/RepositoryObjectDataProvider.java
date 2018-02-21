@@ -101,6 +101,11 @@ public class RepositoryObjectDataProvider
         return getAvailableData().iterator();
     }
 
+    @Override
+    protected boolean checkOrderingSettings() {
+        return true;
+    }
+
     private DebugObjectItem createItem(PrismObject<? extends ObjectType> object, OperationResult result) {
         DebugObjectItem item = DebugObjectItem.createDebugObjectItem(object);
         if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {

@@ -16,23 +16,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-
-import java.util.Collection;
 
 /**
  * @author lazyman
@@ -44,6 +37,7 @@ import java.util.Collection;
 public class RRole extends RAbstractRole<RoleType> {
 
     private RPolyString nameCopy;
+    @Deprecated //todo remove in 3.9
     private String roleType;
 
     public String getRoleType() {
@@ -100,14 +94,5 @@ public class RRole extends RAbstractRole<RoleType> {
 
         repo.setRoleType(jaxb.getRoleType());
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-    }
-
-    @Override
-    public RoleType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RoleType object = new RoleType();
-        RRole.copyToJAXB(this, object, prismContext, options);
-        RUtil.revive(object, prismContext);
-        return object;
     }
 }

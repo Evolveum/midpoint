@@ -2652,12 +2652,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    o.objectTypeClass = :objectTypeClass and\n" +
                     "    (\n" +
-                    "      o.localityUser.orig = :orig and\n" +
-                    "      o.localityUser.norm = :norm\n" +
+                    "      o.localityFocus.orig = :orig and\n" +
+                    "      o.localityFocus.norm = :norm\n" +
                     "    )\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
-            checkQueryTypeAlias(hqlToSql(real), "m_user", "locality_orig", "locality_norm");
+            checkQueryTypeAlias(hqlToSql(real), "m_user", "localityFocus_orig", "localityFocus_norm");
         } finally {
             close(session);
         }
@@ -2714,12 +2714,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    o.objectTypeClass = :objectTypeClass and\n" +
                     "    (\n" +
-                    "      o.locality.orig = :orig and\n" +
-                    "      o.locality.norm = :norm\n" +
+                    "      o.localityFocus.orig = :orig and\n" +
+                    "      o.localityFocus.norm = :norm\n" +
                     "    )\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
-            checkQueryTypeAlias(hqlToSql(real), "m_org", "locality_orig", "locality_norm");
+            checkQueryTypeAlias(hqlToSql(real), "m_org", "localityFocus_orig", "localityFocus_norm");
         } finally {
             close(session);
         }
@@ -2834,12 +2834,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "      o.objectTypeClass = :objectTypeClass and\n" +
                     "      (\n" +
                     "        (\n" +
-                    "          o.localityUser.orig = :orig and\n" +
-                    "          o.localityUser.norm = :norm\n" +
+                    "          o.localityFocus.orig = :orig and\n" +
+                    "          o.localityFocus.norm = :norm\n" +
                     "        ) or\n" +
                     "        (\n" +
-                    "          o.localityUser.orig = :orig2 and\n" +
-                    "          o.localityUser.norm = :norm2\n" +
+                    "          o.localityFocus.orig = :orig2 and\n" +
+                    "          o.localityFocus.norm = :norm2\n" +
                     "        )\n" +
                     "      )\n" +
                     "    ) or\n" +
