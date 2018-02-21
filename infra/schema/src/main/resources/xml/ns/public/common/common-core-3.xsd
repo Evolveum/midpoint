@@ -14586,7 +14586,9 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-		<xsd:element name="name" type="xsd:string" minOccurs="0">
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 			</xsd:element>
 			<xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
 			</xsd:element>

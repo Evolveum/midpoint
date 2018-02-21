@@ -45,6 +45,23 @@
 			<redirectToFile>target/mail-notifications.log</redirectToFile>
 		</mail>
 	</notificationConfiguration>
+	<workflowConfiguration>
+		<modelHookEnabled>false</modelHookEnabled>
+	</workflowConfiguration>
+	<accessCertification>
+		<reviewerCommentsFormatting>
+			<value>
+				<script>
+					<code>performer.name + ': ' + output.comment</code>
+				</script>
+			</value>
+			<condition>
+				<script>
+					<code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+				</script>
+			</condition>
+		</reviewerCommentsFormatting>
+	</accessCertification>
 	<globalPolicyRule>
 		<name>sod-approval</name>
 		<policyConstraints>
@@ -63,5 +80,4 @@
 			<type>RoleType</type>
 		</targetSelector>
 	</globalPolicyRule>
-
 </systemConfiguration>

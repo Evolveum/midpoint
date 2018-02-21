@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resource oid="2a7c7130-7a34-11e4-bdf6-001e8c717e5b" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+	<name>Localhost OpenLDAP</name>
+	<connectorRef type="ConnectorType">
+	    <filter>
+			<q:and>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration 
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+		<icfc:configurationProperties>
+			<icfcldap:port>389</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:usePermissiveModify>always</icfcldap:usePermissiveModify>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
+			<icfcldap:vlvSortAttribute>uid,cn</icfcldap:vlvSortAttribute>
+			<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
+			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
+			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+		</icfc:configurationProperties>
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+	</connectorConfiguration>
+
+	<schema>
+		<!-- workaround to MID-2723 -->
+		<generationConstraints>
+			<generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+			<generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+			<generateObjectClass>ri:groupOfNames</generateObjectClass>
+			<generateObjectClass>ri:organizationalUnit</generateObjectClass>
+		</generationConstraints>
+	</schema>
+	
+	<schemaHandling>
+		<objectType>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:inetOrgPerson</objectClass>
+			<attribute>
+				<ref>ri:dn</ref>
+				<displayName>Distinguished Name</displayName>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								'uid=' + name + iterationToken + ',ou=People,dc=example,dc=com'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:entryUUID</ref>
+				<displayName>Entry UUID</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<displayName>Common Name</displayName>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>fullName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:sn</ref>
+				<displayName>Surname</displayName>
+				<outbound>
+					<source>
+						<path>familyName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>familyName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:givenName</ref>
+				<displayName>Given Name</displayName>
+				<outbound>
+					<source>
+						<path>givenName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>givenName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:uid</ref>
+				<displayName>Login Name</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<target>
+						<path>name</path>
+                    </target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:memberOf</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
+			
+			 <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:member</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			
+			<protected>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		                <q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
+		            </q:equal>
+	            </filter>
+			</protected>
+			
+			<activation>
+				<administrativeStatus>
+					<outbound/>
+					<inbound/>
+				</administrativeStatus>
+			</activation>
+		</objectType>
+		
+		<objectType>
+        	<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:groupOfNames</objectClass>
+            <attribute>
+				<ref>ri:dn</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+					    <expression>
+					    	<script>
+							<code>
+								import javax.naming.ldap.Rdn
+								import javax.naming.ldap.LdapName
+								
+								dn = new LdapName('ou=groups,dc=example,dc=com')
+								dn.add(new Rdn('cn', name.toString()))
+								return dn.toString()
+							</code>
+						</script>
+					    </expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<value>uid=nobody,ou=People,dc=example,dc=com</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+			</attribute>
+        </objectType>
+		
+	</schemaHandling>
+    
+	<synchronization>
+		<objectSynchronization>
+			<name>Account sync</name>
+			<objectClass>ri:inetOrgPerson</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<focusType>UserType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:and>
+					<q:equal>
+						<q:path>c:employeeNumber</q:path>
+						<expression>
+						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
+                            $account/attributes/ri:employeeNumber</path>
+						</expression>
+					</q:equal>
+					<q:not>
+						<q:equal>
+							<q:path>c:employeeNumber</q:path>
+							<q:value/>
+						</q:equal>
+					</q:not>
+				</q:and>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	        </reaction>
+
+		</objectSynchronization>
+		<objectSynchronization>
+			<name>Group sync</name>
+			<objectClass>ri:groupOfNames</objectClass>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<focusType>RoleType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+					<path>$shadow/attributes/cn</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+	        </reaction>
+
+		</objectSynchronization>
+	</synchronization>
+</resource>
