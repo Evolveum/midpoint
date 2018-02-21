@@ -355,6 +355,10 @@ CREATE TABLE m_object_ext_string (
   stringValue NVARCHAR(255) COLLATE database_default NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 );
+CREATE TABLE m_object_subtype (
+  object_oid NVARCHAR(36) COLLATE database_default NOT NULL,
+  subType    NVARCHAR(255) COLLATE database_default
+);
 CREATE TABLE m_object_text_info (
   owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
   text      NVARCHAR(255) COLLATE database_default NOT NULL,
@@ -525,7 +529,15 @@ CREATE TABLE m_focus (
   validTo                 DATETIME2,
   validityChangeTimestamp DATETIME2,
   validityStatus          INT,
+  costCenter              NVARCHAR(255) COLLATE database_default,
+  emailAddress            NVARCHAR(255) COLLATE database_default,
   hasPhoto                BIT DEFAULT FALSE                     NOT NULL,
+  locale                  NVARCHAR(255) COLLATE database_default,
+  locality_norm           NVARCHAR(255) COLLATE database_default,
+  locality_orig           NVARCHAR(255) COLLATE database_default,
+  preferredLanguage       NVARCHAR(255) COLLATE database_default,
+  telephoneNumber         NVARCHAR(255) COLLATE database_default,
+  timezone                NVARCHAR(255) COLLATE database_default,
   oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -579,14 +591,11 @@ CREATE TABLE m_object_template (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_org (
-  costCenter    NVARCHAR(255) COLLATE database_default,
-  displayOrder  INT,
-  locality_norm NVARCHAR(255) COLLATE database_default,
-  locality_orig NVARCHAR(255) COLLATE database_default,
-  name_norm     NVARCHAR(255) COLLATE database_default,
-  name_orig     NVARCHAR(255) COLLATE database_default,
-  tenant        BIT,
-  oid           NVARCHAR(36) COLLATE database_default NOT NULL,
+  displayOrder INT,
+  name_norm    NVARCHAR(255) COLLATE database_default,
+  name_orig    NVARCHAR(255) COLLATE database_default,
+  tenant       BIT,
+  oid          NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_report (
@@ -639,12 +648,10 @@ CREATE TABLE m_sequence (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_service (
-  displayOrder  INT,
-  locality_norm NVARCHAR(255) COLLATE database_default,
-  locality_orig NVARCHAR(255) COLLATE database_default,
-  name_norm     NVARCHAR(255) COLLATE database_default,
-  name_orig     NVARCHAR(255) COLLATE database_default,
-  oid           NVARCHAR(36) COLLATE database_default NOT NULL,
+  displayOrder INT,
+  name_norm    NVARCHAR(255) COLLATE database_default,
+  name_orig    NVARCHAR(255) COLLATE database_default,
+  oid          NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_system_configuration (
@@ -663,8 +670,6 @@ CREATE TABLE m_trigger (
 CREATE TABLE m_user (
   additionalName_norm  NVARCHAR(255) COLLATE database_default,
   additionalName_orig  NVARCHAR(255) COLLATE database_default,
-  costCenter           NVARCHAR(255) COLLATE database_default,
-  emailAddress         NVARCHAR(255) COLLATE database_default,
   employeeNumber       NVARCHAR(255) COLLATE database_default,
   familyName_norm      NVARCHAR(255) COLLATE database_default,
   familyName_orig      NVARCHAR(255) COLLATE database_default,
@@ -676,17 +681,10 @@ CREATE TABLE m_user (
   honorificPrefix_orig NVARCHAR(255) COLLATE database_default,
   honorificSuffix_norm NVARCHAR(255) COLLATE database_default,
   honorificSuffix_orig NVARCHAR(255) COLLATE database_default,
-  locale               NVARCHAR(255) COLLATE database_default,
-  locality_norm        NVARCHAR(255) COLLATE database_default,
-  locality_orig        NVARCHAR(255) COLLATE database_default,
   name_norm            NVARCHAR(255) COLLATE database_default,
   name_orig            NVARCHAR(255) COLLATE database_default,
   nickName_norm        NVARCHAR(255) COLLATE database_default,
   nickName_orig        NVARCHAR(255) COLLATE database_default,
-  preferredLanguage    NVARCHAR(255) COLLATE database_default,
-  status               INT,
-  telephoneNumber      NVARCHAR(255) COLLATE database_default,
-  timezone             NVARCHAR(255) COLLATE database_default,
   title_norm           NVARCHAR(255) COLLATE database_default,
   title_orig           NVARCHAR(255) COLLATE database_default,
   oid                  NVARCHAR(36) COLLATE database_default NOT NULL,
@@ -724,12 +722,18 @@ CREATE INDEX iOrgRefTargetOid
   ON m_assignment (orgRef_targetOid);
 CREATE INDEX iResourceRefTargetOid
   ON m_assignment (resourceRef_targetOid);
-create index iAExtensionBoolean on m_assignment_ext_boolean (booleanValue);
-create index iAExtensionDate on m_assignment_ext_date (dateValue);
-create index iAExtensionLong on m_assignment_ext_long (longValue);
-create index iAExtensionPolyString on m_assignment_ext_poly (orig);
-create index iAExtensionReference on m_assignment_ext_reference (targetoid);
-create index iAExtensionString on m_assignment_ext_string (stringValue);
+CREATE INDEX iAExtensionBoolean
+  ON m_assignment_ext_boolean (booleanValue);
+CREATE INDEX iAExtensionDate
+  ON m_assignment_ext_date (dateValue);
+CREATE INDEX iAExtensionLong
+  ON m_assignment_ext_long (longValue);
+CREATE INDEX iAExtensionPolyString
+  ON m_assignment_ext_poly (orig);
+CREATE INDEX iAExtensionReference
+  ON m_assignment_ext_reference (targetoid);
+CREATE INDEX iAExtensionString
+  ON m_assignment_ext_string (stringValue);
 CREATE INDEX iAssignmentReferenceTargetOid
   ON m_assignment_reference (targetOid);
 CREATE INDEX iTimestampValue
@@ -750,12 +754,18 @@ CREATE INDEX iObjectCreateTimestamp
   ON m_object (createTimestamp);
 CREATE INDEX iObjectLifecycleState
   ON m_object (lifecycleState);
-create index iExtensionBoolean on m_object_ext_boolean (booleanValue);
-create index iExtensionDate on m_object_ext_date (dateValue);
-create index iExtensionLong on m_object_ext_long (longValue);
-create index iExtensionPolyString on m_object_ext_poly (orig);
-create index iExtensionReference on m_object_ext_reference (targetoid);
-create index iExtensionString on m_object_ext_string (stringValue);
+CREATE INDEX iExtensionBoolean
+  ON m_object_ext_boolean (booleanValue);
+CREATE INDEX iExtensionDate
+  ON m_object_ext_date (dateValue);
+CREATE INDEX iExtensionLong
+  ON m_object_ext_long (longValue);
+CREATE INDEX iExtensionPolyString
+  ON m_object_ext_poly (orig);
+CREATE INDEX iExtensionReference
+  ON m_object_ext_reference (targetoid);
+CREATE INDEX iExtensionString
+  ON m_object_ext_string (stringValue);
 CREATE INDEX iOpExecTaskOid
   ON m_operation_execution (taskRef_targetOid);
 CREATE INDEX iOpExecInitiatorOid
@@ -818,6 +828,8 @@ CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus);
+CREATE INDEX iLocality
+  ON m_focus (locality_orig);
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 ALTER TABLE m_function_library
@@ -852,16 +864,14 @@ ALTER TABLE m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 CREATE INDEX iTriggerTimestamp
   ON m_trigger (timestampValue);
-CREATE INDEX iEmployeeNumber
-  ON m_user (employeeNumber);
 CREATE INDEX iFullName
   ON m_user (fullName_orig);
 CREATE INDEX iFamilyName
   ON m_user (familyName_orig);
 CREATE INDEX iGivenName
   ON m_user (givenName_orig);
-CREATE INDEX iLocality
-  ON m_user (locality_orig);
+CREATE INDEX iEmployeeNumber
+  ON m_user (employeeNumber);
 ALTER TABLE m_user
   ADD CONSTRAINT uc_user_name UNIQUE (name_norm);
 ALTER TABLE m_value_policy
@@ -944,6 +954,8 @@ ALTER TABLE m_object_ext_string
   ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_object_ext_string
   ADD CONSTRAINT fk_o_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE m_object_subtype
+  ADD CONSTRAINT fk_object_subtype FOREIGN KEY (object_oid) REFERENCES m_object;
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_operation_execution
