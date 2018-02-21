@@ -159,7 +159,7 @@ public class ColumnUtils {
 	}
 
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getDefaultIcons(){
-		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
@@ -173,6 +173,19 @@ public class ColumnUtils {
 					}
 				};
 
+			}
+
+			@Override
+			protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
+
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						T object = rowModel.getObject().getValue();
+						return object.asPrismContainer().getDefinition().getTypeName().getLocalPart();
+					}
+				};
 			}
 		};
 	}
