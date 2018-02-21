@@ -66,6 +66,18 @@
     </notificationConfiguration>
     <workflowConfiguration>
         <allowCompleteOthersItems>true</allowCompleteOthersItems>
+        <approverCommentsFormatting>
+            <value>
+                <script>
+                    <code>performer.name + ' :: ' + output.comment</code>
+                </script>
+            </value>
+            <condition>
+                <script>
+                    <code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+                </script>
+            </condition>
+        </approverCommentsFormatting>
         <primaryChangeProcessor>
             <enabled>true</enabled>
             <policyRuleBasedAspect>

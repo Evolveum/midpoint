@@ -117,7 +117,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 					singleton(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
 					new HashSet<>(metadata.getCreateApproverRef()));
 			assertEquals("Wrong create approval comments",
-					singleton("creation comment"),
+					singleton("lead1 :: creation comment"),
 					new HashSet<>(metadata.getCreateApprovalComment()));
 		}
 	}
@@ -149,7 +149,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 				singleton(ObjectTypeUtil.createObjectRef(userPirateOwnerOid, ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
 				new HashSet<>(metadata.getModifyApproverRef()));
 		assertEquals("Wrong modify approval comments",
-				singleton("modification comment"),
+				singleton("pirate-owner :: modification comment"),
 				new HashSet<>(metadata.getModifyApprovalComment()));
 	}
 

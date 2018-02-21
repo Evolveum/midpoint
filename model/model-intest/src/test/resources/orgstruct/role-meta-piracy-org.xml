@@ -39,7 +39,7 @@
         </orderConstraint>
         <orderConstraint>
         	<order>1</order>
-        	<!-- member -->
+			<relation>default</relation>
         </orderConstraint>
         <orderConstraint>
         	<order>0</order>

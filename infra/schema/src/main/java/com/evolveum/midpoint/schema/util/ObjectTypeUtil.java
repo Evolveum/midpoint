@@ -615,6 +615,7 @@ public class ObjectTypeUtil {
     	return item != null ? (T) item.getRealValue() : null;
 	}
 
+	@NotNull
 	public static QName normalizeRelation(QName name) {
     	if (name == null) {
     		return SchemaConstants.ORG_DEFAULT;

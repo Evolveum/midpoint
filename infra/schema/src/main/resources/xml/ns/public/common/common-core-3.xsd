@@ -3846,7 +3846,7 @@
             </xsd:appinfo>
         </xsd:annotation>
        	<xsd:sequence>
-       		<xsd:element name="order" type="xsd:int" minOccurs="0" maxOccurs="1" default="1">
+       		<xsd:element name="order" type="xsd:int" minOccurs="0" default="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Exact order to match. This is a short-hand for setting both
@@ -3854,7 +3854,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Minimum matching order. Applicable only if "order" element is not set.
@@ -3862,7 +3862,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Maximum matching order. Applicable only if "order" element is not set.
@@ -3870,7 +3870,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						The new value for order for this relation (or summary order), to be used when
@@ -3878,7 +3878,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-    		<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+    		<xsd:element name="relation" type="xsd:QName" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
@@ -14575,7 +14575,15 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-		<xsd:element name="name" type="xsd:string" minOccurs="0">
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			</xsd:element>
+			<xsd:element name="authenticationName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="deliveryType" type="tns:DeliveryType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
 			</xsd:element>
@@ -14586,6 +14594,79 @@
 			
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="CredentialSourceType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+			<a:container/>
+		</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="credentialSource" type="tns:CredentialSourceTypeType" minOccurs="0" maxOccurs="1">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="CredentialSourceTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="generate">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GENERATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	
+	<xsd:simpleType name="DeliveryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="gui">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GUI"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="CredentialResetResponseType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="newCredential" type="xsd:string" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	
 	
 	<xsd:complexType name="AbstractAuthenticationPolicyType">
 		<xsd:annotation>
