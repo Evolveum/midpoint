@@ -35,7 +35,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -871,7 +871,7 @@ public class LensUtil {
 					if (name == null) {
 						LOGGER.debug("No name for shadow:\n{}", object.debugDump());
 					} else if (name.getNorm() == null) {
-						name.recompute(new PrismDefaultPolyStringNormalizer());
+						name.recompute(new AlphanumericPolyStringNormalizer());
 					}
 				} catch (SchemaException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());

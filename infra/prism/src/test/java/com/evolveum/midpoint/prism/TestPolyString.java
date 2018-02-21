@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,6 +50,7 @@ public class TestPolyString {
 	@Test
 	public void testSimpleNormalization() {
 		testNormalization("testSimpleNormalization",
+				new AlphanumericPolyStringNormalizer(),
 				" Gul\u00F4\u010Dka  v jam\u00F4\u010Dke le\u017E\u00ED, Per\u00FAn ju  bleskom usma\u017E\u00ED. Hrom do toho!  ",
 				"gulocka v jamocke lezi perun ju bleskom usmazi hrom do toho");
 	}
@@ -57,6 +58,7 @@ public class TestPolyString {
 	@Test
 	public void testNormalizationNonLatinAll() {
 		testNormalization("testSimpleNormalization",
+				new AlphanumericPolyStringNormalizer(),
 				"\u0421\u043E\u044E\u0301\u0437 \u0421\u043E\u0432\u0435\u0301\u0442\u0441\u043A\u0438\u0445 \u0421\u043E\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438\u0301\u0447\u0435\u0441\u043A\u0438\u0445 \u0420\u0435\u0441\u043F\u0443\u0301\u0431\u043B\u0438\u043A",
 				"");
 	}
@@ -64,15 +66,14 @@ public class TestPolyString {
 	@Test
 	public void testNormalizationNonLatinSome() {
 		testNormalization("testSimpleNormalization",
+				new AlphanumericPolyStringNormalizer(),
 				"In \u0421\u043E\u044E\u0301\u0437 \u0421\u043E\u0432\u0435\u0301\u0442\u0441\u043A\u0438\u0445 \u0421\u043E\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438\u0301\u0447\u0435\u0441\u043A\u0438\u0445 \u0420\u0435\u0441\u043F\u0443\u0301\u0431\u043B\u0438\u043A the TV watches YOU!!",
 				"in the tv watches you");
 	}
 
-	private void testNormalization(final String TEST_NAME, String orig, String expectedNorm) {
+	private void testNormalization(final String TEST_NAME, PolyStringNormalizer normalizer, String orig, String expectedNorm) {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 		PolyString polyString = new PolyString(orig);
-
-		PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
 
 		// WHEN
 		polyString.recompute(normalizer);

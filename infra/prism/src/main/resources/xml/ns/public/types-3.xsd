@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.7
+            Version: 3.7-SNAPSHOT
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
@@ -696,6 +696,63 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="PolyStringNormalizerConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of PolyString normalizer.
+            </xsd:documentation>
+            <xsd:appinfo>3.8</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="className" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="trim" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Removes whitespace from beginning and end of the string.
+                        Trimming is done before any other processing.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="nfkd" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unicode Normalization Form Compatibility Decomposition (NFKD).
+                        This process expands composed characters (e.g. diacritic marks, ligatures, roman numberals).
+                        Character components are then processed individually. E.g. ascsii7 normalizer
+                        will then remove just the diacritic mark, but leave the base letter. Therefore
+                        for a-acute character with NFKD processing the output will be plain "a" character.
+                        Without NFKD processing the whole character will be removed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="trimWhitespace" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+            <xsd:element name="lowercase" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>
 

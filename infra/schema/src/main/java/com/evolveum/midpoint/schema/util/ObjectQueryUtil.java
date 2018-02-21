@@ -32,7 +32,7 @@ import org.apache.commons.lang.mutable.MutableBoolean;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -83,7 +83,7 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
+        PolyStringNormalizer normalizer = new AlphanumericPolyStringNormalizer();
         name.recompute(normalizer);
 		return QueryBuilder.queryFor(ObjectType.class, prismContext)
 				.item(ObjectType.F_NAME).eq(name).matchingNorm()

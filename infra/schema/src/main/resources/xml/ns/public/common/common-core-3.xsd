@@ -12785,6 +12785,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="polyStringNormalizer" type="t:PolyStringNormalizerConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of PolyString normalizer.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="subresultStripThreshold" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

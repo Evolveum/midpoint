@@ -662,4 +662,20 @@ public class DebugUtil {
 			return fullUrl;
 		}
 	}
+
+	public static void shortDumpAppendProperty(StringBuilder sb, String propName, Object propValue) {
+		if (propValue != null) {
+			sb.append(propName).append("=").append(propValue).append(",");
+		}
+	}
+
+	public static void shortDumpRemoveLastComma(StringBuilder sb) {
+		if (sb.length() == 0) {
+			return;
+		}
+		char lastChar = sb.charAt(sb.length() - 1);
+		if (lastChar == ',') {
+			sb.setLength(sb.length() - 1);
+		}
+	}
 }

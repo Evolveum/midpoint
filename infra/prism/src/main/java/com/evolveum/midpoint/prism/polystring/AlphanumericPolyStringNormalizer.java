@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,20 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
-import java.text.Normalizer;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author semancik
  *
  */
-public class PrismDefaultPolyStringNormalizer implements PolyStringNormalizer {
+public class AlphanumericPolyStringNormalizer extends AbstractPolyStringNormalizer {
 	private static final String MALFORMED_REGEX = "[^\\w\\s\\d]";
 	private static final Pattern MALFORMED_PATTERN = Pattern.compile(MALFORMED_REGEX);
-	private static final String WHITESPACE_REGEX = "\\s+";
-	private static final Pattern WHITESPACE_PATTERN = Pattern.compile(WHITESPACE_REGEX);
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.polystring.PolyStringNormalizer#normalize(java.lang.String)
-	 */
+	
 	@Override
-	public String normalize(String orig) {
-		if (orig == null) {
-			return null;
-		}
-		String s = StringUtils.trim(orig);
-		s = Normalizer.normalize(s, Normalizer.Form.NFKD);
-		s = MALFORMED_PATTERN.matcher(s).replaceAll("");
-		s = WHITESPACE_PATTERN.matcher(s).replaceAll(" ");
-		if (StringUtils.isBlank(s)) {
-			s = "";
-		}
-		return StringUtils.lowerCase(s);
+	protected String normalizeCore(String s) {
+		s = removeAll(s, MALFORMED_PATTERN);
+		return s;
 	}
 
 }

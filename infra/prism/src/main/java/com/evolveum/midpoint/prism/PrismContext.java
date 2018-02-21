@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -50,6 +52,8 @@ public interface PrismContext {
 	 * Initializes the prism context, e.g. loads and parses all the schemas.
 	 */
 	void initialize() throws SchemaException, SAXException, IOException;
+	
+	void configurePolyStringNormalizer(PolyStringNormalizerConfigurationType configuration) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Returns the schema registry.
