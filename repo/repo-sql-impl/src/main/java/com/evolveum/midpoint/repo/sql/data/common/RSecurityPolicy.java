@@ -1,22 +1,15 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-
-import java.util.Collection;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}))
@@ -63,18 +56,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-    }
-
-    @Override
-    public SecurityPolicyType toJAXB(PrismContext prismContext,
-                                     Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        SecurityPolicyType object = new SecurityPolicyType();
-        RUtil.revive(object, prismContext);
-        RSecurityPolicy.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }
 

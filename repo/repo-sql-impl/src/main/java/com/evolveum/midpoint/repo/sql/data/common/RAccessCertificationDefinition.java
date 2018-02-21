@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -25,15 +24,12 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
 
 @Entity
 @Table(name = RAccessCertificationDefinition.TABLE_NAME,
@@ -150,17 +146,5 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
         repo.setOwnerRefDefinition(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
         repo.setLastCampaignStartedTimestamp(jaxb.getLastCampaignStartedTimestamp());
         repo.setLastCampaignClosedTimestamp(jaxb.getLastCampaignClosedTimestamp());
-    }
-
-    @Override
-    public AccessCertificationDefinitionType toJAXB(PrismContext prismContext,
-                                                    Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        AccessCertificationDefinitionType object = new AccessCertificationDefinitionType();
-        RUtil.revive(object, prismContext);
-        RAccessCertificationDefinition.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }
