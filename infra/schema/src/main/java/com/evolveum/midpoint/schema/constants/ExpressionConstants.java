@@ -112,4 +112,8 @@ public class ExpressionConstants {
 
 	public static final QName VAR_OBJECT_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "objectDisplayInformation");
 	public static final QName VAR_TARGET_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "targetDisplayInformation");
+
+	public static final QName VAR_PERFORMER = new QName(SchemaConstants.NS_C, "performer");
+	public static final QName VAR_OUTPUT = new QName(SchemaConstants.NS_C, "output");
+	public static final QName VAR_EVENT = new QName(SchemaConstants.NS_C, "event");
 }
