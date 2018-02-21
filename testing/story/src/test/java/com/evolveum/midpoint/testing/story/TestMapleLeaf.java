@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -56,6 +57,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class TestMapleLeaf extends AbstractStoryTest {
 	
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapleLeaf");
+	
+	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+	
+	private static final File SECURITY_POLICY_FILE = new File(TEST_DIR, "security-policy.xml");
 	
 	private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000000";
@@ -81,6 +86,11 @@ public class TestMapleLeaf extends AbstractStoryTest {
 	}
 	
 	@Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
+	}
+	
+	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
@@ -91,6 +101,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		
 		importObjectFromFile(ROLE_META_MONKEY_DONKEY);
 		importObjectFromFile(ROLE_SQUIRREL_FILE);
+		importObjectFromFile(SECURITY_POLICY_FILE);
 
 	}
 	
@@ -252,6 +263,41 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		
 		String clearTextValue = protector.decryptString(password.getValue());
 		assertEquals(clearTextValue, "somenewValue", "Passwords don't match");
+		assertTrue(BooleanUtils.isTrue(password.isForceChange()), "Expected force change set to true, but was: " + BooleanUtils.isTrue(password.isForceChange()));
+		
+		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
+	}
+	
+	@Test
+	public void test101resetPassword() throws Exception {
+		final String TEST_NAME = "test101resetPassword";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		
+		//when
+		PrismObject<UserType> user = getUser(USER_JACK_OID);
+		ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
+		executeCredentialResetRequest.setResetMethod("passwordReset");
+		executeCredentialResetRequest.setUserEntry("123passwd456");
+		modelInteractionService.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
+		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
+		
+		//THEN
+		
+		displayThen(TEST_NAME);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		UserType userTypeAfter = userAfter.asObjectable();
+		
+		CredentialsType credentials = userTypeAfter.getCredentials();
+		assertNotNull("Oooops, something unexpected happenned - no credentials found in user " + userAfter, credentials);
+		PasswordType password = credentials.getPassword();
+		assertNotNull("Oooops, something unexpected happenned - no password defined for user " + userAfter, password);
+		
+		String clearTextValue = protector.decryptString(password.getValue());
+		assertEquals(clearTextValue, "123passwd456", "Passwords don't match");
 		assertTrue(BooleanUtils.isTrue(password.isForceChange()), "Expected force change set to true, but was: " + BooleanUtils.isTrue(password.isForceChange()));
 		
 		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
