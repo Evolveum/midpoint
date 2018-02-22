@@ -18703,7 +18703,6 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:complexType>
-	<xsd:element name="localizableMessage" type="tns:LocalizableMessageType"/>
 
 	<xsd:complexType name="SingleLocalizableMessageType">
 		<xsd:annotation>
@@ -18752,7 +18751,6 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	<xsd:element name="singleLocalizableMessage" type="tns:SingleLocalizableMessageType" substitutionGroup="tns:localizableMessage"/>
 
 	<xsd:complexType name="LocalizableMessageListType">
 		<xsd:annotation>
@@ -18818,6 +18816,7 @@
 						Literal value.
 					</xsd:documentation>
 				</xsd:annotation>
+				
 			</xsd:element>
 			<xsd:element name="localizable" type="tns:LocalizableMessageType">
 				<xsd:annotation>
