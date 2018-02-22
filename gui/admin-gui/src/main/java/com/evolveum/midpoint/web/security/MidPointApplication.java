@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,7 +284,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     private void initializeSchrodinger() {
+    	if (applicationContext == null) {
+    		return;
+    	}
         Environment environment = applicationContext.getEnvironment();
+        if (environment == null) {
+        	return;
+        }
 
         String value = environment.getProperty(SYSTEM_PROPERTY_SCHRODINGER);
         Boolean enabled = Boolean.parseBoolean(value);
