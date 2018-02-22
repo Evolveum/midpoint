@@ -327,10 +327,8 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     			String orig = poly.getOrig();
     			String norm = poly.getNorm();
     			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
-    			LOGGER.info("NNN: "+polyStringNormalizer+" - "+prismContext);
     			String expectedNorm = polyStringNormalizer.normalize(orig);
     			if (!norm.equals(expectedNorm)) {
-    				LOGGER.info("NNNx: "+norm+" <-> "+expectedNorm);
     				throw new IllegalStateException("PolyString has inconsistent orig ("+orig+") and norm ("+norm+") in property value "+this+" ("+myPath+" in "+rootItem+")");
     			}
     		}
