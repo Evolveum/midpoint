@@ -46,7 +46,6 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.Cacheable;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -1563,7 +1562,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
 		
 		
-		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
+		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType(prismContext);
 		
 		String resetMethod = executeCredentialResetRequest.getResetMethod();
 		if (StringUtils.isBlank(resetMethod)) {
