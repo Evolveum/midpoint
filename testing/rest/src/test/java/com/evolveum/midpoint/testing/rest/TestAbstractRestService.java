@@ -1311,8 +1311,9 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 
 		TestUtil.displayWhen(TEST_NAME);
-		response = client.get();
-
+		client = prepareClient();
+		response = client.path("/users/" + USER_DARTHADDER_OID).get();
+		
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
