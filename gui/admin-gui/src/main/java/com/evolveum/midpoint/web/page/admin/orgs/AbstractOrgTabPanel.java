@@ -171,7 +171,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
             list.sort((o1, o2) -> (o1.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o1.getRealValue().getDisplayOrder())
                     - (o2.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o2.getRealValue().getDisplayOrder()));
 
-            if (list.isEmpty()) {
+            if (list.isEmpty() && isWarnMessageVisible()) {
                 warn(getString("PageOrgTree.message.noOrgStructDefined"));
             }
         } catch (Exception ex) {
@@ -185,6 +185,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         	getPageBase().showResult(result);
         }
         return list;
+    }
+
+    protected boolean isWarnMessageVisible(){
+        return true;
     }
 
     protected void changeTabPerformed(int index){

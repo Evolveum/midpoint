@@ -675,7 +675,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		boolean rv = true;
 		for (ItemWrapper itemWrapper : getItems()) {
 			if (!itemWrapper.checkRequired(pageBase)) {
-				rv = false;
+				rv = false;     // not returning directly as we want to go through all the values
 			}
 		}
 		return rv;

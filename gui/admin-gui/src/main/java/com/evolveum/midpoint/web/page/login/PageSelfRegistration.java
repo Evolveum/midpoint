@@ -685,6 +685,10 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
 			PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(ValuePolicyType.class,
 					noncePolicy.getValuePolicyRef().getOid(), PageSelfRegistration.this, task, result);
+			if (valuePolicy == null) {
+				LOGGER.error("Nonce cannot be generated, as value policy {} cannot be fetched", noncePolicy.getValuePolicyRef().getOid());
+				throw new ObjectNotFoundException("Nonce cannot be generated");         // no more information (security); TODO implement more correctly
+			}
 			policy = valuePolicy.asObjectable();
 		}
 

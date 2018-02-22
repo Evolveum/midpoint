@@ -1034,6 +1034,29 @@ public class ModelRestService {
 		return response;
 	}
 
+	@POST
+	@Path("/users/{oid}/credential")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_LOG_FILE_CONTENT);
+
+		Response response;
+		try {
+			PrismObject<UserType> user = modelService.getObject(UserType.class, oid, null, task, result);
+			
+			ExecuteCredentialResetResponseType executeCredentialResetResponse = modelInteraction.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, executeCredentialResetResponse, result);
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(result, ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+
+	}
 
 	//    @GET
 //    @Path("tasks/{oid}")
