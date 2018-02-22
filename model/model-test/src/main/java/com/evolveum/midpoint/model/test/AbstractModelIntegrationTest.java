@@ -3179,12 +3179,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-		PrismObject<O> object = PrismTestUtil.parseObject(file);
+		PrismObject<O> object = prismContext.parseObject(file);
 		addObject(object);
 	}
 
 	protected <O extends ObjectType> PrismObject<O> addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-		PrismObject<O> object = PrismTestUtil.parseObject(file);
+		PrismObject<O> object = prismContext.parseObject(file);
 		addObject(object, task, result);
 		return object;
 	}
@@ -4154,7 +4154,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+		PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -4719,7 +4719,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
 		display("Org "+orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
+		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, createPolyString(orgName));
 		return org;
 	}
 

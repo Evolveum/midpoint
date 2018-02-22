@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,7 +194,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		LOGGER.trace("initSystemConditional: {} systemInitialized={}", this.getClass(), isSystemInitialized());
 		if (!isSystemInitialized()) {
 			PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-			PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+			PrismTestUtil.setPrismContext(prismContext);
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
 			initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
@@ -363,7 +363,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				+ ".addObjectsFromFile");
 		result.addParam("file", file.getPath());
 		LOGGER.trace("addObjectsFromFile: {}", file);
-		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(file);
+		List<PrismObject<T>> objects = (List) prismContext.parserFor(file).parseObjects();
 		for (PrismObject<T> object: objects) {
 			try {
 				repoAddObject(object, result);
@@ -385,7 +385,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				+ ".addObjectsFromFile");
 		result.addParam("file", file.getPath());
 		LOGGER.trace("addObjectsFromFile: {}", file);
-		List<PrismObject> objects = (List) PrismTestUtil.parseObjects(file);
+		List<PrismObject> objects = (List) prismContext.parserFor(file).parseObjects();
 		for (PrismObject object: objects) {
 			try {
 				repoAddObject(object, result);
@@ -1279,11 +1279,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected PolyString createPolyString(String string) {
-		return PrismTestUtil.createPolyString(string);
+		PolyString polyString = new PolyString(string);
+		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+		return polyString;
 	}
 
 	protected PolyStringType createPolyStringType(String string) {
-		return PrismTestUtil.createPolyStringType(string);
+		return new PolyStringType(createPolyString(string));
 	}
 
 	protected ItemPath getExtensionPath(QName propName) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,28 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,8 +66,8 @@ public class SystemConfigurationHandler implements ChangeHook {
 
     public static final String HOOK_URI = "http://midpoint.evolveum.com/model/sysconfig-hook-1";
 
-    @Autowired
-    private HookRegistry hookRegistry;
+    @Autowired private HookRegistry hookRegistry;
+    @Autowired private PrismContext prismContext;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -129,10 +136,12 @@ public class SystemConfigurationHandler implements ChangeHook {
 
             LOGGER.trace("invoke() SystemConfig from repo: {}, ApplyingLoggingConfiguration", config.getVersion());
 
-            SystemConfigurationHolder.setCurrentConfiguration(config.asObjectable());
-            SecurityUtil.setRemoteHostAddressHeaders(config.asObjectable());
+            SystemConfigurationType configType = config.asObjectable();
+            SystemConfigurationHolder.setCurrentConfiguration(configType);
+            SecurityUtil.setRemoteHostAddressHeaders(configType);
 
-            applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), config.asObjectable().getVersion(), result);
+            applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), configType.getVersion(), result);
+            applyPrismConfiguration(configType);
 
 			cacheRepositoryService.applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
             SystemConfigurationTypeUtil.applyOperationResultHandling(config.asObjectable());
@@ -152,7 +161,22 @@ public class SystemConfigurationHandler implements ChangeHook {
         return HookOperationMode.FOREGROUND;
     }
 
-    @Override
+    private void applyPrismConfiguration(SystemConfigurationType configType) {
+    	PolyStringNormalizerConfigurationType normalizerConfig = null;
+		InternalsConfigurationType internals = configType.getInternals();
+		if (internals != null) {
+			normalizerConfig = internals.getPolyStringNormalizer();
+		}
+		try {
+			prismContext.configurePolyStringNormalizer(normalizerConfig);
+			LOGGER.trace("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+			throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+		}
+	}
+
+	@Override
     public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // do nothing
     }

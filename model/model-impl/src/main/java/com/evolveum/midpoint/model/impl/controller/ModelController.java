@@ -1574,10 +1574,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set 'forwardedFor' headers because system configuration couldn't be read", e);
 		}
 
+		try {
+			cacheRepositoryService.postInit(result);
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw new SystemException(e.getMessage(), e);
+		}
+		
 		securityContextManager.setUserProfileService(userProfileService);
-		// TODO: initialize repository
-
-		// repository (including logging config) is initialized in its own method
 
         taskManager.postInit(result);
 

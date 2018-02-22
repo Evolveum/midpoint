@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -53,6 +55,8 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, Serializable {
+	
+	final static Trace LOGGER = TraceManager.getTrace(PrismPropertyValue.class);
 
     private T value;
 
@@ -323,8 +327,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     			String orig = poly.getOrig();
     			String norm = poly.getNorm();
     			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
+    			LOGGER.info("NNN: "+polyStringNormalizer+" - "+prismContext);
     			String expectedNorm = polyStringNormalizer.normalize(orig);
     			if (!norm.equals(expectedNorm)) {
+    				LOGGER.info("NNNx: "+norm+" <-> "+expectedNorm);
     				throw new IllegalStateException("PolyString has inconsistent orig ("+orig+") and norm ("+norm+") in property value "+this+" ("+myPath+" in "+rootItem+")");
     			}
     		}

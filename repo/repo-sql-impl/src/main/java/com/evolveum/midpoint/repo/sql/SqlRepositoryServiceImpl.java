@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -62,11 +63,13 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
@@ -122,6 +125,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private BaseHelper baseHelper;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private MidpointConfiguration midpointConfiguration;
+    @Autowired private PrismContext prismContext;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -1108,6 +1112,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result).asObjectable();
 		} catch (ObjectNotFoundException e) {
 			// ok, no problem e.g. for tests or initial startup
+			result.muteLastSubresultError();
 			LOGGER.debug("System configuration not found, exiting postInit method.");
 			return;
 		}
@@ -1127,7 +1132,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
         SystemConfigurationTypeUtil.applyOperationResultHandling(systemConfiguration);
+        applyPrismConfiguration(systemConfiguration);
 	}
+	
+	 private void applyPrismConfiguration(SystemConfigurationType configType) {
+	    	PolyStringNormalizerConfigurationType normalizerConfig = null;
+			InternalsConfigurationType internals = configType.getInternals();
+			if (internals != null) {
+				normalizerConfig = internals.getPolyStringNormalizer();
+			}
+			try {
+				prismContext.configurePolyStringNormalizer(normalizerConfig);
+				LOGGER.trace("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+				throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+			}
+		}
 
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(String oid) {

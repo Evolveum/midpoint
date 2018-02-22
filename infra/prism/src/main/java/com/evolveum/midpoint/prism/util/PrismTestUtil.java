@@ -103,6 +103,10 @@ public class PrismTestUtil {
     	}
     	return prismContext;
     }
+    
+    public static void setPrismContext(PrismContext prismContext) {
+		PrismTestUtil.prismContext = prismContext;
+	}
 
     public static SchemaRegistry getSchemaRegistry() {
     	return prismContext.getSchemaRegistry();

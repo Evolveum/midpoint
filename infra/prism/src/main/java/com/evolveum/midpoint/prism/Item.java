@@ -636,6 +636,17 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			visitor.visit(this);
 		}
 	}
+	
+	/**
+	 * Re-apply PolyString (and possible other) normalizations to the object.
+	 */
+	public void recomputeAllValues() {
+		accept(visitable -> {
+			if (visitable instanceof PrismPropertyValue<?>) {
+				((PrismPropertyValue<?>)visitable).recompute(getPrismContext());
+			}
+		});
+	}
 
 	public void filterValues(Function<V, Boolean> function) {
 		Iterator<V> iterator = values.iterator();

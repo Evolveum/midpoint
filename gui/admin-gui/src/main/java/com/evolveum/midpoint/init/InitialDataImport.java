@@ -35,15 +35,21 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -166,7 +172,7 @@ public class InitialDataImport {
      * @param mainResult
      * @return null if nothing was imported, true if it was success, otherwise false
      */
-    private Boolean importObject(PrismObject object, File file, Task task, OperationResult mainResult) {
+    private <O extends ObjectType> Boolean importObject(PrismObject<O> object, File file, Task task, OperationResult mainResult) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
         boolean importObject = true;
@@ -188,6 +194,8 @@ public class InitialDataImport {
         if (!importObject) {
             return null;
         }
+        
+        preImportUpdate(object);
 
         ObjectDelta delta = ObjectDelta.createAddDelta(object);
         try {
@@ -206,7 +214,30 @@ public class InitialDataImport {
         }
     }
 
-    private File getResource(String name) {
+    private <O extends ObjectType> void preImportUpdate(PrismObject<O> object) {
+		if (object.canRepresent(SystemConfigurationType.class)) {
+			SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
+			InternalsConfigurationType internals = systemConfigType.getInternals();
+			if (internals != null) {
+				PolyStringNormalizerConfigurationType normalizerConfig = internals.getPolyStringNormalizer();
+				if (normalizerConfig != null) {
+					try {
+						prismContext.configurePolyStringNormalizer(normalizerConfig);
+						LOGGER.debug("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+						LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+						throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+					}
+					// PolyString normalizer configuration applied. But we need to re-normalize the imported object
+					// otherwise it would be normalized in a different way than other objects.
+					object.recomputeAllValues();
+				}
+			}
+		}
+		
+	}
+
+	private File getResource(String name) {
         URI path;
         try {
         	LOGGER.trace("getResource: name = {}", name);
