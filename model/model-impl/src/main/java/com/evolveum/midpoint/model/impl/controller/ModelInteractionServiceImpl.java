@@ -113,6 +113,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
@@ -238,6 +240,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired UserProfileService userProfileService;
 	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private CacheRegistry cacheRegistry;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1642,7 +1645,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		return response;
 	}
 	
-	
+	public void clearCaches() {
+		List<Cacheable> cacheableServices = cacheRegistry.getCacheableServices();
+		for (Cacheable cacheable: cacheableServices) {
+			cacheable.clearCache();
+		}
+	}
 	
 
 }

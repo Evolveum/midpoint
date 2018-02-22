@@ -334,4 +334,6 @@ public interface ModelInteractionService {
 			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+	
+	public void clearCaches();
 }
