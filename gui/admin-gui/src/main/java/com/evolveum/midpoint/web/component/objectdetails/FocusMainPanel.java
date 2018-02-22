@@ -305,40 +305,44 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 				});
 		
 		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
-		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
+		
+		if (WebModelServiceUtils.isEnableExperimentalFeature(parentPage)) {
+			tabs.add(new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
 
-					private static final long serialVersionUID = 1L;
+				private static final long serialVersionUID = 1L;
 
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusDataProtectionTabPanel(panelId, parentPage);
-					}
+				@Override
+				public WebMarkupContainer createPanel(String panelId) {
+					return createFocusDataProtectionTabPanel(panelId, parentPage);
+				}
 
-					@Override
-					public String getCount() {
-						PrismObject<F> focus = getObjectModel().getObject().getObject();
-						List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-						int count = 0;
-						for (AssignmentType assignment : assignments) {
-							if (assignment.getTargetRef() == null) {
-								continue;
-							}
-							if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
-								Task task = parentPage.createSimpleTask("load data protection obejcts");
-								PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), parentPage, task, task.getResult());
-								
-								if (org != null) {
-									if (org.asObjectable().getOrgType().contains("access")) {
-										count++;
-									}
+				@Override
+				public String getCount() {
+					PrismObject<F> focus = getObjectModel().getObject().getObject();
+					List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+					int count = 0;
+					for (AssignmentType assignment : assignments) {
+						if (assignment.getTargetRef() == null) {
+							continue;
+						}
+						if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
+							Task task = parentPage.createSimpleTask("load data protection obejcts");
+							PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), parentPage,
+									task, task.getResult());
+
+							if (org != null) {
+								if (org.asObjectable().getOrgType().contains("access")) {
+									count++;
 								}
 							}
 						}
-						
-						return String.valueOf(count);
 					}
-				});
+
+					return String.valueOf(count);
+				}
+			});
+		}
+		
 
 		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL);
 		tabs.add(
