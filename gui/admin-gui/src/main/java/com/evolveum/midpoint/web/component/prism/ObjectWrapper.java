@@ -578,17 +578,22 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		newWrapper.setReadonly(this.isReadonly());
 	}
 
-	// returns true if everything is OK
-	// to be used when enforceRequiredFields is false, so we want to check them
-	// only when really needed
-	// (e.g. MID-3876: when rejecting a work item, fields marked as required
-	// need not be present)
+	/**
+	 * To be used when enforceRequiredFields is false, so we want to check them
+	 * only when really needed (e.g. MID-3876: when rejecting a work item,
+	 * fields marked as required need not be present).
+	 *
+	 * Currently unused; we use DynamicFormPanel.checkRequiredFields instead. Might be
+	 * useful in the future.
+	 *
+	 * @return true if everything is OK
+	 */
+	@SuppressWarnings("unused")
 	public boolean checkRequiredFields(PageBase pageBase) {
 		boolean rv = true;
 		for (ContainerWrapper<? extends Containerable> container : containers) {
 			if (!container.checkRequired(pageBase)) {
-				rv = false; // continuing to display messages for all missing
-							// fields
+				rv = false; // continuing to display messages for all missing fields
 			}
 		}
 		return rv;
