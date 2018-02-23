@@ -156,6 +156,16 @@ public class PageInternals extends PageAdminConfiguration {
 			}
 		});
         
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.cache")) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initCachePanel(panelId);
+			}
+		});
+        
         TabbedPanel<ITab> tabPannel = new TabbedPanel<>(ID_TAB_PANEL, tabs);
         add(tabPannel);
        
@@ -178,7 +188,11 @@ public class PageInternals extends PageAdminConfiguration {
     }
     
     private WebMarkupContainer initCounters(String panelId) {
-    	return new InternalsCountersPanel(panelId);
+    		return new InternalsCountersPanel(panelId);
+	}
+    
+    private WebMarkupContainer initCachePanel(String panelId) {
+    		return new InternalsCachePanel(panelId);
 	}
 
 
