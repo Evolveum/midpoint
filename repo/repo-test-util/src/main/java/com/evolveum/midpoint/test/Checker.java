@@ -27,8 +27,9 @@ public interface Checker {
 	 * true = done
 	 * false = continue waiting
 	 */
-	public boolean check() throws CommonException;
+	boolean check() throws CommonException;
 
-	public void timeout();
+	default void timeout() {
+	}
 
 }

@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * @author Radovan Semancik
  *
@@ -37,14 +39,23 @@ public class MockTriggerHandler implements TriggerHandler {
 	protected static final Trace LOGGER = TraceManager.getTrace(MockTriggerHandler.class);
 
 	private PrismObject<?> lastObject;
-	private int invocationCount;
+	private AtomicInteger invocationCount = new AtomicInteger(0);
+	private long delay;
 
 	public PrismObject<?> getLastObject() {
 		return lastObject;
 	}
 
 	public int getInvocationCount() {
-		return invocationCount;
+		return invocationCount.get();
+	}
+
+	public long getDelay() {
+		return delay;
+	}
+
+	public void setDelay(long delay) {
+		this.delay = delay;
 	}
 
 	/* (non-Javadoc)
@@ -54,12 +65,21 @@ public class MockTriggerHandler implements TriggerHandler {
 	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
 		IntegrationTestTools.display("Mock trigger handler called with " + object);
 		lastObject = object.clone();
-		invocationCount++;
+		invocationCount.incrementAndGet();
+		long start = System.currentTimeMillis();
+		while (System.currentTimeMillis() - start < delay && task.canRun()) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// just ignore
+			}
+		}
 	}
 
 	public void reset() {
 		lastObject = null;
-		invocationCount = 0;
+		invocationCount.set(0);
+		delay = 0;
 	}
 
 }
