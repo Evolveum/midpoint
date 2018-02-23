@@ -1326,7 +1326,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		ProtectedStringType passwordValue = passwordType.getValue();
 		assertNotNull("No value for password defined for user. Something is wrong.", passwordValue);
 		String passwordClearValue = getPrismContext().getDefaultProtector().decryptString(passwordValue);
-		assertEquals("Password doesn't match. Expected 123passwd456, but was " + passwordClearValue, "123passwd456", passwordClearValue);
+		assertEquals("Password doesn't match. Expected P4ssw0rd, but was " + passwordClearValue, "P4ssw0rd", passwordClearValue);
 		assertTrue(BooleanUtils.isTrue(passwordType.isForceChange()));
 
 	}

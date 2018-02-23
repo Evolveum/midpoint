@@ -64,6 +64,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.StringPolicyUtils;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
@@ -109,6 +110,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -1231,17 +1233,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		ValuePolicyType stringPolicy = resolveValuePolicy(policyItemDefinition, policy, task, parentResult);
 
-		RawType rawValue = (RawType) policyItemDefinition.getValue();
+		Object value = policyItemDefinition.getValue();
 		String valueToValidate = null;
-
+		if (value instanceof RawType) {
+			valueToValidate = ((RawType) value).getParsedRealValue(String.class);
+		} else {
+			valueToValidate = (String) value;
+		}
+		
 		List<String> valuesToValidate = new ArrayList<>();
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
 		ItemPath path = null;
 		if (target != null) {
 			path = target.getPath().getItemPath();
 		}
-		if (rawValue != null) {
-			valueToValidate = rawValue.getParsedRealValue(String.class);
+		if (StringUtils.isNotEmpty(valueToValidate)) {
 			valuesToValidate.add(valueToValidate);
 		} else {
 			if (target == null || target.getPath() == null) {
@@ -1309,6 +1315,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
 			if (path != null ) result.addArbitraryObjectAsParam("path", path);
 			result.addParam("valueToValidate", newValue);
+			if (stringPolicy == null) {
+				stringPolicy = new ValuePolicyType();
+				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
+			}
 			if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
 				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
 				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
@@ -1601,20 +1611,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return response;
 		}
 		
+		ValuePolicyType valuePolicy = getValuePolicy(user, task, parentResult);
+		
 		ObjectDelta<UserType> userDelta = null;
 		if (credentialSourceType.getUserEntry() != null) {
-			ProtectedStringType newProtectedPassword = new ProtectedStringType();
-			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
-			
 			PolicyItemDefinitionType policyItemDefinitione = new PolicyItemDefinitionType();
-			policyItemDefinitione.setValue(credentialSourceType.getUserEntry());
+			policyItemDefinitione.setValue(executeCredentialResetRequest.getUserEntry());
 			
-			if (!validateValue(user, null, policyItemDefinitione, task, parentResult)) {
+			if (!validateValue(user, valuePolicy, policyItemDefinitione, task, parentResult)) {
 				LOGGER.error("Cannot execute reset password. New password doesn't satisfy policy constraints");
 				parentResult.recordFatalError("Cannot execute reset password. New password doesn't satisfy policy constraints");
-				throw new PolicyViolationException(new SingleLocalizableMessage("execute.reset.credential.validation.failed", null, "New password doesn't satisfy policy constraints."));
+				LocalizableMessage localizableMessage = builder.fallbackMessage("New password doesn't satisfy policy constraints.").key("execute.reset.credential.validation.failed").build();
+				throw new PolicyViolationException(localizableMessage);
 			}
 			
+			ProtectedStringType newProtectedPassword = new ProtectedStringType();
+			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
 			userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
 					SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
 
@@ -1637,7 +1649,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 
 		parentResult.recomputeStatus();
-		LocalizableMessage message = builder.fallbackMessage("Reset password was successful").key("execute.reset.credential.successful").build();
+		LocalizableMessage message = builder.fallbackMessage("Reset password was successful").key("execute.reset.credential.successful").fallbackLocalizableMessage(null).build();
 		response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		
 		return response;

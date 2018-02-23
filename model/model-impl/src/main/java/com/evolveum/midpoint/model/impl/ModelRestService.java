@@ -110,6 +110,7 @@ public class ModelRestService {
 	public static final String OPERATION_VALIDATE_VALUE_RPC = CLASS_DOT +  "validateValueRpc";
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
+	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -1042,7 +1043,7 @@ public class ModelRestService {
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult result = task.getResult().createSubresult(OPERATION_GET_LOG_FILE_CONTENT);
+		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CREDENTIAL_RESET);
 
 		Response response;
 		try {
