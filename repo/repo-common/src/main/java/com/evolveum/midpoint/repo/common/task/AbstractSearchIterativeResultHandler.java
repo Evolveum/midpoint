@@ -397,7 +397,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	// may be overriden
+	// may be overridden
 	protected String getDisplayName(PrismObject<O> object) {
 		return StatisticsUtil.getDisplayName(object);
 	}

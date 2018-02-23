@@ -274,7 +274,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 
 	@Override
-	protected String getLabel() {
+	public String getLabel() {
 		return getModel().getObject().getDisplayName();
 	}
 	

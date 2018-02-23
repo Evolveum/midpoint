@@ -677,19 +677,25 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     	return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_PIRACY);
     }
 
-    protected void assertLastRecomputeTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<TaskType> task = getTask(taskOid);
-		display("Task", task);
-        PrismContainer<?> taskExtension = task.getExtension();
-        assertNotNull("No task extension", taskExtension);
-        PrismProperty<XMLGregorianCalendar> lastRecomputeTimestampProp = taskExtension.findProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
-        assertNotNull("no lastRecomputeTimestamp property", lastRecomputeTimestampProp);
-        XMLGregorianCalendar lastRecomputeTimestamp = lastRecomputeTimestampProp.getRealValue();
-        assertNotNull("null lastRecomputeTimestamp", lastRecomputeTimestamp);
-        TestUtil.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+    protected void assertLastScanTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	    XMLGregorianCalendar lastScanTimestamp = getLastScanTimestamp(taskOid);
+        assertNotNull("null lastScanTimestamp", lastScanTimestamp);
+        TestUtil.assertBetween("lastScanTimestamp", startCal, endCal, lastScanTimestamp);
 	}
 
-    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+	protected XMLGregorianCalendar getLastScanTimestamp(String taskOid)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+		PrismObject<TaskType> task = getTask(taskOid);
+		display("Task", task);
+		PrismContainer<?> taskExtension = task.getExtension();
+		assertNotNull("No task extension", taskExtension);
+		PrismProperty<XMLGregorianCalendar> lastScanTimestampProp = taskExtension.findProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+		assertNotNull("no lastScanTimestamp property", lastScanTimestampProp);
+		return lastScanTimestampProp.getRealValue();
+	}
+
+	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		assertPasswordMetadata(user, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
 	}
 
