@@ -58,7 +58,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	}
 	
 	@Override
-	protected String getLabel() {
+	public String getLabel() {
 		return getModelObject() != null ? getModelObject().getDisplayName() : "";
 	}
 		

@@ -20,7 +20,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -30,7 +29,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
-import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -40,14 +38,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -1281,7 +1275,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         // THEN
         displayThen(TEST_NAME);
 		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
 	}
 
     /**

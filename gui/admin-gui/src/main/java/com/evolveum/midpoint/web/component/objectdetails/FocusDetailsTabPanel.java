@@ -27,6 +27,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -90,7 +91,12 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	}
 	
 	private List<ItemPath> getVisibleContainers() {
-		return Arrays.asList(ItemPath.EMPTY_PATH, new ItemPath(AbstractRoleType.F_DATA_PROTECTION), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD);
+		List<ItemPath> paths = new ArrayList<>();
+		paths.addAll(Arrays.asList(ItemPath.EMPTY_PATH, SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD));
+		if (WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())) {
+			paths.add(new ItemPath(AbstractRoleType.F_DATA_PROTECTION));
+		}
+		return paths;
 	}
 	
 

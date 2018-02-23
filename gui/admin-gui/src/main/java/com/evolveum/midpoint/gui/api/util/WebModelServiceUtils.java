@@ -26,11 +26,13 @@ import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -710,5 +712,30 @@ public class WebModelServiceUtils {
 			options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
 					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		}
+	}
+
+	public static boolean isEnableExperimentalFeature(PageBase pageBase) {
+		Task task = pageBase.createSimpleTask("Load admin gui config");
+		OperationResult result = task.getResult();
+		
+		ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
+		
+		AdminGuiConfigurationType adminGuiConfig = null;
+		try {
+			adminGuiConfig = mInteractionService.getAdminGuiConfiguration(task, result);
+			result.recomputeStatus();
+			result.recordSuccessIfUnknown();
+		} catch (Exception e) {
+			LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
+			result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
+			
+		}
+		
+		if (adminGuiConfig == null) {
+			return false;
+		}
+		
+		return BooleanUtils.isTrue(adminGuiConfig.isEnableExperimentalFeatures());
+		
 	}
 }

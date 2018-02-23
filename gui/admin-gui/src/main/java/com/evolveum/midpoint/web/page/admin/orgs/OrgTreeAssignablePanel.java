@@ -75,13 +75,19 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 				panel.setOutputMarkupId(true);
 				return panel;
 			}
+
+			@Override
+			protected boolean isWarnMessageVisible(){
+				return false;
+			}
+
 		};
 
 		tabbedPanel.setOutputMarkupId(true);
 		add(tabbedPanel);
 
 		AjaxButton assignButton = new AjaxButton(ID_ASSIGN,
-				getPageBase().createStringResource("Button.assign")) {
+				getPageBase().createStringResource("userBrowserDialog.button.addButton")) {
 
 			private static final long serialVersionUID = 1L;
 

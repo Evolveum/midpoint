@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
@@ -80,6 +81,7 @@ import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -184,6 +186,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient LocalizationService localizationService;
     @Autowired
     transient AsyncWebProcessManager asyncWebProcessManager;
+    @Autowired
+    transient ApplicationContext applicationContext;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -271,6 +275,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
+
+        Map<String, MidPointApplicationConfiguration> map =
+                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
+        if (map != null) {
+            map.forEach((key, value) -> value.init(this));
+        }
     }
 
     private boolean isPostMethodTypeBehavior(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {

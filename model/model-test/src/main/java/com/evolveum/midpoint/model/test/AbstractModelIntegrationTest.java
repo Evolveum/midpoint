@@ -3233,13 +3233,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void addTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTrigger");
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTriggers");
         OperationResult result = task.getResult();
         Collection<TriggerType> triggers = timestamps.stream()
 		        .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
 		        .collect(Collectors.toList());
         ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
 		       .item(ObjectType.F_TRIGGER).addRealValues(triggers)
+		       .asObjectDeltaCast(oid);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+
+	protected void replaceTriggers(String oid, Collection<XMLGregorianCalendar> timestamps, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".replaceTriggers");
+        OperationResult result = task.getResult();
+        Collection<TriggerType> triggers = timestamps.stream()
+		        .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
+		        .collect(Collectors.toList());
+        ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
+		       .item(ObjectType.F_TRIGGER).replaceRealValues(triggers)
 		       .asObjectDeltaCast(oid);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
         result.computeStatus();

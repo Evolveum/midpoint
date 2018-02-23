@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.test;
+package com.evolveum.midpoint.repo.common;
 
-import com.evolveum.midpoint.util.exception.CommonException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * @author Radovan Semancik
- *
- */
-public interface Checker {
+import org.springframework.stereotype.Component;
 
-	/**
-	 * true = done
-	 * false = continue waiting
-	 */
-	boolean check() throws CommonException;
+@Component
+public class CacheRegistry {
 
-	default void timeout() {
+	private List<Cacheable> cacheableServices = new ArrayList<>();
+	
+	public void registerCacheableService(Cacheable cacheableService) {
+		cacheableServices.add(cacheableService);
 	}
-
+	
+	public List<Cacheable> getCacheableServices() {
+		return cacheableServices;
+	}
 }
