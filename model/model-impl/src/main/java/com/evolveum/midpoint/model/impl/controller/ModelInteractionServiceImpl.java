@@ -1644,10 +1644,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 	
 	public void clearCaches() {
-		List<Cacheable> cacheableServices = cacheRegistry.getCacheableServices();
-		for (Cacheable cacheable: cacheableServices) {
-			cacheable.clearCache();
-		}
+		cacheRegistry.clearAllCaches();
 	}
 	
 

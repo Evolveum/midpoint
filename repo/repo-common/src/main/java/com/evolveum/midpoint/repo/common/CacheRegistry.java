@@ -32,4 +32,11 @@ public class CacheRegistry {
 	public List<Cacheable> getCacheableServices() {
 		return cacheableServices;
 	}
+	
+	public void clearAllCaches() {
+		for (Cacheable cacheableService : cacheableServices) {
+			cacheableService.clearCache();
+		}
+	}
 }
+

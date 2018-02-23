@@ -406,13 +406,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 							}
 						}
 						
-						if (delta.getObjectTypeClass() == FunctionLibraryType.class) {
-							List<Cacheable> cacheableServices = cacheRegistry.getCacheableServices();
-							for (Cacheable cacheableService : cacheableServices) {
-								cacheableService.clearCache();
-							}
-						}
-
 						final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
 						PrismObject objectToDetermineDetailsForAudit = null;
 						try {
@@ -620,6 +613,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					systemObjectCache.invalidateCaches();
 				}
 			}
+			
+			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
+				cacheRegistry.clearAllCaches();
+			}
+
 		}
 	}
 
