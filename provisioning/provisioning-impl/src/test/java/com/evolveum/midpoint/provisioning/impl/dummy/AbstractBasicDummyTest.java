@@ -716,11 +716,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 	@Test
 	public void test030ResourceAndConnectorCaching() throws Exception {
-		TestUtil.displayTestTitle("test030ResourceAndConnectorCaching");
+		final String TEST_NAME = "test030ResourceAndConnectorCaching";
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ ".test010ResourceAndConnectorCaching");
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 		ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
 				resource, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
@@ -728,13 +728,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull("No resource schema", resourceSchema);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
 				null, null, result);
 
 		// THEN
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
@@ -778,8 +778,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works.
-		OperationResult testResult = new OperationResult(TestOpenDj.class.getName()
-				+ ".test010ResourceAndConnectorCaching.test");
+		OperationResult testResult = new OperationResult(TestOpenDj.class.getName() + "."+TEST_NAME+".test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
 		TestUtil.assertSuccess("Connector test failed", testResult);

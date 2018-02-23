@@ -77,6 +77,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -289,8 +290,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	@Test
-	public void test003Connection() throws Exception {
-		final String TEST_NAME = "test003Connection";
+	public void test012TestConnection() throws Exception {
+		final String TEST_NAME = "test012TestConnection";
+		testConnection(TEST_NAME);
+	}
+	
+	public void testConnection(final String TEST_NAME) throws Exception {
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -303,15 +308,22 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
 		assertResourceSchemaBeforeTest(resourceXsdSchemaElementBefore);
 
-		CapabilitiesType capabilities = resourceBefore.getCapabilities();
-		if (capabilities != null) {
-			AssertJUnit.assertNull("Native capabilities present before test connection. Bad test setup?", capabilities.getNative());
+		CapabilitiesType capabilitiesBefore = resourceBefore.getCapabilities();
+		if (nativeCapabilitiesEntered()) {
+			AssertJUnit.assertNotNull("Native capabilities missing before test connection. Bad test setup?", capabilitiesBefore);
+			AssertJUnit.assertNotNull("Native capabilities missing before test connection. Bad test setup?", capabilitiesBefore.getNative());
+		} else {
+			if (capabilitiesBefore != null) {
+				AssertJUnit.assertNull("Native capabilities present before test connection. Bad test setup?", capabilitiesBefore.getNative());
+			}
 		}
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		OperationResult testResult = modelService.testResource(getResourceOid(), task);
 
 		// THEN
+		displayThen(TEST_NAME);
 		display("Test result", testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
@@ -325,30 +337,46 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
 		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-		display("Resource XML", resourceXml);
+		display("Resource XML after test connection", resourceXml);
 
-		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
-		assertNotNull("No caching metadata", cachingMetadata);
-		assertNotNull("No retrievalTimestamp", cachingMetadata.getRetrievalTimestamp());
-		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
+		CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
+		assertNotNull("No caching metadata", schemaCachingMetadata);
+		assertNotNull("No retrievalTimestamp", schemaCachingMetadata.getRetrievalTimestamp());
+		assertNotNull("No serialNumber", schemaCachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
 		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 
-		// schema will be checked in next test
+		CapabilitiesType capabilitiesRepoAfter = resourceTypeRepoAfter.getCapabilities();
+		AssertJUnit.assertNotNull("Capabilities missing after test connection.", capabilitiesRepoAfter);
+		AssertJUnit.assertNotNull("Native capabilities missing after test connection.", capabilitiesRepoAfter.getNative());
+		AssertJUnit.assertNotNull("Capabilities caching metadata missing after test connection.", capabilitiesRepoAfter.getCachingMetadata());
+		
+		ResourceType resourceModelAfter = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
+		
+		rememberSteadyResources();
+		
+		CapabilitiesType capabilitiesModelAfter = resourceModelAfter.getCapabilities();
+		AssertJUnit.assertNotNull("Capabilities missing after test connection (model)", capabilitiesModelAfter);
+		AssertJUnit.assertNotNull("Native capabilities missing after test connection (model)", capabilitiesModelAfter.getNative());
+		AssertJUnit.assertNotNull("Capabilities caching metadata missing after test connection (model)", capabilitiesModelAfter.getCachingMetadata());
 	}
 
+	protected boolean nativeCapabilitiesEntered() {
+		return false;
+	}
+	
 	protected abstract void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore);
 
 	@Test
-	public void test004Configuration() throws Exception {
-		final String TEST_NAME = "test004Configuration";
+	public void test014Configuration() throws Exception {
+		final String TEST_NAME = "test014Configuration";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
-
+		
 		// WHEN
 		resource = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result);
 		resourceType = resource.asObjectable();
@@ -364,15 +392,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 //		PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
 //		assertNotNull("No configuration properties container definition", confPropDef);
 
+		assertSteadyResources();
 	}
 
 	@Test
-	public void test005ParsedSchema() throws Exception {
-		final String TEST_NAME = "test005ParsedSchema";
+	public void test016ParsedSchema() throws Exception {
+		final String TEST_NAME = "test016ParsedSchema";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
-
+		
 		// THEN
 		// The returned type should have the schema pre-parsed
 		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
@@ -410,11 +439,17 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertTrue("No fullname create", fullnameDef.canAdd());
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
+		
+		assertSteadyResources();
 	}
 
 	@Test
-	public void test006Capabilities() throws Exception {
-		final String TEST_NAME = "test006Capabilities";
+	public void test017Capabilities() throws Exception {
+		final String TEST_NAME = "test017Capabilities";
+		testCapabilities(TEST_NAME);
+	}
+	
+	public void testCapabilities(final String TEST_NAME) throws Exception {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -424,10 +459,15 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		ResourceType resource = modelService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
 
 		// THEN
-		display("Resource from provisioninig", resource);
-		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+		display("Resource from model", resource);
+		display("Resource from model (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
-		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
+		assertSteadyResources();
+		
+		CapabilitiesType capabilities = resource.getCapabilities();
+		assertNotNull("Missing capability caching metadata", capabilities.getCachingMetadata());
+		
+		CapabilityCollectionType nativeCapabilities = capabilities.getNative();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
 
@@ -446,8 +486,86 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         for (Object capability : effectiveCapabilities) {
         	System.out.println("Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
         }
-
+        
+        assertSteadyResources();
 	}
+	
+	@Test
+	public void test018ResourceCaching() throws Exception {
+		final String TEST_NAME = "test018ResourceCaching";
+		testResourceCaching(TEST_NAME);
+	}
+	
+	public void testResourceCaching(final String TEST_NAME) throws Exception {
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<ResourceType> resourceReadonlyBefore = modelService.getObject(
+				ResourceType.class, getResourceOid(), GetOperationOptions.createReadOnlyCollection(), task, result);
+		
+		assertSteadyResources();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resourceReadOnlyAgain = modelService.getObject(
+				ResourceType.class, getResourceOid(), GetOperationOptions.createReadOnlyCollection(), task, result);
+		
+		assertSteadyResources();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resourceAgain = modelService.getObject(
+				ResourceType.class, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+//		assertTrue("Resource instance changed", resourceBefore == resourceReadOnlyAgain);
+
+		assertSteadyResources();
+	}
+	
+	@Test
+	public void test020ReimportResource() throws Exception {
+		final String TEST_NAME = "test020ReimportResource";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ImportOptionsType options = new ImportOptionsType();
+		options.setOverwrite(true);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		modelService.importObjectsFromFile(getResourceFile(), options, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+	}
+	
+	@Test
+	public void test022TestConnection() throws Exception {
+		final String TEST_NAME = "test022TestConnection";
+		testConnection(TEST_NAME);
+	}
+	
+	@Test
+	public void test027Capabilities() throws Exception {
+		final String TEST_NAME = "test027Capabilities";
+		testCapabilities(TEST_NAME);
+	}
+
+	@Test
+	public void test028ResourceCaching() throws Exception {
+		final String TEST_NAME = "test028ResourceCaching";
+		testResourceCaching(TEST_NAME);
+	}
+
 	
 	@Test
 	public void test100AssignWillRoleOne() throws Exception {

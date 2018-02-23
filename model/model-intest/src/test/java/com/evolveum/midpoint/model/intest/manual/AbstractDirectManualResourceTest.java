@@ -115,6 +115,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 	protected static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
 	protected static final String RESOURCE_MANUAL_OID = "0ef80ab8-2906-11e7-b81a-3f343e28c264";
+	
+	protected static final File RESOURCE_MANUAL_CAPABILITIES_FILE = new File(TEST_DIR, "resource-manual-capabilities.xml");
+	protected static final String RESOURCE_MANUAL_CAPABILITIES_OID = "0ef80ab8-2906-11e7-b81a-3f343e28c264";
 
 	protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_OID = "aea5a57c-2904-11e7-8020-7b121a9e3595";
