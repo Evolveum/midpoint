@@ -1355,6 +1355,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="reviewerCommentsFormatting" minOccurs="0" type="tns:PerformerCommentsFormattingType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instructions how to format reviewers comments before storing them into metadata.
+                        EXPERIMENTAL
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

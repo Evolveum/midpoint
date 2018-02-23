@@ -116,7 +116,16 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
         }
 
-        target.add(table.getBody());
+        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+
+        while (iterator.hasNext()) {
+            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
+            if (!row.getOutputMarkupId()) {
+                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+                continue;
+            }
+            target.add(row);
+        }
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {

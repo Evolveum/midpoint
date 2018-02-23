@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -1105,5 +1107,36 @@ public interface MidpointFunctions {
 	<F extends ObjectType> ModelElementContext<F> getFocusContext();
 
 	ModelProjectionContext getProjectionContext();
+	
+	Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException;
+	
+	Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException;
+	
+	/**
+	 * Returns indication whether a script code is evaluating a new value.
+	 * If this method returns true value then the script code is evaluating "new" value.
+	 * That means a value that is going to be set to target, e.g.
+	 * value from "add" or "replace" parts of the delta.
+	 * If this method returns false value then the script code is evaluating "old" value.
+	 * That means a value that is used for the purposes of removing values from target,
+	 * e.g. value from "delete" part of the delta or values from an existing object.
+	 * If this method returns null then the old/new status cannot be determined or this
+	 * method is invoked in a situation when such a distinction is not applicable.
+	 */
+	Boolean isEvaluateNew();
 
+	/**
+	 * Returns all non-negative values from all focus mappings (targeted to given path)
+	 * from all non-negative evaluated assignments.
+	 *
+	 * Highly experimental. Use at your own risk.
+	 */
+	@NotNull
+	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
 }

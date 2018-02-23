@@ -77,7 +77,7 @@ public class TestExpression {
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
 		ProtectorImpl protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-		expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
+		expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null, null);
 	}
 
 	@Test

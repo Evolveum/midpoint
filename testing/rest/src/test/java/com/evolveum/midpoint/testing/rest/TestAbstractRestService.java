@@ -48,6 +48,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
 public abstract class TestAbstractRestService extends RestServiceInitializer{
@@ -89,7 +91,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXECUTE = "policy-generate-execute";
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE = "policy-generate-password-execute";
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE = "policy-generate-honorific-prefix-execute";
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT = "policy-generate-explicit";
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT_NO_VALUE_POLICY = "policy-generate-explicit-no-value-policy";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT = "policy-validate-explicit";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY = "policy-validate-explicit-no-value-policy";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD = "policy-validate-implicit-password";
@@ -113,6 +118,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier";
 	private static final String MODIFICATION_REPLACE_ANSWER = "modification-replace-answer";
 	private static final String MODIFICATION_FORCE_PASSWORD_CHANGE = "modification-force-password-change";
+	private static final String EXECUTE_CREDENTIAL_RESET = "execute-credential-reset";
 
 
 	protected abstract File getRepoFile(String fileBaseName);
@@ -1133,7 +1139,59 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
+	@Test
+	public void test516validateValueExplicitNoValuePolicy() throws Exception {
+		final String TEST_NAME = "test516validateValueExplicitNoValuePolicy";
+		displayTestTitle(this, TEST_NAME);
 
+		WebClient client = prepareClient();
+		client.path("/rpc/validate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		traceResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
+
+	}
+	
+
+	@Test
+	public void test517generateValueExplicit() throws Exception {
+		final String TEST_NAME = "test517generateValueExplicit";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/rpc/generate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		traceResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
 	@Test
 	public void test600modifySecurityQuestionAnswer() throws Exception {
 		final String TEST_NAME = "test600modifySecurityQuestionAnswer";
@@ -1220,6 +1278,55 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		PasswordType passwordType = credentials.getPassword();
 		assertNotNull("No password defined for user. Something is wrong.", passwordType);
 		assertNotNull("No value for password defined for user. Something is wrong.", passwordType.getValue());
+		assertTrue(BooleanUtils.isTrue(passwordType.isForceChange()));
+
+	}
+	
+	@Test
+	public void test602resetPassword() throws Exception {
+		final String TEST_NAME = "test602resetPassword";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/credential");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+//		ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
+//		executeCredentialResetRequest.setResetMethod("passwordReset");
+//		executeCredentialResetRequest.setUserEntry("123passwd456");
+		Response response = client.post(getRequestFile(EXECUTE_CREDENTIAL_RESET));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+
+		TestUtil.displayWhen(TEST_NAME);
+		client = prepareClient();
+		response = client.path("/users/" + USER_DARTHADDER_OID).get();
+		
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		UserType userDarthadder = response.readEntity(UserType.class);
+		CredentialsType credentials = userDarthadder.getCredentials();
+		assertNotNull("No credentials in user. Something is wrong.", credentials);
+		PasswordType passwordType = credentials.getPassword();
+		assertNotNull("No password defined for user. Something is wrong.", passwordType);
+		ProtectedStringType passwordValue = passwordType.getValue();
+		assertNotNull("No value for password defined for user. Something is wrong.", passwordValue);
+		String passwordClearValue = getPrismContext().getDefaultProtector().decryptString(passwordValue);
+		assertEquals("Password doesn't match. Expected 123passwd456, but was " + passwordClearValue, "123passwd456", passwordClearValue);
 		assertTrue(BooleanUtils.isTrue(passwordType.isForceChange()));
 
 	}

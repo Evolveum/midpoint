@@ -143,11 +143,11 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -185,8 +185,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
@@ -194,6 +196,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -520,142 +525,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		assert status != null : "No status property is null in "+object;
 		assert status == expected : "status property is "+status+", expected "+expected+" in "+object;
-	}
-
-	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
-		return createModifyUserReplaceDelta(userOid, new ItemPath(propertyName), newRealValue);
-	}
-
-	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
-	}
-
-	protected ObjectDelta<UserType> createModifyUserAddDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
-	}
-
-	protected ObjectDelta<UserType> createModifyUserDeleteDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationDeleteProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
-	}
-
-	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
-		PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid(resource.getOid());
-		account.asObjectable().setResourceRef(resourceRef);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
-
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-		userDelta.addModification(accountDelta);
-
-		return userDelta;
-	}
-
-	protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		String accountOid = getLinkRefOid(userOid, resource.getOid());
-		PrismObject<ShadowType> account = getShadowModel(accountOid);
-
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-		userDelta.addModification(accountDelta);
-
-		return userDelta;
-	}
-
-	protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		String accountOid = getLinkRefOid(userOid, resource.getOid());
-
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-		accountRefVal.setOid(accountOid);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-		userDelta.addModification(accountDelta);
-
-		return userDelta;
-	}
-
-	protected ObjectDelta<ShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
-		return ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
-	}
-
-	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
-			PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttributeQName(resource, attributeName), newRealValue);
-	}
-
-	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
-			PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		return createModifyAccountShadowReplaceDelta(accountOid, resource, new ItemPath(ShadowType.F_ATTRIBUTES, attributeName), newRealValue);
-	}
-
-	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		if (ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(itemPath.first()))) {
-			PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ((NameItemPathSegment)itemPath.last()).getName(), newRealValue);
-			ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, ShadowType.class, prismContext);
-			return accountDelta;
-		} else {
-			ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(
-					ShadowType.class, accountOid, itemPath, prismContext, newRealValue);
-			return accountDelta;
-		}
-	}
-
-	protected <T> PropertyDelta<T> createAttributeReplaceDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
-		return createAttributeReplaceDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
-	}
-
-	protected <T> PropertyDelta<T> createAttributeReplaceDelta(PrismObject<ResourceType> resource, QName attributeQName, T... newRealValue) throws SchemaException {
-		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, attributeQName);
-		if (attributeDefinition == null) {
-			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
-		}
-		return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-				attributeDefinition, newRealValue);
-	}
-
-	protected <T> PropertyDelta<T> createAttributeAddDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
-		return createAttributeAddDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
-	}
-
-	protected <T> PropertyDelta<T> createAttributeAddDelta(PrismObject<ResourceType> resource, QName attributeQName, T... newRealValue) throws SchemaException {
-		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, attributeQName);
-		if (attributeDefinition == null) {
-			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
-		}
-		return PropertyDelta.createModificationAddProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-				attributeDefinition, newRealValue);
-	}
-
-	protected <T> PropertyDelta<T> createAttributeDeleteDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
-		return createAttributeDeleteDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
-	}
-
-	protected <T> PropertyDelta<T> createAttributeDeleteDelta(PrismObject<ResourceType> resource, QName attributeQName, T... newRealValue) throws SchemaException {
-		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, attributeQName);
-		if (attributeDefinition == null) {
-			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
-		}
-		return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
-				attributeDefinition, newRealValue);
-	}
-
-	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-		if (refinedSchema == null) {
-			throw new SchemaException("No refined schema for "+resource);
-		}
-		RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-		return accountDefinition.findAttributeDefinition(attributeName);
-	}
-
-	protected ObjectDelta<ShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationAddProperty(ShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue)
@@ -1169,6 +1038,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		modelService.executeChanges(deltas, options, task, result);
 	}
+		
+	protected <F extends FocusType> void deleteFocusAssignmentEmptyDelta(PrismObject<F> existingFocus, String targetOid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		deleteFocusAssignmentEmptyDelta(existingFocus, targetOid, null, null, task, result);
+	}
+	
+	protected <F extends FocusType> void deleteFocusAssignmentEmptyDelta(PrismObject<F> existingFocus, String targetOid, QName relation, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		deleteFocusAssignmentEmptyDelta(existingFocus, targetOid, relation, null, task, result);
+	}
+	
+	protected <F extends FocusType> void deleteFocusAssignmentEmptyDelta(PrismObject<F> existingFocus, String targetOid, QName relation, 
+			ModelExecuteOptions options, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createAssignmentFocusEmptyDeleteDelta(existingFocus, targetOid, relation);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
+		modelService.executeChanges(deltas, options, task, result);
+	}
 
 	protected <F extends FocusType> void unassign(Class<F> focusClass, String focusOid, AssignmentType currentAssignment, ModelExecuteOptions options, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -1251,7 +1138,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return assignmentDelta;
 	}
-
+	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(long id, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
@@ -1262,6 +1149,38 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			assignmentDelta.addValueToDelete(cval);
 		}
 		return assignmentDelta;
+	}
+	
+	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentEmptyDeleteModification(PrismObject<F> existingFocus, String roleOid, QName relation) throws SchemaException {
+		AssignmentType existingAssignment = findAssignment(existingFocus, roleOid, relation);
+		return createAssignmentModification(existingAssignment.getId(), false);
+	}
+
+	protected <F extends FocusType> AssignmentType findAssignment(PrismObject<F> existingFocus, String targetOid, QName relation) {
+		for (AssignmentType assignmentType : existingFocus.asObjectable().getAssignment()) {
+			if (assignmentMatches(assignmentType, targetOid, relation)) {
+				return assignmentType;
+			}
+		}
+		return null;
+	}
+
+	protected boolean assignmentMatches(AssignmentType assignmentType, String targetOid, QName relation) {
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef == null) {
+			return false;
+		}
+		return referenceMatches(targetRef, targetOid, relation);
+	}
+
+	private boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName relation) {
+		if (targetOid != null && !targetOid.equals(ref.getOid())) {
+			return false;
+		}
+		if (relation != null && !QNameUtil.match(relation, ref.getRelation())) {
+			return false;
+		}
+		return true;
 	}
 
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation,
@@ -1291,6 +1210,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return ObjectDelta.createModifyDelta(userOid, modifications, focusClass, prismContext);
 	}
 
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusEmptyDeleteDelta(PrismObject<F> existingFocus, String roleOid, QName relation) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentEmptyDeleteModification(existingFocus, roleOid, relation)));
+		return ObjectDelta.createModifyDelta(existingFocus.getOid(), modifications, existingFocus.getCompileTimeClass(), prismContext);
+	}
+	
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		return createAssignmentModification(resourceOid, ShadowKindType.ACCOUNT, intent, add);
 	}
@@ -2645,15 +2570,50 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
+	
 
-	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {
-		String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-		return new QName(resourceNamespace, attributeLocalName);
+	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
+		PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		account.asObjectable().setResourceRef(resourceRef);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+
+		return userDelta;
 	}
 
-	protected ItemPath getAttributePath(PrismObject<ResourceType> resource, String attributeLocalName) {
-		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(resource, attributeLocalName));
+	protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		String accountOid = getLinkRefOid(userOid, resource.getOid());
+		PrismObject<ShadowType> account = getShadowModel(accountOid);
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+
+		return userDelta;
 	}
+
+	protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		String accountOid = getLinkRefOid(userOid, resource.getOid());
+
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setOid(accountOid);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+
+		return userDelta;
+	}
+
 
 	// TASKS
 
@@ -2734,52 +2694,77 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.waitFor("Waiting for " + taskOid + " close/suspend", checker, timeout, sleepTime);
 	}
 
-	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
-		waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+	protected Task waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
+		return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
-		waitForTaskFinish(taskOid, checkSubresult, timeout, false);
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
+		return waitForTaskFinish(taskOid, checkSubresult, timeout, false);
 	}
 
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
-		Checker checker = new Checker() {
-			@Override
-			public boolean check() throws CommonException {
+		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		return checker.getLastTask();
+	}
+
+	private class TaskFinishChecker implements Checker {
+		private final String taskOid;
+		private final OperationResult waitResult;
+		private final boolean checkSubresult;
+		private final boolean errorOk;
+		private final int timeout;
+		private Task freshTask;
+		
+		public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
+				boolean errorOk, int timeout) {
+			super();
+			this.taskOid = taskOid;
+			this.waitResult = waitResult;
+			this.checkSubresult = checkSubresult;
+			this.errorOk = errorOk;
+			this.timeout = timeout;
+		}
+
+		@Override
+		public boolean check() throws CommonException {
+			freshTask = taskManager.getTask(taskOid, waitResult);
+			OperationResult result = freshTask.getResult();
+			if (verbose) display("Check result", result);
+			if (isError(result, checkSubresult)) {
+				if (errorOk) {
+					return true;
+				} else {
+					AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
+				}
+			}
+			if (isUnknown(result, checkSubresult)) {
+				return false;
+			}
+//			assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+			return !isInProgress(result, checkSubresult);
+		}
+		
+		@Override
+		public void timeout() {
+			try {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
-				if (verbose) display("Check result", result);
-				if (isError(result, checkSubresult)) {
-					if (errorOk) {
-						return true;
-					} else {
-						AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
-					}
-				}
-				if (isUnknown(result, checkSubresult)) {
-					return false;
-				}
-//				assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
-				return !isInProgress(result, checkSubresult);
+				LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+				assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Exception during task refresh: {}", e,e);
+			} catch (SchemaException e) {
+				LOGGER.error("Exception during task refresh: {}", e,e);
 			}
-			@Override
-			public void timeout() {
-				try {
-					Task freshTask = taskManager.getTask(taskOid, waitResult);
-					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
-					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
-				} catch (SchemaException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
-				}
-			}
-		};
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		}
+		
+		public Task getLastTask() {
+			return freshTask;
+		}
 	}
-
+	
 	protected void waitForTaskStart(String taskOid, boolean checkSubresult) throws Exception {
 		waitForTaskStart(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
@@ -3195,12 +3180,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return object;
 	}
 
-	protected <O extends ObjectType> void addObject(PrismObject<O> object) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> String addObject(PrismObject<O> object) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addObject");
         OperationResult result = task.getResult();
-        addObject(object, task, result);
+        String oid = addObject(object, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        return oid;
 	}
 
 	protected <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -3983,6 +3969,115 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             TestUtil.assertSuccess(result);
         }
 	}
+	
+	protected void modifyRoleAddExclusion(String roleOid, String excludedRoleOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		modifyRoleExclusion(roleOid, excludedRoleOid, true, task, result);
+	}
+	
+	protected void modifyRoleDeleteExclusion(String roleOid, String excludedRoleOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		modifyRoleExclusion(roleOid, excludedRoleOid, false, task, result);
+	}
+	
+	protected void modifyRoleExclusion(String roleOid, String excludedRoleOid, boolean add, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		modifyRolePolicyRule(roleOid, createExclusionPolicyRule(excludedRoleOid), add, task, result);
+	}
+	
+	protected void modifyRolePolicyRule(String roleOid, PolicyRuleType exclusionPolicyRule, boolean add, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        AssignmentType assignment = new AssignmentType();
+		assignment.setPolicyRule(exclusionPolicyRule);
+		ObjectDelta<RoleType> roleDelta;
+		if (add) {
+			roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+        		prismContext, assignment);
+		} else {
+			roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+	        		prismContext, assignment);
+		}
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleAddAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+	        		prismContext, assignment);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleDeleteAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
+	        		prismContext, assignment);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+
+	protected PolicyRuleType createExclusionPolicyRule(String excludedRoleOid) {
+		PolicyRuleType policyRule = new PolicyRuleType();
+		PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+		ExclusionPolicyConstraintType exclusionConstraint = new ExclusionPolicyConstraintType();
+		ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(excludedRoleOid);
+        targetRef.setType(RoleType.COMPLEX_TYPE);
+		exclusionConstraint.setTargetRef(targetRef);
+		policyContraints.getExclusion().add(exclusionConstraint);
+		policyRule.setPolicyConstraints(policyContraints);
+		return policyRule;
+	}
+	
+	protected PolicyRuleType createMinAssigneePolicyRule(int minAssignees) {
+		PolicyRuleType policyRule = new PolicyRuleType();
+		PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+		MultiplicityPolicyConstraintType minAssigneeConstraint = new MultiplicityPolicyConstraintType();
+		minAssigneeConstraint.setMultiplicity(Integer.toString(minAssignees));
+		policyContraints.getMinAssignees().add(minAssigneeConstraint);
+		policyRule.setPolicyConstraints(policyContraints);
+		return policyRule;
+	}
+	
+	protected PolicyRuleType createMaxAssigneePolicyRule(int maxAssignees) {
+		PolicyRuleType policyRule = new PolicyRuleType();
+		PolicyConstraintsType policyContraints = new PolicyConstraintsType();
+		MultiplicityPolicyConstraintType maxAssigneeConstraint = new MultiplicityPolicyConstraintType();
+		maxAssigneeConstraint.setMultiplicity(Integer.toString(maxAssignees));
+		policyContraints.getMaxAssignees().add(maxAssigneeConstraint);
+		policyRule.setPolicyConstraints(policyContraints);
+		return policyRule;
+	}
+	
+	protected AssignmentType createAssignmentIdOnly(long id) {
+		AssignmentType assignment = new AssignmentType();
+		assignment.asPrismContainerValue().setId(id);
+		return assignment;
+	}
+	
+	protected void modifyRoleAddPolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+	        		prismContext, policyException);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleDeletePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+	        		prismContext, policyException);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected void modifyRoleReplacePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationReplaceContainer(RoleType.class, roleOid,
+	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
+	        		prismContext, policyException);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+	}
+	
+	protected PolicyExceptionType createPolicyException(String ruleName, String policySituation) {
+		PolicyExceptionType policyException = new PolicyExceptionType();
+		policyException.setPolicySituation(policySituation);
+		policyException.setRuleName(ruleName);
+		return policyException;
+	}
 
 	protected Optional<AssignmentType> findAssignmentByTarget(PrismObject<? extends FocusType> focus, String targetOid) {
 		return focus.asObjectable().getAssignment().stream()
@@ -4243,33 +4338,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 	
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
-			QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, ItemPath... expectedAllowedItemPaths)
+			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".assertAllowRequestItems");
         OperationResult result = task.getResult();
-        assertAllowRequestItems(userOid, targetRoleOid, expectedDefaultDecision, task, result, expectedAllowedItemQNames);
+        assertAllowRequestAssignmentItems(userOid, targetRoleOid, task, result, expectedAllowedItemPaths);
         assertSuccess(result);
 	}
 
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
-			Task task, OperationResult result, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, Task task, OperationResult result, ItemPath... expectedAllowedItemPaths) 
+			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(userOid);
 		PrismObject<RoleType> target = getRole(targetRoleOid);
 
-		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
-		display("Request decisions for "+target, decisions);
-		assertEquals("Wrong assign default decision", expectedDefaultDecision, decisions.getDefaultDecision());
-		assertEquals("Unexpected number of allowed items", expectedAllowedItemQNames.length, decisions.getItemDecisionMap().size());
+		ItemSecurityConstraints constraints = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
+		display("Request decisions for "+target, constraints);
 
-		decisions.getItemDecisionMap().forEach(
-				(path,decision) -> {
-					assertEquals("wrong item "+path+" decision", AuthorizationDecisionType.ALLOW, decision);
-					QName lastPathName = path.lastNamed().getName();
-					if (!Arrays.stream(expectedAllowedItemQNames).anyMatch(qname -> QNameUtil.match(qname, lastPathName) )) {
-						AssertJUnit.fail("Unexpected path "+path);
-					}
-				}
-		);
+		for (ItemPath expectedAllowedItemPath: expectedAllowedItemPaths) {
+			AuthorizationDecisionType decision = constraints.findItemDecision(expectedAllowedItemPath);
+			assertEquals("Wrong decision for item "+expectedAllowedItemPath, AuthorizationDecisionType.ALLOW, decision);
+		}
 	}
 
 

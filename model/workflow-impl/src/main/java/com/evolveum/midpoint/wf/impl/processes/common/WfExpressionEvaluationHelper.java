@@ -118,4 +118,12 @@ public class WfExpressionEvaluationHelper {
 				Boolean.class, DOMUtil.XSD_BOOLEAN, null, task, result);
 		return MiscUtil.getSingleValue(values, false, contextDescription);
 	}
+
+	public String evaluateStringExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+			String contextDescription, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Collection<String> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
+				String.class, DOMUtil.XSD_STRING, null, task, result);
+		return MiscUtil.getSingleValue(values, null, contextDescription);
+	}
 }

@@ -21,16 +21,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -65,9 +67,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -136,7 +135,13 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			public boolean isVisible() {
-				return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
+				try {
+					return getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
+							AuthorizationPhaseType.REQUEST, getFocusObject(),
+							null, null, null);
+				} catch (Exception ex){
+					return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
+				}
 			}
 		});
 		assignmentsContainer.add(newObjectIcon);
@@ -168,6 +173,12 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public ObjectQuery getQuery() {
 				return createObjectQuery();
+			}
+			
+			@Override
+			protected List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
+				List<ContainerValueWrapper<AssignmentType>> resultList = super.searchThroughList();
+				return postSearch(resultList);
 			}
 
 		};
@@ -203,6 +214,10 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		return assignmentTable;
 
 	}
+	
+	protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+		return assignments;
+	}
 
 	protected AssignmentsTabStorage getAssignmentsStorage() {
 		return getPageBase().getSessionStorage().getAssignmentsTabStorage();
@@ -213,25 +228,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-		columns.add(new CheckBoxHeaderColumn<ContainerValueWrapper<AssignmentType>>(){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected boolean isTableRowSelected(ContainerValueWrapper<AssignmentType> object){
-				return object.isSelected();
-			}
-
-			@Override
-			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
-				super.onUpdateRow(target, table, rowModel);
-			};
-
-			@Override
-			protected IModel<Boolean> getCheckBoxValueModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				return Model.of(rowModel.getObject().isSelected());
-			}
-		});
+		columns.add(new CheckBoxHeaderColumn<>());
 
 		columns.add(new IconColumn<ContainerValueWrapper<AssignmentType>>(Model.of("")) {
 
@@ -377,7 +374,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	private List<InlineMenuItem> getAssignmentMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"), new Model<Boolean>(true),
+		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<Boolean>(true),
 				new Model<Boolean>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<Boolean>(true),
@@ -458,6 +455,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			value.setSelected(false);
 		});
 		refreshTable(target);
+		reloadSavePreviewButtons(target);
 	}
 
 	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
@@ -529,4 +527,19 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	}
 
+
+	protected void reloadSavePreviewButtons(AjaxRequestTarget target){
+		FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
+		if (mainPanel != null) {
+			mainPanel.reloadSavePreviewButtons(target);
+		}
+	}
+
+	private PrismObject getFocusObject(){
+		FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
+		if (mainPanel != null) {
+			return mainPanel.getObjectWrapper().getObject();
+		}
+		return null;
+	}
 }

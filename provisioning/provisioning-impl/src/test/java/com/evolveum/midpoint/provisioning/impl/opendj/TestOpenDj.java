@@ -2757,7 +2757,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 					null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 				// this is expected..
 		}
 	}
@@ -2776,7 +2776,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			provisioningService.addObject(shadow, null, null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 			LOGGER.info("exception: {}", ex.getMessage(), ex);
 				// this is expected..
 		}
@@ -2795,7 +2795,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 				// this is expected..
 		}
 	}
@@ -2815,7 +2815,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, modifications, null, null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 				// this is expected..
 		}
 	}

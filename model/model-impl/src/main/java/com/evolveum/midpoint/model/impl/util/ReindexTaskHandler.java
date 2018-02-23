@@ -48,7 +48,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<ObjectType, ReindexResultHandler> {
+public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ReindexResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 

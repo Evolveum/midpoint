@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -78,6 +79,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_VALID_2 = "abcd223";
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
 	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
+	
+	protected static final String PASSWORD_ALLIGATOR = "all1g4t0r";
+	protected static final String PASSWORD_CROCODILE = "cr0c0d1l3";
+	protected static final String PASSWORD_GIANT_LIZARD = "G14NTl1z4rd";
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
@@ -88,9 +93,20 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final File RESOURCE_DUMMY_LIFECYCLE_FILE = new File(TEST_DIR, "resource-dummy-lifecycle.xml");
 	protected static final String RESOURCE_DUMMY_LIFECYCLE_OID = "519f131a-147b-11e7-a270-c38e2b225751";
 	protected static final String RESOURCE_DUMMY_LIFECYCLE_NAME = "lifecycle";
+	
+	protected static final File RESOURCE_DUMMY_SOUVENIR_FILE = new File(TEST_DIR, "resource-dummy-souvenir.xml");
+	protected static final String RESOURCE_DUMMY_SOUVENIR_OID = "f4fd7e90-ff6a-11e7-a504-4b84f92fec0e";
+	protected static final String RESOURCE_DUMMY_SOUVENIR_NAME = "souvenir";
+	
+	protected static final File RESOURCE_DUMMY_MAVERICK_FILE = new File(TEST_DIR, "resource-dummy-maverick.xml");
+	protected static final String RESOURCE_DUMMY_MAVERICK_OID = "72a928b6-ff7b-11e7-9643-7366d7749c31";
+	protected static final String RESOURCE_DUMMY_MAVERICK_NAME = "maverick";
 
 	protected static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
 	protected static final String PASSWORD_POLICY_UGLY_OID = "cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee";
+	
+	protected static final File PASSWORD_POLICY_MAVERICK_FILE = new File(TEST_DIR, "password-policy-maverick.xml");
+	protected static final String PASSWORD_POLICY_MAVERICK_OID = "b26d2bd4-ff83-11e7-94b3-8fa7a87aac6c";
 
 	protected static final File SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE = new File(TEST_DIR, "security-policy-default-storage-hashing.xml");
 	protected static final String SECURITY_POLICY_DEFAULT_STORAGE_HASHING_OID = "0ea3b93c-0425-11e7-bbc1-73566dc53d59";
@@ -104,9 +120,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	protected String accountJackOid;
 	protected String accountJackRedOid;
+	protected String accountJackBlueOid;
 	protected String accountJackUglyOid;
 	protected String accountJackBlackOid;
 	protected String accountJackYellowOid;
+	protected String accountJackSouvenirOid;
+	protected String accountJackMaverickOid;
 	protected XMLGregorianCalendar lastPasswordChangeStart;
 	protected XMLGregorianCalendar lastPasswordChangeEnd;
 
@@ -116,6 +135,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		super.initSystem(initTask, initResult);
 
 		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
+		importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
 		importObjectFromFile(SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE);
 		importObjectFromFile(SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE);
 
@@ -123,6 +143,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		initDummyResourcePirate(RESOURCE_DUMMY_UGLY_NAME, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_LIFECYCLE_NAME, RESOURCE_DUMMY_LIFECYCLE_FILE, RESOURCE_DUMMY_LIFECYCLE_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_SOUVENIR_NAME, RESOURCE_DUMMY_SOUVENIR_FILE, RESOURCE_DUMMY_SOUVENIR_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
 
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
@@ -295,8 +317,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 
 	@Test
-    public void test100ModifyUserJackAssignAccount() throws Exception {
-		final String TEST_NAME = "test100ModifyUserJackAssignAccount";
+    public void test100JackAssignAccountDummy() throws Exception {
+		final String TEST_NAME = "test100JackAssignAccountDummy";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -482,8 +504,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * Add red and ugly dummy resource to the mix. This would be fun.
 	 */
 	@Test
-    public void test120ModifyUserJackAssignAccountDummyRedAndUgly() throws Exception {
-		final String TEST_NAME = "test120ModifyUserJackAssignAccountDummyRedAndUgly";
+    public void test120JackAssignAccountDummyRedAndUgly() throws Exception {
+		final String TEST_NAME = "test120JackAssignAccountDummyRedAndUgly";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -705,8 +727,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * Black resource has minimum password length constraint (enforced by midPoint).
 	 */
 	@Test
-    public void test130ModifyUserJackAssignAccountDummyBlack() throws Exception {
-		final String TEST_NAME = "test130ModifyUserJackAssignAccountDummyBlack";
+    public void test130JackAssignAccountDummyBlack() throws Exception {
+		final String TEST_NAME = "test130JackAssignAccountDummyBlack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -772,8 +794,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 
 	@Test
-    public void test139ModifyUserJackUnassignAccountDummyBlack() throws Exception {
-		final String TEST_NAME = "test139ModifyUserJackUnassignAccountDummyBlack";
+    public void test139JackUnassignAccountDummyBlack() throws Exception {
+		final String TEST_NAME = "test139JackUnassignAccountDummyBlack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -814,8 +836,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * But this time the password is OK.
 	 */
 	@Test
-    public void test140ModifyUserJackAssignAccountDummyYellow() throws Exception {
-		final String TEST_NAME = "test140ModifyUserJackAssignAccountDummyYellow";
+    public void test140JackAssignAccountDummyYellow() throws Exception {
+		final String TEST_NAME = "test140JackAssignAccountDummyYellow";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -911,8 +933,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 
 	@Test
-    public void test200ApplyPasswordPolicy() throws Exception {
-		final String TEST_NAME = "test200ApplyPasswordPolicy";
+    public void test200ApplyPasswordPolicyHistoryLength() throws Exception {
+		final String TEST_NAME = "test200ApplyPasswordPolicyHistoryLength";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1394,14 +1416,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, task, result);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userAfter);
@@ -1976,20 +1997,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User before", userBefore);
 		String accountRedOid = getLinkRefOid(userBefore, RESOURCE_DUMMY_RED_OID);
 
-		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountRedOid, prismContext);
-		ProtectedStringType passwordPs = new ProtectedStringType();
-        passwordPs.setClearValue(USER_PASSWORD_VALID_1);
-        shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
-        shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+		ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountRedOid, USER_PASSWORD_VALID_1);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		executeChanges(shadowDelta, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -2360,6 +2376,456 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	}
 	// TODO: employeeType->WRECK
+	
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test500JackAssignResourceSouvenir() throws Exception {
+		final String TEST_NAME = "test500JackAssignResourceSouvenir";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		// preconditions
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertAssignedAccount(userBefore, RESOURCE_DUMMY_OID);
+		assertAssignedAccount(userBefore, RESOURCE_DUMMY_RED_OID);
+		assertAssignedAccount(userBefore, RESOURCE_DUMMY_BLUE_OID);
+		assertAssignedAccount(userBefore, RESOURCE_DUMMY_UGLY_OID);
+		assertAssignments(userBefore, 4);
+		assertAccount(userBefore, RESOURCE_DUMMY_OID);
+		assertAccount(userBefore, RESOURCE_DUMMY_RED_OID);
+		accountJackBlueOid = assertAccount(userBefore, RESOURCE_DUMMY_BLUE_OID);
+		assertAccount(userBefore, RESOURCE_DUMMY_UGLY_OID);
+		assertLinks(userBefore, 4);
+		assertUserPassword(userBefore, USER_PASSWORD_VALID_3);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 5);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_RED_OID);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_UGLY_OID);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
+		assertLinks(userAfter, 5);
+		assertAccount(userAfter, RESOURCE_DUMMY_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_RED_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_UGLY_OID);
+		accountJackSouvenirOid = assertAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		
+		PrismObject<ShadowType> shadowPasswordCachingModel = getShadowModel(accountJackSouvenirOid);
+		assertShadowLifecycle(shadowPasswordCachingModel, false);
+
+		assertDummyPasswordConditional(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+		
+		displayAllNotifications();
+        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_SOUVENIR_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+        assertAccountActivationNotification(RESOURCE_DUMMY_SOUVENIR_NAME, USER_JACK_USERNAME);
+	}
+	
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test502JackInitializeAccountSouvenir() throws Exception {
+		final String TEST_NAME = "test502JackInitializeAccountSouvenir";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackSouvenirOid, PASSWORD_ALLIGATOR);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(shadowDelta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 5);
+		assertLinks(userAfter, 5);
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		
+		PrismObject<ShadowType> shadowPasswordCachingRepo = getShadowRepo(accountJackSouvenirOid);
+		display("Shadow repo", shadowPasswordCachingRepo);
+		assertShadowLifecycle(shadowPasswordCachingRepo, SchemaConstants.LIFECYCLE_ACTIVE);
+		assertCachedResourcePassword(shadowPasswordCachingRepo, PASSWORD_ALLIGATOR);
+
+		assertDummyPassword(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_ALLIGATOR);
+		
+		ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, accountJackSouvenirOid, SchemaConstants.PATH_PASSWORD_VALUE, 
+				PASSWORD_ALLIGATOR, task, result);
+		assertEquals("Wrong comparison result", ItemComparisonResult.MATCH, comparisonResult);
+
+		// TODO
+//		assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+	}
+	
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test510JackAssignResourceMaverick() throws Exception {
+		final String TEST_NAME = "test510JackAssignResourceMaverick";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		// preconditions
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertAssignments(userBefore, 5);
+		assertLinks(userBefore, 5);
+		assertUserPassword(userBefore, USER_PASSWORD_VALID_3);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 6);
+		assertLinks(userAfter, 6);
+		accountJackMaverickOid = assertAccount(userAfter, RESOURCE_DUMMY_MAVERICK_OID);
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		
+		assertDummyPasswordConditional(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+		
+		displayAllNotifications();
+        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+        assertAccountActivationNotification(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME);
+	}
+	
+	/**
+	 * Attempt to initialize account with password which is the same as on the souvenir
+	 * resource should fail. Maverick resource password policy states that the password
+	 * must be different that the password on souvenir resource.
+	 * MID-4397
+	 */
+	@Test
+	public void test512JackInitializeAccountMaverickAlligator() throws Exception {
+		final String TEST_NAME = "test512JackInitializeAccountMaverick";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackMaverickOid, PASSWORD_ALLIGATOR);
+		
+		try {
+			// WHEN
+			displayWhen(TEST_NAME);
+			executeChanges(shadowDelta, null, task, result);
+			
+			assertNotReached();
+		
+		} catch (PolicyViolationException e) {
+			display("Expected exception", e);
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertFailure(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 6);
+		assertLinks(userAfter, 6);
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		
+		assertDummyPasswordConditional(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+		
+		// TODO
+//		assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+	}
+
+	/**
+	 * Attempt to initialize account with a different password should pass.
+	 * MID-4397
+	 */
+	@Test
+	public void test514JackInitializeAccountMaverickCrododile() throws Exception {
+		final String TEST_NAME = "test514JackInitializeAccountMaverickCrododile";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackMaverickOid, PASSWORD_CROCODILE);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(shadowDelta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 6);
+		assertLinks(userAfter, 6);
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		
+		PrismObject<ShadowType> shadowMaverickRepo = getShadowRepo(accountJackMaverickOid);
+		display("Shadow repo", shadowMaverickRepo);
+		assertShadowLifecycle(shadowMaverickRepo, SchemaConstants.LIFECYCLE_ACTIVE);
+
+		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_CROCODILE);
+		
+		// TODO
+//		assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+	}
+	
+	/**
+	 * Attempt to change account password to a conflicting one. It should fail.
+	 * MID-4397
+	 */
+	@Test
+	public void test516JackChangePasswordResourceMaverickAlligator() throws Exception {
+		final String TEST_NAME = "test516JackChangePasswordResourceMaverickAlligator";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		try {
+			// WHEN
+			displayWhen(TEST_NAME);
+			modifyAccountChangePassword(accountJackMaverickOid, PASSWORD_ALLIGATOR, task, result);
+			
+			assertNotReached();
+			
+		} catch (PolicyViolationException e) {
+			display("Expected exception", e);
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertFailure(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 6);
+		assertLinks(userAfter, 6);
+		
+		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, PASSWORD_CROCODILE);
+	}
+
+	/**
+	 * Attempt to change account password to non conflicting one. It should pass.
+	 * MID-4397
+	 */
+	@Test
+	public void test518JackChangePasswordResourceMaverickGiantLizard() throws Exception {
+		final String TEST_NAME = "test518JackChangePasswordResourceMaverickGiantLizard";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyAccountChangePassword(accountJackMaverickOid, PASSWORD_GIANT_LIZARD, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 6);
+		assertLinks(userAfter, 6);
+		
+		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, PASSWORD_GIANT_LIZARD);
+	}
+
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test530JackUnassignResourceSouvenir() throws Exception {
+		final String TEST_NAME = "test530JackUnassignResourceSouvenir";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		// preconditions
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertAssignments(userBefore, 6);
+		assertLinks(userBefore, 6);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 5);
+		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
+		assertLinks(userAfter, 5);		
+	}
+	
+	/**
+	 * Make it harder for the next test (test535ModifyUserJackPasswordAlligator).
+	 * We set conflicting password on blue resource. But the password policy
+	 * should NOT check blue resource. So the check should pass anyway.
+	 * MID-4397
+	 */
+	@Test
+	public void test532JackChangePasswordResourceBlueAlligator() throws Exception {
+		final String TEST_NAME = "test532JackChangePasswordResourceBlueAlligator";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertAssignments(userBefore, 5);
+		assertLinks(userBefore, 5);
+		accountJackBlueOid = assertAccount(userBefore, RESOURCE_DUMMY_BLUE_OID);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyAccountChangePassword(accountJackBlueOid, PASSWORD_ALLIGATOR, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 5);
+		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
+		assertLinks(userAfter, 5);
+		
+		assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, PASSWORD_ALLIGATOR);
+	}
+	
+	/**
+	 * Additional check: check that the Alligator password would be otherwise legal for user and
+	 * maverick resource. This is additional check that it was really the presence of souvenir
+	 * resource that caused the policy violation.
+	 * MID-4397
+	 */
+	@Test
+	public void test535ModifyUserJackPasswordAlligator() throws Exception {
+		final String TEST_NAME = "test535ModifyUserJackPasswordAlligator";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserChangePassword(USER_JACK_OID, PASSWORD_ALLIGATOR, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 5);
+		assertLinks(userAfter, 5);
+		assertUserPassword(userAfter, PASSWORD_ALLIGATOR);
+		
+		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_ALLIGATOR);
+	}
+	
+	/**
+	 * MID-4397
+	 */
+	@Test
+	public void test539JackUnassignResourceMaverick() throws Exception {
+		final String TEST_NAME = "test539JackUnassignResourceMaverick";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+		
+		// preconditions
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertAssignments(userBefore, 5);
+		assertLinks(userBefore, 5);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 4);
+		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_MAVERICK_OID);
+		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
+		assertLinks(userAfter, 4);		
+	}
+	
+	protected ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
+		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(newAccountPassword);
+        shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
+        shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+        return shadowDelta;
+	}
 
 	protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
 		assertDummyPassword(null, userId, expectedClearPassword);
@@ -2425,6 +2891,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		}
 		assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
 	}
+	
+	// 9XX tests: Password minimal age, no password, etc.
 
 	/**
 	 * Let's have a baseline for other 90x tests.
@@ -2438,6 +2906,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         prepareTest();
+        
+        PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
+		display("User before", userBefore);
 
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 
@@ -2613,6 +3084,22 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	protected boolean isPasswordEncryption() {
 		return getPasswordStorageType() == CredentialsStorageTypeType.ENCRYPTION;
+	}
+	
+	protected void assertCachedResourcePassword(PrismObject<ShadowType> shadow, String expectedPassword) throws Exception {
+		CredentialsType credentials = shadow.asObjectable().getCredentials();
+		if (expectedPassword == null && credentials == null) {
+			return;
+		}
+		assertNotNull("Missing credentendials in repo shadow "+shadow, credentials);
+		PasswordType passwordType = credentials.getPassword();
+		if (expectedPassword == null && passwordType == null) {
+			return;
+		}
+		assertNotNull("Missing password credential in repo shadow "+shadow, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertNotNull("No password value in repo shadow "+shadow, protectedStringType);
+		assertProtectedString("Wrong password value in repo shadow "+shadow, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
 	}
 
 }

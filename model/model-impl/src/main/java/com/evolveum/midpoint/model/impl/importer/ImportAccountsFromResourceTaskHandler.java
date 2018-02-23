@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -86,7 +86,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @see ResourceObjectChangeListener
  */
 @Component
-public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, SynchronizeAccountResultHandler> {
+public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeModelTaskHandler<ShadowType, SynchronizeAccountResultHandler> {
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
 
@@ -95,14 +95,9 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
  	// Therefore it must not have task-specific fields. It can only contain fields specific to
  	// all tasks of a specified type
 
-    @Autowired(required = true)
-    private TaskManager taskManager;
-
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
-    @Autowired(required = true)
-    private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private TaskManager taskManager;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
 
     private PrismPropertyDefinition<QName> objectclassPropertyDefinition;
 

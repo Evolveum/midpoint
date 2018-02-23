@@ -15,20 +15,50 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.reflections.Reflections;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.*;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinitionImpl;
+import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -37,51 +67,37 @@ import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginRe
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
-
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.ContextFactory;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
+import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -92,22 +108,102 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
+import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author semancik
@@ -144,6 +240,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired UserProfileService userProfileService;
 	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private CacheRegistry cacheRegistry;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -339,7 +436,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 
-    	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
+    	ItemPath attributesPath = SchemaConstants.PATH_ATTRIBUTES;
 		AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(),
     			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase), phase);
 		AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
@@ -377,7 +474,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     	return layeredROCD;
 	}
 
-	public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException  {
+	public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException  {
 		return securityEnforcer.getAllowedRequestAssignmentItems(securityContextManager.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, null, task, result);
 	}
 
@@ -403,7 +500,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (securityConstraints == null) {
 			return null;
 		}
-		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT),
+		AuthorizationDecisionType decision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT,
 				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
 		if (decision == AuthorizationDecisionType.ALLOW) {
 			 getAllRoleTypesSpec(spec, result);
@@ -870,10 +967,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public <O extends ObjectType> void generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException   {
-		String oid = object.getOid();
+		
 		OperationResult result = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
 
-			Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+			
 			ValuePolicyType valuePolicy = null;
 			try {
 				valuePolicy = getValuePolicy(object, task, result);
@@ -888,23 +985,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			Collection<PropertyDelta<?>> deltasToExecute = new ArrayList<>();
 			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
 				OperationResult generateValueResult = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
-
-				ItemPath path = getPath(policyItemDefinition);
-				if (path == null) {
-					LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
-					generateValueResult.recordFatalError("No item path defined in the target for policy item definition. Cannot generate value");
-					continue;
-				}
-
-				result.addArbitraryObjectAsParam("policyItemPath", path);
-
-				PrismPropertyDefinition<?> propertyDef = getItemDefinition(object, path);
-				if (propertyDef == null) {
-					LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path, object);
-					generateValueResult.recordFatalError("No definition for property " + path + " in object " + object + ". Is the path referencing prism property?");
-					continue;
-				}
-
+				
 				LOGGER.trace("Default value policy: {}" , valuePolicy);
 				try {
 					generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
@@ -915,7 +996,37 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					policyItemDefinition.setResult(generateValueResult.createOperationResultType());
 					continue;
 				}
-				collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef);
+				
+				//TODO: not sure about the bulk actions here
+				ItemPath path = getPath(policyItemDefinition);
+				if (path == null) {
+					if (isExecute(policyItemDefinition)) {
+						LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
+						generateValueResult.recordFatalError(
+								"No item path defined in the target for policy item definition. Cannot generate value");
+						continue;
+					}
+				}
+	
+				PrismPropertyDefinition<?> propertyDef = null;
+				if (path != null) {
+					result.addArbitraryObjectAsParam("policyItemPath", path);
+					
+					propertyDef = getItemDefinition(object, path);
+					if (propertyDef == null) {
+						if (isExecute(policyItemDefinition)) {
+							LOGGER.error("No definition for property {} in object. Is the path referencing prism property?" + path,
+									object);
+							generateValueResult.recordFatalError("No definition for property " + path + " in object " + object
+									+ ". Is the path referencing prism property?");
+							continue;
+						}
+		
+					}
+				}
+			// end of not sure
+				
+				collectDeltasForGeneratedValuesIfNeeded(object, policyItemDefinition, deltasToExecute, path, propertyDef, generateValueResult);
 				generateValueResult.computeStatusIfUnknown();
 			}
 			result.computeStatus();
@@ -924,8 +1035,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 		try {
 			if (!deltasToExecute.isEmpty()) {
-
-				modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
+				if (object == null) {
+					LOGGER.error("Cannot execute changes for generated values, no object specified in request.");
+					result.recordFatalError("Cannot execute changes for generated values, no object specified in request.");
+					throw new SchemaException("Cannot execute changes for generated values, no object specified in request.");
+				}
+					String oid = object.getOid();
+					Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+					modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
+				
 			}
 		} catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException
 				| CommunicationException | ConfigurationException | ObjectAlreadyExistsException
@@ -938,6 +1056,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	}
 
+	private boolean isExecute(PolicyItemDefinitionType policyItemDefinition) {
+		if (policyItemDefinition.isExecute() == null) {
+			return false;
+		}
+		
+		return policyItemDefinition.isExecute().booleanValue();
+	}
 	private ItemPath getPath(PolicyItemDefinitionType policyItemDefinition){
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
 
@@ -966,22 +1091,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	private <O extends ObjectType> void collectDeltasForGeneratedValuesIfNeeded(PrismObject<O> object,
 			PolicyItemDefinitionType policyItemDefinition, Collection<PropertyDelta<?>> deltasToExecute, ItemPath path,
-			PrismPropertyDefinition<?> itemDef) throws SchemaException {
+			PrismPropertyDefinition<?> itemDef, OperationResult result) throws SchemaException {
 
 		Object value = policyItemDefinition.getValue();
 
-		if (ProtectedStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
-			ProtectedStringType pst = new ProtectedStringType();
-			pst.setClearValue((String) value);
-			value = pst;
-		} else if (PolyStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
-			value = new PolyString((String) value);
+		if (itemDef != null){
+			if (ProtectedStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
+				ProtectedStringType pst = new ProtectedStringType();
+				pst.setClearValue((String) value);
+				value = pst;
+			} else if (PolyStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
+				value = new PolyString((String) value);
+			}
 		}
-		PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
-		propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
-		if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
-			deltasToExecute.add(propertyDelta);
+		if (object == null && isExecute(policyItemDefinition)) {
+			LOGGER.warn("Cannot apply generated changes and cannot execute them becasue there is no target object specified.");
+			result.recordFatalError("Cannot apply generated changes and cannot execute them becasue there is no target object specified.");
+			return;
 		}
+		if (object != null) {
+			PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
+			propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
+			if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
+				deltasToExecute.add(propertyDelta);
+			}
+		}
+		
 	}
 
 	private <O extends ObjectType> void generateValue(PrismObject<O> object, ValuePolicyType defaultPolicy,
@@ -990,11 +1125,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException {
 
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		if (target == null || ItemPath.isNullOrEmpty(target.getPath())) {
+		if ((target == null || ItemPath.isNullOrEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
 			LOGGER.error("Target item path must be defined");
 			throw new SchemaException("Target item path must be defined");
 		}
-		ItemPath targetPath = target.getPath().getItemPath();
+		ItemPath targetPath = null;
+		
+		if (target != null) {
+			targetPath = target.getPath().getItemPath();
+		}
 
 		ValuePolicyType valuePolicy = resolveValuePolicy(policyItemDefinition, defaultPolicy, task, result);
 		LOGGER.trace("Value policy used for generating new value : {}", valuePolicy);
@@ -1418,4 +1557,100 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		vars.addVariableDefinitions(variables);
 		return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
 	}
+
+	@Override
+	public ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user,
+			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		
+		
+		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType(prismContext);
+		
+		String resetMethod = executeCredentialResetRequest.getResetMethod();
+		if (StringUtils.isBlank(resetMethod)) {
+			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad request.").key("execute.reset.credential.bad.request").build();
+//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			throw new SchemaException(localizableMessage);
+			
+		}
+		
+		SecurityPolicyType securityPolicy = getSecurityPolicy(user, task, parentResult);
+		CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
+		//TODO: search according tot he credentialID and others
+		if (resetPolicyType == null) {
+			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad configuration.").key("execute.reset.credential.bad.configuration").build();
+//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.configuration", null, "Failed to execute reset password. Bad configuration.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			throw new SchemaException(localizableMessage);
+		}
+		
+		if (!resetMethod.equals(resetPolicyType.getName())) {
+			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad method.").key("execute.reset.credential.bad.method").build();
+//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.method", null, "Failed to execute reset password. Bad method.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			throw new SchemaException(localizableMessage);
+		}
+		
+		
+		CredentialSourceType credentialSourceType = resetPolicyType.getNewCredentialSource();
+		
+		if (credentialSourceType == null) {
+			//TODO: go through deprecated functionality
+			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. No credential source.").key("execute.reset.credential.no.credential.source").build();
+//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.no.credential.source", null, "Failed to execute reset password. No credential source.");
+			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			//for now just let the user know that he needs to specify it
+			return response;
+		}
+		
+		ObjectDelta<UserType> userDelta = null;
+		if (credentialSourceType.getUserEntry() != null) {
+			ProtectedStringType newProtectedPassword = new ProtectedStringType();
+			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
+			userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+					SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
+
+		}
+		
+		if (BooleanUtils.isTrue(resetPolicyType.isForceChange())) {
+			if (userDelta != null) {
+				userDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, Boolean.TRUE);
+			}
+		}
+		
+
+		try {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
+				MiscUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, parentResult);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException 
+			| SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
+//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.failed", null, "Failed to execute reset password. Bad method.");
+//			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
+			response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
+			throw e;
+		}
+
+		parentResult.recomputeStatus();
+		LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+		LocalizableMessage message = builder.fallbackMessage("Reset password was successful").key("execute.reset.credential.successful").build();
+//		LocalizableMessage message = LocalizableMessageBuilder.new SingleLocalizableMessage("execute.reset.credential.successful", null, "Reset password was successful");
+		response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
+		
+		return response;
+	}
+	
+	public void clearCaches() {
+		List<Cacheable> cacheableServices = cacheRegistry.getCacheableServices();
+		for (Cacheable cacheable: cacheableServices) {
+			cacheable.clearCache();
+		}
+	}
+	
+
 }

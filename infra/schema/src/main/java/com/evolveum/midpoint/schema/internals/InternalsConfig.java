@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ public class InternalsConfig {
 	 * use in testing.
 	 */
 	private static TestingPaths testingPaths = null;
+	
+	private static boolean detailedAuhotizationLog = false;
 
 	public static boolean isPrismMonitoring() {
 		return prismMonitoring;
@@ -115,6 +117,14 @@ public class InternalsConfig {
 		InternalsConfig.testingPaths = testingPaths;
 	}
 
+	public static boolean isDetailedAuhotizationLog() {
+		return detailedAuhotizationLog;
+	}
+
+	public static void setDetailedAuhotizationLog(boolean detailedAuhotizationLog) {
+		InternalsConfig.detailedAuhotizationLog = detailedAuhotizationLog;
+	}
+
 	public static boolean isAllowClearDataLogging() {
 		return allowClearDataLogging;
 	}
@@ -135,6 +145,7 @@ public class InternalsConfig {
 		avoidLoggingChange = false;
 		allowClearDataLogging = false;
 		testingPaths = null;
+		detailedAuhotizationLog = false;
 	}
 
 	public static void setDevelopmentMode() {

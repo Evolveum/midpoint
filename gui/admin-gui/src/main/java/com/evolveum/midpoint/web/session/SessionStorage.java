@@ -52,6 +52,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_INDUCEMENTS_TAB = "inducementsTab";
 
     private static final String KEY_TASKS = "tasks";
+    private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
 
     /**
      * Contains state for first level menu items. Key is menu label text, value if true then
@@ -199,6 +200,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (TasksStorage)pageStorageMap.get(KEY_TASKS);
     }
 
+    public CertCampaignsStorage getCertCampaigns() {
+        if (pageStorageMap.get(KEY_CERT_CAMPAIGNS) == null) {
+            pageStorageMap.put(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
+        }
+        return (CertCampaignsStorage)pageStorageMap.get(KEY_CERT_CAMPAIGNS);
+    }
+
     public ReportsStorage getReports() {
         if (pageStorageMap.get(KEY_REPORTS) == null) {
             pageStorageMap.put(KEY_REPORTS, new ReportsStorage());
@@ -266,7 +274,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
 		}
 	}
 
-    public void clearResourceContentStorage(){
+    public void clearResourceContentStorage() {
         pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);

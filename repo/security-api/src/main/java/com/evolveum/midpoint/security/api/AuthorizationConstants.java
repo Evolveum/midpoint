@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -103,6 +104,9 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_USER_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistory");
 	public static final String AUTZ_UI_USER_HISTORY_URL = NS_AUTHORIZATION_UI + "#userHistory";
+
+	public static final QName AUTZ_UI_USER_HISTORY_XML_REVIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistoryXmlReview");
+	public static final String AUTZ_UI_USER_HISTORY_XML_REVIEW_URL = NS_AUTHORIZATION_UI + "#userHistoryXmlReview";
 
 	public static final QName AUTZ_UI_USER_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "userDetails");
 	public static final String AUTZ_UI_USER_DETAILS_URL = NS_AUTHORIZATION_UI + "#userDetails";
@@ -444,6 +448,30 @@ public class AuthorizationConstants {
 			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
 			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
 			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_METADATA),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_POLICY_SITUATION),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
 			new ItemPath(FocusType.F_DELEGATED_REF),
 			new ItemPath(FocusType.F_ITERATION),
 			new ItemPath(FocusType.F_ITERATION_TOKEN),
@@ -452,6 +480,57 @@ public class AuthorizationConstants {
 			new ItemPath(FocusType.F_ROLE_INFLUENCE_REF),
 			new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF),
 			new ItemPath(FocusType.F_TRIGGERED_POLICY_RULE)
+		);
+	
+	/**
+	 * Items that are not considered for authorization in case that the entire container is deleted. MidPoint will
+	 * ignore those items when deleting containers.
+	 * 
+	 * Motivation: Those items are automatically created and maintained by midPoint. When a container is created then
+	 * such items are added. Now the trouble is how to delete such container. The user would need to have authorization
+	 * to modify those items as well to delete a container value. However, such authorizations would allow him to also
+	 * modify such values at will. We do not want that.
+	 * This is important for some use cases, e.g. delete of a role exclusion policy rule. We want user to add/delete
+	 * exclusion policy rules, but we do not want the user to manipulate the meta data.
+	 * (also similar evolvability reasoning as for EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)
+	 */
+	public static final Collection<ItemPath> OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE = Arrays.asList(
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
+			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
+			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_METADATA),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_POLICY_SITUATION),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
+			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE)
 		);
 
 }

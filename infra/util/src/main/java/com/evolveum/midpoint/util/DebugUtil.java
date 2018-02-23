@@ -210,7 +210,7 @@ public class DebugUtil {
 		debugDumpWithLabel(sb,label,dd,indent);
 		sb.append("\n");
 	}
-
+	
 	public static void debugDumpWithLabel(StringBuilder sb, String label, DebugDumpable dd, int indent) {
 		debugDumpLabel(sb, label, indent);
 		if (dd == null) {
@@ -218,6 +218,21 @@ public class DebugUtil {
 		} else {
 			sb.append("\n");
 			sb.append(dd.debugDump(indent + 1));
+		}
+	}
+
+	public static void debugDumpShortWithLabelLn(StringBuilder sb, String label, ShortDumpable sd, int indent) {
+		debugDumpShortWithLabel(sb, label, sd, indent);
+		sb.append("\n");
+	}
+
+	public static void debugDumpShortWithLabel(StringBuilder sb, String label, ShortDumpable sd, int indent) {
+		debugDumpLabel(sb, label, indent);
+		if (sd == null) {
+			sb.append(" null");
+		} else {
+			sb.append(" ");
+			sd.shortDump(sb);
 		}
 	}
 

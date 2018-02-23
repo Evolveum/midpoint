@@ -50,6 +50,8 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -147,6 +149,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private ObjectMerger objectMerger;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private EmulatedSearchProvider emulatedSearchProvider;
+	@Autowired private CacheRegistry cacheRegistry;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -400,6 +403,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								// we can tolerate this - if there's a real problem with definition, repo call below will fail
 								LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
 								result1.muteLastSubresultError();
+							}
+						}
+						
+						if (delta.getObjectTypeClass() == FunctionLibraryType.class) {
+							List<Cacheable> cacheableServices = cacheRegistry.getCacheableServices();
+							for (Cacheable cacheableService : cacheableServices) {
+								cacheableService.clearCache();
 							}
 						}
 

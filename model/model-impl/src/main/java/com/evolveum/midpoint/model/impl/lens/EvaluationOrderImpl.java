@@ -107,13 +107,16 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	// must always be private: public interface will not allow to modify object state!
 	private void advanceThis(QName relation, int amount) {
-		relation = ObjectTypeUtil.normalizeRelation(relation);
-		orderMap.put(relation, getMatchingRelationOrder(relation) + amount);
+		@NotNull QName normalizedRelation = ObjectTypeUtil.normalizeRelation(relation);
+		orderMap.put(normalizedRelation, getMatchingRelationOrder(normalizedRelation) + amount);
 	}
 
 	@Override
 	public int getMatchingRelationOrder(QName relation) {
 		checkConsistence();
+		if (relation == null) {
+			return getSummaryOrder();
+		}
 		return orderMap.getOrDefault(ObjectTypeUtil.normalizeRelation(relation), 0);
 	}
 
@@ -133,6 +136,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		@SuppressWarnings({"unchecked", "raw"})
 		Collection<QName> relations = CollectionUtils.union(getRelations(), newState.getRelations());
 		Map<QName, Integer> rv = new HashMap<>();
+		// relation is not null below
 		relations.forEach(relation -> rv.put(relation, newState.getMatchingRelationOrder(relation) - getMatchingRelationOrder(relation)));
 		return rv;
 	}

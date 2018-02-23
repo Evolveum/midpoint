@@ -17,8 +17,11 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,6 +32,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -92,17 +96,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	 */
 	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
-		this(id, defaultType, options, false, parentPage, null);
+		this(id, defaultType, tableId, options, false, parentPage, null);
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-		this(id, defaultType, null, multiselect, parentPage, null);
+	ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect, PageBase parentPage) {
+		this(id, defaultType, tableId, null, multiselect, parentPage, null);
 	}
 
-	public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
+	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 						   boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
 		super(id);
 		this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
@@ -110,6 +114,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		this.options = options;
 		this.multiselect = multiselect;
 		this.selectedObjects = selectedObjectsList;
+		this.tableId = tableId;
 		initLayout();
 	}
 
@@ -259,9 +264,46 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 									Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)),
 							customColumn.getPath().toString());
 				} else {
-					column = new PropertyColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
+					column = new PropertyColumn<SelectableBean<O>, String>(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
 							Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)), null,
-							SelectableBean.F_VALUE + "." + customColumn.getPath());
+							SelectableBean.F_VALUE + "." + customColumn.getPath().toString().replaceAll("/", ".")){
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
+							ItemPathType itemPathType = customColumn.getPath();
+							if (itemPathType != null
+							 		&& itemPathType.getItemPath() != null) {
+                                if (itemPathType.getItemPath().toString().contains(ObjectType.F_EXTENSION.getLocalPart() + "/")) {
+
+                                    O rowModelObject = rowModel.getObject().getValue();
+                                    if (rowModelObject.getExtension() != null) {
+                                        ExtensionType extensionType = rowModelObject.getExtension();
+                                        Item item = extensionType.asPrismContainerValue().findItem(itemPathType.getItemPath().lastNamed().getName());
+                                        if (item != null && item.getValues() != null) {
+                                            StringBuilder sb = new StringBuilder();
+                                            item.getValues().forEach(itemValue -> {
+                                                if (StringUtils.isNotEmpty(sb.toString())) {
+                                                    sb.append(", ");
+                                                }
+                                                if (itemValue instanceof PrismPropertyValue) {
+                                                    sb.append(((PrismPropertyValue) itemValue).getValue().toString());
+                                                } else {
+                                                    sb.append(itemValue.toString() + " ");
+                                                }
+                                            });
+                                            return Model.of(sb.toString());
+                                        }
+                                    }
+                                } else {
+                                    return super.getDataModel(rowModel);
+                                }
+                            }
+							return Model.of("");
+
+						}
+
+					};
 				}
 				columns.add(column);
 			}
@@ -496,11 +538,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public void clearCache() {
-		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-		provider.clearCache();
-		if (provider instanceof SelectableBeanObjectDataProvider) {
-			((SelectableBeanObjectDataProvider<O>) provider).clearSelectedObjects();
-		}
+		WebComponentUtil.clearProviderCache(getDataProvider());
 	}
 
 	public ObjectQuery getQuery() {

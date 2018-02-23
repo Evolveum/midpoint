@@ -114,6 +114,7 @@
           scope="singleton">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="repositoryService" ref="repositoryService"/>
         <property name="functions">
         	<list>
         		<ref bean="basicFunctionLibrary"/>
@@ -130,7 +131,8 @@
         		<ref bean="velocityScriptEvaluator"/>
         	</list>
         </property>
-
+        <property name="cacheRegistry" ref="cacheRegistry"/>
+        
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
@@ -215,6 +217,7 @@
             <ref bean="asIsExpressionEvaluatorFactory"/>
         </property>
         <property name="objectResolver" ref="modelObjectResolver"/>
+        <property name="cacheRegistry" ref="cacheRegistry"/>
     </bean>
 
     <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory"

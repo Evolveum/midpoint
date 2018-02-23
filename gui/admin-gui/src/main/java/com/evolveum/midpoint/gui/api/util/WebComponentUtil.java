@@ -46,15 +46,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.SubscriptionType;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,10 +77,8 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -431,6 +428,24 @@ public final class WebComponentUtil {
 	    }
 	}
 
+	// quite a hack (temporary)
+	public static <T extends ObjectType> IModel<ObjectWrapper<T>> adopt(
+			PropertyModel<ObjectWrapper<T>> objectWrapperModel, PrismContext prismContext) {
+		if (objectWrapperModel == null) {
+			return null;
+		}
+		ObjectWrapper<T> wrapper = objectWrapperModel.getObject();
+		if (wrapper == null || wrapper.getObject() == null) {
+			return objectWrapperModel;
+		}
+		try {
+			prismContext.adopt(wrapper.getObject());
+		} catch (SchemaException e) {
+			throw new IllegalStateException("Unexpected SchemaException: " + e.getMessage());
+		}
+		return objectWrapperModel;
+	}
+
 	public enum Channel {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
@@ -684,9 +699,10 @@ public final class WebComponentUtil {
 		};
 	}
 
+	// use for small enums only
 	@NotNull
-	public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(@NotNull Class<T> type, @NotNull Predicate<T> filter) {
-		return new ReadOnlyModel<>(() ->
+	public static <T extends Enum> IModel<List<T>> createReadonlyValueModelFromEnum(@NotNull Class<T> type, @NotNull Predicate<T> filter) {
+		return new ReadOnlyValueModel<>(
 				Arrays.stream(type.getEnumConstants())
 						.filter(filter)
 						.collect(Collectors.toList()));
@@ -855,6 +871,22 @@ public final class WebComponentUtil {
 	}
 
 
+	public static <IW extends ItemWrapper, C extends Containerable> PropertyModel createPrismPropertySingleValueModel(IModel<ContainerValueWrapper<C>> containerModel,
+																													QName attributeName){
+		//todo should be refactored: wrap with some new  model
+		PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(containerModel, "properties");
+		List<IW> propertiesList = propertiesModel.getObject();
+		for (final IW property : propertiesList){
+			if (property.getName().equals(attributeName)){
+				List<ValueWrapper> valuesList = property.getValues();
+				if (valuesList.size() == 1) {
+					return new PropertyModel<>(valuesList.get(0).getValue(), "value");
+				}
+
+			}
+		}
+		return null;
+	}
 
 	private static List<DisplayableValue> getDisplayableValues(PrismPropertyDefinition def) {
 		List<DisplayableValue> values = null;
@@ -1213,6 +1245,18 @@ public final class WebComponentUtil {
 		}
 
 		return selected;
+	}
+
+	public static void clearProviderCache(IDataProvider provider){
+		if (provider == null){
+			return;
+		}
+		if (provider instanceof BaseSortableDataProvider){
+			((BaseSortableDataProvider)provider).clearCache();
+		}
+		if (provider instanceof SelectableBeanObjectDataProvider) {
+			((SelectableBeanObjectDataProvider) provider).clearSelectedObjects();
+		}
 	}
 
 	public static Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(

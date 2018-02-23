@@ -26,10 +26,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.R_AtomicFilter;
 import com.evolveum.midpoint.prism.query.builder.R_Filter;
@@ -47,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -173,7 +171,7 @@ public class ContainerWrapperFactory {
 			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
 				valueWrapper.setEditEnabled(isEmpty(valueWrapper));
 			}
-			associationValueWrapper.setTargetTypes(Arrays.asList(ShadowType.COMPLEX_TYPE));
+			associationValueWrapper.setTargetTypes(Collections.singletonList(ShadowType.COMPLEX_TYPE));
 			associationValuesWrappers.add(associationValueWrapper);
 		}
 		
@@ -387,8 +385,13 @@ public class ContainerWrapperFactory {
 	    		 refWrapper.setTargetTypes(Arrays.asList(def.getTargetTypeName()));
 	    	 }
 	     }
-	     
-	     return refWrapper;
+
+		if (QNameUtil.match(AbstractRoleType.F_TENANT_REF, def.getName())) {
+			refWrapper.setFilter(EqualFilter.createEqual(new ItemPath(OrgType.F_TENANT), null, null,
+					modelServiceLocator.getPrismContext(), Boolean.TRUE));
+		}
+
+		return refWrapper;
         
 	}
 	

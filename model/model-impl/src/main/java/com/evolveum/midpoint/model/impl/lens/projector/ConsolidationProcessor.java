@@ -198,9 +198,11 @@ public class ConsolidationProcessor {
         	LOGGER.trace("Object class definition for {} consolidation:\n{}", projCtx.getResourceShadowDiscriminator(), rOcDef.debugDump());
         }
 
-        consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.ALL);
+       
+        StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
+        consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector);
         
-        consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.ALL);
+        consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector);
 
         return objectDelta;
     }

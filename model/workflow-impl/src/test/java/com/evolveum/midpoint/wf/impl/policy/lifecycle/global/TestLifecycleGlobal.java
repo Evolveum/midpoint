@@ -50,6 +50,8 @@ import static org.testng.AssertJUnit.assertFalse;
 /**
  * Tests role lifecycle with global policy rules.
  *
+ * Besides other (common) operations it tests the "processSpecification" feature in test500-test799.
+ *
  * @author mederly
  */
 public class TestLifecycleGlobal extends AbstractTestLifecycle {
@@ -105,7 +107,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 			@Override
 			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
+					OperationResult result) {
 				assertFalse("There is model context in the root task (it should not be there)",
 						wfTaskUtil.hasModelContext(rootTask));
 				display("subtasks", subtasks);
@@ -180,8 +182,8 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		//Task task = createTask(TEST_NAME);
+		//OperationResult result = task.getResult();
 
 		ObjectDelta<RoleType> judgeDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_APPROVER_REF)
@@ -202,7 +204,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 			@Override
 			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
+					OperationResult result) {
 				assertFalse("There is model context in the root task (it should not be there)",
 						wfTaskUtil.hasModelContext(rootTask));
 				display("subtasks", subtasks);
@@ -211,12 +213,12 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterTask0Finishes(Task task, OperationResult result) {
 				// nothing here
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
 				// nothing here
 			}
 
@@ -272,14 +274,79 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		PrismAsserts.assertReferenceValues(judgeAfter.findReference(RoleType.F_APPROVER_REF), "oid1", "oid2");
 	}
 
+	// MID-4372
+	@Test
+	public void test520DeleteRoleJudge() throws Exception {
+		final String TEST_NAME = "test500CreateRoleJudge";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+
+		//Task task = createTask(TEST_NAME);
+		//OperationResult result = task.getResult();
+
+		deleteObject(UserType.class, userJudgeOwnerOid);
+
+		ObjectDelta<RoleType> deleteDelta = ObjectDelta.createDeleteDelta(RoleType.class, roleJudgeOid, prismContext);
+
+		executeTest(TEST_NAME, new TestDetails() {
+			@Override
+			protected LensContext createModelContext(OperationResult result) throws Exception {
+				LensContext<RoleType> lensContext = createLensContext(RoleType.class);
+				addFocusDeltaToContext(lensContext, deleteDelta);
+				lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+				return lensContext;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) {
+				assertFalse("There is model context in the root task (it should not be there)",
+						wfTaskUtil.hasModelContext(rootTask));
+				display("subtasks", subtasks);
+				display("work items", workItems);
+				// todo some asserts here
+			}
+
+			@Override
+			protected void afterTask0Finishes(Task task, OperationResult result) {
+				assertObjectExists(RoleType.class, roleJudgeOid);
+			}
+
+			@Override
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
+				assertObjectDoesntExist(RoleType.class, roleJudgeOid);
+			}
+
+			@Override
+			protected boolean executeImmediately() {
+				return true;
+			}
+
+			@Override
+			public boolean strictlySequentialApprovals() {
+				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 2 in main part (first step is owner that is skipped as the owner was already deleted)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Deleting role \"judge\"")), true, USER_ADMINISTRATOR_OID,
+						null));
+				return instructions;
+			}
+		}, 1);
+	}
+
 	@Test
 	public void test600CreateRoleCaptain() throws Exception {
 		final String TEST_NAME = "test600CreateRoleCaptain";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		//Task task = createTask(TEST_NAME);
+		//OperationResult result = task.getResult();
 
 		RoleType captain = new RoleType(prismContext)
 				.name("captain")
@@ -301,7 +368,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 			@Override
 			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
+					OperationResult result) {
 				assertFalse("There is model context in the root task (it should not be there)",
 						wfTaskUtil.hasModelContext(rootTask));
 				display("subtasks", subtasks);
@@ -384,8 +451,8 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		//Task task = createTask(TEST_NAME);
+		//OperationResult result = task.getResult();
 
 		PrismObject<RoleType> captainBefore = getRole(roleCaptainOid);
 
@@ -405,7 +472,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 			@Override
 			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
+					OperationResult result) {
 				assertFalse("There is model context in the root task (it should not be there)",
 						wfTaskUtil.hasModelContext(rootTask));
 				display("subtasks", subtasks);
@@ -414,12 +481,12 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterTask0Finishes(Task task, OperationResult result) {
 				// nothing here
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
 				// nothing here
 			}
 
@@ -473,8 +540,8 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		//Task task = createTask(TEST_NAME);
+		//OperationResult result = task.getResult();
 
 		RoleType thief = new RoleType(prismContext)
 				.name("thief")
@@ -495,7 +562,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 			@Override
 			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
+					OperationResult result) {
 				display("subtasks", subtasks);
 				display("work items", workItems);
 				// todo some asserts here
@@ -576,8 +643,8 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		//Task task = createTask(TEST_NAME);
+		//OperationResult result = task.getResult();
 
 		PrismObject<RoleType> thiefBefore = getRole(roleThiefOid);
 
@@ -596,19 +663,19 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 			@Override
 			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
+					OperationResult result) {
 				display("subtasks", subtasks);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterTask0Finishes(Task task, OperationResult result) {
 				// nothing here
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
 				// nothing here
 			}
 

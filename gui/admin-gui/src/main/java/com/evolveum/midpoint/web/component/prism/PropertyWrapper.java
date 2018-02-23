@@ -23,9 +23,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -77,13 +74,13 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 
         ValueWrapper wrapper;
         if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
-                    new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(new PolyString("")),
+                    new PrismPropertyValue<>(new PolyString("")), ValueStatus.ADDED);
 //        } else if (isUser() && isThisPropertyActivationEnabled()) {
 //            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
 //                    new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(null), ValueStatus.ADDED);
         }
 
         return wrapper;
@@ -102,22 +99,22 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 //        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
 //    }
 
-    private boolean isThisPropertyActivationEnabled() {
-        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
-            return false;
-        }
-
-        if (!ActivationType.F_ADMINISTRATIVE_STATUS.equals(item.getElementName())) {
-            return false;
-        }
-
-//        if (container.getContainer().getObject() == null || ContainerStatus.MODIFYING.equals(container.getContainer().getObject().getStatus())) {
-//            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
+//    private boolean isThisPropertyActivationEnabled() {
+//        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
 //            return false;
 //        }
-
-        return true;
-    }
+//
+//        if (!ActivationType.F_ADMINISTRATIVE_STATUS.equals(item.getElementName())) {
+//            return false;
+//        }
+//
+////        if (container.getContainer().getObject() == null || ContainerStatus.MODIFYING.equals(container.getContainer().getObject().getStatus())) {
+////            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
+////            return false;
+////        }
+//
+//        return true;
+//    }
 
     @Override
     public String toString() {

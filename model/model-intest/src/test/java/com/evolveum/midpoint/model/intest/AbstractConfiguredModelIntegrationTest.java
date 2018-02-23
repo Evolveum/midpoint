@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -38,13 +38,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -61,6 +55,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -259,6 +254,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
 	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
 
+	protected static final File ROLE_USELESS_FILE = new File(COMMON_DIR, "role-useless.xml");
+	protected static final String ROLE_USELESS_OID = "12345111-1111-2222-1111-831209543124";
+
 	protected static final File ROLE_SAILOR_FILE = new File(COMMON_DIR, "role-sailor.xml");
 	protected static final String ROLE_SAILOR_OID = "12345111-1111-2222-1111-121212111113";
 	protected static final String ROLE_SAILOR_DRINK = "grog";
@@ -296,18 +294,18 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
 	protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
 	
-	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
-	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	protected static final String USER_JACK_USERNAME = "jack";
-	protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
-	protected static final String USER_JACK_GIVEN_NAME = "Jack";
-	protected static final String USER_JACK_FAMILY_NAME = "Sparrow";
-	protected static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
-	protected static final String USER_JACK_DESCRIPTION = "Where's the rum?";
-	protected static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
-	protected static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
-	protected static final String USER_JACK_LOCALITY = "Caribbean";
-	protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
+	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	public static final String USER_JACK_USERNAME = "jack";
+	public static final String USER_JACK_FULL_NAME = "Jack Sparrow";
+	public static final String USER_JACK_GIVEN_NAME = "Jack";
+	public static final String USER_JACK_FAMILY_NAME = "Sparrow";
+	public static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
+	public static final String USER_JACK_DESCRIPTION = "Where's the rum?";
+	public static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
+	public static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
+	public static final String USER_JACK_LOCALITY = "Caribbean";
+	public static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
@@ -544,7 +542,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 		// System Configuration
 		try {
-			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+			File systemConfigurationFile = getSystemConfigurationFile();
+			if (systemConfigurationFile != null) {
+				repoAddObjectFromFile(systemConfigurationFile, initResult);
+			} else {
+				addSystemConfigurationObject(initResult);
+			}
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -566,6 +569,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
+	}
+
+	// to be used in very specific cases only (it is invoked when getSystemConfigurationFile returns null).
+	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+			EncryptionException {
 	}
 
 	protected PrismObject<UserType> getDefaultActor() {

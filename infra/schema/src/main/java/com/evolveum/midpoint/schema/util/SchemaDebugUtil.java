@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -798,23 +799,6 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(ObjectDeltaType deltaType) {
-		if (deltaType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
-		sb.append(deltaType.getOid()).append(" ");
-		sb.append(deltaType.getChangeType());
-		sb.append(": ");
-		if (deltaType.getObjectToAdd() != null) {
-			sb.append(deltaType.getObjectToAdd());
-		} else {
-			sb.append(deltaType.getItemDelta());
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
 	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
 		if (deltaOpType == null) {
 			return "null";
@@ -829,6 +813,20 @@ public class SchemaDebugUtil {
 			sb.append(result.getStatus());
 		}
 		// object, resource?
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(LoginEventType loginEventType) {
+		if (loginEventType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("LoginEventType(");
+		sb.append(prettyPrint(loginEventType.getTimestamp()));
+		String from = loginEventType.getFrom();
+		if (from != null) {
+			sb.append(" from ").append(from);
+		}
 		sb.append(")");
 		return sb.toString();
 	}

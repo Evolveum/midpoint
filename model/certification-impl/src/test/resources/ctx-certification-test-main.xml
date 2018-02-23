@@ -38,6 +38,7 @@
     <import resource="ctx-model-common.xml"/>
     <import resource="ctx-certification.xml"/>
     <import resource="ctx-notifications.xml"/>
+    <import resource="ctx-workflow.xml"/>
     <import resource="classpath*:ctx-repository-test.xml"/>
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-repo-common.xml"/>

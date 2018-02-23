@@ -3825,7 +3825,7 @@
             </xsd:appinfo>
         </xsd:annotation>
        	<xsd:sequence>
-       		<xsd:element name="order" type="xsd:int" minOccurs="0" maxOccurs="1" default="1">
+       		<xsd:element name="order" type="xsd:int" minOccurs="0" default="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Exact order to match. This is a short-hand for setting both
@@ -3833,7 +3833,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMin" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Minimum matching order. Applicable only if "order" element is not set.
@@ -3841,7 +3841,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0" maxOccurs="1">
+   			<xsd:element name="orderMax" type="xsd:string" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Maximum matching order. Applicable only if "order" element is not set.
@@ -3849,7 +3849,7 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						The new value for order for this relation (or summary order), to be used when
@@ -3857,7 +3857,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-    		<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+    		<xsd:element name="relation" type="xsd:QName" minOccurs="0">
 	   			<xsd:annotation>
     				<xsd:documentation>
     					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
@@ -4884,6 +4884,35 @@
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="operationGroupingInterval" type="xsd:duration" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				<p>
+	        				Turns on operation grouping feature and specifies a grouping interval.
+	        				Operation grouping is feature that groups several operations on a resource
+	        				into a single operation. This can be used in case midPoint creates a lot of
+	        				small operations. But we want to group all of them into a single big operation.
+	        				This means that small operations are deplayed for a specified interval. Then
+	        				all the operations are grouped into a single operation and executed at once.
+	        				This approach slightly delays the operations. But it may be huge advantage for
+	        				resources where the operations are constly (manual resources, slow resources).
+        				</p> 
+        				<p>
+        					This parameter specifies a maximum interval between the operation is requested
+        					and the operation is started. First operation will be postponed for the specified
+        					interval. When the interval is over the operation will be executed. All the
+        					operations that have accumulated during the interval will be grouped together
+        					and executed.
+        				</p>
+        				<p>
+        					Note: provisioning propagation task must be running to execute the operations.
+        				</p>
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7.1</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="validateSchema" type="xsd:boolean" minOccurs="0" default="false">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -4908,7 +4937,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true"/>
+        	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Postpone the operation in case that an error is encountered. The operation
+        				will be re-tried later (consistency mechanism).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="connectorErrorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
             	<xsd:annotation>
@@ -5804,6 +5840,60 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="PasswordCompareStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The way how an resource password is compared with the current password.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.7.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="auto">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Auto-detect comparison method. If no way of comparison
+                		is possible then an error is indicated.
+                		Note: Currently this strategy will end with an error if there
+                		is no cached password value.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		There is no way to compare password. Any operation to that
+                		tries to compare the password on the resource should end
+                		up with an error.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ERROR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="cached">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Compare password with the value cached in the shadow.
+                		This setting assumes that passwords for all accounts are
+                		properly cached. Therefore if there is no password value
+                		in the shadow then we assume that there is no resource password.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CACHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: ignore, read (compare password by readin password value), resourceAuthenticate, ... -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
     <xsd:complexType name="ResourceCredentialsDefinitionType">
         <xsd:sequence>
             <xsd:element name="password" type="tns:ResourcePasswordDefinitionType" minOccurs="0" maxOccurs="1">
@@ -5824,6 +5914,19 @@
     	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+        	<xsd:element name="compareStrategy" type="tns:PasswordCompareStrategyType" minOccurs="0" default="auto">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The way how an resource password is compared with the current password.
+        				This strategy is used when midPoint needs to compare candidate password
+        				with existing resource passowrd. E.g. used in password policies that state
+        				that passwords on several resources cannot be the same.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7.1</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5850,6 +5953,23 @@
             			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
             		</xsd:appinfo>
                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Password caching policy.
+                        Currently, password storage format (encrypted, hashed) will be the same
+                        as the global password storage format used for the entire system.
+                        Definition of a specific password storage format might be added later.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:since>3.7.1</a:since>
+            		</xsd:appinfo>
+                </xsd:annotation>
+                <!-- 
+                	TODO: later, create PasswordCachingPolicyType as subtype of CachingPolicyType.
+                	PasswordCachingPolicyType could specify password storage format.
+                 -->
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -9176,11 +9296,24 @@
     				<xsd:documentation>
     					<p>
     						The timestamp of operation request. The point in time when the operation was
-    						recoded and when it was initiated for the first time. It is set once and should never be changed.
+    						recoded. It is set once and should never be changed.
     					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:since>3.6</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="operationStartTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of operation start. The point in time when the operation was
+    						initiated for the first time. It is set once and should never be changed.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.7.1</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
@@ -9198,11 +9331,31 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+			<xsd:element name="executionStatus" type="tns:PendingOperationExecutionStatusType" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
     					<p>
-    						Operation status. If set to in_progress then the operation is
+    						Execution status. This property indicates in which execution stage
+    						the operation is, e.g. whether it is requeste, being executed, completed,
+    						and so on.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.7.1</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element><xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						Operation result status. This property specifies result of operation execution.
+    						If execution status is present and set to anything else than "completed" then
+    						resultStatus may be empty.
+    					</p>
+    					<p>  
+    						Legacy meaning: If no execution status is present then resultStatus
+    						defines the execution status (this is pre-3.7.1 behavior). 
+    						If set to in_progress then the operation is
     						still executing. If not present at all then the operation was
     						not yet tried.
     					</p>
@@ -9229,6 +9382,73 @@
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="PendingOperationExecutionStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Execution status. This property indicates in which execution stage
+				the operation is, e.g. whether it is requeste, being executed, completed,
+				and so on.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="requested">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation is requested. Operation request is recorded.
+                		The operation is in the preparation phase and it is
+                		not being execute yet.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUESTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executionPending">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation execution is pending. The operation is prepared
+                		but it is not executed yet. The operation waits for the
+                		execution process to pick it up, waits for a condition or signal, etc.
+                		For manual operations this means that the case/ticket is not
+                		created yet. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION_PENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="executing">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation is being executed. The excution process is running,
+                		manual execution task is created and still open and so on.
+                		The execution may take quite a long time.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="completed">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Execution is complete. Operation is not executed any more.
+                		For manual operations this means that the case/ticket is closed.
+                		The operation may be successful or it may have ended up with an error.
+                		This informtion is in another property. This state indicates only that
+                		the operation execution is done. It does NOT indicate success or failure.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="SynchronizationSituationDescriptionType">
     	<xsd:annotation>
@@ -10059,7 +10279,29 @@
         <xsd:sequence>
         	<xsd:element name="name" type="xsd:string" minOccurs="0"/>
         	<xsd:element ref="tns:description" minOccurs="0"/>
-        	<xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow"/>
+        	<xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				<p>
+        					Decision that this authorization specifies. If the decision is "allow" (which is the
+        					default) then this authorization allows access. If the decision is "deny" then this
+        					authorization denies access. Denial is a final decisions. If at least one applicable
+        					authorization denies access then the access is always denied, regadless of any other
+        					allow authorizations.
+        				</p>
+        				<p>
+	        				Note: there is subtle (but important) difference between not allowing access and
+	        				denying access. Authorization that denies access specifies a final decision. Denied
+	        				access cannot be allowed by any other authorization. Deny authorization are very
+	        				strong from a security perspective, but it is extremely difficult to combine them
+	        				with other authorizations. Therefore deny authorizations are used very rarely.
+	        				On the other hand if the access is not allowed by a specific authorization then
+	        				it can still be allowed by another authorization. This makes authorizations "mergeable".
+	        				Not allowing access is usually the right approach.
+        				</p>
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="action" type="xsd:anyURI" minOccurs="1" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -10097,10 +10339,48 @@
         	<xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Specification of items that form a scope of this authorization. This autorization will
-        				only affect the items specified in this element. If no items are specified then the
-        				authorization applies to all items in the objects.
+        				<p>
+	        				Specification of items that form a scope of this authorization. This autorization will
+	        				only affect the items specified in this element. If no items are specified then the
+	        				authorization applies to all items in the objects.
+        				</p>
+        				<p>
+        					The item specification must not be combined with exceptItem. One or the other can be
+        					used, but not both. If neither item nor exceptItem is specified then it is assumed
+        					that the authorization applies to all items.
+        				</p>
         			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="exceptItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				<p>
+	        				Specification of items that are excluded from the scope of this authorization.
+	        				I.e. the authorization applies to all the items except those items that are
+	        				specified here.
+        				</p>
+        				<p>
+	        				Note: there is subtle (but important) difference between not allowing access and
+	        				denying access. Authorization that denies access specifies a final decision. Denied
+	        				access cannot be allowed by any other authorization. Deny authorization are very
+	        				strong from a security perspective, but it is extremely difficult to combine them
+	        				with other authorizations. Therefore deny authorizations are used very rarely.
+	        				On the other hand if the access is not allowed by a specific authorization then
+	        				it can still be allowed by another authorization. This makes authorizations "mergeable".
+	        				Not allowing access is usually the right approach.
+	        				The exceptItem specification is a convenient way to "not allow" access to specific
+	        				items.
+        				</p>
+        				<p>
+        					The item specification must not be combined with exceptItem. One or the other can be
+        					used, but not both. If neither item nor exceptItem is specified then it is assumed
+        					that the authorization applies to all items.
+        				</p>
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7.1</a:since>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="target" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
@@ -10822,7 +11102,13 @@
 		   </xsd:appinfo>
 	   </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+           <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+           		<xsd:annotation>
+                   <xsd:appinfo>
+					<a:displayName>AbstractConstructionType.description</a:displayName>
+                   </xsd:appinfo>
+               </xsd:annotation>
+           </xsd:element>
            <xsd:element name="strength" type="tns:ConstructionStrengthType" minOccurs="0" maxOccurs="1" default="strong">
                <xsd:annotation>
                    <xsd:documentation>
@@ -10834,6 +11120,8 @@
                    </xsd:documentation>
                    <xsd:appinfo>
 					<a:since>3.5</a:since>
+					<a:displayName>AbstractConstructionType.strength</a:displayName>
+					<a:help>AbstractConstructionType.strength.help</a:help>
                    </xsd:appinfo>
                </xsd:annotation>
            </xsd:element>
@@ -10884,6 +11172,10 @@
 					
 					                 This element is optional. If not specified defaults to account kind.
 					             </xsd:documentation>
+					             <xsd:appinfo>
+					             	<a:displayName>ConstructionType.kind</a:displayName>
+					             	<a:help>ConstructionType.kind.help</a:help>
+					             </xsd:appinfo>
 					         </xsd:annotation>
 					     </xsd:element>
 					 </xsd:choice>
@@ -10899,6 +11191,10 @@
 					                 This element is optional. If not specified then the definition
 					                 marked as default in the resource definition should be used.
 					             </xsd:documentation>
+					             <xsd:appinfo>
+					             	<a:displayName>ConstructionType.intent</a:displayName>
+					             	<a:help>ConstructionType.intent.help</a:help>
+					             </xsd:appinfo>
 					         </xsd:annotation>
 					     </xsd:element>
 					 </xsd:choice>
@@ -10922,6 +11218,10 @@
 					            point to object class definition (complex type definition in resource schema) and
 					            this definition should be marked as auxiliary.
 					        </xsd:documentation>
+				             <xsd:appinfo>
+				             	<a:displayName>ConstructionType.auxiliaryObjectClass</a:displayName>
+				             	<a:help>ConstructionType.auxiliaryObjectClass.help</a:help>
+				             </xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
 			   </xsd:sequence>
@@ -11853,6 +12153,16 @@
         <xsd:sequence>
             <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="object"/>
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specifies which projection should be used in case that projection origin is selected.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.7.1</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
         </xsd:sequence>
     </xsd:complexType>
@@ -11904,6 +12214,23 @@
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OWNER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="projection">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		One of object's projecion is the origin.
+                		E.g. in case of user password specific projection
+                		linked to the user will be scanned.
+                		If this origin type is selected then also
+                		the projectionDiscriminator must be specified.
+                		Note: Currently the only supported value is
+                		resource password.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROJECTION"/>
+                        <a:since>3.7.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -12941,6 +13268,17 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6.1</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lifecycleStateModel" type="tns:LifecycleStateModelType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of lifecycle states and state transitions.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
 						<a:experimental>true</a:experimental>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -14248,17 +14586,60 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-		<xsd:element name="name" type="xsd:string" minOccurs="0">
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
 			</xsd:element>
+			<xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			</xsd:element>
+			<xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
+			</xsd:element>
+<!-- 			TODO: delivery, authentication -->
 			<xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="mailReset" type="tns:MailResetPolicyType" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="smsReset" type="tns:SmsResetPolicyType" minOccurs="0">
 			</xsd:element>
-			
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="CredentialSourceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO 
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="userEntry" type="tns:UserEntryCredentialSourceType" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="UserEntryCredentialSourceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO 
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+						     TODO:
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	
 	<xsd:complexType name="AbstractAuthenticationPolicyType">
 		<xsd:annotation>
@@ -15366,6 +15747,7 @@
 			<xsd:element name="pointInTimeType" type="tns:PointInTimeTypeType" minOccurs="0"/>
 			<xsd:element name="staleness" type="xsd:long" minOccurs="0"/>
 			<xsd:element name="distinct" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="definitionProcessing" type="tns:DefinitionProcessingOptionType" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -15436,6 +15818,58 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:simpleType name="DefinitionProcessingOptionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be definitions processed when object is to be retrieved. Currently applies at the model level;
+				but in the future it might be used also elsewhere.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="full">
+				<xsd:annotation>
+					<xsd:documentation>
+						Full definition processing for the specified item(s) is to be done.
+						This applies recursively also to sub-items.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="onlyIfExists">
+				<xsd:annotation>
+					<xsd:documentation>
+						 Full definition processing for the specified item(s) is to be done, but only if the item(s) exist.
+						 This applies recursively also to sub-items.
+						 
+						 Currently supported on root level only.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ONLY_IF_EXISTS"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition for the specified item(s) is to be excluded from the resulting object, even if the item(s) do exist.
+						
+						NOT IMPLEMENTED YET
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
 
 	<xsd:simpleType name="IterationMethodType">
 		<xsd:annotation>
@@ -15685,6 +16119,7 @@
             <xsd:element name="assignmentsOrg" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="assignmentsMembershipAndDelegate" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="assignmentsConflicts" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="objectTemplateAfterAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="focusCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="focusPolicyRules" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
@@ -17143,6 +17578,13 @@
                             <a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:annotation>
+                    <!-- Later on the referenced form may also contain title, panelClass and panelUri.
+                         Equivalent elements from this data type may be used to override those specified
+                         in FormType object referenced from this formRef.
+                         However, not all combination have to be supported. E.g. if the FormType object
+                         specifies a declarative form and this FormSpecificationType specifies panelClass
+                         then an error should be raised.
+                          -->
                 </xsd:element>
        			<xsd:element name="panelClass" type="xsd:string" minOccurs="0" maxOccurs="1">
        				<xsd:annotation>
@@ -17182,9 +17624,22 @@
                 </p>
             </xsd:documentation>
         </xsd:annotation>
+        <!-- Originally (approx. midPoint 3.4) this datat type was meant ony for specificaiton of "declarative"
+             forms that specify fields for items. But later (3.7.1) it was discovered that this should be
+             reused to specify wider range of forms. E.g. parameteric built-in forms (such as "data protection" tab).
+             Or even parametric declarative or custom forms. No schema changes were made in 3.7.1.
+             Use case: specify "data protection" tab filter, layout and columns in just one place in the system
+             (FormType object). And the reuse the specification at several places (e.g. adminGuiConfig in several roles).
+             The schema change was just analysed, planned and clarified in those comments.
+             -->
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
+                	<!-- includeRef and formDefinition are used to specify "declarative" custom form.
+                	     Ideally, this should be insided its own container. But as this was not done
+                	     originally (approx. midPoint 3.4) we cannot change it now. So we leave it as
+                	     it is.
+                	-->
                     <xsd:element name="includeRef" type="tns:ObjectReferenceType"
                                  minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -17201,6 +17656,7 @@
                         It has to be a prism property. -->
                     </xsd:element>
                 </xsd:sequence>
+                <!-- title, panelClass and panelUri from FormSpecificationType should be also present here. -->
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -18360,6 +18816,7 @@
 						Literal value.
 					</xsd:documentation>
 				</xsd:annotation>
+				
 			</xsd:element>
 			<xsd:element name="localizable" type="tns:LocalizableMessageType">
 				<xsd:annotation>
@@ -18427,5 +18884,77 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:simpleType name="HttpMethodType">
+		<xsd:annotation>
+			<!-- This is meant as a general enumeration to be used at various places in midPoint.
+			Not all places of use are obliged to support all HTTP methods listed here. -->
+			<xsd:documentation>
+				Individual HTTP methods. Not all of them are supported by midPoint components.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="get">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="GET"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="post">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="POST"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="put">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PUT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="head">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="HEAD"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="patch">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PATCH"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="delete">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DELETE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="options">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="OPTIONS"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="trace">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TRACE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

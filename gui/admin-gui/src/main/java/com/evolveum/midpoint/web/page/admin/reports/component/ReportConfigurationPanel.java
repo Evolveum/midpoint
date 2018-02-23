@@ -69,7 +69,7 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(description);
 
-        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(ExportType.class, e -> e != ExportType.JXL);
+        IModel choices = WebComponentUtil.createReadonlyValueModelFromEnum(ExportType.class, e -> e != ExportType.JXL);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
                 createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);

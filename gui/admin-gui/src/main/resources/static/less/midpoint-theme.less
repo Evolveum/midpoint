@@ -501,7 +501,13 @@ body .treeview-menu > li > span:hover {
 	&.without-box-header-top-border {
 		border-top: 0px;
 	}
+	
+	table {
+		// prohibit overflow of the table beyond the bounding box
+		table-layout: fixed;
+	}
 }
+
 
 .boxed-table-footer-button-toolbar {
 	display: inline-block;
@@ -1273,4 +1279,13 @@ dd.stacktrace::before {
 	.box-content {
 		padding: 15px;
 	}
+}
+
+// Tables where the first column is the name of the property/attribute
+// (e.g. audit log item details)
+// see MID-4300
+
+td.prop-name {
+	min-width: 90px;
+	font-weight: bold;
 }

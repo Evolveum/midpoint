@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<accessCertificationDefinition
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>User's assignemnts according to the manager</name>
+    <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <stageDefinition>
+        <number>1</number>
+        <name>Manager's review</name>
+        <description>In this stage, the manager has to review all the assignments of users belonging to his org unit.</description>
+        <duration>P14D</duration>   <!-- 14 days -->
+        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline> <!-- 48 hours -->
+        <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
+        <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>  <!-- this is the default -->
+        <reviewerSpecification>
+         <useObjectManager>
+            <allowSelf>false</allowSelf>
+         </useObjectManager>
+      </reviewerSpecification>
+        <timedActions>
+            <time>
+                <value>P7D</value>
+            </time>
+            <actions>
+                <escalate>
+                    <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />  <!-- administrator -->
+                    <delegationMethod>addAssignees</delegationMethod>
+                    <escalationLevelName>Level1</escalationLevelName>
+                </escalate>
+            </actions>
+        </timedActions>
+    </stageDefinition>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+    <objectType>UserType</objectType>
+    <searchFilter>
+        <q:org>
+            <q:path>parentOrgRef</q:path>
+            <q:orgRef oid="00000000-0000-0org-0000-111111111111">      
+                <q:scope>SUBTREE</q:scope>
+            </q:orgRef>
+        </q:org>
+    </searchFilter>
+    <itemSelectionExpression>
+        <script>
+            <code>
+            	import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+            	
+            	log.info("####### assignment: " + assignment)
+            	if (assignment.targetRef.type.localPart.equals('RoleType')) {
+            		log.info("#### not a OrgType: " + assignment.targetRef.type.localPart)
+            		role = midpoint.resolveReferenceIfExists(assignment.targetRef)
+                	log.info("##### role: " + role)
+                	log.info("##### role type: " + role.roleType)
+                	return role != null &amp;&amp; role.requestable
+            	} 
+                org = midpoint.resolveReferenceIfExists(assignment.targetRef)
+                log.info("##### org: " + org)
+                log.info("##### org type: " + org.orgType)
+                return org != null &amp;&amp; org.orgType[0] == 'access' 
+               
+            </code>
+        </script>
+    </itemSelectionExpression>
+    <includeRoles>true</includeRoles>
+    <includeOrgs>true</includeOrgs>
+    <includeResources>false</includeResources>
+</scopeDefinition>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+</accessCertificationDefinition>

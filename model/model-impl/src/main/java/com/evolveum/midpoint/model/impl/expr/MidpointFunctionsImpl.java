@@ -32,7 +32,9 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -40,9 +42,7 @@ import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
@@ -62,6 +62,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -97,7 +98,9 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author semancik
@@ -413,6 +416,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public boolean isDirectlyAssigned(ObjectType target) {
 		return isDirectlyAssigned(target.getOid());
+	}
+
+	// EXPERIMENTAL!!
+	@Experimental
+	public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
+		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext == null) {
+			throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with model context");
+		}
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
+		}
+		Collection<EvaluatedAssignmentImpl<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
+		if (nonNegativeEvaluatedAssignments == null) {
+			return false;
+		}
+		for (EvaluatedAssignmentImpl<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+			PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
+			if (target == null) {
+				continue;
+			}
+			Collection<String> targetSubtypes = ObjectTypeUtil.getSubtypeValues((PrismObject) target);
+			if (targetSubtypes.contains(roleSubtype)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -1585,5 +1616,78 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public String translate(LocalizableMessageType message) {
 		return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
+	}
+	
+	@Override
+	public Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException {
+		return executeAdHocProvisioningScript(resource.getOid(), language, code);
+	}
+	
+	@Override
+	public Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+					throws SchemaException, ObjectNotFoundException,
+					ExpressionEvaluationException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ObjectAlreadyExistsException {
+		OperationProvisioningScriptType script = new OperationProvisioningScriptType();
+		script.setCode(code);
+		script.setLanguage(language);
+		script.setHost(ProvisioningScriptHostType.RESOURCE);
+		
+		return provisioningService.executeScript(resourceOid, script, getCurrentTask(), getCurrentResult());
+	}
+	
+	@Override
+	public Boolean isEvaluateNew() {
+		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+		if (scriptContext == null) {
+			return null;
+		}
+		return scriptContext.isEvaluateNew();
+	}
+
+	@Override
+	@NotNull
+	public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
+		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext == null) {
+			throw new IllegalStateException("No lensContext");
+		}
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			return emptySet();
+		}
+		Collection<PrismValue> rv = new HashSet<>();
+		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+			if (evaluatedAssignment.isValid()) {
+				for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
+					if (path.equivalent(mapping.getOutputPath())) {
+						PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+						if (outputTriple != null) {
+							rv.addAll(outputTriple.getNonNegativeValues());
+						}
+					}
+				}
+			}
+		}
+		// Ugly hack - MID-4452 - When having an assignment giving focusMapping, and the assignment is being deleted, the
+		// focus mapping is evaluated in wave 0 (results correctly being pushed to the minus set), but also in wave 1.
+		// The results are sent to zero set; and they are not applied only because they are already part of a priori delta.
+		// This causes problems here.
+		//
+		// Until MID-4452 is fixed, here we manually delete the values from the result.
+		LensFocusContext<ObjectType> focusContext = lensContext.getFocusContext();
+		if (focusContext != null) {
+			ObjectDelta<ObjectType> delta = focusContext.getDelta();
+			if (delta != null) {
+				ItemDelta<PrismValue, ItemDefinition> targetItemDelta = delta.findItemDelta(path);
+				if (targetItemDelta != null) {
+					rv.removeAll(emptyIfNull(targetItemDelta.getValuesToDelete()));
+				}
+			}
+		}
+		return rv;
 	}
 }

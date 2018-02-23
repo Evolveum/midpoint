@@ -18,8 +18,10 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyEnumValuesModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -50,6 +52,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -95,8 +98,10 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -185,14 +190,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
 
         this.searchText = searchText;
-        searchModel = new LoadableModel<TasksSearchDto>(false) {
-
-            @Override
-            protected TasksSearchDto load() {
-                return loadTasksSearchDto();
-            }
-        };
-
+        searchModel = LoadableModel.create(this::loadTasksSearchDto, false);
 		refreshModel = new Model<>(new AutoRefreshDto(REFRESH_INTERVAL));
 
         initLayout();
@@ -251,6 +249,40 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 addInlineMenuToTaskRow(dto);
 
                 return dto;
+            }
+            
+            @Override
+            public IModel<TaskDto> model(TaskDto object) {
+            	return new LoadableDetachableModel<TaskDto>(object) {
+            		
+            		private static final long serialVersionUID = 1L;
+					private String oid;
+            		
+            		protected void onDetach() {
+            			this.oid = getObject().getOid();
+            		}
+            		
+					@Override
+					protected TaskDto load() {
+						Task task = createSimpleTask("load task");
+						OperationResult result = task.getResult();
+						PrismObject<TaskType> taskType = WebModelServiceUtils.loadObject(TaskType.class, oid, PageTasks.this, task, result);
+						if (taskType == null) {
+							return null;
+						}
+						
+						TaskDto taskDto = null;
+						try {
+							taskDto = new TaskDto(taskType.asObjectable(), null, getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, task, result, PageTasks.this);
+							taskDto.setSelected(object.isSelected());
+						} catch (SchemaException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						return taskDto;
+					};
+            		
+				};
             }
         };
 
@@ -508,7 +540,26 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private List<IColumn<TaskDto, String>> initTaskColumns() {
         List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
 
-        IColumn column = new CheckBoxHeaderColumn<>();
+        IColumn column = new CheckBoxHeaderColumn<TaskDto>()
+        {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TaskDto> rowModel) {
+                TaskDtoProvider taskTableProvider = (TaskDtoProvider) table.getDataProvider();
+                List<TaskDto> objects = taskTableProvider.getAvailableData();
+                if (objects == null || objects.isEmpty()) {
+                    return;
+                }
+                objects.forEach(taskDto -> {
+                    if (taskDto.getOid().equals(rowModel.getObject().getOid())){
+                        boolean selected = rowModel.getObject().isSelected();
+                        taskDto.setSelected(selected);
+                    }
+                });
+                super.onUpdateRow(target, table, rowModel);
+            }
+        };
         columns.add(column);
 
         column = createTaskNameColumn(this, "pageTasks.task.name");
@@ -1404,9 +1455,19 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void refreshTables(AjaxRequestTarget target) {
+        clearTablesCache();
         target.add(getFeedbackPanel());
         target.add((Component) getTaskTable());
         target.add((Component) getNodeTable());
+    }
+
+    private void clearTablesCache(){
+        if (getTaskTable() != null && getTaskTable().getDataTable() != null){
+            WebComponentUtil.clearProviderCache(getTaskTable().getDataTable().getDataProvider());
+        }
+        if (getNodeTable() != null && getNodeTable().getDataTable() != null){
+            WebComponentUtil.clearProviderCache(getNodeTable().getDataTable().getDataProvider());
+        }
     }
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
@@ -1576,16 +1637,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
             final IModel<TasksSearchDto> searchModel = (IModel) getDefaultModel();
 
-            DropDownChoice listSelect = new DropDownChoice(ID_STATE,
-                    new PropertyModel(searchModel, TasksSearchDto.F_STATUS),
-                    new AbstractReadOnlyModel<List<TaskDtoExecutionStatusFilter>>() {
-
-                        @Override
-                        public List<TaskDtoExecutionStatusFilter> getObject() {
-                            return createTypeList();
-                        }
-                    },
-                    new EnumChoiceRenderer(this));
+            DropDownChoice listSelect = new DropDownChoice<>(ID_STATE,
+                    new PropertyModel<>(searchModel, TasksSearchDto.F_STATUS),
+                    new ReadOnlyEnumValuesModel<>(TaskDtoExecutionStatusFilter.class),
+                    new EnumChoiceRenderer<>(this));
             listSelect.add(createFilterAjaxBehaviour());
             listSelect.setOutputMarkupId(true);
             listSelect.setNullValid(false);
@@ -1654,14 +1709,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     page.searchFilterPerformed(target);
                 }
             };
-        }
-
-        private List<TaskDtoExecutionStatusFilter> createTypeList() {
-            List<TaskDtoExecutionStatusFilter> list = new ArrayList<TaskDtoExecutionStatusFilter>();
-
-            Collections.addAll(list, TaskDtoExecutionStatusFilter.values());
-
-            return list;
         }
 
         private List<String> createCategoryList() {

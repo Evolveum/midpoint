@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,11 @@ public class TestSemiManualDisable extends TestSemiManual {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 	}
+	
+	@Override
+	protected BackingStore createBackingStore() {
+		return new CsvDisablingBackingStore();
+	}
 
 	@Override
 	protected String getResourceOid() {
@@ -91,11 +96,6 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 
 	@Override
-	protected void deprovisionInCsv(String username) throws IOException {
-		disableInCsv(username);
-	}
-
-	@Override
 	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
 		assertShadowNotDead(shadow);
 		assertShadowActivationAdministrativeStatus(shadow, expectAlternativeActivationStatus);
@@ -120,15 +120,17 @@ public class TestSemiManualDisable extends TestSemiManual {
 	@Override
 	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
 		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+				null, OperationResultStatusType.IN_PROGRESS, 
+				ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
 			assertPendingOperation(shadowRepo, pendingOperation,
 					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 					OperationResultStatusType.IN_PROGRESS,
 					null, null);
 		} else {
-			pendingOperation = findPendingOperation(shadowRepo,
-					OperationResultStatusType.SUCCESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			pendingOperation = findPendingOperation(shadowRepo, 
+					null, OperationResultStatusType.SUCCESS, 
+					ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 			assertPendingOperation(shadowRepo, pendingOperation,
 					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 					OperationResultStatusType.SUCCESS,
@@ -144,7 +146,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		deleteInCsv(username);
+		backingStore.deleteAccount(username);
 		try {
 			repositoryService.deleteObject(ShadowType.class, accountOid, result);
 		} catch (ObjectNotFoundException e) {

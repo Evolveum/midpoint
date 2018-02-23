@@ -17,16 +17,14 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -179,8 +177,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         	   createNewAssignmentContainerValueWrapper(newAssignment);
            }
 
-           refreshTable(target);
-
+            refreshTable(target);
+            reloadSavePreviewButtons(target);
        }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
@@ -283,7 +281,49 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
 	}
 
-	protected boolean isRelationVisible() {
+	@Override
+    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
+        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = super.initBasicColumns();
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
+            }
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
+            }
+        });
+        return columns;
+    }
+
+    private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
+	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
+	        return Model.of("");
+        }
+	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getTenantRef()), false));
+
+    }
+
+    private IModel<String> getOrgRefLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
+	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
+	        return Model.of("");
+        }
+	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getOrgRef()), false));
+
+    }
+
+     protected boolean isRelationVisible() {
 		return true;
 	}
 

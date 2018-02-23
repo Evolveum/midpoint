@@ -323,6 +323,14 @@ public final class RUtil {
                 + "', can't translate to '" + type + "'.");
     }
 
+    /*
+     *  Beware: this method provides results different from QNameUtil.qnameToUri for namespaces ending with "/":
+     *  E.g. for http://x/ plus auditor:
+     *    - this one: http://x/#auditor
+     *    - QNameUtil: http://x/auditor
+     *  Normally it should not be a problem, because repo may use any QName representation it wants ... but it might
+     *  be confusing in some situations.
+     */
     @NotNull
     public static String qnameToString(QName qname) {
         StringBuilder sb = new StringBuilder();

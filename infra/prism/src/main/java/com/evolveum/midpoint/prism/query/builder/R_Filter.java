@@ -346,6 +346,11 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     public S_ConditionEntry item(QName... names) {
         return item(new ItemPath(names));
     }
+    
+    @Override
+    public S_ConditionEntry item(String... names) {
+        return item(new ItemPath(names));
+    }
 
     @Override
     public S_ConditionEntry item(ItemPath itemPath) {
@@ -388,6 +393,9 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (parentFilter == null) {
             throw new IllegalStateException("endBlock() call without preceding block() one");
         }
+	    if (hasRestriction()) {
+		    return addSubfilter(null).endBlock();         // finish if this is open 'type' or 'exists' filter
+	    }
         if (currentFilter != null || parentFilter.hasRestriction()) {
             ObjectFilter simplified = simplify(currentFilter);
             if (simplified != null || parentFilter.hasRestriction()) {

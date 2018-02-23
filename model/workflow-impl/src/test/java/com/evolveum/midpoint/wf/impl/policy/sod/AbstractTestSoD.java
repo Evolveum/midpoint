@@ -182,7 +182,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Collections.singletonList(
-						new ExpectedTask(rolePirateOid, "Assigning role \"Pirate\" to user \"jack\""));
+						new ExpectedTask(rolePirateOid, "Role \"Pirate\" excludes role \"Judge\""));
 			}
 
 			@Override
@@ -296,7 +296,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Collections.singletonList(
-						new ExpectedTask(roleRespectableOid, "Assigning role \"Respectable\" to user \"jack\""));
+						new ExpectedTask(roleRespectableOid, "Role \"Thief\" (Respectable -> Thief) excludes role \"Judge\""));
 			}
 
 			@Override
