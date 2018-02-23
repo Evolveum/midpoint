@@ -14627,16 +14627,16 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-					    <xsd:annotation>
-					        <xsd:documentation>
-						     TODO:
-					        </xsd:documentation>
-					        <xsd:appinfo>
-								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-							</xsd:appinfo>
-					    </xsd:annotation>
-					</xsd:element>
+<!-- 			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1"> -->
+<!-- 			    <xsd:annotation> -->
+<!-- 			        <xsd:documentation> -->
+<!-- 				     TODO: -->
+<!-- 			        </xsd:documentation> -->
+<!-- 			        <xsd:appinfo> -->
+<!-- 						<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType> -->
+<!-- 					</xsd:appinfo> -->
+<!-- 			    </xsd:annotation> -->
+<!-- 			</xsd:element> -->
 		</xsd:sequence>
 	</xsd:complexType>
 	

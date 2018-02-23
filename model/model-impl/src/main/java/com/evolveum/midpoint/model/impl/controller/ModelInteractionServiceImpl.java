@@ -64,6 +64,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.StringPolicyUtils;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
@@ -109,6 +110,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -1231,17 +1233,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		ValuePolicyType stringPolicy = resolveValuePolicy(policyItemDefinition, policy, task, parentResult);
 
-		RawType rawValue = (RawType) policyItemDefinition.getValue();
+		Object value = policyItemDefinition.getValue();
 		String valueToValidate = null;
-
+		if (value instanceof RawType) {
+			valueToValidate = ((RawType) value).getParsedRealValue(String.class);
+		} else {
+			valueToValidate = (String) value;
+		}
+		
 		List<String> valuesToValidate = new ArrayList<>();
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
 		ItemPath path = null;
 		if (target != null) {
 			path = target.getPath().getItemPath();
 		}
-		if (rawValue != null) {
-			valueToValidate = rawValue.getParsedRealValue(String.class);
+		if (StringUtils.isNotEmpty(valueToValidate)) {
 			valuesToValidate.add(valueToValidate);
 		} else {
 			if (target == null || target.getPath() == null) {
@@ -1309,6 +1315,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
 			if (path != null ) result.addArbitraryObjectAsParam("path", path);
 			result.addParam("valueToValidate", newValue);
+			if (stringPolicy == null) {
+				stringPolicy = new ValuePolicyType();
+				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
+			}
 			if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
 				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
 				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
@@ -1563,15 +1573,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		
+		LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 		
 		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType(prismContext);
 		
 		String resetMethod = executeCredentialResetRequest.getResetMethod();
 		if (StringUtils.isBlank(resetMethod)) {
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad request.").key("execute.reset.credential.bad.request").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			throw new SchemaException(localizableMessage);
 			
@@ -1581,17 +1589,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
 		//TODO: search according tot he credentialID and others
 		if (resetPolicyType == null) {
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad configuration.").key("execute.reset.credential.bad.configuration").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.configuration", null, "Failed to execute reset password. Bad configuration.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			throw new SchemaException(localizableMessage);
 		}
 		
 		if (!resetMethod.equals(resetPolicyType.getName())) {
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad method.").key("execute.reset.credential.bad.method").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.method", null, "Failed to execute reset password. Bad method.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			throw new SchemaException(localizableMessage);
 		}
@@ -1601,16 +1605,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		if (credentialSourceType == null) {
 			//TODO: go through deprecated functionality
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. No credential source.").key("execute.reset.credential.no.credential.source").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.no.credential.source", null, "Failed to execute reset password. No credential source.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			//for now just let the user know that he needs to specify it
 			return response;
 		}
 		
+		ValuePolicyType valuePolicy = getValuePolicy(user, task, parentResult);
+		
 		ObjectDelta<UserType> userDelta = null;
 		if (credentialSourceType.getUserEntry() != null) {
+			PolicyItemDefinitionType policyItemDefinitione = new PolicyItemDefinitionType();
+			policyItemDefinitione.setValue(executeCredentialResetRequest.getUserEntry());
+			
+			if (!validateValue(user, valuePolicy, policyItemDefinitione, task, parentResult)) {
+				LOGGER.error("Cannot execute reset password. New password doesn't satisfy policy constraints");
+				parentResult.recordFatalError("Cannot execute reset password. New password doesn't satisfy policy constraints");
+				LocalizableMessage localizableMessage = builder.fallbackMessage("New password doesn't satisfy policy constraints.").key("execute.reset.credential.validation.failed").build();
+				throw new PolicyViolationException(localizableMessage);
+			}
+			
 			ProtectedStringType newProtectedPassword = new ProtectedStringType();
 			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
 			userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
@@ -1630,26 +1644,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				MiscUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, parentResult);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException 
 			| SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.failed", null, "Failed to execute reset password. Bad method.");
-//			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
 			throw e;
 		}
 
 		parentResult.recomputeStatus();
-		LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
-		LocalizableMessage message = builder.fallbackMessage("Reset password was successful").key("execute.reset.credential.successful").build();
-//		LocalizableMessage message = LocalizableMessageBuilder.new SingleLocalizableMessage("execute.reset.credential.successful", null, "Reset password was successful");
+		LocalizableMessage message = builder.fallbackMessage("Reset password was successful").key("execute.reset.credential.successful").fallbackLocalizableMessage(null).build();
 		response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		
 		return response;
 	}
 	
 	public void clearCaches() {
-		List<Cacheable> cacheableServices = cacheRegistry.getCacheableServices();
-		for (Cacheable cacheable: cacheableServices) {
-			cacheable.clearCache();
-		}
+		cacheRegistry.clearAllCaches();
 	}
 	
 

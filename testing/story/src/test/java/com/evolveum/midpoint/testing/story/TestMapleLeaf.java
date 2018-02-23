@@ -41,7 +41,10 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -276,17 +279,17 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 		
+		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
 		
 		//when
+		displayWhen(TEST_NAME);
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
 		executeCredentialResetRequest.setResetMethod("passwordReset");
 		executeCredentialResetRequest.setUserEntry("123passwd456");
 		modelInteractionService.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
-		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
 		
 		//THEN
-		
 		displayThen(TEST_NAME);
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		UserType userTypeAfter = userAfter.asObjectable();
