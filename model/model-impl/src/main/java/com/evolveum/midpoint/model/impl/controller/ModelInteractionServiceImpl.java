@@ -1563,15 +1563,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		
+		LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 		
 		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType(prismContext);
 		
 		String resetMethod = executeCredentialResetRequest.getResetMethod();
 		if (StringUtils.isBlank(resetMethod)) {
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad request.").key("execute.reset.credential.bad.request").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			throw new SchemaException(localizableMessage);
 			
@@ -1581,17 +1579,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		CredentialsResetPolicyType resetPolicyType = securityPolicy.getCredentialsReset();
 		//TODO: search according tot he credentialID and others
 		if (resetPolicyType == null) {
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad configuration.").key("execute.reset.credential.bad.configuration").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.configuration", null, "Failed to execute reset password. Bad configuration.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			throw new SchemaException(localizableMessage);
 		}
 		
 		if (!resetMethod.equals(resetPolicyType.getName())) {
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. Bad method.").key("execute.reset.credential.bad.method").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.method", null, "Failed to execute reset password. Bad method.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			throw new SchemaException(localizableMessage);
 		}
@@ -1601,9 +1595,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		if (credentialSourceType == null) {
 			//TODO: go through deprecated functionality
-			LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 			LocalizableMessage localizableMessage = builder.fallbackMessage("Failed to execute reset password. No credential source.").key("execute.reset.credential.no.credential.source").build();
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.no.credential.source", null, "Failed to execute reset password. No credential source.");
 			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			//for now just let the user know that he needs to specify it
 			return response;
@@ -1613,6 +1605,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (credentialSourceType.getUserEntry() != null) {
 			ProtectedStringType newProtectedPassword = new ProtectedStringType();
 			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
+			
+			PolicyItemDefinitionType policyItemDefinitione = new PolicyItemDefinitionType();
+			policyItemDefinitione.setValue(credentialSourceType.getUserEntry());
+			
+			if (!validateValue(user, null, policyItemDefinitione, task, parentResult)) {
+				LOGGER.error("Cannot execute reset password. New password doesn't satisfy policy constraints");
+				parentResult.recordFatalError("Cannot execute reset password. New password doesn't satisfy policy constraints");
+				throw new PolicyViolationException(new SingleLocalizableMessage("execute.reset.credential.validation.failed", null, "New password doesn't satisfy policy constraints."));
+			}
+			
 			userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
 					SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
 
@@ -1630,16 +1632,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				MiscUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, parentResult);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException 
 			| SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
-//			SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.failed", null, "Failed to execute reset password. Bad method.");
-//			response = response.message(LocalizationUtil.createLocalizableMessageType(localizableMessage));
 			response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
 			throw e;
 		}
 
 		parentResult.recomputeStatus();
-		LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 		LocalizableMessage message = builder.fallbackMessage("Reset password was successful").key("execute.reset.credential.successful").build();
-//		LocalizableMessage message = LocalizableMessageBuilder.new SingleLocalizableMessage("execute.reset.credential.successful", null, "Reset password was successful");
 		response.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		
 		return response;
