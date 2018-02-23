@@ -49,14 +49,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.*;
-import org.hibernate.query.Query;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -171,11 +172,16 @@ public class ObjectRetriever {
 			// this just loads object to hibernate session, probably will be removed later. Merge after this get
 			// will be faster. Read and use object only from fullObject column.
 			// todo remove this later [lazyman]
-			Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-			criteria.add(Restrictions.eq("oid", oid));
+            Class clazz = ClassMapper.getHQLTypeClass(type);
 
-			criteria.setLockMode(lockOptions.getLockMode());
-			RObject obj = (RObject) criteria.uniqueResult();
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery cq = cb.createQuery(clazz);
+            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
+
+            Query query = session.createQuery(cq);
+            query.setLockOptions(lockOptions);
+
+            RObject obj = (RObject) query.uniqueResult();
 
 			if (obj != null) {
 				fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
