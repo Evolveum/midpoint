@@ -80,7 +80,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.task" level="TRACE" />
@@ -117,7 +117,7 @@
 	<logger name="com.evolveum.midpoint.repo.common.task" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.SystemObjectCache" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.AuditController" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
+	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.repo.common.expression.ExpressionUtil" level="DEBUG"/>
 	
