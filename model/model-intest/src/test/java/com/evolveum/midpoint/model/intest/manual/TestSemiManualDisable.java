@@ -95,6 +95,11 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 
 	@Override
+	protected boolean nativeCapabilitiesEntered() {
+		return true;
+	}
+	
+	@Override
 	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
 		assertShadowNotDead(shadow);
 		assertShadowActivationAdministrativeStatus(shadow, expectAlternativeActivationStatus);

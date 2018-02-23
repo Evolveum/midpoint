@@ -15,12 +15,16 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static java.util.Collections.singleton;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -100,13 +104,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 
         assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
 		assertEquals("Trigger was called incorrect number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
 	@Test
@@ -134,7 +138,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
 	@Test
@@ -165,7 +169,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Trigger was called incorrect number of times", 1, testTriggerHandler.getInvocationCount());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
 	@Test
@@ -199,7 +203,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
 		assertNoTrigger(UserType.class, USER_JACK_OID);
 
-		assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
 	@Test
@@ -227,7 +231,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertNull("Trigger was called while not expecting it", testTriggerHandler.getLastObject());
         assertNoTrigger(UserType.class, USER_JACK_OID);
 
-        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
 	@Test
@@ -259,7 +263,59 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
 		assertTrigger(getUser(USER_JACK_OID), MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
 
-		assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
+	// MID-4474
+	@Test
+	public void test210InterruptedScanner() throws Exception {
+		final String TEST_NAME = "test210InterruptedScanner";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+
+		// to avoid unexpected runs of this task that would move lastScanTimestamp
+		boolean suspended = taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 20000L, result);
+		assertTrue("trigger scanner task was not suspended (before operation)", suspended);
+
+		XMLGregorianCalendar lastScanTimestampBefore = getLastScanTimestamp(TASK_TRIGGER_SCANNER_OID);
+		assertNotNull(lastScanTimestampBefore);
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		XMLGregorianCalendar startCalPlus5days = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+		startCalPlus5days.add(XmlTypeConverter.createDuration("P5D"));
+		replaceTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5days), MockTriggerHandler.HANDLER_URI);
+
+		final long ONE_DAY = 86400L * 1000L;
+		testTriggerHandler.setDelay(ONE_DAY);
+
+		taskManager.resumeTasks(singleton(TASK_TRIGGER_SCANNER_OID), result);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		IntegrationTestTools.waitFor("Waiting for trigger handler invocation", () -> testTriggerHandler.getInvocationCount() > 0, 60000);
+		suspended = taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 20000L, result);
+		assertTrue("trigger scanner task was not suspended (after operation)", suspended);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		// THEN
+		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
+		PrismObject<UserType> jackAfter = getUser(USER_JACK_OID);
+		display("jack after", jackAfter);
+		assertTrigger(jackAfter, MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
+		assertEquals("Wrong # of triggers on jack", 1, jackAfter.asObjectable().getTrigger().size());
+
+		XMLGregorianCalendar lastScanTimestampAfter = getLastScanTimestamp(TASK_TRIGGER_SCANNER_OID);
+
+		// this assert may fail occasionally if the trigger scanner would start in between (we'll see how often)
+		assertEquals("Last scan timestamp was changed", lastScanTimestampBefore, lastScanTimestampAfter);
+	}
+
+	// trigger scanner task is suspended here; and handler is set to a delay of one day (reset will clear that)
 }

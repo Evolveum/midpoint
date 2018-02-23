@@ -16,11 +16,13 @@
 
 package com.evolveum.midpoint.web.security;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,6 +57,20 @@ public class MidPointAccessDeniedHandler implements AccessDeniedHandler {
         }
 
         String uri = req.getRequestURI();
-        return "/j_spring_security_logout".equals(uri) || "/spring_security_login".equals(uri);
+        return createUri(req, "/j_spring_security_logout").equals(uri)
+                || createUri(req, "/spring_security_login").equals(uri);
+    }
+
+    private String createUri(HttpServletRequest req, String uri) {
+        StringBuilder sb = new StringBuilder();
+
+        ServletContext ctx = req.getServletContext();
+        String ctxPath = ctx.getContextPath();
+        if (StringUtils.isNotEmpty(ctxPath)) {
+            sb.append(ctxPath);
+        }
+        sb.append(uri);
+
+        return sb.toString();
     }
 }

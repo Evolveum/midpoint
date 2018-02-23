@@ -39,6 +39,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,6 +66,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 	protected static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
 	protected static final String RESOURCE_MANUAL_OID = "0ef80ab8-2906-11e7-b81a-3f343e28c264";
+	
+	protected static final File RESOURCE_MANUAL_CAPABILITIES_FILE = new File(TEST_DIR, "resource-manual-capabilities.xml");
+	protected static final String RESOURCE_MANUAL_CAPABILITIES_OID = "0ef80ab8-2906-11e7-b81a-3f343e28c264";
 
 	protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_OID = "aea5a57c-2904-11e7-8020-7b121a9e3595";
@@ -118,6 +123,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		super.initSystem(initTask, initResult);
 
 		addObject(USER_BARBOSSA_FILE);
+		InternalMonitor.setTrace(InternalOperationClasses.REPOSITORY_OPERATIONS, true);
 	}
 	
 	@Override
@@ -198,6 +204,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertNotNull("No async reference in result", willLastCaseOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -284,6 +292,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -375,6 +385,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -464,6 +476,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -517,6 +531,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -610,6 +626,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -701,6 +719,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -754,6 +774,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -838,6 +860,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -902,6 +926,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -911,6 +937,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		assertSteadyResources();
 
 		accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
@@ -925,6 +953,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
+		assertSteadyResources();
+		
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
 		display("Repo shadow", shadowRepo);
 		assertPendingOperationDeltas(shadowRepo, 1);
@@ -962,6 +992,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
 		assertWillUnassignedFuture(shadowModelFuture, true);
+		
+		assertSteadyResources();
 
 		// Make sure that the account is still linked
 		PrismObject<UserType> userAfter = getUser(userWillOid);
@@ -973,6 +1005,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertNotNull("No async reference in result", willLastCaseOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -1043,6 +1077,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertNotNull("No async reference in result", willLastCaseOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -1103,6 +1139,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertWillUnassignedFuture(shadowModelFuture, true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
@@ -1161,6 +1199,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertWillUnassignedFuture(shadowModelFuture, true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -1212,6 +1252,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertWillUnassignedFuture(shadowModelFuture, false);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	// TODO: nofetch, nofetch+future
@@ -1242,6 +1284,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertDeprovisionedTimedOutUser(userAfter, accountWillOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	// TODO: create, close case, then update backing store.

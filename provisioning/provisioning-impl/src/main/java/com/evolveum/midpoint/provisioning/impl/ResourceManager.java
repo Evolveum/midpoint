@@ -398,6 +398,20 @@ public class ResourceManager {
 			
 			// We have successfully fetched the resource schema. Therefore the resource must be up.
 			modifications.add(createResourceAvailabilityStatusDelta(resource, AvailabilityStatusType.UP));
+			
+		} else {
+			if (resourceSchema != null) {
+				CachingMetadataType schemaCachingMetadata = resource.asObjectable().getSchema().getCachingMetadata();
+				if (schemaCachingMetadata == null) {
+					schemaCachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+					modifications.add(
+							PropertyDelta.createModificationReplaceProperty(
+								new ItemPath(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA), 
+								resource.getDefinition(),
+								schemaCachingMetadata)
+						);
+				}
+			}
 		}
 
 		if (!modifications.isEmpty()) {
@@ -406,6 +420,7 @@ public class ResourceManager {
 	        		LOGGER.trace("Completing {}:\n{}", resource, DebugUtil.debugDump(modifications, 1));
 	        	}
 				repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+				InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
 	        } catch (ObjectAlreadyExistsException ex) {
 	        	// This should not happen
 	            throw new SystemException(ex);
@@ -445,8 +460,20 @@ public class ResourceManager {
 			Collection<Object> retrievedCapabilities, Collection<ItemDelta<?, ?>> modifications, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
-		if (!forceRefresh && capType.getNative() != null && !capType.getNative().getAny().isEmpty()) {
-			return;
+		if (capType.getNative() != null && !capType.getNative().getAny().isEmpty()) {
+			if (!forceRefresh) {
+				CachingMetadataType cachingMetadata = capType.getCachingMetadata();
+				if (cachingMetadata == null) {
+					cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+					modifications.add(
+							PropertyDelta.createModificationReplaceProperty(
+								new ItemPath(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA), 
+								connectorSpec.getResource().getDefinition(),
+								cachingMetadata)
+						);
+				}
+				return;
+			}
 		}
 		
 		if (retrievedCapabilities == null) {
@@ -474,15 +501,11 @@ public class ResourceManager {
 				itemPath, prismContext, capType.asPrismContainerValue().clone());
 		
 		modifications.addAll(capabilitiesReplaceDelta.getModifications());
-
 	}
 
 	private ContainerDelta<XmlSchemaType> createSchemaUpdateDelta(PrismObject<ResourceType> resource, ResourceSchema resourceSchema) throws SchemaException {
 		Document xsdDoc = null;
 		try {
-			// Convert to XSD
-			LOGGER.trace("Serializing XSD resource schema for {} to DOM", resource);
-
 			xsdDoc = resourceSchema.serializeToXsd();
 
 			if (LOGGER.isTraceEnabled()) {
@@ -500,10 +523,6 @@ public class ResourceManager {
 			throw new SchemaException("No schema was generated for " + resource);
 		}
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-
-		// Store generated schema into repository (modify the original
-		// Resource)
-		LOGGER.info("Storing generated schema in resource {}", resource);
 
 		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(
 				ResourceType.F_SCHEMA, ResourceType.class, prismContext);
@@ -958,17 +977,20 @@ public class ResourceManager {
 		connectorManager.cacheConfifuredConnector(connectorSpec, connector);
 	}
 	
-	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType status, OperationResult result){
+	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, OperationResult result){
 			ResourceType resourceType = resource.asObjectable();
 			
 			synchronized (resource) {
-				if (resourceType.getOperationalState() == null || resourceType.getOperationalState().getLastAvailabilityStatus() == null || resourceType.getOperationalState().getLastAvailabilityStatus() != status) {
+				AvailabilityStatusType currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resourceType);
+				if (!newStatus.equals(currentStatus)) {
+					LOGGER.debug("Changing availability status of {}: {} -> {}", resource, currentStatus, newStatus);
 					List<PropertyDelta<?>> modifications = new ArrayList<>();
-					PropertyDelta<?> statusDelta = createResourceAvailabilityStatusDelta(resource, status);
+					PropertyDelta<?> statusDelta = createResourceAvailabilityStatusDelta(resource, newStatus);
 					modifications.add(statusDelta);
 					
 					try {
 						repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, result);
+						InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
 					} catch(SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException ex) {
 						throw new SystemException(ex);
 					}
@@ -976,10 +998,10 @@ public class ResourceManager {
 				resource.modifyUnfrozen(() -> {
 					if (resourceType.getOperationalState() == null) {
 						OperationalStateType operationalState = new OperationalStateType();
-						operationalState.setLastAvailabilityStatus(status);
+						operationalState.setLastAvailabilityStatus(newStatus);
 						resourceType.setOperationalState(operationalState);
 					} else {
-						resourceType.getOperationalState().setLastAvailabilityStatus(status);
+						resourceType.getOperationalState().setLastAvailabilityStatus(newStatus);
 					}
 				});
 			}

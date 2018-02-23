@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
@@ -278,6 +279,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
+
+        Map<String, MidPointApplicationConfiguration> map =
+                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
+        if (map != null) {
+            map.forEach((key, value) -> value.init(this));
+        }
 
         // for schrodinger selenide library
         initializeSchrodinger();

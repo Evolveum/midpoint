@@ -966,6 +966,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void assertSteadyResources() {
 		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
+		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -975,6 +976,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void rememberSteadyResources() {
 		rememberCounter(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
+		rememberCounter(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);

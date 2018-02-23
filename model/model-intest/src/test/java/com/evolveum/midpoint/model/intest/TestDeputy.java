@@ -1271,7 +1271,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         // THEN
         displayThen(TEST_NAME);
 		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
 	}
 
     /**

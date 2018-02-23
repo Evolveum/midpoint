@@ -131,7 +131,8 @@
         		<ref bean="velocityScriptEvaluator"/>
         	</list>
         </property>
-
+        <property name="cacheRegistry" ref="cacheRegistry"/>
+        
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
@@ -216,6 +217,7 @@
             <ref bean="asIsExpressionEvaluatorFactory"/>
         </property>
         <property name="objectResolver" ref="modelObjectResolver"/>
+        <property name="cacheRegistry" ref="cacheRegistry"/>
     </bean>
 
     <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory"

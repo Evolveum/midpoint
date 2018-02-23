@@ -91,7 +91,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	private synchronized void initProcessedOids(Task coordinatorTask) {
 		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
-		processedOidsMap.put(coordinatorTask.getOid(), new HashSet<String>());
+		processedOidsMap.put(coordinatorTask.getOid(), new HashSet<>());
 	}
 
 	// TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
@@ -129,9 +129,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
 		initProcessedOids(coordinatorTask);
 
-		TimeValidityPolicyConstraintType validtyContraintType = getValidityPolicyConstraint(coordinatorTask);
+		TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
 
-		Duration activateOn = getActivateOn(validtyContraintType);
+		Duration activateOn = getActivateOn(validityConstraintType);
 
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
@@ -140,7 +140,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (activateOn != null) {
-			ItemPathType itemPathType = validtyContraintType.getItem();
+			ItemPathType itemPathType = validityConstraintType.getItem();
 			ItemPath path = itemPathType.getItemPath();
 			if (path == null) {
 				throw new SchemaException("No path defined in the validity constraint.");
@@ -161,14 +161,12 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		return query;
 	}
 
-	private Duration getActivateOn(TimeValidityPolicyConstraintType validtyContraintType) {
-
-		Duration activateOn = null;
-		if (validtyContraintType != null) {
-			activateOn = validtyContraintType.getActivateOn();
+	private Duration getActivateOn(TimeValidityPolicyConstraintType validityConstraintType) {
+		if (validityConstraintType != null) {
+			return validityConstraintType.getActivateOn();
+		} else {
+			return null;
 		}
-
-		return activateOn;
 	}
 
 	private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp){
@@ -217,9 +215,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	@Override
 	protected void finish(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException {
-		TimeValidityPolicyConstraintType validtyContraintType = getValidityPolicyConstraint(coordinatorTask);
+		TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
 
-		Duration activateOn = getActivateOn(validtyContraintType);
+		Duration activateOn = getActivateOn(validityConstraintType);
 		if (activateOn != null) {
 			handler.getThisScanTimestamp().add(activateOn);
 		}

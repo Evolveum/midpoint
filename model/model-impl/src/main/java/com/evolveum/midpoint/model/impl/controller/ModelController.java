@@ -50,6 +50,8 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -147,6 +149,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private ObjectMerger objectMerger;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private EmulatedSearchProvider emulatedSearchProvider;
+	@Autowired private CacheRegistry cacheRegistry;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -402,7 +405,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								result1.muteLastSubresultError();
 							}
 						}
-
+						
 						final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
 						PrismObject objectToDetermineDetailsForAudit = null;
 						try {
@@ -610,6 +613,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					systemObjectCache.invalidateCaches();
 				}
 			}
+			
+			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
+				cacheRegistry.clearAllCaches();
+			}
+
 		}
 	}
 

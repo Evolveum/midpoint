@@ -172,6 +172,7 @@ public class ValuePolicyProcessor {
 			AbstractValuePolicyOriginResolver<O> originResolver, List<LocalizableMessage> messages, String shortDesc, Task task,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
+		//TODO: do we want to throw exception when no value policy defined??
 		Validate.notNull(pp, "Value policy must not be null.");
 
 		OperationResult result = parentResult.createSubresult(OPERATION_STRING_POLICY_VALIDATION);

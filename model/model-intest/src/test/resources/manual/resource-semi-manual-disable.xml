@@ -157,6 +157,30 @@
 	</schemaHandling>
 	
 	<capabilities>
+		<!-- No cahingMetadata here MID-4472, MID-4174 -->
+		<native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:type="c:CapabilityCollectionType">
+	         <cap:read>
+	            <cap:cachingOnly>true</cap:cachingOnly>
+	         </cap:read>
+	         <cap:create>
+	            <cap:manual>true</cap:manual>
+	         </cap:create>
+	         <cap:update>
+	            <cap:manual>true</cap:manual>
+	         </cap:update>
+	         <cap:addRemoveAttributeValues/>
+	         <cap:delete>
+	            <cap:manual>true</cap:manual>
+	         </cap:delete>
+	         <cap:activation>
+	            <cap:status/>
+	         </cap:activation>
+	         <cap:credentials>
+	            <cap:password/>
+	         </cap:credentials>
+         </native>
 		<configured>
 			<cap:activation>
 				<cap:status>

@@ -65,7 +65,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		long count = recordCountInternal(counter);
 		InternalOperationClasses operationClass = counter.getOperationClass();
 		if (operationClass != null && isTrace(operationClass)) {
-			traceOperation(operationClass, count);
+			traceOperation(counter, operationClass, count);
 		}
 	}
 
@@ -100,12 +100,12 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		traceMap.put(operationClass, val);
 	}
 
-	private static void traceOperation(InternalOperationClasses operationClass, long counter) {
-		traceOperation(operationClass.getKey(), null, counter, false);
+	private static void traceOperation(InternalCounters counter, InternalOperationClasses operationClass, long count) {
+		traceOperation(counter.getKey() + "["+ operationClass.getKey() +"]", null, count, false);
 	}
 
-	private static void traceOperation(String opName, Supplier<String> paramsSupplier, long counter, boolean traceAndDebug) {
-		LOGGER.info("MONITOR {} ({})", opName, counter);
+	private static void traceOperation(String opName, Supplier<String> paramsSupplier, long count, boolean traceAndDebug) {
+		LOGGER.info("MONITOR {} ({})", opName, count);
 		if (LOGGER.isDebugEnabled()) {
 			StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
 			String immediateClass = null;
@@ -129,9 +129,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 				params = paramsSupplier.get();
 			}
 			if (traceAndDebug) {
-				LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, counter, immediateClass, immediateMethod);
+				LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, count, immediateClass, immediateMethod);
 			}
-			LOGGER.trace("MONITOR {}({}) ({}):\n{}", opName, params, counter, sb);
+			LOGGER.trace("MONITOR {}({}) ({}):\n{}", opName, params, count, sb);
 		}
 	}
 

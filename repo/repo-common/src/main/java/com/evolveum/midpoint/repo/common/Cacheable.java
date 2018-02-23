@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.test;
 
-import com.evolveum.midpoint.util.exception.CommonException;
+package com.evolveum.midpoint.repo.common;
 
-/**
- * @author Radovan Semancik
- *
- */
-public interface Checker {
 
-	/**
-	 * true = done
-	 * false = continue waiting
-	 */
-	boolean check() throws CommonException;
+public interface Cacheable {
 
-	default void timeout() {
-	}
-
+	public void clearCache();
 }

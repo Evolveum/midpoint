@@ -18,12 +18,15 @@ package com.evolveum.midpoint.repo.common.expression;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -38,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  * @author semancik
  *
  */
-public class ExpressionFactory {
+public class ExpressionFactory implements Cacheable {
 
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
@@ -47,6 +50,7 @@ public class ExpressionFactory {
 	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
 	final private SecurityContextManager securityContextManager;
 	private LocalizationService localizationService;
+	private CacheRegistry cacheRegistry;
 
 	public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext,
 			LocalizationService localizationService) {
@@ -67,6 +71,19 @@ public class ExpressionFactory {
 		return localizationService;
 	}
 
+	public void setCacheRegistry(CacheRegistry cacheRegistry) {
+		this.cacheRegistry = cacheRegistry;
+	}
+	
+	public CacheRegistry getCacheRegistry() {
+		return cacheRegistry;
+	}
+	
+	@PostConstruct
+	public void register() {
+		cacheRegistry.registerCacheableService(this);
+	}
+	
 	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
 			D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
@@ -166,6 +183,11 @@ public class ExpressionFactory {
 		private ExpressionFactory getOuterType() {
 			return ExpressionFactory.this;
 		}
+	}
+	
+	@Override
+	public void clearCache() {
+		cache = new HashMap<>();
 	}
 
 }
