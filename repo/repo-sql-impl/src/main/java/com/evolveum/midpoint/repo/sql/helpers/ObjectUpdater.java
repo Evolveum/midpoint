@@ -52,8 +52,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Criteria;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.NativeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,8 +63,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.*;
@@ -332,13 +332,8 @@ public class ObjectUpdater {
 
             closureContext = closureManager.onBeginTransactionDelete(session, type, oid);
 
-            Class clazz = ClassMapper.getHQLTypeClass(type);
-
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery cq = cb.createQuery(clazz);
-            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
-
-            Query query = session.createQuery(cq);
+            Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            query.add(Restrictions.eq("oid", oid));
             RObject object = (RObject) query.uniqueResult();
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid

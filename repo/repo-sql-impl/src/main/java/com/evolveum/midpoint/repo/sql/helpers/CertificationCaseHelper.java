@@ -58,8 +58,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import java.util.*;
 
 /**
@@ -403,15 +401,12 @@ public class CertificationCaseHelper {
 
         LOGGER.debug("Loading certification campaign cases.");
 
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery cq = cb.createQuery(RAccessCertificationCase.class);
-        cq.where(cb.equal(cq.from(RAccessCertificationCase.class).get("ownerOid"), object.getOid()));
-
-        Query query = session.createQuery(cq);
+        Criteria criteria = session.createCriteria(RAccessCertificationCase.class);
+        criteria.add(Restrictions.eq("ownerOid", object.getOid()));
 
         // TODO fetch only XML representation
 		@SuppressWarnings({"raw", "unchecked"})
-        List<RAccessCertificationCase> cases = query.list();
+        List<RAccessCertificationCase> cases = criteria.list();
         if (cases == null || cases.isEmpty()) {
             return;
         }

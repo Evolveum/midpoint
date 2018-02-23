@@ -43,6 +43,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.FlushMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
+import org.hibernate.criterion.Projections;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
@@ -50,8 +51,6 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.sql.Statement;
@@ -576,10 +575,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
 	private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
-        cq.select(cb.count(cq.from(RAuditEventRecord.class)));
-        Number totalAuditRecords = (Number) session.createQuery(cq).uniqueResult();
+        Number totalAuditRecords = (Number) session.createCriteria(RAuditEventRecord.class)
+                .setProjection(Projections.rowCount())
+                .uniqueResult();
         int recordsToDelete = totalAuditRecords.intValue() - recordsToKeep;
         if (recordsToDelete <= 0) {
             recordsToDelete = 0;

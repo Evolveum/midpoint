@@ -41,14 +41,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Session;
+import org.hibernate.Criteria;
 import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -212,19 +212,38 @@ public class LookupTableHelper {
 
         GetOperationOptions getOption = findLookupTableGetOption(options);
         RelationalValueSearchQuery queryDef = getOption == null ? null : getOption.getRelationalValueSearchQuery();
-        Query query = setupLookupTableRowsQuery(session, queryDef, object.getOid());
+        Criteria criteria = setupLookupTableRowsQuery(session, queryDef, object.getOid());
         if (queryDef != null && queryDef.getPaging() != null) {
             ObjectPaging paging = queryDef.getPaging();
 
             if (paging.getOffset() != null) {
-                query.setFirstResult(paging.getOffset());
+                criteria.setFirstResult(paging.getOffset());
             }
             if (paging.getMaxSize() != null) {
-                query.setMaxResults(paging.getMaxSize());
+                criteria.setMaxResults(paging.getMaxSize());
+            }
+
+            ItemPath orderByPath = paging.getOrderBy();
+            if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
+                if (orderByPath.size() > 1 ||
+                        !(orderByPath.first() instanceof NameItemPathSegment) && !(orderByPath.first() instanceof IdentifierPathSegment)) {
+                    throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
+                }
+				ItemPathSegment first = orderByPath.first();
+				String orderBy = first instanceof NameItemPathSegment ?
+						((NameItemPathSegment) first).getName().getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
+                switch (paging.getDirection()) {
+                    case ASCENDING:
+                        criteria.addOrder(Order.asc(orderBy));
+                        break;
+                    case DESCENDING:
+                        criteria.addOrder(Order.desc(orderBy));
+                        break;
+                }
             }
         }
 
-        List<RLookupTableRow> rows = query.list();
+        List<RLookupTableRow> rows = criteria.list();
         if (rows == null || rows.isEmpty()) {
             return;
         }
@@ -237,19 +256,12 @@ public class LookupTableHelper {
         }
     }
 
-    private Query setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) throws SchemaException {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery cq = cb.createQuery(RLookupTableRow.class);
+    private Criteria setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) {
+        Criteria criteria = session.createCriteria(RLookupTableRow.class);
+        criteria.add(Restrictions.eq("ownerOid", oid));
 
-        Root<RLookupTableRow> root = cq.from(RLookupTableRow.class);
-
-        cq.where(cb.equal(root.get("ownerOid"), oid));
-
-        if (queryDef == null) {
-            return session.createQuery(cq);
-        }
-
-        if (queryDef.getColumn() != null
+        if (queryDef != null
+                && queryDef.getColumn() != null
                 && queryDef.getSearchType() != null
                 && StringUtils.isNotEmpty(queryDef.getSearchValue())) {
 
@@ -264,43 +276,17 @@ public class LookupTableHelper {
             }
             switch (queryDef.getSearchType()) {
                 case EXACT:
-                    cq.where(cb.equal(root.get(param), value));
+                    criteria.add(Restrictions.eq(param, value));
                     break;
                 case STARTS_WITH:
-                    cq.where(cb.like(root.get(param), value + "%"));
+                    criteria.add(Restrictions.like(param, value + "%"));
                     break;
                 case SUBSTRING:
-                    cq.where(cb.like(root.get(param), "%" + value + "%"));
+                    criteria.add(Restrictions.like(param, "%" + value + "%"));
             }
         }
 
-        ObjectPaging paging = queryDef.getPaging();
-        if (paging == null) {
-            return session.createQuery(cq);
-        }
-
-        ItemPath orderByPath = paging.getOrderBy();
-        if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
-            if (orderByPath.size() > 1 ||
-                    !(orderByPath.first() instanceof NameItemPathSegment) && !(orderByPath.first() instanceof IdentifierPathSegment)) {
-                throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
-            }
-
-            ItemPathSegment first = orderByPath.first();
-            String orderBy = first instanceof NameItemPathSegment ?
-                    ((NameItemPathSegment) first).getName().getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
-
-            switch (paging.getDirection()) {
-                case ASCENDING:
-                    cq.orderBy(cb.asc(root.get(orderBy)));
-                    break;
-                case DESCENDING:
-                    cq.orderBy(cb.desc(root.get(orderBy)));
-                    break;
-            }
-        }
-
-        return session.createQuery(cq);
+        return criteria;
     }
 
     public <T extends ObjectType> Collection<? extends ItemDelta> filterLookupTableModifications(Class<T> type,
