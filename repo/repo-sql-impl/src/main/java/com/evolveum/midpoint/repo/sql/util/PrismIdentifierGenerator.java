@@ -16,6 +16,10 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.cxf.common.util.StringUtils;
@@ -26,11 +30,14 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class PrismIdentifierGenerator<O extends ObjectType> {
+public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDumpable {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PrismIdentifierGenerator.class);
 
     public enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
     
     private final Operation operation;
+    private Long lastId = null;
     private Set<Long> usedIds = new HashSet<>();
     
     public PrismIdentifierGenerator(@NotNull Operation operation) {
@@ -120,11 +127,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> {
                         result.getValues().add(val);
                     }
                 } else {
-                	if (nextId == null) {
-                		nextId = getStartId() + 1;
-                	}
-                    val.setId(nextId);
-                    nextId++;
+                    val.setId(nextId());
                     if (operation == Operation.ADD) {
                         result.getValues().add(val);
                     }
@@ -133,11 +136,28 @@ public class PrismIdentifierGenerator<O extends ObjectType> {
         }
     }
     
+    public long nextId() {
+    	if (lastId == null) {
+    		lastId = getStartId();
+    	}
+    	lastId++;
+    	return lastId;
+    }
+    
     private long getStartId() {
     	if (usedIds.isEmpty()) {
     		return 0L;
     	}
     	return Collections.max(usedIds);
     }
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilder(PrismIdentifierGenerator.class, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "operation", operation, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "lastId", lastId, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "usedIds", usedIds, indent + 1);
+		return sb.toString();
+	}
 
 }

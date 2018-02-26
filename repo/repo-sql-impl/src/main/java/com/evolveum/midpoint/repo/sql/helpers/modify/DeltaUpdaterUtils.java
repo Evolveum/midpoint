@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.util.*;
@@ -31,8 +32,8 @@ import java.util.*;
  */
 public class DeltaUpdaterUtils {
 
-    public static void addValues(Collection existing, Collection<PrismEntityPair<?>> valuesToAdd) {
-        markNewOnesTransientAndAddToExisting(existing, valuesToAdd);
+    public static void addValues(Collection existing, Collection<PrismEntityPair<?>> valuesToAdd, PrismIdentifierGenerator idGenerator) {
+        markNewOnesTransientAndAddToExisting(existing, valuesToAdd, idGenerator);
     }
 
     public static void deleteValues(Collection existing, Collection<PrismEntityPair<?>> valuesToDelete, Item item) {
@@ -97,9 +98,9 @@ public class DeltaUpdaterUtils {
         return pairs;
     }
 
-    public static void replaceValues(Collection existing, Collection<PrismEntityPair<?>> valuesToReplace, Item item) {
+    public static void replaceValues(Collection existing, Collection<PrismEntityPair<?>> valuesToReplace, Item item, PrismIdentifierGenerator idGenerator) {
         if (existing.isEmpty()) {
-            markNewOnesTransientAndAddToExisting(existing, valuesToReplace);
+            markNewOnesTransientAndAddToExisting(existing, valuesToReplace, idGenerator);
             return;
         }
 
@@ -148,10 +149,10 @@ public class DeltaUpdaterUtils {
             }
         }
 
-        markNewOnesTransientAndAddToExisting(existing, valuesToReplace);
+        markNewOnesTransientAndAddToExisting(existing, valuesToReplace, idGenerator);
     }
 
-    public static void markNewOnesTransientAndAddToExisting(Collection existing, Collection<PrismEntityPair<?>> newOnes) {
+    public static void markNewOnesTransientAndAddToExisting(Collection existing, Collection<PrismEntityPair<?>> newOnes, PrismIdentifierGenerator idGenerator) {
         Set<Integer> usedIds = new HashSet<>();
         for (Object obj : existing) {
             if (!(obj instanceof Container)) {
@@ -164,7 +165,6 @@ public class DeltaUpdaterUtils {
             }
         }
 
-        Integer nextId = 1;
         for (PrismEntityPair item : newOnes) {
             if (item.getRepository() instanceof EntityState) {
                 EntityState es = (EntityState) item.getRepository();
@@ -184,13 +184,9 @@ public class DeltaUpdaterUtils {
                     usedIds.add(expectedId);
                     ((Container) item.getRepository()).setId(expectedId);
                 } else {
-                    while (usedIds.contains(nextId)) {
-                        nextId++;
-                    }
-
-                    usedIds.add(nextId);
-                    ((Container) item.getRepository()).setId(nextId);
-                    ((PrismContainerValue) item.getPrism()).setId(nextId.longValue());
+                    long nextId = idGenerator.nextId();
+                    ((Container) item.getRepository()).setId((int) nextId);
+                    ((PrismContainerValue) item.getPrism()).setId(nextId);
                 }
             }
 

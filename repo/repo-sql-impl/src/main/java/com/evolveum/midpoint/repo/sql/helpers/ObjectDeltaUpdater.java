@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
@@ -108,6 +109,9 @@ public class ObjectDeltaUpdater {
         // mark newly added containers/references as transient
 
         // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
+        
+        PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+        idGenerator.collectUsedIds(prismObject);
 
         // preprocess modifications
         Collection<? extends ItemDelta> processedModifications = prismObject.narrowModifications((Collection<? extends ItemDelta<?, ?>>) modifications);
@@ -129,7 +133,7 @@ public class ObjectDeltaUpdater {
             }
 
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
-                handleObjectExtensionOrAttributesDelta(object, delta);
+                handleObjectExtensionOrAttributesDelta(object, delta, idGenerator);
                 continue;
             }
 
@@ -148,7 +152,7 @@ public class ObjectDeltaUpdater {
                 String nameLocalPart = nameSegment.getName().getLocalPart();
 
                 if (isAssignmentExtensionDelta(attributeStep, nameSegment)) {
-                    handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta);
+                    handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta, idGenerator);
                     continue;
                 }
 
@@ -173,17 +177,17 @@ public class ObjectDeltaUpdater {
                     continue;
                 }
 
-                handleAttribute(attribute, attributeStep.bean, delta, prismObject);
+                handleAttribute(attribute, attributeStep.bean, delta, prismObject, idGenerator);
 
                 if ("name".equals(attribute.getName()) && RObject.class.isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
                     // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
                     Attribute nameCopyAttribute = findAttribute(attributeStep, "nameCopy", null, null, null);
-                    handleAttribute(nameCopyAttribute, attributeStep.bean, delta, prismObject);
+                    handleAttribute(nameCopyAttribute, attributeStep.bean, delta, prismObject, idGenerator);
                 }
             }
         }
 
-        handleObjectCommonAttributes(type, processedModifications, prismObject, object);
+        handleObjectCommonAttributes(type, processedModifications, prismObject, object, idGenerator);
 
         LOGGER.debug("Entity changes applied");
 
@@ -254,7 +258,8 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
-                                                                     PrismObject<T> prismObject, RObject object) throws SchemaException {
+                                                                     PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator<T> idGenerator) throws SchemaException {
+
         // update version
         String strVersion = prismObject.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
@@ -266,8 +271,7 @@ public class ObjectDeltaUpdater {
         handleObjectTextInfoChanges(type, modifications, prismObject, object);
 
         // generate ids for containers that weren't handled in previous step (not processed by repository)
-        PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-        generator.generate(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+        idGenerator.generate(prismObject);
 
         // normalize all relations
         ObjectTypeUtil.normalizeAllRelations(prismObject);
@@ -336,7 +340,7 @@ public class ObjectDeltaUpdater {
         return true;
     }
 
-    private void handleAssignmentExtensionDelta(RAssignment assignment, ItemDelta delta) {
+    private void handleAssignmentExtensionDelta(RAssignment assignment, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
         RAssignmentExtension extension = assignment.getExtension();
         if (extension == null) {
             extension = new RAssignmentExtension();
@@ -346,7 +350,7 @@ public class ObjectDeltaUpdater {
             assignment.setExtension(extension);
         }
 
-        processAnyExtensionDeltaValues(delta, null, null, extension, RAssignmentExtensionType.EXTENSION);
+        processAnyExtensionDeltaValues(delta, null, null, extension, RAssignmentExtensionType.EXTENSION, idGenerator);
     }
 
     private void processAnyExtensionDeltaValues(Collection<PrismValue> values,
@@ -441,7 +445,8 @@ public class ObjectDeltaUpdater {
                                                 RObject object,
                                                 RObjectExtensionType objectOwnerType,
                                                 RAssignmentExtension assignmentExtension,
-                                                RAssignmentExtensionType assignmentExtensionType) {
+                                                RAssignmentExtensionType assignmentExtensionType,
+                                                PrismIdentifierGenerator idGenerator) {
         // handle replace
         if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
             processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
@@ -479,7 +484,7 @@ public class ObjectDeltaUpdater {
                         }
 
                         existing.removeAll(toDelete);
-                        markNewOnesTransientAndAddToExisting(existing, toAdd);
+                        markNewOnesTransientAndAddToExisting(existing, toAdd, idGenerator);
                     });
             return;
         }
@@ -493,7 +498,7 @@ public class ObjectDeltaUpdater {
 
         // handle add
         processAnyExtensionDeltaValues(delta.getValuesToAdd(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta));
+                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta, idGenerator));
     }
 
     private void processAssignmentExtensionValues(RAssignmentExtension extension, Class<? extends RAExtValue> type,
@@ -564,7 +569,7 @@ public class ObjectDeltaUpdater {
         return Integer.valueOf(collection.size()).shortValue();
     }
 
-    private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta) {
+    private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
         RObjectExtensionType ownerType = null;
         if (isObjectExtensionDelta(delta.getPath())) {
             ownerType = RObjectExtensionType.EXTENSION;
@@ -572,7 +577,7 @@ public class ObjectDeltaUpdater {
             ownerType = RObjectExtensionType.ATTRIBUTES;
         }
 
-        processAnyExtensionDeltaValues(delta, object, ownerType, null, null);
+        processAnyExtensionDeltaValues(delta, object, ownerType, null, null, idGenerator);
     }
 
     private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart, ItemPath path,
@@ -671,7 +676,7 @@ public class ObjectDeltaUpdater {
         return step;
     }
 
-    private void handleAttribute(Attribute attribute, Object bean, ItemDelta delta, PrismObject prismObject) {
+    private void handleAttribute(Attribute attribute, Object bean, ItemDelta delta, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
@@ -691,11 +696,11 @@ public class ObjectDeltaUpdater {
             case ONE_TO_MANY:
                 // object extension is handled separately, only {@link Container} and references are handled here
                 Collection oneToMany = (Collection) invoke(bean, method);
-                handleOneToMany(oneToMany, delta, attribute, bean, prismObject);
+                handleOneToMany(oneToMany, delta, attribute, bean, prismObject, idGenerator);
                 break;
             case ELEMENT_COLLECTION:
                 Collection elementCollection = (Collection) invoke(bean, method);
-                handleElementCollection(elementCollection, delta, attribute, bean, prismObject);
+                handleElementCollection(elementCollection, delta, attribute, bean, prismObject, idGenerator);
                 break;
         }
     }
@@ -722,11 +727,11 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject) {
-        handleOneToMany(collection, delta, attribute, bean, prismObject);
+    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
+        handleOneToMany(collection, delta, attribute, bean, prismObject, idGenerator);
     }
 
-    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject) {
+    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
         Class outputType = getRealOutputType(attribute);
 
         Item item = prismObject.findItem(delta.getPath());
@@ -734,14 +739,14 @@ public class ObjectDeltaUpdater {
         // handle replace
         if (delta.isReplace()) {
             Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
-            replaceValues(collection, valuesToReplace, item);
+            replaceValues(collection, valuesToReplace, item, idGenerator);
             return;
         }
 
         // handle add
         if (delta.isAdd()) {
             Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
-            addValues(collection, valuesToAdd);
+            addValues(collection, valuesToAdd, idGenerator);
         }
 
         // handle delete

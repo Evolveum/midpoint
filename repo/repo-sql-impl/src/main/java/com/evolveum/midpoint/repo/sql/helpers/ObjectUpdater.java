@@ -411,14 +411,11 @@ public class ObjectUpdater {
                     options = null;
                 }
 
-                PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
-                
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
                 if (precondition != null && !precondition.holds(prismObject)) {
                 	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
-                idGenerator.collectUsedIds(prismObject);
 	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
