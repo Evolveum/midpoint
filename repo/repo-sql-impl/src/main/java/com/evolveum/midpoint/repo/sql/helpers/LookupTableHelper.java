@@ -41,16 +41,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.criteria.*;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -212,38 +211,19 @@ public class LookupTableHelper {
 
         GetOperationOptions getOption = findLookupTableGetOption(options);
         RelationalValueSearchQuery queryDef = getOption == null ? null : getOption.getRelationalValueSearchQuery();
-        Criteria criteria = setupLookupTableRowsQuery(session, queryDef, object.getOid());
+        Query query = setupLookupTableRowsQuery(session, queryDef, object.getOid());
         if (queryDef != null && queryDef.getPaging() != null) {
             ObjectPaging paging = queryDef.getPaging();
 
             if (paging.getOffset() != null) {
-                criteria.setFirstResult(paging.getOffset());
+                query.setFirstResult(paging.getOffset());
             }
             if (paging.getMaxSize() != null) {
-                criteria.setMaxResults(paging.getMaxSize());
-            }
-
-            ItemPath orderByPath = paging.getOrderBy();
-            if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
-                if (orderByPath.size() > 1 ||
-                        !(orderByPath.first() instanceof NameItemPathSegment) && !(orderByPath.first() instanceof IdentifierPathSegment)) {
-                    throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
-                }
-				ItemPathSegment first = orderByPath.first();
-				String orderBy = first instanceof NameItemPathSegment ?
-						((NameItemPathSegment) first).getName().getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
-                switch (paging.getDirection()) {
-                    case ASCENDING:
-                        criteria.addOrder(Order.asc(orderBy));
-                        break;
-                    case DESCENDING:
-                        criteria.addOrder(Order.desc(orderBy));
-                        break;
-                }
+                query.setMaxResults(paging.getMaxSize());
             }
         }
 
-        List<RLookupTableRow> rows = criteria.list();
+        List<RLookupTableRow> rows = query.list();
         if (rows == null || rows.isEmpty()) {
             return;
         }
@@ -256,37 +236,100 @@ public class LookupTableHelper {
         }
     }
 
-    private Criteria setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) {
-        Criteria criteria = session.createCriteria(RLookupTableRow.class);
-        criteria.add(Restrictions.eq("ownerOid", oid));
+    private Query setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) throws SchemaException {
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery cq = cb.createQuery(RLookupTableRow.class);
 
-        if (queryDef != null
-                && queryDef.getColumn() != null
+        Root<RLookupTableRow> root = cq.from(RLookupTableRow.class);
+
+        List<Predicate> where = new ArrayList<>();
+        where.add(cb.equal(root.get("ownerOid"), oid));
+
+        if (queryDef == null) {
+            appendWhereClause(cq, where, cb);
+
+            return session.createQuery(cq);
+        }
+
+        if (queryDef.getColumn() != null
                 && queryDef.getSearchType() != null
                 && StringUtils.isNotEmpty(queryDef.getSearchValue())) {
 
-            String param = queryDef.getColumn().getLocalPart();
+            Path param;
             String value = queryDef.getSearchValue();
             if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
-                param = "label.norm";
+                param = root.get("label").get("norm");
 
                 PolyString poly = new PolyString(value);
                 poly.recompute(new AlphanumericPolyStringNormalizer());
                 value = poly.getNorm();
+            } else {
+                param = root.get(queryDef.getColumn().getLocalPart());
             }
             switch (queryDef.getSearchType()) {
                 case EXACT:
-                    criteria.add(Restrictions.eq(param, value));
+                    where.add(cb.equal(param, value));
                     break;
                 case STARTS_WITH:
-                    criteria.add(Restrictions.like(param, value + "%"));
+                    where.add(cb.like(param, value + "%"));
                     break;
                 case SUBSTRING:
-                    criteria.add(Restrictions.like(param, "%" + value + "%"));
+                    where.add(cb.like(param, "%" + value + "%"));
             }
         }
 
-        return criteria;
+        appendWhereClause(cq, where, cb);
+
+        ObjectPaging paging = queryDef.getPaging();
+        if (paging == null) {
+            return session.createQuery(cq);
+        }
+
+        ItemPath orderByPath = paging.getOrderBy();
+        if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
+            if (orderByPath.size() > 1 ||
+                    !(orderByPath.first() instanceof NameItemPathSegment) && !(orderByPath.first() instanceof IdentifierPathSegment)) {
+                throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
+            }
+
+            ItemPathSegment first = orderByPath.first();
+            String orderBy = first instanceof NameItemPathSegment ?
+                    ((NameItemPathSegment) first).getName().getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
+
+            Path[] orderByPaths = buildOrderByPaths(orderBy, root);
+            Order[] order = null;
+            switch (paging.getDirection()) {
+                case ASCENDING:
+                    order = Arrays.stream(orderByPaths).map(item -> cb.asc(item)).toArray(Order[]::new);
+                    break;
+                case DESCENDING:
+                    order = Arrays.stream(orderByPaths).map(item -> cb.desc(item)).toArray(Order[]::new);
+                    break;
+            }
+
+            if (order != null) {
+                cq.orderBy(order);
+            }
+        }
+
+        return session.createQuery(cq);
+    }
+
+    private Path[] buildOrderByPaths(String orderBy, Root<RLookupTableRow> root) {
+        if (!LookupTableRowType.F_LABEL.getLocalPart().equals(orderBy)) {
+            return new Path[]{root.get(orderBy)};
+        }
+
+        Path label = root.get(orderBy);
+        return new Path[]{label.get("norm"), label.get("orig")};
+    }
+
+    private void appendWhereClause(CriteriaQuery cq, List<Predicate> where, CriteriaBuilder cb) {
+        Predicate wherePredicate = where.get(0);
+        if (where.size() > 1) {
+            wherePredicate = cb.and(where.toArray(new Predicate[where.size()]));
+        }
+        cq.where(wherePredicate);
     }
 
     public <T extends ObjectType> Collection<? extends ItemDelta> filterLookupTableModifications(Class<T> type,
