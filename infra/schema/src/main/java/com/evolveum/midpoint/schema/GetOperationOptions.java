@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -33,7 +34,7 @@ import java.util.Objects;
  * @author semancik
  *
  */
-public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable {
+public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable, ShortDumpable {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -797,6 +798,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("GetOperationOptions(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
 		appendFlag(sb, "resolve", resolve);
 		appendFlag(sb, "resolveNames", resolveNames);
 		appendFlag(sb, "noFetch", noFetch);
@@ -811,8 +819,6 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
 		appendVal(sb, "definitionProcessing", definitionProcessing);
 		removeLastComma(sb);
-		sb.append(")");
-		return sb.toString();
 	}
 
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
-	<name>Dummy Schemaless Resource with static schema</name>
+	<name>Dummy Static Schemaless Resource</name>
+	<description>Dummy Schemaless Resource with static schema and capabilities</description>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
@@ -42,6 +43,7 @@
 	</connectorConfiguration>
 	<!-- Static schema definition -->
 	<schema>
+		<!-- No cahingMetadata here MID-4472, MID-4174 -->
 		<definition>
 	         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -70,7 +72,8 @@
 	                  <xsd:element minOccurs="0" ref="icfs:uid">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
-	                           <a:displayName>ConnId UID</a:displayName>
+	                        	<!-- Following element MANUALY MODIFIED -->
+	                           <a:displayName>Modified ConnId UID</a:displayName>
 	                           <a:displayOrder>100</a:displayOrder>
 	                           <a:access>read</a:access>
 	                        </xsd:appinfo>
@@ -88,7 +91,8 @@
 	                  <xsd:element ref="icfs:name">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
-	                           <a:displayName>ConnId Name</a:displayName>
+	                        	<!-- Following element MANUALY MODIFIED -->
+	                           <a:displayName>Modified ConnId Name</a:displayName>
 	                           <a:displayOrder>110</a:displayOrder>
 	                        </xsd:appinfo>
 	                     </xsd:annotation>
@@ -192,9 +196,29 @@
          	</xsd:schema>
       	</definition>
 	</schema>
+	
 	<!-- No schemaHandling as well. -->
 	<!-- We need to configure those capabilities that depend on the schema -->
+	
 	<capabilities>
+		<!-- No cahingMetadata here MID-4472, MID-4174 -->
+		<native>
+		    <!-- no schema capability here -->
+		    <cap:liveSync/>
+		    <cap:testConnection/>
+		    <cap:create/>
+		    <cap:read/>
+		    <cap:update/>
+		    <cap:delete/>
+		    <cap:script>
+		        <cap:host>
+		            <cap:type>resource</cap:type>
+		        </cap:host>
+		        <cap:host>
+		            <cap:type>connector</cap:type>
+		        </cap:host>
+		    </cap:script>			
+		</native>
 		<configured>
 	        <cap:credentials>
 	            <cap:password/>

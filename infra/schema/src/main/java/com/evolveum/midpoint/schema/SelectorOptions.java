@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public class SelectorOptions<T> implements Serializable, DebugDumpable {
+public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDumpable {
+	private static final long serialVersionUID = 1L;
 
 	private ObjectSelector selector;
 	private T options;
@@ -374,17 +376,32 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 
     @Override
 	public String toString() {
-		return "ObjectOperationOptions(" + selector + ": " + options + ")";
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
+		StringBuilder sb = new StringBuilder("ObjectOperationOptions(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override
 	public String debugDump(int indent) {
 		return toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (selector == null) {
+			sb.append("/");
+		} else {
+			selector.shortDump(sb);
+		}
+		sb.append(":");
+		if (options == null) {
+			sb.append("null");
+		} else if (options instanceof ShortDumpable) {
+			((ShortDumpable)options).shortDump(sb);
+		} else {
+			sb.append(options);
+		}
 	}
 
 	//endregion

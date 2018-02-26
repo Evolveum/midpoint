@@ -58,4 +58,11 @@
 			</question>
 		</securityQuestions>
 	</credentials>
+	<credentialsReset>
+		<name>passwordReset</name>
+		<forceChange>true</forceChange>
+		<newCredentialSource>
+			<userEntry/>
+		</newCredentialSource>
+	</credentialsReset>
 </securityPolicy>

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -60,6 +61,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private static final String ID_LABEL = "label";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
+    private IModel<IW> model;
+
     private PageBase pageBase;
 
     private boolean labelContainerVisible = true;
@@ -67,6 +70,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
         super(id, model);
         Validate.notNull(model, "no model");
+        this.model = model;
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
@@ -94,6 +98,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         });
 
         initLayout(model, form);
+    }
+
+    public IModel<IW> getModel() {
+        return model;
     }
 
     private void initLayout(final IModel<IW> model, final Form form) {

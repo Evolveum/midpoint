@@ -17,12 +17,16 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
 
+import javax.annotation.PostConstruct;
+
 import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -43,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  * @author Radovan Semancik
  *
  */
-public class ScriptExpressionFactory {
+public class ScriptExpressionFactory implements Cacheable{
 
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
 
@@ -57,6 +61,13 @@ public class ScriptExpressionFactory {
 	private final RepositoryService repositoryService;          // might be null during low-level testing
 
 	private Map<String, FunctionLibrary> customFunctionLibraryCache;
+	
+	private CacheRegistry cahceRegistry;
+	
+	@PostConstruct
+	public void register() {
+		cahceRegistry.registerCacheableService(this);
+	}
 	
 	public ScriptExpressionFactory(PrismContext prismContext, Protector protector, RepositoryService repositoryService) {
 		this.prismContext = prismContext;
@@ -88,6 +99,14 @@ public class ScriptExpressionFactory {
 
 	public Map<String, ScriptEvaluator> getEvaluators() {
 		return evaluatorMap;
+	}
+	
+	public CacheRegistry geCachetRegistry() {
+		return cahceRegistry;
+	}
+	
+	public void setCacheRegistry(CacheRegistry registry) {
+		this.cahceRegistry = registry;
 	}
 
 	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
@@ -161,5 +180,9 @@ public class ScriptExpressionFactory {
 		return DEFAULT_LANGUAGE;
 	}
 
+	@Override
+	public void clearCache() {
+		customFunctionLibraryCache = null;		
+	}
 }
 

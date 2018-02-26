@@ -21,16 +21,20 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.SerializationUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -42,14 +46,41 @@ import java.util.List;
  */
 public class TestSerialization {
 
-
-
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 
+	@Test
+	public void testSerializeMessage() throws Exception {
+		System.out.println("===[ testSerializeMessage ]===");
+
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
+		LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
+		String xml = prismContext.xmlSerializer().serializeAnyData(localizableMessageBean, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeExecuteCredentialResetResponseType() throws Exception {
+		System.out.println("===[ testSerializeExecuteCredentialResetResponseType ]===");
+
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
+		LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
+		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
+		response.setMessage(localizableMessageBean);
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
+
+		prismContext.adopt(response);
+
+		String xml = prismContext.xmlSerializer().serializeAnyData(response, fakeQName);
+		System.out.println(xml);
+	}
 
 	@Test
 	public void testSerializeResource() throws Exception {

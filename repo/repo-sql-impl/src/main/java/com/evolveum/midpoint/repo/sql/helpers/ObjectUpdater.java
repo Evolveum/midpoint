@@ -121,8 +121,9 @@ public class ObjectUpdater {
             PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
-
-            RObject rObject = createDataObjectFromJAXB(object, operation);
+            PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(operation);
+            
+            RObject rObject = createDataObjectFromJAXB(object, idGenerator);
 
             session = baseHelper.beginTransaction();
 
@@ -386,11 +387,14 @@ public class ObjectUpdater {
                     options = null;
                 }
 
+                PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+                
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
                 if (precondition != null && !precondition.holds(prismObject)) {
                 	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
+                idGenerator.collectUsedIds(prismObject);
 	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
@@ -407,7 +411,7 @@ public class ObjectUpdater {
                 // merge and update object
                 LOGGER.trace("Translating JAXB to data type.");
 				ObjectTypeUtil.normalizeAllRelations(prismObject);
-				RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+				RObject rObject = createDataObjectFromJAXB(prismObject, idGenerator);
                 rObject.setVersion(rObject.getVersion() + 1);
 
                 updateFullObject(rObject, prismObject);
@@ -520,12 +524,10 @@ public class ObjectUpdater {
         }
     }
 
-    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject,
-                                                                   PrismIdentifierGenerator.Operation operation)
+    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)
             throws SchemaException {
 
-        PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-        IdGeneratorResult generatorResult = generator.generate(prismObject, operation);
+        IdGeneratorResult generatorResult = idGenerator.generate(prismObject);
 
         T object = prismObject.asObjectable();
 

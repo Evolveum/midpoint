@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -970,6 +971,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void assertSteadyResources() {
 		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
+		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -979,6 +981,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void rememberSteadyResources() {
 		rememberCounter(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
+		rememberCounter(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
@@ -1945,6 +1948,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			return;
 		}
 		assertEquals("Wrong number of persona links in " + focus, expectedNumLinks, linkRef.size());
+	}
+	
+	protected <F extends FocusType> void removeLinks(PrismObject<F> focus) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
+		if (linkRef == null) {
+			return;
+		}
+		OperationResult result = new OperationResult("removeLinks");
+		ReferenceDelta refDelta = linkRef.createDelta();
+		refDelta.addValuesToDelete(linkRef.getClonedValues());
+		repositoryService.modifyObject(focus.getCompileTimeClass(), 
+				focus.getOid(), MiscSchemaUtil.createCollection(refDelta), result);
+		assertSuccess(result);
 	}
 
     protected <O extends ObjectType> void assertObjectOids(String message, Collection<PrismObject<O>> objects, String... oids) {

@@ -83,7 +83,7 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ShadowManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.task" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.task" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.consistency" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
@@ -112,7 +112,9 @@
     <logger name="com.evolveum.icf.dummy" level="INFO" />
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo" level="INFO" />
+	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo.operation" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo.sql.util.MidpointPersisterUtil" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo.cache" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo.common.task" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.SystemObjectCache" level="DEBUG" />

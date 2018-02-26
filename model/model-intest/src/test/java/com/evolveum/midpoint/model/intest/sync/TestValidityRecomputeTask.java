@@ -125,7 +125,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
 
         PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
@@ -1489,7 +1489,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.DISABLED);
         assertValidityStatus(userHermanAfter, TimeIntervalStatusType.AFTER);
 
-        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
 	}
 
 	@Test
@@ -1513,7 +1513,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // THEN
         TestUtil.displayThen(TEST_NAME);
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+        assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 
 	}
 

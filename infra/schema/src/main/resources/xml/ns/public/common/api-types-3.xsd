@@ -544,7 +544,7 @@
 		<xsd:sequence>
 			<xsd:element name="resetMethod" type="xsd:string" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="password" type="xsd:string" minOccurs="0">
+			<xsd:element name="userEntry" type="xsd:string" minOccurs="0">
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>

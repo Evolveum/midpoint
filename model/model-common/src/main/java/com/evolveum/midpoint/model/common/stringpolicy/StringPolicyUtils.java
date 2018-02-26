@@ -50,7 +50,7 @@ public class StringPolicyUtils {
 			LimitationsType sl = new LimitationsType();
 			sl.setCheckAgainstDictionary(false);
 			sl.setCheckPattern("");
-			sl.setMaxLength(-1);
+			sl.setMaxLength(Integer.MAX_VALUE);
 			sl.setMinLength(0);
 			sl.setMinUniqueChars(0);
 			sp.setLimitations(sl);

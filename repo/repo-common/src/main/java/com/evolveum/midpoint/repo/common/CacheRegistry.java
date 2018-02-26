@@ -13,38 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.repo.common;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.ShortDumpable;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.Serializable;
+import org.springframework.stereotype.Component;
 
-/**
- * @author semancik
- *
- */
-public class ObjectSelector implements Serializable, ShortDumpable {
+@Component
+public class CacheRegistry {
 
-	private ItemPath path;
-
-	public ObjectSelector(ItemPath path) {
-		super();
-		this.path = path;
+	private List<Cacheable> cacheableServices = new ArrayList<>();
+	
+	public void registerCacheableService(Cacheable cacheableService) {
+		cacheableServices.add(cacheableService);
 	}
-
-	public ItemPath getPath() {
-		return path;
+	
+	public List<Cacheable> getCacheableServices() {
+		return cacheableServices;
 	}
-
-	@Override
-	public String toString() {
-		return "ObjectSelector(" + path + ")";
+	
+	public void clearAllCaches() {
+		for (Cacheable cacheableService : cacheableServices) {
+			cacheableService.clearCache();
+		}
 	}
-
-	@Override
-	public void shortDump(StringBuilder sb) {
-		sb.append(path);
-	}
-
 }
+

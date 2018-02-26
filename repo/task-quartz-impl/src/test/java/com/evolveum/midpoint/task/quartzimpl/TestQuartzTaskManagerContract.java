@@ -564,16 +564,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this
         // task
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-            }
-
-            @Override
-            public void timeout() {
-            }
+        waitFor("Waiting for task manager to execute the task", () -> {
+            Task checkedTask = taskManager.getTask(taskOid(test), result);
+            IntegrationTestTools.display("Task while waiting for task manager to execute the task", checkedTask);
+            return checkedTask.getExecutionStatus() == TaskExecutionStatus.CLOSED;
         }, 10000, 1000);
 
         logger.info("... done");

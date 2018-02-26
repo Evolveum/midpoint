@@ -14578,8 +14578,15 @@
 	<xsd:complexType name="CredentialsResetPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Credentials reset management policy. It specifies the management details for each supported
-				credentials reset type. It defines parameters such as reset method. 
+				<p>
+					Credentials reset management policy. It specifies the management details for each supported
+					credentials reset type. It defines parameters such as reset method.
+				</p>
+				<p>
+					The idea is that all the password reset mechanisms have the same parts:
+					request, authentication, credential source, delivery.
+					This data structure is meant to configure those steps.
+				</p> 
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
@@ -14587,18 +14594,101 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the password reset scheme. This is a short name that acts both as an
+						identifier of the scheme and also as a short name used for diagnostics.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Later: authentication -->
+			<xsd:element name="newCredentialSource" type="tns:CredentialSourceType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Source of a new credential value. This setting specifies whether the new credential
+						value should be provided by the user, randomly generated, derived by a key-exchange
+						protocol and so on.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true then the new credential will have the forceChange flag set.
+						Which usualy means that the user will have to change the credential on next logon.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
 			</xsd:element>
+			<!-- Later: delivery -->
 			<xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
+				<!-- This will be deprecated soon -->
 			</xsd:element>
 			<xsd:element name="mailReset" type="tns:MailResetPolicyType" minOccurs="0">
+				<!-- This will be deprecated soon -->
 			</xsd:element>
 			<xsd:element name="smsReset" type="tns:SmsResetPolicyType" minOccurs="0">
+				<!-- This will be deprecated soon -->
 			</xsd:element>
-			
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="CredentialSourceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Source of a new credential value. This setting specifies whether the new credential
+				value should be provided by the user, randomly generated, derived by a key-exchange
+				protocol and so on.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="userEntry" type="tns:UserEntryCredentialSourceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						New credential value is entered by the user.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Later: generate, key-exchange, PKI, ... -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="UserEntryCredentialSourceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies the details of a new credential entered manually by a user. 
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+<!-- 			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1"> -->
+<!-- 			    <xsd:annotation> -->
+<!-- 			        <xsd:documentation> -->
+<!-- 				     TODO: -->
+<!-- 			        </xsd:documentation> -->
+<!-- 			        <xsd:appinfo> -->
+<!-- 						<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType> -->
+<!-- 					</xsd:appinfo> -->
+<!-- 			    </xsd:annotation> -->
+<!-- 			</xsd:element> -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	
 	<xsd:complexType name="AbstractAuthenticationPolicyType">
 		<xsd:annotation>
@@ -18775,6 +18865,7 @@
 						Literal value.
 					</xsd:documentation>
 				</xsd:annotation>
+				
 			</xsd:element>
 			<xsd:element name="localizable" type="tns:LocalizableMessageType">
 				<xsd:annotation>
