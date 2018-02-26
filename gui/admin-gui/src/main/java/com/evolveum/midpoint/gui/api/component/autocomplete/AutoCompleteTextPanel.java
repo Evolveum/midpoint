@@ -104,7 +104,9 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
         if (input.getInput() == null || input.getInput().trim().equals("")){
             model.setObject(input.getInput());
         }
-        if (getIterator(input.getInput()).hasNext() && getIterator(input.getInput()).next() instanceof String) {
+        if (!getIterator(input.getInput()).hasNext()) {
+            updateFeedbackPanel(input, true, target);
+        } else {
             Iterator<String> lookupTableValuesIterator = (Iterator<String>) getIterator(input.getInput());
 
             String value = input.getInput();
