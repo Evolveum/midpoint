@@ -20,91 +20,40 @@
 package com.evolveum.midpoint.model.intest.manual;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.ParallelTestThread;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author Radovan Semancik
@@ -115,6 +64,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 	protected static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
 	protected static final String RESOURCE_MANUAL_OID = "0ef80ab8-2906-11e7-b81a-3f343e28c264";
+	
+	protected static final File RESOURCE_MANUAL_CAPABILITIES_FILE = new File(TEST_DIR, "resource-manual-capabilities.xml");
+	protected static final String RESOURCE_MANUAL_CAPABILITIES_OID = "0ef80ab8-2906-11e7-b81a-3f343e28c264";
 
 	protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_OID = "aea5a57c-2904-11e7-8020-7b121a9e3595";
@@ -169,6 +121,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		super.initSystem(initTask, initResult);
 
 		addObject(USER_BARBOSSA_FILE);
+		InternalMonitor.setTrace(InternalOperationClasses.REPOSITORY_OPERATIONS, true);
 	}
 	
 	@Override
@@ -247,6 +200,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertNotNull("No async reference in result", willLastCaseOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -331,6 +286,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -420,6 +377,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -507,6 +466,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -560,6 +521,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -651,6 +614,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -740,6 +705,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -793,6 +760,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -875,6 +844,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -937,6 +908,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -946,6 +919,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		assertSteadyResources();
 
 		accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
@@ -960,6 +935,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
+		assertSteadyResources();
+		
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
 		display("Repo shadow", shadowRepo);
 		assertPendingOperationDeltas(shadowRepo, 1);
@@ -995,6 +972,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
 		assertWillUnassignedFuture(shadowModelFuture, true);
+		
+		assertSteadyResources();
 
 		// Make sure that the account is still linked
 		PrismObject<UserType> userAfter = getUser(userWillOid);
@@ -1006,6 +985,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertNotNull("No async reference in result", willLastCaseOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -1074,6 +1055,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertNotNull("No async reference in result", willLastCaseOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -1134,6 +1117,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertWillUnassignedFuture(shadowModelFuture, true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
@@ -1192,6 +1177,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertWillUnassignedFuture(shadowModelFuture, true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	@Test
@@ -1243,6 +1230,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertWillUnassignedFuture(shadowModelFuture, false);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	// TODO: nofetch, nofetch+future
@@ -1273,6 +1262,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertDeprovisionedTimedOutUser(userAfter, accountWillOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
 	}
 
 	// TODO: create, close case, then update backing store.
