@@ -47,7 +47,7 @@ CREATE TABLE m_acc_cert_case (
   tenantRef_relation       NVARCHAR(157) COLLATE database_default,
   tenantRef_targetOid      NVARCHAR(36) COLLATE database_default,
   tenantRef_type           INT,
-  PRIMARY KEY (id, owner_oid)
+  PRIMARY KEY (owner_oid, id)
 );
 CREATE TABLE m_acc_cert_definition (
   handlerUri                   NVARCHAR(255) COLLATE database_default,
@@ -72,7 +72,7 @@ CREATE TABLE m_acc_cert_wi (
   performerRef_targetOid NVARCHAR(36) COLLATE database_default,
   performerRef_type      INT,
   stageNumber            INT,
-  PRIMARY KEY (id, owner_id, owner_owner_oid)
+  PRIMARY KEY (owner_owner_oid, owner_id, id)
 );
 CREATE TABLE m_acc_cert_wi_reference (
   owner_id              INT                                    NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE m_acc_cert_wi_reference (
   relation              NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid             NVARCHAR(36) COLLATE database_default  NOT NULL,
   targetType            INT,
-  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
+  PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation, targetOid)
 );
 CREATE TABLE m_assignment (
   id                      INT                                   NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE m_assignment (
   tenantRef_type          INT,
   extId                   INT,
   extOid                  NVARCHAR(36) COLLATE database_default,
-  PRIMARY KEY (id, owner_oid)
+  PRIMARY KEY (owner_oid, id)
 );
 CREATE TABLE m_assignment_ext_boolean (
   item_id                      INT                                   NOT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE m_assignment_extension (
   polysCount      SMALLINT,
   referencesCount SMALLINT,
   stringsCount    SMALLINT,
-  PRIMARY KEY (owner_id, owner_owner_oid)
+  PRIMARY KEY (owner_owner_oid, owner_id)
 );
 CREATE TABLE m_assignment_policy_situation (
   assignment_id   INT                                   NOT NULL,
@@ -193,7 +193,7 @@ CREATE TABLE m_assignment_reference (
   relation        NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
   targetType      INT,
-  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
 );
 CREATE TABLE m_audit_delta (
   checksum          NVARCHAR(32) COLLATE database_default NOT NULL,
@@ -208,7 +208,7 @@ CREATE TABLE m_audit_delta (
   resourceName_orig NVARCHAR(255) COLLATE database_default,
   resourceOid       NVARCHAR(36) COLLATE database_default,
   status            INT,
-  PRIMARY KEY (checksum, record_id)
+  PRIMARY KEY (record_id, checksum)
 );
 CREATE TABLE m_audit_event (
   id                BIGINT IDENTITY NOT NULL,
@@ -242,7 +242,7 @@ CREATE TABLE m_audit_event (
 CREATE TABLE m_audit_item (
   changedItemPath NVARCHAR(900) COLLATE database_default NOT NULL,
   record_id       BIGINT                                 NOT NULL,
-  PRIMARY KEY (changedItemPath, record_id)
+  PRIMARY KEY (record_id, changedItemPath)
 );
 CREATE TABLE m_audit_prop_value (
   id        BIGINT IDENTITY NOT NULL,
@@ -375,7 +375,7 @@ CREATE TABLE m_operation_execution (
   taskRef_targetOid      NVARCHAR(36) COLLATE database_default,
   taskRef_type           INT,
   timestampValue         DATETIME2,
-  PRIMARY KEY (id, owner_oid)
+  PRIMARY KEY (owner_oid, id)
 );
 CREATE TABLE m_org_closure (
   ancestor_oid   NVARCHAR(36) COLLATE database_default NOT NULL,
@@ -574,7 +574,7 @@ CREATE TABLE m_lookup_table_row (
   label_orig          NVARCHAR(255) COLLATE database_default,
   lastChangeTimestamp DATETIME2,
   row_value           NVARCHAR(255) COLLATE database_default,
-  PRIMARY KEY (id, owner_oid)
+  PRIMARY KEY (owner_oid, id)
 );
 CREATE TABLE m_node (
   name_norm      NVARCHAR(255) COLLATE database_default,
@@ -665,7 +665,7 @@ CREATE TABLE m_trigger (
   owner_oid      NVARCHAR(36) COLLATE database_default NOT NULL,
   handlerUri     NVARCHAR(255) COLLATE database_default,
   timestampValue DATETIME2,
-  PRIMARY KEY (id, owner_oid)
+  PRIMARY KEY (owner_oid, id)
 );
 CREATE TABLE m_user (
   additionalName_norm  NVARCHAR(255) COLLATE database_default,
@@ -883,39 +883,39 @@ ALTER TABLE m_acc_cert_case
 ALTER TABLE m_acc_cert_definition
   ADD CONSTRAINT fk_acc_cert_definition FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_acc_cert_wi
-  ADD CONSTRAINT fk_acc_cert_wi_owner FOREIGN KEY (owner_id, owner_owner_oid) REFERENCES m_acc_cert_case;
+  ADD CONSTRAINT fk_acc_cert_wi_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_acc_cert_case;
 ALTER TABLE m_acc_cert_wi_reference
-  ADD CONSTRAINT fk_acc_cert_wi_ref_owner FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid) REFERENCES m_acc_cert_wi;
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner FOREIGN KEY (owner_owner_owner_oid, owner_owner_id, owner_id) REFERENCES m_acc_cert_wi;
 ALTER TABLE m_assignment
   ADD CONSTRAINT fk_assignment_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_assignment_ext_boolean
-  ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid) REFERENCES m_assignment_extension;
+  ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_date
-  ADD CONSTRAINT fk_a_ext_date_owner FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid) REFERENCES m_assignment_extension;
+  ADD CONSTRAINT fk_a_ext_date_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE m_assignment_ext_date
   ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_long
-  ADD CONSTRAINT fk_a_ext_long_owner FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid) REFERENCES m_assignment_extension;
+  ADD CONSTRAINT fk_a_ext_long_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE m_assignment_ext_long
   ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_poly
-  ADD CONSTRAINT fk_a_ext_poly_owner FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid) REFERENCES m_assignment_extension;
+  ADD CONSTRAINT fk_a_ext_poly_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE m_assignment_ext_poly
   ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_reference
-  ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid) REFERENCES m_assignment_extension;
+  ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE m_assignment_ext_reference
   ADD CONSTRAINT fk_a_ext_boolean_reference FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_string
-  ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid) REFERENCES m_assignment_extension;
+  ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
 ALTER TABLE m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_policy_situation
-  ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_id, assignment_oid) REFERENCES m_assignment;
+  ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
 ALTER TABLE m_assignment_reference
-  ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_id, owner_owner_oid) REFERENCES m_assignment;
+  ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
 ALTER TABLE m_audit_delta
   ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_item
