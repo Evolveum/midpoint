@@ -85,7 +85,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		StringPolicyUtils.normalize(sp);
 		AssertJUnit.assertNotNull(sp.getCharacterClass());
 		AssertJUnit.assertNotNull(sp.getLimitations().getLimit());
-		AssertJUnit.assertTrue(-1 == sp.getLimitations().getMaxLength());
+		AssertJUnit.assertTrue(Integer.MAX_VALUE == sp.getLimitations().getMaxLength());
 		AssertJUnit.assertTrue(0 == sp.getLimitations().getMinLength());
 		AssertJUnit.assertTrue(0 == " !\"#$%&'()*+,-.01234567890:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 				.compareTo(sp.getCharacterClass().getValue()));
