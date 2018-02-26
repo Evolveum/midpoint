@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -86,9 +87,11 @@ public class CertificationTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
+    public static final String CAMPAIGN_1_OID = "e8c07a7a-1b11-11e8-9b32-1715a2e8273b";
     public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
-    public static final long NEW_CASE_ID = 100L;
-    public static final long SECOND_NEW_CASE_ID = 110L;
+    public static final long CASE_9_ID = 105L;
+    public static final long NEW_CASE_ID = 200L;
+    public static final long SECOND_NEW_CASE_ID = 210L;
 
     private String campaign1Oid;
     private String campaign2Oid;
@@ -161,7 +164,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test220ModifyWorkItemProperties() throws Exception {
         OperationResult result = new OperationResult("test220ModifyWorkItemProperties");
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 1L, F_WORK_ITEM, 1L, F_OUTPUT).replace(
                         new AbstractWorkItemOutputType()
                                 .outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
@@ -176,7 +179,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test230ModifyAllLevels() throws Exception {
         OperationResult result = new OperationResult("test230ModifyAllLevels");
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = deltaFor(AccessCertificationCampaignType.class)
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
@@ -226,16 +229,26 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     @Test
     public void test250DeleteCase() throws Exception {
-        OperationResult result = new OperationResult("test250DeleteCase");
+    	final String TEST_NAME = "test250DeleteCase";
+        OperationResult result = createResult(TEST_NAME);
+        
+        PrismObject<AccessCertificationCampaignType> campaign10Before = getFullCampaign(campaign1Oid);
+        display("Campaign 10 before", campaign10Before);
 
         AccessCertificationCaseType case9 = new AccessCertificationCaseType();
-        case9.setId(9L);
+        case9.setId(CASE_9_ID);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).delete(case9)
                 .asItemDeltas();
 
+        // WHEN
         executeAndCheckModification(modifications, result, 0);
+        
+        // THEN
+        PrismObject<AccessCertificationCampaignType> campaign10After = getFullCampaign(campaign1Oid);
+        display("Campaign 10 after", campaign10After);
+        
         checkCasesForCampaign(campaign1Oid, 8, result);
         checkCasesTotal(8, result);
         checkWorkItemsForCampaign(campaign1Oid, 9, result);
@@ -254,7 +267,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .beginAssigneeRef().oid("rev1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
                 .beginAssigneeRef().oid("rev2").type(UserType.COMPLEX_TYPE).end();
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).add(workItem)
                 .asItemDeltas();
 
@@ -706,6 +719,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, Collections.singletonList(retrieve), result);
     }
 
+    private PrismObject<AccessCertificationCampaignType> getFullCampaign(String oid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getFullCampaign");
+		PrismObject<AccessCertificationCampaignType> object = getFullCampaign(oid, result);
+        assertSuccess(result);
+        return object;
+	}
+    
     private void checksCountsStandard(OperationResult result) throws SchemaException, ObjectNotFoundException {
         checkCasesForCampaign(campaign1Oid, 7, result);
         checkCasesTotal(7, result);

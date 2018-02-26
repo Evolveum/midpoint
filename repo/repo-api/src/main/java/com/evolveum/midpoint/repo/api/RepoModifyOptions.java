@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ package com.evolveum.midpoint.repo.api;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.AbstractOptions;
+import com.evolveum.midpoint.util.ShortDumpable;
+
 /**
  * @author mederly
  *
  */
-public class RepoModifyOptions implements Serializable {
+public class RepoModifyOptions extends AbstractOptions implements Serializable, ShortDumpable {
 	private static final long serialVersionUID = 478427843213482L;
 
 	// execute MODIFY operation even if the list of changes is empty
@@ -44,10 +47,19 @@ public class RepoModifyOptions implements Serializable {
 		opts.setExecuteIfNoChanges(true);
 		return opts;
 	}
-
+	
 	@Override
 	public String toString() {
-		return "RepoModifyOptions(executeIfNoChanges=" + executeIfNoChanges + ")";
+		StringBuilder sb = new StringBuilder("RepoModifyOptions(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		appendFlag(sb, "executeIfNoChanges", executeIfNoChanges);
+		removeLastComma(sb);
 	}
 
 }

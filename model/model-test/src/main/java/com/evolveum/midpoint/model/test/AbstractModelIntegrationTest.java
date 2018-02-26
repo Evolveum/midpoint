@@ -3218,6 +3218,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
+	
+	protected <O extends ObjectType> void deleteObjectRepo(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".deleteObjectRepo");
+		repositoryService.deleteObject(type, oid, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
 
 	protected void addTrigger(String oid, XMLGregorianCalendar timestamp, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTrigger");

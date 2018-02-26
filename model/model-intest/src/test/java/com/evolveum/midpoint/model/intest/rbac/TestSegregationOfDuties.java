@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -1043,13 +1044,151 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         assertNoDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
+	
+	@Test
+    public void test220GuybrushAssignRoleBlue() throws Exception {
+		final String TEST_NAME = "test220GuybrushAssignRoleBlue";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        assertLinks(userAfter, 1);
+
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_BLUE_SHIP);
+	}
+	
+	/**
+	 * Testing that we have correct test setup.
+	 */
+	@Test
+    public void test221GuybrushDestroyAndRecompute() throws Exception {
+		final String TEST_NAME = "test221GuybrushDestroyAndRecompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        String shadowBeforeOid = getSingleLinkOid(userBefore);
+        removeLinks(userBefore);
+        deleteObjectRepo(ShadowType.class, shadowBeforeOid);
+        userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_GUYBRUSH_OID);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_BLUE_SHIP);
+	}
+	
+	/**
+	 * MID-4463
+	 */
+	@Test
+    public void test222GuybrushDestroyAndAssignRoleRed() throws Exception {
+		final String TEST_NAME = "test222GuybrushDestroyAndAssignRoleRed";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        String shadowBeforeOid = getSingleLinkOid(userBefore);
+        removeLinks(userBefore);
+        deleteObjectRepo(ShadowType.class, shadowBeforeOid);
+        userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        
+        String shadowAfterOid = getSingleLinkOid(userAfter);
+
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_RED_SHIP);
+	}
+	
+	@Test
+    public void test229GuybrushUnassignRoleRed() throws Exception {
+		final String TEST_NAME = "test229GuybrushUnassignRoleRed";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        assertLinks(userAfter, 0);
+
+        assertNoDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
 
 	/**
 	 * MID-3694
 	 */
 	@Test
-    public void test220GuybrushAssignRoleExecutiveOne() throws Exception {
-		final String TEST_NAME = "test220GuybrushAssignRoleExecutiveOne";
+    public void test240GuybrushAssignRoleExecutiveOne() throws Exception {
+		final String TEST_NAME = "test240GuybrushAssignRoleExecutiveOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1073,8 +1212,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test222GuybrushAssignRoleControllingOne() throws Exception {
-		final String TEST_NAME = "test222GuybrushAssignRoleControllingOne";
+    public void test242GuybrushAssignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test242GuybrushAssignRoleControllingOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1092,8 +1231,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test224GuybrushAssignRoleExecutiveTwo() throws Exception {
-		final String TEST_NAME = "test224GuybrushAssignRoleExecutiveTwo";
+    public void test244GuybrushAssignRoleExecutiveTwo() throws Exception {
+		final String TEST_NAME = "test244GuybrushAssignRoleExecutiveTwo";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1118,8 +1257,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test225GuybrushAssignRoleControllingTwo() throws Exception {
-		final String TEST_NAME = "test225GuybrushAssignRoleControllingTwo";
+    public void test245GuybrushAssignRoleControllingTwo() throws Exception {
+		final String TEST_NAME = "test245GuybrushAssignRoleControllingTwo";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1139,8 +1278,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test226GuybrushUnassignRoleExecutiveOne() throws Exception {
-		final String TEST_NAME = "test226GuybrushUnassignRoleExecutiveOne";
+    public void test246GuybrushUnassignRoleExecutiveOne() throws Exception {
+		final String TEST_NAME = "test246GuybrushUnassignRoleExecutiveOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1164,8 +1303,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test227GuybrushAssignRoleControllingOne() throws Exception {
-		final String TEST_NAME = "test227GuybrushAssignRoleControllingOne";
+    public void test247GuybrushAssignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test247GuybrushAssignRoleControllingOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1185,8 +1324,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test229GuybrushUnassignRoleExecutiveTwo() throws Exception {
-		final String TEST_NAME = "test229GuybrushUnassignRoleExecutiveTwo";
+    public void test249GuybrushUnassignRoleExecutiveTwo() throws Exception {
+		final String TEST_NAME = "test249GuybrushUnassignRoleExecutiveTwo";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1213,8 +1352,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test230GuybrushAssignRoleControllingOne() throws Exception {
-		final String TEST_NAME = "test230GuybrushAssignRoleControllingOne";
+    public void test250GuybrushAssignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test250GuybrushAssignRoleControllingOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1238,8 +1377,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test232GuybrushAssignRoleExecutiveOne() throws Exception {
-		final String TEST_NAME = "test232GuybrushAssignRoleExecutiveOne";
+    public void test252GuybrushAssignRoleExecutiveOne() throws Exception {
+		final String TEST_NAME = "test252GuybrushAssignRoleExecutiveOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1257,8 +1396,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 * MID-3694
 	 */
 	@Test
-    public void test239GuybrushUnassignRoleControllingOne() throws Exception {
-		final String TEST_NAME = "test239GuybrushUnassignRoleControllingOne";
+    public void test259GuybrushUnassignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test259GuybrushUnassignRoleControllingOne";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
