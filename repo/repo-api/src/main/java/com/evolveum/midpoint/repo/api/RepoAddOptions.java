@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ package com.evolveum.midpoint.repo.api;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.AbstractOptions;
+import com.evolveum.midpoint.util.ShortDumpable;
+
 /**
  * @author semancik
  *
  */
-public class RepoAddOptions implements Serializable {
+public class RepoAddOptions extends AbstractOptions implements Serializable, ShortDumpable {
 	private static final long serialVersionUID = -6243926109579064467L;
 
 	private boolean overwrite = false;
@@ -72,7 +75,17 @@ public class RepoAddOptions implements Serializable {
 
 	@Override
 	public String toString() {
-		return "RepoAddOptions(overwrite=" + overwrite + ", allowUnencryptedValues="+allowUnencryptedValues+")";
+		StringBuilder sb = new StringBuilder("RepoAddOptions(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		appendFlag(sb, "overwrite", overwrite);
+		appendFlag(sb, "allowUnencryptedValues", allowUnencryptedValues);
+		removeLastComma(sb);
 	}
 
 }
