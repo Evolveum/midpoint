@@ -240,7 +240,7 @@ CREATE TABLE m_audit_event (
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_item (
-  changedItemPath NVARCHAR(900) COLLATE database_default NOT NULL,
+  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
   record_id       BIGINT                                 NOT NULL,
   PRIMARY KEY (record_id, changedItemPath)
 );

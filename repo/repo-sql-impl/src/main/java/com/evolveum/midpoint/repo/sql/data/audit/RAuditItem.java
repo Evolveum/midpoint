@@ -36,7 +36,7 @@ public class RAuditItem implements EntityState {
 
     private RAuditEventRecord record;
     private Long recordId;
-    private String changedItemPath;
+        private String changedItemPath;
 
     @Transient
     @Override
@@ -69,13 +69,13 @@ public class RAuditItem implements EntityState {
     }
 
     @Id
-    @Column(name = "changedItemPath", length=900)
+    @Column(name = "changedItemPath")
     public String getChangedItemPath() {
-		return changedItemPath;
-	}
+        return changedItemPath;
+    }
 
     public void setRecord(RAuditEventRecord record) {
-		if (record.getId() != 0) {
+        if (record.getId() != 0) {
 			this.recordId = record.getId();
 		}
     	this.record = record;

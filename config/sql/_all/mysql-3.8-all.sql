@@ -293,7 +293,7 @@ CREATE TABLE m_audit_event (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(900) NOT NULL,
+  changedItemPath VARCHAR(255) NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, changedItemPath)
 )
