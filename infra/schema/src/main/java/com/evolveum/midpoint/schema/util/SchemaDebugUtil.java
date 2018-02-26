@@ -798,6 +798,26 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
+	public static String prettyPrint(ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
+		sb.append(prettyPrint(deltaType.getObjectType())).append(" ");
+		sb.append(prettyPrint(deltaType.getOid())).append(" ");
+		sb.append(deltaType.getChangeType()).append(": ");
+		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		if (objectToAdd != null) {
+			sb.append(prettyPrint(objectToAdd));
+		}
+		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+		if (itemDelta != null && !itemDelta.isEmpty()) {
+			sb.append(prettyPrint(itemDelta));
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
 	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
 		if (deltaOpType == null) {
 			return "null";

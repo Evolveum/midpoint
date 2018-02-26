@@ -1,7 +1,23 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,15 +26,23 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class PrismIdentifierGenerator {
+public class PrismIdentifierGenerator<O extends ObjectType> {
 
     public enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
+    
+    private final Operation operation;
+    private Set<Long> usedIds = new HashSet<>();
+    
+    public PrismIdentifierGenerator(@NotNull Operation operation) {
+		super();
+		this.operation = operation;
+	}
 
-    /**
+	/**
      * Method inserts id for prism container values, which didn't have ids,
      * also returns all container values which has generated id
      */
-    public IdGeneratorResult generate(@NotNull PrismObject object, @NotNull Operation operation) {
+    public IdGeneratorResult generate(@NotNull PrismObject<O> object) {
         IdGeneratorResult result = new IdGeneratorResult();
         boolean adding = Operation.ADD.equals(operation);
         result.setGeneratedOid(adding);
@@ -30,7 +54,20 @@ public class PrismIdentifierGenerator {
         }
 
         List<PrismContainer<?>> values = listAllPrismContainers(object);
-        generateContainerIds(values, result, operation);
+        generateContainerIds(values, result);
+
+        return result;
+    }
+    
+    public IdGeneratorResult generate(Containerable containerable) {
+        IdGeneratorResult result = new IdGeneratorResult();
+        if (!(containerable instanceof AccessCertificationCaseType)) {
+            return result;
+        }
+        AccessCertificationCaseType aCase = (AccessCertificationCaseType) containerable;
+
+        List<PrismContainer<?>> values = listAllPrismContainers(aCase.asPrismContainerValue());
+        generateContainerIds(values, result);
 
         return result;
     }
@@ -58,9 +95,12 @@ public class PrismIdentifierGenerator {
 
         return values;
     }
-
-    private void generateContainerIds(List<PrismContainer<?>> containers, IdGeneratorResult result, Operation operation) {
-        Set<Long> usedIds = new HashSet<>();
+    
+    public void collectUsedIds(@NotNull PrismObject<O> object) {
+    	collectUsedIds(listAllPrismContainers(object));
+    }
+    
+    private void collectUsedIds(List<PrismContainer<?>> containers) {
         for (PrismContainer<?> c : containers) {
             for (PrismContainerValue<?> val : c.getValues()) {
                 if (val.getId() != null) {
@@ -68,8 +108,11 @@ public class PrismIdentifierGenerator {
                 }
             }
         }
+    }
 
-        Long nextId = 1L;
+    private void generateContainerIds(List<PrismContainer<?>> containers, IdGeneratorResult result) {
+    	collectUsedIds(containers);
+        Long nextId = null;
         for (PrismContainer<?> c : containers) {
             for (PrismContainerValue<?> val : c.getValues()) {
                 if (val.getId() != null) {
@@ -77,11 +120,11 @@ public class PrismIdentifierGenerator {
                         result.getValues().add(val);
                     }
                 } else {
-                    while (usedIds.contains(nextId)) {
-                        nextId++;
-                    }
+                	if (nextId == null) {
+                		nextId = getStartId() + 1;
+                	}
                     val.setId(nextId);
-                    usedIds.add(nextId);
+                    nextId++;
                     if (operation == Operation.ADD) {
                         result.getValues().add(val);
                     }
@@ -89,17 +132,12 @@ public class PrismIdentifierGenerator {
             }
         }
     }
-
-    public IdGeneratorResult generate(Containerable containerable, Operation operation) {
-        IdGeneratorResult result = new IdGeneratorResult();
-        if (!(containerable instanceof AccessCertificationCaseType)) {
-            return result;
-        }
-        AccessCertificationCaseType aCase = (AccessCertificationCaseType) containerable;
-
-        List<PrismContainer<?>> values = listAllPrismContainers(aCase.asPrismContainerValue());
-        generateContainerIds(values, result, operation);
-
-        return result;
+    
+    private long getStartId() {
+    	if (usedIds.isEmpty()) {
+    		return 0L;
+    	}
+    	return Collections.max(usedIds);
     }
+
 }

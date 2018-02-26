@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,10 +165,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-	    PrismObject<T> object = executeAttempts(oid, "getObject", "getting",
-			    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
-	    );
-	    invokeConflictWatchers((w) -> w.afterGetObject(object));
+        PrismObject<T> object = null;
+        try {
+        	
+		    PrismObject<T> attemptobject = executeAttempts(oid, "getObject", "getting",
+				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
+		    );
+		    object = attemptobject;
+		    invokeConflictWatchers((w) -> w.afterGetObject(attemptobject));
+		    
+        } finally {
+        	OperationLogger.logGetObject(type, oid, options, object, subResult);
+        }
+        
 	    return object;
     }
 
@@ -409,19 +418,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("object", object);
         subResult.addParam("options", options.toString());
 
-        // TODO use executeAttempts
-        final String operation = "adding";
-        int attempt = 1;
-
-        String proposedOid = object.getOid();
-        while (true) {
-            try {
-                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
-	            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
-	            return createdOid;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
-            }
+        try {
+	        // TODO use executeAttempts
+	        final String operation = "adding";
+	        int attempt = 1;
+	
+	        String proposedOid = object.getOid();
+	        while (true) {
+	            try {
+	                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
+		            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
+		            return createdOid;
+	            } catch (RuntimeException ex) {
+	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
+	            }
+	        }
+        } finally {
+        	OperationLogger.logAdd(object, options, subResult);
         }
     }
 
@@ -449,10 +462,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-        executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
-                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
-        );
-	    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+        try {
+	        
+        	executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
+	                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
+	        );
+		    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+		    
+        } finally {
+        	OperationLogger.logDelete(type, oid, subResult);
+        }
     }
 
     @Override
@@ -567,6 +586,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throw t;
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
+            OperationLogger.logModify(type, oid, modifications, precondition, options, subResult);
         }
     }
 

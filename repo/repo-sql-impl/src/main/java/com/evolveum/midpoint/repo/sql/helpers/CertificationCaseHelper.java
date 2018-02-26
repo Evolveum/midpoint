@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,8 +108,8 @@ public class CertificationCaseHelper {
             }
 
             // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
-            PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-            generator.generate(caseType, PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator generator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
+            generator.generate(caseType);
 
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, createRepositoryContext());
             row.setId(RUtil.toInteger(caseType.getId()));
@@ -264,8 +264,8 @@ public class CertificationCaseHelper {
                 delta.applyTo(aCase.asPrismContainerValue());
 
                 // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
-                PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-                generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
+                PrismIdentifierGenerator generator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
+                generator.generate(aCase);
 
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
                 session.merge(rCase);

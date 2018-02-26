@@ -125,10 +125,11 @@ public class ObjectUpdater {
             PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
-
+            PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(operation);
+            
             session = baseHelper.beginTransaction();
 
-            RObject rObject = createDataObjectFromJAXB(object, operation);
+            RObject rObject = createDataObjectFromJAXB(object, idGenerator);
 
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
@@ -410,11 +411,14 @@ public class ObjectUpdater {
                     options = null;
                 }
 
+                PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+                
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
                 if (precondition != null && !precondition.holds(prismObject)) {
                 	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
+                idGenerator.collectUsedIds(prismObject);
 	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
@@ -563,12 +567,10 @@ public class ObjectUpdater {
         }
     }
 
-    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject,
-                                                                   PrismIdentifierGenerator.Operation operation)
+    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)
             throws SchemaException {
 
-        PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-        IdGeneratorResult generatorResult = generator.generate(prismObject, operation);
+        IdGeneratorResult generatorResult = idGenerator.generate(prismObject);
 
         T object = prismObject.asObjectable();
 
