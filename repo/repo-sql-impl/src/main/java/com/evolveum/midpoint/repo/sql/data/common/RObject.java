@@ -721,7 +721,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.prismContext));
 
         if (jaxb.getExtension() != null) {
-            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION);
+            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
         }
 
         repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
@@ -738,7 +738,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     public static void copyFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo, RepositoryContext repositoryContext,
-			RObjectExtensionType ownerType) throws DtoTranslationException {
+			RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
         Set<RAnyValue<?>> values = new HashSet<>();
@@ -747,7 +747,11 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             //TODO: is this enough? should we try items without definitions?
             if (items != null) {
                 for (Item<?,?> item : items) {
-                    values.addAll(converter.convertToRValue(item, false, null));
+                    Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, null);
+                    if (generatorResult.isGeneratedOid()) {
+                        converted.stream().forEach(v -> v.setTransient(true));
+                    }
+                    values.addAll(converted);
                 }
             }
         } catch (Exception ex) {

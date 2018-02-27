@@ -286,7 +286,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         }
 
         if (jaxb.getAttributes() != null) {
-            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES);
+            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);
         }
         repo.pendingOperationCount = jaxb.getPendingOperation().size();
     }
