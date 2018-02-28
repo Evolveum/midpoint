@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -97,6 +98,7 @@ public class FocusProcessor {
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
+	@Autowired private ClockworkMedic medic;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -185,13 +187,13 @@ public class FocusProcessor {
 
 				if (consistencyChecks) context.checkConsistence();
 
-				LensUtil.partialExecute("inbound",
+				medic.partialExecute("inbound",
 						() -> {
 							// Loop through the account changes, apply inbound expressions
 					        inboundProcessor.processInbound(context, now, task, result);
 					        if (consistencyChecks) context.checkConsistence();
 					        context.recomputeFocus();
-					        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
+					        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
 						},
 						partialProcessingOptions::getInbound);
@@ -199,14 +201,14 @@ public class FocusProcessor {
 
 		        // ACTIVATION
 
-				LensUtil.partialExecute("focusActivation",
+				medic.partialExecute("focusActivation",
 						() -> processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 
 		        // OBJECT TEMPLATE (before assignments)
 
-				LensUtil.partialExecute("objectTemplateBeforeAssignments",
+				medic.partialExecute("objectTemplateBeforeAssignments",
 						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result),
 						partialProcessingOptions::getObjectTemplateBeforeAssignments);
@@ -214,7 +216,7 @@ public class FocusProcessor {
 
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
-		        LensUtil.partialExecute("focusActivation",
+		        medic.partialExecute("focusActivation",
 						() -> processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
@@ -223,32 +225,32 @@ public class FocusProcessor {
 				focusContext.clearPendingObjectPolicyStateModifications();
 				focusContext.clearPendingAssignmentPolicyStateModifications();
 
-				LensUtil.partialExecute("assignments",
+				medic.partialExecute("assignments",
 						() -> assignmentProcessor.processAssignmentsProjections(context, now, task, result),
 						partialProcessingOptions::getAssignments);
 
-		        LensUtil.partialExecute("assignmentsOrg",
+				medic.partialExecute("assignmentsOrg",
 						() -> assignmentProcessor.processOrgAssignments(context, result),
 						partialProcessingOptions::getAssignmentsOrg);
 
 
-		        LensUtil.partialExecute("assignmentsMembershipAndDelegate",
+				medic.partialExecute("assignmentsMembershipAndDelegate",
 						() -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result),
 						partialProcessingOptions::getAssignmentsMembershipAndDelegate);
 
 		        context.recompute();
 
-		        LensUtil.partialExecute("assignmentsConflicts",
+		        medic.partialExecute("assignmentsConflicts",
 						() -> assignmentProcessor.checkForAssignmentConflicts(context, result),
 						partialProcessingOptions::getAssignmentsConflicts);
 		        
-		        LensUtil.partialExecute("focusLifecycle",
+		        medic.partialExecute("focusLifecycle",
 						() -> focusLifecycleProcessor.processLifecycle(context, now, task, result),
 						partialProcessingOptions::getFocusLifecycle);
 
 		        // OBJECT TEMPLATE (after assignments)
 
-				LensUtil.partialExecute("objectTemplateAfterAssignments",
+		        medic.partialExecute("objectTemplateAfterAssignments",
 						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result),
 						partialProcessingOptions::getObjectTemplateBeforeAssignments);
@@ -258,20 +260,20 @@ public class FocusProcessor {
 		        // process activation again. Second pass through object template might have changed it.
 		        // We also need to apply assignment activation if needed
 		        context.recomputeFocus();
-		        LensUtil.partialExecute("focusActivation",
+		        medic.partialExecute("focusActivation",
 						() -> processActivationAfterAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 		        // CREDENTIALS (including PASSWORD POLICY)
 
-		        LensUtil.partialExecute("focusCredentials",
+		        medic.partialExecute("focusCredentials",
 						() -> credentialsProcessor.processFocusCredentials(context, now, task, result),
 						partialProcessingOptions::getFocusCredentials);
 
 		        // We need to evaluate this as a last step. We need to make sure we have all the
 		        // focus deltas so we can properly trigger the rules.
 
-		        LensUtil.partialExecute("focusPolicyRules",
+		        medic.partialExecute("focusPolicyRules",
 						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
 						partialProcessingOptions::getFocusPolicyRules);
 

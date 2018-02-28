@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -77,32 +78,16 @@ public class Projector {
 
 	private static final String OPERATION_PROJECT_PROJECTION = Projector.class.getName() + ".projectProjection";
 
-	@Autowired
-	private ContextLoader contextLoader;
-
-	@Autowired
-    private FocusProcessor focusProcessor;
-
-    @Autowired
-    private AssignmentProcessor assignmentProcessor;
-
-    @Autowired
-    private ProjectionValuesProcessor projectionValuesProcessor;
-
-    @Autowired
-    private ReconciliationProcessor reconciliationProcessor;
-
-    @Autowired
-    private ProjectionCredentialsProcessor projectionCredentialsProcessor;
-
-    @Autowired
-    private ActivationProcessor activationProcessor;
-
-    @Autowired
-    private DependencyProcessor dependencyProcessor;
-
-    @Autowired
-    private Clock clock;
+	@Autowired private ContextLoader contextLoader;
+	@Autowired private FocusProcessor focusProcessor;
+    @Autowired private AssignmentProcessor assignmentProcessor;
+    @Autowired private ProjectionValuesProcessor projectionValuesProcessor;
+    @Autowired private ReconciliationProcessor reconciliationProcessor;
+    @Autowired private ProjectionCredentialsProcessor projectionCredentialsProcessor;
+    @Autowired private ActivationProcessor activationProcessor;
+    @Autowired private DependencyProcessor dependencyProcessor;
+    @Autowired private Clock clock;
+    @Autowired private ClockworkMedic medic;
 
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 
@@ -153,8 +138,8 @@ public class Projector {
 
         context.checkAbortRequested();
 
-		if (context.getDebugListener() != null) {
-			context.getDebugListener().beforeProjection(context);
+		if (context.getInspector() != null) {
+			context.getInspector().projectorStart(context);
 		}
 
 		InternalMonitor.recordCount(InternalCounters.PROJECTOR_RUN_COUNT);
@@ -165,7 +150,7 @@ public class Projector {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
 		String traceTitle = fromStart ? "projector start" : "projector resume";
-		LensUtil.traceContext(LOGGER, activityDescription, traceTitle, false, context, false);
+		medic.traceContext(LOGGER, activityDescription, traceTitle, false, context, false);
 
 		if (consistencyChecks) context.checkConsistence();
 
@@ -189,7 +174,7 @@ public class Projector {
             context.reportProgress(new ProgressInformation(PROJECTOR, ENTERING));
 
 			if (fromStart) {
-				LensUtil.partialExecute("load",
+				medic.partialExecute("load",
 					() -> {
 						contextLoader.load(context, activityDescription, task, result);
 						// Set the "fresh" mark now so following consistency check will be stricter
@@ -224,7 +209,7 @@ public class Projector {
 	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
 	        	// object template and assignments.
 
-				LensUtil.partialExecute("focus",
+				medic.partialExecute("focus",
 						() -> {
 							focusProcessor.processFocus(context, activityDescription, now, task, result);
 					        context.recomputeFocus();
@@ -232,7 +217,7 @@ public class Projector {
 						},
 						partialProcessingOptions::getFocus, result);
 
-				LensUtil.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
+				medic.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
 				LensUtil.checkContextSanity(context, "focus processing", result);
 
 				if (partialProcessingOptions.getProjection() != PartialProcessingTypeType.SKIP) {
@@ -253,7 +238,7 @@ public class Projector {
 						assignmentProcessor.removeIgnoredContexts(
 								context);        // TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
 					}
-					LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context,
+					medic.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context,
 							true);
 					if (consistencyChecks)
 						context.checkConsistence();
@@ -264,7 +249,7 @@ public class Projector {
 
 					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 
-						LensUtil.partialExecute("projection " + projectionContext.getHumanReadableName(),
+						medic.partialExecute("projection " + projectionContext.getHumanReadableName(),
 								() -> projectProjection(context, projectionContext,
 										partialProcessingOptions, now, activityDescription, task, result),
 								partialProcessingOptions::getProjection);
@@ -303,8 +288,8 @@ public class Projector {
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
 		} finally {
-			if (context.getDebugListener() != null) {
-				context.getDebugListener().afterProjection(context);
+			if (context.getInspector() != null) {
+				context.getInspector().projectorFinish(context);
 			}
             context.reportProgress(new ProgressInformation(PROJECTOR, result));
         }
@@ -358,7 +343,7 @@ public class Projector {
 	
 	    	// TODO: decide if we need to continue
 	
-	    	LensUtil.partialExecute("projectionValues",
+	    	medic.partialExecute("projectionValues",
 					() -> {
 						// This is a "composite" processor. it contains several more processor invocations inside
 						projectionValuesProcessor.process(context, projectionContext, activityDescription, task, result);
@@ -374,28 +359,28 @@ public class Projector {
 				return;
 	    	}
 	
-	    	LensUtil.partialExecute("projectionCredentials",
+	    	medic.partialExecute("projectionCredentials",
 					() -> {
 						projectionCredentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
 				    	if (consistencyChecks) context.checkConsistence();
 
 				    	projectionContext.recompute();
-				    	LensUtil.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
+				    	medic.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
 				        if (consistencyChecks) context.checkConsistence();
 					},
 					partialProcessingOptions::getProjectionCredentials);
 	
 
-	        LensUtil.partialExecute("projectionReconciliation",
+	    	medic.partialExecute("projectionReconciliation",
 					() -> {
 						reconciliationProcessor.processReconciliation(context, projectionContext, task, result);
 						projectionContext.recompute();
-				        LensUtil.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
+						medic.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
 				        if (consistencyChecks) context.checkConsistence();
 					},
 					partialProcessingOptions::getProjectionReconciliation);
 
-	        LensUtil.partialExecute("projectionValuesPostRecon",
+	    	medic.partialExecute("projectionValuesPostRecon",
 					() -> {
 						projectionValuesProcessor.processPostRecon(context, projectionContext, activityDescription, task, result);
 				    	if (consistencyChecks) context.checkConsistence();
@@ -405,7 +390,7 @@ public class Projector {
 					},
 					partialProcessingOptions::getProjectionValues);
 
-	        LensUtil.partialExecute("projectionLifecycle",
+	    	medic.partialExecute("projectionLifecycle",
 					() -> {
 						activationProcessor.processLifecycle(context, projectionContext, now, task, result);
 				    	if (consistencyChecks) context.checkConsistence();

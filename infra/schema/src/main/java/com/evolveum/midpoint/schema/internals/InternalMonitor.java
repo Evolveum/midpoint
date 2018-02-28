@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 	private static CachingStatistics resourceCacheStats = new CachingStatistics();
 	private static CachingStatistics connectorCacheStats = new CachingStatistics();
 
-	private static long prismObjectCloneDurationMillis = 0;
+	private static boolean cloneTimingEnabled = false;
+	private static long prismObjectCloneDurationNanos = 0;
 
 	private static InternalInspector inspector;
 
@@ -172,32 +173,45 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		recordCountInternal(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
 	}
 
-	public static long getPrismObjectCloneDurationMillis() {
-		return prismObjectCloneDurationMillis;
+	public static boolean isCloneTimingEnabled() {
+		return cloneTimingEnabled;
 	}
 
-	public static void setPrismObjectCloneDurationMillis(long prismObjectCloneDurationMillis) {
-		InternalMonitor.prismObjectCloneDurationMillis = prismObjectCloneDurationMillis;
+	public static void setCloneTimingEnabled(boolean cloneTimingEnabled) {
+		InternalMonitor.cloneTimingEnabled = cloneTimingEnabled;
+	}
+
+	public static long getPrismObjectCloneDurationMillis() {
+		return prismObjectCloneDurationNanos;
+	}
+
+	public static void setPrismObjectCloneDurationMillis(long prismObjectCloneDurationNanos) {
+		InternalMonitor.prismObjectCloneDurationNanos = prismObjectCloneDurationNanos;
 	}
 
 	@Override
 	public <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
+		if (!cloneTimingEnabled) {
+			return;
+		}
 		LOGGER.trace("MONITOR prism object clone start: {}", orig);
 		if (!orig.isImmutable()) {
-			orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.currentTimeMillis());
+			orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.nanoTime());
 		}
 	}
 
 	@Override
 	public synchronized <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone) {
 		long count = recordCountInternal(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
-		Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
-		if (cloneStartObject != null && cloneStartObject instanceof Long) {
-			long cloneDurationMillis = System.currentTimeMillis() - (Long)cloneStartObject;
-			prismObjectCloneDurationMillis += cloneDurationMillis;
-			LOGGER.debug("MONITOR prism object clone end: {} (duration {} ms)", orig, cloneDurationMillis);
-		} else {
-			LOGGER.debug("MONITOR prism object clone end: {}", orig);
+		if (cloneTimingEnabled) {
+			Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
+			if (cloneStartObject != null && cloneStartObject instanceof Long) {
+				long cloneDurationNanos = System.nanoTime() - (Long)cloneStartObject;
+				prismObjectCloneDurationNanos += cloneDurationNanos;
+				LOGGER.debug("MONITOR prism object clone end: {} (duration {} ns)", orig, cloneDurationNanos);
+			} else {
+				LOGGER.debug("MONITOR prism object clone end: {}", orig);
+			}
 		}
 		if (isTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT)) {
 			traceOperation("prism object clone", null, count, false);
@@ -257,7 +271,11 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, trace.getLabel(), isTrace(trace), indent + 2);
 		}
-		// TODO
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "cloneTimingEnabled", cloneTimingEnabled, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "prismObjectCloneDuration", (prismObjectCloneDurationNanos/1000000)+" ms (" + prismObjectCloneDurationNanos + " ns)", indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "resourceCacheStats", resourceCacheStats, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "connectorCacheStats", connectorCacheStats, indent + 1);
 		return sb.toString();
 	}
 }

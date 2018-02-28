@@ -166,7 +166,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	/**
 	 * Used mostly in unit tests.
 	 */
-	transient private LensDebugListener debugListener;
+	transient private ClockworkInspector inspector;
 
 	/**
 	 * User feedback.
@@ -479,12 +479,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.requestMetadata = requestMetadata;
 	}
 
-	public LensDebugListener getDebugListener() {
-		return debugListener;
+	public ClockworkInspector getInspector() {
+		return inspector;
 	}
 
-	public void setDebugListener(LensDebugListener debugListener) {
-		this.debugListener = debugListener;
+	public void setInspector(ClockworkInspector inspector) {
+		this.inspector = inspector;
 	}
 
 	/**
