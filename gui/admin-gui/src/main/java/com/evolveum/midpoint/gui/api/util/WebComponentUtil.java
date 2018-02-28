@@ -446,6 +446,14 @@ public final class WebComponentUtil {
 		return objectWrapperModel;
 	}
 
+	public static void safeResultCleanup(OperationResult result, Trace logger) {
+		try {
+			result.cleanupResult();
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(logger, "Couldn't clean up the operation result", t);
+		}
+	}
+
 	public enum Channel {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
