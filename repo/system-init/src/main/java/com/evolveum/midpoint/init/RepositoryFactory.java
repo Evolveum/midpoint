@@ -80,8 +80,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
         return className;
     }
 
-    private RepositoryServiceFactory getFactoryBean(Class<RepositoryServiceFactory> clazz) throws
-            RepositoryServiceFactoryException {
+    private RepositoryServiceFactory getFactoryBean(Class<RepositoryServiceFactory> clazz) {
         LOGGER.info("Getting factory bean '{}'", new Object[]{clazz.getName()});
         return applicationContext.getBean(clazz);
     }
@@ -108,18 +107,21 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     }
 
     public synchronized RepositoryService getRepositoryService() {
-        if (repositoryService == null) {
-            try {
-            	LOGGER.debug("Creating repository service using factory {}", factory);
-                repositoryService = factory.getRepositoryService();
-            } catch (RepositoryServiceFactoryException | RuntimeException ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
-                throw new SystemException("Failed to get repository service from factory " + factory, ex);
-            } catch (Error ex) {
-            	LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
-                throw ex;
-            }
+        if (repositoryService != null) {
+            return repositoryService;
         }
+
+        try {
+            LOGGER.debug("Creating repository service using factory {}", factory);
+            repositoryService = factory.getRepositoryService();
+        } catch (RepositoryServiceFactoryException | RuntimeException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+            throw new SystemException("Failed to get repository service from factory " + factory, ex);
+        } catch (Error ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+            throw ex;
+        }
+
         return repositoryService;
     }
 
@@ -128,21 +130,27 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     }
 
     public synchronized RepositoryService getCacheRepositoryService() {
-        if (cacheRepositoryService == null) {
-            try {
-                Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(REPOSITORY_FACTORY_CACHE_CLASS);
-                cacheFactory = getFactoryBean(clazz);
-                //TODO decompose this dependency, remove class casting !!!
-                RepositoryCache repositoryCache = (RepositoryCache) cacheFactory.getRepositoryService();
-                repositoryCache.setRepository(getRepositoryService(), prismContext);
-
-                cacheRepositoryService = repositoryCache;
-            } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}",
-                        ex, ex.getClass().getName());
-                throw new SystemException("Failed to get cache repository service", ex);
-            }
+        if (cacheRepositoryService != null) {
+            return cacheRepositoryService;
         }
+
+        try {
+            Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(REPOSITORY_FACTORY_CACHE_CLASS);
+            cacheFactory = getFactoryBean(clazz);
+            //TODO decompose this dependency, remove class casting !!!
+            RepositoryCache repositoryCache = (RepositoryCache) cacheFactory.getRepositoryService();
+
+            RepositoryService repositoryService = applicationContext.getBean("repositoryService", RepositoryService.class);
+
+            repositoryCache.setRepository(repositoryService, prismContext);
+
+            cacheRepositoryService = repositoryCache;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}",
+                    ex, ex.getClass().getName());
+            throw new SystemException("Failed to get cache repository service", ex);
+        }
+
         return cacheRepositoryService;
     }
 

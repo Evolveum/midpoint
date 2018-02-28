@@ -19,7 +19,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -70,7 +70,7 @@ public class MappingDiagEvaluator {
 			@NotNull OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-		Mapping.Builder<?,?> builder = mappingFactory.createMappingBuilder();
+		MappingImpl.Builder<?,?> builder = mappingFactory.createMappingBuilder();
 
 		ObjectDeltaObject<?> sourceContext = createSourceContext(request, task, result);
 
@@ -82,7 +82,7 @@ public class MappingDiagEvaluator {
 				.profiling(true)
 				.now(clock.currentTimeXMLGregorianCalendar());
 
-		Mapping<?,?> mapping = builder.build();
+		MappingImpl<?,?> mapping = builder.build();
 
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {

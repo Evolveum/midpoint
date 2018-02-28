@@ -28,7 +28,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.util.Utils;
@@ -98,8 +98,8 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	private ResourceType resource;
 	private MappingFactory mappingFactory;
 	private MappingEvaluator mappingEvaluator;
-	private Collection<Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings;
-	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
+	private Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings;
+	private Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 	private AssignmentPathVariables assignmentPathVariables = null;
@@ -182,16 +182,16 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		return refinedObjectClassDefinition.getIntent();
 	}
 
-	public Collection<Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
+	public Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
 		if (attributeMappings == null) {
 			attributeMappings = new ArrayList<>();
 		}
 		return attributeMappings;
 	}
 
-	public Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(
+	public MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(
 			QName attrName) {
-		for (Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
+		for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
 			if (myVc.getItemName().equals(attrName)) {
 				return myVc;
 			}
@@ -200,12 +200,12 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	}
 
 	public void addAttributeMapping(
-			Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping) {
+			MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping) {
 		getAttributeMappings().add(mapping);
 	}
 
 	public boolean containsAttributeMapping(QName attributeName) {
-		for (Mapping<?, ?> mapping : getAttributeMappings()) {
+		for (MappingImpl<?, ?> mapping : getAttributeMappings()) {
 			if (attributeName.equals(mapping.getItemName())) {
 				return true;
 			}
@@ -213,20 +213,20 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		return false;
 	}
 
-	public Collection<Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
+	public Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
 		if (associationMappings == null) {
-			associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>();
+			associationMappings = new ArrayList<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>();
 		}
 		return associationMappings;
 	}
 
 	public void addAssociationMapping(
-			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
+			MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
 		getAssociationMappings().add(mapping);
 	}
 
 	public boolean containsAssociationMapping(QName assocName) {
-		for (Mapping<?, ?> mapping : getAssociationMappings()) {
+		for (MappingImpl<?, ?> mapping : getAssociationMappings()) {
 			if (assocName.equals(mapping.getItemName())) {
 				return true;
 			}
@@ -408,7 +408,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 				throw new SchemaException("No outbound section in definition of attribute " + attrName
 						+ " in account construction in " + getSource());
 			}
-			Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(
+			MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(
 					attribudeDefinitionType, task, result);
 			if (attributeMapping != null) {
 				attributeMappings.add(attributeMapping);
@@ -416,7 +416,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		}
 	}
 
-	private <T> Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
+	private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
 			ResourceAttributeDefinitionType attribudeDefinitionType, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
@@ -439,11 +439,11 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 					+ getIntent() + ", " + getResource(task, result)
 					+ " as definied in " + getSource(), attrName);
 		}
-		Mapping.Builder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = mappingFactory.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = mappingFactory.createMappingBuilder(
 				outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getSource());
 
-		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(
+		MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(
 				builder, attrName, outputDefinition, null, task, result);
 
 		LOGGER.trace("Evaluated mapping for attribute " + attrName + ": " + evaluatedMapping);
@@ -470,7 +470,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	}
 
 	public boolean hasValueForAttribute(QName attributeName) {
-		for (Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
+		for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
 			if (attributeName.equals(attributeConstruction.getItemName())) {
 				PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
 						.getOutputTriple();
@@ -496,7 +496,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 				throw new SchemaException("No outbound section in definition of association " + assocName
 						+ " in construction in " + getSource());
 			}
-			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping =
+			MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping =
 					evaluateAssociation(associationDefinitionType, task, result);
 			if (assocMapping != null) {
 				associationMappings.add(assocMapping);
@@ -504,7 +504,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		}
 	}
 
-	private Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
+	private MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
 			ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
@@ -518,7 +518,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		}
 		PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
 
-		Mapping.Builder<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mappingBuilder =
+		MappingImpl.Builder<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mappingBuilder =
 				mappingFactory.<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>createMappingBuilder()
 						.mappingType(outboundMappingType)
 						.contextDescription("for association " + PrettyPrinter.prettyPrint(assocName) + " in " + getSource())
@@ -531,15 +531,15 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + getSource());
 		}
 
-		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
+		MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
 				mappingBuilder, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
 
 		LOGGER.trace("Evaluated mapping for association " + assocName + ": " + evaluatedMapping);
 		return evaluatedMapping;
 	}
 
-	private <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(
-			Mapping.Builder<V, D> builder, QName mappingQName, D outputDefinition,
+	private <V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(
+			MappingImpl.Builder<V, D> builder, QName mappingQName, D outputDefinition,
 			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -582,7 +582,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			builder = builder.conditionMaskNew(false);
 		}
 
-		Mapping<V, D> mapping = builder.build();
+		MappingImpl<V, D> mapping = builder.build();
 		mappingEvaluator.evaluateMapping(mapping, getLensContext(), projectionContext, task, result);
 
 		return mapping;
@@ -762,7 +762,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		if (attributeMappings != null && !attributeMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
-			for (Mapping mapping : attributeMappings) {
+			for (MappingImpl mapping : attributeMappings) {
 				sb.append("\n");
 				sb.append(mapping.debugDump(indent + 2));
 			}
@@ -770,7 +770,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		if (associationMappings != null && !associationMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
-			for (Mapping mapping : associationMappings) {
+			for (MappingImpl mapping : associationMappings) {
 				sb.append("\n");
 				sb.append(mapping.debugDump(indent + 2));
 			}

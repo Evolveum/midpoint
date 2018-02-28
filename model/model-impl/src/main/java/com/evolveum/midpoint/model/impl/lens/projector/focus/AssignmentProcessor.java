@@ -38,7 +38,7 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
@@ -873,8 +873,8 @@ public class AssignmentProcessor {
 		XMLGregorianCalendar nextRecomputeTime = null;
 
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
-			Collection<Mapping<V,D>> focusMappings = (Collection)ea.getFocusMappings();
-			for (Mapping<V,D> mapping: focusMappings) {
+			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
+			for (MappingImpl<V,D> mapping: focusMappings) {
 
 				ItemPath itemPath = mapping.getOutputPath();
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);

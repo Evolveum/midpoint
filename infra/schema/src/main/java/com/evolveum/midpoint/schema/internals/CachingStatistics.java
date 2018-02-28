@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
 /**
  * @author semancik
  *
  */
-public class CachingStatistics {
+public class CachingStatistics implements DebugDumpable {
 
 	private long requests = 0;
 	private long hits = 0;
@@ -72,6 +75,15 @@ public class CachingStatistics {
 	@Override
 	public String toString() {
 		return "CachingStatistics(requests=" + requests + ", hits=" + hits + ", misses=" + misses + ")";
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CachingStatistics.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "requests", requests, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "hits", hits, indent);
+		DebugUtil.debugDumpWithLabel(sb, "misses", misses, indent);
+		return sb.toString();
 	}
 
 }

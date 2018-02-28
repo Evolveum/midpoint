@@ -87,8 +87,8 @@ public class MappingFactory {
 		this.profiling = profiling;
 	}
 
-	public <V extends PrismValue, D extends ItemDefinition> Mapping.Builder<V, D> createMappingBuilder() {
-		return new Mapping.Builder<V, D>()
+	public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder() {
+		return new MappingImpl.Builder<V, D>()
 				.prismContext(prismContext)
 				.expressionFactory(expressionFactory)
 				.securityContextManager(securityContextManager)
@@ -97,7 +97,7 @@ public class MappingFactory {
 				.profiling(profiling);
 	}
 
-	public <V extends PrismValue, D extends ItemDefinition> Mapping.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
+	public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
 		return this.<V,D>createMappingBuilder().mappingType(mappingType)
 				.contextDescription(shortDesc);
 	}

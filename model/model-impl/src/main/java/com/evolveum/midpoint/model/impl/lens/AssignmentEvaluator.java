@@ -35,7 +35,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -531,7 +531,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
-			Mapping mapping = mappingEvaluator.createFocusMapping(mappingFactory, lensContext, mappingType, segment.source, focusOdo,
+			MappingImpl mapping = mappingEvaluator.createFocusMapping(mappingFactory, lensContext, mappingType, segment.source, focusOdo,
 					assignmentPathVariables, systemConfiguration, now, segment.sourceDescription, ctx.task, ctx.result);
 			if (mapping == null) {
 				continue;
@@ -1191,7 +1191,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			desc = "condition in assignment in " + source;
 		}
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
 		builder = builder.mappingType(condition)
 				.contextDescription(desc)
 				.sourceContext(focusOdo)
@@ -1204,7 +1204,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				.rootNode(focusOdo);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
-		Mapping<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		mappingEvaluator.evaluateMapping(mapping, lensContext, ctx.task, ctx.result);
 		
