@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,6 +77,7 @@ public class TestOperationPerf extends AbstractStoryTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestOperationPerf.class);
 	
 	@Autowired ClockworkMedic clockworkMedic;
+	@Autowired RepositoryCache repositoryCache;
 
 	private CountingInspector internalInspector;
 	private ProfilingClockworkInspector clockworkInspector;
@@ -94,8 +96,9 @@ public class TestOperationPerf extends AbstractStoryTest {
 		
 		clockworkInspector = new ProfilingClockworkInspector();
 		clockworkMedic.setClockworkInspector(clockworkInspector);
+		repositoryCache.setRepoTimingEnabled(true);
 		
-		InternalMonitor.setCloneTimingEnabled(false);
+		InternalMonitor.setCloneTimingEnabled(true);
 		
 		extendUserSchema(NUMBER_OF_USER_EXTENSION_PROPERTIES);
 	}
@@ -150,6 +153,7 @@ public class TestOperationPerf extends AbstractStoryTest {
         internalInspector.reset();
         clockworkInspector.reset();
         InternalMonitor.reset();
+        repositoryCache.resetDiagCounters();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
@@ -163,11 +167,13 @@ public class TestOperationPerf extends AbstractStoryTest {
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
+        long totalRepoTime = repositoryCache.getTotalRepoTime();
         assertSuccess(result);
         
-        display("Added user in "+(endMillis - startMillis)+"ms");
+        display("Added user in "+(endMillis - startMillis)+" ms");
 
         display("Clockwork inspector", clockworkInspector);
+        display("Total repo time", totalRepoTime + " ms");
         display("Internal inspector", internalInspector);
         display("Internal counters", InternalMonitor.debugDumpStatic(1));
         
