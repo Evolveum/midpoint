@@ -33,8 +33,9 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
-import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
+import com.evolveum.midpoint.model.intest.util.ProfilingClockworkInspector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -70,13 +71,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	private static final int NUMBER_OF_IMPORTED_USERS = 4;
 	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
-	@Autowired(required = true)
-	protected MappingFactory mappingFactory;
+	@Autowired(required = true) protected MappingFactory mappingFactory;
+	@Autowired(required = true) protected Clockwork clockwork;
+	@Autowired(required = true) protected ClockworkMedic clockworkMedic;
 
-	@Autowired(required = true)
-	protected Clockwork clockwork;
-
-	protected ProfilingLensDebugListener lensDebugListener;
+	protected ProfilingClockworkInspector clockworkInspector;
 	protected CheckingProgressListener checkingProgressListener;
 
 	protected UserType userTypeJack;
@@ -126,8 +125,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assumeConflictResolutionAction(getDefaultConflictResolutionAction());
 
 		mappingFactory.setProfiling(true);
-		lensDebugListener = new ProfilingLensDebugListener();
-		clockwork.setDebugListener(lensDebugListener);
+		clockworkInspector = new ProfilingClockworkInspector();
+		clockworkMedic.setClockworkInspector(clockworkInspector);
 		checkingProgressListener = new CheckingProgressListener();
 
 		// Resources

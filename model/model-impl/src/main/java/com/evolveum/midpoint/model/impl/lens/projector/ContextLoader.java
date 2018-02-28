@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -100,6 +101,7 @@ public class ContextLoader {
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private SecurityHelper securityHelper;
+	@Autowired private ClockworkMedic medic;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 
@@ -173,7 +175,7 @@ public class ContextLoader {
         	fullCheckConsistence(context);
         }
 
-        LensUtil.traceContext(LOGGER, activityDescription, "after load", false, context, false);
+        medic.traceContext(LOGGER, activityDescription, "after load", false, context, false);
 	}
 
 

@@ -50,6 +50,7 @@
             <class name="com.evolveum.midpoint.repo.sql.LookupTableTest"/>
             <class name="com.evolveum.midpoint.repo.sql.LookupTableTestReindex"/>
             <class name="com.evolveum.midpoint.repo.sql.PerformanceTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ObjectDeltaUpdaterTest"/>
         </classes>
     </test>
     <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="false">		<!-- enabled only for dbtest -->

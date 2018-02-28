@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -161,7 +162,7 @@ public class WfHook implements ChangeHook {
         	@SuppressWarnings({"unchecked", "raw"})
             LensContext<?> lensContext = (LensContext<?>) context;
 			try {
-				LensUtil.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
+				ClockworkMedic.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
 			} catch (SchemaException e) {
 				throw new IllegalStateException("SchemaException when tracing model context: " + e.getMessage(), e);
 			}

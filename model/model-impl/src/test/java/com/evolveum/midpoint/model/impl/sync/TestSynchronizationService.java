@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
@@ -68,14 +69,14 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
 	private static final String INTENT_GROUP = "group";
 
-	@Autowired
-	SynchronizationService synchronizationService;
-
-	@Autowired
-	Clockwork clockwork;
+	@Autowired SynchronizationService synchronizationService;
+	@Autowired Clockwork clockwork;
+	@Autowired ClockworkMedic clockworkMedic;
 
 	private String accountShadowJackDummyOid = null;
 	private String accountShadowCalypsoDummyOid = null;
+	
+	private MockLensDebugListener mockListener;
 
 	@Test
     public void test010AddedAccountJack() throws Exception {
@@ -85,9 +86,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
@@ -134,10 +133,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 	}
-
+	
 	@Test
     public void test020ModifyLootAbsolute() throws Exception {
 		final String TEST_NAME = "test020ModifyLootAbsolute";
@@ -146,9 +144,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, "999");
@@ -195,8 +191,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 	}
 
 	@Test
@@ -207,9 +202,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         DummyAccount dummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
@@ -257,8 +250,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 	}
 
 	/**
@@ -272,9 +264,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
@@ -310,8 +300,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 	}
 
 	@Test
@@ -326,9 +315,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
         assertIteration(shadowRepo, 0, "");
         assertSituation(shadowRepo, SynchronizationSituationType.LINKED);
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -392,9 +379,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE, result);
         accountShadowCalypsoDummyOid = accountShadowCalypso.getOid();
@@ -444,9 +429,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         // Lets make this a bit more interesting by setting up a fake situation in the shadow
         ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountShadowCalypsoDummyOid,
@@ -495,9 +478,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		assertLinks(userBefore, 0);
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+		setDebugListener();
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
@@ -565,9 +546,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
@@ -621,9 +600,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
-        MockLensDebugListener mockListener = new MockLensDebugListener();
-        clockwork.setDebugListener(mockListener);
+        setDebugListener();
 
         PrismObject<ShadowType> shadowPirates = repoAddObjectFromFile(SHADOW_PIRATES_DUMMY_FILE, result);
         provisioningService.applyDefinition(shadowPirates, task, result);
@@ -675,5 +652,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
 	}
+	
+	private void setDebugListener() {
+        mockListener = new MockLensDebugListener();
+        clockworkMedic.setClockworkInspector(mockListener);
+	}
+
 
 }

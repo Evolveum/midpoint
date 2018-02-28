@@ -132,8 +132,8 @@ public class MappingEvaluator {
 		} finally {
 			task.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, System.currentTimeMillis() - start);
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-			if (lensContext.getDebugListener() != null) {
-				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
+			if (lensContext.getInspector() != null) {
+				lensContext.getInspector().afterMappingEvaluation(lensContext, mapping);
 			}
 		}
 	}
