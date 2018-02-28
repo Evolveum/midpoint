@@ -505,6 +505,7 @@ public class PageCertCampaign extends PageAdminCertification {
 			result.computeStatusIfUnknown();
 		}
 
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		statModel.reset();
 		campaignModel.reset();
@@ -512,7 +513,6 @@ public class PageCertCampaign extends PageAdminCertification {
 		target.add((Component) getOutcomesTable());		// ???
 		target.add(getFeedbackPanel());
 	}
-
 
 	private ObjectQuery createCaseQuery() {
 		ObjectQuery query = new ObjectQuery();
