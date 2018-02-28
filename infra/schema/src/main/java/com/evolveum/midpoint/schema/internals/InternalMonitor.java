@@ -273,7 +273,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		}
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelLn(sb, "cloneTimingEnabled", cloneTimingEnabled, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "prismObjectCloneDuration", (prismObjectCloneDurationNanos/1000000)+" ms (" + prismObjectCloneDurationNanos + " ns)", indent + 1);
+		if (cloneTimingEnabled) {
+			DebugUtil.debugDumpWithLabelLn(sb, "prismObjectCloneDuration", (prismObjectCloneDurationNanos/1000000)+" ms (" + prismObjectCloneDurationNanos + " ns)", indent + 1);
+		}
 		DebugUtil.debugDumpWithLabelLn(sb, "resourceCacheStats", resourceCacheStats, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "connectorCacheStats", connectorCacheStats, indent + 1);
 		return sb.toString();

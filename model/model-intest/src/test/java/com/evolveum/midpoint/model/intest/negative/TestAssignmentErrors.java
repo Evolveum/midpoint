@@ -386,7 +386,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
         dummyAuditService.assertExecutionMessage();
 
-        LensContext<UserType> lastLensContext = (LensContext) clockworkInspector.getLastLensContext();
+        LensContext<UserType> lastLensContext = (LensContext) profilingModelInspectorManager.getLastLensContext();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = lastLensContext.getExecutedDeltas();
         display("Executed deltas", executedDeltas);
         assertEquals("Unexpected number of execution deltas in context", 2, executedDeltas.size());

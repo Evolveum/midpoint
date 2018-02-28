@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.test;
+package com.evolveum.midpoint.model.common.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -26,8 +28,11 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.common.util.ProfilingModelInspector.PartRuntime;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
+import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,19 +42,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang3.ObjectUtils;
 
-public class ProfilingClockworkInspector implements ClockworkInspector, DebugDumpable {
+public class ProfilingModelInspector implements DiagnosticContext, ClockworkInspector, RepositoryPerformanceMonitor, DebugDumpable {
 
-	protected static final Trace LOGGER = TraceManager.getTrace(ProfilingClockworkInspector.class);
+	protected static final Trace LOGGER = TraceManager.getTrace(ProfilingModelInspector.class);
 
+	private Runtimes totalOperationTimes = new Runtimes();
 	private Runtimes totalClockworkTimes = new Runtimes();
 	private Map<ModelState, Runtimes> clockworkStateTimes = new HashMap<>();
 	private Map<ModelState, Runtimes> projectorTimes = new HashMap<>();
-	private Map<ModelState, Map<String,Runtimes>> projectorPartMap = new HashMap<>();
-	private long mappingTotalMillis = 0;
+	private Map<ModelState, List<PartRuntime>> projectorPartMap = new HashMap<>();
+	private long totalMappingTimeMillis = 0;
 	private long projectorMappingTotalMillis = 0;
 	private long projectorMappingTotalCount = 0;
 	private ModelContext lastLensContext;
 	private ModelState currentState = null;
+	private long totalRepoTime = 0;
 	
 	class Runtimes {
 		long startTime = 0;
@@ -62,6 +69,25 @@ public class ProfilingClockworkInspector implements ClockworkInspector, DebugDum
 		String etimeStr() {
 			return etime() + " ms";
 		}
+	}
+	
+	class PartRuntime {
+		
+		public PartRuntime(String part) {
+			super();
+			this.part = part;
+		}
+		
+		String part;
+		Runtimes runtimes = new Runtimes();
+	}
+	
+	public void recordStart() {
+		totalOperationTimes.startTime = System.currentTimeMillis();
+	}
+	
+	public void recordFinish() {
+		totalOperationTimes.finishTime = System.currentTimeMillis();
 	}
 	
 	private void recordStateTime(Map<ModelState, Runtimes> map, ModelState state, Long start, Long finish) {
@@ -83,7 +109,7 @@ public class ProfilingClockworkInspector implements ClockworkInspector, DebugDum
 		clockworkStateTimes = new HashMap<>();
 		projectorTimes = new HashMap<>();
 		projectorPartMap = new HashMap<>();
-		mappingTotalMillis = 0;
+		totalMappingTimeMillis = 0;
 		projectorMappingTotalMillis = 0;
 		projectorMappingTotalCount = 0;
 		lastLensContext = null;
@@ -165,30 +191,40 @@ public class ProfilingClockworkInspector implements ClockworkInspector, DebugDum
 
 	@Override
 	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
-		mappingTotalMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
+		totalMappingTimeMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
 		projectorMappingTotalMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
 		projectorMappingTotalCount++;
 	}
 
 	private void recordProjectorPartTime(ModelState state, String componenetName, Long start, Long finish) {
-		Map<String, Runtimes> partMap = projectorPartMap.get(state);
-		if (partMap == null) {
-			partMap = new HashMap<>();
-			projectorPartMap.put(state, partMap);
+		List<PartRuntime> partList = projectorPartMap.get(state);
+		if (partList == null) {
+			partList = new ArrayList<>();
+			projectorPartMap.put(state, partList);
 		}
-		Runtimes runtimes = partMap.get(componenetName);
-		if (runtimes == null) {
-			runtimes = new Runtimes();
-			partMap.put(componenetName, runtimes);
+		PartRuntime partRuntime = findPartRuntime(partList, componenetName);
+		if (partRuntime == null) {
+			partRuntime = new PartRuntime(componenetName);
+			partList.add(partRuntime);
 		}
 		if (start != null) {
-			runtimes.startTime = start;
+			partRuntime.runtimes.startTime = start;
 		}
 		if (finish != null) {
-			runtimes.finishTime = finish;
+			partRuntime.runtimes.finishTime = finish;
 		}
 	}
 	
+	private PartRuntime findPartRuntime(List<PartRuntime> partList, String componenetName) {
+		for (int i = partList.size() - 1; i >= 0; i--) {
+			PartRuntime partRuntime = partList.get(i);
+			if (partRuntime.part.equals(componenetName)) {
+				return partRuntime;
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public void projectorComponentSkip(String componentName) {
 		// TODO Auto-generated method stub
@@ -204,10 +240,16 @@ public class ProfilingClockworkInspector implements ClockworkInspector, DebugDum
 	public void projectorComponentFinish(String componentName) {
 		recordProjectorPartTime(currentState, componentName, null, System.currentTimeMillis());
 	}
+	
+	@Override
+	public void recordRepoOperation(long durationMillis) {
+		totalRepoTime = totalRepoTime + durationMillis;
+	}
+
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ProfilingClockworkInspector.class, indent);
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ProfilingModelInspector.class, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Clockwork", totalClockworkTimes==null?null:totalClockworkTimes.etimeStr(), indent + 1);
 		dumpState(sb, ModelState.INITIAL, indent);
 		dumpState(sb, ModelState.PRIMARY, indent);
@@ -215,7 +257,9 @@ public class ProfilingClockworkInspector implements ClockworkInspector, DebugDum
 		dumpState(sb, ModelState.EXECUTION, indent);
 		dumpState(sb, ModelState.FINAL, indent);
 		dumpState(sb, ModelState.POSTEXECUTION, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "mappingTotalMillis", mappingTotalMillis + " ms", indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "totalOperationTime", totalOperationTimes.etimeStr(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "totalMappingTime", totalMappingTimeMillis + " ms", indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "totalRepoTime", totalRepoTime + " ms", indent + 1);
 		return sb.toString();
 	}
 
@@ -228,10 +272,10 @@ public class ProfilingClockworkInspector implements ClockworkInspector, DebugDum
 		Runtimes projectorRuntimes = projectorTimes.get(state);
 		if (projectorRuntimes != null) {
 			DebugUtil.debugDumpWithLabelLn(sb, "projector", projectorRuntimes.etimeStr(), indent + 3);
-			Map<String, Runtimes> partMap = projectorPartMap.get(state);
-			if (partMap != null) {
-				for (Entry<String, Runtimes> entry : partMap.entrySet()) {
-					DebugUtil.debugDumpWithLabelLn(sb, entry.getKey(), entry.getValue().etimeStr(), indent + 4);
+			List<PartRuntime> partList = projectorPartMap.get(state);
+			if (partList != null) {
+				for (PartRuntime partRuntime : partList) {
+					DebugUtil.debugDumpWithLabelLn(sb, partRuntime.part, partRuntime.runtimes.etimeStr(), indent + 4);
 				}
 			}
 		}

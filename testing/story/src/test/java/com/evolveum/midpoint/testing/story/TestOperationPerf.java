@@ -26,13 +26,16 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.test.ProfilingClockworkInspector;
+import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,9 +79,11 @@ public class TestOperationPerf extends AbstractStoryTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestOperationPerf.class);
 	
 	@Autowired ClockworkMedic clockworkMedic;
+	@Autowired RepositoryCache repositoryCache;
+	@Autowired protected MappingFactory mappingFactory;
 
 	private CountingInspector internalInspector;
-	private ProfilingClockworkInspector clockworkInspector;
+	private ProfilingModelInspectorManager profilingModelInspectorManager;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -92,10 +97,11 @@ public class TestOperationPerf extends AbstractStoryTest {
 		internalInspector = new CountingInspector();
 		InternalMonitor.setInspector(internalInspector);
 		
-		clockworkInspector = new ProfilingClockworkInspector();
-		clockworkMedic.setClockworkInspector(clockworkInspector);
+		mappingFactory.setProfiling(true);
+		profilingModelInspectorManager = new ProfilingModelInspectorManager();
+		clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
 		
-		InternalMonitor.setCloneTimingEnabled(false);
+		InternalMonitor.setCloneTimingEnabled(true);
 		
 		extendUserSchema(NUMBER_OF_USER_EXTENSION_PROPERTIES);
 	}
@@ -148,7 +154,7 @@ public class TestOperationPerf extends AbstractStoryTest {
         display("User before", userBefore);
 
         internalInspector.reset();
-        clockworkInspector.reset();
+        profilingModelInspectorManager.reset();
         InternalMonitor.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
@@ -165,9 +171,9 @@ public class TestOperationPerf extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
         
-        display("Added user in "+(endMillis - startMillis)+"ms");
+        display("Added user in "+(endMillis - startMillis)+" ms");
 
-        display("Clockwork inspector", clockworkInspector);
+        display("Model diagnostics", profilingModelInspectorManager);
         display("Internal inspector", internalInspector);
         display("Internal counters", InternalMonitor.debugDumpStatic(1));
         
