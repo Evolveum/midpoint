@@ -448,7 +448,7 @@ public final class WebComponentUtil {
 
 	public static void safeResultCleanup(OperationResult result, Trace logger) {
 		try {
-			result.cleanupResult();
+			result.cleanupResultDeeply();
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(logger, "Couldn't clean up the operation result", t);
 		}
