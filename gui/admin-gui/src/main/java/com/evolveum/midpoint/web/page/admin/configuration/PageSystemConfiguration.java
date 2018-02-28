@@ -379,10 +379,12 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		PageParameters params = new PageParameters();
 		StringValue mailServerIndex = target.getPageParameters().get(SELECTED_SERVER_INDEX);
 		StringValue mailServerSize = target.getPageParameters().get(SERVER_LIST_SIZE);
-		if (mailServerIndex !=null){
-			params.add(SELECTED_SERVER_INDEX,mailServerIndex);
+		if (mailServerIndex != null && mailServerIndex.toString() != null) {
+			params.add(SELECTED_SERVER_INDEX, mailServerIndex);
 		}
-		params.add(SERVER_LIST_SIZE,mailServerSize);
+		if (mailServerSize != null && mailServerSize.toString() != null) {
+			params.add(SERVER_LIST_SIZE, mailServerSize);
+		}
 		params.add(SELECTED_TAB_INDEX, index);
 		PageSystemConfiguration page = new PageSystemConfiguration(params);
 		setResponsePage(page);
