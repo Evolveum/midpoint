@@ -744,6 +744,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		} finally {
 			result.computeStatusIfUnknown();
 		}
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
@@ -762,6 +763,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		} finally {
 			result.computeStatusIfUnknown();
 		}
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
@@ -782,7 +784,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		} finally {
 			result.computeStatusIfUnknown();
 		}
-
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
@@ -802,7 +804,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		} finally {
 			result.computeStatusIfUnknown();
 		}
-
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
@@ -845,7 +847,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		Table campaignsTable = getCampaignsTable();
 		ObjectDataProvider provider = (ObjectDataProvider) campaignsTable.getDataTable().getDataProvider();
 		provider.clearCache();
-
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		target.add(getFeedbackPanel(), (Component) campaignsTable);
 	}
@@ -893,7 +895,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			result.recordStatus(OperationResultStatus.SUCCESS,
 					processed + " campaign(s) have been successfully processed.");      // todo i18n
 		}
-
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		target.add(getFeedbackPanel(), (Component) getCampaignsTable());
 	}

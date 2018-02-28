@@ -1474,6 +1474,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return similar;
 	}
 
+	// experimental/temporary
+	public void cleanupResultDeeply() {
+		cleanupResult();
+		emptyIfNull(subresults).forEach(OperationResult::cleanupResultDeeply);
+	}
+
 	/**
 	 * Removes all the successful minor results. Also checks if the result is roughly consistent
 	 * and complete. (e.g. does not have unknown operation status, etc.)
