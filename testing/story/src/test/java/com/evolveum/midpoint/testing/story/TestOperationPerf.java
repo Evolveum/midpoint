@@ -15,71 +15,35 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
+import com.evolveum.midpoint.model.test.ProfilingClockworkInspector;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -94,6 +58,9 @@ public class TestOperationPerf extends AbstractStoryTest {
 	protected static final File USER_ALICE_FILE = new File(TEST_DIR, "user-alice.xml");
 	protected static final String USER_ALICE_OID = "a077357a-1c5f-11e8-ad16-af1b03cecee9";
 	
+	protected static final File USER_BOB_FILE = new File(TEST_DIR, "user-bob.xml");
+	protected static final String USER_BOB_OID = "ab43445c-1c83-11e8-a669-331e1f2cbbac";
+	
 	protected static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
 	protected static final String OBJECT_TEMPLATE_USER_OID = "995aa1a6-1c5e-11e8-8d2f-6784dbc320a9";
 
@@ -107,8 +74,11 @@ public class TestOperationPerf extends AbstractStoryTest {
 	private static final String USER_EXTENSION_PROPERTY_NAME_FORMAT = "prop%04d";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestOperationPerf.class);
+	
+	@Autowired ClockworkMedic clockworkMedic;
 
-	private CountingInspector inspector;
+	private CountingInspector internalInspector;
+	private ProfilingClockworkInspector clockworkInspector;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -119,8 +89,11 @@ public class TestOperationPerf extends AbstractStoryTest {
 		repoAddObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, OBJECT_TEMPLATE_USER_OID, initResult);
 		
-		inspector = new CountingInspector();
-		InternalMonitor.setInspector(inspector);
+		internalInspector = new CountingInspector();
+		InternalMonitor.setInspector(internalInspector);
+		
+		clockworkInspector = new ProfilingClockworkInspector();
+		clockworkMedic.setClockworkInspector(clockworkInspector);
 		
 		InternalMonitor.setCloneTimingEnabled(false);
 		
@@ -154,17 +127,28 @@ public class TestOperationPerf extends AbstractStoryTest {
 	@Test
     public void test100AddAlice() throws Exception {
 		final String TEST_NAME = "test100AddAlice";
+		testAddUser(TEST_NAME, USER_ALICE_FILE, USER_ALICE_OID, 1);
+	}
+	
+	@Test
+    public void test110AddBob() throws Exception {
+		final String TEST_NAME = "test110AddBob";
+		testAddUser(TEST_NAME, USER_BOB_FILE, USER_BOB_OID, 1);
+	}
+	
+    public void testAddUser(final String TEST_NAME, File userFile, String userOid, int roles) throws Exception {
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userBefore = parseObject(USER_ALICE_FILE);
+        PrismObject<UserType> userBefore = parseObject(userFile);
         populateUserExtension(userBefore, NUMBER_OF_USER_EXTENSION_PROPERTIES);
-        setRandomOrganizations(userBefore, 1);
+        setRandomOrganizations(userBefore, roles);
         display("User before", userBefore);
 
-        inspector.reset();
+        internalInspector.reset();
+        clockworkInspector.reset();
         InternalMonitor.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
@@ -181,12 +165,13 @@ public class TestOperationPerf extends AbstractStoryTest {
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
         
-        display("Added alice in "+(endMillis - startMillis)+"ms");
+        display("Added user in "+(endMillis - startMillis)+"ms");
 
-        display("Inspector", inspector);
+        display("Clockwork inspector", clockworkInspector);
+        display("Internal inspector", internalInspector);
         display("Internal counters", InternalMonitor.debugDumpStatic(1));
         
-        PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
+        PrismObject<UserType> userAfter = getUser(userOid);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
 

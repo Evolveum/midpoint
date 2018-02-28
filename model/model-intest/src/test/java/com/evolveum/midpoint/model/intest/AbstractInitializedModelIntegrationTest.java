@@ -35,7 +35,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
-import com.evolveum.midpoint.model.intest.util.ProfilingClockworkInspector;
+import com.evolveum.midpoint.model.test.ProfilingClockworkInspector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;

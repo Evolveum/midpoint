@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -615,7 +615,7 @@ public class ObjectTemplateProcessor {
 			LOGGER.trace("Starting evaluation of {}", mappingDesc);
 			ObjectDeltaObject<F> updatedFocusOdo = getUpdatedFocusOdo(context, focusOdo, outputTripleMap, mappingSpec, mappingDesc);		// for mapping chaining
 
-			Mapping<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, mappingSpec.getMappingType(), 
+			MappingImpl<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, mappingSpec.getMappingType(), 
 					mappingSpec.getOriginObject(), updatedFocusOdo, mappingSpec.getDefaultSource(focusOdo), target,
 					null, iteration, iterationToken, context.getSystemConfiguration(), now, mappingDesc, task, result);
 			if (mapping == null) {
