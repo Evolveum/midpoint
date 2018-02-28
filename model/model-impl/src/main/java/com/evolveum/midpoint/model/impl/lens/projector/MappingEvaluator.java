@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -99,12 +99,12 @@ public class MappingEvaluator {
     public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
 	public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+			MappingImpl<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
     	evaluateMapping(mapping, lensContext, null, task, parentResult);
     }
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-			Mapping<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+			MappingImpl<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
     	ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
 		env.setProjectionContext(projContext);
@@ -132,8 +132,8 @@ public class MappingEvaluator {
 		} finally {
 			task.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, System.currentTimeMillis() - start);
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-			if (lensContext.getDebugListener() != null) {
-				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
+			if (lensContext.getInspector() != null) {
+				lensContext.getInspector().afterMappingEvaluation(lensContext, mapping);
 			}
 		}
 	}
@@ -195,11 +195,11 @@ public class MappingEvaluator {
 		Map<ItemPath,MappingOutputStruct<V>> outputTripleMap = new HashMap<>();
 		XMLGregorianCalendar nextRecomputeTime = null;
 		Collection<MappingType> mappingTypes = params.getMappingTypes();
-		Collection<Mapping<V,D>> mappings = new ArrayList<>(mappingTypes.size());
+		Collection<MappingImpl<V,D>> mappings = new ArrayList<>(mappingTypes.size());
 
 		for (MappingType mappingType: mappingTypes) {
 
-			Mapping.Builder<V,D> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, mappingDesc);
+			MappingImpl.Builder<V,D> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, mappingDesc);
 			String mappingName = null;
 			if (mappingType.getName() != null) {
 				mappingName = mappingType.getName();
@@ -228,7 +228,7 @@ public class MappingEvaluator {
 			// Initialize mapping (using Inversion of Control)
 			mappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
-			Mapping<V,D> mapping = mappingBuilder.build();
+			MappingImpl<V,D> mapping = mappingBuilder.build();
 			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 
 			if (params.getEvaluateCurrent() != null) {
@@ -250,7 +250,7 @@ public class MappingEvaluator {
 
 		LOGGER.trace("Going to process {} mappings for {}", mappings.size(), mappingDesc);
 
-		for (Mapping<V,D> mapping: mappings) {
+		for (MappingImpl<V,D> mapping: mappings) {
 
 			if (mapping.getStrength() == MappingStrengthType.WEAK) {
 				// Evaluate weak mappings in a second run.
@@ -316,7 +316,7 @@ public class MappingEvaluator {
 
 		if (params.isEvaluateWeak()) {
 			// Second pass, evaluate only weak mappings
-			for (Mapping<V,D> mapping: mappings) {
+			for (MappingImpl<V,D> mapping: mappings) {
 
 				if (mapping.getStrength() != MappingStrengthType.WEAK) {
 					continue;
@@ -496,7 +496,7 @@ public class MappingEvaluator {
 
 		// Figure out recompute time
 
-		for (Mapping<V,D> mapping: mappings) {
+		for (MappingImpl<V,D> mapping: mappings) {
 			XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
 			if (mappingNextRecomputeTime != null) {
 				if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
@@ -584,7 +584,7 @@ public class MappingEvaluator {
 				|| (aPrioriTargetItem.isEmpty() && !aPrioriTargetItem.isIncomplete());
 	}
 
-	public <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
+	public <V extends PrismValue, D extends ItemDefinition , F extends FocusType> MappingImpl<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject,
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -603,13 +603,13 @@ public class MappingEvaluator {
     			iteration, iterationToken, configuration, now, contextDesc, task, result);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition, F extends FocusType, T extends FocusType> Mapping<V, D> createFocusMapping(
+    public <V extends PrismValue, D extends ItemDefinition, F extends FocusType, T extends FocusType> MappingImpl<V, D> createFocusMapping(
     		final MappingFactory mappingFactory, final LensContext<F> context, final MappingType mappingType, ObjectType originObject,
 			ObjectDeltaObject<F> focusOdo, Source<V, D> defaultSource, PrismObject<T> defaultTargetObject, AssignmentPathVariables assignmentPathVariables,
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-		if (!Mapping.isApplicableToChannel(mappingType, context.getChannel())) {
+		if (!MappingImpl.isApplicableToChannel(mappingType, context.getChannel())) {
 			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingType, context.getChannel());
 			return null;
 		}
@@ -672,7 +672,7 @@ public class MappingEvaluator {
 
 		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
 
-		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
+		MappingImpl.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)
 				.defaultSource(defaultSource)
 				.targetContext(defaultTargetObject.getDefinition())
@@ -686,7 +686,7 @@ public class MappingEvaluator {
 
 		mappingBuilder = LensUtil.addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
 
-		Mapping<V,D> mapping = mappingBuilder.build();
+		MappingImpl<V,D> mapping = mappingBuilder.build();
 
 		ItemPath itemPath = mapping.getOutputPath();
         if (itemPath == null) {

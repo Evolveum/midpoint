@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,6 +150,7 @@ public class Clockwork {
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private ContextFactory contextFactory;
 	@Autowired private Migrator migrator;
+	@Autowired private ClockworkMedic medic;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
@@ -158,15 +159,7 @@ public class Clockwork {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
 
-    private LensDebugListener debugListener;
-
-	public LensDebugListener getDebugListener() {
-		return debugListener;
-	}
-
-	public void setDebugListener(LensDebugListener debugListener) {
-		this.debugListener = debugListener;
-	}
+    
 
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
@@ -404,8 +397,8 @@ public class Clockwork {
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
 
-		if (context.getDebugListener() == null) {
-			context.setDebugListener(debugListener);
+		if (context.getInspector() == null) {
+			context.setInspector(medic.getClockworkInspector());
 		}
 
 		try {
@@ -419,9 +412,7 @@ public class Clockwork {
 
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
-				if (debugListener != null) {
-					debugListener.beforeSync(context);
-				}
+				medic.clockworkStart(context);
 				metadataManager.setRequestMetadataInContext(context, now, task);
 				context.getStats().setRequestTimestamp(now);
 				// We need to do this BEFORE projection. If we would do that after projection
@@ -455,7 +446,7 @@ public class Clockwork {
 				authorizeContextRequest(context, task, result);
 			}
 
-			LensUtil.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
+			medic.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
 			if (InternalsConfig.consistencyChecks) {
 				try {
 					context.checkConsistence();
@@ -481,9 +472,7 @@ public class Clockwork {
 					break;
 				case FINAL:
 					HookOperationMode mode = processFinal(context, task, result);
-					if (debugListener != null) {
-						debugListener.afterSync(context);
-					}
+					medic.clockworkFinish(context);
 					return mode;
 			}
 			result.recomputeStatus();
@@ -611,27 +600,32 @@ public class Clockwork {
 		LOGGER.trace("Finished evaluation of {}", shortDesc);
 	}
 
+	private <F extends ObjectType> void switchState(LensContext<F> context, ModelState newState) {
+		medic.clockworkStateSwitch(context, newState);
+		context.setState(newState);
+	}
+    
     private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result) {
 		// Context loaded, nothing special do. Bump state to PRIMARY.
-		context.setState(ModelState.PRIMARY);
+		switchState(context, ModelState.PRIMARY);
 	}
 
 	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) {
 		// Nothing to do now. The context is already recomputed.
-		context.setState(ModelState.SECONDARY);
+		switchState(context, ModelState.SECONDARY);
 	}
 
 	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) 
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
 			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
-			context.setState(ModelState.FINAL);
+			switchState(context, ModelState.FINAL);
 			return;
 		}
 
 		Holder<Boolean> restartRequestedHolder = new Holder<>();
 
-		LensUtil.partialExecute("execution",
+		medic.partialExecute("execution",
 				() -> {	
 					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
 					restartRequestedHolder.setValue(restartRequested);
@@ -654,7 +648,7 @@ public class Clockwork {
 			// explicitly rot context?
 		}
 
-		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
+		medic.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
 
 	/**

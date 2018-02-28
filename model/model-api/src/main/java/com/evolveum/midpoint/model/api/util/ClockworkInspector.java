@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.api.util;
 
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.api.context.Mapping;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -28,20 +30,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Radovan Semancik
  *
  */
-public interface LensDebugListener {
+public interface ClockworkInspector {
 
-	public <F extends ObjectType> void beforeSync(LensContext<F> context);
+	<F extends ObjectType> void clockworkStart(ModelContext<F> context);
+	
+	<F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState);
 
-	public <F extends ObjectType> void afterSync(LensContext<F> context);
+	<F extends ObjectType> void clockworkFinish(ModelContext<F> context);
 
-	public <F extends ObjectType> void beforeProjection(LensContext<F> context);
+	<F extends ObjectType> void projectorStart(ModelContext<F> context);
+	
+	void projectorComponentSkip(String componentName);
+	
+	void projectorComponentStart(String componentName);
+	
+	void projectorComponentFinish(String componentName);
 
-	public <F extends ObjectType> void afterProjection(LensContext<F> context);
+	<F extends ObjectType> void projectorFinish(ModelContext<F> context);
 
 	/**
 	 * May be used to gather profiling data, etc.
 	 */
-	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context, Mapping<?,?> evaluatedMapping);
+	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping);
 
 //	/**
 //	 * For all scripts expect for mappings.

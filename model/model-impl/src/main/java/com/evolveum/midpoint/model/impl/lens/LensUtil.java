@@ -52,7 +52,7 @@ import org.apache.commons.lang.BooleanUtils;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
@@ -94,16 +94,6 @@ import static java.util.Collections.emptySet;
 public class LensUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
-
-	public static <F extends ObjectType> void traceContext(Trace logger, String activity, String phase,
-			boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
-        if (logger.isTraceEnabled()) {
-        	logger.trace("Lens context:\n"+
-            		"---[ {} context {} ]--------------------------------\n"+
-            		"{}\n",
-					activity, phase, context.dump(showTriples));
-        }
-    }
 
 	public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
 																  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -696,7 +686,7 @@ public class LensUtil {
 	    }
 	}
 
-	public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
 		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
 		return builder.addVariableDefinitions(expressionVariables.getMap());
@@ -933,37 +923,7 @@ public class LensUtil {
 		}
 		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
 	}
-
-
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-		partialExecute(componentName, runnable, optionSupplier, null);
-	}
-
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable,
-			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-		PartialProcessingTypeType option = optionSupplier.get();
-		if (option == PartialProcessingTypeType.SKIP) {
-			LOGGER.debug("Skipping projector component {} because partial execution option is set to {}", componentName, option);
-		} else {
-			LOGGER.trace("Projector component started: {}", componentName);
-			try {
-				runnable.run();
-				LOGGER.trace("Projector component finished: {}", componentName);
-			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
-				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
-				if (result != null) {
-					result.recordFatalError(e);
-				}
-				throw e;
-			}
-
-		}
-	}
+	
 
 	public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, String humanReadableName)
 			throws ObjectAlreadyExistsException {

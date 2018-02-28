@@ -210,7 +210,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
-        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+        AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
 
         Session session = factory.openSession();
         try {

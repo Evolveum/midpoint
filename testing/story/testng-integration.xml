@@ -48,6 +48,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestLdapVirtualGroup"/>
             <class name="com.evolveum.midpoint.testing.story.TestMapleLeaf"/>
             <class name="com.evolveum.midpoint.testing.story.TestNormalizers"/>
+            <class name="com.evolveum.midpoint.testing.story.TestOperationPerf"/>
         </classes>
     </test>
 </suite>

@@ -60,7 +60,7 @@ public class TestMappingComplex {
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
 		
@@ -90,7 +90,7 @@ public class TestMappingComplex {
 		PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();
 		userOld.asObjectable().getEmployeeType().add("WHATEVER");
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta, userOld);
 		
@@ -116,7 +116,7 @@ public class TestMappingComplex {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			evaluator.toPath("costCenter"), evaluator.getPrismContext(), "X606");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
 		
@@ -145,7 +145,7 @@ public class TestMappingComplex {
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();
 		userOld.asObjectable().getEmployeeType().add("WHATEVER");
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta, userOld);
 		
@@ -170,7 +170,7 @@ public class TestMappingComplex {
 		user.asObjectable().getEmployeeType().add("WHATEVER");
 		ObjectDelta<UserType> delta = user.createAddDelta();
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
 		
@@ -194,7 +194,7 @@ public class TestMappingComplex {
 		user.asObjectable().getEmployeeType().clear();
 		ObjectDelta<UserType> delta = user.createAddDelta();
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
 		

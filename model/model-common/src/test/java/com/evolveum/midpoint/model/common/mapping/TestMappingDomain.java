@@ -74,7 +74,7 @@ public class TestMappingDomain {
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "321");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_DOMAIN_FILENAME,
     			TEST_NAME, "organization", delta, userOld);
 		
@@ -112,7 +112,7 @@ public class TestMappingDomain {
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_DOMAIN_FILENAME,
     			TEST_NAME, "organization", delta, userOld);
 		
@@ -153,7 +153,7 @@ public class TestMappingDomain {
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_DOMAIN_FILENAME,
     			TEST_NAME, "organization", delta, userOld);
 		
@@ -196,7 +196,7 @@ public class TestMappingDomain {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "X91", "992", "Y93", "994");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_DOMAIN_FILENAME,
     			TEST_NAME, "organization", delta, userOld);
 		
@@ -242,7 +242,7 @@ public class TestMappingDomain {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "005", "C06", "007");
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_DOMAIN_FILENAME,
     			TEST_NAME, "organization", delta, userOld);
 		
