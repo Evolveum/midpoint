@@ -43,6 +43,8 @@ public class InternalsConfig {
 	private static boolean avoidLoggingChange = false;
 
 	private static boolean prismMonitoring = false;
+	
+	private static boolean modelProfiling = false;
 
 	private static boolean allowClearDataLogging = false;
 
@@ -67,6 +69,14 @@ public class InternalsConfig {
 
 	public static void setPrismMonitoring(boolean prismMonitoring) {
 		InternalsConfig.prismMonitoring = prismMonitoring;
+	}
+
+	public static boolean isModelProfiling() {
+		return modelProfiling;
+	}
+
+	public static void setModelProfiling(boolean modelProfiling) {
+		InternalsConfig.modelProfiling = modelProfiling;
 	}
 
 	public static boolean isConsistencyChecks() {
@@ -144,6 +154,8 @@ public class InternalsConfig {
 		readEncryptionChecks = false;
 		avoidLoggingChange = false;
 		allowClearDataLogging = false;
+		prismMonitoring = false;
+		modelProfiling = false;
 		testingPaths = null;
 		detailedAuhotizationLog = false;
 	}
@@ -153,6 +165,7 @@ public class InternalsConfig {
 		sanityChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
+		modelProfiling = true;
 		allowClearDataLogging = true;
 	}
 
@@ -162,6 +175,7 @@ public class InternalsConfig {
 		encryptionChecks = false;
 		readEncryptionChecks = false;
 		prismMonitoring = false;
+		modelProfiling = false;
 		allowClearDataLogging = false;
 	}
 
@@ -171,6 +185,7 @@ public class InternalsConfig {
 		encryptionChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
+		modelProfiling = true;
 		allowClearDataLogging = true;
 	}
 
