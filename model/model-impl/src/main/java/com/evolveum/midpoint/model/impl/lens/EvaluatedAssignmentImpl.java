@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -71,7 +71,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
-	@NotNull private final Collection<Mapping<?,?>> focusMappings = new ArrayList<>();
+	@NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
 	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 	// rules related to the focal object (typically e.g. "forbid modifications")
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
@@ -264,11 +264,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public Collection<Mapping<?,?>> getFocusMappings() {
+	public Collection<MappingImpl<?,?>> getFocusMappings() {
 		return focusMappings;
 	}
 
-	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
+	public void addFocusMapping(MappingImpl<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
 		this.focusMappings.add(focusMapping);
 	}
 

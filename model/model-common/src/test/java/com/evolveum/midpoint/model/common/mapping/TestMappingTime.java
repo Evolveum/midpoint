@@ -75,12 +75,12 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
 
-		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME,
     			TEST_NAME, "title", delta);
 		builder.setNow(TIME_PAST);
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -102,12 +102,12 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
 
-		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME,
     			TEST_NAME, "title", delta);
 		builder.setNow(TIME_BETWEEN);
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -132,12 +132,12 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
 
-		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME,
     			TEST_NAME, "title", delta);
 		builder.setNow(TIME_FUTURE);
 
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -157,7 +157,7 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", null);
 
@@ -168,7 +168,7 @@ public class TestMappingTime {
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
 
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -188,7 +188,7 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", null);
 
@@ -199,7 +199,7 @@ public class TestMappingTime {
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
 
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -225,7 +225,7 @@ public class TestMappingTime {
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
 
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", null, userOld);
 
@@ -236,7 +236,7 @@ public class TestMappingTime {
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
 
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -265,7 +265,7 @@ public class TestMappingTime {
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
 
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", delta, userOld);
 
@@ -276,7 +276,7 @@ public class TestMappingTime {
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
 
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -304,7 +304,7 @@ public class TestMappingTime {
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
 
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", delta, userOld);
 
@@ -315,7 +315,7 @@ public class TestMappingTime {
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
 
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -335,7 +335,7 @@ public class TestMappingTime {
 		assertNull("Unexpected output triple: "+outputTriple, outputTriple);
 	}
 
-	private void assertNextRecompute(Mapping<?,?> mapping, XMLGregorianCalendar expected) {
+	private void assertNextRecompute(MappingImpl<?,?> mapping, XMLGregorianCalendar expected) {
 		XMLGregorianCalendar nextRecomputeTime = mapping.getNextRecomputeTime();
 		assertEquals("Wrong nextRecomputeTime in mapping "+mapping, expected, nextRecomputeTime);
 	}

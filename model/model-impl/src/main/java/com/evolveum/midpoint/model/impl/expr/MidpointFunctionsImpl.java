@@ -32,7 +32,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -1661,7 +1661,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		Collection<PrismValue> rv = new HashSet<>();
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
 			if (evaluatedAssignment.isValid()) {
-				for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
+				for (MappingImpl<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
 					if (path.equivalent(mapping.getOutputPath())) {
 						PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
 						if (outputTriple != null) {

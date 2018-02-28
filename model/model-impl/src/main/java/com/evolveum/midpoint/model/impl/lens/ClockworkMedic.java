@@ -20,7 +20,8 @@ import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -86,7 +87,7 @@ public class ClockworkMedic {
 	}
 
 	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context,
-			Mapping<?, ?> evaluatedMapping) {
+			MappingImpl<?, ?> evaluatedMapping) {
 		if (clockworkInspector != null) {
 			clockworkInspector.afterMappingEvaluation(context, evaluatedMapping);
 		}
