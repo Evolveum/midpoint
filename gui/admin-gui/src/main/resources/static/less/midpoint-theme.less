@@ -1291,7 +1291,25 @@ td.prop-name {
 }
 
 th.icon {
-	// We want this column to fit as tightly as possible.
 	// The content of this column is just a single icon.
+	// WARNING: this means both the header and the table data
+	//          have just a single icon. No text.
+	// See com.evolveum.midpoint.web.component.data.column.IconColumn
+	width: 25px;
+}
+
+th.check {
+	// The content of this column is just a single checkbox.
+	// WARNING: this means both the header and the table data
+	//          have just a single checkbox. Nothing else.
+	// See com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn
+	width: 34px;
+}
+
+th.shrink {
+	// We want this column to fit as tightly as possible.
+	// E.g. for columns that have textual label but
+	// the content is just an icon or something much smaller
+	// than the header.
 	width: -moz-min-content;
 }
