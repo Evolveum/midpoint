@@ -203,6 +203,13 @@ public class ProcessInstancesPanel extends BasePanel {
 					}
 				};
 			}
+			
+			// Cannot have the default "icon" class here. This column has text label in the header.
+			// Having class "icon" would shrink the column to 25px and the text will overflow.
+			@Override
+		    public String getCssClass() {
+		        return "shrink";
+		    }
 
 			private String choose(IModel<ProcessInstanceDto> rowModel, String noReply, String inProgress, String approved, String rejected) {
 				ProcessInstanceDto dto = rowModel.getObject();
