@@ -600,7 +600,7 @@ public class SqlRepositoryConfiguration {
 
     private void applyTransactionIsolation() {
         // ugly hack, but I know of no way to work around
-        MidPointConnectionCustomizer.setTransactionIsolation(transactionIsolation);
+//        MidPointConnectionCustomizer.setTransactionIsolation(transactionIsolation);
     }
 
     public boolean isLockForUpdateViaHibernate() {
