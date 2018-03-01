@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,9 @@ import java.util.List;
  * @author lazyman
  */
 public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
+	private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
 
     public CheckBoxHeaderColumn() {
         super(null);
@@ -79,7 +80,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public String getCssClass() {
-        return "icon";
+        return "check";
     }
 
     protected boolean isCheckboxVisible(){
