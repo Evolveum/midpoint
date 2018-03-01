@@ -35,8 +35,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * Custom configuration (factory) for embedded tomcat factory.
+ * This is necessary, as the tomcat factory is hacking tomcat setup.
+ * @see MidPointTomcatEmbeddedServletContainerFactory
+ * 
  * @author semancik
- *
  */
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 @Configuration

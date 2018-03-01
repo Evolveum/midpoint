@@ -21,6 +21,12 @@ import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
+
+import org.apache.catalina.Context;
+import org.apache.catalina.Pipeline;
+import org.apache.catalina.Valve;
+import org.apache.catalina.Wrapper;
+import org.apache.catalina.connector.Connector;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
@@ -35,6 +41,9 @@ import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfigu
 import org.springframework.boot.autoconfigure.web.*;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatContextCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -48,6 +57,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
+
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,7 +89,7 @@ import java.util.concurrent.TimeUnit;
         "classpath:ctx-webapp.xml"
 })
 @ImportAutoConfiguration(classes = {
-        EmbeddedServletContainerAutoConfiguration.class,
+		EmbeddedTomcatAutoConfiguration.class,
         DispatcherServletAutoConfiguration.class,
         WebMvcAutoConfiguration.class,
         HttpMessageConvertersAutoConfiguration.class,
@@ -216,6 +227,17 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                     "/error"));
 
             container.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
+            
+            if (container instanceof TomcatEmbeddedServletContainerFactory) {
+                customizeTomcat((TomcatEmbeddedServletContainerFactory) container);
+            }            
         }
+
+		private void customizeTomcat(TomcatEmbeddedServletContainerFactory tomcatFactory) {
+			// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
+			// See comments in TomcatRootValve
+			Valve rootValve = new TomcatRootValve();
+			tomcatFactory.addEngineValves(rootValve);
+		}
     }
 }
