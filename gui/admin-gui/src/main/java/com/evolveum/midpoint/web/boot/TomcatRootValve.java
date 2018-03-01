@@ -27,6 +27,19 @@ import org.apache.catalina.valves.ValveBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+/**
+ * Tomcat valve used to redirect root (/) URL to real application (/midpoint/).
+ * This is needed in Spring boot deployment. Entire midPoint app is deployed
+ * under http://.../midpoint/ URL root. But we want users to use http://.../
+ * as well to access the application.
+ * 
+ * This could not be done with midPoint servlets or servlet filters. The entire
+ * midPoint application is under /midpoint/, so the application won't even receive
+ * requests to root URL. We need to use dirty Tomcat-specific tricks for this.
+ * 
+ * @author semancik
+ *
+ */
 public class TomcatRootValve extends ValveBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TomcatRootValve.class);
@@ -36,9 +49,16 @@ public class TomcatRootValve extends ValveBase {
 		
 		Context context = request.getContext();
 		if (context instanceof RootRootContext) {
-			LOGGER.trace("Redirecting {} to real application root", request.getContextPath());
-			response.sendRedirect("/midpoint");
-			return;
+			String uri = request.getDecodedRequestURI();
+			if (uri.endsWith("favicon.ico")) {
+				LOGGER.trace("Redirecting favicon request to real application (URI={})", request.getDecodedRequestURI());
+				response.sendRedirect("/midpoint/favicon.ico");
+				return;
+			} else {
+				LOGGER.trace("Redirecting request to real application root (URI={})", request.getDecodedRequestURI());
+				response.sendRedirect("/midpoint/");
+				return;
+			}
 		}
 		
 		getNext().invoke(request, response);

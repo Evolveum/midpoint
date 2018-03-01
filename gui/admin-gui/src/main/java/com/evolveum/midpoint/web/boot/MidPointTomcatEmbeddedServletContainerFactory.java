@@ -23,8 +23,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * Custom tomcat factory that used to hack embedded Tomcat setup.
+ * There seem to be no cleaner way to get to actual configured Tomcat instance.
+ * 
  * @author semancik
- *
  */
 public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatEmbeddedServletContainerFactory {
 	
@@ -33,7 +35,11 @@ public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatEmbedde
 	@Override
 	protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(Tomcat tomcat) {
 
-		// TODO: doc
+		// We are setting up fake context here. This context does not really do anything.
+		// But it is "mapped" to the root URL (/ ... or rather "" in Tomcat parlance).
+		// This fake context is necessary. If there is no context at all then
+		// CoyoteAdapter will not execute any Valves and returns 404 immediately. 
+		// So without this the TomcatRootValve will not work.
 		
 		RootRootContext rootRootContext = new RootRootContext();
 		tomcat.getHost().addChild(rootRootContext);
