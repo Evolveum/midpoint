@@ -799,6 +799,10 @@ public class ConsolidationProcessor {
 					public String toHumanReadableDescription() {
 						return "auxiliary object class construction " + construction;
 					}
+					@Override
+					public String toString() {
+						return "extractor(" + toHumanReadableDescription() +")";
+					}
 				};
 				Collection<PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> col = new ArrayList<>(1);
 				col.add(prod);
