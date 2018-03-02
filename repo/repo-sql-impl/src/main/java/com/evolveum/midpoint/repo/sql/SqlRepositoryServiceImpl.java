@@ -131,8 +131,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
+    // todo move to repo-cache module, revert getObject implementation
+    @Deprecated
+    private ObjectsCache objectsCache;
+
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
+
+        objectsCache = new ObjectsCache(this);
     }
 
     // public because of testing
@@ -161,24 +167,35 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         InternalMonitor.recordRepositoryRead(type, oid);
 
+        if (objectsCache.supportsCaching(type, options)) {
+            return objectsCache.getObject(type, oid, options, result);
+        }
+
+        return getObjectInternal(type, oid, options, result);
+    }
+
+    <T extends ObjectType> PrismObject<T> getObjectInternal(Class<T> type, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+
         OperationResult subResult = result.createMinorSubresult(GET_OBJECT);
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
         PrismObject<T> object = null;
         try {
-        	
-		    PrismObject<T> attemptobject = executeAttempts(oid, "getObject", "getting",
-				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
-		    );
-		    object = attemptobject;
-		    invokeConflictWatchers((w) -> w.afterGetObject(attemptobject));
-		    
+
+            PrismObject<T> attemptobject = executeAttempts(oid, "getObject", "getting",
+                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
+            );
+            object = attemptobject;
+            invokeConflictWatchers((w) -> w.afterGetObject(attemptobject));
+
         } finally {
-        	OperationLogger.logGetObject(type, oid, options, object, subResult);
+            OperationLogger.logGetObject(type, oid, options, object, subResult);
         }
-        
-	    return object;
+
+        return object;
     }
 
     private <RV> RV executeAttempts(String oid, String operationName, String operationVerb, OperationResult subResult,
@@ -462,6 +479,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
+        objectsCache.removeObject(type, oid);
+
         try {
 	        
         	executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
@@ -562,6 +581,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 }
             }
         }
+
+        objectsCache.removeObject(type, oid);
 
         // TODO executeAttempts?
         final String operation = "modifying";
