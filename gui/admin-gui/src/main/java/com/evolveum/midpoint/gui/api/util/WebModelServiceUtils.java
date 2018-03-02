@@ -714,7 +714,7 @@ public class WebModelServiceUtils {
 		}
 	}
 
-	public static boolean isEnableExperimentalFeature(PageBase pageBase) {
+	public static boolean isEnableExperimentalFeature(ModelServiceLocator pageBase) {
 		Task task = pageBase.createSimpleTask("Load admin gui config");
 		OperationResult result = task.getResult();
 		

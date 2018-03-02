@@ -20,12 +20,15 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 
@@ -37,6 +40,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 	private static final long serialVersionUID = 1L;
 	private static final String ID_DASHBOARD_LINK_EDITOR = "dashboardLinkEditor";
 	private static final String ID_ADDITIONAL_MENU_ITEM_EDITOR = "additionalMenuItemEditor";
+	private static final String ID_ENABLE_EXPERIMENTAL = "enableExperimentalFeature";
 	private static final String LABEL_SIZE = "col-md-4";
 	private static final String INPUT_SIZE = "col-md-6";
 
@@ -48,7 +52,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 	private void initLayout() {
 		GenericMultiValueLabelEditPanel<RichHyperlinkType> dashboardLinkEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(
 				ID_DASHBOARD_LINK_EDITOR,
-				new PropertyModel<List<RichHyperlinkType>>(getModel(), "userDashboardLink"),
+				new PropertyModel<List<RichHyperlinkType>>(getModel(), "adminGuiConfiguration.userDashboardLink"),
 				createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE,
 				true) {
 
@@ -91,7 +95,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 
 		GenericMultiValueLabelEditPanel<RichHyperlinkType> additionalMenuItemEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(
 				ID_ADDITIONAL_MENU_ITEM_EDITOR,
-				new PropertyModel<List<RichHyperlinkType>>(getModel(), "additionalMenuLink"),
+				new PropertyModel<List<RichHyperlinkType>>(getModel(), "adminGuiConfiguration.additionalMenuLink"),
 				createStringResource("AdminGuiConfigPanel.additionalMenuItemConfig"), LABEL_SIZE, INPUT_SIZE,
 				true) {
 			private static final long serialVersionUID = 1L;
@@ -130,7 +134,11 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 		};
 		additionalMenuItemEditor.setOutputMarkupId(true);
 		add(additionalMenuItemEditor);
-
+		
+		TriStateComboPanel enableExperimentalFeatures = new TriStateComboPanel(ID_ENABLE_EXPERIMENTAL, new PropertyModel<>(getModel(), "adminGuiConfiguration.enableExperimentalFeatures"));
+		enableExperimentalFeatures.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+		add(enableExperimentalFeatures);
+		
 	}
 
 	private WebMarkupContainer getDashboardLinkEditorContainer() {

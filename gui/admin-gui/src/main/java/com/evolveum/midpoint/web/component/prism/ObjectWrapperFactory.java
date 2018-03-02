@@ -28,6 +28,7 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -218,6 +219,11 @@ public class ObjectWrapperFactory {
 				continue;
 			}
 			if (isIgnoreContainer(def.getTypeName())) {
+				continue;
+			}
+			
+			if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelServiceLocator)) {
+				LOGGER.trace("Skipping creating wrapper for container {} because it is experimental a experimental features are not enabled.", def.getName());
 				continue;
 			}
 
