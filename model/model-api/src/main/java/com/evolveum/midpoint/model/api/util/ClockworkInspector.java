@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.util;
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Radovan Semancik
  *
  */
-public interface ClockworkInspector {
+public interface ClockworkInspector extends DiagnosticContext {
 
 	<F extends ObjectType> void clockworkStart(ModelContext<F> context);
 	

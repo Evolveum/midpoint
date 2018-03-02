@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -98,6 +99,13 @@ public class MockLensDebugListener implements ClockworkInspector {
 	public void projectorComponentFinish(String componentName) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MockLensDebugListener.class, indent);
+		DebugUtil.debugDumpWithLabelToString(sb, "lastSyncContext", lastSyncContext, indent + 1);
+		return sb.toString();
 	}
 
 

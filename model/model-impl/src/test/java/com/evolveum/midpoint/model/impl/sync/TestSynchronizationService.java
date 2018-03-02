@@ -30,12 +30,14 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.model.api.util.DiagnosticContextManager;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
+import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -44,6 +46,8 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DiagnosticContext;
+import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -107,8 +111,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        LensContext<UserType> context = mockListener.getLastSyncContext();
-
+        LensContext<UserType> context = cleanDebugListener();
+        
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
@@ -133,7 +137,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
-        assertSuccess(result);
+        assertSuccess(result);        
 	}
 	
 	@Test
@@ -161,7 +165,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -219,7 +223,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();;
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -276,7 +280,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -337,7 +341,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -403,7 +407,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNull("Unexpected lens context", context);
@@ -452,7 +456,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNull("Unexpected lens context", context);
@@ -501,7 +505,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -563,7 +567,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -624,7 +628,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        LensContext<UserType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = cleanDebugListener();
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
@@ -655,8 +659,25 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	
 	private void setDebugListener() {
         mockListener = new MockLensDebugListener();
-        clockworkMedic.setClockworkInspector(mockListener);
+        DiagnosticContextManager manager = new DiagnosticContextManager() {
+
+			@Override
+			public DiagnosticContext createNewContext() {
+				return mockListener;
+			}
+
+			@Override
+			public void processFinishedContext(DiagnosticContext ctx) {
+			}
+        	
+        };
+        clockworkMedic.setDiagnosticContextManager(manager);
+        DiagnosticContextHolder.push(mockListener);
 	}
 
+	private LensContext<UserType> cleanDebugListener() {
+		DiagnosticContextHolder.pop();
+		return mockListener.getLastSyncContext();
+	}
 
 }

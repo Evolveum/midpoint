@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -150,8 +151,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		}
 
 		return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
-				createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result),
-				createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
+				createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, false, result),
+				createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, false, result));
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
@@ -170,18 +171,21 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 				"expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
 		if (match) {
 			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,
-					createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result),
-					createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
+					createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, true, result),
+					createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, true, result));
 		}
 		return null;
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(String constraintKeyPrefix,
-			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, boolean assignmentTarget, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<Object> args = new ArrayList<>();
 		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
+		if (assignmentTarget) {
+			addAssignmentTargetArgument(args, ctx);
+		}
 		String keySuffix;
 		if (constraint.getName() != null) {
 			args.add(constraint.getName());
@@ -196,12 +200,24 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
+	private <F extends FocusType> void addAssignmentTargetArgument(List<Object> args, PolicyRuleEvaluationContext<F> ctx) {
+		if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext)) {
+			args.add("");
+		} else {
+			AssignmentPolicyRuleEvaluationContext<F> actx = (AssignmentPolicyRuleEvaluationContext<F>) ctx;
+			args.add(ObjectTypeUtil.createDisplayInformation(actx.evaluatedAssignment.getTarget(), false));
+		}
+	}
+
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createShortMessage(String constraintKeyPrefix,
-			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, boolean assignmentTarget, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<Object> args = new ArrayList<>();
 		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
+		if (assignmentTarget) {
+			addAssignmentTargetArgument(args, ctx);
+		}
 		String keySuffix;
 		if (constraint.getName() != null) {
 			args.add(constraint.getName());

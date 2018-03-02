@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -63,8 +64,6 @@ public class RepositoryCache implements RepositoryService {
 	private static final Random RND = new Random();
 
 	private Integer modifyRandomDelayRange;
-	private boolean repoTimingEnabled = false;
-	private long totalRepoTime = 0;
 
 	private PrismContext prismContext;
 
@@ -107,22 +106,6 @@ public class RepositoryCache implements RepositoryService {
 
 	public void setModifyRandomDelayRange(Integer modifyRandomDelayRange) {
 		this.modifyRandomDelayRange = modifyRandomDelayRange;
-	}
-
-	public boolean isRepoTimingEnabled() {
-		return repoTimingEnabled;
-	}
-
-	public void setRepoTimingEnabled(boolean repoTimingEnabled) {
-		this.repoTimingEnabled = repoTimingEnabled;
-	}
-
-	public long getTotalRepoTime() {
-		return totalRepoTime;
-	}
-	
-	public void resetDiagCounters() {
-		totalRepoTime = 0;
 	}
 
 	public static String debugDump() {
@@ -172,16 +155,18 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	private Long repoOpStart() {
-		if (repoTimingEnabled) {
-			return System.currentTimeMillis();
-		} else {
+		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
+		if (monitor == null) {
 			return null;
+		} else {
+			return System.currentTimeMillis();
 		}
 	}
 	
 	private void repoOpEnd(Long startTime) {
-		if (repoTimingEnabled) {
-			totalRepoTime = totalRepoTime + ( System.currentTimeMillis() - startTime);
+		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
+		if (monitor != null) {
+			monitor.recordRepoOperation(System.currentTimeMillis() - startTime);
 		}
 	}
 	

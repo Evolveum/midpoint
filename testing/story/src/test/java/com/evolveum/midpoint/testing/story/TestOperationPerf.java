@@ -26,8 +26,10 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.test.ProfilingClockworkInspector;
+import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -78,9 +80,10 @@ public class TestOperationPerf extends AbstractStoryTest {
 	
 	@Autowired ClockworkMedic clockworkMedic;
 	@Autowired RepositoryCache repositoryCache;
+	@Autowired protected MappingFactory mappingFactory;
 
 	private CountingInspector internalInspector;
-	private ProfilingClockworkInspector clockworkInspector;
+	private ProfilingModelInspectorManager profilingModelInspectorManager;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -94,9 +97,9 @@ public class TestOperationPerf extends AbstractStoryTest {
 		internalInspector = new CountingInspector();
 		InternalMonitor.setInspector(internalInspector);
 		
-		clockworkInspector = new ProfilingClockworkInspector();
-		clockworkMedic.setClockworkInspector(clockworkInspector);
-		repositoryCache.setRepoTimingEnabled(true);
+		mappingFactory.setProfiling(true);
+		profilingModelInspectorManager = new ProfilingModelInspectorManager();
+		clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
 		
 		InternalMonitor.setCloneTimingEnabled(true);
 		
@@ -151,9 +154,8 @@ public class TestOperationPerf extends AbstractStoryTest {
         display("User before", userBefore);
 
         internalInspector.reset();
-        clockworkInspector.reset();
+        profilingModelInspectorManager.reset();
         InternalMonitor.reset();
-        repositoryCache.resetDiagCounters();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
@@ -167,13 +169,11 @@ public class TestOperationPerf extends AbstractStoryTest {
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
-        long totalRepoTime = repositoryCache.getTotalRepoTime();
         assertSuccess(result);
         
         display("Added user in "+(endMillis - startMillis)+" ms");
 
-        display("Clockwork inspector", clockworkInspector);
-        display("Total repo time", totalRepoTime + " ms");
+        display("Model diagnostics", profilingModelInspectorManager);
         display("Internal inspector", internalInspector);
         display("Internal counters", InternalMonitor.debugDumpStatic(1));
         
