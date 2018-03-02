@@ -934,4 +934,20 @@ public class OpenDJController extends AbstractResourceController {
 		}
 	}
 
+	public void assertHasObjectClass(Entry entry, String expectedObjectclass) {
+		Collection<String> objectclasses = getAttributeValues(entry, "objectClass");
+		if (!objectclasses.contains(expectedObjectclass)) {
+			AssertJUnit.fail("Expected that entry "+entry.getDN()+" will have object class '"+expectedObjectclass
+					+"'. But it has object classes: "+objectclasses);
+		}
+	}
+	
+	public void assertHasNoObjectClass(Entry entry, String expectedObjectclass) {
+		Collection<String> objectclasses = getAttributeValues(entry, "objectClass");
+		if (objectclasses.contains(expectedObjectclass)) {
+			AssertJUnit.fail("Expected that entry "+entry.getDN()+" will NOT have object class '"+expectedObjectclass
+					+"'. But it was there: "+objectclasses);
+		}
+	}
+
 }

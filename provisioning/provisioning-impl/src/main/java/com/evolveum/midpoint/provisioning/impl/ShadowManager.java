@@ -1453,22 +1453,27 @@ public class ShadowManager {
 	}
 	
 	private boolean isResourceModification(ItemDelta itemDelta) {
-		if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
+		ItemPath path = itemDelta.getPath();
+		ItemPath parentPath = itemDelta.getParentPath();
+		if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(parentPath)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getParentPath())) {
+		if (new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS).equivalent(path)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
+		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(parentPath)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
+		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(path)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
+		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(parentPath)) {
 			return true;
 		}
-		if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(path)) {		// should not occur, but for completeness...
+			return true;
+		}
+		if (SchemaConstants.PATH_PASSWORD.equivalent(parentPath)) {
 			return true;
 		}
 		return false;

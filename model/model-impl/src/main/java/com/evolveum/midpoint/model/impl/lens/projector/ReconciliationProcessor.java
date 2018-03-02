@@ -777,9 +777,9 @@ public class ReconciliationProcessor {
             }
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Before decideIfTolerateAssociation:");
-				LOGGER.trace("areCValues:\n{}", DebugUtil.debugDump(areCValues));
-				LOGGER.trace("shouldBeCValues:\n{}", DebugUtil.debugDump(shouldBeCValues));
+				LOGGER.trace("  association {} before decideIfTolerateAssociation:", assocName.getLocalPart());
+				LOGGER.trace("    areCValues:\n{}", DebugUtil.debugDump(areCValues));
+				LOGGER.trace("    shouldBeCValues:\n{}", DebugUtil.debugDump(shouldBeCValues));
 			}
 
 			decideIfTolerateAssociation(projCtx, associationDefinition, areCValues, shouldBeCValues, associationValueMatcher,
@@ -928,7 +928,7 @@ public class ReconciliationProcessor {
 					new ItemPath(parentPath, attrDef.getName()));
 		}
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Reconciliation will {} value of attribute {}: {} because {}", changeType,
+			LOGGER.trace("  reconciliation will {} value of attribute {}: {} because {}", changeType,
 					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason);
 		}
 
