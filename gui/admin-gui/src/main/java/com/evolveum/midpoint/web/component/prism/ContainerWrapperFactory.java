@@ -290,6 +290,11 @@ public class ContainerWrapperFactory {
 				LOGGER.trace("Skipping creating wrapper for: {}", itemDef);
 				return;
 			}
+			
+			if (itemDef.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelServiceLocator)) {
+				LOGGER.trace("Skipping creating wrapper for {} because it is experimental a experimental features are not enabled.", itemDef.getName());
+				return;
+			}
 
 			LOGGER.trace("Creating wrapper for {}", itemDef);
 			createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());

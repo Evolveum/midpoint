@@ -283,7 +283,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			SystemConfigurationType newObject = model.getObject().getNewObject();
 
 			saveObjectPolicies(newObject);
-            saveAdminGui(newObject);
+//            saveAdminGui(newObject);
 
 
 			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(model.getObject().getOldObject(), newObject);
@@ -359,18 +359,18 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		systemConfig.getDefaultObjectPolicyConfiguration().addAll(confList);
 	}
 
-	private void saveAdminGui(SystemConfigurationType systemConfig) {
-		if (adminGuiConfigPanel == null) {
-			return;
-		}
-		SystemConfigurationDto linksList = adminGuiConfigPanel.getModel().getObject();
-        //update userDashboardLink list
-        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().clear();
-        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().addAll(linksList.getUserDashboardLink());
-        //update additionalMenu list
-        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().clear();
-        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().addAll(linksList.getAdditionalMenuLink());
-	}
+//	private void saveAdminGui(SystemConfigurationType systemConfig) {
+//		if (adminGuiConfigPanel == null) {
+//			return;
+//		}
+//		SystemConfigurationDto linksList = adminGuiConfigPanel.getModel().getObject();
+//        //update userDashboardLink list
+//        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().clear();
+//        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().addAll(linksList.getUserDashboardLink());
+//        //update additionalMenu list
+//        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().clear();
+//        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().addAll(linksList.getAdditionalMenuLink());
+//	}
 
 
 	private void resetPerformed(AjaxRequestTarget target) {
