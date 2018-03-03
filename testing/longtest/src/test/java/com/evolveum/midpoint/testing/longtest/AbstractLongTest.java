@@ -121,6 +121,8 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
 	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 
     public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
+    
+    protected PrismObject<UserType> userAdministrator;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -142,10 +144,43 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
 //                config.asObjectable().getVersion(), initResult);
 
         // administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
 
 	}
 
+	@Override
+    protected PrismObject<UserType> getDefaultActor() {
+    	return userAdministrator;
+    }
+	
+	protected Entry createLdapEntry(String uid, String name) throws IOException, LDIFException {
+		StringBuilder sb = new StringBuilder();
+		String dn = "uid="+uid+","+openDJController.getSuffixPeople();
+		sb.append("dn: ").append(dn).append("\n");
+		sb.append("objectClass: inetOrgPerson\n");
+		sb.append("uid: ").append(uid).append("\n");
+		sb.append("cn: ").append(name).append("\n");
+		sb.append("sn: ").append(name).append("\n");
+		LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), "utf-8"));
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        Entry ldifEntry = ldifReader.readEntry();
+		return ldifEntry;
+	}
+	
+	protected void loadLdapEntries(String prefix, int numEntries) throws LDIFException, IOException {
+        long ldapPopStart = System.currentTimeMillis();
+
+        for(int i=0; i < numEntries; i++) {
+        	String name = "user"+i;
+        	Entry entry = createLdapEntry(prefix+i, name);
+        	openDJController.addEntry(entry);
+        }
+
+        long ldapPopEnd = System.currentTimeMillis();
+
+        display("Loaded "+numEntries+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
+	}
+    
 }
