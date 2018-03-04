@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@
 	</connectorConfiguration>
 		
 	<schemaHandling>
+		
 		<objectType>
 			<intent>default</intent>
 			<displayName>Default Account</displayName>
@@ -209,6 +210,109 @@
 				<administrativeStatus>
 					<outbound/>
 					<inbound/>
+				</administrativeStatus>
+			</activation>
+		</objectType>
+
+		<objectType>
+			<intent>security</intent>
+			<displayName>Security Account</displayName>
+			<objectClass>ri:inetOrgPerson</objectClass>
+			<!-- MID-4483 -->
+			<auxiliaryObjectClass>ri:userSecurityInformation</auxiliaryObjectClass>
+			<attribute>
+				<ref>ri:dn</ref>
+				<outbound>
+					<strength>strong</strength>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								'uid=' + name + iterationToken + ',ou=PeOpLe,dc=example,dc=com'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:sn</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>familyName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:givenName</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>givenName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:uid</ref>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+
+			 <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+            
+			<protected>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		                <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+		            </q:equal>
+	            </filter>
+			</protected>
+			
+			<activation>
+				<administrativeStatus>
+					<outbound/>
 				</administrativeStatus>
 			</activation>
 		</objectType>

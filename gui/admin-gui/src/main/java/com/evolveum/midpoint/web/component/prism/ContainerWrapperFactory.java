@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -267,6 +268,11 @@ public class ContainerWrapperFactory {
 
 			if (itemDef.isIgnored() || skipProperty(itemDef)) {
 				LOGGER.trace("Skipping creating wrapper for: {}", itemDef);
+				return;
+			}
+			
+			if (itemDef.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelServiceLocator)) {
+				LOGGER.trace("Skipping creating wrapper for {} because it is experimental a experimental features are not enabled.", itemDef.getName());
 				return;
 			}
 

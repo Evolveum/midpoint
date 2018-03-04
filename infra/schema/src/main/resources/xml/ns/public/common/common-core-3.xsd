@@ -3293,7 +3293,6 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>AbstractCredentialType.forceChange</a:displayName>
-						<a:operational>true</a:operational>
 						<a:experimental>true</a:experimental>
 						<a:since>3.6</a:since>
 					</xsd:appinfo>
