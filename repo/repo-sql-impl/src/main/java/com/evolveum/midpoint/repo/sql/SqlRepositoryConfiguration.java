@@ -144,7 +144,6 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_USE_ZIP = "useZip";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
-    public static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
 
     // concurrency properties
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
@@ -201,8 +200,6 @@ public class SqlRepositoryConfiguration {
     private final int minPoolSize;
     private final int maxPoolSize;
     private final boolean useZip;
-
-    private final long cacheMaxTTL;
 
     private TransactionIsolation defaultTransactionIsolation;
     private boolean defaultLockForUpdateViaHibernate;
@@ -314,8 +311,6 @@ public class SqlRepositoryConfiguration {
 				        OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
         skipOrgClosureStructureCheck = configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false);
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
-
-        cacheMaxTTL = configuration.getInt(PROPERTY_CACHE_MAX_TTL, 0);
     }
 
 	private String getDefaultEmbeddedJdbcUrl() {
@@ -711,12 +706,5 @@ public class SqlRepositoryConfiguration {
 
     public Database getDatabase() {
         return database;
-    }
-
-    /**
-     * @return TTL in seconds
-     */
-    public long getCacheMaxTTL() {
-        return cacheMaxTTL;
     }
 }

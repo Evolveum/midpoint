@@ -40,9 +40,8 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.Objects;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -55,12 +54,33 @@ import java.util.Random;
  */
 public class RepositoryCache implements RepositoryService {
 
-	private static ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
+	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+
+	public static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
+
+	private static final Set<Class<? extends ObjectType>> GLOBAL_CACHE_SUPPORTED_TYPES;
+
+	static {
+		Set<Class<? extends ObjectType>> set = new HashSet<>();
+		set.add(ConnectorType.class);
+		set.add(ObjectTemplateType.class);
+		set.add(SecurityPolicyType.class);
+		set.add(SystemConfigurationType.class);
+		set.add(ValuePolicyType.class);
+
+		GLOBAL_CACHE_SUPPORTED_TYPES = Collections.unmodifiableSet(set);
+	}
+
+	// todo make configurable
+	private static final long maxTTL = 20 * 1000;   // 20 seconds
+
+	private static final ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
+
+	private static final Map<CacheKey, CacheObject> globalCache = new HashMap<>();
 
 	private RepositoryService repository;
 
-	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
-	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 	private static final Random RND = new Random();
 
 	private Integer modifyRandomDelayRange;
@@ -115,6 +135,31 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+		// todo locking for version check and reload
+		if (supportsGlobalCaching(type, options)) {
+			CacheKey key = new CacheKey(type, oid);
+			CacheObject<T> cacheObject = globalCache.get(key);
+			if (cacheObject == null) {
+				return reloadObject(key, options, parentResult);
+			}
+
+			if (!shouldCheckVersion(cacheObject)) {
+				LOGGER.trace("Cache: Global HIT {}", key);
+				return cacheObject.getObject();
+			}
+
+			if (hasVersionChanged(key, cacheObject, parentResult)) {
+				return reloadObject(key, options, parentResult);
+			}
+
+			// version matches, renew ttl
+			cacheObject.setTimeToLive(System.currentTimeMillis() + maxTTL);
+
+			LOGGER.trace("Cache: Global HIT, version check {}", key);
+			return cacheObject.getObject();
+		}
+
 		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
 			Long startTime = repoOpStart();
@@ -675,5 +720,70 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
 		return repository.hasConflict(watcher, result);
+	}
+
+	private <T extends ObjectType> boolean supportsGlobalCaching(
+			Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options) {
+
+		if (maxTTL <= 0) {
+			return false;
+		}
+
+		if (!GLOBAL_CACHE_SUPPORTED_TYPES.contains(type)) {
+			return false;
+		}
+
+		if (options != null && !options.isEmpty()) {    //todo support probably raw flag
+			return false;
+		}
+
+		return true;
+	}
+
+	private <T extends ObjectType> void removeObject(Class<T> type, String oid) {
+		Validate.notNull(type, "Type must not be null");
+		Validate.notNull(oid, "Oid must not be null");
+
+		globalCache.remove(new CacheKey(type, oid));
+	}
+
+	private boolean hasVersionChanged(CacheKey key, CacheObject object, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
+
+		try {
+			String version = repository.getVersion(object.getObjectType(), object.getObjectOid(), result);
+
+			return !Objects.equals(version, object.getObjectVersion());
+		} catch (ObjectNotFoundException | SchemaException ex) {
+			removeObject(key.getType(), key.getOid());
+
+			throw ex;
+		}
+	}
+
+	private boolean shouldCheckVersion(CacheObject object) {
+		return object.getTimeToLive() < System.currentTimeMillis();
+	}
+
+	private <T extends ObjectType> PrismObject<T> reloadObject(
+			CacheKey key, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
+
+		LOGGER.trace("Global cache MISS {}", key);
+
+		try {
+			PrismObject object = repository.getObject(key.getType(), key.getOid(), options, result);
+
+			long ttl = System.currentTimeMillis() + maxTTL;
+			CacheObject<T> cacheObject = new CacheObject<>(object, ttl);
+
+			globalCache.put(key, cacheObject);
+
+			return cacheObject.getObject();
+		} catch (ObjectNotFoundException | SchemaException ex) {
+			globalCache.remove(key);
+
+			throw ex;
+		}
 	}
 }
