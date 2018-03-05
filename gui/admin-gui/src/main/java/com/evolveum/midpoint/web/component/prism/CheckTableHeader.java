@@ -68,7 +68,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     private void initLayout() {
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
-                new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED)) {
+            new PropertyModel<>(getModel(), ObjectWrapper.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -119,7 +119,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 
     private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanaleVisible, boolean isToBeReplaced){
         ListView<IW> properties = new ListView<IW>("properties",
-                new PropertyModel<List<IW>>(model, "properties")) {
+            new PropertyModel<>(model, "properties")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
