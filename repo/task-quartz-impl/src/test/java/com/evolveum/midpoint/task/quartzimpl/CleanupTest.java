@@ -50,20 +50,13 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"classpath:ctx-task.xml",
-        "classpath:ctx-task-test.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath*:ctx-repository-test.xml",
-        "classpath:ctx-audit.xml",
-        "classpath:ctx-security.xml",
-        "classpath:ctx-common.xml",
-        "classpath:ctx-configuration-test.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
-    public static final File FOLDER_REPO = new File("./src/test/resources/repo");
+    public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired
     private TaskManagerQuartzImpl taskManager;
@@ -76,7 +69,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
     public void testTasksCleanup() throws Exception {
 
         // GIVEN
-        final File file = new File(FOLDER_REPO, "tasks-for-cleanup.xml");
+        final File file = new File(FOLDER_BASIC, "tasks-for-cleanup.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
 
         OperationResult result = new OperationResult("tasks cleanup");

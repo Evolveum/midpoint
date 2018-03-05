@@ -299,6 +299,7 @@ public interface TaskManager {
      * @throws SchemaException
      * @throws ObjectNotFoundException
      */
+    @NotNull
     Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
@@ -309,6 +310,7 @@ public interface TaskManager {
      * @param parentResult
      * @return
      */
+    @NotNull
     PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**

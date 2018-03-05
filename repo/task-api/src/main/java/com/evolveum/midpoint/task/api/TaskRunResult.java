@@ -28,7 +28,7 @@ import java.util.Objects;
  * @author Radovan Semancik
  *
  */
-public final class TaskRunResult {
+public class TaskRunResult {
 
 	public enum TaskRunResultStatus {
 		/**
@@ -46,7 +46,6 @@ public final class TaskRunResult {
          * For single-run tasks, the effect is the same as of FINISHED value.
          * However, for recurring tasks, this return value causes current handler to be removed from the handler stack.
          */
-
         FINISHED_HANDLER,
 
         /**
@@ -83,7 +82,6 @@ public final class TaskRunResult {
          * the task run.
          */
         RESTART_REQUESTED
-
     }
 
 	private Long progress;          // null means "do not update, take whatever is in the task"

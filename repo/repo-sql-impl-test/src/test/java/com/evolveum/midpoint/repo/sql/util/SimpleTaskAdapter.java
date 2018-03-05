@@ -873,4 +873,14 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) {
     }
+
+    @Override
+    public AbstractTaskWorkStateManagementConfigurationType getWorkStateManagement() {
+        return null;
+    }
+
+    @Override
+    public TaskWorkStateType getWorkState() {
+        return null;
+    }
 }

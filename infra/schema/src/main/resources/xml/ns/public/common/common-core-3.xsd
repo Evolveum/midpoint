@@ -1149,7 +1149,305 @@
     	</xsd:sequence>
     </xsd:complexType>
 
-    <!-- Property-related types -->
+	<xsd:complexType name="TaskWorkStateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes the task work state: what has been processed, what is being processed and what is yet to be done.
+				Useful for work distribution as well as for stateful suspend+resume feature.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="bucket" type="tns:AbstractWorkBucketType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current buckets of work. Some buckets might be present implicitly: for a coordinator or
+						standalone task, if the lowest sequence number is N then it is expected that buckets
+						1..(N-1) are completed. In a similar way, if no free bucket is available and we are not
+						at the end it is expected that some free buckets are yet to be created. (This is not applicable
+						to worker tasks where only selected buckets are present here.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many buckets are to be created? This is an indicative information, e.g. to be used when
+						estimating total progress. TODO decide what to do with this
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="AbstractTaskWorkStateManagementConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes how we are going to manage the task work state.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="taskKind" type="tns:WorkStateManagementTaskKindType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Kind of task with respect to the work state management (standalone, coordinator, worker).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configurable number of buckets. Optional.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="NumericIntervalWorkStateManagementConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that divides the processing space (represented by an interval of numeric
+				identifiers) into a number of work buckets. Each bucket itself is defined as an interval of identifier values.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractTaskWorkStateManagementConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Start of the processing space (inclusive). If omitted, 0 is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="to" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								End of the processing space (exclusive). If not present, both bucketSize and numberOfBuckets
+								must be defined and the upper boundary is determined as their product.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="bucketSize" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Size of one bucket. If not present it is computed as the total processing space divided by
+								number of buckets (i.e. 'to' and 'numberOfBuckets' must be present).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="AbstractWorkBucketType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Abstract supertype for work buckets. Buckets are used e.g. to distribute workload in multi-node tasks or
+				to implement stateful suspend+resume.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="sequentialNumber" type="xsd:int">
+				<xsd:annotation>
+					<xsd:documentation>
+						Sequential number of give work bucket. Starting at 1.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="state" type="tns:WorkBucketStateType">
+				<xsd:annotation>
+					<xsd:documentation>
+						State of the work bucket: ready, delegated or complete.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Worker task to which is this bucket allocated.-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+			<!--<xsd:element name="processedCount" type="xsd:int" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Number of items that were suc-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="NumericIntervalWorkBucketType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket defined as a interval of numeric identifiers.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Start of the processing space belonging to this bucket (inclusive). If not present, 0 is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="to" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								End of the processing space belonging to this bucket (exclusive). If not present, it is assumed
+								that this is the last bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="lastProcessed" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Last processed identifier in this work bucket (if any and if known).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="AlphanumericIntervalWorkBucketType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Abstract supertype for work buckets used e.g. to distribute workload in multi-node tasks.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:string" minOccurs="0"/>
+					<xsd:element name="to" type="xsd:string" minOccurs="0"/>
+					<xsd:element name="lastProcessed" type="xsd:string" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:simpleType name="WorkStateManagementTaskKindType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Kind of task with respect to the work state management.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="standalone">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is standalone: it executes all the work itself (single- or multi-threaded).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="STANDALONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="coordinator">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is a coordinator task in a multi-node execution.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="COORDINATOR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="worker">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is a worker task in a multi-node execution.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WORKER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="WorkBucketStateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				State of the work bucket.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ready">
+				<xsd:annotation>
+					<xsd:documentation>
+						The bucket is ready to be delegated (when in coordinator) or to be directly processed (when in worker
+						or standalone task).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="READY"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="delegated">
+				<xsd:annotation>
+					<xsd:documentation>
+						The bucket has been delegated for processing by a worker task. (May occur in coordinator only.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DELEGATED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="complete">
+				<xsd:annotation>
+					<xsd:documentation>
+						The bucket has been processed.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="COMPLETE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+
+	<!-- Property-related types -->
 
     <xsd:complexType name="EmptyType">
         <xsd:annotation>
@@ -1805,6 +2103,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="workState" type="tns:TaskWorkStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Task work state used to distribute the work and/or for stateful suspend+resume feature.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.8</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1909,13 +2217,20 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                     <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Policy rule for the task. E.g notify user 5 days before their account expires.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+					<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Policy rule for the task. E.g notify user 5 days before their account expires.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="workStateManagement" type="tns:AbstractTaskWorkStateManagementConfigurationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Configuration of work distribution and stateful suspend+resume features.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

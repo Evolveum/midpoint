@@ -3167,4 +3167,14 @@ public class TaskQuartzImpl implements Task {
 			pendingModifications.addAll(deltas);
 		}
 	}
+
+	@Override
+	public AbstractTaskWorkStateManagementConfigurationType getWorkStateManagement() {
+		return taskPrism.asObjectable().getWorkStateManagement();
+	}
+
+	@Override
+	public TaskWorkStateType getWorkState() {
+		return taskPrism.asObjectable().getWorkState();
+	}
 }

@@ -32,6 +32,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -179,7 +180,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	@Autowired private PrismContext prismContext;
-	
+	@Autowired private WorkStateManager workStateManager;
+
 	@Autowired
 	@Qualifier("securityContextManager")
 	private SecurityContextManager securityContextManager;
@@ -553,13 +555,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
 	@NotNull
-    public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+    public TaskQuartzImpl createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
         return createTaskInstance(taskPrism, null, parentResult);
     }
 
     @Override
 	@NotNull
-	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
+	public TaskQuartzImpl createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "createTaskInstance");
         result.addParam("taskPrism", taskPrism);
@@ -574,19 +576,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	@NotNull
-	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public TaskQuartzImpl getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		return getTask(taskOid, null, parentResult);
 	}
 
 	@Override
 	@NotNull
-	public Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public TaskQuartzImpl getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTask");          // todo ... or .createSubresult (without 'minor')?
 		result.addParam(OperationResult.PARAM_OID, taskOid);
 		result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
-		Task task;
+		TaskQuartzImpl task;
 		try {
 			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, options, result);
             task = createTaskInstance(taskPrism, result);
@@ -1734,6 +1736,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     // currently finds only persistent tasks
     @Override
+    @NotNull
     public Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTaskByIdentifier");
@@ -1746,6 +1749,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
+    @NotNull
     public PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createMinorSubresult(DOT_IMPL_CLASS + "getTaskTypeByIdentifier");
         result.addParam("identifier", identifier);
@@ -1987,4 +1991,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return securityContextManager;
 	}
 
+	public WorkStateManager getWorkStateManager() {
+		return workStateManager;
+	}
 }

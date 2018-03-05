@@ -54,7 +54,6 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
@@ -84,26 +83,19 @@ import static org.testng.AssertJUnit.*;
  * @author Radovan Semancik
  */
 
-@ContextConfiguration(locations = {"classpath:ctx-task.xml",
-        "classpath:ctx-task-test.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-security.xml",
-        "classpath*:ctx-repository-test.xml",
-        "classpath:ctx-audit.xml",
-        "classpath:ctx-common.xml",
-        "classpath:ctx-configuration-test.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTests {
+public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);
 
-    private static final String TASK_OWNER_FILENAME = "src/test/resources/repo/owner.xml";
-    private static final String TASK_OWNER2_FILENAME = "src/test/resources/repo/owner2.xml";
+    private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
+    private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
     private static final String TASK_OWNER2_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
     private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
 
     private static String taskFilename(String test) {
-    	return "src/test/resources/repo/task-" + test + ".xml";
+    	return "src/test/resources/basic/task-" + test + ".xml";
     }
 
     private static String taskOid(String test, String subId) {
@@ -114,90 +106,15 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	return taskOid(test, "0");
     }
 
-    private static OperationResult createResult(String test) {
-    	System.out.println("===[ test"+test+" ]===");
-    	LOGGER.info("===[ test"+test+" ]===");
-    	return new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".test" + test);
-    }
-
-    private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
-    private static final String CYCLE_FINISHING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-finishing-task-handler";
-    public static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
-    public static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
-    public static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
-    public static final String L1_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l1-task-handler";
-    public static final String L2_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l2-task-handler";
-    public static final String L3_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l3-task-handler";
-    public static final String WAIT_FOR_SUBTASKS_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/wait-for-subtasks-task-handler";
-    public static final String PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
-    public static final String LONG_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/long-task-handler";
-
-    @Autowired
-    private RepositoryService repositoryService;
-    private static boolean repoInitialized = false;
-
-    @Autowired
-    private TaskManagerQuartzImpl taskManager;
-
-    @Autowired
-    private PrismContext prismContext;
-
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+		super.setup();
         ClusterManager.setUpdateNodeExecutionLimitations(false);
 	}
 
-    // We need this complicated init as we want to initialize repo only once.
-    // JUnit will
-    // create new class instance for every test, so @Before and @PostInit will
-    // not work
-    // directly. We also need to init the repo after spring autowire is done, so
-    // @BeforeClass won't work either.
-    @BeforeMethod
-    public void initRepository() throws Exception {
-        if (!repoInitialized) {
-            // addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
-            repoInitialized = true;
-        }
-    }
-
-    MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
-    MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
-    MockSingleTaskHandler waitForSubtasksTaskHandler;
-    MockCycleTaskHandler cycleFinishingHandler;
-    MockParallelTaskHandler parallelTaskHandler;
-    MockLongTaskHandler longTaskHandler;
-
     @PostConstruct
-    public void initHandlers() throws Exception {
-        MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler(false);    // ordinary recurring task
-        taskManager.registerHandler(CYCLE_TASK_HANDLER_URI, cycleHandler);
-        cycleFinishingHandler = new MockCycleTaskHandler(true);                 // finishes the handler
-        taskManager.registerHandler(CYCLE_FINISHING_TASK_HANDLER_URI, cycleFinishingHandler);
-
-        singleHandler1 = new MockSingleTaskHandler("1", taskManager);
-        taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler1);
-        singleHandler2 = new MockSingleTaskHandler("2", taskManager);
-        taskManager.registerHandler(SINGLE_TASK_HANDLER_2_URI, singleHandler2);
-        singleHandler3 = new MockSingleTaskHandler("3", taskManager);
-        taskManager.registerHandler(SINGLE_TASK_HANDLER_3_URI, singleHandler3);
-
-        l1Handler = new MockSingleTaskHandler("L1", taskManager);
-        l2Handler = new MockSingleTaskHandler("L2", taskManager);
-        l3Handler = new MockSingleTaskHandler("L3", taskManager);
-        taskManager.registerHandler(L1_TASK_HANDLER_URI, l1Handler);
-        taskManager.registerHandler(L2_TASK_HANDLER_URI, l2Handler);
-        taskManager.registerHandler(L3_TASK_HANDLER_URI, l3Handler);
-
-        waitForSubtasksTaskHandler = new MockSingleTaskHandler("WFS", taskManager);
-        taskManager.registerHandler(WAIT_FOR_SUBTASKS_TASK_HANDLER_URI, waitForSubtasksTaskHandler);
-        parallelTaskHandler = new MockParallelTaskHandler("1", taskManager);
-        taskManager.registerHandler(PARALLEL_TASK_HANDLER_URI, parallelTaskHandler);
-        longTaskHandler = new MockLongTaskHandler("1", taskManager);
-        taskManager.registerHandler(LONG_TASK_HANDLER_URI, longTaskHandler);
-
+    public void initialize() throws Exception {
+        super.initialize();
         addObjectFromFile(TASK_OWNER_FILENAME);
         addObjectFromFile(TASK_OWNER2_FILENAME);
     }
@@ -222,7 +139,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test003GetProgress() throws Exception {
 
         String test = "003GetProgress";
-        OperationResult result = createResult(test);
+        OperationResult result = createResult(test, LOGGER);
 
         addObjectFromFile(taskFilename(test));
 
@@ -236,7 +153,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled=false)          // this is probably OK to fail, so do not enable it (at least for now)
     public void test004aTaskBigProperty() throws Exception {
         String test = "004aTaskBigProperty";
-        OperationResult result = createResult(test);
+        OperationResult result = createResult(test, LOGGER);
 
         String string300 = "123456789-123456789-123456789-123456789-123456789-"
                 + "123456789-123456789-123456789-123456789-123456789-"
@@ -300,7 +217,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test004bTaskBigProperty() throws Exception {
         String test = "004aTaskBigProperty";
-        OperationResult result = createResult(test);
+        OperationResult result = createResult(test, LOGGER);
 
         String string300 = "123456789-123456789-123456789-123456789-123456789-"
                 + "123456789-123456789-123456789-123456789-123456789-"
@@ -359,7 +276,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test004cReferenceInExtension() throws Exception {               // ok to fail
 
         String test = "004cReferenceInExtension";
-        OperationResult result = createResult(test);
+        OperationResult result = createResult(test, LOGGER);
         addObjectFromFile(taskFilename(test));
 
         TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
@@ -382,7 +299,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test004TaskProperties() throws Exception {
 
     	String test = "004TaskProperties";
-        OperationResult result = createResult(test);
+        OperationResult result = createResult(test, LOGGER);
 
         addObjectFromFile(taskFilename(test));
 
@@ -546,7 +463,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test005Single() throws Exception {
 
     	final String test = "005Single";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         // reset 'has run' flag on the handler
         singleHandler1.resetHasRun();
@@ -627,7 +544,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test006Cycle() throws Exception {
     	final String test = "006Cycle";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         // But before that check sanity ... a known problem with xsi:type
     	PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(test));
@@ -719,7 +636,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test008MoreHandlers() throws Exception {
 
     	final String test = "008MoreHandlers";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
@@ -785,7 +702,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test009CycleLoose() throws Exception {
     	final String test = "009CycleLoose";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
     	PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(test));
 
@@ -841,7 +758,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test010CycleCronLoose() throws Exception {
 
     	final String test = "010CycleCronLoose";
-    	final OperationResult result = createResult(test);
+    	final OperationResult result = createResult(test, LOGGER);
 
         addObjectFromFile(taskFilename(test));
 
@@ -890,7 +807,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test011MoreHandlersAndSchedules() throws Exception {
 
         final String test = "011MoreHandlersAndSchedules";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         // reset 'has run' flag on handlers
         l1Handler.resetHasRun();
@@ -969,7 +886,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test012Suspend() throws Exception {
 
     	final String test = "012Suspend";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
       	addObjectFromFile(taskFilename(test));
 
@@ -1026,7 +943,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
 
     	final String test = "013ReleaseAndSuspendLooselyBound";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
     	addObjectFromFile(taskFilename(test));
 
@@ -1094,7 +1011,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test014SuspendLongRunning() throws Exception {
 
     	final String test = "014SuspendLongRunning";
-    	final OperationResult result = createResult(test);
+    	final OperationResult result = createResult(test, LOGGER);
 
     	addObjectFromFile(taskFilename(test));
 
@@ -1163,7 +1080,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test015DeleteTaskFromRepo() throws Exception {
         final String test = "015DeleteTaskFromRepo";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(test));
         String oid = taskOid(test);
@@ -1199,7 +1116,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test016WaitForSubtasks() throws Exception {
         final String test = "016WaitForSubtasks";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         //taskManager.getClusterManager().startClusterManagerThread();
 
@@ -1291,7 +1208,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test017WaitForSubtasksEmpty() throws Exception {
         final String test = "017WaitForSubtasksEmpty";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         taskManager.getClusterManager().startClusterManagerThread();
 
@@ -1321,7 +1238,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test018TaskResult() throws Exception {
         final String test = "018RefreshingResult";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         Task task = taskManager.createTaskInstance();
         task.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
@@ -1349,7 +1266,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test019FinishedHandler() throws Exception {
 
         final String test = "019FinishedHandler";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
@@ -1408,7 +1325,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test
     public void test020QueryByExecutionStatus() throws Exception {
         final String test = "020QueryByExecutionStatus";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         taskManager.getClusterManager().startClusterManagerThread();
 
@@ -1431,7 +1348,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test(enabled = true)
     public void test021DeleteTaskTree() throws Exception {
         final String test = "021DeleteTaskTree";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         PrismObject<TaskType> parentTaskPrism = addObjectFromFile(taskFilename(test));
         PrismObject<TaskType> childTask1Prism = addObjectFromFile(taskFilename(test+"-child1"));
@@ -1487,7 +1404,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test022ExecuteRecurringOnDemand() throws Exception {
 
         final String test = "022ExecuteRecurringOnDemand";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         addObjectFromFile(taskFilename(test));
 
@@ -1543,7 +1460,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test100LightweightSubtasks() throws Exception {
 
         final String test = "100LightweightSubtasks";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         addObjectFromFile(taskFilename(test));
 
@@ -1579,7 +1496,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test105LightweightSubtasksSuspension() throws Exception {
 
         final String test = "105LightweightSubtasksSuspension";
-        final OperationResult result = createResult(test);
+        final OperationResult result = createResult(test, LOGGER);
 
         addObjectFromFile(taskFilename(test));
 
@@ -1638,7 +1555,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test108SecondaryGroupLimit() throws Exception {
 
         final String TEST_NAME = "108SecondaryGroupLimit";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
         waitForTaskStart(task1.getOid(), result);
@@ -1684,7 +1601,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test110GroupLimit() throws Exception {
 
         final String TEST_NAME = "110GroupLimit";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         taskManager.getExecutionManager().setLocalExecutionLimitations((TaskExecutionLimitationsType) null);
 
@@ -1724,7 +1641,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     @Test
     public void test120NodeAllowed() throws Exception {
         final String TEST_NAME = "120NodeAllowed";
-        final OperationResult result = createResult(TEST_NAME);
+        final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         taskManager.getExecutionManager().setLocalExecutionLimitations(
                 new TaskExecutionLimitationsType()
@@ -1741,7 +1658,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 	@Test
 	public void test130NodeNotAllowed() throws Exception {
 		final String TEST_NAME = "130NodeNotAllowed";
-		final OperationResult result = createResult(TEST_NAME);
+		final OperationResult result = createResult(TEST_NAME, LOGGER);
 
 		TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
 		Thread.sleep(10000);
@@ -1754,7 +1671,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test999CheckingLeftovers() throws Exception {
 
         String test = "999CheckingLeftovers";
-        OperationResult result = createResult(test);
+        OperationResult result = createResult(test, LOGGER);
 
         ArrayList<String> leftovers = new ArrayList<>();
         checkLeftover(leftovers, "005", result);
@@ -1844,42 +1761,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals(1, response.getAttribute(name.toLowerCase()).size());
         Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
         AssertJUnit.assertEquals(value, attribute.iterator().next().getValue().toString());
-    }
-
-    private <T extends ObjectType> PrismObject<T> unmarshallJaxbFromFile(String filePath) throws IOException, JAXBException, SchemaException {
-        File file = new File(filePath);
-        return PrismTestUtil.parseObject(file);
-    }
-
-    private <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath) throws Exception {
-        PrismObject<T> object = unmarshallJaxbFromFile(filePath);
-        System.out.println("obj: " + object.getElementName());
-        OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");
-        try {
-        	add(object, result);
-        } catch(ObjectAlreadyExistsException e) {
-        	delete(object, result);
-        	add(object, result);
-        }
-        logger.trace("Object from " + filePath + " added to repository.");
-        return object;
-    }
-
-	private void add(PrismObject<? extends ObjectType> object, OperationResult result)
-			throws ObjectAlreadyExistsException, SchemaException {
-		if (object.canRepresent(TaskType.class)) {
-            taskManager.addTask((PrismObject)object, result);
-        } else {
-            repositoryService.addObject(object, null, result);
-        }
-	}
-
-	private void delete(PrismObject<? extends ObjectType> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (object.canRepresent(TaskType.class)) {
-			taskManager.deleteTask(object.getOid(), result);
-		} else {
-			repositoryService.deleteObject(ObjectType.class, object.getOid(), result);			// correct?
-		}
     }
 
     private void waitForTaskStart(String oid, OperationResult result) throws CommonException {

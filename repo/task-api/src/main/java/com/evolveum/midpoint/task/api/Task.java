@@ -1027,4 +1027,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	void incrementProgressAndStoreStatsIfNeeded();
 
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	AbstractTaskWorkStateManagementConfigurationType getWorkStateManagement();
+
+	TaskWorkStateType getWorkState();
 }

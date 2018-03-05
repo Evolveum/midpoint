@@ -26,12 +26,15 @@ import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -87,7 +90,7 @@ public class JobExecutor implements InterruptableJob {
 		// get the task instance
 		String oid = context.getJobDetail().getKey().getName();
         try {
-			task = (TaskQuartzImpl) taskManagerImpl.getTask(oid, executionResult);
+			task = taskManagerImpl.getTask(oid, executionResult);
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -633,25 +636,109 @@ mainCycle:
 
 		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy());
 
-    	TaskRunResult runResult;
-    	try {
-			LOGGER.trace("Executing handler {}", handler.getClass().getName());
-    		runResult = handler.run(task);
-    		if (runResult == null) {				// Obviously an error in task handler
-                LOGGER.error("Unable to record run finish: task returned null result");
-				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-			}
-    	} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-            runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-    	}
+	    TaskRunResult runResult;
+		if (handler instanceof WorkBucketAwareTaskHandler) {
+			runResult = executeWorkBucketAwareTaskHandlerWithCoordinator((WorkBucketAwareTaskHandler) handler, executionResult);
+		} else {
+			runResult = executePlainTaskHandler(handler);
+		}
 
         waitForTransientChildrenAndCloseThem(executionResult);
-
         return runResult;
 	}
 
-    private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
+	private TaskRunResult executePlainTaskHandler(TaskHandler handler) {
+		TaskRunResult runResult;
+		try {
+			LOGGER.trace("Executing handler {}", handler.getClass().getName());
+			runResult = handler.run(task);
+			if (runResult == null) {				// Obviously an error in task handler
+				LOGGER.error("Unable to record run finish: task returned null result");
+				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+			}
+		} catch (Throwable t) {
+			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+			runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+		}
+		return runResult;
+	}
+
+	// TODO review this thoroughly
+	private TaskRunResult executeWorkBucketAwareTaskHandlerWithCoordinator(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
+//		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+//		String coordinatorTaskIdentifier = task.getParent();
+//		if (coordinatorTaskIdentifier == null) {
+//			if (task.getTaskType().getWorkStateManagement() == null) {
+//				// default behavior: no work distribution, no stateful suspend+resume
+//				return executePlainTaskHandler(handler);
+//			}
+//			coordinatorTaskIdentifier = task.getTaskIdentifier();     // at least stateful suspend+resume supported in this case
+//		}
+//		TaskWorkBucketProcessingResult runResult = null;
+//		for (;;) {
+//			Task coordinatorTask;
+//			try {
+//				coordinatorTask = taskManagerImpl.getTaskByIdentifier(coordinatorTaskIdentifier, executionResult);
+//			} catch (SchemaException | ObjectNotFoundException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve coordinator task for worker task {}", e, task);
+//				return createFailureTaskRunResult("Couldn't retrieve coordinator task", e);
+//			}
+//			// TODO check if the coordinator task is a legitimate one
+//			if (coordinatorTask.getTaskType().getWorkStateManagement() == null) {
+//				LOGGER.error("No work state management configuration in coordinator task {} (worker task {})", coordinatorTask, task);
+//				return createFailureTaskRunResult("No work state management configuration in coordinator task", null);
+//			}
+//
+//			AbstractWorkBucketType bucket;
+//			try {
+//				bucket = workStateManager.getWorkBucket(coordinatorTask.getTaskType(), task.getOid(), executionResult);
+//			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", e, task, null);
+//				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", e);
+//			}
+//			if (bucket == null) {
+//				LOGGER.trace("No (next) work bucket within {}, exiting", task);
+//				return runResult != null ? runResult : createSuccessTaskRunResult();
+//			}
+//			try {
+//				LOGGER.trace("Executing handler {} with work bucket of {}", handler.getClass().getName(), bucket);
+//				runResult = handler.run(task, bucket, runResult);
+//				if (runResult == null) {                // Obviously an error in task handler
+//					LOGGER.error("Unable to record run finish: task returned null result");
+//					releaseWorkBucketChecked(coordinatorTask, bucket, executionResult);
+//					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+//				}
+//			} catch (Throwable t) {
+//				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+//				releaseWorkBucketChecked(coordinatorTask, bucket, executionResult);
+//				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+//			}
+//			if (!runResult.isBucketComplete()) {
+//				return runResult;
+//			}
+//			try {
+//				taskManagerImpl.getWorkStateManager().releaseWorkBucket(coordinatorTask.getTaskType(), bucket.getSequentialNumber(), executionResult);
+//			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {} (coordinator {})", e, task, coordinatorTask);
+//				return createFailureTaskRunResult("Couldn't release work bucket: " + e.getMessage(), e);
+//			}
+//			if (!task.canRun() || !runResult.isShouldContinue()) {
+//				return runResult;
+//			}
+//		}
+		return null;
+	}
+
+
+//	private void releaseWorkBucketChecked(Task coordinatorTask, AbstractWorkBucketType bucket, OperationResult executionResult) {
+//		try {
+//			taskManagerImpl.getWorkStateManager().releaseWorkBucket(coordinatorTask.getTaskType(), bucket.getSequentialNumber(), executionResult);
+//		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+//			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {} (coordinator {})", e, task, coordinatorTask);
+//		}
+//	}
+
+	private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
         if (task.getResult() != null) {
@@ -666,6 +753,20 @@ mainCycle:
         }
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+        return runResult;
+    }
+
+	private TaskRunResult createSuccessTaskRunResult() {
+        TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult;
+        if (task.getResult() != null) {
+            opResult = task.getResult();
+        } else {
+            opResult = createOperationResult(DOT_CLASS + "executeHandler");
+        }
+        opResult.recordSuccess();
+        runResult.setOperationResult(opResult);
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         return runResult;
     }
 
