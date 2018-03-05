@@ -20,6 +20,9 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
+import java.util.List;
+
 /**
  * Created by honchar.
  */
@@ -28,5 +31,9 @@ public class InducementDetailsPanel<R extends AbstractRoleType> extends Abstract
 
     public InducementDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(id, form, assignmentModel);
+    }
+
+    protected QName getObjectContainerPath(){
+        return AbstractRoleType.F_INDUCEMENT;
     }
 }
