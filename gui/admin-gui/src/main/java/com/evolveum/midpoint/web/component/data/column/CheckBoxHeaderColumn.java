@@ -53,7 +53,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public Component getHeader(final String componentId) {
-        final IModel<Boolean> model = new Model<Boolean>(false);
+        final IModel<Boolean> model = new Model<>(false);
         CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled()) {
 
             @Override

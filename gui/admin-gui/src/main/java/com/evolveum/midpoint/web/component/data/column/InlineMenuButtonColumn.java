@@ -144,7 +144,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                 }
                 if (rowModel.getObject() == null ||
                         !(rowModel.getObject() instanceof InlineMenuable)) {
-                    return new ArrayList<InlineMenuItem>();
+                    return new ArrayList<>();
                 }
                 for (InlineMenuItem item : ((InlineMenuable)rowModel.getObject()).getMenuItems()) {
                     if (!(item.getAction() instanceof ColumnMenuAction)) {

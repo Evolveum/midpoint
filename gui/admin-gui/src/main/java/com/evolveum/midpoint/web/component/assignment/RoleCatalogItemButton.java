@@ -296,7 +296,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         plusIconClicked = true;
         RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
         if (storage.getAssignmentShoppingCart() == null){
-            storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+            storage.setAssignmentShoppingCart(new ArrayList<>());
         }
         AssignmentEditorDto dto = assignment.clone();
         dto.setDefaultRelation();
