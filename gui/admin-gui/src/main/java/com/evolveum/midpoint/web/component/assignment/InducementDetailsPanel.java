@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -35,5 +36,9 @@ public class InducementDetailsPanel<R extends AbstractRoleType, C extends Contai
 
     public InducementDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(id, form, assignmentModel);
+    }
+
+    protected QName getObjectContainerPath(){
+        return AbstractRoleType.F_INDUCEMENT;
     }
 }
