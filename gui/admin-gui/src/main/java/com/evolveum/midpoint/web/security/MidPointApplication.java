@@ -275,11 +275,14 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
+        
+        if (applicationContext != null) {
 
-        Map<String, MidPointApplicationConfiguration> map =
-                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
-        if (map != null) {
-            map.forEach((key, value) -> value.init(this));
+	        Map<String, MidPointApplicationConfiguration> map =
+	                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
+	        if (map != null) {
+	            map.forEach((key, value) -> value.init(this));
+	        }
         }
     }
 
