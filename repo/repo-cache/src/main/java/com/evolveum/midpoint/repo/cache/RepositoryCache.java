@@ -441,6 +441,8 @@ public class RepositoryCache implements RepositoryService {
 			cache.removeObject(oid);
 			cache.clearQueryResults(type);
 		}
+
+		globalCache.remove(new CacheKey(type, oid));
 	}
 
 	@Override
