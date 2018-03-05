@@ -138,7 +138,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			javaReturnType = (Class) String.class;
 		}
 
-		List<V> pvals = new ArrayList<V>();
+		List<V> pvals = new ArrayList<>();
 
 		// TODO: what about PrismContainer and
 		// PrismReference? Shouldn't they be processed in the same way as

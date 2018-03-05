@@ -27,7 +27,7 @@ public class DummyObjectClass {
 	private Collection<DummyAttributeDefinition> attributeDefinitions;
 
 	public DummyObjectClass() {
-		attributeDefinitions = new ArrayList<DummyAttributeDefinition>();
+		attributeDefinitions = new ArrayList<>();
 	}
 
 	public Collection<DummyAttributeDefinition> getAttributeDefinitions() {

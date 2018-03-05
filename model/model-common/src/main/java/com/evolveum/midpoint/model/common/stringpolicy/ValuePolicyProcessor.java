@@ -553,7 +553,7 @@ public class ValuePolicyProcessor {
 		 * ********************************** Try to find best characters to be
 		 * first in password
 		 */
-		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<StringLimitType, List<String>>();
+		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<>();
 		for (StringLimitType l : lims.keySet()) {
 			if (l.isMustBeFirst() != null && l.isMustBeFirst()) {
 				mustBeFirst.put(l, lims.get(l));

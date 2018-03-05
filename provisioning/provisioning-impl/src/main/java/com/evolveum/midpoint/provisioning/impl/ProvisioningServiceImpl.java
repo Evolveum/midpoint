@@ -831,7 +831,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, objectClass, prismContext);
 
-		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<PrismObject<? extends ShadowType>>();
+		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<>();
 		final ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
@@ -904,7 +904,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
 		} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
-			getShadowCache(Mode.RECON).modifyShadow(shadow, new ArrayList<ItemDelta>(), null, options, task, result);
+			getShadowCache(Mode.RECON).modifyShadow(shadow, new ArrayList<>(), null, options, task, result);
 		} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, task, result);
 		} else {

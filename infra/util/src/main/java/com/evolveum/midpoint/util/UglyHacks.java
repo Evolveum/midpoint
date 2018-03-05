@@ -89,7 +89,7 @@ public class UglyHacks {
 	}
 
 	public static void fortifyNamespaceDeclarationsSingleElement(Element element) {
-		List<String> xmlnss = new ArrayList<String>();
+		List<String> xmlnss = new ArrayList<>();
 		NamedNodeMap attributes = element.getAttributes();
 		for(int i=0; i<attributes.getLength(); i++) {
 			Attr attr = (Attr)attributes.item(i);

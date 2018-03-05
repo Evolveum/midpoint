@@ -73,7 +73,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
     	Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = new LensContext<UserType>(UserType.class, prismContext, provisioningService);
+        LensContext<UserType> context = new LensContext<>(UserType.class, prismContext, provisioningService);
         PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
         CryptoUtil.encryptValues(protector, bill);
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(bill);
@@ -81,7 +81,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         focusContext.setPrimaryDelta(userDelta);
 
         LensContextType contextType = context.toLensContextType();
-        JaxbValueContainer<LensContextType> container = new JaxbValueContainer<LensContextType>(contextType, prismContext);
+        JaxbValueContainer<LensContextType> container = new JaxbValueContainer<>(contextType, prismContext);
         container.clearActualValue();
         System.out.println("XML value = " + container.getXmlValue());
         LensContextType contextTypeRetrieved = container.getValue();
@@ -98,7 +98,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         ScheduleType scheduleType = new ScheduleType();
         scheduleType.setInterval(100);
 
-        JaxbValueContainer<ScheduleType> container = new JaxbValueContainer<ScheduleType>(scheduleType, prismContext);
+        JaxbValueContainer<ScheduleType> container = new JaxbValueContainer<>(scheduleType, prismContext);
         container.clearActualValue();
         System.out.println("XML value = " + container.getXmlValue());
         ScheduleType scheduleTypeRetrieved = container.getValue();

@@ -49,12 +49,12 @@ public class ValueMatcher<T> {
 		} catch (SchemaException e) {
 			throw new SchemaException(e.getMessage()+", defined for attribute "+rAttrDef.getName(), e);
 		}
-		return new ValueMatcher<T>(matchingRule);
+		return new ValueMatcher<>(matchingRule);
 	}
 
 	public static <T> ValueMatcher<T> createDefaultMatcher(QName type, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(null, type);
-		return new ValueMatcher<T>((MatchingRule<T>) matchingRule);
+		return new ValueMatcher<>((MatchingRule<T>) matchingRule);
 	}
 
 	public boolean match(T realA, T realB) throws SchemaException {

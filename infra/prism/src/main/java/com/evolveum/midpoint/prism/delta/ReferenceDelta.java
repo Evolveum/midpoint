@@ -96,7 +96,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
      */
     public static Collection<? extends ItemDelta> createModificationReplaceCollection(QName propertyName,
     		PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue) {
-    	Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+    	Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
     	ReferenceDelta delta = createModificationReplace(propertyName, objectDefinition, refValue);
     	((Collection)modifications).add(delta);
     	return modifications;
@@ -161,7 +161,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
     }
 
 	private static Collection<? extends ItemDelta<?,?>> createModificationsCollection(int initSize) {
-		return new ArrayList<ItemDelta<?,?>>(initSize);
+		return new ArrayList<>(initSize);
 	}
 
 	public static ReferenceDelta createModificationAdd(QName refName, PrismObjectDefinition<?> objectDefinition,
@@ -234,7 +234,7 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
 
     public static Collection<? extends ItemDelta> createModificationDeleteCollection(QName propertyName,
     		PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue) {
-    	Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+    	Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
     	ReferenceDelta delta = createModificationDelete(propertyName, objectDefinition, refValue);
     	((Collection)modifications).add(delta);
     	return modifications;

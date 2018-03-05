@@ -155,7 +155,7 @@ public class ProtectorImpl extends BaseProtector {
 
             TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmFactory.init(keyStore);
-            trustManagers = new ArrayList<TrustManager>();
+            trustManagers = new ArrayList<>();
             for (TrustManager trustManager : tmFactory.getTrustManagers()) {
                 trustManagers.add(trustManager);
             }

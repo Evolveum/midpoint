@@ -92,7 +92,7 @@ public class StringPolicyUtils {
 			}
 		}
 		// Remove duplicity in return;
-		HashSet<String> h = new HashSet<String>();
+		HashSet<String> h = new HashSet<>();
 		for (String s : l.toString().split("")) {
 			h.add(s);
 		}

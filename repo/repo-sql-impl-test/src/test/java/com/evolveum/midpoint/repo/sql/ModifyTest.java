@@ -443,7 +443,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObjectDefinition<ShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        Collection<ItemDelta> modifications = new ArrayList<>();
         PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty(
         		(new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
@@ -512,7 +512,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
         String lastVersion = readUser.getVersion();
 
-        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        Collection<ItemDelta> modifications = new ArrayList<>();
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
         PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition(), prismContext);
@@ -711,7 +711,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 		// modify role once more to check version progress
 		String version = role.getVersion();
-		repositoryService.modifyObject(RoleType.class, oid, new ArrayList<ItemDelta>(), getModifyOptions(), result);
+		repositoryService.modifyObject(RoleType.class, oid, new ArrayList<>(), getModifyOptions(), result);
 		result.recomputeStatus();
 		AssertJUnit.assertTrue(result.isSuccess());
 		role = repositoryService.getObject(RoleType.class, oid, null, result);

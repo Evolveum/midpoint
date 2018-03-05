@@ -58,7 +58,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		if (rAttrDef == null) {
 			return null;
 		}
-		return new LayerRefinedAttributeDefinitionImpl<T>(rAttrDef, layer);
+		return new LayerRefinedAttributeDefinitionImpl<>(rAttrDef, layer);
 	}
 
 	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(

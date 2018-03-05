@@ -173,7 +173,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "object")
     public JAXBElement<ObjectType> createObject(ObjectType value) {
-        return new JAXBElement<ObjectType>(_Object_QNAME, ObjectType.class, null, value);
+        return new JAXBElement<>(_Object_QNAME, ObjectType.class, null, value);
     }
 
     /**
@@ -182,7 +182,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "name")
     public JAXBElement<PolyStringType> createName(PolyStringType value) {
-        return new JAXBElement<PolyStringType>(_Name_QNAME, PolyStringType.class, null, value);
+        return new JAXBElement<>(_Name_QNAME, PolyStringType.class, null, value);
     }
 
     /**
@@ -191,7 +191,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "resource")
     public JAXBElement<ResourceType> createResource(ResourceType value) {
-        return new JAXBElement<ResourceType>(_Resource_QNAME, ResourceType.class, null, value);
+        return new JAXBElement<>(_Resource_QNAME, ResourceType.class, null, value);
     }
 
     /**
@@ -200,7 +200,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "user")
     public JAXBElement<UserType> createUser(UserType value) {
-        return new JAXBElement<UserType>(_User_QNAME, UserType.class, null, value);
+        return new JAXBElement<>(_User_QNAME, UserType.class, null, value);
     }
 
     /**
@@ -209,7 +209,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "displayName")
     public JAXBElement<String> createDisplayName(String value) {
-        return new JAXBElement<String>(_DisplayName_QNAME, String.class, null, value);
+        return new JAXBElement<>(_DisplayName_QNAME, String.class, null, value);
     }
 
     /**
@@ -218,7 +218,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "account")
     public JAXBElement<AccountType> createAccount(AccountType value) {
-        return new JAXBElement<AccountType>(_Account_QNAME, AccountType.class, null, value);
+        return new JAXBElement<>(_Account_QNAME, AccountType.class, null, value);
     }
 
 
@@ -236,7 +236,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "handler")
     public JAXBElement<EventHandlerType> createHandler(EventHandlerType value) {
-        return new JAXBElement<EventHandlerType>(_Handler_QNAME, EventHandlerType.class, null, value);
+        return new JAXBElement<>(_Handler_QNAME, EventHandlerType.class, null, value);
     }
 
     /**
@@ -253,7 +253,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "handlerChain", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
     public JAXBElement<EventHandlerChainType> createHandlerChain(EventHandlerChainType value) {
-        return new JAXBElement<EventHandlerChainType>(_HandlerChain_QNAME, EventHandlerChainType.class, null, value);
+        return new JAXBElement<>(_HandlerChain_QNAME, EventHandlerChainType.class, null, value);
     }
 
     /**
@@ -270,7 +270,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "statusFilter", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
     public JAXBElement<EventStatusFilterType> createStatusFilter(EventStatusFilterType value) {
-        return new JAXBElement<EventStatusFilterType>(_StatusFilter_QNAME, EventStatusFilterType.class, null, value);
+        return new JAXBElement<>(_StatusFilter_QNAME, EventStatusFilterType.class, null, value);
     }
 
     /**
@@ -288,7 +288,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "operationFilter", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
     public JAXBElement<EventOperationFilterType> createOperationFilter(EventOperationFilterType value) {
-        return new JAXBElement<EventOperationFilterType>(_OperationFilter_QNAME, EventOperationFilterType.class, null, value);
+        return new JAXBElement<>(_OperationFilter_QNAME, EventOperationFilterType.class, null, value);
     }
 
     /**
@@ -305,7 +305,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "categoryFilter", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
     public JAXBElement<EventCategoryFilterType> createCategoryFilter(EventCategoryFilterType value) {
-        return new JAXBElement<EventCategoryFilterType>(_CategoryFilter_QNAME, EventCategoryFilterType.class, null, value);
+        return new JAXBElement<>(_CategoryFilter_QNAME, EventCategoryFilterType.class, null, value);
     }
 
 }

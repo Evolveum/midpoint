@@ -50,9 +50,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 
 	private boolean filterProtectedObjects = true;
-	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<ResourceObjectChangeListener>();
-	private List<ResourceOperationListener> operationListeners = new ArrayList<ResourceOperationListener>();
-	private List<ResourceEventListener> eventListeners = new ArrayList<ResourceEventListener>();
+	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();
+	private List<ResourceOperationListener> operationListeners = new ArrayList<>();
+	private List<ResourceEventListener> eventListeners = new ArrayList<>();
 
 	private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
 

@@ -177,7 +177,7 @@ public class ProvisioningUtil {
 		
 		attributesToReturn.setReturnDefaultAttributes(!hasMinimal);
 		
-		Collection<ResourceAttributeDefinition> explicit = new ArrayList<ResourceAttributeDefinition>();
+		Collection<ResourceAttributeDefinition> explicit = new ArrayList<>();
 		for (RefinedAttributeDefinition attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
 			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
 			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {

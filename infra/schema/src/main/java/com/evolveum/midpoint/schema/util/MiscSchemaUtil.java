@@ -81,7 +81,7 @@ public class MiscSchemaUtil {
 		if (objectList == null) {
 			return null;
 		}
-		List<T> objectableList = new ArrayList<T>(objectList.size());
+		List<T> objectableList = new ArrayList<>(objectList.size());
 		for (PrismObject<T> object: objectList) {
 			objectableList.add(object.asObjectable());
 		}
@@ -126,13 +126,13 @@ public class MiscSchemaUtil {
 	}
 
 	public static Collection<String> toCollection(String entry) {
-		List<String> list = new ArrayList<String>(1);
+		List<String> list = new ArrayList<>(1);
 		list.add(entry);
 		return list;
 	}
 
 	public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
-		Collection<ItemPath> itemPathList = new ArrayList<ItemPath>(resolve.getProperty().size());
+		Collection<ItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
 		for (ItemPathType itemXPathElement: resolve.getProperty()) {
 			itemPathList.add(itemXPathElement.getItemPath());
 		}
@@ -248,7 +248,7 @@ public class MiscSchemaUtil {
 		if (origCollection == null) {
 			return null;
 		}
-		Collection<ObjectDelta<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDelta<? extends ObjectType>>(origCollection.size());
+		Collection<ObjectDelta<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
 		for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
 			clonedCollection.add(origDelta.clone());
 		}
@@ -260,7 +260,7 @@ public class MiscSchemaUtil {
 		if (origCollection == null) {
 			return null;
 		}
-		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
+		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
 		for (ObjectDeltaOperation<? extends ObjectType> origDelta: origCollection) {
 			clonedCollection.add(origDelta.clone());
 		}

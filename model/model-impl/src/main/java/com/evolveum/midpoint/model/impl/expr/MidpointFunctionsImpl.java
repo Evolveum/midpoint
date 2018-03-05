@@ -191,7 +191,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return null;
 		}
 
-		List<ProtectedStringType> passwords = new ArrayList<ProtectedStringType>();
+		List<ProtectedStringType> passwords = new ArrayList<>();
 		for (ItemDelta itemDelta : delta.getModifications()) {
 			takePasswordsFromItemDelta(passwords, itemDelta);
 		}
@@ -243,7 +243,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> objectDeltas) throws EncryptionException {
 
-		List<ProtectedStringType> passwords = new ArrayList<ProtectedStringType>();
+		List<ProtectedStringType> passwords = new ArrayList<>();
 
 		for (ObjectDelta<UserType> delta : objectDeltas) {
 
@@ -721,7 +721,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
 		}
 
-		final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
+		final Holder<Boolean> isUniqueHolder = new Holder<>(true);
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
@@ -1300,7 +1300,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public Map<String, String> parseXmlToMap(String xml) {
-		Map<String, String> resultingMap = new HashMap<String, String>();
+		Map<String, String> resultingMap = new HashMap<>();
 		if (xml != null && !xml.isEmpty()) {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			String value = "";

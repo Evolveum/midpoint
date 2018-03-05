@@ -129,8 +129,8 @@ public class ResourceDetailsTabPanel extends Panel {
 
 		List<ResourceConfigurationDto> resourceConfigList = createResourceConfigList(resource);
 
-		ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<ResourceConfigurationDto>(
-				ResourceDetailsTabPanel.this, new ListModel<ResourceConfigurationDto>(resourceConfigList));
+		ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<>(
+            ResourceDetailsTabPanel.this, new ListModel<>(resourceConfigList));
 
 		List<ColumnTypeDto<String>> columns = Arrays.asList(
 				new ColumnTypeDto<String>("ShadowType.kind", "objectTypeDefinition.kind",
@@ -153,7 +153,7 @@ public class ResourceDetailsTabPanel extends Panel {
 				RepeatingView repeater = new RepeatingView(componentId);
 				for (final TaskType task : conf.getDefinedTasks()) {
 					repeater.add(new LinkPanel(repeater.newChildId(),
-							new Model<String>(task.getName().getOrig())) {
+                        new Model<>(task.getName().getOrig())) {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
@@ -262,7 +262,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			infoBoxType.setDescription(parentPage.getString("PageResource.resource.sync"));
 		}
 
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
 		return new InfoBoxPanel(ID_SOURCE_TARGET, boxModel);
 
@@ -309,7 +309,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			infoBoxType.setDescription(connectorVersion);
 		}
 
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
 		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, boxModel);
 		lastAvailabilityStatus.setOutputMarkupId(true);
@@ -364,7 +364,7 @@ public class ResourceDetailsTabPanel extends Panel {
 		infoBoxType.setProgress(progress);
 		infoBoxType.setDescription(description);
 
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
 		return new InfoBoxPanel(ID_SCHEMA_STATUS, boxModel);
 
@@ -392,7 +392,7 @@ public class ResourceDetailsTabPanel extends Panel {
 	private List<TaskType> getTaskFor(List<PrismObject<TaskType>> tasks,
 			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
 					throws SchemaException {
-		List<TaskType> syncTasks = new ArrayList<TaskType>();
+		List<TaskType> syncTasks = new ArrayList<>();
 		for (PrismObject<TaskType> task : tasks) {
 			PrismProperty<ShadowKindType> taskKind = task
 					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));

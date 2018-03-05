@@ -1259,7 +1259,7 @@ public class Clockwork {
 		}
 
 		// projection primary
-		Collection<ObjectDelta<ShadowType>> projPrimaryDeltas = new ArrayList<ObjectDelta<ShadowType>>();
+		Collection<ObjectDelta<ShadowType>> projPrimaryDeltas = new ArrayList<>();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			ObjectDelta<ShadowType> projPrimaryDelta = projectionContext.getPrimaryDelta();
 			if (projPrimaryDelta != null) {

@@ -65,7 +65,7 @@ public class ContextFactory {
 	public <F extends ObjectType> LensContext<F> createContext(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ObjectDelta<F> focusDelta = null;
-		Collection<ObjectDelta<ShadowType>> projectionDeltas = new ArrayList<ObjectDelta<ShadowType>>(deltas.size());
+		Collection<ObjectDelta<ShadowType>> projectionDeltas = new ArrayList<>(deltas.size());
 		ObjectDelta<? extends ObjectType> confDelta = null;
 		Class<F> focusClass = null;
 		// Sort deltas to focus and projection deltas, check if the classes are correct;
@@ -112,7 +112,7 @@ public class ContextFactory {
 		if (focusClass == null) {
 			focusClass = determineFocusClass();
 		}
-		LensContext<F> context = new LensContext<F>(focusClass, prismContext, provisioningService);
+		LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
 		context.setChannel(task.getChannel());
 		context.setOptions(options);
 		context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
@@ -179,8 +179,8 @@ public class ContextFactory {
 
 	public <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
     		Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, Task task, OperationResult result) {
-    	LensContext<F> syncContext = new LensContext<F>(focusType,
-				prismContext, provisioningService);
+    	LensContext<F> syncContext = new LensContext<>(focusType,
+            prismContext, provisioningService);
 		LensFocusContext<F> focusContext = syncContext.createFocusContext();
 		focusContext.setLoadedObject(focus);
 		focusContext.setOid(focus.getOid());
@@ -192,8 +192,8 @@ public class ContextFactory {
 	public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
     		PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		provisioningService.applyDefinition(shadow, task, result);
-    	LensContext<F> syncContext = new LensContext<F>(null,
-				prismContext, provisioningService);
+    	LensContext<F> syncContext = new LensContext<>(null,
+            prismContext, provisioningService);
     	LensProjectionContext projectionContext = syncContext.createProjectionContext();
     	projectionContext.setLoadedObject(shadow);
     	projectionContext.setOid(shadow.getOid());
@@ -207,7 +207,7 @@ public class ContextFactory {
      */
 	public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
 
-		LensContext<F> context = new LensContext<F>(focusClass, prismContext, provisioningService);
+		LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
     	context.setChannel(change.getSourceChannel());
     	return context;
 	}

@@ -331,8 +331,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			ShadowType shadow, OperationResult result) {
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 
-		ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class,
-				ChangeType.DELETE, shadow.asPrismObject().getPrismContext());
+		ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class,
+            ChangeType.DELETE, shadow.asPrismObject().getPrismContext());
 		objectDelta.setOid(shadow.getOid());
 		change.setObjectDelta(objectDelta);
 		change.setResource(shadow.getResource().asPrismObject());

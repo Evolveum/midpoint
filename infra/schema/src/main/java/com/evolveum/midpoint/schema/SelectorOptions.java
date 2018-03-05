@@ -56,25 +56,25 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 	}
 
 	public static <T> SelectorOptions<T> create(ItemPath path, T options) {
-		return new SelectorOptions<T>(new ObjectSelector(path), options);
+		return new SelectorOptions<>(new ObjectSelector(path), options);
 	}
 
 	public static <T> SelectorOptions<T> create(QName pathQName, T options) {
-		return new SelectorOptions<T>(new ObjectSelector(new ItemPath(pathQName)), options);
+		return new SelectorOptions<>(new ObjectSelector(new ItemPath(pathQName)), options);
 	}
 
 	public static <T> SelectorOptions<T> create(T options) {
-		return new SelectorOptions<T>(options);
+		return new SelectorOptions<>(options);
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(ItemPath path, T options) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(1);
 		optionsCollection.add(create(path, options));
 		return optionsCollection;
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(QName pathQName, T options) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(1);
 		optionsCollection.add(create(pathQName, options));
 		return optionsCollection;
 	}
@@ -86,7 +86,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(T options, ItemPath... paths) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(paths.length);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(paths.length);
 		for (ItemPath path: paths) {
 			optionsCollection.add(create(path, options));
 		}
@@ -94,7 +94,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(T options, QName... pathQNames) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(pathQNames.length);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(pathQNames.length);
 		for (QName qname: pathQNames) {
 			optionsCollection.add(create(qname, options));
 		}

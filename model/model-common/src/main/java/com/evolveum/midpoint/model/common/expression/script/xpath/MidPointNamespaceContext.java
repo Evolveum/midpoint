@@ -32,7 +32,7 @@ import javax.xml.namespace.NamespaceContext;
 
 public class MidPointNamespaceContext implements NamespaceContext {
 
-	private Map<String, String> map = new HashMap<String, String>();
+	private Map<String, String> map = new HashMap<>();
 
 	public MidPointNamespaceContext(Map<String, String> map) {
 		this.map = map;

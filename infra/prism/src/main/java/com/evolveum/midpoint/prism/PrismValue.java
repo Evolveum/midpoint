@@ -289,7 +289,7 @@ public abstract class PrismValue implements IPrismValue {
 	}
 
 	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
-		Collection<X> clonedCollection = new ArrayList<X>(values.size());
+		Collection<X> clonedCollection = new ArrayList<>(values.size());
 		for (X val: values) {
 			clonedCollection.add((X) val.clone());
 		}
@@ -326,7 +326,7 @@ public abstract class PrismValue implements IPrismValue {
 
 	@NotNull
 	public static <T extends PrismValue> Collection<T> cloneCollectionComplex(CloneStrategy strategy, Collection<T> values) {
-		Collection<T> clones = new ArrayList<T>();
+		Collection<T> clones = new ArrayList<>();
 		if (values != null) {
 			for (T value : values) {
 				clones.add((T) value.cloneComplex(strategy));
@@ -423,7 +423,7 @@ public abstract class PrismValue implements IPrismValue {
 	 */
 	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral) {
-		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
+		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
 		diffMatchingRepresentation(otherValue, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
 	}
@@ -445,7 +445,7 @@ public abstract class PrismValue implements IPrismValue {
 	}
 
     public static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
-        Set<T> retval = new HashSet<T>(collection.size());
+        Set<T> retval = new HashSet<>(collection.size());
         for (PrismValue value : collection) {
             retval.add(value.getRealValue());
         }

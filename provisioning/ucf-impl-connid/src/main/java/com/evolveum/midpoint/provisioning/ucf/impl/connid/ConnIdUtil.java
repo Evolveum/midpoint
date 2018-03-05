@@ -568,9 +568,9 @@ public class ConnIdUtil {
 			throw new SchemaException("No definition for ConnId UID attribute found in definition "
 					+ ocDef);
 		}
-		Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(2);
+		Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
 		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
-		uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
+		uidRoa.setValue(new PrismPropertyValue<>(uid.getUidValue()));
 		identifiers.add(uidRoa);
 		if (uid.getNameHint() != null) {
 			ResourceAttributeDefinition<String> nameDefinition = getNameDefinition(concreteObjectClassDefinition);
@@ -579,7 +579,7 @@ public class ConnIdUtil {
 						+ ocDef);
 			}
 			ResourceAttribute<String> nameRoa = nameDefinition.instantiate();
-			nameRoa.setValue(new PrismPropertyValue<String>(uid.getNameHintValue()));
+			nameRoa.setValue(new PrismPropertyValue<>(uid.getNameHintValue()));
 			identifiers.add(nameRoa);
 		}
 		return identifiers;

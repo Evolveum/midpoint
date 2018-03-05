@@ -1280,7 +1280,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(),
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
-        fullnameDelta.addValueToDelete(new PrismPropertyValue<String>("Elaine Marley"));
+        fullnameDelta.addValueToDelete(new PrismPropertyValue<>("Elaine Marley"));
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
@@ -1377,7 +1377,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(RESOURCE_DUMMY_RED_NAME),
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
-        fullnameDelta.addValueToDelete(new PrismPropertyValue<String>("Elaine Marley"));
+        fullnameDelta.addValueToDelete(new PrismPropertyValue<>("Elaine Marley"));
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
@@ -1473,7 +1473,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
-        fullnameDelta.addValueToDelete(new PrismPropertyValue<String>("Elaine Marley"));
+        fullnameDelta.addValueToDelete(new PrismPropertyValue<>("Elaine Marley"));
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);

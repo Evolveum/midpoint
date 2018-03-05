@@ -59,14 +59,14 @@ public class ParamsTypeUtil {
 		EntryType entryType = new EntryType();
 		entryType.setKey(key);
 		if (value != null) {
-			entryType.setEntryValue(new JAXBElement<Serializable>(SchemaConstants.C_PARAM_VALUE, Serializable.class, value));
+			entryType.setEntryValue(new JAXBElement<>(SchemaConstants.C_PARAM_VALUE, Serializable.class, value));
 		}
 		return entryType;
 	}
 
 	public static Map<String, Serializable> fromParamsType(ParamsType paramsType, PrismContext prismContext) throws SchemaException{
 		if (paramsType != null) {
-			Map<String, Serializable> params = new HashMap<String, Serializable>();
+			Map<String, Serializable> params = new HashMap<>();
 			Serializable realValue = null;
 			for (EntryType entry : paramsType.getEntry()) {
 				if (entry.getEntryValue() != null){

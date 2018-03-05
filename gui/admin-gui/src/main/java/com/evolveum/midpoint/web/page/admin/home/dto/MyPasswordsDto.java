@@ -41,7 +41,7 @@ public class MyPasswordsDto implements Serializable {
 
     public List<PasswordAccountDto> getAccounts() {
         if (accounts == null) {
-            accounts = new ArrayList<PasswordAccountDto>();
+            accounts = new ArrayList<>();
         }
         return accounts;
     }

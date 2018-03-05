@@ -54,11 +54,11 @@ public class ReconciliationPopupPanel extends BasePanel<ReconciliationReportDto>
     private void initLayout(IModel<List<ResourceItemDto>> resources,
                             final Component component) {
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), ReconciliationReportDto.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<>(getModel(), ReconciliationReportDto.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
-        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ReconciliationReportDto.F_DESCRIPTION),
+        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<>(getModel(), ReconciliationReportDto.F_DESCRIPTION),
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 

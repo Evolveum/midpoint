@@ -626,7 +626,7 @@ public class TestMappingDynamicSimple {
     	MappingImpl.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
 				"testScriptExtraVariablesRef", "employeeType", null);
 
-    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	Map<QName, Object> vars = new HashMap<>();
     	ObjectReferenceType ref = MiscSchemaUtil.createObjectReference(
         	"c0c010c0-d34d-b33f-f00d-111111111112",
         	UserType.COMPLEX_TYPE);
@@ -656,7 +656,7 @@ public class TestMappingDynamicSimple {
     	MappingImpl.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
     			TEST_NAME, "employeeType", null);
 
-    	Map<QName, Object> vars = new HashMap<QName, Object>();
+    	Map<QName, Object> vars = new HashMap<>();
     	UserType userType = (UserType) PrismTestUtil.parseObject(
                 new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml")).asObjectable();
         vars.put(new QName(SchemaConstants.NS_C, "sailor"), userType);
@@ -1094,8 +1094,8 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
-    	propDelta.addValueToAdd(new PrismPropertyValue<String>("CAPTAIN"));
-    	propDelta.addValueToDelete(new PrismPropertyValue<String>("LANDLUBER"));
+    	propDelta.addValueToAdd(new PrismPropertyValue<>("CAPTAIN"));
+    	propDelta.addValueToDelete(new PrismPropertyValue<>("LANDLUBER"));
     	delta.addModification(propDelta);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -1134,7 +1134,7 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
-    	propDelta.addValueToReplace(new PrismPropertyValue<String>("CAPTAIN"));
+    	propDelta.addValueToReplace(new PrismPropertyValue<>("CAPTAIN"));
     	delta.addModification(propDelta);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(

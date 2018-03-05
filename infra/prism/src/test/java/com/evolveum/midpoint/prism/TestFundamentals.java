@@ -50,22 +50,22 @@ public class TestFundamentals {
     public void testPrismValueContainsRealValue() throws Exception {
 		System.out.println("\n\n===[ testPrismValueContainsRealValue ]===\n");
 		// GIVEN
-		PrismPropertyValue<String> valFoo1 = new PrismPropertyValue<String>("foo");
-		PrismPropertyValue<String> valBar1 = new PrismPropertyValue<String>("bar");
+		PrismPropertyValue<String> valFoo1 = new PrismPropertyValue<>("foo");
+		PrismPropertyValue<String> valBar1 = new PrismPropertyValue<>("bar");
 		valBar1.setOriginType(OriginType.OUTBOUND);
-		Collection<PrismValue> collection = new ArrayList<PrismValue>();
+		Collection<PrismValue> collection = new ArrayList<>();
 		collection.add(valFoo1);
 		collection.add(valBar1);
 
-		PrismPropertyValue<String> valFoo2 = new PrismPropertyValue<String>("foo");
-		PrismPropertyValue<String> valFoo3 = new PrismPropertyValue<String>("foo");
+		PrismPropertyValue<String> valFoo2 = new PrismPropertyValue<>("foo");
+		PrismPropertyValue<String> valFoo3 = new PrismPropertyValue<>("foo");
 		valFoo3.setOriginType(OriginType.OUTBOUND);
 
-		PrismPropertyValue<String> valBar2 = new PrismPropertyValue<String>("bar");
+		PrismPropertyValue<String> valBar2 = new PrismPropertyValue<>("bar");
 		valBar2.setOriginType(OriginType.OUTBOUND);
-		PrismPropertyValue<String> valBar3 = new PrismPropertyValue<String>("bar");
+		PrismPropertyValue<String> valBar3 = new PrismPropertyValue<>("bar");
 
-		PrismPropertyValue<String> valBaz = new PrismPropertyValue<String>("baz");
+		PrismPropertyValue<String> valBaz = new PrismPropertyValue<>("baz");
 
 		// WHEN - THEN
 		assert PrismValue.containsRealValue(collection, valFoo1);

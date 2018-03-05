@@ -84,7 +84,7 @@ public class AccountConstructionType
 
     public List<RawType> getValue() {
         if (value == null) {
-            value = new ArrayList<RawType>();
+            value = new ArrayList<>();
         }
         return value;
     }

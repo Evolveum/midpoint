@@ -249,7 +249,7 @@ public class JaxbTestUtil {
 	}
 
     public String marshalToString(Objectable objectable) throws JAXBException {
-        return marshalToString(objectable, new HashMap<String, Object>());
+        return marshalToString(objectable, new HashMap<>());
     }
 
 	public String marshalToString(Objectable objectable, Map<String, Object> properties) throws JAXBException {
@@ -259,7 +259,7 @@ public class JaxbTestUtil {
 	}
 
     public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
-        return marshalElementToString(jaxbElement, new HashMap<String, Object>());
+        return marshalElementToString(jaxbElement, new HashMap<>());
     }
 
 	public String marshalElementToString(JAXBElement<?> jaxbElement, Map<String, Object> properties) throws JAXBException {
@@ -273,7 +273,7 @@ public class JaxbTestUtil {
 	}
 
     public String marshalElementToString(Object element) throws JAXBException {
-        return marshalElementToString(element, new HashMap<String, Object>());
+        return marshalElementToString(element, new HashMap<>());
     }
 
 	/**
@@ -304,7 +304,7 @@ public class JaxbTestUtil {
 		} else if (element instanceof JAXBElement) {
 			return marshalElementToString((JAXBElement<?>)element);
 		} else {
-			JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementName, Object.class, element);
+			JAXBElement<Object> jaxbElement = new JAXBElement<>(elementName, Object.class, element);
 			return marshalElementToString(jaxbElement);
 		}
 	}
@@ -348,8 +348,8 @@ public class JaxbTestUtil {
 			doc = DOMUtil.getDocument();
 		}
 
-		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-				jaxbObject);
+		JAXBElement<T> jaxbElement = new JAXBElement<>(elementQName, (Class<T>) jaxbObject.getClass(),
+            jaxbObject);
 		Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
 		marshalElementToDom(jaxbElement, element);
 
@@ -358,8 +358,8 @@ public class JaxbTestUtil {
 
 	public <T> void marshalObjectToDom(T jaxbObject, QName elementQName, Element parentElement) throws JAXBException {
 
-		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-				jaxbObject);
+		JAXBElement<T> jaxbElement = new JAXBElement<>(elementQName, (Class<T>) jaxbObject.getClass(),
+            jaxbObject);
 		marshalElementToDom(jaxbElement, parentElement);
 	}
 

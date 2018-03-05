@@ -87,7 +87,7 @@ public class TestReportJasper extends AbstractReportIntegrationTest {
 	  JasperReport jr = JasperCompileManager.compileReport(jd);
 
 	  Task task = taskManager.createTaskInstance();
-	  Map<String, Object> params = new HashMap<String, Object>();
+	  Map<String, Object> params = new HashMap<>();
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);

@@ -113,7 +113,7 @@ public class CorrelationConfirmationEvaluator {
 						continue;
 					}
 					if (foundUsers != null && foundUsers.isEmpty() && users == null) {
-						users = new ArrayList<PrismObject<F>>();
+						users = new ArrayList<>();
 					}
 
 					if (users == null && foundUsers != null) {
@@ -317,7 +317,7 @@ public class CorrelationConfirmationEvaluator {
 			ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration, ExpressionType expression, Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException
 	{
-		List<PrismObject<F>> list = new ArrayList<PrismObject<F>>();
+		List<PrismObject<F>> list = new ArrayList<>();
 		for (PrismObject<F> user : users) {
 			try {
 				F userType = user.asObjectable();

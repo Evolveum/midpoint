@@ -51,7 +51,7 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
     }
 
     private void initLayout() {
-        List<IColumn<AssignmentItemDto, String>> columns = new ArrayList<IColumn<AssignmentItemDto, String>>();
+        List<IColumn<AssignmentItemDto, String>> columns = new ArrayList<>();
         columns.add(new IconColumn<AssignmentItemDto>(null) {
         	private static final long serialVersionUID = 1L;
 
@@ -94,7 +94,7 @@ final IModel<AssignmentItemDto> rowModel) {
 
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel accountsTable = new TablePanel<AssignmentItemDto>(ID_ASSIGNMETNS_TABLE, provider, columns);
+        TablePanel accountsTable = new TablePanel<>(ID_ASSIGNMETNS_TABLE, provider, columns);
         accountsTable.setShowPaging(false);
 
         add(accountsTable);

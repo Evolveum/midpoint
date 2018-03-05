@@ -31,7 +31,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	
 	public List<ObjectFilter> getConditions() {
 		if (conditions == null){
-			conditions = new ArrayList<ObjectFilter>();
+			conditions = new ArrayList<>();
 		}
 		return conditions;
 	}
@@ -42,7 +42,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	
 	public void addCondition(ObjectFilter condition) {
 		if (this.conditions == null) {
-			conditions = new ArrayList<ObjectFilter>();
+			conditions = new ArrayList<>();
 		}
 		this.conditions.add(condition);
 	}
@@ -57,7 +57,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 		if (conditions == null) {
 			return null;
 		}
-		List<ObjectFilter> clonedConditions = new ArrayList<ObjectFilter>(conditions.size());
+		List<ObjectFilter> clonedConditions = new ArrayList<>(conditions.size());
 		for (ObjectFilter condition: conditions) {
 			clonedConditions.add(condition.clone());
 		}

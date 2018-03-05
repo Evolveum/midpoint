@@ -358,7 +358,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
 
     public Collection<V> getClonedValues() {
-    	Collection<V> clonedValues = new ArrayList<V>(getValues().size());
+    	Collection<V> clonedValues = new ArrayList<>(getValues().size());
     	for (V val: getValues()) {
     		clonedValues.add((V)val.clone());
     	}
@@ -561,7 +561,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     			delta.setDefinition(other.getDefinition().clone());
 		    }
     		// the other exists, this means that we need to compare the values one by one
-    		Collection<PrismValue> outstandingOtherValues = new ArrayList<PrismValue>(other.getValues().size());
+    		Collection<PrismValue> outstandingOtherValues = new ArrayList<>(other.getValues().size());
     		outstandingOtherValues.addAll(other.getValues());
     		for (PrismValue thisValue : getValues()) {
     			Iterator<PrismValue> iterator = outstandingOtherValues.iterator();
@@ -717,7 +717,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
 
 	public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
-    	Collection<T> clones = new ArrayList<T>(items.size());
+    	Collection<T> clones = new ArrayList<>(items.size());
     	for (T item: items) {
     		clones.add((T)item.clone());
     	}

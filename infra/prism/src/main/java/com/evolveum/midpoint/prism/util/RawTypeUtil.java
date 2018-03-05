@@ -32,7 +32,7 @@ public class RawTypeUtil {
 
 		Item<IV,ID> subItem = null;
 
-		List<IV> parsedValues = new ArrayList<IV>();
+		List<IV> parsedValues = new ArrayList<>();
 		for (RawType rawValue : values){
 			if (itemDefinition == null && containerDef != null){
 				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getPrismUnmarshaller().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());

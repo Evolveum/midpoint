@@ -33,8 +33,8 @@ public class ConnIdNameMapper {
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 
-	private static final Map<String,QName> specialAttributeMapIcf = new HashMap<String,QName>();
-	private static final Map<QName,String> specialAttributeMapMp = new HashMap<QName,String>();
+	private static final Map<String,QName> specialAttributeMapIcf = new HashMap<>();
+	private static final Map<QName,String> specialAttributeMapMp = new HashMap<>();
 
 	private ResourceSchema resourceSchema = null;
 	// Used when there is no schema (schemaless resource)

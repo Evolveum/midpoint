@@ -39,7 +39,7 @@ public class DebugConfDialogDto implements Serializable {
     private Map<String, String> resourceFocusMap = new HashMap<>();
 
     public DebugConfDialogDto(){
-        this(null, new ArrayList<DebugObjectItem>(), null);
+        this(null, new ArrayList<>(), null);
     }
 
     public DebugConfDialogDto(Operation operation, List<DebugObjectItem> objects, Class<? extends ObjectType> type) {

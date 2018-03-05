@@ -1043,7 +1043,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NS, "jpegPhoto");
 		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDelta<>(new ItemPath(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
 				null , prismContext);
-		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<byte[]>(bytesIn));
+		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<>(bytesIn));
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
 
@@ -1098,14 +1098,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
 				null , prismContext);
-		givenNameDelta.addValueToAdd(new PrismPropertyValue<String>("Jack"));
+		givenNameDelta.addValueToAdd(new PrismPropertyValue<>("Jack"));
 
 		// Also make an ordinary non-conflicting modification. We need to make sure that
 		// the operation was not ignored as a whole
 		PropertyDelta<String> titleDelta = new PropertyDelta<>(
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
 				null , prismContext);
-		titleDelta.addValueToAdd(new PrismPropertyValue<String>("Great Captain"));
+		titleDelta.addValueToAdd(new PrismPropertyValue<>("Great Captain"));
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
 
@@ -1256,7 +1256,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
 
-        final Collection<ObjectType> objects = new HashSet<ObjectType>();
+        final Collection<ObjectType> objects = new HashSet<>();
 
         ResultHandler handler = new ResultHandler<ObjectType>() {
 
@@ -1568,7 +1568,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
 
-		final List<ShadowType> objectTypeList = new ArrayList<ShadowType>();
+		final List<ShadowType> objectTypeList = new ArrayList<>();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
