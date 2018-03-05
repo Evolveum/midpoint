@@ -136,35 +136,20 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		initContainersPanel(form, pageBase);
     }
 
-    protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
-		ContainerWrapperListFromObjectWrapperModel<Containerable, F> containerModel =
-				new ContainerWrapperListFromObjectWrapperModel<Containerable, F>(pageBase.getObjectModel(), collectContainersToShow());
+    protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase) {
 		ItemPath assignmentPath = getModelObject().getPath();
-		if (containerModel != null && containerModel.getObject() != null){
-			containerModel.getObject().forEach(container -> {
-				if (container.getName().equals(AssignmentType.F_CONSTRUCTION)) {
-					container.setAddContainerButtonVisible(true);
-					container.setShowEmpty(true, false);
-
-					ContainerWrapper associationWrapper = container.findContainerWrapper(container.getPath().append(ConstructionType.F_ASSOCIATION));
-					if (associationWrapper != null) {
-						associationWrapper.setRemoveContainerButtonVisible(true);
-					}
-				}
-			});
-		}
-
-		PrismPanel<Containerable> containers = new PrismPanel<Containerable>(ID_SPECIFIC_CONTAINERS, containerModel,
-				null, form,
-				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase) ;
-		add(containers);
+		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS,
+				getSpecificContainerModel(), false, form,
+				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase);
+		constraintsContainerPanel.setOutputMarkupId(true);
+		add(constraintsContainerPanel);
 	}
     
     protected ItemPath getAssignmentPath() {
     	return getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
     }
     
-    protected abstract List<ItemPath> collectContainersToShow();
+    protected abstract IModel<ContainerWrapper> getSpecificContainerModel();
     
     protected boolean getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){

@@ -22,7 +22,7 @@ server:
 
 auth:
   logout:
-    url: /midpoint
+    url: / # NOTE: This URL is relative to application root
 
 #security:
 #  enable-csrf: false # default for midpoint is true
