@@ -24,9 +24,7 @@ import java.io.File;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
-import org.w3c.dom.Element;
 
 /**
  * @author Radovan Semancik

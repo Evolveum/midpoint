@@ -18,17 +18,12 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -36,8 +31,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
