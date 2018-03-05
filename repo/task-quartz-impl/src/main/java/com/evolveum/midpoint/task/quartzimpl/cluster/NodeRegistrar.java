@@ -41,7 +41,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -161,7 +160,6 @@ public class NodeRegistrar {
         return nodeToBe;
     }
 
-    @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
         NodeType node = getPrismContext().createKnownObjectable(NodeType.class);
 	    String nodeId = configuration.getNodeId();
