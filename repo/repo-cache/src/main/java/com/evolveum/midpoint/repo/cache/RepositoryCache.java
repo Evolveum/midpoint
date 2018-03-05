@@ -113,7 +113,7 @@ public class RepositoryCache implements RepositoryService {
 		if (cacheMaxTTL == null || cacheMaxTTL < 0) {
 			cacheMaxTTL = 0;
 		}
-		this.cacheMaxTTL = cacheMaxTTL;
+		this.cacheMaxTTL = cacheMaxTTL * 1000;
 	}
 
 	private static Cache getCache() {
