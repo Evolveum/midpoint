@@ -68,7 +68,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 		add(label);
 
 		final AutoCompleteItemDefinitionPanel itemDefPanel = new AutoCompleteItemDefinitionPanel(
-				ID_DEFINITION, new PropertyModel<ItemDefinition<?>>(getModel(), "itemDef")) {
+				ID_DEFINITION, new PropertyModel<>(getModel(), "itemDef")) {
 			private static final long serialVersionUID = 1L;
 
 			protected Map<String, ItemDefinition<?>> listChoices(String input) {

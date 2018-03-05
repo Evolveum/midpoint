@@ -682,7 +682,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
             environmentName = deploymentInfoModel.getObject().getName();
         }
-        Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
+        Model<String> deploymentNameModel = new Model<>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
         Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
         deploymentName.add(new VisibleEnableBehaviour() {
             public boolean isVisible() {
