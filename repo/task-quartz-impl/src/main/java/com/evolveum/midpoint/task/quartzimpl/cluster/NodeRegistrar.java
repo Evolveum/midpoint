@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.security.access.method.P;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -71,12 +72,28 @@ public class NodeRegistrar {
      */
     private PrismObject<NodeType> cachedLocalNodeObject;
 
+    private String localhostCanonicalHostName;
+    private String localhostName;
+    private String localhostAddress;
+    private List<String> localhostIpAddresses;
+
     public NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
         Validate.notNull(taskManager);
         Validate.notNull(clusterManager);
 
         this.taskManager = taskManager;
         this.clusterManager = clusterManager;
+
+        try {
+            localhostIpAddresses = getMyIpAddresses();
+            
+            InetAddress localhost = InetAddress.getLocalHost();
+            localhostCanonicalHostName = localhost.getCanonicalHostName();
+            localhostName = localhost.getHostName();
+            localhostAddress = localhost.getHostAddress();
+        } catch (final Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
     }
 
     /**
@@ -153,7 +170,7 @@ public class NodeRegistrar {
 	    node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));
         node.setHostname(getMyHostname());
-        node.getIpAddress().addAll(getMyIpAddresses());
+        node.getIpAddress().addAll(this.localhostIpAddresses);
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
         node.setRunning(true);
@@ -231,7 +248,7 @@ public class NodeRegistrar {
         try {
             List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(NodeType.class, getPrismContext())
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
-                    .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
+                    .item(NodeType.F_IP_ADDRESS).replaceRealValues(this.localhostIpAddresses)
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
                     .asItemDeltas();
             getRepositoryService().modifyObject(NodeType.class, nodeOid, modifications, result);
@@ -387,9 +404,9 @@ public class NodeRegistrar {
             	// Not entirely correct. But we have no other option here
             	// other than go native or execute a "hostname" shell command.
             	// We do not want to do neither.
-            	InetAddress localHost = InetAddress.getLocalHost();
             	
-            	if (localHost == null) {
+            	
+            	if (localhostAddress == null) {
             		// Unix
                 	String hostname = System.getenv("HOSTNAME");
                 	if (hostname != null && !hostname.isEmpty()) {
@@ -407,17 +424,17 @@ public class NodeRegistrar {
                     return "(unknown-host)";
             	}
             	
-            	String hostname = localHost.getCanonicalHostName();
+            	String hostname = localhostCanonicalHostName;
             	if (hostname != null && !hostname.isEmpty()) {
             		return hostname;
             	}
             	
-            	hostname = localHost.getHostName();
+            	hostname = localhostName;
             	if (hostname != null && !hostname.isEmpty()) {
             		return hostname;
             	}
-                return localHost.getHostAddress();
-            } catch (UnknownHostException e) {
+                return localhostAddress;
+            } catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Cannot get local hostname address", e);
                 // Make sure this has special characters so it cannot be interpreted as valid hostname
                 return "(unknown-host)";
