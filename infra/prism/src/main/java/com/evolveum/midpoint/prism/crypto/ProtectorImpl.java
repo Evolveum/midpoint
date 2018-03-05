@@ -110,7 +110,7 @@ public class ProtectorImpl extends BaseProtector {
     private static final KeyStore keyStore;
     private static final Set<String> keyEntryAliasesInKeyStore = new HashSet<>();
     private static final Map<String, SecretKey> secretKeysInKeyStore = new HashMap<>();
-    private static final MessageDigest messageDigestSha1;
+    private static final ThreadLocal<MessageDigest> messageDigestThreadLocal;
 
     static {
         try {
@@ -119,7 +119,8 @@ public class ProtectorImpl extends BaseProtector {
             throw new SystemException(ex.getMessage(), ex);
         }
         try {
-            messageDigestSha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
+            messageDigestThreadLocal = new ThreadLocal<>();
+            messageDigestThreadLocal.set(MessageDigest.getInstance(KEY_DIGEST_TYPE));
         } catch (Exception ex) {
             throw new SystemException(new EncryptionException(ex.getMessage(), ex));
         }
@@ -395,8 +396,8 @@ public class ProtectorImpl extends BaseProtector {
     }
 
     public String getSecretKeyDigest(SecretKey key) {
-        messageDigestSha1.reset();
-        return Base64.encode(messageDigestSha1.digest(key.getEncoded()));
+        final MessageDigest sha1Digest = messageDigestThreadLocal.get();
+        return Base64.encode(sha1Digest.digest(key.getEncoded()));
     }
 
     @Override
