@@ -68,7 +68,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
         super(id, model);
 		initLayout(parentPage);
 		if (model.getObject() == null) {		// shouldn't occur, actually
-			model.setObject(new ArrayList<ResourceObjectPatternType>());
+			model.setObject(new ArrayList<>());
 		} else {
 			for (ResourceObjectPatternType pattern : model.getObject()) {
 				if (pattern.getFilter() == null) {
@@ -158,7 +158,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 accountBody.add(uid);
 
                 SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
-						new NonEmptyPropertyModel<SearchFilterType>(item.getModel(), "filter"), parentPage.getReadOnlyModel());
+                    new NonEmptyPropertyModel<>(item.getModel(), "filter"), parentPage.getReadOnlyModel());
                 accountBody.add(searchFilterPanel);
 
                 Label nameTooltip = new Label(ID_T_NAME);

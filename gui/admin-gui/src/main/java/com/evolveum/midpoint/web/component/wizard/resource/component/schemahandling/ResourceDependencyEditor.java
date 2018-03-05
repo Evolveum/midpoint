@@ -96,7 +96,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         IModel<List<ResourceObjectTypeDependencyType>> model = super.getModel();
 
         if(model.getObject() == null){
-            model.setObject(new ArrayList<ResourceObjectTypeDependencyType>());
+            model.setObject(new ArrayList<>());
         }
 
         return model;
@@ -157,17 +157,17 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 dependencyBody.add(order);
 
                 DropDownChoice strictness = new DropDownChoice<>(ID_STRICTNESS,
-                        new PropertyModel<ResourceObjectTypeDependencyStrictnessType>(item.getModelObject(), "strictness"),
+                    new PropertyModel<>(item.getModelObject(), "strictness"),
                         WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectTypeDependencyStrictnessType.class),
-                        new EnumChoiceRenderer<ResourceObjectTypeDependencyStrictnessType>(this));
+                    new EnumChoiceRenderer<>(this));
                 strictness.add(prepareAjaxOnComponentTagUpdateBehavior());
 				parentPage.addEditingEnabledBehavior(strictness);
                 dependencyBody.add(strictness);
 
                 DropDownChoice kind = new DropDownChoice<>(ID_KIND,
-                        new PropertyModel<ShadowKindType>(item.getModelObject(), "kind"),
+                    new PropertyModel<>(item.getModelObject(), "kind"),
                         WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
-                        new EnumChoiceRenderer<ShadowKindType>(this));
+                    new EnumChoiceRenderer<>(this));
                 kind.add(prepareAjaxOnComponentTagUpdateBehavior());
 				parentPage.addEditingEnabledBehavior(kind);
                 dependencyBody.add(kind);
@@ -178,7 +178,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 dependencyBody.add(intent);
 
                 DropDownChoice resource = new DropDownChoice<>(ID_REF,
-                        new PropertyModel<ObjectReferenceType>(item.getModelObject(), "resourceRef"),
+                    new PropertyModel<>(item.getModelObject(), "resourceRef"),
                         new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
                             @Override

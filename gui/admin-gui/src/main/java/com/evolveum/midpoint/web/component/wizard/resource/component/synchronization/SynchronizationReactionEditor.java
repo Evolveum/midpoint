@@ -105,9 +105,9 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         add(description);
 
         DropDownChoice situation = new DropDownChoice<>(ID_SITUATION,
-                new PropertyModel<SynchronizationSituationType>(getModel(), "situation"),
+            new PropertyModel<>(getModel(), "situation"),
                 WebComponentUtil.createReadonlyModelFromEnum(SynchronizationSituationType.class),
-                new EnumChoiceRenderer<SynchronizationSituationType>(this));
+            new EnumChoiceRenderer<>(this));
         situation.setNullValid(true);
 		situation.add(new ReactionListUpdateBehavior());
 		parentPage.addEditingEnabledBehavior(situation);
@@ -120,7 +120,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(getModel(), "channel"), true, parentPage.getReadOnlyModel()) {
+            new PropertyModel<>(getModel(), "channel"), true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected String createNewEmptyItem() {
@@ -144,17 +144,17 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
             }
         };
         add(channel);
-        TriStateComboPanel synchronize = new TriStateComboPanel(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
+        TriStateComboPanel synchronize = new TriStateComboPanel(ID_SYNCHRONIZE, new PropertyModel<>(getModel(), "synchronize"));
 		synchronize.getBaseFormComponent().add(new ReactionListUpdateBehavior());
 		parentPage.addEditingEnabledBehavior(synchronize);
         add(synchronize);
 
-        CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<Boolean>(getModel(), "reconcile"));
+        CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<>(getModel(), "reconcile"));
 		parentPage.addEditingEnabledBehavior(reconcile);
         add(reconcile);
 
         DropDownChoice objectTemplateRef = new DropDownChoice<>(ID_OBJECT_TEMPLATE_REF,
-                new PropertyModel<ObjectReferenceType>(getModel(), "objectTemplateRef"),
+            new PropertyModel<>(getModel(), "objectTemplateRef"),
                 new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
                     @Override
@@ -167,7 +167,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
-                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), null, false, true, parentPage.getReadOnlyModel()) {
+            new PropertyModel<>(getModel(), "action"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationActionType> model) {

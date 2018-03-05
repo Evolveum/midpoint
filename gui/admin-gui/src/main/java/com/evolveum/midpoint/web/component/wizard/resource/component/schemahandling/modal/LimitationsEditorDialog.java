@@ -235,17 +235,17 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     private void initLimitationBody(final WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item) {
-        CheckFormGroup schema = new CheckFormGroup(ID_LAYER_SCHEMA, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA),
+        CheckFormGroup schema = new CheckFormGroup(ID_LAYER_SCHEMA, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA),
                 createStringResource("LimitationsEditorDialog.label.schema"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         schema.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(schema);
 
-        CheckFormGroup model = new CheckFormGroup(ID_LAYER_MODEL, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_MODEL),
+        CheckFormGroup model = new CheckFormGroup(ID_LAYER_MODEL, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_MODEL),
                 createStringResource("LimitationsEditorDialog.label.model"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         model.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(model);
 
-        CheckFormGroup presentation = new CheckFormGroup(ID_LAYER_PRESENTATION, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_PRESENTATION),
+        CheckFormGroup presentation = new CheckFormGroup(ID_LAYER_PRESENTATION, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_PRESENTATION),
                 createStringResource("LimitationsEditorDialog.label.presentation"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         presentation.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(presentation);
@@ -275,17 +275,17 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(read);
         body.add(modify);
 
-        TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
+        TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
                 createStringResource("LimitationsEditorDialog.label.minOccurs"), "SchemaHandlingStep.limitations.tooltip.minOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         minOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(minOccurs);
 
-        TextFormGroup maxOccurs = new TextFormGroup(ID_MAX_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"),
+        TextFormGroup maxOccurs = new TextFormGroup(ID_MAX_OCCURS, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"),
                 createStringResource("LimitationsEditorDialog.label.maxOccurs"), "SchemaHandlingStep.limitations.tooltip.maxOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         maxOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(maxOccurs);
 
-        CheckFormGroup ignore = new CheckFormGroup(ID_IGNORE, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".ignore"),
+        CheckFormGroup ignore = new CheckFormGroup(ID_IGNORE, new PropertyModel<>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".ignore"),
                 createStringResource("LimitationsEditorDialog.label.ignore"), "SchemaHandlingStep.limitations.tooltip.ignore", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
         ignore.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(ignore);

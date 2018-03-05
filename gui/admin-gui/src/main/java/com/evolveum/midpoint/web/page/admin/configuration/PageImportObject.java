@@ -131,7 +131,7 @@ public class PageImportObject extends PageAdminConfiguration {
 		buttonBar.setOutputMarkupId(true);
 		mainForm.add(buttonBar);
 
-		final IModel<Integer> groupModel = new Model<Integer>(INPUT_FILE);
+		final IModel<Integer> groupModel = new Model<>(INPUT_FILE);
 		RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
 		importRadioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
