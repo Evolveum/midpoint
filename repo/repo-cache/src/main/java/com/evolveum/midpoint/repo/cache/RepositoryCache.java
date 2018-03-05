@@ -60,7 +60,7 @@ public class RepositoryCache implements RepositoryService {
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-	public static final String PROPERTY_CACHE_MAX_TTL = "repository.cacheMaxTTL";
+	public static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
 
 	private static final Set<Class<? extends ObjectType>> GLOBAL_CACHE_SUPPORTED_TYPES;
 
@@ -109,7 +109,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	public void initialize() {
-		Integer cacheMaxTTL = midpointConfiguration.getConfiguration("midpoint").getInt(PROPERTY_CACHE_MAX_TTL);
+		Integer cacheMaxTTL = midpointConfiguration.getConfiguration("midpoint.repository").getInt(PROPERTY_CACHE_MAX_TTL,0);
 		if (cacheMaxTTL == null || cacheMaxTTL < 0) {
 			cacheMaxTTL = 0;
 		}
