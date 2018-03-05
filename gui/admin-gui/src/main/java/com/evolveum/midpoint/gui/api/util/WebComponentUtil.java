@@ -661,7 +661,7 @@ public final class WebComponentUtil {
 
 			@Override
 			public List<T> getObject() {
-				List<T> list = new ArrayList<T>();
+				List<T> list = new ArrayList<>();
 				Collections.addAll(list, type.getEnumConstants());
 
 				return list;
@@ -760,29 +760,29 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
-		return new DropDownChoicePanel<E>(id, model, choicesList,
-				new IChoiceRenderer<E>() {
+		return new DropDownChoicePanel<>(id, model, choicesList,
+            new IChoiceRenderer<E>() {
 
-					private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-					@Override
-					public E getObject(String id, IModel<? extends List<? extends E>> choices) {
-						if (StringUtils.isBlank(id)) {
-							return null;
-						}
-						return choices.getObject().get(Integer.parseInt(id));
-					}
+                @Override
+                public E getObject(String id, IModel<? extends List<? extends E>> choices) {
+                    if (StringUtils.isBlank(id)) {
+                        return null;
+                    }
+                    return choices.getObject().get(Integer.parseInt(id));
+                }
 
-					@Override
-					public Object getDisplayValue(E object) {
-						return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
-					}
+                @Override
+                public Object getDisplayValue(E object) {
+                    return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
+                }
 
-					@Override
-					public String getIdValue(E object, int index) {
-						return Integer.toString(index);
-					}
-				}, allowNull);
+                @Override
+                public String getIdValue(E object, int index) {
+                    return Integer.toString(index);
+                }
+            }, allowNull);
 	}
 
 	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,
@@ -872,7 +872,7 @@ public final class WebComponentUtil {
 	}
 
 	public static <T> TextField<T> createAjaxTextField(String id, IModel<T> model) {
-		TextField<T> textField = new TextField<T>(id, model);
+		TextField<T> textField = new TextField<>(id, model);
 		textField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		return textField;
 	}
@@ -1207,7 +1207,7 @@ public final class WebComponentUtil {
 		DataTable dataTable = table.getDataTable();
 		BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
 
-		List<T> selected = new ArrayList<T>();
+		List<T> selected = new ArrayList<>();
 		for (T bean : provider.getAvailableData()) {
 			if (bean.isSelected()) {
 				selected.add(bean);
@@ -1231,7 +1231,7 @@ public final class WebComponentUtil {
 
 	public static Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(
 			ObjectDelta<? extends ObjectType>... deltas) {
-		Collection<ObjectDelta<? extends ObjectType>> collection = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> collection = new ArrayList<>();
 		for (ObjectDelta delta : deltas) {
 			collection.add(delta);
 		}
@@ -1707,7 +1707,7 @@ public final class WebComponentUtil {
 			Table table, PageBase page, String nothingWarnMessage) {
 		List<T> selected;
 		if (single != null) {
-			selected = new ArrayList<T>();
+			selected = new ArrayList<>();
 			selected.add(single);
 		} else {
 			selected = WebComponentUtil.getSelectedData(table);
@@ -1885,7 +1885,7 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
+		List<ItemPathSegment> newPath = new ArrayList<>();
 
 		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
 		if (path != null) {
