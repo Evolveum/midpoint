@@ -75,7 +75,7 @@ public class AssociationDetailsPanel extends BasePanel<ContainerValueWrapper<Res
         ResourceObjectAssociationType resourceObjectAssociationType = getModelObject().getContainerValue().asContainerable();
         MappingType outbound = resourceObjectAssociationType.getOutbound();
         ExpressionValuePanel expressionValuePanel = new ExpressionValuePanel(ID_EXPRESSION_PANEL,
-                new PropertyModel<ExpressionType>(outbound, MappingType.F_EXPRESSION.getLocalPart()),
+            new PropertyModel<>(outbound, MappingType.F_EXPRESSION.getLocalPart()),
                 construction, getPageBase());
         expressionValuePanel.setOutputMarkupId(true);
         add(expressionValuePanel);

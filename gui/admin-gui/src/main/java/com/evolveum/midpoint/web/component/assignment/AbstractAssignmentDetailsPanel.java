@@ -120,7 +120,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		add(assignmentPanel);
 
 
-		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, F>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
+		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
 		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), pageBase);
 		add(acitvationContainer);
 		
@@ -129,7 +129,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
     protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
 		ContainerWrapperListFromObjectWrapperModel<Containerable, F> containerModel =
-				new ContainerWrapperListFromObjectWrapperModel<Containerable, F>(pageBase.getObjectModel(), collectContainersToShow());
+            new ContainerWrapperListFromObjectWrapperModel<>(pageBase.getObjectModel(), collectContainersToShow());
 		ItemPath assignmentPath = getModelObject().getPath();
 		if (containerModel != null && containerModel.getObject() != null){
 			containerModel.getObject().forEach(container -> {
@@ -145,9 +145,9 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 			});
 		}
 
-		PrismPanel<Containerable> containers = new PrismPanel<Containerable>(ID_SPECIFIC_CONTAINERS, containerModel,
-				null, form,
-				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase) ;
+		PrismPanel<Containerable> containers = new PrismPanel<>(ID_SPECIFIC_CONTAINERS, containerModel,
+            null, form,
+            itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase) ;
 		add(containers);
 	}
     
