@@ -80,7 +80,7 @@ public class CommandLineRunner {
         	processBuilder.environment().putAll(env);
         }
                 
-        LOGGER.debug("Starting process ", processBuilder.command());
+        LOGGER.debug("Starting process {}", processBuilder.command());
 
         Process process = processBuilder.start();
         Integer exitValue = process.waitFor();

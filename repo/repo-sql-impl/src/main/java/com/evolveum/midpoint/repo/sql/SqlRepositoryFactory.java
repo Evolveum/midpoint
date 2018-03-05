@@ -288,7 +288,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         if (file.exists()) {
             LOGGER.info("Deleting file '{}', result: {}", new Object[]{file.getAbsolutePath(), file.delete()});
         } else {
-            LOGGER.info("File '{}' doesn't exist.", new Object[]{file.getAbsolutePath(), file.delete()});
+            LOGGER.info("File '{}' doesn't exist: delete status {}", new Object[]{file.getAbsolutePath(), file.delete()});
         }
     }
 

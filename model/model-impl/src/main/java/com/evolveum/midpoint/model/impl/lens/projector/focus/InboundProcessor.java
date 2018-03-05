@@ -563,7 +563,7 @@ public class InboundProcessor {
 	}
 	
 	private void resolveEntitlement(PrismContainerValue<ShadowAssociationType> value, LensProjectionContext projContext, ExpressionVariables variables) {
-		LOGGER.trace("Producing value {} " + value);
+		LOGGER.trace("Producing value {} ", value);
 		PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
 		LOGGER.trace("Resolved entitlement {}", entitlement);
 		if (variables.containsKey(ExpressionConstants.VAR_ENTITLEMENT)) {

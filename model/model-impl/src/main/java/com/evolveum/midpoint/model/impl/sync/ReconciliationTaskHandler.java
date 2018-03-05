@@ -394,7 +394,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
     private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
 			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
 		String message = errorDesc+": "+ex.getMessage();
-		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
+		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
 		runResult.setRunResultStatus(runResultStatus);
@@ -414,7 +414,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} else {
 			message = errorDesc+": "+ex.getMessage();
 		}
-		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
+		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		runResult.setRunResultStatus(runResultStatus);
 	}

@@ -424,7 +424,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     	RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
     	CompositeRefinedObjectClassDefinition rocd = refinedSchema.determineCompositeObjectClassDefinition(shadow);
     	if (rocd == null) {
-    		LOGGER.debug("No object class definition for shadow {}, returning null");
+    		LOGGER.debug("No object class definition for shadow {}, returning null", shadow.getOid());
     		return null;
     	}
         LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
@@ -993,7 +993,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
 				} catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException
 						| CommunicationException | ConfigurationException | SecurityViolationException e) {
-					LOGGER.error("Failed to generate value for {} " + policyItemDefinition, e);
+					LOGGER.error("Failed to generate value for {} ", policyItemDefinition, e);
 					generateValueResult.recordFatalError("Failed to generate value for " + policyItemDefinition + ". Reason: " + e.getMessage(), e);
 					policyItemDefinition.setResult(generateValueResult.createOperationResultType());
 					continue;

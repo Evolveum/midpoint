@@ -144,7 +144,7 @@ public class DeleteTaskHandler implements TaskHandler {
                  LOGGER.trace("Using object query from the task: {}", query.debugDump());
              }
         } catch (SchemaException ex) {
-        	LOGGER.error("Schema error while creating a search filter: {}", new Object[]{ex.getMessage(), ex});
+        	LOGGER.error("Schema error while creating a search filter: {}-{}", new Object[]{ex.getMessage(), ex});
             opResult.recordFatalError("Schema error while creating a search filter: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
@@ -244,7 +244,7 @@ public class DeleteTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
 		} catch (CommunicationException e) {
-            LOGGER.error("{}", new Object[]{e.getMessage(), e});
+            LOGGER.error("{}-{}", new Object[]{e.getMessage(), e});
             opResult.recordFatalError("Object not found " + e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return runResult;
