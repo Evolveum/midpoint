@@ -80,7 +80,7 @@ public class UserMenuPanel extends BasePanel {
     private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
     private IModel<List<SecurityQuestionDefinitionType>> securityPolicyQuestionsModel;
 //    private PrismObject<UserType> userModel;
-    private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
+    private Model<PrismObject<UserType>> userModel = new Model<>();
 
     private boolean isUserModelLoaded = false;
     private boolean isPasswordModelLoaded = false;
@@ -323,7 +323,7 @@ public class UserMenuPanel extends BasePanel {
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
         if (secQuestAnsList != null) {
-            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
             for (Iterator iterator = secQuestAnsList.iterator(); iterator.hasNext();) {
                 SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
                         .next();
@@ -352,7 +352,7 @@ public class UserMenuPanel extends BasePanel {
 
 
     private List<SecurityQuestionDefinitionType> loadSecurityPloicyQuestionsModel() {
-        List<SecurityQuestionDefinitionType> questionList = new ArrayList<SecurityQuestionDefinitionType>();
+        List<SecurityQuestionDefinitionType> questionList = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
         try {
             Task task = ((PageBase) getPage()).createSimpleTask(OPERATION_LOAD_QUESTION_POLICY);

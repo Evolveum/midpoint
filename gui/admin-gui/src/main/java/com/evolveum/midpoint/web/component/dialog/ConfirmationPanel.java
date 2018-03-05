@@ -53,7 +53,7 @@ public class ConfirmationPanel extends Panel implements Popupable {
 		super(id);
 
 		if (message == null) {
-			message = new Model<String>();
+			message = new Model<>();
 		}
 		initLayout(message);
 	}
