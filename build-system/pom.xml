@@ -62,11 +62,11 @@
         <quartz.version>2.3.0.e2</quartz.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.1.11</logback.version>
+        <logback.version>1.2.3</logback.version>
         <spring.boot.version>1.5.8.e1</spring.boot.version>
-        <spring.version>4.3.12.RELEASE</spring.version>
-        <spring.security.version>4.2.3.RELEASE</spring.security.version>
-        <cas.client.version>3.4.1</cas.client.version>
+        <spring.version>4.3.14.RELEASE</spring.version>
+        <spring.security.version>4.2.4.RELEASE</spring.security.version>
+        <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
@@ -75,9 +75,9 @@
         <h2.version>1.4.193</h2.version>
         <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
-        <jdbc.mysql>6.0.5</jdbc.mysql>
+        <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>7.10.0</wicket.version>
-        <groovy.version>2.4.0</groovy.version>
+        <groovy.version>2.4.14</groovy.version>
         <activiti-engine.version>5.22.0</activiti-engine.version>
         <activiti-spring.version>5.22.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
