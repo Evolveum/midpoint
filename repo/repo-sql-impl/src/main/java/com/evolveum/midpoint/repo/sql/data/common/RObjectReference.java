@@ -117,6 +117,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         return targetOid;
     }
 
+    @Override
     @Id
     @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {

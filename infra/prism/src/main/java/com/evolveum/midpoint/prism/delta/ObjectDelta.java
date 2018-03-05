@@ -561,6 +561,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     /**
      * Deep clone.
      */
+    @Override
     public ObjectDelta<O> clone() {
         ObjectDelta<O> clone = new ObjectDelta<O>(this.objectTypeClass, this.changeType, this.prismContext);
         clone.oid = this.oid;

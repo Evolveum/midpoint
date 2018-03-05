@@ -65,7 +65,8 @@ public class NameImpl implements Name {
 		this.description = description;
 	}
 
-	public boolean namesAreResourceKeys() {
+	@Override
+    public boolean namesAreResourceKeys() {
 		return namesAreResourceKeys;
 	}
 

@@ -352,7 +352,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public List<PolicyActionType> getEnabledActions() {
 		return enabledActions;
 	}

@@ -62,98 +62,121 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 		this.metadata = metadata;
 	}
 
-	public int size() {
+	@Override
+    public int size() {
 		if (list == null) {
 			return 0;
 		}
 		return list.size();
 	}
 
-	public boolean isEmpty() {
+	@Override
+    public boolean isEmpty() {
 		return list == null || list.isEmpty();
 	}
 
-	public boolean contains(Object o) {
+	@Override
+    public boolean contains(Object o) {
 		return list.contains(o);
 	}
 
-	public Iterator<T> iterator() {
+	@Override
+    public Iterator<T> iterator() {
 		return list.iterator();
 	}
 
-	public Object[] toArray() {
+	@Override
+    public Object[] toArray() {
 		return list.toArray();
 	}
 
-	public <T> T[] toArray(T[] a) {
+	@Override
+    public <T> T[] toArray(T[] a) {
 		return list.toArray(a);
 	}
 
-	public boolean add(T e) {
+	@Override
+    public boolean add(T e) {
 		return getInitializedList().add(e);
 	}
 
-	public boolean remove(Object o) {
+	@Override
+    public boolean remove(Object o) {
 		return list.remove(o);
 	}
 
-	public boolean containsAll(Collection<?> c) {
+	@Override
+    public boolean containsAll(Collection<?> c) {
 		return list.containsAll(c);
 	}
 
-	public boolean addAll(Collection<? extends T> c) {
+	@Override
+    public boolean addAll(Collection<? extends T> c) {
 		return list.addAll(c);
 	}
 
-	public boolean addAll(int index, Collection<? extends T> c) {
+	@Override
+    public boolean addAll(int index, Collection<? extends T> c) {
 		return list.addAll(index, c);
 	}
 
-	public boolean removeAll(Collection<?> c) {
+	@Override
+    public boolean removeAll(Collection<?> c) {
 		return list.removeAll(c);
 	}
 
-	public boolean retainAll(Collection<?> c) {
+	@Override
+    public boolean retainAll(Collection<?> c) {
 		return list.retainAll(c);
 	}
 
-	public void clear() {
+	@Override
+    public void clear() {
 		list.clear();
 	}
 
-	public T get(int index) {
+	@Override
+    public T get(int index) {
 		return list.get(index);
 	}
 
-	public T set(int index, T element) {
+	@Override
+    public T set(int index, T element) {
 		return list.set(index, element);
 	}
 
-	public void add(int index, T element) {
+	@Override
+    public void add(int index, T element) {
 		list.add(index, element);
 	}
 
-	public T remove(int index) {
+	@Override
+    public T remove(int index) {
 		return list.remove(index);
 	}
 
-	public int indexOf(Object o) {
+	@Override
+    public int indexOf(Object o) {
 		return list.indexOf(o);
 	}
 
-	public int lastIndexOf(Object o) {
+	@Override
+    public int lastIndexOf(Object o) {
 		return list.lastIndexOf(o);
 	}
 
-	public ListIterator<T> listIterator() {
+	@Override
+    public ListIterator<T> listIterator() {
 		return list.listIterator();
 	}
 
-	public ListIterator<T> listIterator(int index) {
+	@Override
+    public ListIterator<T> listIterator(int index) {
 		return list.listIterator(index);
 	}
 
-	public List<T> subList(int fromIndex, int toIndex) {
+	@Override
+    public List<T> subList(int fromIndex, int toIndex) {
 		return list.subList(fromIndex, toIndex);
 	}
 
@@ -205,7 +228,8 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 		}
 	}
 
-	public SearchResultList<T> clone() {
+	@Override
+    public SearchResultList<T> clone() {
 		SearchResultList<T> clone = new SearchResultList<>();
 		clone.metadata = this.metadata;		// considered read-only object
 		if (this.list != null) {

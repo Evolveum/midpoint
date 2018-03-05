@@ -38,7 +38,8 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
 		this.tracesMap = traces;
 	}
 	
-	protected void onInitialize() {
+	@Override
+    protected void onInitialize() {
 		super.onInitialize();
 		
 		setOutputMarkupId(true);

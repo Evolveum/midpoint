@@ -60,6 +60,7 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
         this.value = value;
     }
 
+    @Override
     public T getValue() {
         return value;
     }
@@ -80,7 +81,8 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 		this.result = OperationResult.createOperationResult(resultType);
 	}
 
-	public List<InlineMenuItem> getMenuItems() {
+	@Override
+    public List<InlineMenuItem> getMenuItems() {
     	if (menuItems == null) {
     		menuItems = new ArrayList<InlineMenuItem>();
     	}

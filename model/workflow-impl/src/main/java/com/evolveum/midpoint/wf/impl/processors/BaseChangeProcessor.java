@@ -64,7 +64,8 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         processorConfiguration = c;
     }
 
-	public MiscDataUtil getMiscDataUtil() {
+	@Override
+    public MiscDataUtil getMiscDataUtil() {
 		return miscDataUtil;
 	}
 

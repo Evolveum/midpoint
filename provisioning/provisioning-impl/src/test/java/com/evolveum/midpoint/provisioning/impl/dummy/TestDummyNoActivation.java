@@ -66,7 +66,8 @@ public class TestDummyNoActivation extends TestDummy {
 		return RESOURCE_DUMMY_FILE;
 	}
 
-	protected File getAccountWillFile() {
+	@Override
+    protected File getAccountWillFile() {
 		return ACCOUNT_WILL_FILE;
 	}
 

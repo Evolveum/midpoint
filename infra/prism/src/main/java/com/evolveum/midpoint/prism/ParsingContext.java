@@ -105,7 +105,8 @@ public class ParsingContext implements Cloneable {
 		return !warnings.isEmpty();
 	}
 
-	public ParsingContext clone() {
+	@Override
+    public ParsingContext clone() {
 		ParsingContext clone;
 		try {
 			clone = (ParsingContext) super.clone();

@@ -22,7 +22,7 @@ public class ProxyCreator {
 
         private Supplier<T> factory;
 
-        public LazyInvocationHandler(Supplier<T> factory) {
+        LazyInvocationHandler(Supplier<T> factory) {
             this.factory = factory;
         }
 

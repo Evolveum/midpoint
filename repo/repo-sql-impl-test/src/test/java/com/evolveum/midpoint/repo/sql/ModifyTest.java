@@ -86,7 +86,8 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
 
-	@BeforeSuite
+	@Override
+    @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);

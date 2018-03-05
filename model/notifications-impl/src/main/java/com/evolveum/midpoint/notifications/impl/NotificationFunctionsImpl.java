@@ -285,7 +285,8 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 		return AUXILIARY_PATHS;
 	}
 
-	public String getContentAsFormattedList(Event event, boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+	@Override
+    public String getContentAsFormattedList(Event event, boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
 		List<ItemPath> hiddenPaths = new ArrayList<>();
 		if (!showSynchronizationItems) {
 			hiddenPaths.addAll(SYNCHRONIZATION_PATHS);

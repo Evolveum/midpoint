@@ -51,7 +51,8 @@ public class ConfirmationNotifier extends GeneralNotifier {
 	private NotificationFunctionsImpl notificationsUtil;
 
 
-	@PostConstruct
+	@Override
+    @PostConstruct
 	public void init() {
 		register(ConfirmationNotifierType.class);
 	}

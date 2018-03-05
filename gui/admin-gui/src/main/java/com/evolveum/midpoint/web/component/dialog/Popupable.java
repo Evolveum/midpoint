@@ -20,10 +20,10 @@ import org.apache.wicket.model.StringResourceModel;
 
 public interface Popupable {
 
-	public int getWidth();
-	public int getHeight();
-	public StringResourceModel getTitle();
-	public Component getComponent();
+	int getWidth();
+	int getHeight();
+	StringResourceModel getTitle();
+	Component getComponent();
 
 
 }

@@ -169,7 +169,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		}
 	}
 
-	public synchronized <O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject) {
+	@Override
+    public synchronized <O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject) {
 		recordCountInternal(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
 	}
 

@@ -75,7 +75,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     			return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getDataTable());
     		}
 
-    		public String getFileName() {
+    		@Override
+            public String getFileName() {
     			return CsvDownloadButtonPanel.this.getFilename();
     		}
     	};

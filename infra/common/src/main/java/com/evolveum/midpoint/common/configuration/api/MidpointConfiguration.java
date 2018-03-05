@@ -23,9 +23,9 @@ import org.w3c.dom.Document;
 
 public interface MidpointConfiguration {
 	
-	public static final String SYSTEM_CONFIGURATION_SECTION = "midpoint.system";
+	String SYSTEM_CONFIGURATION_SECTION = "midpoint.system";
 	
-	public String getMidpointHome();
+	String getMidpointHome();
 	
 	/**
 	 * get configuration for symbolic name of the component from configuration

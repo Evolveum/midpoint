@@ -92,6 +92,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.isIgnored();
 	}
 
+    @Override
     public boolean isEmphasized() {
 		return refinedObjectClassDefinition.isEmphasized();
 	}
@@ -572,6 +573,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	/**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "LRObjectClassDef";
     }

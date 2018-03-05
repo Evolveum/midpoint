@@ -193,6 +193,7 @@ public class SchemaDistMojo extends AbstractMojo {
 	    return artifact;
     }
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().info( "SchemaDist plugin started" );
 

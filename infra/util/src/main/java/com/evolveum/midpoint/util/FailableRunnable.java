@@ -23,6 +23,6 @@ package com.evolveum.midpoint.util;
 @FunctionalInterface
 public interface FailableRunnable {
 
-	public abstract void run() throws Exception;
+	void run() throws Exception;
 
 }

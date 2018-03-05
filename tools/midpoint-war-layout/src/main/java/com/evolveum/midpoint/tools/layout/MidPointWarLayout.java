@@ -57,7 +57,7 @@ public class MidPointWarLayout extends Layouts.War implements CustomLoaderLayout
         return MidPointWarLauncher.class.getName();
     }
 
-    private final JarFile createSelf() throws IOException {
+    private JarFile createSelf() throws IOException {
         try {
             ProtectionDomain protectionDomain = getClass().getProtectionDomain();
             CodeSource codeSource = protectionDomain.getCodeSource();

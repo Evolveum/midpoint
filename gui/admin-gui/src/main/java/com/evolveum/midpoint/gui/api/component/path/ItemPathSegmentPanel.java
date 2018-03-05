@@ -71,7 +71,8 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 				ID_DEFINITION, new PropertyModel<ItemDefinition<?>>(getModel(), "itemDef")) {
 			private static final long serialVersionUID = 1L;
 
-			protected Map<String, ItemDefinition<?>> listChoices(String input) {
+			@Override
+            protected Map<String, ItemDefinition<?>> listChoices(String input) {
 				return collectAvailableDefinitions(input);
 
 			}

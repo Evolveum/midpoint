@@ -98,11 +98,13 @@ public class NotificationManagerImpl implements NotificationManager {
         }
     }
 
+    @Override
     public void processEvent(@Nullable Event event) {
 		Task task = taskManager.createTaskInstance(OPERATION_PROCESS_EVENT);
         processEvent(event, task, task.getResult());
     }
 
+    @Override
     public void processEvent(@Nullable Event event, Task task, OperationResult result) {
         if (event == null) {
             return;
@@ -175,6 +177,7 @@ public class NotificationManagerImpl implements NotificationManager {
         }
     }
 
+    @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result) {
         try {
             return getEventHandler(eventHandlerType).processEvent(event, eventHandlerType, this, task, result);
@@ -184,10 +187,12 @@ public class NotificationManagerImpl implements NotificationManager {
         }
     }
 
+    @Override
     public boolean isDisabled() {
         return disabled;
     }
 
+    @Override
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }

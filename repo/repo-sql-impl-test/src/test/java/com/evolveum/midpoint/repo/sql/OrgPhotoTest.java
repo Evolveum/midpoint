@@ -58,6 +58,7 @@ public class OrgPhotoTest extends BaseSQLRepoTest {
 
     private String orgOid;
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

@@ -127,6 +127,7 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
         return ToStringBuilder.reflectionToString(this);
     }
 
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         {
@@ -142,6 +143,7 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
         return this.hashCode(null, strategy);
     }
 
+    @Override
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof ValueType)) {
             return false;

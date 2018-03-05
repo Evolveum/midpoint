@@ -177,7 +177,7 @@ public class PrismEntityMapper {
         private Class from;
         private Class to;
 
-        public Key(Class from, Class to) {
+        Key(Class from, Class to) {
             this.from = from;
             this.to = to;
         }

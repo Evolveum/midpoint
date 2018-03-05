@@ -70,7 +70,8 @@ public class AceEditorDialog extends BasePanel<String> {
 	    	addOrReplace(createAceEditor());
 	    }
 
-	    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+	    @Override
+        public StringResourceModel createStringResource(String resourceKey, Object... objects) {
 	    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //	        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
 	    }

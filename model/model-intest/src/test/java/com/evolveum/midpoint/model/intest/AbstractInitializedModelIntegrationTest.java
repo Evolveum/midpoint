@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
@@ -364,6 +363,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}
 
+	@Override
 	protected void setDefaultUserTemplate(String userTemplateOid)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);

@@ -40,7 +40,8 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 		this.innerTriggers = innerTriggers;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
 		return innerTriggers;
 	}

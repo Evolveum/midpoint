@@ -149,7 +149,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 
 		WebMarkupContainer showNextStagesContainer = new WebMarkupContainer(ID_SHOW_NEXT_STAGES_CONTAINER);
 		showNextStagesContainer.add(new AjaxFallbackLink(ID_SHOW_NEXT_STAGES) {
-			public void onClick(AjaxRequestTarget target) {
+			@Override
+            public void onClick(AjaxRequestTarget target) {
 				displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
 				target.add(SwitchableApprovalProcessPreviewsPanel.this);
 			}
@@ -161,7 +162,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 
 		WebMarkupContainer showWholeProcessContainer = new WebMarkupContainer(ID_SHOW_WHOLE_PROCESS_CONTAINER);
 		showWholeProcessContainer.add(new AjaxFallbackLink(ID_SHOW_WHOLE_PROCESS) {
-			public void onClick(AjaxRequestTarget target) {
+			@Override
+            public void onClick(AjaxRequestTarget target) {
 				displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
 				target.add(SwitchableApprovalProcessPreviewsPanel.this);
 			}

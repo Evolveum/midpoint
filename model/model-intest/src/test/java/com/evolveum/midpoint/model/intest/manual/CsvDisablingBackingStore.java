@@ -37,7 +37,8 @@ public class CsvDisablingBackingStore extends CsvBackingStore {
 		super(sourceFile, targetFile);
 	}
 
-	protected void deprovisionInCsv(String username) throws IOException {
+	@Override
+    protected void deprovisionInCsv(String username) throws IOException {
 		disableInCsv(username);
 	}
 

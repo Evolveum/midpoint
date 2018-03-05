@@ -238,7 +238,8 @@ public abstract class DefinitionImpl implements Definition {
 		return XsdTypeMapper.toJavaType(getTypeName());
 	}
 
-	public abstract void revive(PrismContext prismContext);
+	@Override
+    public abstract void revive(PrismContext prismContext);
 
 	protected void copyDefinitionData(DefinitionImpl clone) {
 		clone.ignored = this.ignored;

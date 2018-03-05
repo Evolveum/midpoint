@@ -113,6 +113,7 @@ public class SchemaDocMojo extends AbstractMojo {
         return templateDir.getAbsolutePath();
     }
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().info( "SchemaDoc plugin started" );
 

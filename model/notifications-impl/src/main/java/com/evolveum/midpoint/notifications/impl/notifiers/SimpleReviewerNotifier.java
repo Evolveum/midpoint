@@ -54,6 +54,7 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
     @Autowired
     private CertHelper certHelper;
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimpleReviewerNotifierType.class);

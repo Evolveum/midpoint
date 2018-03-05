@@ -40,7 +40,7 @@ public class InlineMenuItem implements Serializable {
     private IModel<String> confirmationMessageModel = null;
     private boolean showConfirmationDialog = false;
 
-    public static enum FOCUS_LIST_INLINE_MENU_ITEM_ID {
+    public enum FOCUS_LIST_INLINE_MENU_ITEM_ID {
         ENABLE(0), DISABLE(1), RECONCILE(2),
         UNLOCK(3), DELETE(4), MERGE(5),
         HEADER_ENABLE(0), HEADER_RECONCILE(1),
@@ -55,7 +55,7 @@ public class InlineMenuItem implements Serializable {
         }
         public String toString(){return Integer.toString(menuItemId);}
     }
-    public static enum RESOURCE_INLINE_MENU_ITEM_ID {
+    public enum RESOURCE_INLINE_MENU_ITEM_ID {
         TEST_CONNECTION(0),
         HEADER_TEST_CONNECTION(1),
         EDIT_XML(1), HEADER_DELETE(0), DELETE_RESOURCE(2),
@@ -70,7 +70,7 @@ public class InlineMenuItem implements Serializable {
         }
         public String toString(){return Integer.toString(menuItemId);}
     }
-    public static enum TASKS_INLINE_MENU_ITEM_ID {
+    public enum TASKS_INLINE_MENU_ITEM_ID {
         SUSPEND(0), RESUME(1), RUN_NOW(2), DELETE(3), DELETE_CLOSED(4),
         NODE_STOP_SCHEDULER(1), NODE_STOP_SCHEDULER_TASK(2), NODE_START(0), NODE_DELETE(3);
 

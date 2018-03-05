@@ -113,13 +113,16 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 	}
 
 
-	public String getScript() {
+	@Override
+    public String getScript() {
 		return script;
 	}
-	public ObjectQuery getQuery() {
+	@Override
+    public ObjectQuery getQuery() {
 		return query;
 	}
-	public Class getType() {
+	@Override
+    public Class getType() {
 		return type;
 	}
 

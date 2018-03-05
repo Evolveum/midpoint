@@ -66,7 +66,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		}
 	}
 
-	public RefinedObjectClassDefinition getStructuralObjectClassDefinition() {
+	@Override
+    public RefinedObjectClassDefinition getStructuralObjectClassDefinition() {
 		return structuralObjectClassDefinition;
 	}
 
@@ -342,7 +343,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.matches(shadowType);
 	}
 
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
+	@Override
+    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
 		return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}
 
@@ -462,7 +464,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return findAttributeDefinition(name, false);
 	}
 
-	public RefinedAssociationDefinition findAssociationDefinition(QName name) {
+	@Override
+    public RefinedAssociationDefinition findAssociationDefinition(QName name) {
 		for (RefinedAssociationDefinition assocType: getAssociationDefinitions()) {
 			if (QNameUtil.match(assocType.getName(), name)) {
 				return assocType;
@@ -689,11 +692,13 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
      * Return a human readable name of this class suitable for logs.
      */
 //    @Override
+    @Override
     public String getDebugDumpClassName() {
         return "crOCD";
     }
 
-	public String getHumanReadableName() {
+	@Override
+    public String getHumanReadableName() {
 		if (getDisplayName() != null) {
 			return getDisplayName();
 		} else {

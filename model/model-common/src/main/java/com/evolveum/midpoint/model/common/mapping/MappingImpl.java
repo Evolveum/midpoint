@@ -230,7 +230,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sources.isEmpty();
 	}
 
-	public MappingStrengthType getStrength() {
+	@Override
+    public MappingStrengthType getStrength() {
 		return getStrength(mappingType);
 	}
 
@@ -245,7 +246,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
-	public boolean isAuthoritative() {
+	@Override
+    public boolean isAuthoritative() {
 		if (mappingType == null) {
 			return true;
 		}
@@ -256,7 +258,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
-	public boolean isExclusive() {
+	@Override
+    public boolean isExclusive() {
 		if (mappingType == null) {
 			return false;
 		}
@@ -338,7 +341,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return evaluationEndTime;
 	}
 
-	public Long getEtime() {
+	@Override
+    public Long getEtime() {
 		if (evaluationStartTime == null || evaluationEndTime == null) {
 			return null;
 		}
@@ -1139,7 +1143,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	/**
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
-	public PrismValueDeltaSetTripleProducer<V, D> clone() {
+	@Override
+    public PrismValueDeltaSetTripleProducer<V, D> clone() {
 		MappingImpl<V, D> clone = new Builder<V, D>()
 				.mappingType(mappingType)
 				.contextDescription(contextDescription)

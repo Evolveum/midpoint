@@ -256,7 +256,8 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
 			private static final long serialVersionUID = 1L;
 
-			public void onUpdate(AjaxRequestTarget target) {
+			@Override
+            public void onUpdate(AjaxRequestTarget target) {
 				refreshTable(target);
 			}
 		};

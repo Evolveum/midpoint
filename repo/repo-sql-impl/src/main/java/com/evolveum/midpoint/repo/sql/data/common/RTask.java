@@ -277,11 +277,13 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return taskIdentifier;
     }
 
+    @Override
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
     }
 
+    @Override
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }

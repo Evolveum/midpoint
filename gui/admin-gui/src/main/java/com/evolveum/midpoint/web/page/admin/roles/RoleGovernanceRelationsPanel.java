@@ -118,6 +118,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return assignMemberMenuItems;
     }
     
+    @Override
     protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
 		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
 		unassignMenuItems

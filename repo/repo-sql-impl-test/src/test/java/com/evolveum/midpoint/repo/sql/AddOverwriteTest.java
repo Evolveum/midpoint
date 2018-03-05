@@ -73,6 +73,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     private static final String ORG_OID = "00000000-8888-6666-0000-100000000001";
 
+    @Override
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);

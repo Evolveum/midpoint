@@ -61,7 +61,8 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 		target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
 	}
 
-	public void onRequest() {
+	@Override
+    public void onRequest() {
 		final File file = initFile();
 		IResourceStream resourceStream = new FileResourceStream(new File(file));
 		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(

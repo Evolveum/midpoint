@@ -57,7 +57,8 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 				new AbstractReadOnlyModel<ItemPathDto>() {
 
 					private static final long serialVersionUID = 1L;
-					public ItemPathDto getObject() {
+					@Override
+                    public ItemPathDto getObject() {
 						return ItemPathPanel.this.getModelObject();
 					}
 				}) {

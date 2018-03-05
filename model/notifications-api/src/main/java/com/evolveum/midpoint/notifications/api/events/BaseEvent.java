@@ -75,7 +75,8 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 		this.adHocHandler = adHocHandler;
 	}
 
-	public LightweightIdentifier getId() {
+	@Override
+    public LightweightIdentifier getId() {
         return id;
     }
 
@@ -88,26 +89,34 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
                 '}';
     }
 
+    @Override
     abstract public boolean isStatusType(EventStatusType eventStatusType);
+    @Override
     abstract public boolean isOperationType(EventOperationType eventOperationType);
+    @Override
     abstract public boolean isCategoryType(EventCategoryType eventCategoryType);
 
+    @Override
     public boolean isAccountRelated() {
         return isCategoryType(EventCategoryType.RESOURCE_OBJECT_EVENT);
     }
 
+    @Override
     public boolean isUserRelated() {
         return false;             // overriden in ModelEvent
     }
 
+    @Override
     public boolean isWorkItemRelated() {
         return isCategoryType(EventCategoryType.WORK_ITEM_EVENT);
     }
 
+    @Override
     public boolean isWorkflowProcessRelated() {
         return isCategoryType(EventCategoryType.WORKFLOW_PROCESS_EVENT);
     }
 
+    @Override
     public boolean isWorkflowRelated() {
         return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
     }
@@ -121,58 +130,71 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return isCategoryType(EventCategoryType.CERT_CAMPAIGN_STAGE_EVENT);
     }
 
+    @Override
     public boolean isAdd() {
         return isOperationType(EventOperationType.ADD);
     }
 
+    @Override
     public boolean isModify() {
         return isOperationType(EventOperationType.MODIFY);
     }
 
+    @Override
     public boolean isDelete() {
         return isOperationType(EventOperationType.DELETE);
     }
 
+    @Override
     public boolean isSuccess() {
         return isStatusType(EventStatusType.SUCCESS);
     }
 
+    @Override
     public boolean isAlsoSuccess() {
         return isStatusType(EventStatusType.ALSO_SUCCESS);
     }
 
+    @Override
     public boolean isFailure() {
         return isStatusType(EventStatusType.FAILURE);
     }
 
+    @Override
     public boolean isOnlyFailure() {
         return isStatusType(EventStatusType.ONLY_FAILURE);
     }
 
+    @Override
     public boolean isInProgress() {
         return isStatusType(EventStatusType.IN_PROGRESS);
     }
 
     // requester
 
+    @Override
     public SimpleObjectRef getRequester() {
         return requester;
     }
 
+    @Override
     public String getRequesterOid() {
         return requester.getOid();
     }
 
+    @Override
     public void setRequester(SimpleObjectRef requester) {
         this.requester = requester;
     }
 
     // requestee
 
+    @Override
     public SimpleObjectRef getRequestee() {
         return requestee;
     }
 
+    @Override
     public String getRequesteeOid() {
         return requestee.getOid();
     }
@@ -209,6 +231,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 		return requesteeObject != null ? requesteeObject.getName() : null;
 	}
 
+    @Override
     public void setRequestee(SimpleObjectRef requestee) {
         this.requestee = requestee;
     }
@@ -222,6 +245,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         }
     }
 
+    @Override
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         variables.put(SchemaConstants.C_EVENT, this);
         variables.put(SchemaConstants.C_REQUESTER, requester != null ? requester.resolveObjectType(result, false) : null);

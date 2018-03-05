@@ -61,6 +61,7 @@ public class UserPhotoTest extends BaseSQLRepoTest {
 
     private String userOid;
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

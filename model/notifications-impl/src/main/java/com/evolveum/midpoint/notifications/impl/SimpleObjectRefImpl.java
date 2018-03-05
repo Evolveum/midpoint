@@ -61,18 +61,22 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
         this.functions = functions;
     }
 
+    @Override
     public String getOid() {
         return oid;
     }
 
+    @Override
     public void setOid(String oid) {
         this.oid = oid;
     }
 
+    @Override
     public ObjectType getObjectType() {
         return objectType;
     }
 
+    @Override
     public void setObjectType(ObjectType objectType) {
         this.objectType = objectType;
     }

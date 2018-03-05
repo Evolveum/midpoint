@@ -88,6 +88,7 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
         this.targetName = targetName;
     }
 
+    @Override
     public ObjectReferenceType toObjectReferenceType() {
         ObjectReferenceType retval = new ObjectReferenceType();
         retval.setOid(oid);

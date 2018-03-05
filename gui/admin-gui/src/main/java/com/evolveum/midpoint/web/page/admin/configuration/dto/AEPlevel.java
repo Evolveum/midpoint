@@ -33,7 +33,7 @@ public enum AEPlevel {
 
     private String localizationKey;
 
-    private AEPlevel(String localizationKey){
+    AEPlevel(String localizationKey){
         this.localizationKey = localizationKey;
     }
 

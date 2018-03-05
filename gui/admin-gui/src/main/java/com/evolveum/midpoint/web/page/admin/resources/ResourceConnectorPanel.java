@@ -100,7 +100,8 @@ public class ResourceConnectorPanel extends Panel {
 		ListView<ConnectorOperationalStatus> listview = new ListView<ConnectorOperationalStatus>(ID_CONNECTOR_LIST, statsModel) {
 			private static final long serialVersionUID = 1L;
 
-			protected void populateItem(ListItem<ConnectorOperationalStatus> item) {
+			@Override
+            protected void populateItem(ListItem<ConnectorOperationalStatus> item) {
 		        item.add(new Label("label", item.getModel()));
 		        IModel<ConnectorOperationalStatus> statModel = item.getModel();
 		        item.add(createLabel(statModel, ID_CONNECTOR_NAME,  ConnectorOperationalStatus.F_CONNECTOR_NAME));

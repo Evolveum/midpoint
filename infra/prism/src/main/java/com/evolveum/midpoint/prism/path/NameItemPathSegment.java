@@ -142,6 +142,7 @@ public class NameItemPathSegment extends ItemPathSegment {
         }
     }
 
+    @Override
     public NameItemPathSegment clone() {
         NameItemPathSegment clone = new NameItemPathSegment(this.name, this.isVariable);
         clone.setWildcard(this.isWildcard());

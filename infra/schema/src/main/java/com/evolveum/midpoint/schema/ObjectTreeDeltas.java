@@ -102,7 +102,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 		return true;
 	}
 
-	public ObjectTreeDeltas<T> clone() {
+	@Override
+    public ObjectTreeDeltas<T> clone() {
         ObjectTreeDeltas<T> clone = new ObjectTreeDeltas<>(prismContext);
         if (focusChange != null) {
             clone.setFocusChange(focusChange.clone());

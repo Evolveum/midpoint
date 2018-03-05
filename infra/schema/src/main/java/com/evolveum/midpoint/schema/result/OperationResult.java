@@ -1720,6 +1720,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		private int hiddenCount;		// how many entries will be hidden (after this wave of stripping)
 	}
 
+    @Override
     public OperationResult clone() {
         OperationResult clone = new OperationResult(operation);
 

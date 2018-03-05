@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.filter;
 
-import com.evolveum.midpoint.model.impl.filter.EmptyFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import org.testng.AssertJUnit;

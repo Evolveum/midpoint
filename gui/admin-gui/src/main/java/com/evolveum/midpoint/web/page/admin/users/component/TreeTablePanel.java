@@ -112,7 +112,8 @@ public class TreeTablePanel extends BasePanel<String> {
 				TreeTablePanel.this.selectTreeItemPerformed(selected, target);
 			}
 
-			protected List<InlineMenuItem> createTreeMenu() {
+			@Override
+            protected List<InlineMenuItem> createTreeMenu() {
 				return TreeTablePanel.this.createTreeMenu();
 			}
 

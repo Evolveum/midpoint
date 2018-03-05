@@ -17,7 +17,8 @@ public abstract class RAnyBase<T> implements RAnyValue<T> {
 		return item.getType();
 	}
 
-	public RExtItem getItem() {
+	@Override
+    public RExtItem getItem() {
 		return item;
 	}
 
@@ -32,7 +33,8 @@ public abstract class RAnyBase<T> implements RAnyValue<T> {
 		this.itemId = itemId;
 	}
 
-	public void setItem(RExtItem item) {
+	@Override
+    public void setItem(RExtItem item) {
 		this.item = item;
 	}
 

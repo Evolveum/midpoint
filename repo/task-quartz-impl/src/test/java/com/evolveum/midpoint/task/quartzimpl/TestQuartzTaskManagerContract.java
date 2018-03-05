@@ -653,6 +653,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this
         // task
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -729,6 +730,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -793,6 +795,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this task
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -846,6 +849,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -900,6 +904,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -980,6 +985,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1043,6 +1049,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1102,6 +1109,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println("After setup: " + task.debugDump());
 
         waitFor("Waiting for task manager to start the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
@@ -1181,6 +1189,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // to pick up this task
 
         waitFor("Waiting for the job to disappear from Quartz Job Store", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 try {
                     return !taskManager.getExecutionManager().getQuartzScheduler().checkExists(key);
@@ -1262,6 +1271,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
             final String rootOid = taskOid(test);
 
             waitFor("Waiting for task manager to execute the task", new Checker() {
+                @Override
                 public boolean check() throws ObjectNotFoundException, SchemaException {
                     Task task = taskManager.getTask(rootOid, result);
                     IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1303,6 +1313,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
             final String rootOid = taskOid(test);
 
             waitFor("Waiting for task manager to execute the task", new Checker() {
+                @Override
                 public boolean check() throws ObjectNotFoundException, SchemaException {
                     Task task = taskManager.getTask(rootOid, result);
                     IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1357,6 +1368,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1510,6 +1522,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1551,6 +1564,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println("After setup: " + task.debugDump());
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1587,6 +1601,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         System.out.println("After setup: " + task.debugDump());
 
         waitFor("Waiting for task manager to start the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(taskOid(test), result);
                 IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
@@ -1884,7 +1899,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     private void waitForTaskStart(String oid, OperationResult result) throws CommonException {
 		waitFor("Waiting for task manager to start the task", new Checker() {
-			public boolean check() throws ObjectNotFoundException, SchemaException {
+			@Override
+            public boolean check() throws ObjectNotFoundException, SchemaException {
 				Task task = taskManager.getTask(oid, result);
 				IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
 				return task.getLastRunStartTimestamp() != null;

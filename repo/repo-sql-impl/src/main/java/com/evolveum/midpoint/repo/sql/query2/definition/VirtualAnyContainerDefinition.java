@@ -33,6 +33,7 @@ public class VirtualAnyContainerDefinition extends JpaAnyContainerDefinition {
         this.ownerType = ownerType;
     }
 
+    @Override
     public RObjectExtensionType getOwnerType() {
         return ownerType;
     }

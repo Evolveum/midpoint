@@ -67,10 +67,12 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 
     protected abstract InputStream initStream();
 
+    @Override
     public String getFileName() {
         return fileName;
     }
 
+    @Override
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }

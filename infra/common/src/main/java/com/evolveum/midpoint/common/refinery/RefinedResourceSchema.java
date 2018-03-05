@@ -86,7 +86,8 @@ public interface RefinedResourceSchema extends ResourceSchema, DebugDumpable {
 
 	RefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass);
 
-	ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName);
+	@Override
+    ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName);
 
 	LayerRefinedResourceSchema forLayer(LayerType layer);
 

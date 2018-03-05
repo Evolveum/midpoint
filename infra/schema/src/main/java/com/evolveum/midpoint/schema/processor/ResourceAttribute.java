@@ -53,6 +53,7 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
 //        super(name);
 //    }
 
+    @Override
     public ResourceAttributeDefinition<T> getDefinition() {
         return (ResourceAttributeDefinition<T>) super.getDefinition();
     }
@@ -101,6 +102,7 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
 	/**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "RA";
     }

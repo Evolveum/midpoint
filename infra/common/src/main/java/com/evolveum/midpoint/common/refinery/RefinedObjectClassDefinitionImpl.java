@@ -642,7 +642,8 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
         return getObjectClassDefinition().getNativeObjectClass();
     }
 
-	public boolean isAuxiliary() {
+	@Override
+    public boolean isAuxiliary() {
 		return getObjectClassDefinition().isAuxiliary();
 	}
 
@@ -1140,6 +1141,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "rOCD";
     }

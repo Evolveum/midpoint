@@ -187,7 +187,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      *
      * @see Connector#dispose()
      */
-    public void dispose() {
+    @Override
+	public void dispose() {
     	connected = false;
     	resource.disconnect();
     	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
@@ -214,7 +215,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
+    @Override
+	public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
         log.info("create::begin attributes {0}", createAttributes);
         validate(objectClass);
 
@@ -289,7 +291,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	/**
      * {@inheritDoc}
      */
-    public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+    @Override
+	public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         log.info("update::begin");
         validate(objectClass);
         validate(uid);
@@ -519,7 +522,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	/**
      * {@inheritDoc}
      */
-    public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
+    @Override
+	public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
         validate(objectClass);
         validate(uid);
 
@@ -714,7 +718,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
+    @Override
+	public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
         validate(objectClass);
         validate(uid);
 
@@ -893,7 +898,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	/**
      * {@inheritDoc}
      */
-    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
+    @Override
+	public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         log.info("delete::begin");
         validate(objectClass);
         validate(uid);
@@ -964,7 +970,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public Schema schema() {
+    @Override
+	public Schema schema() {
         log.info("schema::begin");
 
         if (!configuration.getSupportSchema()) {
@@ -1127,7 +1134,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	/**
      * {@inheritDoc}
      */
-    public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
+    @Override
+	public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
         log.info("authenticate::begin");
         Uid uid = null;
         log.info("authenticate::end");
@@ -1137,7 +1145,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
+    @Override
+	public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
         log.info("resolveUsername::begin");
         Uid uid = null;
         log.info("resolveUsername::end");
@@ -1147,7 +1156,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
+    @Override
+	public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
 
         throw new UnsupportedOperationException();
     }
@@ -1155,7 +1165,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
+    @Override
+	public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
 
         try {
 			return resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
@@ -1169,7 +1180,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public FilterTranslator<Filter> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
+    @Override
+	public FilterTranslator<Filter> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
         log.info("createFilterTranslator::begin");
         validate(objectClass);
 
@@ -1181,7 +1193,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
+    @Override
+	public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
         log.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
         validate(objectClass);
         validate(query);
@@ -1453,7 +1466,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	/**
      * {@inheritDoc}
      */
-    public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
+    @Override
+	public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
         log.info("sync::begin");
         validate(objectClass);
 
@@ -1586,6 +1600,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	/**
      * {@inheritDoc}
      */
+	@Override
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
         log.info("getLatestSyncToken::begin");
         validate(objectClass);
@@ -1597,7 +1612,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     /**
      * {@inheritDoc}
      */
-    public void test() {
+    @Override
+	public void test() {
         log.info("test::begin");
 
         if (!connected) {
@@ -1790,7 +1806,6 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
 				throw new IllegalArgumentException("UID explicitly specified in the account attributes");
-
 			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
 

@@ -114,7 +114,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
 	}
 
-	protected int getNumberOfRoles() {
+	@Override
+    protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 

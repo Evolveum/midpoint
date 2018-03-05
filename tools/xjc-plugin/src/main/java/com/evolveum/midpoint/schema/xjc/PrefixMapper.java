@@ -51,7 +51,7 @@ public enum PrefixMapper {
     private String namespace;
     private String name;
 
-    private PrefixMapper(String namespace, String name) {
+    PrefixMapper(String namespace, String name) {
         this.namespace = namespace;
         this.name = name;
     }

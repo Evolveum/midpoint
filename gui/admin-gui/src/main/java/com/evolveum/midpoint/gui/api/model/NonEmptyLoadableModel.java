@@ -33,7 +33,8 @@ public abstract class NonEmptyLoadableModel<T> extends LoadableModel<T> implemen
 		super(alwaysReload);
 	}
 
-	@NotNull
+	@Override
+    @NotNull
     public T getObject() {
         T object = super.getObject();
 		if (object == null) {
@@ -42,11 +43,13 @@ public abstract class NonEmptyLoadableModel<T> extends LoadableModel<T> implemen
 		return object;
     }
 
+    @Override
     public void setObject(@NotNull T object) {
         Validate.notNull(object, "Model object is to be set to null");
 		super.setObject(object);
     }
 
-	@NotNull
+	@Override
+    @NotNull
 	abstract protected T load();
 }

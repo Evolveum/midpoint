@@ -40,6 +40,7 @@ public class JmxClient {
         ExecutorService executor =
                 Executors.newSingleThreadExecutor(daemonThreadFactory);
         executor.submit(new Runnable() {
+            @Override
             public void run() {
                 try {
                     JMXConnector connector = JMXConnectorFactory.connect(url, env);
@@ -86,6 +87,7 @@ public class JmxClient {
     }
 
     private static class DaemonThreadFactory implements ThreadFactory {
+        @Override
         public Thread newThread(Runnable r) {
             Thread t = Executors.defaultThreadFactory().newThread(r);
             t.setDaemon(true);

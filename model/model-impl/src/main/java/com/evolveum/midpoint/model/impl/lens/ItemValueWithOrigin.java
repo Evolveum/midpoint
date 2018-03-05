@@ -92,7 +92,8 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		}
 	}
 
-	public ItemValueWithOrigin<V,D> clone() {
+	@Override
+    public ItemValueWithOrigin<V,D> clone() {
 		ItemValueWithOrigin<V,D> clone = new ItemValueWithOrigin<>(itemValue, mapping, construction);
 		copyValues(clone);
 		return clone;

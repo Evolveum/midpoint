@@ -100,11 +100,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	}
     }
 
-	public boolean isDelete() {
+	@Override
+    public boolean isDelete() {
 		return getPrimaryDelta() != null && getPrimaryDelta().isDelete();
 	}
 
-	public boolean isAdd() {
+	@Override
+    public boolean isAdd() {
 		return getPrimaryDelta() != null && getPrimaryDelta().isAdd();
 	}
 
@@ -183,6 +185,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
 
+    @Override
     public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
@@ -464,7 +467,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
 	}
 
-	public String getHumanReadableName() {
+	@Override
+    public String getHumanReadableName() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("focus(");
 		PrismObject<O> object = getObjectNew();

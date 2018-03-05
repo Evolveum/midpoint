@@ -83,6 +83,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
             }
 
 
+            @Override
             protected void reloadParentContainerPanel(AjaxRequestTarget target){
                 target.add(ContainerValuePanel.this);
             }
@@ -131,6 +132,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 					item.add(new VisibleEnableBehaviour(){
                         private static final long serialVersionUID = 1L;
 
+                        @Override
                         public boolean isVisible(){
                             return containerPanel.isVisible();
                         }

@@ -85,9 +85,12 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 				.collect(Collectors.toList());
 	}
 
-	<X> RefinedAttributeDefinition<X> getDescriptionAttribute();
-	<X> RefinedAttributeDefinition<X> getNamingAttribute();
-	<X> RefinedAttributeDefinition<X> getDisplayNameAttribute();
+	@Override
+    <X> RefinedAttributeDefinition<X> getDescriptionAttribute();
+	@Override
+    <X> RefinedAttributeDefinition<X> getNamingAttribute();
+	@Override
+    <X> RefinedAttributeDefinition<X> getDisplayNameAttribute();
 
 	//endregion
 
@@ -199,9 +202,11 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	//region Type variance ========================================================
 
-	<X> RefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName name);
+	@Override
+    <X> RefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName name);
 
-	default <X> RefinedAttributeDefinition<X> findAttributeDefinition(String name) {
+	@Override
+    default <X> RefinedAttributeDefinition<X> findAttributeDefinition(String name) {
 		return findAttributeDefinition(new QName(getTypeName().getNamespaceURI(), name));
 	}
 

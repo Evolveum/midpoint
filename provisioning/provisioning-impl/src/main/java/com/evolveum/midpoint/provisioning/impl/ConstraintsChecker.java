@@ -281,7 +281,7 @@ public class ConstraintsChecker {
 		QName attributeName;
 		Set attributeValues;
 
-		public Situation(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName, Set attributeValues) {
+		Situation(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName, Set attributeValues) {
 			this.resourceOid = resourceOid;
 			this.knownShadowOid = knownShadowOid;
 			this.objectClassName = objectClassName;

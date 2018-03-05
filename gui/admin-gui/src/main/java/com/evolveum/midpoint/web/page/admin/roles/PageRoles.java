@@ -79,10 +79,12 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 	private final FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, this, this){
         private static final long serialVersionUID = 1L;
 
+        @Override
         protected boolean isShowConfirmationDialog(ColumnMenuAction action){
             return PageRoles.this.isShowConfirmationDialog(action);
         }
 
+        @Override
         protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
             return PageRoles.this.getConfirmationMessageModel(action, actionName);
         }

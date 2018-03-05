@@ -56,6 +56,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     private String userBigOid;
     private String shadowOid;
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

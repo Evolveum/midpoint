@@ -106,7 +106,8 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT);
 	}
 
-	protected ObjectQuery createObjectQuery() {
+	@Override
+    protected ObjectQuery createObjectQuery() {
 		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
 				.block()
 				.item(new ItemPath(AssignmentType.F_TARGET_REF))

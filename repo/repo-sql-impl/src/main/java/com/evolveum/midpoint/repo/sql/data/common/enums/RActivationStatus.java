@@ -33,7 +33,7 @@ public enum RActivationStatus implements SchemaEnum<ActivationStatusType> {
 
     private ActivationStatusType status;
 
-    private RActivationStatus(ActivationStatusType status) {
+    RActivationStatus(ActivationStatusType status) {
         this.status = status;
     }
 

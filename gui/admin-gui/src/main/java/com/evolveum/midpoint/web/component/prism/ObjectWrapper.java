@@ -124,7 +124,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		this.status = status;
 	}
 
-	public void revive(PrismContext prismContext) throws SchemaException {
+	@Override
+    public void revive(PrismContext prismContext) throws SchemaException {
 		if (object != null) {
 			object.revive(prismContext);
 		}

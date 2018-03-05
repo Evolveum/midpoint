@@ -263,6 +263,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.computeStatus();
     }
 
+    @Override
     @PreDestroy
     public void shutdown() {
 

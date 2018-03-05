@@ -280,7 +280,8 @@ public class TestDummyCaseIgnore extends TestDummy {
 		assertSteadyResource();
 	}
 
-	@Test
+	@Override
+    @Test
 	public void test511AddProtectedAccountCaseIgnore() throws Exception {
 		final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
 		TestUtil.displayTestTitle(TEST_NAME);

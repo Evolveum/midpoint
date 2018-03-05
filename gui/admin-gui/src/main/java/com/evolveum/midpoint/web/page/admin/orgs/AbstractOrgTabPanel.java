@@ -87,6 +87,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                             add(new AjaxEventBehavior("load") {
                             		private static final long serialVersionUID = 1L;
 
+                                    @Override
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         SessionStorage storage = getPageBase().getSessionStorage();
                                         storage.getUsers().setSelectedTabId(tabId);

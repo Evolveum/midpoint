@@ -139,6 +139,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         return maxOccurs;
     }
 
+    @Override
     public void setMaxOccurs(int maxOccurs) {
         this.maxOccurs = maxOccurs;
     }

@@ -957,7 +957,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			EnumChoiceRenderer<ObjectTypes> renderer = new EnumChoiceRenderer<ObjectTypes>() {
 
-				protected String resourceKey(ObjectTypes object) {
+				@Override
+                protected String resourceKey(ObjectTypes object) {
 					ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(object);
 					String key = descr != null ? descr.getLocalizationKey()
 							: ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;

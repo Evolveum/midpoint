@@ -428,7 +428,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     	private Attr attr;
 
-    	public PrimitiveAttributeParser(Attr attr) {
+    	PrimitiveAttributeParser(Attr attr) {
 			this.attr = attr;
 		}
 		@Override

@@ -58,6 +58,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ListAccountShadowOwnerTest.class);
 
+    @Override
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);

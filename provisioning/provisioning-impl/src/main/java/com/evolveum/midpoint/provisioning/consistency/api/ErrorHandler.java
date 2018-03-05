@@ -51,7 +51,7 @@ public abstract class ErrorHandler {
 	@Autowired
 	protected PrismContext prismContext;
 	
-	public static enum FailedOperation{
+	public enum FailedOperation{
 		ADD, DELETE, MODIFY, GET;
 	}
 	

@@ -186,7 +186,8 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		return subIdi;
 	}
 
-	public void recompute() throws SchemaException {
+	@Override
+    public void recompute() throws SchemaException {
 		if (delta == null) {
 			newObject = oldObject.clone();
 			return;
@@ -297,7 +298,8 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		return "ObjectDeltaObject(" + oldObject + " + " + delta + " = " + newObject + ")";
 	}
 
-	public ObjectDeltaObject<O> clone() {
+	@Override
+    public ObjectDeltaObject<O> clone() {
 		ObjectDeltaObject<O> clone = new ObjectDeltaObject<>(
 				CloneUtil.clone(oldObject),
 				CloneUtil.clone(delta),

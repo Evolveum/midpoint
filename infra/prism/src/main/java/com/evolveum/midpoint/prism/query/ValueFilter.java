@@ -91,7 +91,8 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		return fullPath.allExceptLast();
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public QName getElementName() {
 		if (definition != null) {
 			return definition.getName();		// this is more precise, as the name in path can be unqualified
@@ -106,7 +107,8 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		}
 	}
 
-	@Nullable
+	@Override
+    @Nullable
 	public D getDefinition() {
 		return definition;
 	}

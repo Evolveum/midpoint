@@ -42,6 +42,7 @@ public class PasswordCallback implements CallbackHandler {
         this.passwordAuthenticationEvaluatorImpl = passwordAuthenticationEvaluatorImpl;
     }
 
+    @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
     	LOGGER.trace("Invoked PasswordCallback with {} callbacks: {}", callbacks.length, callbacks);
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];

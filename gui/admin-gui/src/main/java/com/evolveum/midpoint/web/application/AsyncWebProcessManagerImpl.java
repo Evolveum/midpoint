@@ -179,7 +179,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
         String sessionId;
         String processId;
 
-        public Key(String sessionId, String processId) {
+        Key(String sessionId, String processId) {
             this.sessionId = sessionId;
             this.processId = processId;
         }

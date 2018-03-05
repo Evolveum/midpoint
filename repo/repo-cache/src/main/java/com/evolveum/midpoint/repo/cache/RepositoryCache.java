@@ -326,8 +326,9 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-													OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+	@Override
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+                                                    OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		modifyObject(type, oid, modifications, null, parentResult);
 	}
 

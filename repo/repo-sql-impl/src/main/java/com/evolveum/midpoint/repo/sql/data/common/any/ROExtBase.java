@@ -30,7 +30,8 @@ abstract public class ROExtBase extends RAnyBase implements ROExtValue {
 	private String ownerOid;
 	private RObjectExtensionType ownerType;
 
-	public RObject getOwner() {
+	@Override
+    public RObject getOwner() {
 		return owner;
 	}
 
@@ -41,11 +42,13 @@ abstract public class ROExtBase extends RAnyBase implements ROExtValue {
 		return ownerOid;
 	}
 
-	public RObjectExtensionType getOwnerType() {
+	@Override
+    public RObjectExtensionType getOwnerType() {
 		return ownerType;
 	}
 
-	public void setOwner(RObject owner) {
+	@Override
+    public void setOwner(RObject owner) {
 		this.owner = owner;
 	}
 
@@ -53,7 +56,8 @@ abstract public class ROExtBase extends RAnyBase implements ROExtValue {
 		this.ownerOid = ownerOid;
 	}
 
-	public void setOwnerType(RObjectExtensionType ownerType) {
+	@Override
+    public void setOwnerType(RObjectExtensionType ownerType) {
 		this.ownerType = ownerType;
 	}
 

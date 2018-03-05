@@ -83,7 +83,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		this.readonly = readOnly;
 	}
 
-	public void revive(PrismContext prismContext) throws SchemaException {
+	@Override
+    public void revive(PrismContext prismContext) throws SchemaException {
 		if (container != null) {
 			container.revive(prismContext);
 		}
@@ -114,7 +115,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return status;
 	}
 
-	public ItemPath getPath() {
+	@Override
+    public ItemPath getPath() {
 		return path;
 	}
 
@@ -178,7 +180,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return null;
 	}
 
-	public void computeStripes() {
+	@Override
+    public void computeStripes() {
 		int visibleProperties = 0;
 		for (ContainerValueWrapper<C> item : values) {
 			item.computeStripes();
@@ -234,7 +237,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return ColumnUtils.createStringResource(nameKey).getString();
 	}
 
-	public boolean hasChanged() {
+	@Override
+    public boolean hasChanged() {
 		for (ContainerValueWrapper item : getValues()) {
 			if (item.hasChanged()) {
 				return true;
@@ -300,7 +304,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return false;
 	}
 
-	public boolean isReadonly() {
+	@Override
+    public boolean isReadonly() {
 		// readonly flag in container is an override. Do not get the value from
 		// definition
 		// otherwise it will be propagated to items and overrides the item

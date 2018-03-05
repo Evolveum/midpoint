@@ -503,7 +503,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		InternalsConfig.setDetailedAuhotizationLog(true);
 	}
 
-	protected int getNumberOfRoles() {
+	@Override
+    protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 

@@ -104,7 +104,8 @@ public class SceneImpl implements Scene, DebugDumpable {
 		this.operational = operational;
 	}
 
-	public ItemPath getSourceRelPath() {
+	@Override
+    public ItemPath getSourceRelPath() {
 		return sourceRelPath;
 	}
 
@@ -219,7 +220,8 @@ public class SceneImpl implements Scene, DebugDumpable {
 		return sourceDefinition != null && sourceDefinition.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
 	}
 
-	public boolean isEmpty() {
+	@Override
+    public boolean isEmpty() {
 		if (changeType != ChangeType.MODIFY) {
 			return false;		// ADD or DELETE are never 'empty'
 		}

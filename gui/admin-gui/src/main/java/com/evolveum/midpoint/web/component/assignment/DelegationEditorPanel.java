@@ -211,6 +211,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         headerRow.add(expandButton);
     }
 
+    @Override
     protected void initBodyLayout(WebMarkupContainer body) {
         DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),

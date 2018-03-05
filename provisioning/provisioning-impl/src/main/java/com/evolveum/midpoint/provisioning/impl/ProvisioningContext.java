@@ -70,7 +70,8 @@ public class ProvisioningContext extends StateReporter {
 		this.parentResult = parentResult;
 	}
 
-	public void setResourceOid(String resourceOid) {
+	@Override
+    public void setResourceOid(String resourceOid) {
 		super.setResourceOid(resourceOid);
 		this.resource = null;
 		this.connectorMap = null;

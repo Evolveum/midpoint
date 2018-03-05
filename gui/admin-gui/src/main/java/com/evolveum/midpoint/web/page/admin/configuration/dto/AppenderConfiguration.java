@@ -80,10 +80,12 @@ public class AppenderConfiguration<T extends AppenderConfigurationType, O extend
         return false;
     }
 
+    @Override
     public boolean isEditing() {
         return editing;
     }
 
+    @Override
     public void setEditing(boolean editing) {
         this.editing = editing;
     }

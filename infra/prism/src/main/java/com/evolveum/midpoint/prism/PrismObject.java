@@ -70,7 +70,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		super(name, definition, prismContext);
 	}
 
-	public PrismObjectValue<O> createNewValue() {
+	@Override
+    public PrismObjectValue<O> createNewValue() {
 		checkMutability();
 		PrismObjectValue<O> newValue = new PrismObjectValue<>(prismContext);
 		try {
@@ -82,7 +83,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public PrismObjectValue<O> getValue() {
 		if (values.isEmpty()) {
 			return createNewValue();
@@ -252,7 +254,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		super.copyValues(strategy, clone);
 	}
 
-	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+	@Override
+    public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
 		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep, postCloneAction);
 	}
 
@@ -346,7 +349,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
 	 * These methods compare the "meaningful" parts of the objects.
 	 */
-	public boolean equivalent(Object obj) {
+	@Override
+    public boolean equivalent(Object obj) {
 		if (prismContext != null && prismContext.getMonitor() != null) {
 			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
 		}

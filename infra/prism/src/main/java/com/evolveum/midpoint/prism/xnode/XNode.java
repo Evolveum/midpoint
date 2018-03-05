@@ -144,8 +144,10 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 		this.explicitTypeDeclaration = explicitTypeDeclaration;
 	}
 
-	public abstract void accept(Visitor visitor);
+	@Override
+    public abstract void accept(Visitor visitor);
 
+    @Override
     public XNode clone() {
         return cloneTransformKeys(null);
     }

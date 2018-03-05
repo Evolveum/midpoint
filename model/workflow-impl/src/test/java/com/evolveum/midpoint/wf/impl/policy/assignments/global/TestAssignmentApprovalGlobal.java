@@ -71,7 +71,8 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 	/**
 	 * MID-3836
 	 */
-	public void test300ApprovalAndEnforce() throws Exception {
+	@Override
+    public void test300ApprovalAndEnforce() throws Exception {
 		final String TEST_NAME = "test300ApprovalAndEnforce";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);

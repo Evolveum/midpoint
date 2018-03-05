@@ -53,7 +53,8 @@ public class ReportsStorage implements PageStorage {
 
 	private Search search;
 
-	public Search getSearch() {
+	@Override
+    public Search getSearch() {
 		return search;
 	}
 

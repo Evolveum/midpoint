@@ -133,6 +133,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.assignmentOwner = assignmentOwner;
     }
 
+    @Override
     @Id
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     @MapsId("owner")
@@ -142,6 +143,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -151,6 +153,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -207,6 +210,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return order;
     }
 
+    @Override
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -218,28 +222,33 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return createApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
 
+    @Override
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -251,11 +260,13 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return modifyApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
@@ -313,46 +324,57 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         }
     }
 
+    @Override
     public void setOwner(RObject owner) {
         this.owner = owner;
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }
 
+    @Override
     public void setCreateApproverRef(Set<RAssignmentReference> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
+    @Override
     public void setCreateChannel(String createChannel) {
         this.createChannel = createChannel;
     }
 
+    @Override
     public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
         this.createTimestamp = createTimestamp;
     }
 
+    @Override
     public void setCreatorRef(REmbeddedReference creatorRef) {
         this.creatorRef = creatorRef;
     }
 
+    @Override
     public void setModifierRef(REmbeddedReference modifierRef) {
         this.modifierRef = modifierRef;
     }
 
+    @Override
     public void setModifyApproverRef(Set<RAssignmentReference> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
+    @Override
     public void setModifyChannel(String modifyChannel) {
         this.modifyChannel = modifyChannel;
     }
 
+    @Override
     public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
         this.modifyTimestamp = modifyTimestamp;
     }

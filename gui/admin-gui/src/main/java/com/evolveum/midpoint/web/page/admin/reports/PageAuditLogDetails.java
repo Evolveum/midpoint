@@ -165,6 +165,7 @@ public class PageAuditLogDetails extends PageBase {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this){
             private static final long serialVersionUID = 1L;
 
+            @Override
             public Map<String, Object> getParameters() {
                 Map<String, Object> parameters = new HashMap<String, Object>();
                 parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());

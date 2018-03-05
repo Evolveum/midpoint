@@ -78,11 +78,13 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 	private final FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper = new FocusListInlineMenuHelper<ServiceType>(ServiceType.class, this, this){
 		private static final long serialVersionUID = 1L;
 
-		protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+		@Override
+        protected boolean isShowConfirmationDialog(ColumnMenuAction action){
 			return PageServices.this.isShowConfirmationDialog(action);
 		}
 
-		protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+		@Override
+        protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
 			return PageServices.this.getConfirmationMessageModel(action, actionName);
 		}
 	};

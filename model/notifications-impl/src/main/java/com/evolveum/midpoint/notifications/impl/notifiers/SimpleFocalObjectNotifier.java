@@ -43,6 +43,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleFocalObjectNotifier.class);
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimpleFocalObjectNotifierType.class);

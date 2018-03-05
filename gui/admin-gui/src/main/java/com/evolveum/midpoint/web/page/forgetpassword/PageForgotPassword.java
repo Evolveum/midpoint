@@ -153,7 +153,8 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 			private static final long serialVersionUID = 1L;
 
-			public boolean isVisible() {
+			@Override
+            public boolean isVisible() {
 				return getResetPasswordPolicy().getResetMethod() == ResetMethod.SECURITY_QUESTIONS;
 			};
 		});
@@ -169,7 +170,8 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 			private static final long serialVersionUID = 1L;
 
-			public boolean isVisible() {
+			@Override
+            public boolean isVisible() {
 				ResetMethod resetMethod = getResetPasswordPolicy().getResetMethod();
 				return resetMethod == ResetMethod.SECURITY_QUESTIONS || resetMethod == ResetMethod.MAIL;
 			};

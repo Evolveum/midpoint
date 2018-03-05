@@ -143,7 +143,8 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		return dto;
 	}
 
-	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+	@Override
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
 		// return new StringResourceModel(resourceKey, this, null, resourceKey,
 		// objects);
@@ -408,7 +409,8 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 //		return (PageBase) getPage();
 //	}
 
-	public IModel<ObjectPolicyDialogDto> getModel() {
+	@Override
+    public IModel<ObjectPolicyDialogDto> getModel() {
 		return model;
 	}
 

@@ -144,7 +144,8 @@ public class TaskWfChildPanel extends Panel {
 		IModel<Boolean> showNextStagesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_IN_STAGE_BEFORE_LAST_ONE);
 		add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, parentPage));
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
-			public void onClick(AjaxRequestTarget target) {
+			@Override
+            public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getParentTaskOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();

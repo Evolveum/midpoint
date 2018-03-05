@@ -108,7 +108,8 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		return false;
 	}
 
-	public ObjectDeltaOperation<T> clone() {
+	@Override
+    public ObjectDeltaOperation<T> clone() {
 		ObjectDeltaOperation<T> clone = new ObjectDeltaOperation<T>();
 		copyToClone(clone);
 		return clone;

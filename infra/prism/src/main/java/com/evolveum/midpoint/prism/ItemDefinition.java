@@ -147,7 +147,8 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 
 	ItemDelta createEmptyDelta(ItemPath path);
 
-	@NotNull
+	@Override
+    @NotNull
 	ItemDefinition<I> clone();
 
 	ItemDefinition<I> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);

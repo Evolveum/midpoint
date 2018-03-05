@@ -91,6 +91,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
      *
      * @return applicable property definition
      */
+    @Override
     public PrismPropertyDefinition<T> getDefinition() {
         return definition;
     }
@@ -101,6 +102,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	 * TODO remove (method in Item is sufficient)
      * @param definition the definition to set
      */
+    @Override
     public void setDefinition(PrismPropertyDefinition<T> definition) {
 		checkMutability();
         this.definition = definition;

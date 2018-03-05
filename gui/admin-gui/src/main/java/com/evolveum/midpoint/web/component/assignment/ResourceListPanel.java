@@ -40,6 +40,7 @@ public class ResourceListPanel extends BaseDeprecatedPanel {
         super(id, null);
     }
 
+    @Override
     protected void initLayout() {
         TablePanel resources = new TablePanel("table", new ObjectDataProvider((PageBase) getPage(),
                 ResourceType.class), initColumns());

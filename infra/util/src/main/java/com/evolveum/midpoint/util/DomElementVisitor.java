@@ -24,6 +24,6 @@ import org.w3c.dom.Element;
 @FunctionalInterface
 public interface DomElementVisitor {
 
-	public void visit(Element element);
+	void visit(Element element);
 
 }

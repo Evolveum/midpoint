@@ -35,42 +35,63 @@ import java.util.List;
  */
 public interface PrismParserNoIO extends PrismParser {
 
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO language(@Nullable String language);
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO xml();
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO json();
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO yaml();
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO context(@NotNull ParsingContext context);
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO strict();
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO compat();
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO definition(ItemDefinition<?> itemDefinition);
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO name(QName itemName);
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO type(QName typeName);
-	@NotNull
+	@Override
+    @NotNull
 	PrismParserNoIO type(Class<?> typeClass);
 
-	@NotNull
+	@Override
+    @NotNull
 	<O extends Objectable> PrismObject<O> parse() throws SchemaException;
-	<IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException;
-	<IV extends PrismValue> IV parseItemValue() throws SchemaException;
-	<T> T parseRealValue(Class<T> clazz) throws SchemaException;
-	<T> T parseRealValue() throws SchemaException;
-	<T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
-	RootXNode parseToXNode() throws SchemaException;
-	Object parseItemOrRealValue() throws SchemaException;
+	@Override
+    <IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException;
+	@Override
+    <IV extends PrismValue> IV parseItemValue() throws SchemaException;
+	@Override
+    <T> T parseRealValue(Class<T> clazz) throws SchemaException;
+	@Override
+    <T> T parseRealValue() throws SchemaException;
+	@Override
+    <T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
+	@Override
+    RootXNode parseToXNode() throws SchemaException;
+	@Override
+    Object parseItemOrRealValue() throws SchemaException;
 
 	// auxiliary methods
-	@NotNull
+	@Override
+    @NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
 
-	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException;
+	@Override
+    void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException;
 }

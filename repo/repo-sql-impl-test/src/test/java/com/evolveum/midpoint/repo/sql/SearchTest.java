@@ -58,6 +58,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchTest.class);
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

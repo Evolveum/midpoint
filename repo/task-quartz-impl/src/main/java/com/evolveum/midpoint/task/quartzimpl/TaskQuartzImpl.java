@@ -264,7 +264,8 @@ public class TaskQuartzImpl implements Task {
 	}
 	//endregion
 
-	public PrismObject<TaskType> getTaskPrismObject() {
+	@Override
+    public PrismObject<TaskType> getTaskPrismObject() {
 
 		if (taskResult != null) {
 			taskPrism.asObjectable().setResult(taskResult.createOperationResultType());
@@ -970,7 +971,8 @@ public class TaskQuartzImpl implements Task {
 	//		this.persistenceStatus = persistenceStatus;
 	//	}
 
-	public boolean isPersistent() {
+	@Override
+    public boolean isPersistent() {
 		return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT;
 	}
 
@@ -1087,7 +1089,8 @@ public class TaskQuartzImpl implements Task {
 		setWaitingReason(reason);
 	}
 
-	public boolean isClosed() {
+	@Override
+    public boolean isClosed() {
 		return getExecutionStatus() == TaskExecutionStatus.CLOSED;
 	}
 
@@ -1148,7 +1151,8 @@ public class TaskQuartzImpl implements Task {
     * Recurrence status
     */
 
-	public TaskRecurrence getRecurrenceStatus() {
+	@Override
+    public TaskRecurrence getRecurrenceStatus() {
 		TaskRecurrenceType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_RECURRENCE, TaskRecurrenceType.class);
 		if (xmlValue == null) {
 			return null;
@@ -2114,7 +2118,8 @@ public class TaskQuartzImpl implements Task {
 	 *  Workflow context
 	 */
 
-	public void setWorkflowContext(WfContextType value) throws SchemaException {
+	@Override
+    public void setWorkflowContext(WfContextType value) throws SchemaException {
 		processModificationBatched(setWorkflowContextAndPrepareDelta(value));
 	}
 

@@ -54,6 +54,7 @@ public class ROExtReference extends ROExtBase {
     public ROExtReference() {
     }
 
+    @Override
     @Id
     @ForeignKey(name = "fk_o_ext_reference_owner")
     @MapsId("owner")
@@ -63,12 +64,14 @@ public class ROExtReference extends ROExtBase {
         return super.getOwner();
     }
 
+    @Override
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         return super.getOwnerOid();
     }
 
+    @Override
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
@@ -76,6 +79,7 @@ public class ROExtReference extends ROExtBase {
         return super.getOwnerType();
     }
 
+    @Override
     @MapsId("item")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_o_ext_reference_item"))
@@ -83,12 +87,14 @@ public class ROExtReference extends ROExtBase {
         return super.getItem();
     }
 
+    @Override
     @Id
     @Column(name = "item_id", insertable = false, updatable = false)
     public Integer getItemId() {
         return super.getItemId();
     }
 
+    @Override
     @Column(name = "targetoid", length = RUtil.COLUMN_LENGTH_OID)
     public String getValue() {
         return value;

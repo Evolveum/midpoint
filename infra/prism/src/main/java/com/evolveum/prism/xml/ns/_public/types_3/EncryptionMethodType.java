@@ -106,6 +106,7 @@ public class EncryptionMethodType  implements Serializable, Cloneable {
 		return "EncryptionMethodType(algorithm=" + algorithm + ")";
 	}
 
+    @Override
     public EncryptionMethodType clone() {
         EncryptionMethodType cloned = new EncryptionMethodType();
         cloned.setAlgorithm(getAlgorithm());

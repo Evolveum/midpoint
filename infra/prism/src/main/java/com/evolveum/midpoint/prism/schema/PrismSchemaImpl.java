@@ -349,7 +349,8 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	// items
 
-	@NotNull
+	@Override
+    @NotNull
 	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
 			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
 		List<ID> found = new ArrayList<>();

@@ -95,6 +95,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     public RAccessCertificationCase() {
     }
 
+    @Override
     @Id
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
     @MapsId("owner")
@@ -104,12 +105,14 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
         return ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -181,6 +184,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return outcome;
     }
 
+    @Override
     public void setOwner(RAccessCertificationCampaign owner) {
         this.owner = owner;
         if (owner != null) {        // sometimes we are called with null owner but non-null ownerOid
@@ -188,10 +192,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         }
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }

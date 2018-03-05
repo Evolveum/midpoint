@@ -100,7 +100,8 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 		return createQueryFromTask(handler, runResult, task, opResult);
 	}
 
-	protected Class<? extends ObjectType> getType(Task task) {
+	@Override
+    protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, UserType.class);
 	}
 

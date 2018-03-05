@@ -33,7 +33,8 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	/**
 	 * Does a SHALLOW clone.
 	 */
-	public abstract ObjectFilter clone();
+	@Override
+    public abstract ObjectFilter clone();
 	
 	public abstract boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 	

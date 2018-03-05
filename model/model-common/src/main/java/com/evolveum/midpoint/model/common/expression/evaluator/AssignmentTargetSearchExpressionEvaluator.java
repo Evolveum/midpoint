@@ -57,7 +57,8 @@ public class AssignmentTargetSearchExpressionEvaluator
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager, localizationService);
 	}
 
-	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
+	@Override
+    protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
 		AssignmentType assignmentType = new AssignmentType();
 		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
 

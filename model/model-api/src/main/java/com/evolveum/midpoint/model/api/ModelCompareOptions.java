@@ -191,6 +191,7 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 		}
 	}
 
+    @Override
     public ModelCompareOptions clone() {
         // not much efficient, but...
         ModelCompareOptions clone = fromModelCompareOptionsType(toModelCompareOptionsType());

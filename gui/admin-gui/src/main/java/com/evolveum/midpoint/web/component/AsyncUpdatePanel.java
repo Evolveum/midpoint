@@ -145,7 +145,7 @@ public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePa
         return image;
     }
 
-    protected abstract Component getMainComponent(final String markupId);
+    protected abstract Component getMainComponent(String markupId);
 
     /**
      * Create a callable that encapsulates the actual fetching of the data needed

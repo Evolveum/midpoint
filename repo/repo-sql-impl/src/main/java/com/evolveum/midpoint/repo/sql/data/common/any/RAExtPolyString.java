@@ -52,6 +52,7 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         }
     }
 
+    @Override
     @ForeignKey(name = "fk_a_ext_poly_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,6 +65,7 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         return super.getAnyContainer();
     }
 
+    @Override
     @Id
     @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
@@ -71,6 +73,7 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         return super.getOwnerOid();
     }
 
+    @Override
     @Id
     @Column(name = "anyContainer_owner_id")
     @NotQueryable
@@ -78,12 +81,14 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         return super.getOwnerId();
     }
 
+    @Override
     @Id
     @Column(name = "item_id", updatable = false, insertable = false)
     public Integer getItemId() {
         return super.getItemId();
     }
 
+    @Override
     @MapsId("item")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_a_ext_poly_item"))
@@ -91,6 +96,7 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         return super.getItem();
     }
 
+    @Override
     @Column(name = "orig")
     public String getValue() {
         return value;

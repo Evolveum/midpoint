@@ -212,7 +212,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		this.id = id;
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
+    @SuppressWarnings("unchecked")
 	public PrismContainerable<C> getParent() {
 		Itemable parent = super.getParent();
 		if (parent == null) {
@@ -238,7 +239,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		return (PrismContainer<C>)super.getParent();
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public ItemPath getPath() {
 		Itemable parent = getParent();
 		ItemPath parentPath = ItemPath.EMPTY_PATH;

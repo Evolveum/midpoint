@@ -209,11 +209,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.isAssignedOld = false;
     }
 
-	public ObjectDelta<ShadowType> getSyncDelta() {
+	@Override
+    public ObjectDelta<ShadowType> getSyncDelta() {
 		return syncDelta;
 	}
 
-	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
+	@Override
+    public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
 		this.syncDelta = syncDelta;
 	}
 
@@ -364,6 +366,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
+    @Override
     public boolean isAdd() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
 			return true;
@@ -373,6 +376,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return super.isAdd();
 	}
 
+    @Override
     public boolean isModify() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
 			return true;
@@ -382,7 +386,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return super.isModify();
 	}
 
-	public boolean isDelete() {
+	@Override
+    public boolean isDelete() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
 			return true;
 		} else if (synchronizationPolicyDecision != null) {
@@ -447,7 +452,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.isActive = isActive;
 	}
 
-	public Boolean isLegal() {
+	@Override
+    public Boolean isLegal() {
 		return isLegal;
 	}
 
@@ -463,7 +469,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.isLegalOld = isLegalOld;
 	}
 
-	public boolean isExists() {
+	@Override
+    public boolean isExists() {
 		return isExists;
 	}
 
@@ -471,7 +478,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.isExists = exists;
 	}
 
-	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
+	@Override
+    public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
         return synchronizationPolicyDecision;
     }
 
@@ -497,7 +505,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.synchronizationSituationResolved = synchronizationSituationResolved;
 	}
 
-	public boolean isFullShadow() {
+	@Override
+    public boolean isFullShadow() {
 		return fullShadow;
 	}
 
@@ -745,6 +754,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
      * Assuming that oldAccount is already set (or is null if it does not exist)
      */
+    @Override
     public void recompute() throws SchemaException {
         ObjectDelta<ShadowType> accDelta = getDelta();
 
@@ -895,7 +905,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return origDelta;
 	}
 
-	public void checkConsistence() {
+	@Override
+    public void checkConsistence() {
 		checkConsistence(null, true, false);
 	}
 
@@ -960,7 +971,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	}
 	}
 
-	protected boolean isRequireSecondardyDeltaOid() {
+	@Override
+    protected boolean isRequireSecondardyDeltaOid() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
@@ -1115,7 +1127,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 	}
 
-	public String getHumanReadableName() {
+	@Override
+    public String getHumanReadableName() {
 		if (humanReadableName == null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("account(");

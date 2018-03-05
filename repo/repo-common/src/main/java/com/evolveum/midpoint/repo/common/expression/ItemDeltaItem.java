@@ -346,7 +346,8 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 	}
 
-	public ItemDeltaItem<V,D> clone() {
+	@Override
+    public ItemDeltaItem<V,D> clone() {
 		ItemDeltaItem<V,D> clone = new ItemDeltaItem<>();
 		copyValues(clone);
 		return clone;

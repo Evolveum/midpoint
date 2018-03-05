@@ -16,8 +16,7 @@
 
 package com.evolveum.midpoint.repo.common;
 
-
 public interface Cacheable {
 
-	public void clearCache();
+	void clearCache();
 }

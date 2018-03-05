@@ -46,6 +46,7 @@ public class RTrigger implements Container {
         setOwner(owner);
     }
 
+    @Override
     @Id
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,6 +56,7 @@ public class RTrigger implements Container {
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -64,6 +66,7 @@ public class RTrigger implements Container {
         return ownerOid;
     }
 
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -93,14 +96,17 @@ public class RTrigger implements Container {
         this.trans = trans;
     }
 
+    @Override
     public void setOwner(RObject owner) {
         this.owner = owner;
     }
 
+    @Override
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setId(Integer id) {
         this.id = id;
     }

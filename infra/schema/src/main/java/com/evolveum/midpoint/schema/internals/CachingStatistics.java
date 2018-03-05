@@ -64,7 +64,8 @@ public class CachingStatistics implements DebugDumpable {
 		this.misses++;
 	}
 
-	public CachingStatistics clone() {
+	@Override
+    public CachingStatistics clone() {
 		CachingStatistics clone = new CachingStatistics();
 		clone.requests = this.requests;
 		clone.hits = this.hits;

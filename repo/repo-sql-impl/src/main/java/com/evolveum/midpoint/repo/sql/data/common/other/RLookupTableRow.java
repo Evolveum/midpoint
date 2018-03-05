@@ -58,6 +58,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return owner;
     }
 
+    @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -68,6 +69,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     }
 
     public static final String ID_COLUMN_NAME = "id";
+    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")

@@ -49,7 +49,8 @@ public class TaskEditableState implements Serializable, Cloneable {
 
 	HandlerDtoEditableState handlerSpecificState;
 
-	public TaskEditableState clone() {
+	@Override
+    public TaskEditableState clone() {
 		TaskEditableState clone = new TaskEditableState();
 		clone.name = name;
 		clone.description = description;

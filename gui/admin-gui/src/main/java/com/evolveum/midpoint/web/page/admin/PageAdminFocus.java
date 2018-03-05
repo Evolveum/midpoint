@@ -121,7 +121,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionModel.getObject();
 	}
 
-	protected void reviveModels() throws SchemaException {
+	@Override
+    protected void reviveModels() throws SchemaException {
 		super.reviveModels();
 		WebComponentUtil.revive(projectionModel, getPrismContext());
 	}

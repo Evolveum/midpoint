@@ -1574,6 +1574,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
+	@Override
 	protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -2166,10 +2167,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
+	@Override
 	protected PrismObjectDefinition<RoleType> getRoleDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
 	}
 
+	@Override
 	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 	}
@@ -2726,7 +2729,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		private final int timeout;
 		private Task freshTask;
 		
-		public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
+		TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
 				boolean errorOk, int timeout) {
 			super();
 			this.taskOid = taskOid;
@@ -3941,6 +3944,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return null;
 	}
 
+	@Override
 	protected Task createTask(String operationName) {
 		Task task = super.createTask(operationName);
 		PrismObject<UserType> defaultActor = getDefaultActor();
@@ -4391,6 +4395,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 
+	@Override
 	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -4399,6 +4404,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEncryptedUserPassword(user, expectedClearPassword);
 	}
 
+	@Override
 	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
 		UserType userType = user.asObjectable();
 		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();

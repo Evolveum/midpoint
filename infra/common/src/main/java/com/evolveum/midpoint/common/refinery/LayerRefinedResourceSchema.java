@@ -28,11 +28,15 @@ import javax.xml.namespace.QName;
 public interface LayerRefinedResourceSchema extends RefinedResourceSchema {
 	LayerType getLayer();
 
-	LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow);
+	@Override
+    LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow);
 
-	LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent);
+	@Override
+    LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent);
 
-	LayerRefinedObjectClassDefinition getRefinedDefinition(QName typeName);
+	@Override
+    LayerRefinedObjectClassDefinition getRefinedDefinition(QName typeName);
 
-	LayerRefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind);
+	@Override
+    LayerRefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind);
 }

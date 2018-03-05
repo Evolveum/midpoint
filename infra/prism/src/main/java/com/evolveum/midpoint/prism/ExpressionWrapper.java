@@ -46,7 +46,8 @@ public class ExpressionWrapper implements Cloneable, Serializable {
         return expression;
     }
 
-	public ExpressionWrapper clone() {
+	@Override
+    public ExpressionWrapper clone() {
 		Object expressionClone = CloneUtil.clone(expression);
 		return new ExpressionWrapper(elementName, expressionClone);
 	}

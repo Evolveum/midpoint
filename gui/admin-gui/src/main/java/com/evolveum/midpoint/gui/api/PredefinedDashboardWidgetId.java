@@ -35,7 +35,7 @@ public enum PredefinedDashboardWidgetId {
 	private final QName qname;
 	private final String uri;
 
-	private PredefinedDashboardWidgetId(String localPart) {
+	PredefinedDashboardWidgetId(String localPart) {
 		this.qname = new QName(ComponentConstants.NS_DASHBOARD_WIDGET, localPart);
 		this.uri = QNameUtil.qNameToUri(qname);
 	}

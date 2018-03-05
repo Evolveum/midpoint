@@ -56,7 +56,8 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
 		target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
 	}
 
-	public void onRequest() {
+	@Override
+    public void onRequest() {
 
 		IResourceStream resourceStream = getResourceStream();
 		if (resourceStream == null) {

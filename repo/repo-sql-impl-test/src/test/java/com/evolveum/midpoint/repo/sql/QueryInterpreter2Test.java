@@ -116,6 +116,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     private static final QName ACTIVATION_STATUS_TYPE_QNAME = new QName(SchemaConstants.NS_C, ActivationStatusType.class.getSimpleName());
     private static final QName SKIP_AUTOGENERATION_QNAME = new QName("http://example.com/p", "skipAutogeneration");
 
+    @Override
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -132,6 +133,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     private RExtItem overrideActivationDefinition;
     private RExtItem skipAutogenerationDefinition;
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

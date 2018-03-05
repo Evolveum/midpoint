@@ -172,35 +172,43 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 		private String systemId;
 		private final BufferedInputStream inputStream;
 
-		public String getPublicId() {
+		@Override
+        public String getPublicId() {
 			return publicId;
 		}
 
-		public void setPublicId(String publicId) {
+		@Override
+        public void setPublicId(String publicId) {
 			this.publicId = publicId;
 		}
 
-		public String getBaseURI() {
+		@Override
+        public String getBaseURI() {
 			return null;
 		}
 
-		public InputStream getByteStream() {
+		@Override
+        public InputStream getByteStream() {
 			return null;
 		}
 
-		public boolean getCertifiedText() {
+		@Override
+        public boolean getCertifiedText() {
 			return false;
 		}
 
-		public Reader getCharacterStream() {
+		@Override
+        public Reader getCharacterStream() {
 			return null;
 		}
 
-		public String getEncoding() {
+		@Override
+        public String getEncoding() {
 			return null;
 		}
 
-		public String getStringData() {
+		@Override
+        public String getStringData() {
 			synchronized (inputStream) {
 				try {
 					byte[] input = new byte[inputStream.available()];
@@ -215,29 +223,37 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 			}
 		}
 
-		public void setBaseURI(String baseURI) {
+		@Override
+        public void setBaseURI(String baseURI) {
 		}
 
-		public void setByteStream(InputStream byteStream) {
+		@Override
+        public void setByteStream(InputStream byteStream) {
 		}
 
-		public void setCertifiedText(boolean certifiedText) {
+		@Override
+        public void setCertifiedText(boolean certifiedText) {
 		}
 
-		public void setCharacterStream(Reader characterStream) {
+		@Override
+        public void setCharacterStream(Reader characterStream) {
 		}
 
-		public void setEncoding(String encoding) {
+		@Override
+        public void setEncoding(String encoding) {
 		}
 
-		public void setStringData(String stringData) {
+		@Override
+        public void setStringData(String stringData) {
 		}
 
-		public String getSystemId() {
+		@Override
+        public String getSystemId() {
 			return systemId;
 		}
 
-		public void setSystemId(String systemId) {
+		@Override
+        public void setSystemId(String systemId) {
 			this.systemId = systemId;
 		}
 

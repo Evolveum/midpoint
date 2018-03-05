@@ -65,6 +65,7 @@ public class LinkPanel extends Panel {
         add(link);
     }
 
+    @Override
     public boolean isEnabled() {
         return true;
     }

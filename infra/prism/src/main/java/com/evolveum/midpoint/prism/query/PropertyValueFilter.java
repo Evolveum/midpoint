@@ -143,6 +143,7 @@ public abstract class PropertyValueFilter<T> extends ValueFilter<PrismPropertyVa
 
 	// TODO cleanup this mess - how values are cloned, that expression is not cloned in LT/GT filter etc
 
-	public abstract PropertyValueFilter clone();
+	@Override
+    public abstract PropertyValueFilter clone();
 
 }

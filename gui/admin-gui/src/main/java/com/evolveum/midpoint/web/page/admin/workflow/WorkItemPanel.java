@@ -208,7 +208,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		add(primaryInfoColumn);
 
 		add(new AjaxFallbackLink(ID_SHOW_REQUEST) {
-			public void onClick(AjaxRequestTarget target) {
+			@Override
+            public void onClick(AjaxRequestTarget target) {
 				String oid = WorkItemPanel.this.getModelObject().getTaskOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
@@ -248,7 +249,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
 			private static final long serialVersionUID = 1L;
 
-			public boolean isVisible() {
+			@Override
+            public boolean isVisible() {
 				return (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null);
 			};
 		});

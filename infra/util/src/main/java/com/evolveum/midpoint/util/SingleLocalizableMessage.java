@@ -66,7 +66,8 @@ public class SingleLocalizableMessage implements LocalizableMessage {
 	 * Fallback message. This message is used in case that the
 	 * message key cannot be found in the localization files.
 	 */
-	public String getFallbackMessage() {
+	@Override
+    public String getFallbackMessage() {
 		return fallbackMessage;
 	}
 

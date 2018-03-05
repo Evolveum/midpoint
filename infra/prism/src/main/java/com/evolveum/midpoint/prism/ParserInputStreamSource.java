@@ -31,7 +31,8 @@ public class ParserInputStreamSource implements ParserSource {
 		this.inputStream = inputStream;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public InputStream getInputStream() {
 		return inputStream;
 	}

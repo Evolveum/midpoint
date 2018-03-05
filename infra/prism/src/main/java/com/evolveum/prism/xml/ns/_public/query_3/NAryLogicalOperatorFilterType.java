@@ -126,6 +126,7 @@ public class NAryLogicalOperatorFilterType
         return ToStringBuilder.reflectionToString(this);
     }
 
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
         {
@@ -141,6 +142,7 @@ public class NAryLogicalOperatorFilterType
         return this.hashCode(null, strategy);
     }
 
+    @Override
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof NAryLogicalOperatorFilterType)) {
             return false;

@@ -37,7 +37,8 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
         super(id, form, model);
     }
 
-	protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
+	@Override
+    protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
 		ContainerWrapperFromObjectWrapperModel<PolicyRuleType, F> policyRuleModel =
 				new ContainerWrapperFromObjectWrapperModel<PolicyRuleType, F>(pageBase.getObjectModel(),
 						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));

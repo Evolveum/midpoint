@@ -366,7 +366,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
 		private static final long serialVersionUID = 1L;
-		public EmptyOnBlurAjaxFormUpdatingBehaviour() {
+		EmptyOnBlurAjaxFormUpdatingBehaviour() {
 			super("blur");
 		}
 

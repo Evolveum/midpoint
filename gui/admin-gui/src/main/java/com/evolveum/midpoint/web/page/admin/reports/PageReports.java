@@ -197,7 +197,8 @@ public class PageReports extends PageAdminReports {
 
     		private static final long serialVersionUID = 1L;
 
-			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+			@Override
+            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
     			OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
     	        try {
 

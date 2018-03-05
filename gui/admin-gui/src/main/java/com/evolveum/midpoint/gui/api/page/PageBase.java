@@ -438,10 +438,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return localizationService;
     }
 
+    @Override
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
     }
 
+    @Override
     public ExpressionFactory getExpressionFactory() {
         return getMidpointApplication().getExpressionFactory();
     }
@@ -609,6 +611,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return task;
     }
 
+    @Override
     public Task createSimpleTask(String operation) {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         if (user == null) {
@@ -685,6 +688,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
         Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
         deploymentName.add(new VisibleEnableBehaviour() {
+            @Override
             public boolean isVisible() {
                 return StringUtils.isNotEmpty(deploymentNameModel.getObject());
             }

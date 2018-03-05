@@ -117,7 +117,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	}
 
 
-	protected int internalSize() {
+	@Override
+    protected int internalSize() {
  		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false, true);
 		long count;
 		try {

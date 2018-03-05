@@ -168,7 +168,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return objectOld;
 	}
 
-	public void setObjectOld(PrismObject<O> objectOld) {
+	@Override
+    public void setObjectOld(PrismObject<O> objectOld) {
 		this.objectOld = objectOld;
 	}
 
@@ -208,7 +209,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return objectNew;
 	}
 
-	public void setObjectNew(PrismObject<O> objectNew) {
+	@Override
+    public void setObjectNew(PrismObject<O> objectNew) {
 		this.objectNew = objectNew;
 	}
 
@@ -252,11 +254,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return null;
 	}
 
-	public void setPrimaryDelta(ObjectDelta<O> primaryDelta) {
+	@Override
+    public void setPrimaryDelta(ObjectDelta<O> primaryDelta) {
 		this.primaryDelta = primaryDelta;
 	}
 
-	public void addPrimaryDelta(ObjectDelta<O> delta) throws SchemaException {
+	@Override
+    public void addPrimaryDelta(ObjectDelta<O> delta) throws SchemaException {
         if (primaryDelta == null) {
         	primaryDelta = delta;
         } else {
@@ -481,7 +485,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.isFresh = isFresh;
 	}
 
-	public Collection<EvaluatedPolicyRule> getPolicyRules() {
+	@Override
+    public Collection<EvaluatedPolicyRule> getPolicyRules() {
 		return policyRules;
 	}
 

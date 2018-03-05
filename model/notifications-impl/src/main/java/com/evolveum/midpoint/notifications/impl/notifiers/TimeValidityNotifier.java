@@ -41,6 +41,7 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(TimeValidityNotifier.class);
 
+    @Override
     @PostConstruct
     public void init() {
         register(TimeValidityNotifierType.class);

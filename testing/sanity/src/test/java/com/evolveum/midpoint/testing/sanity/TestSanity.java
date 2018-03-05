@@ -336,6 +336,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     // This will get called from the superclass to init the repository
     // It will be called only once
+    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         LOGGER.trace("initSystem");
         try{
@@ -2802,6 +2803,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // task
 
         waitFor("Waiting for task manager to pick up the task", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);
@@ -3347,6 +3349,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // task
 
         waitFor("Waiting for task to finish", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
                 //display("Task while waiting for task manager to pick up the task", task);
@@ -3503,6 +3506,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // task
 
         waitFor("Waiting for task to finish first run", new Checker() {
+            @Override
             public boolean check() throws ObjectNotFoundException, SchemaException {
                 Task task = taskManager.getTask(TASK_OPENDJ_RECON_OID, result);
                 display("Task while waiting for task manager to pick up the task", task);

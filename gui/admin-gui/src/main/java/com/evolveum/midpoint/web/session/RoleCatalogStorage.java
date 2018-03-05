@@ -58,10 +58,12 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     private ShoppingCartConfigurationDto shoppingCartConfigurationDto = null;
 
+    @Override
     public Search getSearch() {
         return roleCatalogSearch;
     }
 
+    @Override
     public void setSearch(Search roleCatalog) {
         this.roleCatalogSearch = roleCatalog;
     }

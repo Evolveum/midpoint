@@ -57,7 +57,7 @@ public class CaptchaPanel extends BasePanel<Void> {
 								private static final long serialVersionUID = 1L;
 
 			@Override
-			protected final void onComponentTag(final ComponentTag tag) {
+			protected void onComponentTag(final ComponentTag tag) {
 				super.onComponentTag(tag);
 				// clear the field after each render
 				tag.put("value", "");

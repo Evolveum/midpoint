@@ -53,6 +53,7 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 	protected PrismContext prismContext;
 
 //	@Override
+    @Override
     public void init(List<ClassResourceInfo> cris) {
         setEnableStreaming(true);
     }

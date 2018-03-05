@@ -242,7 +242,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return REFRESH_INTERVAL_IF_RUNNABLE;
 	}
 
-	public void refresh(AjaxRequestTarget target) {
+	@Override
+    public void refresh(AjaxRequestTarget target) {
 		TaskTabsVisibility tabsVisibilityOld = new TaskTabsVisibility();
 		tabsVisibilityOld.computeAll(this);
 		TaskButtonsVisibility buttonsVisibilityOld = new TaskButtonsVisibility();

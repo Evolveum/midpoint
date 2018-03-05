@@ -29,6 +29,7 @@ public class InitializeLoopThroughStages implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughStages.class);
 
+    @Override
     public void execute(DelegateExecution execution) {
         LOGGER.trace("Executing the delegate; execution = {}", execution);
 		List stages = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_STAGES, List.class, null);

@@ -120,7 +120,7 @@ public class MidPointResourceStreamLocator extends ResourceStreamLocator {
 
         private String current;
 
-        public SimpleResourceNameIterator(String path, List<String> extensions) {
+        SimpleResourceNameIterator(String path, List<String> extensions) {
             this.path = path;
             this.extensions = extensions.iterator();
         }

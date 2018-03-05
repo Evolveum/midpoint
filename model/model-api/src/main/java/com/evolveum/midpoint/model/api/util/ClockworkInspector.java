@@ -52,7 +52,7 @@ public interface ClockworkInspector extends DiagnosticContext {
 	/**
 	 * May be used to gather profiling data, etc.
 	 */
-	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping);
+	<F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping);
 
 //	/**
 //	 * For all scripts expect for mappings.

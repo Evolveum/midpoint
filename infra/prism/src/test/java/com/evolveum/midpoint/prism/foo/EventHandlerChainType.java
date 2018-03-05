@@ -127,6 +127,7 @@ public class EventHandlerChainType
      * This is an extension method, produced by the 'ts' xjc plugin
      *
      */
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
         {
@@ -142,6 +143,7 @@ public class EventHandlerChainType
         return this.hashCode(null, strategy);
     }
 
+    @Override
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof EventHandlerChainType)) {
             return false;

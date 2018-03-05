@@ -104,7 +104,8 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>() {
 			private static final long serialVersionUID = 1L;
 
-			public SceneDto getObject() {
+			@Override
+            public SceneDto getObject() {
 				return sceneDto;
 			}
 

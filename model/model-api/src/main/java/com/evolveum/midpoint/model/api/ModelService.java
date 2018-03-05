@@ -88,30 +88,30 @@ import org.jetbrains.annotations.NotNull;
 public interface ModelService {
 
 	// Constants for OperationResult
-	static final String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
-	static final String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-	static final String COMPARE_OBJECT = CLASS_NAME_WITH_DOT + "compareObject";
-	static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
-	static final String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
-	static final String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
-	static final String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
-	static final String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
-	static final String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
-	static final String RECOMPUTE = CLASS_NAME_WITH_DOT + "recompute";
-	static final String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
-	static final String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
-	static final String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
-	static final String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
-	static final String LIST_RESOURCE_OBJECTS = CLASS_NAME_WITH_DOT + "listResourceObjects";
-	static final String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
-	static final String IMPORT_ACCOUNTS_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importAccountsFromResource";
-	static final String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME_WITH_DOT + "importObjectsFromFile";
-	static final String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
-	static final String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
-	static final String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
-	static final String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
+	String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
+	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+	String COMPARE_OBJECT = CLASS_NAME_WITH_DOT + "compareObject";
+	String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+	String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
+	String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
+	String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
+	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
+	String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
+	String RECOMPUTE = CLASS_NAME_WITH_DOT + "recompute";
+	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
+	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
+	String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
+	String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
+	String LIST_RESOURCE_OBJECTS = CLASS_NAME_WITH_DOT + "listResourceObjects";
+	String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
+	String IMPORT_ACCOUNTS_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importAccountsFromResource";
+	String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME_WITH_DOT + "importObjectsFromFile";
+	String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
+	String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
+	String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
+	String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
 
-	static final String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
+	String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
 
 	/**
 	 * <p>

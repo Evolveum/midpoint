@@ -67,7 +67,8 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 		return dataString.startsWith("---");
 	}
 
-	public YAMLGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
+	@Override
+    public YAMLGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		try {
 			MidpointYAMLFactory factory = new MidpointYAMLFactory();
 			MidpointYAMLGenerator generator = (MidpointYAMLGenerator) factory.createGenerator(out);

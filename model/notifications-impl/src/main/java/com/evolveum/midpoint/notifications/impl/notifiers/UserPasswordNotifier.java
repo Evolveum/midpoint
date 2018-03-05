@@ -54,6 +54,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
     @Autowired
     private NotificationFunctionsImpl notificationsUtil;
 
+    @Override
     @PostConstruct
     public void init() {
         register(UserPasswordNotifierType.class);

@@ -47,6 +47,7 @@ public class RAssignmentReference extends RContainerReference  {
 
     private RAssignment owner;
 
+    @Override
     @ForeignKey(name = "fk_assignment_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -55,6 +56,7 @@ public class RAssignmentReference extends RContainerReference  {
         return owner;
     }
 
+    @Override
     @Id
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
@@ -63,6 +65,7 @@ public class RAssignmentReference extends RContainerReference  {
     }
 
 
+    @Override
     @Id
     @Column(name = "owner_id")
     @NotQueryable
@@ -71,6 +74,7 @@ public class RAssignmentReference extends RContainerReference  {
     }
 
     //@MapsId("target")
+    @Override
     @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
@@ -88,6 +92,7 @@ public class RAssignmentReference extends RContainerReference  {
         return super.getTargetOid();
     }
 
+    @Override
     @Id
     @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {
@@ -108,6 +113,7 @@ public class RAssignmentReference extends RContainerReference  {
         return super.getType();
     }
 
+    @Override
     @Id
     @Column(name = REFERENCE_TYPE, nullable = false)
     public RCReferenceOwner getReferenceType() {

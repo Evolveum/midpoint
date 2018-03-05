@@ -122,11 +122,13 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         return deltaOid;
     }
 
+    @Override
     @Lob
     public byte[] getFullResult() {
         return fullResult;
     }
 
+    @Override
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
@@ -179,10 +181,12 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         recomputeChecksum();
     }
 
+    @Override
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }
 
+    @Override
     public void setFullResult(byte[] fullResult) {
         this.fullResult = fullResult;
 

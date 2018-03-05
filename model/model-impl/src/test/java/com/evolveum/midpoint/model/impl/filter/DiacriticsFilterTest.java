@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.filter;
 
 import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.model.impl.filter.DiacriticsFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import org.testng.AssertJUnit;

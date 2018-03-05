@@ -38,7 +38,8 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 		this.innerTriggers = innerTriggers;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
 		return innerTriggers;
 	}

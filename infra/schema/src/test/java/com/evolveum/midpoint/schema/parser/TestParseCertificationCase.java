@@ -66,12 +66,14 @@ public class TestParseCertificationCase extends AbstractContainerValueParserTest
 				AccessCertificationCaseType.COMPLEX_TYPE, AccessCertificationAssignmentCaseType.COMPLEX_TYPE, serializer, serId);
 	}
 
-	public void assertPrismContainerValueLocal(PrismContainerValue<AccessCertificationCaseType> value) throws SchemaException {
+	@Override
+    public void assertPrismContainerValueLocal(PrismContainerValue<AccessCertificationCaseType> value) throws SchemaException {
 		assertPrismValue(value);
 		assertJaxb(value.asContainerable());
 	}
 
-	protected void assertPrismValue(PrismContainerValue<AccessCertificationCaseType> pcv) {
+	@Override
+    protected void assertPrismValue(PrismContainerValue<AccessCertificationCaseType> pcv) {
 		assertEquals("Wrong id", (Long) 4L, pcv.getId());
 		ComplexTypeDefinition ctd = pcv.getComplexTypeDefinition();
 		assertNotNull("No CTD", ctd);

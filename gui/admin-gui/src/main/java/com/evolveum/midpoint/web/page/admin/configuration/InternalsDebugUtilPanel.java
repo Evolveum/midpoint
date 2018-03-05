@@ -29,7 +29,8 @@ public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
 		super(id, model);
 	}
 	
-	protected void onInitialize() {
+	@Override
+    protected void onInitialize() {
 		super.onInitialize();
 		
 		setOutputMarkupId(true);

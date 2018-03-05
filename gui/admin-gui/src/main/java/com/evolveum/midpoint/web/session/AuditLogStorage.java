@@ -32,10 +32,12 @@ public class AuditLogStorage implements PageStorage {
     public AuditLogStorage() {
     }
 
+    @Override
     public Search getSearch() {
         return null;
     }
 
+    @Override
     public void setSearch(Search search) {
 
     }

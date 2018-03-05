@@ -235,7 +235,8 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 
 	ResourceAttributeContainer instantiate(QName elementName);
 
-	@NotNull
+	@Override
+    @NotNull
 	ObjectClassComplexTypeDefinition clone();
 
 	@NotNull

@@ -564,7 +564,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         private final String bundleName;
 
-        public Utf8BundleStringResourceLoader(String bundleName) {
+        Utf8BundleStringResourceLoader(String bundleName) {
             this.bundleName = bundleName;
         }
 

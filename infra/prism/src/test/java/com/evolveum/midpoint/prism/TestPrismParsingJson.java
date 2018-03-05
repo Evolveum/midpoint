@@ -2,8 +2,6 @@ package com.evolveum.midpoint.prism;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
 public class TestPrismParsingJson extends TestPrismParsing {
 
 	@Override

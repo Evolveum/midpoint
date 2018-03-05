@@ -43,7 +43,8 @@ public class SceneItemValueImpl implements SceneItemValue {
 		return text;
 	}
 
-	public String getAdditionalText() {
+	@Override
+    public String getAdditionalText() {
 		return additionalText;
 	}
 

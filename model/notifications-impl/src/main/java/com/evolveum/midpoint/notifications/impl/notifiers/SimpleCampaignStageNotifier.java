@@ -49,6 +49,7 @@ public class SimpleCampaignStageNotifier extends GeneralNotifier {
     @Autowired
     private CertHelper certHelper;
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimpleCampaignStageNotifierType.class);

@@ -82,6 +82,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
             };
             searchForm.add(searchInput);
             final Label buttonLabel = new Label(ID_BUTTON_LABEL, new Model<String>() {
+                @Override
                 public String getObject() {
                     return accessibleSearchTypes.get(selectedSearchType);
                 }

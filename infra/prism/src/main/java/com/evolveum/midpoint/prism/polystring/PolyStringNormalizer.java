@@ -30,6 +30,6 @@ public interface PolyStringNormalizer {
 	 * Returns a normalized version of the string.
 	 * @return normalized version of the string
 	 */
-	public String normalize(String orig);
+	String normalize(String orig);
 
 }

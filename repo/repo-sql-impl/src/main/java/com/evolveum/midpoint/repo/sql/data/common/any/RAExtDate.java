@@ -46,6 +46,7 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
         this.value = value;
     }
 
+    @Override
     @ForeignKey(name = "fk_a_ext_date_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,6 +59,7 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
         return super.getAnyContainer();
     }
 
+    @Override
     @Id
     @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
@@ -65,6 +67,7 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
         return super.getOwnerOid();
     }
 
+    @Override
     @Id
     @Column(name = "anyContainer_owner_id")
     @NotQueryable
@@ -72,12 +75,14 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
         return super.getOwnerId();
     }
 
+    @Override
     @Id
     @Column(name = "item_id", updatable = false, insertable = false)
     public Integer getItemId() {
         return super.getItemId();
     }
 
+    @Override
     @MapsId("item")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_a_ext_date_item"))
@@ -85,6 +90,7 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
         return super.getItem();
     }
 
+    @Override
     @Column(name = "dateValue")
     public Timestamp getValue() {
         return value;

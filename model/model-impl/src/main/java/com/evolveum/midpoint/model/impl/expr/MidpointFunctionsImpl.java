@@ -1411,7 +1411,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return SchemaConstants.LIFECYCLE_PROPOSED;
 	}
 
-	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
+	@Override
+    public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityContextManager.getPrincipal();
 	}
 

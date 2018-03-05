@@ -243,33 +243,40 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         this.inboundMappingTypes = inboundAssignmentTypes;
     }
 
+    @Override
     @NotNull
 	public QName getName() {
         return attributeDefinition.getName();
     }
 
+    @Override
     @NotNull
 	public QName getTypeName() {
         return attributeDefinition.getTypeName();
     }
 
+    @Override
     public String getNativeAttributeName() {
         return attributeDefinition.getNativeAttributeName();
     }
 
+    @Override
     public String getFrameworkAttributeName() {
 		return attributeDefinition.getFrameworkAttributeName();
 	}
 
+    @Override
     public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return attributeDefinition.getAllowedValues();
     }
 
+    @Override
     public boolean isReturnedByDefault() {
 		return attributeDefinition.isReturnedByDefault();
 	}
 
-	public void setReturnedByDefault(Boolean returnedByDefault) {
+	@Override
+    public void setReturnedByDefault(Boolean returnedByDefault) {
 		throw new UnsupportedOperationException("Cannot change returnedByDefault");
 	}
 
@@ -328,6 +335,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     	return limitationsMap.get(layer);
     }
 
+    @Override
     public String getHelp() {
         return attributeDefinition.getHelp();
     }
@@ -341,11 +349,13 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 		this.fetchStrategy = fetchStrategy;
 	}
 
-	public QName getMatchingRuleQName() {
+	@Override
+    public QName getMatchingRuleQName() {
 		return matchingRuleQName;
 	}
 
-	public void setMatchingRuleQName(QName matchingRuleQName) {
+	@Override
+    public void setMatchingRuleQName(QName matchingRuleQName) {
 		this.matchingRuleQName = matchingRuleQName;
 	}
 

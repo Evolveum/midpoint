@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,6 +69,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return getItem().getElementName();
 	}
 
+	@Override
 	public void revive(PrismContext prismContext) throws SchemaException {
 		if (getItem() != null) {
 			getItem().revive(prismContext);
@@ -91,6 +91,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return container != null ? container.getContainer() : null;
 	}
 
+	@Override
 	public boolean isVisible() {
 		
         if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
@@ -134,10 +135,12 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return getItemDefinition().canRead() && isShowEmpty(); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
 	}
 
+	@Override
 	public boolean isStripe() {
 		return isStripe;
 	}
 
+	@Override
 	public void setStripe(boolean isStripe) {
 		this.isStripe = isStripe;
 	}
@@ -171,18 +174,22 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.status = status;
 	}
 
+	@Override
 	public List<ValueWrapper> getValues() {
 		return values;
 	}
 	
+	@Override
 	public boolean isShowEmpty() {
 		return showEmpty;
 	}
 	
+	@Override
 	public void setShowEmpty(boolean showEmpty, boolean recursive) {
 		this.showEmpty = showEmpty;
 	}
 
+	@Override
 	public void addValue(boolean showEmpty) {
 		this.showEmpty = showEmpty;
 		getValues().add(createAddedValue());
@@ -199,6 +206,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //		return item.getDefinition();
 //	}
 
+	@Override
 	public boolean hasChanged() {
 		for (ValueWrapper value : getValues()) {
 			switch (value.getStatus()) {

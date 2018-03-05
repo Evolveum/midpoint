@@ -68,6 +68,7 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
 
 
 
+    @Override
     public boolean isEnabled(IModel<T> rowModel) {
         return true;
     }

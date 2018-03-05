@@ -244,7 +244,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             		private static final long serialVersionUID = 1L;
 					private String oid;
             		
-            		protected void onDetach() {
+            		@Override
+                    protected void onDetach() {
             			this.oid = getObject().getOid();
             		}
             		

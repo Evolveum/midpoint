@@ -840,6 +840,7 @@ public class ItemPath implements Serializable, Cloneable {
 		return true;
 	}
 
+    @Override
     public ItemPath clone() {
         ItemPath clone = new ItemPath();
         for (ItemPathSegment segment : segments) {

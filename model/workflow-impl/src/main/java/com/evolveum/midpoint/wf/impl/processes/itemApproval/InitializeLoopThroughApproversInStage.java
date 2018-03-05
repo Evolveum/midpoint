@@ -40,6 +40,7 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 
 	private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughApproversInStage.class);
 
+    @Override
     public void execute(DelegateExecution execution) {
 
 		PrismContext prismContext = getPrismContext();

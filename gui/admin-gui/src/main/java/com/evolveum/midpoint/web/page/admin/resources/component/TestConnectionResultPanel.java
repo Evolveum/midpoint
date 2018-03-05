@@ -63,6 +63,7 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
         messageLabel.setOutputMarkupId(true);
         contentPanel.add(messageLabel);
         messageLabel.add(new VisibleEnableBehaviour() {
+            @Override
             public boolean isVisible() {
                 return !isLoaded;
             }

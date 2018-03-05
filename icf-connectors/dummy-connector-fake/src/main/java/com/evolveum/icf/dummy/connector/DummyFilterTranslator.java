@@ -33,7 +33,8 @@ public class DummyFilterTranslator implements FilterTranslator<String> {
 	/* (non-Javadoc)
 	 * @see org.identityconnectors.framework.common.objects.filter.FilterTranslator#translate(org.identityconnectors.framework.common.objects.filter.Filter)
 	 */
-	public List<String> translate(Filter filter) {
+	@Override
+    public List<String> translate(Filter filter) {
 		log.info("translate::begin");
 
 		log.info("translate::filter: {0}",filter == null ? "null" : filter.toString());

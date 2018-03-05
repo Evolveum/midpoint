@@ -78,6 +78,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         queryCountInterceptor.clearCounter();
     }
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         OperationResult result = new OperationResult("setup");

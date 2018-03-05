@@ -44,6 +44,7 @@ public class AccountPasswordNotifier extends GeneralNotifier {
     @Autowired
     private MidpointFunctions midpointFunctions;
 
+    @Override
     @PostConstruct
     public void init() {
         register(AccountPasswordNotifierType.class);

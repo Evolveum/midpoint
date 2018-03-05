@@ -80,7 +80,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
 	}
 
-	 protected void initShadowStatistics(WebMarkupContainer totals) {
+	 @Override
+     protected void initShadowStatistics(WebMarkupContainer totals) {
 
 		 totals.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;

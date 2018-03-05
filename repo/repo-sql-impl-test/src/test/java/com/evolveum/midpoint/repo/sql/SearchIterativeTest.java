@@ -53,6 +53,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
     private static final int BASE = 100000;
     private static final int COUNT = 500;
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

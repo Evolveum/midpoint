@@ -63,6 +63,7 @@ public abstract class LoadableModel<T> implements IModel<T> {
         };
     }
 
+    @Override
     public T getObject() {
         if (!loaded) {
             setObject(load());
@@ -77,6 +78,7 @@ public abstract class LoadableModel<T> implements IModel<T> {
         return object;
     }
 
+    @Override
     public void setObject(T object) {
         if (this.object instanceof IModel) {
             ((IModel<T>) this.object).setObject(object);
@@ -95,6 +97,7 @@ public abstract class LoadableModel<T> implements IModel<T> {
         loaded = false;
     }
 
+    @Override
     public void detach() {
         if (loaded && alwaysReload) {
             this.loaded = false;

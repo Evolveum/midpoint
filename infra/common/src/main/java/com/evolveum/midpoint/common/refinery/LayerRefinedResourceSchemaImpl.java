@@ -61,7 +61,8 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 		return layer;
 	}
 
-	public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
+	@Override
+    public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
 		return LayerRefinedObjectClassDefinitionImpl
 				.wrapCollection(refinedResourceSchema.getRefinedDefinitions(kind), layer);
 	}
@@ -159,7 +160,8 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 				.wrap(refinedResourceSchema.getDefaultRefinedDefinition(kind), layer);
 	}
 
-	public LayerRefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
+	@Override
+    public LayerRefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
 		return LayerRefinedObjectClassDefinitionImpl
 				.wrap(refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass), layer);
 	}

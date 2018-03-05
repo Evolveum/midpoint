@@ -92,7 +92,8 @@ public abstract class AbstractContainerValueParserTest<C extends Containerable> 
 		}
 	}
 
-	protected boolean isContainer() {
+	@Override
+    protected boolean isContainer() {
 		return true;
 	}
 

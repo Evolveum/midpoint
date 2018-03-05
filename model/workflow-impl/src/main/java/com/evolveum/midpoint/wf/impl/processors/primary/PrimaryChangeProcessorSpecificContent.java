@@ -35,7 +35,8 @@ public class PrimaryChangeProcessorSpecificContent implements ProcessorSpecificC
 		processorState = new WfPrimaryChangeProcessorStateType(prismContext);
 	}
 
-	public WfPrimaryChangeProcessorStateType createProcessorSpecificState() {
+	@Override
+    public WfPrimaryChangeProcessorStateType createProcessorSpecificState() {
 		return processorState;
 	}
 

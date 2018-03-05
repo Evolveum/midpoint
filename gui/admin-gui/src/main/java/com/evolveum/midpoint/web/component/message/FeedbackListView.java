@@ -59,7 +59,8 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 					message.markRendered();
 				}
 
-				protected void onAfterRender() {
+				@Override
+                protected void onAfterRender() {
 					opResult.setAlreadyShown(true);
 					super.onAfterRender();
 				};
@@ -68,7 +69,8 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 
 				private static final long serialVersionUID = 1L;
 
-				public boolean isVisible() {
+				@Override
+                public boolean isVisible() {
 					return !opResult.isAlreadyShown();
 				};
 			});

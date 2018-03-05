@@ -291,7 +291,8 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		this.cookie = cookie;
 	}
 
-	public ObjectPaging clone() {
+	@Override
+    public ObjectPaging clone() {
 		ObjectPaging clone = new ObjectPaging();
 		copyTo(clone);
 		return clone;

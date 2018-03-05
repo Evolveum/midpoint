@@ -126,7 +126,8 @@ public class PageResource extends PageAdminResources {
 		WebComponentUtil.setSelectedTabFromPageParameters(tabbedPanel, getPageParameters(), PARAMETER_SELECTED_TAB);
 	}
 
-	protected String getResourceOid() {
+	@Override
+    protected String getResourceOid() {
 		return resourceOid;
 	}
 

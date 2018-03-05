@@ -222,7 +222,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return attrDef;
 	}
 
-	public QName getAttributeQName(String attrName) {
+	@Override
+    public QName getAttributeQName(String attrName) {
 		return new QName(getNamespace(), attrName);
 	}
 
@@ -230,7 +231,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return new ItemPath(ShadowType.F_ATTRIBUTES, attrQName);
 	}
 
-	public ItemPath getAttributePath(String attrName) {
+	@Override
+    public ItemPath getAttributePath(String attrName) {
 		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(attrName));
 	}
 

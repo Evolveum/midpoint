@@ -205,7 +205,8 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 	}
 
-	public PrismValueDeltaSetTriple<V> clone() {
+	@Override
+    public PrismValueDeltaSetTriple<V> clone() {
 		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<>();
 		copyValues(clone);
 		return clone;
@@ -266,7 +267,8 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 	}
 
-	protected String debugName() {
+	@Override
+    protected String debugName() {
     	return "PVDeltaSetTriple";
     }
 

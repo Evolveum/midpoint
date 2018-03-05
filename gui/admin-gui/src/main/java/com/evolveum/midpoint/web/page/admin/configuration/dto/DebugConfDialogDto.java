@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class DebugConfDialogDto implements Serializable {
 
-    public static enum Operation {
+    public enum Operation {
         DELETE_SELECTED, DELETE_ALL_TYPE, DELETE_RESOURCE_SHADOWS;
     }
 

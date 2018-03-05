@@ -89,7 +89,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	private String label;
 	private String description;
 
-	private ModelAuthorizationAction(String urlLocalPart, String label, String desc) {
+	ModelAuthorizationAction(String urlLocalPart, String label, String desc) {
 		this.url = QNameUtil.qNameToUri(new QName(ModelService.AUTZ_NAMESPACE, urlLocalPart));
 		this.label = label;
 		this.description = desc;

@@ -66,6 +66,7 @@ public class TwoValueLinkPanel<T extends Serializable> extends Panel {
         add(new Label(ID_DESCRIPTION, description));
     }
 
+    @Override
     public boolean isEnabled() {
         return true;
     }

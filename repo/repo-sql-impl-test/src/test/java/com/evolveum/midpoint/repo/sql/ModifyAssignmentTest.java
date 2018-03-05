@@ -66,6 +66,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 	private static final String ROLE_A1_OID = "aaaa00aa-aa00-aa00-a0a0-000000000001";
 	private static final String ROLE_A2_OID = "aaaa00aa-aa00-aa00-a0a0-000000000002";
 
+    @Override
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();

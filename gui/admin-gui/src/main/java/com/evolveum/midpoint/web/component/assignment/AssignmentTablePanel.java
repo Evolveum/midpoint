@@ -286,7 +286,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 	}
 
-	protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
+	@Override
+    protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
 		target.add(get(ID_ASSIGNMENTS));
 	}
 

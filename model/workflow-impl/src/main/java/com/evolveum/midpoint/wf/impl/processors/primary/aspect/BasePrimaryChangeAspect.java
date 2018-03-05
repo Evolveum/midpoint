@@ -140,6 +140,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return beanName;
     }
 
+    @Override
     public void setBeanName(String name) {
         this.beanName = name;
     }

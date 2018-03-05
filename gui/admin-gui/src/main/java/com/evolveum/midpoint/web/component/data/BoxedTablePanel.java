@@ -214,7 +214,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 	private static class PagingFooter extends Fragment {
 
-		public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
+		PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
 			super(id, markupId, markupProvider);
 			setOutputMarkupId(true);
 

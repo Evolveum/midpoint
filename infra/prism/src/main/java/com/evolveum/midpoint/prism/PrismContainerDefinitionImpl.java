@@ -166,6 +166,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
 	}
 
+    @Override
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         for (;;) {
             if (path.isEmpty()) {

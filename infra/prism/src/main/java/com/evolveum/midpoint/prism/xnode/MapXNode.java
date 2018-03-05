@@ -41,29 +41,34 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	// We want to maintain ordering, hence the List
 	private List<Entry> subnodes = new ArrayList<Entry>();
 
-	public int size() {
+	@Override
+    public int size() {
 		return subnodes.size();
 	}
 
-	public boolean isEmpty() {
+	@Override
+    public boolean isEmpty() {
 		return subnodes.isEmpty();
 	}
 
-	public boolean containsKey(Object key) {
+	@Override
+    public boolean containsKey(Object key) {
 		if (!(key instanceof QName)) {
 			throw new IllegalArgumentException("Key must be QName, but it is "+key);
 		}
 		return findEntry((QName)key) != null;
 	}
 
-	public boolean containsValue(Object value) {
+	@Override
+    public boolean containsValue(Object value) {
 		if (!(value instanceof XNode)) {
 			throw new IllegalArgumentException("Value must be XNode, but it is "+value);
 		}
 		return findEntry((XNode)value) != null;
 	}
 
-	public XNode get(Object key) {
+	@Override
+    public XNode get(Object key) {
 		if (!(key instanceof QName)) {
 			throw new IllegalArgumentException("Key must be QName, but it is "+key);
 		}
@@ -78,7 +83,8 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
         return put(entry.getKey(), entry.getValue());
     }
 
-	public XNode put(QName key, XNode value) {
+	@Override
+    public XNode put(QName key, XNode value) {
 		XNode previous = removeEntry(key);
 		subnodes.add(new Entry(key, value));
 		return previous;
@@ -91,24 +97,28 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return e;
 	}
 
-	public XNode remove(Object key) {
+	@Override
+    public XNode remove(Object key) {
 		if (!(key instanceof QName)) {
 			throw new IllegalArgumentException("Key must be QName, but it is "+key);
 		}
 		return removeEntry((QName)key);
 	}
 
-	public void putAll(Map<? extends QName, ? extends XNode> m) {
+	@Override
+    public void putAll(Map<? extends QName, ? extends XNode> m) {
 		for (Map.Entry<?, ?> entry: m.entrySet()) {
 			put((QName)entry.getKey(), (XNode)entry.getValue());
 		}
 	}
 
-	public void clear() {
+	@Override
+    public void clear() {
 		subnodes.clear();
 	}
 
-	public Set<QName> keySet() {
+	@Override
+    public Set<QName> keySet() {
 		Set<QName> keySet = new HashSet<QName>();
 		for (Entry entry: subnodes) {
 			keySet.add(entry.getKey());
@@ -116,7 +126,8 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return keySet;
 	}
 
-	public Collection<XNode> values() {
+	@Override
+    public Collection<XNode> values() {
 		Collection<XNode> values = new ArrayList<XNode>(subnodes.size());
 		for (Entry entry: subnodes) {
 			values.add(entry.getValue());
@@ -153,7 +164,8 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return found;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {
 		Set<java.util.Map.Entry<QName, XNode>> entries = new Set<Map.Entry<QName,XNode>>() {
 
@@ -370,7 +382,8 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		}
 	}
 
-	public XNode replace(QName key, XNode value) {
+	@Override
+    public XNode replace(QName key, XNode value) {
 		for (Entry entry : subnodes) {
 			if (entry.getKey().equals(key)) {
 				XNode previous = entry.getValue();
@@ -400,12 +413,12 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		private QName key;
 		private XNode value;
 
-		public Entry(QName key) {
+		Entry(QName key) {
 			super();
 			this.key = key;
 		}
 
-		public Entry(QName key, XNode value) {
+		Entry(QName key, XNode value) {
 			super();
 			this.key = key;
 			this.value = value;

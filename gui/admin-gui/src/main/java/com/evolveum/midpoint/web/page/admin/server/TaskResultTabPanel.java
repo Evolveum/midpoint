@@ -79,7 +79,8 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 		add(resultTablePanel);
 
 		add(new AjaxFallbackLink(ID_SHOW_RESULT) {
-			public void onClick(AjaxRequestTarget target) {
+			@Override
+            public void onClick(AjaxRequestTarget target) {
 				OperationResult opResult = taskDtoModel.getObject().getTaskOperationResult();
 				OperationResultPanel body = new OperationResultPanel(
 						pageBase.getMainPopupBodyId(),

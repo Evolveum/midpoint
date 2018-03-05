@@ -55,6 +55,7 @@ public abstract class RReference implements ObjectReference {
         return type;
     }
 
+    @Override
     public void setRelation(String relation) {
         this.relation = relation;
     }
@@ -62,10 +63,12 @@ public abstract class RReference implements ObjectReference {
     public void setTarget(RObject target) {     // shouldn't be called
     }
 
+    @Override
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
     }
 
+    @Override
     public void setType(RObjectType type) {
         this.type = type;
     }

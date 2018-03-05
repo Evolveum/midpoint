@@ -54,8 +54,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
-
 /**
  * @author lazyman
  * @author katkav
@@ -151,6 +149,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		this.properties = properties;
 	}
 
+	@Override
 	public void computeStripes() {
 		if (properties == null) {
 			return;

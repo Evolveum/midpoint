@@ -34,6 +34,7 @@ import org.apache.wicket.model.IModel;
                 description = "PageProcessInstancesRequestedBy.auth.myRequests.description")})
 public class PageProcessInstancesRequestedBy extends PageProcessInstances {
 
+    @Override
     protected IModel<String> createPageTitleModel() {
         return createStringResource("PageProcessInstancesRequestedBy.title");
     }

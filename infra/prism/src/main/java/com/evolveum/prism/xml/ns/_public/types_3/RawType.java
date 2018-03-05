@@ -231,6 +231,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     //endregion
 
     //region Cloning, comparing, dumping (TODO)
+    @Override
     public RawType clone() {
     	RawType clone = new RawType(prismContext);
         if (xnode != null) {

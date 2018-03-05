@@ -6,5 +6,5 @@ import java.io.Serializable;
 public interface ItemVisibilityHandler extends Serializable{
 
 	
-	public boolean isVisible(ItemWrapper wrapper);
+	boolean isVisible(ItemWrapper wrapper);
 }

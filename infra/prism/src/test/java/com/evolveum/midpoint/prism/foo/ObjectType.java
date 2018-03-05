@@ -95,6 +95,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public PolyStringType getName() {
         return name;
     }
@@ -107,6 +108,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setName(PolyStringType value) {
         this.name = value;
     }
@@ -119,6 +121,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -131,6 +134,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setDescription(String value) {
         this.description = value;
     }
@@ -167,6 +171,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public String getOid() {
         return oid;
     }
@@ -179,6 +184,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setOid(String value) {
         this.oid = value;
     }
@@ -191,6 +197,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public String getVersion() {
         return version;
     }
@@ -203,6 +210,7 @@ public abstract class ObjectType
      *     {@link String }
      *
      */
+    @Override
     public void setVersion(String value) {
         this.version = value;
     }

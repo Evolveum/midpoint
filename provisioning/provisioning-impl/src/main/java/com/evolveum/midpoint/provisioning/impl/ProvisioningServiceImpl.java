@@ -548,7 +548,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+	@Override
+    public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
@@ -1233,7 +1234,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
-	@PreDestroy
+	@Override
+    @PreDestroy
     public void shutdown() {
 		connectorManager.shutdown();
 	}

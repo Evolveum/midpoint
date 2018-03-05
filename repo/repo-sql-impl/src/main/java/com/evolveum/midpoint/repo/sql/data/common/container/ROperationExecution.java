@@ -106,11 +106,13 @@ public class ROperationExecution implements Container<RObject<?>> {
         return ownerOid;
     }
 
-	public void setOwnerOid(String ownerOid) {
+	@Override
+    public void setOwnerOid(String ownerOid) {
 		this.ownerOid = ownerOid;
 	}
 
-	@Id
+	@Override
+    @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
@@ -119,7 +121,8 @@ public class ROperationExecution implements Container<RObject<?>> {
         return id;
     }
 
-	public void setId(Integer id) {
+	@Override
+    public void setId(Integer id) {
 		this.id = id;
 	}
 

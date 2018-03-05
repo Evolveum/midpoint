@@ -36,13 +36,15 @@ public interface PrismObjectDefinition<O extends Objectable> extends PrismContai
 	@NotNull
 	PrismObject<O> instantiate(QName name) throws SchemaException;
 
-	@NotNull
+	@Override
+    @NotNull
 	PrismObjectDefinition<O> clone();
 
 	@Override
 	PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-	PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
+	@Override
+    PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
 
 	PrismContainerDefinition<?> getExtensionDefinition();
 

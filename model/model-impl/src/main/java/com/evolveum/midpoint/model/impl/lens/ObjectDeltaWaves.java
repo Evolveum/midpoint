@@ -106,7 +106,8 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 		}
 	}
 
-	public ObjectDeltaWaves<O> clone() {
+	@Override
+    public ObjectDeltaWaves<O> clone() {
 		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<O>();
 		copyValues(clone);
 		return clone;

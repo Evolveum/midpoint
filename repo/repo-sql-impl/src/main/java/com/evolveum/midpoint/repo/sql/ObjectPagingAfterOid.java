@@ -53,7 +53,8 @@ public class ObjectPagingAfterOid extends ObjectPaging {
         clone.oidGreaterThan = this.oidGreaterThan;
     }
 
-	public boolean equals(Object o, boolean exact) {
+	@Override
+    public boolean equals(Object o, boolean exact) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())

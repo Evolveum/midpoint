@@ -117,7 +117,8 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
     }
 
-	public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
+	@Override
+    public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
 		SelectableBean<O> selectableBean = rowModel.getObject();
 		O value = selectableBean.getValue();
 		return Model.of(value == null ? "" : WebComponentUtil.getName(value));

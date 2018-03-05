@@ -56,13 +56,16 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
 
 	ResourceAttributeDefinition getDisplayNameAttribute();
 
-	@NotNull
+	@Override
+    @NotNull
 	ResourceAttributeContainer instantiate();
 
-	@NotNull
+	@Override
+    @NotNull
 	ResourceAttributeContainer instantiate(QName name);
 
-	@NotNull
+	@Override
+    @NotNull
 	ResourceAttributeContainerDefinition clone();
 
 	ResourceAttributeDefinition findAttributeDefinition(QName elementQName);

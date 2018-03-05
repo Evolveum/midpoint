@@ -775,7 +775,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 						allowNotFound, readOnly, staleness, distinct, definitionProcessing);
 	}
 
-	public GetOperationOptions clone() {
+	@Override
+    public GetOperationOptions clone() {
         GetOperationOptions clone = new GetOperationOptions();
         clone.noFetch = this.noFetch;
         clone.doNotDiscovery = this.doNotDiscovery;

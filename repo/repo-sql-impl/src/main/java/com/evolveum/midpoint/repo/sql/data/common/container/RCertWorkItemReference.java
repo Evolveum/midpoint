@@ -107,6 +107,7 @@ public class RCertWorkItemReference extends RReference {
 	}
 
 	//@MapsId("target")
+    @Override
     @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
@@ -117,12 +118,14 @@ public class RCertWorkItemReference extends RReference {
         return null;
     }
 
+    @Override
     @Id
     @Column(name = "targetOid", length = RUtil.COLUMN_LENGTH_OID)
     public String getTargetOid() {
         return super.getTargetOid();
     }
 
+    @Override
     @Id
     @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {

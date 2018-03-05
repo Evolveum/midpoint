@@ -79,17 +79,20 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     // ridiculous name, but needed in order to match case.owner_oid
+    @Override
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     //@OwnerIdGetter()			// this is not a single-valued owner id
     public String getOwnerOwnerOid() {
         return ownerOwnerOid;
     }
 
-	public void setOwnerOwnerOid(String ownerOwnerOid) {
+	@Override
+    public void setOwnerOwnerOid(String ownerOwnerOid) {
 		this.ownerOwnerOid = ownerOwnerOid;
 	}
 
-	@Id
+	@Override
+    @Id
     @ForeignKey(name = "fk_acc_cert_wi_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -98,7 +101,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return owner;
     }
 
-	public void setOwner(RAccessCertificationCase _case) {
+	@Override
+    public void setOwner(RAccessCertificationCase _case) {
 		this.owner = _case;
 		if (_case != null) {            // sometimes we are called with null _case but non-null IDs
 			this.ownerId = _case.getId();
@@ -106,17 +110,20 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		}
 	}
 
-	@Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+	@Override
+    @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
 	//@OwnerIdGetter()			// this is not a single-valued owner id
     public Integer getOwnerId() {
         return ownerId;
     }
 
-	public void setOwnerId(Integer ownerId) {
+	@Override
+    public void setOwnerId(Integer ownerId) {
 		this.ownerId = ownerId;
 	}
 
-	@Id
+	@Override
+    @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
@@ -125,7 +132,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return id;
     }
 
-	public void setId(Integer id) {
+	@Override
+    public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -211,11 +219,13 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, performerRef, outcome, outputChangeTimestamp, closeTimestamp);
 	}
 
-	@Transient
+	@Override
+    @Transient
     public Boolean isTransient() {
         return trans;
     }
 
+    @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
     }

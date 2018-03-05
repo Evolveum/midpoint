@@ -40,7 +40,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
 
         private final String stringValue;
 
-        private BUTTON_COLOR_CLASS(final String s){stringValue = s;}
+        BUTTON_COLOR_CLASS(final String s){stringValue = s;}
         public String toString(){return stringValue;}
     }
 
@@ -49,7 +49,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
 
         private final String stringValue;
 
-        private BUTTON_SIZE_CLASS(final String s){stringValue = s;}
+        BUTTON_SIZE_CLASS(final String s){stringValue = s;}
         public String toString(){return stringValue;}
     }
 

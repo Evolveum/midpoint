@@ -41,6 +41,7 @@ public class SimpleTaskNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleTaskNotifier.class);
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimpleTaskNotifierType.class);

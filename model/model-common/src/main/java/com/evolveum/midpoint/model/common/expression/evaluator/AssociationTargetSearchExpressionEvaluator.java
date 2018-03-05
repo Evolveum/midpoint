@@ -98,7 +98,8 @@ public class AssociationTargetSearchExpressionEvaluator
 		options.add(SelectorOptions.create(ShadowType.F_ASSOCIATION, GetOperationOptions.createDontRetrieve()));
 	}
 
-	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
+	@Override
+    protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
 		ShadowAssociationType associationType = new ShadowAssociationType();
 		PrismContainerValue<ShadowAssociationType> associationCVal = associationType.asPrismContainerValue();
 		associationType.setName(params.getMappingQName());

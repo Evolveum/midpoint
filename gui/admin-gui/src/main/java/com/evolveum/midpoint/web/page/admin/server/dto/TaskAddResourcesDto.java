@@ -79,7 +79,8 @@ public class TaskAddResourcesDto implements Serializable, Choiceable, Cloneable 
 		return ObjectTypeUtil.createObjectRef(oid, PolyStringType.fromOrig(name), ObjectTypes.RESOURCE);
 	}
 
-	public TaskAddResourcesDto clone() {
+	@Override
+    public TaskAddResourcesDto clone() {
 		return new TaskAddResourcesDto(oid, name);
 	}
 }

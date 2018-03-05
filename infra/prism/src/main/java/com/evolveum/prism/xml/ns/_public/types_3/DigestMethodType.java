@@ -135,6 +135,7 @@ public class DigestMethodType  implements Serializable, Cloneable {
 		return "DigestMethodType(algorithm=" + algorithm + ", salt=" + (salt==null?"null":"["+salt.length+" bytes]") + ", workFactor=" + workFactor + ")";
 	}
 
+    @Override
     public DigestMethodType clone() {
         DigestMethodType cloned = new DigestMethodType();
         cloned.setAlgorithm(getAlgorithm());

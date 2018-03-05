@@ -52,6 +52,7 @@ public class JasperReportParameterDto extends Selectable implements Serializable
 
     }
 
+    @Override
     public List<JasperReportValueDto> getValue() {
 		return value;
 	}

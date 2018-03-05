@@ -169,8 +169,9 @@ public class ReportServiceImpl implements ReportService {
 
 	}
 
-	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
-			Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
+	@Override
+    public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
+                                                                                   Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException {
 		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 
@@ -227,7 +228,8 @@ public class ReportServiceImpl implements ReportService {
         }
 	}
 
-	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
+	@Override
+    public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Collection<AuditEventRecord> results = new ArrayList<AuditEventRecord>();
 

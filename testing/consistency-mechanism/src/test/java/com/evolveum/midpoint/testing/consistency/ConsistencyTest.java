@@ -302,6 +302,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	// This will get called from the superclass to init the repository
 	// It will be called only once
+	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);

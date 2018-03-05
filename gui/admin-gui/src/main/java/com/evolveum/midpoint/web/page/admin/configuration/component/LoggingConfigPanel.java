@@ -369,6 +369,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 return panel;
             }
 
+            @Override
             public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
                 loggerEditPerformed(target, rowModel);
             }

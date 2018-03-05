@@ -202,7 +202,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 
 
 	private class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
-		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form, PageBase pageBase) {
+		NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form, PageBase pageBase) {
 			super(id, propertyModel, form, null, pageBase);
 		}
 		// quite a hack, to get rid of col-md-offset-2 style

@@ -248,6 +248,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return fullObject;
     }
 
+    @Override
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 5")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
@@ -260,28 +261,33 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return createApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
+    @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
 
+    @Override
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 6")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
@@ -294,11 +300,13 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return modifyApproverRef;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @Override
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
@@ -431,6 +439,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.subType = subType;
     }
 
+    @Override
     @Transient
     public Boolean isTransient() {
         return trans;
@@ -453,34 +462,42 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.objectTypeClass = objectTypeClass;
     }
 
+    @Override
     public void setCreateApproverRef(Set<RObjectReference<RFocus>> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
+    @Override
     public void setCreateChannel(String createChannel) {
         this.createChannel = createChannel;
     }
 
+    @Override
     public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
         this.createTimestamp = createTimestamp;
     }
 
+    @Override
     public void setCreatorRef(REmbeddedReference creatorRef) {
         this.creatorRef = creatorRef;
     }
 
+    @Override
     public void setModifierRef(REmbeddedReference modifierRef) {
         this.modifierRef = modifierRef;
     }
 
+    @Override
     public void setModifyApproverRef(Set<RObjectReference<RFocus>> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
+    @Override
     public void setModifyChannel(String modifyChannel) {
         this.modifyChannel = modifyChannel;
     }
 
+    @Override
     public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
         this.modifyTimestamp = modifyTimestamp;
     }

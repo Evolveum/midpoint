@@ -77,6 +77,7 @@ public abstract class RContainerReference extends RReference implements ObjectRe
         return ownerId;
     }
 
+    @Override
     public RObject getTarget() {        // for HQL use only
         return null;
     }
@@ -95,6 +96,7 @@ public abstract class RContainerReference extends RReference implements ObjectRe
         this.ownerId = ownerId;
     }
 
+    @Override
     @Transient
     public Boolean isTransient() {
         return trans;

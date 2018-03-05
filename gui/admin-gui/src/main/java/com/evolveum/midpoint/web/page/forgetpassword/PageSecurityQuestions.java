@@ -604,7 +604,8 @@ public class PageSecurityQuestions extends PageBase {
 			props.put("mail.smtp.starttls.enable", "true");
 
 			Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
+				@Override
+                protected PasswordAuthentication getPasswordAuthentication() {
 					return new PasswordAuthentication(userLogin, password);
 				}
 			});

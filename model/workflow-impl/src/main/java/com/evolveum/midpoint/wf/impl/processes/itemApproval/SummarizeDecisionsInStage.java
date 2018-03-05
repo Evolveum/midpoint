@@ -46,6 +46,7 @@ public class SummarizeDecisionsInStage implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(SummarizeDecisionsInStage.class);
 
+    @Override
     public void execute(DelegateExecution execution) {
 
 		PrismContext prismContext = getPrismContext();

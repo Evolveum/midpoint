@@ -235,6 +235,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
                 PageAssignmentShoppingKart.this.selectTreeItemPerformed(selected, target);
             }
 
+            @Override
             protected List<InlineMenuItem> createTreeMenu() {
                 return new ArrayList<>();
             }
@@ -399,6 +400,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
         sourceUserPanel.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
+            @Override
             public boolean isVisible(){
                 return getRoleCatalogStorage().getShoppingCartConfigurationDto().isUserAssignmentsViewAllowed();
             }

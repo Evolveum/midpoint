@@ -30,27 +30,33 @@ public class DotOtherRelation implements DotRelation {
 		this.relation = relation;
 	}
 
-	public String getEdgeLabel() {
+	@Override
+    public String getEdgeLabel() {
 		return "";
 	}
 
-	public String getNodeLabel(String defaultLabel) {
+	@Override
+    public String getNodeLabel(String defaultLabel) {
 		return null;
 	}
 
-	public String getEdgeStyle() {
+	@Override
+    public String getEdgeStyle() {
 		return "";
 	}
 
-	public String getNodeStyleAttributes() {
+	@Override
+    public String getNodeStyleAttributes() {
 		return "";
 	}
 
-	public String getEdgeTooltip() {
+	@Override
+    public String getEdgeTooltip() {
 		return "";
 	}
 
-	public String getNodeTooltip() {
+	@Override
+    public String getNodeTooltip() {
 		return "";
 	}
 

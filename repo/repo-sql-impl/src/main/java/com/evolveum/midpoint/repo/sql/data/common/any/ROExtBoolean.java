@@ -47,6 +47,7 @@ public class ROExtBoolean extends ROExtBase {
         this.value = value;
     }
 
+    @Override
     @Id
     @ForeignKey(name = "fk_o_ext_boolean_owner")
     @MapsId("owner")
@@ -56,12 +57,14 @@ public class ROExtBoolean extends ROExtBase {
         return super.getOwner();
     }
 
+    @Override
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         return super.getOwnerOid();
     }
 
+    @Override
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
@@ -69,6 +72,7 @@ public class ROExtBoolean extends ROExtBase {
         return super.getOwnerType();
     }
 
+    @Override
     @MapsId("item")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_o_ext_boolean_item"))
@@ -76,12 +80,14 @@ public class ROExtBoolean extends ROExtBase {
         return super.getItem();
     }
 
+    @Override
     @Id
     @Column(name = "item_id", insertable = false, updatable = false)
     public Integer getItemId() {
         return super.getItemId();
     }
 
+    @Override
     @Id
     @Column(name = "booleanValue")
     public Boolean getValue() {

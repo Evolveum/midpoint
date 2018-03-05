@@ -92,6 +92,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 		this.itemPath = itemPath;
 	}
 
+    @Override
     public ItemPathType clone() {
     	ItemPathType clone = new ItemPathType();
         if (itemPath != null) {

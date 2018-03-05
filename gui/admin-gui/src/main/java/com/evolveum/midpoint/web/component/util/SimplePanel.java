@@ -44,6 +44,7 @@ public abstract class SimplePanel<T> extends BasePanel<T> {
     }
 
 
+    @Override
     public PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
     }

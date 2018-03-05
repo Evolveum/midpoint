@@ -112,6 +112,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	}
 
 
+    @Override
     public boolean add(@NotNull PrismReferenceValue value) {
     	value.setParent(this);
     	return getValues().add(value);

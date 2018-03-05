@@ -72,6 +72,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     	super(id, assignmentContainerWrapperModel);
     }
 
+    @Override
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
 
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
@@ -114,6 +115,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
             private static final long serialVersionUID = 1L;
 
+            @Override
             public boolean isVisible(){
                 return showAllAssignmentsVisible();
             }
@@ -181,6 +183,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             reloadSavePreviewButtons(target);
        }
 
+    @Override
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -218,6 +221,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         };
     }
 
+    @Override
     protected void initPaging(){
         getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
@@ -232,7 +236,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 	}
 
-	protected ObjectQuery createObjectQuery() {
+	@Override
+    protected ObjectQuery createObjectQuery() {
         QName relation = getRelation();
         if (PrismConstants.Q_ANY.equals(relation)){
             return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())

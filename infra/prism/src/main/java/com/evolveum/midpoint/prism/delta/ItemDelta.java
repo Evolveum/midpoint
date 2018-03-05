@@ -130,7 +130,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 //        }
 //    }
 
-	public QName getElementName() {
+	@Override
+    public QName getElementName() {
 		return elementName;
 	}
 
@@ -154,7 +155,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		return getParentPath().subPath(elementName);
 	}
 
-	public D getDefinition() {
+	@Override
+    public D getDefinition() {
 		return definition;
 	}
 
@@ -294,7 +296,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 
-	public PrismContext getPrismContext() {
+	@Override
+    public PrismContext getPrismContext() {
 		return prismContext;
 	}
 
@@ -708,7 +711,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		return (set != null && !set.isEmpty());
 	}
 
-	public void foreach(Processor<V> processor) {
+	@Override
+    public void foreach(Processor<V> processor) {
 		foreachSet(processor, valuesToAdd);
 		foreachSet(processor, valuesToDelete);
 		foreachSet(processor, valuesToReplace);
@@ -1498,7 +1502,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 	}
 
-	public abstract ItemDelta<V,D> clone();
+	@Override
+    public abstract ItemDelta<V,D> clone();
 
 	public ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath) {
 		ItemDelta<V,D> clone = clone();

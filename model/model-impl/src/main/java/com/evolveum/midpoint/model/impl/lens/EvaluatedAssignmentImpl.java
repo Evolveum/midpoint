@@ -254,7 +254,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations.add(authorization);
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
 		return adminGuiConfigurations;
 	}
@@ -353,7 +354,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return presentInOldObject;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
 		return focusPolicyRules;
 	}
@@ -362,7 +364,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		focusPolicyRules.add(policyRule);
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
 		return thisTargetPolicyRules;
 	}
@@ -371,7 +374,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		thisTargetPolicyRules.add(policyRule);
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
 		return otherTargetsPolicyRules;
 	}
@@ -380,7 +384,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		otherTargetsPolicyRules.add(policyRule);
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules() {
 		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
 	}

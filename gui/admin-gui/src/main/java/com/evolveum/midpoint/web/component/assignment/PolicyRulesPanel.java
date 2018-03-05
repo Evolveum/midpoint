@@ -56,6 +56,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
     }
 
+    @Override
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){

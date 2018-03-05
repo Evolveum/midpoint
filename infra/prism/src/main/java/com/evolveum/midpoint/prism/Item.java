@@ -100,6 +100,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
      *
      * @return applicable property definition
      */
+    @Override
     public D getDefinition() {
         return definition;
     }
@@ -234,6 +235,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	this.parent = parentValue;
     }
 
+    @Override
     public ItemPath getPath() {
     	 if (parent == null) {
     		 return new ItemPath(getElementName());
@@ -676,6 +678,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 	}
 
+    @Override
     public void revive(PrismContext prismContext) throws SchemaException {
         // it is necessary to do e.g. PolyString recomputation even if PrismContext is set
     	if (this.prismContext == null) {
@@ -692,6 +695,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     /**
      * Literal clone.
      */
+    @Override
     public abstract Item clone();
 
     /**
@@ -997,6 +1001,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + ")";
     }
 
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);

@@ -129,7 +129,8 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	/**
 	 * Does a shallow clone of this definition (i.e. item definitions themselves are NOT cloned).
 	 */
-	@NotNull
+	@Override
+    @NotNull
 	ComplexTypeDefinition clone();
 
 	/**

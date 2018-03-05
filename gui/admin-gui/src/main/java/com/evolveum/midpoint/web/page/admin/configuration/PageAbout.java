@@ -421,6 +421,7 @@ public class PageAbout extends PageAdminConfiguration {
      *
      * @return "unknown" instead of "git describe" for current build.
      */
+    @Override
     @Deprecated
     public String getDescribe() {
         return getString("PageAbout.unknownBuildNumber");

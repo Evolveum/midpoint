@@ -379,7 +379,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				getPageBase().getMainPopupBodyId()) {
 			private static final long serialVersionUID = 1L;
 
-			protected void okPerformed(QName type, AjaxRequestTarget target) {
+			@Override
+            protected void okPerformed(QName type, AjaxRequestTarget target) {
 				try {
 					initObjectForAdd(null, type, relation, target);
 				} catch (SchemaException e) {

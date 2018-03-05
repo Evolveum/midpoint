@@ -31,6 +31,7 @@ public class CountProjectionElement extends ProjectionElement {
         this.distinct = distinct;
     }
 
+    @Override
     protected void dumpToHql(StringBuilder sb) {
         sb.append("count(");
         if (distinct) {

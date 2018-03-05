@@ -46,7 +46,8 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		super(container, reference, readonly, status, path);
 	}
 
-	public List<ValueWrapper> getValues() {
+	@Override
+    public List<ValueWrapper> getValues() {
 		if (values == null) {
 			values = createValues();
 		}

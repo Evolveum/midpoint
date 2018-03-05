@@ -107,6 +107,7 @@ public class SchemaDefinitionType implements Cloneable, Serializable {
 		return true;
 	}
 
+    @Override
     public SchemaDefinitionType clone() throws CloneNotSupportedException {
         SchemaDefinitionType clone = (SchemaDefinitionType) super.clone();
         if (schema != null) {

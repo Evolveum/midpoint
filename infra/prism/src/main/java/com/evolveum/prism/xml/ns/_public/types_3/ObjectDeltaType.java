@@ -335,6 +335,7 @@ public class ObjectDeltaType implements Serializable {
         }
 
         // todo this method is UNTESTED for now; however, as "any" will usually be ObjectType or its subclass, it should work
+        @Override
         public ObjectToAdd clone() {
             ObjectToAdd retval = new ObjectToAdd();
             if (any != null) {
@@ -361,6 +362,7 @@ public class ObjectDeltaType implements Serializable {
      * @return copy of the object
      */
 
+    @Override
     public ObjectDeltaType clone() {
 
         ObjectDeltaType clone = new ObjectDeltaType();

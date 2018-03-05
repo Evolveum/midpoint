@@ -439,6 +439,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         return (WebMarkupContainer)get(ID_ASSIGNMENTS);
     }
 
+    @Override
     protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
         addOrReplaceAssignmentsTable(getAssignmentsContainer());
         target.add(getAssignmentsContainer());

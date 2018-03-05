@@ -96,6 +96,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
         super(name, definition, prismContext);
     }
 
+    @Override
     public Class<C> getCompileTimeClass() {
 		if (this.compileTimeClass != null) {
 			return compileTimeClass;
@@ -346,6 +347,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      *
      * @return applicable property container definition
      */
+    @Override
     public PrismContainerDefinition<C> getDefinition() {
         return (PrismContainerDefinition<C>) definition;
     }
@@ -355,6 +357,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      *
      * @param definition the definition to set
      */
+    @Override
     public void setDefinition(PrismContainerDefinition<C> definition) {
 		checkMutability();
 		if (definition != null) {
@@ -680,6 +683,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     	return new ContainerDelta<C>(path, getDefinition(), getPrismContext());
 	}
 
+    @Override
     public boolean isEmpty() {
         for (PrismContainerValue<C> pval : getValues()) {
         	if (!pval.isEmpty()) {

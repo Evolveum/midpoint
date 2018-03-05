@@ -138,7 +138,8 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		this.isAttribute = isAttribute;
 	}
 
-	public boolean isEmpty() {
+	@Override
+    public boolean isEmpty() {
 		if (!isParsed()) {
 			return valueParser.isEmpty();
 		}

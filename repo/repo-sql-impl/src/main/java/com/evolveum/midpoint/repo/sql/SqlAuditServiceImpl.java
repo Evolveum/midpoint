@@ -666,6 +666,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		return sb.toString();
     }
 
+    @Override
     public long countObjects(String query, Map<String, Object> params) {
         Session session = null;
         long count = 0;

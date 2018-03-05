@@ -66,7 +66,8 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
         }
     }
 
-	public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
+	@Override
+    public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		return createJsonGenerator(out);
 	}
 	private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{

@@ -30,7 +30,7 @@ public enum GuiFeature {
 
 	private String uri;
 
-	private GuiFeature(String suffix) {
+	GuiFeature(String suffix) {
 		this.uri = QNameUtil.qNameToUri(new QName(GuiConstants.NS_UI_FEATURE, suffix));
 	}
 

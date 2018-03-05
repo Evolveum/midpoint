@@ -533,7 +533,8 @@ public class AuditEventRecord implements DebugDumpable {
     	return prismRef.getObject();
     }
 
-	public AuditEventRecord clone() {
+	@Override
+    public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
 		clone.deltas.addAll(MiscSchemaUtil.cloneObjectDeltaOperationCollection(this.deltas));

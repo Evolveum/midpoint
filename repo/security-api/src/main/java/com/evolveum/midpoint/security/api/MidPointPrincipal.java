@@ -220,7 +220,8 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
 	/**
 	 * Semi-shallow clone.
 	 */
-	public MidPointPrincipal clone() {
+	@Override
+    public MidPointPrincipal clone() {
 		MidPointPrincipal clone = new MidPointPrincipal(this.user);
 		clone.adminGuiConfiguration = this.adminGuiConfiguration;
 		clone.applicableSecurityPolicy = this.applicableSecurityPolicy;

@@ -77,6 +77,7 @@ public class SimpleFilter<T> implements QueryFilter {
         return type;
     }
 
+    @Override
     public void setType(QName type) {
         this.type = type;
     }

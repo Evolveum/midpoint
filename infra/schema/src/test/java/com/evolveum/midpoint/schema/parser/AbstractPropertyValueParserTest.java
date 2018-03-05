@@ -71,7 +71,8 @@ public abstract class AbstractPropertyValueParserTest<T> extends AbstractPrismVa
 		return property.getAnyValue();
 	}
 
-	protected boolean isContainer() {
+	@Override
+    protected boolean isContainer() {
 		return true;
 	}
 

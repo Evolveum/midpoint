@@ -151,7 +151,8 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		return authorizationType.getLimitations();
 	}
 	
-	public Authorization clone() {
+	@Override
+    public Authorization clone() {
 		AuthorizationType authorizationTypeClone = authorizationType.clone();
 		Authorization clone = new Authorization(authorizationTypeClone);
 		clone.sourceDescription = this.sourceDescription;

@@ -263,7 +263,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	class WorkerHandler implements LightweightTaskHandler {
 		private OperationResult workerSpecificResult;
 
-		public WorkerHandler(OperationResult workerSpecificResult) {
+		WorkerHandler(OperationResult workerSpecificResult) {
 			this.workerSpecificResult = workerSpecificResult;
 		}
 

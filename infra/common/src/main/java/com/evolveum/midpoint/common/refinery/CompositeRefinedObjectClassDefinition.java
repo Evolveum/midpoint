@@ -29,7 +29,8 @@ public interface CompositeRefinedObjectClassDefinition extends RefinedObjectClas
 
 	RefinedObjectClassDefinition getStructuralObjectClassDefinition();
 
-	@NotNull
+	@Override
+    @NotNull
 	Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions();
 
 }

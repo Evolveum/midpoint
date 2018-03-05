@@ -19,7 +19,7 @@ package com.evolveum.midpoint.prism;
 public interface Matchable<T> {
 
 	
-	public boolean match(T other);
+	boolean match(T other);
 	
-	public boolean matches(String regex);
+	boolean matches(String regex);
 }

@@ -41,6 +41,7 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleResourceObjectNotifier.class);
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimpleResourceObjectNotifierType.class);

@@ -94,6 +94,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                 return getObjectWrapper().getOid();
             }
             
+            @Override
             public IModel<String> getLabel() {
             	return createStringResource("FocusType.delegations");
             };

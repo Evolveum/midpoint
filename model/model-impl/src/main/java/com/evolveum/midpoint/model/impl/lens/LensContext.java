@@ -197,7 +197,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.prismContext = prismContext;
 	}
 
-	public PrismContext getPrismContext() {
+	@Override
+    public PrismContext getPrismContext() {
 		return prismContext;
 	}
 
@@ -286,7 +287,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return null;
 	}
 
-	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat) {
+	@Override
+    public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat) {
 		Validate.notNull(rat);
 		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
@@ -323,7 +325,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return projectionContext;
 	}
 
-	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+	@Override
+    public PrismObject<SystemConfigurationType> getSystemConfiguration() {
 		return systemConfiguration;
 	}
 
@@ -408,7 +411,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 	}
 
-	public String getChannel() {
+	@Override
+    public String getChannel() {
 		return channel;
 	}
 
@@ -440,7 +444,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.executionPhaseOnly = executionPhaseOnly;
 	}
 
-	public DeltaSetTriple<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentTriple() {
+	@Override
+    public DeltaSetTriple<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentTriple() {
 		return evaluatedAssignmentTriple;
 	}
 
@@ -536,7 +541,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * changes are returned, but these are not merged. TODO: maybe it would be
 	 * better to merge them.
 	 */
-	public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
+	@Override
+    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
 		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
 		if (focusContext != null) {
 			addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
@@ -792,7 +798,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 	}
 
-	public LensContext<F> clone() {
+	@Override
+    public LensContext<F> clone() {
 		LensContext<F> clone = new LensContext<>(focusClass, prismContext, provisioningService);
 		copyValues(clone);
 		return clone;
@@ -1316,7 +1323,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return false;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public Map<String, Collection<Containerable>> getHookPreviewResultsMap() {
 		if (hookPreviewResultsMap == null) {
 			hookPreviewResultsMap = new HashMap<>();

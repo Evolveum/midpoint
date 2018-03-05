@@ -61,7 +61,8 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 		this.addedValues = addedValues;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public List<SceneItemValueImpl> getDeletedValues() {
 		return deletedValues;
 	}
@@ -70,7 +71,8 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 		this.deletedValues = deletedValues;
 	}
 
-	@NotNull
+	@Override
+    @NotNull
 	public List<SceneItemValueImpl> getUnchangedValues() {
 		return unchangedValues;
 	}

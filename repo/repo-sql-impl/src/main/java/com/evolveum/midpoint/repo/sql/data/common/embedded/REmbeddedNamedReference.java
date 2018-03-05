@@ -110,6 +110,7 @@ public class REmbeddedNamedReference extends REmbeddedReference {
         repo.setTargetName(RPolyString.copyFromJAXB(jaxb.getTargetName()));
     }
 
+    @Override
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();
         copyToJAXB(this, ref, prismContext);

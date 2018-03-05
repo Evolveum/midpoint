@@ -143,7 +143,8 @@ public class RefinedAssociationDefinition implements Serializable, Visitable {
 		visitor.visit(this);
 	}
 
-	public RefinedAssociationDefinition clone() {
+	@Override
+    public RefinedAssociationDefinition clone() {
 		RefinedAssociationDefinition clone = new RefinedAssociationDefinition(resourceObjectAssociationType);
 		copyValues(clone);
 		return clone;

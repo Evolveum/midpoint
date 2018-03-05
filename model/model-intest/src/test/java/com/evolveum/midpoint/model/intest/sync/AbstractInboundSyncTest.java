@@ -83,7 +83,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
 	}
 
-	protected File getResourceDummyEmeraldFile() {
+	@Override
+    protected File getResourceDummyEmeraldFile() {
 		return RESOURCE_DUMMY_EMERALD_FILE;
 	}
 

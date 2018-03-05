@@ -37,6 +37,7 @@ public class SimplePolicyRuleNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimplePolicyRuleNotifier.class);
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimplePolicyRuleNotifierType.class);

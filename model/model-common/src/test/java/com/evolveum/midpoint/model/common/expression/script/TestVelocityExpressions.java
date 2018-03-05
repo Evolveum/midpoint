@@ -43,7 +43,8 @@ public class TestVelocityExpressions extends AbstractScriptTest {
 		return new File(BASE_TEST_DIR, "velocity");
 	}
 
-	@Test
+	@Override
+    @Test
 	public void testExpressionList() throws Exception {
 		evaluateAndAssertStringScalarExpresssion(		// velocity has no support for output other than String
 				"expression-list.xml",

@@ -30,7 +30,8 @@ import org.springframework.test.context.ContextConfiguration;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class LookupTableTestReindex extends LookupTableTest {
 
-	protected RepoModifyOptions getModifyOptions() {
+	@Override
+    protected RepoModifyOptions getModifyOptions() {
 		return RepoModifyOptions.createExecuteIfNoChanges();
 	}
 

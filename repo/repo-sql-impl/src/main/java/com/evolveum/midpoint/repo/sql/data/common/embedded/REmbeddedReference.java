@@ -73,14 +73,17 @@ public class REmbeddedReference implements ObjectReference {
         return type;
     }
 
+    @Override
     public void setRelation(String relation) {
         this.relation = relation;
     }
 
+    @Override
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
     }
 
+    @Override
     public void setType(RObjectType type) {
         this.type = type;
     }

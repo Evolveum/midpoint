@@ -26,6 +26,6 @@ package com.evolveum.midpoint.task.api;
 @FunctionalInterface
 public interface LightweightTaskHandler {
 
-	public void run(Task task);
+	void run(Task task);
 
 }

@@ -83,6 +83,7 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
                     }
                 }
         ) {
+            @Override
             protected void populateItem(final ListItem<ActionsExecutedObjectsTableLineDto> item) {
                 item.add(new Label(ID_OBJECT_TYPE, new AbstractReadOnlyModel<String>() {
                     @Override

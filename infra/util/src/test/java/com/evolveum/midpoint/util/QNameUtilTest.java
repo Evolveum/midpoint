@@ -18,7 +18,6 @@ package com.evolveum.midpoint.util;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
-import com.evolveum.midpoint.util.QNameUtil;
 import javax.xml.namespace.QName;
 
 /**

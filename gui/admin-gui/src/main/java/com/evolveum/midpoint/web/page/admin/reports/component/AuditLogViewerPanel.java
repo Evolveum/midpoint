@@ -374,6 +374,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this) {
             private static final long serialVersionUID = 1L;
 
+            @Override
             public Map<String, Object> getParameters() {
                 Map<String, Object> parameters = new HashMap<String, Object>();
 

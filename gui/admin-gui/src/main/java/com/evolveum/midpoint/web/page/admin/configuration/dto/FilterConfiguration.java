@@ -61,10 +61,12 @@ public class FilterConfiguration extends Selectable implements Editable {
         this.level = level;
     }
 
+    @Override
     public boolean isEditing() {
         return editing;
     }
 
+    @Override
     public void setEditing(boolean editing) {
         this.editing = editing;
     }

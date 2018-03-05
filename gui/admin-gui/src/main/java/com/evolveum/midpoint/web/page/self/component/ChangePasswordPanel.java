@@ -111,7 +111,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         	private static final long serialVersionUID = 1L;
 
-        	public boolean isVisible() {
+        	@Override
+            public boolean isVisible() {
         		return oldPasswordVisible;
         	};
         });
@@ -188,6 +189,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 imagePanel.add(new AjaxEventBehavior("click") {
                 	private static final long serialVersionUID = 1L;
 
+                                   @Override
                                    protected void onEvent(final AjaxRequestTarget target) {
                                        if (!passwordAccountDto.isMidpoint()) {
                                            if (passwordAccountDto.getCssClass().equals(PROPAGATED_ACCOUNT_ICON_CSS)) {

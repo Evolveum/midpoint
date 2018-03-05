@@ -35,6 +35,7 @@ public class DumpVariables implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(DumpVariables.class);
 
+    @Override
     public void execute(DelegateExecution execution) {
 
         if (LOGGER.isTraceEnabled()) {

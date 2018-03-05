@@ -71,6 +71,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      *
      * @see Connector#dispose()
      */
+    @Override
     public void dispose() {
     }
 
@@ -88,6 +89,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
         log.info("create::begin");
         throw new UnsupportedOperationException("Create is not supported in this shamefull fake");
@@ -96,6 +98,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	/**
      * {@inheritDoc}
      */
+    @Override
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         log.info("update::begin");
         throw new UnsupportedOperationException("Update is not supported in this shamefull fake");
@@ -104,6 +107,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	/**
      * {@inheritDoc}
      */
+    @Override
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
         log.info("addAttributeValues::begin");
         throw new UnsupportedOperationException("Add attribute values is not supported in this shamefull fake");
@@ -112,6 +116,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
         log.info("removeAttributeValues::begin");
         throw new UnsupportedOperationException("Remove attribute values is not supported in this shamefull fake");
@@ -120,6 +125,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	/**
      * {@inheritDoc}
      */
+    @Override
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         log.info("delete::begin");
         throw new UnsupportedOperationException("Delete attribute values is not supported in this shamefull fake");
@@ -128,6 +134,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Schema schema() {
         log.info("schema::begin");
 
@@ -158,6 +165,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
         log.info("authenticate::begin");
         Uid uid = null; //TODO: implement
@@ -168,6 +176,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
         log.info("resolveUsername::begin");
         Uid uid = null; //TODO: implement
@@ -178,6 +187,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
 
     	throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
@@ -186,6 +196,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
 
     	throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
@@ -194,6 +205,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public FilterTranslator<String> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
         return new DummyFilterTranslator() {
         };
@@ -202,6 +214,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public void executeQuery(ObjectClass objectClass, String query, ResultsHandler handler, OperationOptions options) {
         log.info("executeQuery::begin");
         // Lets be stupid and just return everything. That means our single account. ICF will filter it.
@@ -212,6 +225,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	/**
      * {@inheritDoc}
      */
+    @Override
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
         log.info("sync::begin");
         throw new UnsupportedOperationException("Sync is not supported in this shamefull fake");
@@ -220,6 +234,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
         log.info("getLatestSyncToken::begin");
 
@@ -229,6 +244,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     /**
      * {@inheritDoc}
      */
+    @Override
     public void test() {
         log.info("test::begin");
         log.info("Validating configuration.");

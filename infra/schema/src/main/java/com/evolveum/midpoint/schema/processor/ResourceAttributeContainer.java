@@ -440,7 +440,8 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */
-	protected String getDebugDumpClassName() {
+	@Override
+    protected String getDebugDumpClassName() {
 		return "RAC";
 	}
 

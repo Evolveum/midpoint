@@ -57,6 +57,7 @@ public class StandardLogger extends LoggerConfiguration{
         this.logger = logger;
     }
 
+    @Override
     public ClassLoggerConfigurationType toXmlType(){
         ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
         type.setPackage(logger.getValue());

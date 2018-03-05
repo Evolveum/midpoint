@@ -223,8 +223,9 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				showErrors(target);
 			}
 
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			@Override
+            protected void onSubmit(AjaxRequestTarget target,
+                                    org.apache.wicket.markup.html.form.Form<?> form) {
 
 				submitRegistration(target);
 

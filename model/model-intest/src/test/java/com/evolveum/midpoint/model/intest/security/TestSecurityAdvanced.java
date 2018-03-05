@@ -143,7 +143,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	
 	protected static final int NUMBER_OF_IMPORTED_ROLES = 8;
 	
-	protected int getNumberOfRoles() {
+	@Override
+    protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 

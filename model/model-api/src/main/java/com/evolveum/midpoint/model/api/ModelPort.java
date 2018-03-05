@@ -37,12 +37,12 @@ public interface ModelPort {
 	String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
     String EXECUTE_SCRIPTS = CLASS_NAME_WITH_DOT + "executeScripts";
 
-    public static final QName GET_OBJECT_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "getObjectResponse");
-    public static final QName SEARCH_OBJECTS_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "searchObjectsResponse");
-    public static final QName EXECUTE_CHANGES_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "executeChangesResponse");
-    public static final QName FIND_SHADOW_OWNER_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "findShadowOwnerResponse");
-    public static final QName TEST_RESOURCE_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "testResourceResponse");
-    public static final QName EXECUTE_SCRIPTS_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "executeScriptsResponse");
-    public static final QName IMPORT_FROM_RESOURCE_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "importFromResourceResponse");
-    public static final QName NOTIFY_CHANGE_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "notifyChangeResponse");
+    QName GET_OBJECT_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "getObjectResponse");
+    QName SEARCH_OBJECTS_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "searchObjectsResponse");
+    QName EXECUTE_CHANGES_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "executeChangesResponse");
+    QName FIND_SHADOW_OWNER_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "findShadowOwnerResponse");
+    QName TEST_RESOURCE_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "testResourceResponse");
+    QName EXECUTE_SCRIPTS_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "executeScriptsResponse");
+    QName IMPORT_FROM_RESOURCE_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "importFromResourceResponse");
+    QName NOTIFY_CHANGE_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "notifyChangeResponse");
 }

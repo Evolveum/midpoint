@@ -87,7 +87,8 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 		this.sourceItem = sourceItem;
 	}
 
-	public ItemPath getSourceRelPath() {
+	@Override
+    public ItemPath getSourceRelPath() {
 		return sourceRelPath;
 	}
 

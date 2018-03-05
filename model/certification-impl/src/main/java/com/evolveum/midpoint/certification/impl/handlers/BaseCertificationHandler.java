@@ -77,6 +77,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     protected AccCertExpressionHelper expressionHelper;
 
     // default implementation, depending only on the expressions provided
+    @Override
     public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         throw new UnsupportedOperationException("Not implemented yet.");
 //        if (CollectionUtils.isEmpty(caseExpressionList)) {
@@ -99,6 +100,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 //    }
 
 
+    @Override
     public QName getDefaultObjectType() {
         return null;
     }

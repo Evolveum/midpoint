@@ -1365,7 +1365,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 *
 	 * By suitable we mean such that can be used to determine specific object type.
 	 */
-	public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
+	@Override
+    public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
 		List<ItemDefinition> definitions = findItemDefinitionsByElementName(itemName, ItemDefinition.class);
 		if (definitions.isEmpty() || definitions.size() > 1) {
 			return false;

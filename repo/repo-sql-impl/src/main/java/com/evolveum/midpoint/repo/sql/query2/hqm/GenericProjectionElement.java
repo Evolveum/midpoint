@@ -27,6 +27,7 @@ public class GenericProjectionElement extends ProjectionElement {
         this.text = text;
     }
 
+    @Override
     protected void dumpToHql(StringBuilder sb) {
         sb.append(text);
     }

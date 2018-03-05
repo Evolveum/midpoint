@@ -74,6 +74,33 @@
                 <artifactId>wrapper-maven-plugin</artifactId>
                 <version>0.0.4</version>
             </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<consoleOutput>true</consoleOutput>
+					<configLocation>${session.executionRootDirectory}/checkstyle-rules.xml</configLocation>
+					<suppressionsLocation>${session.executionRootDirectory}/checkstyle-suppressions.xml</suppressionsLocation>
+					<failsOnError>true</failsOnError>
+				</configuration>
+				<executions>
+					<execution>
+						<id>checkstyle</id>
+						<goals>
+							<goal>checkstyle</goal>
+						</goals>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>8.8</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>

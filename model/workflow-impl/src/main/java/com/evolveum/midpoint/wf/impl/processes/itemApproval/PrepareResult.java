@@ -30,6 +30,7 @@ public class PrepareResult implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrepareResult.class);
 
+    @Override
     public void execute(DelegateExecution execution) {
 
         Boolean loopStagesStop = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LOOP_STAGES_STOP, Boolean.class, null);

@@ -20,7 +20,6 @@ import java.util.Set;
 
 import static org.testng.Assert.*;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.util.ClassPathUtil;
 
 public class ClassPathTest {
   @Test

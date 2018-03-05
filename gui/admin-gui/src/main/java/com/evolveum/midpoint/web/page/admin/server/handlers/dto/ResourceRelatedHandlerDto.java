@@ -257,7 +257,8 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 	}
 
 	// TODO implement seriously
-	public ResourceRelatedHandlerDto clone() {
+	@Override
+    public ResourceRelatedHandlerDto clone() {
 		ResourceRelatedHandlerDto clone = new ResourceRelatedHandlerDto(taskDto);
 		clone.dryRun = dryRun;
                 clone.retryUnhandledErr = retryUnhandledErr;

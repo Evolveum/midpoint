@@ -36,6 +36,7 @@ public class ScrollableResultsIterator<T> implements Iterator<T> {
         this.results = results;
     }
 
+    @Override
     public boolean hasNext() {
         if (hasNext == null) {
             hasNext = results.next();
@@ -43,6 +44,7 @@ public class ScrollableResultsIterator<T> implements Iterator<T> {
         return hasNext;
     }
 
+    @Override
     public T next() {
         if (!hasNext()) {
             throw new NoSuchElementException();

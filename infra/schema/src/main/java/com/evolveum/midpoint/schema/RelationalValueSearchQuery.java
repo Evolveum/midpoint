@@ -81,7 +81,8 @@ public class RelationalValueSearchQuery implements Serializable {
 		this.paging = paging;
 	}
 
-	public RelationalValueSearchQuery clone() {
+	@Override
+    public RelationalValueSearchQuery clone() {
 		RelationalValueSearchQuery clone = new RelationalValueSearchQuery(column, searchValue, searchType);
 		if (this.paging != null) {
 			clone.paging = this.paging.clone();

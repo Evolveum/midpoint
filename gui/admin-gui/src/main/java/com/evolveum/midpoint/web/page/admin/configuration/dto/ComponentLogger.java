@@ -60,7 +60,8 @@ public class ComponentLogger extends LoggerConfiguration {
 
 	}
 
-	public ClassLoggerConfigurationType toXmlType() {
+	@Override
+    public ClassLoggerConfigurationType toXmlType() {
 		ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
 		type.setPackage(getPackageByValue(component));
 		type.setLevel(getLevel());

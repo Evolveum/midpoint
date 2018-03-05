@@ -299,15 +299,18 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return assignmentIdi;
 	}
 
-	public AssignmentType getAssignment(boolean evaluateOld) {
+	@Override
+    public AssignmentType getAssignment(boolean evaluateOld) {
 		return asContainerable(assignmentIdi.getSingleValue(evaluateOld));
 	}
 
-	public AssignmentType getAssignment() {
+	@Override
+    public AssignmentType getAssignment() {
 		return getAssignment(evaluatedForOld);
 	}
 
-	public AssignmentType getAssignmentAny() {
+	@Override
+    public AssignmentType getAssignmentAny() {
 		if (assignmentIdi == null) {
 			return null;
 		}

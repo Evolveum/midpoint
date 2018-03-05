@@ -576,7 +576,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 			EncryptionException {
 	}
 
-	protected PrismObject<UserType> getDefaultActor() {
+	@Override
+    protected PrismObject<UserType> getDefaultActor() {
 		return userAdministrator;
 	}
 

@@ -1308,7 +1308,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
 	}
 
-	protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
+	@Override
+    protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
 		// nothing to do here
 	}
 
@@ -2056,7 +2057,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	}
 	
 	// Direct execution. The operation is always executing immediately after it is requested.
-	protected PendingOperationExecutionStatusType getExpectedExecutionStatus(PendingOperationExecutionStatusType executionStage) {
+	@Override
+    protected PendingOperationExecutionStatusType getExpectedExecutionStatus(PendingOperationExecutionStatusType executionStage) {
 		return PendingOperationExecutionStatusType.EXECUTING;
 	}
 	

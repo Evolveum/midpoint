@@ -48,6 +48,7 @@ public class ROExtDate extends ROExtBase {
         this.value = value;
     }
 
+    @Override
     @Id
     @ForeignKey(name = "fk_o_ext_date_owner")
     @MapsId("owner")
@@ -57,12 +58,14 @@ public class ROExtDate extends ROExtBase {
         return super.getOwner();
     }
 
+    @Override
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         return super.getOwnerOid();
     }
 
+    @Override
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
@@ -70,19 +73,22 @@ public class ROExtDate extends ROExtBase {
         return super.getOwnerType();
     }
 
-	@MapsId("item")
+	@Override
+    @MapsId("item")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_o_ext_date_item"))
     public RExtItem getItem() {
         return super.getItem();
     }
 
+    @Override
     @Id
     @Column(name = "item_id", insertable = false, updatable = false)
     public Integer getItemId() {
         return super.getItemId();
     }
 
+    @Override
     @Column(name = "dateValue")
     public Timestamp getValue() {
         return value;

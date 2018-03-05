@@ -725,7 +725,8 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 	// TODO test that contains task0 that adds an object (i.e. rule for 'add' is not applied)
 
-	@Test
+	@Override
+    @Test
 	public void zzzMarkAsNotInitialized() {
 		display("Setting class as not initialized");
 		unsetSystemInitialized();

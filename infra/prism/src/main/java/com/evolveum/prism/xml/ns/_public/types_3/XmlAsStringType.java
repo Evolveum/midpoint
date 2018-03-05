@@ -83,6 +83,7 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
         return sb.toString();
     }
 
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         {
@@ -98,6 +99,7 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
         return this.hashCode(null, strategy);
     }
 
+    @Override
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof XmlAsStringType)) {
             return false;

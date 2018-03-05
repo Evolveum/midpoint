@@ -88,7 +88,8 @@ public class DefaultReferencableImpl implements Referencable, Cloneable, Seriali
 		return filter;
 	}
 
-	public DefaultReferencableImpl clone() {
+	@Override
+    public DefaultReferencableImpl clone() {
 		DefaultReferencableImpl clone;
 		try {
 			clone = (DefaultReferencableImpl) super.clone();

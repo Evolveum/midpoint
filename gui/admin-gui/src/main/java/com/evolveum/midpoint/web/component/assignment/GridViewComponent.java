@@ -74,6 +74,7 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<IDat
 
          };
         gridView.add(new VisibleEnableBehaviour(){
+            @Override
             public boolean isVisible(){
                 BaseSortableDataProvider p = (BaseSortableDataProvider) GridViewComponent.this.getModelObject();
                 List<AssignmentEditorDto> l = p.getAvailableData();

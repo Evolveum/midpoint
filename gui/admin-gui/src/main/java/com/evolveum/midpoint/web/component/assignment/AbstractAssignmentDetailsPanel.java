@@ -112,9 +112,6 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
 		Form form = new Form<>("form");
 
-		ContainerValueWrapper<AssignmentType> containerWrapper = getModelObject();
-		if (containerWrapper == null){}
-
 		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel(ID_BASIC_ASSIGNMENT_PANEL, getModel(), true, form,
 				itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
 		add(assignmentPanel);

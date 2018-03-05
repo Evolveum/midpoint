@@ -49,7 +49,8 @@ public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements Simp
 		return "simple type";
 	}
 
-	public QName getBaseTypeName() {
+	@Override
+    public QName getBaseTypeName() {
 		return baseTypeName;
 	}
 

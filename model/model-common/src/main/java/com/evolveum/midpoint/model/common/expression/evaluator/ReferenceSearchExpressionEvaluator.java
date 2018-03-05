@@ -49,7 +49,8 @@ public class ReferenceSearchExpressionEvaluator
 				localizationService);
 	}
 
-	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
+	@Override
+    protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
 		PrismReferenceValue refVal = new PrismReferenceValue();
 
 		refVal.setOid(oid);

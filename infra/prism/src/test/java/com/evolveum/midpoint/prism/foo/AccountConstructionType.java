@@ -176,6 +176,7 @@ public class AccountConstructionType
         return true;
 	}
 
+    @Override
     public AccountConstructionType clone() {
         AccountConstructionType clone = new AccountConstructionType();
         clone.howto = howto;

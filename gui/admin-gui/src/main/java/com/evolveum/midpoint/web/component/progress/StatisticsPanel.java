@@ -96,6 +96,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         add(contentsPanel);
 
         ListView provisioningLines = new ListView<ProvisioningStatisticsLineDto>(ID_PROVISIONING_STATISTICS_LINES, new PropertyModel<List<ProvisioningStatisticsLineDto>>(getModel(), StatisticsDto.F_PROVISIONING_LINES)) {
+            @Override
             protected void populateItem(final ListItem<ProvisioningStatisticsLineDto> item) {
                 item.add(new Label(ID_PROVISIONING_RESOURCE, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_RESOURCE)));
                 item.add(new Label(ID_PROVISIONING_OBJECT_CLASS, new PropertyModel<String>(item.getModel(), ProvisioningStatisticsLineDto.F_OBJECT_CLASS)));
@@ -125,6 +126,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         contentsPanel.add(provisioningLines);
 
         ListView mappingsLines = new ListView<MappingsLineDto>(ID_MAPPINGS_STATISTICS_LINES, new PropertyModel<List<MappingsLineDto>>(getModel(), StatisticsDto.F_MAPPINGS_LINES)) {
+            @Override
             protected void populateItem(final ListItem<MappingsLineDto> item) {
                 item.add(new Label(ID_MAPPINGS_OBJECT, new PropertyModel<String>(item.getModel(), MappingsLineDto.F_OBJECT)));
                 item.add(new Label(ID_MAPPINGS_COUNT, new PropertyModel<String>(item.getModel(), MappingsLineDto.F_COUNT)));
@@ -137,6 +139,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         contentsPanel.add(mappingsLines);
 
         ListView notificationsLines = new ListView<NotificationsLineDto>(ID_NOTIFICATIONS_STATISTICS_LINES, new PropertyModel<List<NotificationsLineDto>>(getModel(), StatisticsDto.F_NOTIFICATIONS_LINES)) {
+            @Override
             protected void populateItem(final ListItem<NotificationsLineDto> item) {
                 item.add(new Label(ID_NOTIFICATIONS_TRANSPORT, new PropertyModel<String>(item.getModel(), NotificationsLineDto.F_TRANSPORT)));
                 item.add(new Label(ID_NOTIFICATIONS_COUNT_SUCCESS, new PropertyModel<String>(item.getModel(), NotificationsLineDto.F_COUNT_SUCCESS)));

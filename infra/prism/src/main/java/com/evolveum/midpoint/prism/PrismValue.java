@@ -179,7 +179,8 @@ public abstract class PrismValue implements IPrismValue {
 		// Do nothing by default
 	}
 
-	public void revive(PrismContext prismContext) throws SchemaException {
+	@Override
+    public void revive(PrismContext prismContext) throws SchemaException {
 		if (this.prismContext == null) {
 			this.prismContext = prismContext;
 		}
@@ -299,6 +300,7 @@ public abstract class PrismValue implements IPrismValue {
 	/**
      * Literal clone.
      */
+    @Override
     public abstract PrismValue clone();
 
     /**

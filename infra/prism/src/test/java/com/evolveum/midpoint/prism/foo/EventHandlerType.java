@@ -151,6 +151,7 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
      *
      */
 
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         {
@@ -166,6 +167,7 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
         return this.hashCode(null, strategy);
     }
 
+    @Override
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof EventHandlerType)) {
             return false;

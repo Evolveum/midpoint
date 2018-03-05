@@ -151,11 +151,13 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         return fullSynchronizationTimestamp;
     }
 
+    @Override
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
     }
 
+    @Override
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }

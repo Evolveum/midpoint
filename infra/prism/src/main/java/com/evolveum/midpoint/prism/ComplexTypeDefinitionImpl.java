@@ -134,7 +134,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		this.xsdAnyMarker = xsdAnyMarker;
 	}
 
-	public boolean isListMarker() {
+	@Override
+    public boolean isListMarker() {
 		return listMarker;
 	}
 
@@ -239,7 +240,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
     }
 
 	// path starts with NamedItemPathSegment
-	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
+	@Override
+    public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
 		ID found = null;
 		for (ItemDefinition def : getDefinitions()) {
 			if (def.isValidFor(firstName, clazz, false)) {

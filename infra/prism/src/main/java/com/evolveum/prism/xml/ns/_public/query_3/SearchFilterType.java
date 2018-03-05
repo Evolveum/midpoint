@@ -235,6 +235,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return ToStringBuilder.reflectionToString(this);
     }
 
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         {
@@ -250,6 +251,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return this.hashCode(null, strategy);
     }
 
+    @Override
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof SearchFilterType)) {
             return false;

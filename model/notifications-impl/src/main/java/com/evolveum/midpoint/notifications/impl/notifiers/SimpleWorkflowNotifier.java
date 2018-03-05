@@ -46,6 +46,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleWorkflowNotifier.class);
 
+    @Override
     @PostConstruct
     public void init() {
         register(SimpleWorkflowNotifierType.class);
