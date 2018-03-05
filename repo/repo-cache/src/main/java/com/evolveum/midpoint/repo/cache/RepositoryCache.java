@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -60,7 +61,8 @@ public class RepositoryCache implements RepositoryService {
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-	public static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
+	private static final String CONFIGURATION_COMPONENT = "midpoint.repository";
+	private static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
 
 	private static final Set<Class<? extends ObjectType>> GLOBAL_CACHE_SUPPORTED_TYPES;
 
@@ -77,7 +79,7 @@ public class RepositoryCache implements RepositoryService {
 
 	private static final ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
 
-	private static final Map<CacheKey, CacheObject> globalCache = new HashMap<>();
+	private static final Map<CacheKey, CacheObject> globalCache = new ConcurrentHashMap<>();
 
 	private RepositoryService repository;
 
@@ -109,7 +111,8 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	public void initialize() {
-		Integer cacheMaxTTL = midpointConfiguration.getConfiguration("midpoint.repository").getInt(PROPERTY_CACHE_MAX_TTL,0);
+		Integer cacheMaxTTL = midpointConfiguration.getConfiguration(CONFIGURATION_COMPONENT)
+				.getInt(PROPERTY_CACHE_MAX_TTL,0);
 		if (cacheMaxTTL == null || cacheMaxTTL < 0) {
 			cacheMaxTTL = 0;
 		}
@@ -155,7 +158,6 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		// todo locking for version check and reload
 		if (supportsGlobalCaching(type, options)) {
 			CacheKey key = new CacheKey(type, oid);
 			CacheObject<T> cacheObject = globalCache.get(key);
@@ -788,7 +790,7 @@ public class RepositoryCache implements RepositoryService {
 			CacheKey key, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
-		LOGGER.trace("Global cache MISS {}", key);
+		LOGGER.trace("Cache: Global MISS {}", key);
 
 		try {
 			PrismObject object = repository.getObject(key.getType(), key.getOid(), options, result);
