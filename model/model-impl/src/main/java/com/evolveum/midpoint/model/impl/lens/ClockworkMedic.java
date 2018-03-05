@@ -20,9 +20,16 @@ import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.api.util.DiagnosticContextManager;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DiagnosticContext;
+import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -42,51 +49,96 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTyp
  */
 @Component
 public class ClockworkMedic {
-	
+		
 	private static final Trace LOGGER = TraceManager.getTrace(ClockworkMedic.class);
+	
+	public void enterModelMethod() {
+		if (InternalsConfig.isModelProfiling()) {
+			DiagnosticContextManager manager = getDiagnosticContextManager();
+			DiagnosticContext ctx;
+			if (manager == null) {
+				ctx = new ProfilingModelInspector();
+				((ProfilingModelInspector)ctx).recordStart();
+			} else {
+				ctx = manager.createNewContext();
+			}
+			DiagnosticContextHolder.push(ctx);
+		}
+		
+		RepositoryCache.enter();
+	}
+	
+	public void exitModelMethod() {
+		RepositoryCache.exit();
+		
+		DiagnosticContext ctx = DiagnosticContextHolder.pop();
+		if (ctx != null) {
+			DiagnosticContextManager manager = getDiagnosticContextManager();
+			if (manager == null) {
+				if (ctx instanceof ProfilingModelInspector) {
+					((ProfilingModelInspector)ctx).recordFinish();
+				}
+				LOGGER.info("Model diagnostics:{}", ctx.debugDump(1));
+			} else {
+				manager.processFinishedContext(ctx);
+			}
+		}
+	}
+	
+	// Maybe we need to find a better place for this
+	private DiagnosticContextManager diagnosticContextManager = null;
+	
+	public DiagnosticContextManager getDiagnosticContextManager() {
+		return diagnosticContextManager;
+	}
 
-	private ClockworkInspector clockworkInspector;
+	public void setDiagnosticContextManager(DiagnosticContextManager diagnosticContextManager) {
+		this.diagnosticContextManager = diagnosticContextManager;
+	}
 
 	public ClockworkInspector getClockworkInspector() {
-		return clockworkInspector;
+		return DiagnosticContextHolder.get(ClockworkInspector.class);
 	}
 
-	public void setClockworkInspector(ClockworkInspector clockworkInspector) {
-		this.clockworkInspector = clockworkInspector;
-	}
 
 	public <F extends ObjectType> void clockworkStart(LensContext<F> context) {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		if (clockworkInspector != null) {
 			clockworkInspector.clockworkStart(context);
 		}
 	}
 	
 	public <F extends ObjectType> void clockworkStateSwitch(LensContext<F> contextBefore, ModelState newState) {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		if (clockworkInspector != null) {
 			clockworkInspector.clockworkStateSwitch(contextBefore, newState);
 		}
 	}
 
 	public <F extends ObjectType> void clockworkFinish(LensContext<F> context) {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		if (clockworkInspector != null) {
 			clockworkInspector.clockworkFinish(context);
 		}
 	}
 
 	public <F extends ObjectType> void projectorStart(LensContext<F> context) {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		if (clockworkInspector != null) {
 			clockworkInspector.projectorStart(context);
 		}
 	}
 
 	public <F extends ObjectType> void projectorFinish(LensContext<F> context) {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		if (clockworkInspector != null) {
 			clockworkInspector.projectorFinish(context);
 		}
 	}
 
 	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context,
-			Mapping<?, ?> evaluatedMapping) {
+			MappingImpl<?, ?> evaluatedMapping) {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		if (clockworkInspector != null) {
 			clockworkInspector.afterMappingEvaluation(context, evaluatedMapping);
 		}
@@ -102,6 +154,7 @@ public class ClockworkMedic {
 			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+		ClockworkInspector clockworkInspector = getClockworkInspector();
 		PartialProcessingTypeType option = optionSupplier.get();
 		if (option == PartialProcessingTypeType.SKIP) {
 			LOGGER.debug("Skipping projector component {} because partial execution option is set to {}", componentName, option);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -116,7 +117,13 @@ public class RepositoryCache implements RepositoryService {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
-			return repository.getObject(type, oid, options, parentResult);
+			Long startTime = repoOpStart();
+			try {
+				return repository.getObject(type, oid, options, parentResult);
+			} finally {
+				repoOpEnd(startTime);
+			}
+			
 		}
 		Cache cache = getCache();
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
@@ -136,11 +143,33 @@ public class RepositoryCache implements RepositoryService {
 			}
 			log("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
-		PrismObject<T> object = repository.getObject(type, oid, null, parentResult);
+		PrismObject<T> object;
+		Long startTime = repoOpStart();
+		try {
+			object = repository.getObject(type, oid, null, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 		cacheObject(cache, object, readOnly);
 		return object;
 	}
 
+	private Long repoOpStart() {
+		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
+		if (monitor == null) {
+			return null;
+		} else {
+			return System.currentTimeMillis();
+		}
+	}
+	
+	private void repoOpEnd(Long startTime) {
+		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
+		if (monitor != null) {
+			monitor.recordRepoOperation(System.currentTimeMillis() - startTime);
+		}
+	}
+	
 	private boolean isCacheable(Class<?> type) {
 		if (type.equals(TaskType.class)) {
 			return false;
@@ -154,7 +183,13 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
-		String oid = repository.addObject(object, options, parentResult);
+		String oid;
+		Long startTime = repoOpStart();
+		try {
+			oid = repository.addObject(object, options, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 		Cache cache = getCache();
 		// DON't cache the object here. The object may not have proper "JAXB" form, e.g. some pieces may be
 		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
@@ -173,7 +208,12 @@ public class RepositoryCache implements RepositoryService {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			log("Cache: PASS ({})", type.getSimpleName());
-			return repository.searchObjects(type, query, options, parentResult);
+			Long startTime = repoOpStart();
+			try {
+				return repository.searchObjects(type, query, options, parentResult);
+			} finally {
+				repoOpEnd(startTime);
+			}
 		}
 		Cache cache = getCache();
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
@@ -194,7 +234,13 @@ public class RepositoryCache implements RepositoryService {
 		}
 
 		// Cannot satisfy from cache, pass down to repository
-		SearchResultList<PrismObject<T>> objects = repository.searchObjects(type, query, options, parentResult);
+		SearchResultList<PrismObject<T>> objects;
+		Long startTime = repoOpStart();
+		try {
+			objects = repository.searchObjects(type, query, options, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 		if (cache != null && options == null) {
 			for (PrismObject<T> object : objects) {
 				cacheObject(cache, object, readOnly);
@@ -207,7 +253,12 @@ public class RepositoryCache implements RepositoryService {
 
 	@Override
 	public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-		return repository.searchContainers(type, query, options, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.searchContainers(type, query, options, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -227,7 +278,12 @@ public class RepositoryCache implements RepositoryService {
 				return handler.handle(object, parentResult);
 			}
 		};
-		return repository.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Deprecated
@@ -236,14 +292,24 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		// TODO use cached query result if applicable
 		log("Cache: PASS countObjects ({})", type.getSimpleName());
-		return repository.countObjects(type, query, null, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.countObjects(type, query, null, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
 		log("Cache: PASS countContainers ({})", type.getSimpleName());
-		return repository.countContainers(type, query, options, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.countContainers(type, query, options, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
@@ -252,7 +318,12 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		// TODO use cached query result if applicable
 		log("Cache: PASS countObjects ({})", type.getSimpleName());
-		return repository.countObjects(type, query, options, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.countObjects(type, query, options, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
@@ -287,9 +358,11 @@ public class RepositoryCache implements RepositoryService {
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 		delay(modifyRandomDelayRange);
+		Long startTime = repoOpStart();
 		try {
 			repository.modifyObject(type, oid, modifications, precondition, options, parentResult);
 		} finally {
+			repoOpEnd(startTime);
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 			// the object in cache
 			invalidateCacheEntry(type, oid);
@@ -307,9 +380,11 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
+		Long startTime = repoOpStart();
 		try {
 			repository.deleteObject(type, oid, parentResult);
 		} finally {
+			repoOpEnd(startTime);
 			invalidateCacheEntry(type, oid);
 		}
 	}
@@ -318,7 +393,13 @@ public class RepositoryCache implements RepositoryService {
 	public <F extends FocusType> PrismObject<F> searchShadowOwner(
 			String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
 		// TODO cache the search operation?
-		PrismObject<F> ownerObject = repository.searchShadowOwner(shadowOid, options, parentResult);
+		PrismObject<F> ownerObject;
+		Long startTime = repoOpStart();
+		try {
+			ownerObject = repository.searchShadowOwner(shadowOid, options, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 		if (ownerObject != null && nullOrHarmlessOptions(options)) {
 			cacheObject(getCache(), ownerObject, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
 		}
@@ -347,14 +428,24 @@ public class RepositoryCache implements RepositoryService {
 	@Deprecated
 	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
-		return repository.listAccountShadowOwner(accountOid, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.listAccountShadowOwner(accountOid, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
-		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
+		Long startTime = repoOpStart();
+		try {
+			return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -365,7 +456,12 @@ public class RepositoryCache implements RepositoryService {
 			throws ObjectNotFoundException, SchemaException {
 		if (!isCacheable(type)) {
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
-			return repository.getVersion(type, oid, parentResult);
+			Long startTime = repoOpStart();
+			try {
+				return repository.getVersion(type, oid, parentResult);
+			} finally {
+				repoOpEnd(startTime);
+			}
 		}
 		Cache cache = getCache();
 		if (cache == null) {
@@ -378,7 +474,13 @@ public class RepositoryCache implements RepositoryService {
 			}
 			log("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
-		String version = repository.getVersion(type, oid, parentResult);
+		String version;
+		Long startTime = repoOpStart();
+		try {
+			version = repository.getVersion(type, oid, parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 		cacheObjectVersion(cache, oid, version);
 		return version;
 	}
@@ -388,7 +490,12 @@ public class RepositoryCache implements RepositoryService {
 	 */
 	@Override
 	public RepositoryDiag getRepositoryDiag() {
-		return repository.getRepositoryDiag();
+		Long startTime = repoOpStart();
+		try {
+			return repository.getRepositoryDiag();
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -396,12 +503,22 @@ public class RepositoryCache implements RepositoryService {
 	 */
 	@Override
 	public void repositorySelfTest(OperationResult parentResult) {
-		repository.repositorySelfTest(parentResult);
+		Long startTime = repoOpStart();
+		try {
+			repository.repositorySelfTest(parentResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
     @Override
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
-        repository.testOrgClosureConsistency(repairIfNecessary, testResult);
+    	Long startTime = repoOpStart();
+		try {
+			repository.testOrgClosureConsistency(repairIfNecessary, testResult);
+		} finally {
+			repoOpEnd(startTime);
+		}
     }
 
     private <T extends ObjectType> void cacheObject(Cache cache, PrismObject<T> object, boolean readOnly) {
@@ -426,25 +543,45 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
 			throws SchemaException {
-		return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
+		Long startTime = repoOpStart();
+		try {
+			return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
 			throws SchemaException {
-		return repository.isDescendant(object, orgOid);
+		Long startTime = repoOpStart();
+		try {
+			return repository.isDescendant(object, orgOid);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
 			throws SchemaException {
-		return repository.isAncestor(object, oid);
+		Long startTime = repoOpStart();
+		try {
+			return repository.isAncestor(object, oid);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
 			PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return repository.selectorMatches(objectSelector, object, filterEvaluator, logger, logMessagePrefix);
+		Long startTime = repoOpStart();
+		try {
+			return repository.selectorMatches(objectSelector, object, filterEvaluator, logger, logMessagePrefix);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	private void log(String message, Object... params) {
@@ -459,9 +596,11 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
+		Long startTime = repoOpStart();
 		try {
 			return repository.advanceSequence(oid, parentResult);
 		} finally {
+			repoOpEnd(startTime);
 			invalidateCacheEntry(SequenceType.class, oid);
 		}
 	}
@@ -469,31 +608,53 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
+		Long startTime = repoOpStart();
 		try {
 			repository.returnUnusedValuesToSequence(oid, unusedValues, parentResult);
 		} finally {
+			repoOpEnd(startTime);
 			invalidateCacheEntry(SequenceType.class, oid);
 		}
 	}
 
 	@Override
 	public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
-		return repository.executeQueryDiagnostics(request, result);
+		Long startTime = repoOpStart();
+		try {
+			return repository.executeQueryDiagnostics(request, result);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
-		return repository.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
+		Long startTime = repoOpStart();
+		try {
+			return repository.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
-		repository.applyFullTextSearchConfiguration(fullTextSearch);
+		Long startTime = repoOpStart();
+		try {
+			repository.applyFullTextSearchConfiguration(fullTextSearch);
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override
 	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
-		return repository.getFullTextSearchConfiguration();
+		Long startTime = repoOpStart();
+		try {
+			return repository.getFullTextSearchConfiguration();
+		} finally {
+			repoOpEnd(startTime);
+		}
 	}
 
 	@Override

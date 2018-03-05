@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -386,7 +386,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
         dummyAuditService.assertExecutionMessage();
 
-        LensContext<UserType> lastLensContext = clockworkInspector.getLastLensContext();
+        LensContext<UserType> lastLensContext = (LensContext) profilingModelInspectorManager.getLastLensContext();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = lastLensContext.getExecutedDeltas();
         display("Executed deltas", executedDeltas);
         assertEquals("Unexpected number of execution deltas in context", 2, executedDeltas.size());

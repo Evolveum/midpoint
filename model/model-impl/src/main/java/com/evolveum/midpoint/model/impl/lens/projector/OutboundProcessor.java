@@ -30,7 +30,7 @@ import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -136,12 +136,12 @@ public class OutboundProcessor {
 				projectionOdo = projCtx.getObjectDeltaObject();
 			}
 
-			Mapping.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
+			MappingImpl.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + projCtx.getResource());
 			builder = builder.originObject(projCtx.getResource())
 					.originType(OriginType.OUTBOUND);
-			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(builder, attributeName, refinedAttributeDefinition,
+			MappingImpl<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(builder, attributeName, refinedAttributeDefinition,
 					focusOdo, projectionOdo, operation, rOcDef, null, context, projCtx, task, result);
 
 			if (evaluatedMapping != null) {
@@ -162,12 +162,12 @@ public class OutboundProcessor {
 //				continue;
 //			}
 
-			Mapping.Builder<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mappingBuilder = mappingFactory.createMappingBuilder(outboundMappingType,
+			MappingImpl.Builder<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mappingBuilder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(associationDefinition.getName())
 			        + " in " + projCtx.getResource());
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mappingBuilder,
+			MappingImpl<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (MappingImpl) evaluateMapping(mappingBuilder,
 					assocName, outputDefinition, focusOdo, projectionOdo, operation, rOcDef,
 					associationDefinition.getAssociationTarget(), context, projCtx, task, result);
 
@@ -180,7 +180,7 @@ public class OutboundProcessor {
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
-    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(final Mapping.Builder<V,D> mappingBuilder, QName mappingQName,
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingImpl.Builder<V,D> mappingBuilder, QName mappingQName,
     		D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
     		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, final Task task, OperationResult result)
@@ -273,7 +273,7 @@ public class OutboundProcessor {
 			mappingBuilder.conditionMaskNew(false);
 		}
 
-		Mapping<V,D> mapping = mappingBuilder.build();
+		MappingImpl<V,D> mapping = mappingBuilder.build();
 		mappingEvaluator.evaluateMapping(mapping, context, projCtx, task, result);
 
 		return mapping;

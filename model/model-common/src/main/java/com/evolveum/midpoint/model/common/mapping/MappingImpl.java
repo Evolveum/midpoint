@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -81,7 +82,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  *
  */
-public class Mapping<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
+public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implements Mapping<V,D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 
 	// configuration properties (unmodifiable)
 	private final MappingType mappingType;
@@ -134,9 +135,9 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
 
-	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
-	private Mapping(Builder<V,D> builder) {
+	private MappingImpl(Builder<V,D> builder) {
 		expressionFactory = builder.expressionFactory;
 		variables = builder.variables;
 		mappingType = builder.mappingType;
@@ -376,7 +377,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	 * (i.e. if the input changes will "trigger" the mapping).
 	 */
 	public void prepare(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-			OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".prepare");
+			OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".prepare");
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
 
@@ -407,7 +408,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 		assertState(MappingEvaluationState.PREPARED);
 
-		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
+		OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".evaluate");
 
         traceEvaluationStart();
 
@@ -1139,7 +1140,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	 * Shallow clone. Only the output is cloned deeply.
 	 */
 	public PrismValueDeltaSetTripleProducer<V, D> clone() {
-		Mapping<V, D> clone = new Builder<V, D>()
+		MappingImpl<V, D> clone = new Builder<V, D>()
 				.mappingType(mappingType)
 				.contextDescription(contextDescription)
 				.expressionFactory(expressionFactory)
@@ -1202,7 +1203,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Mapping other = (Mapping) obj;
+		MappingImpl other = (MappingImpl) obj;
 		if (conditionMaskNew != other.conditionMaskNew)
 			return false;
 		if (conditionMaskOld != other.conditionMaskOld)
@@ -1510,8 +1511,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return this;
 		}
 
-		public Mapping<V,D> build() {
-			return new Mapping<>(this);
+		public MappingImpl<V,D> build() {
+			return new MappingImpl<>(this);
 		}
 
 		public ExpressionFactory getExpressionFactory() {
@@ -1714,7 +1715,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 
 		public boolean isApplicableToChannel(String channel) {
-			return Mapping.isApplicableToChannel(mappingType, channel);
+			return MappingImpl.isApplicableToChannel(mappingType, channel);
 		}
 
 		public Builder<V, D> addSource(Source<?,?> source) {
@@ -1843,7 +1844,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 
 		public MappingStrengthType getStrength() {
-			return Mapping.getStrength(mappingType);
+			return MappingImpl.getStrength(mappingType);
 		}
 	}
 

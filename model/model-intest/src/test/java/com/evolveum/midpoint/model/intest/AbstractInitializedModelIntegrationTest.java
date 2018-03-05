@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
-import com.evolveum.midpoint.model.intest.util.ProfilingClockworkInspector;
+import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -71,11 +72,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	private static final int NUMBER_OF_IMPORTED_USERS = 4;
 	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
-	@Autowired(required = true) protected MappingFactory mappingFactory;
-	@Autowired(required = true) protected Clockwork clockwork;
-	@Autowired(required = true) protected ClockworkMedic clockworkMedic;
+	@Autowired protected MappingFactory mappingFactory;
+	@Autowired protected Clockwork clockwork;
+	@Autowired protected ClockworkMedic clockworkMedic;
 
-	protected ProfilingClockworkInspector clockworkInspector;
+	protected ProfilingModelInspectorManager profilingModelInspectorManager;
 	protected CheckingProgressListener checkingProgressListener;
 
 	protected UserType userTypeJack;
@@ -125,8 +126,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assumeConflictResolutionAction(getDefaultConflictResolutionAction());
 
 		mappingFactory.setProfiling(true);
-		clockworkInspector = new ProfilingClockworkInspector();
-		clockworkMedic.setClockworkInspector(clockworkInspector);
+		profilingModelInspectorManager = new ProfilingModelInspectorManager();
+		clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
 		checkingProgressListener = new CheckingProgressListener();
 
 		// Resources

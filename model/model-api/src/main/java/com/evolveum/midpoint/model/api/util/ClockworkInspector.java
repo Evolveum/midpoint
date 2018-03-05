@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.api.util;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -29,15 +31,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Radovan Semancik
  *
  */
-public interface ClockworkInspector {
+public interface ClockworkInspector extends DiagnosticContext {
 
-	<F extends ObjectType> void clockworkStart(LensContext<F> context);
+	<F extends ObjectType> void clockworkStart(ModelContext<F> context);
 	
-	<F extends ObjectType> void clockworkStateSwitch(LensContext<F> contextBefore, ModelState newState);
+	<F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState);
 
-	<F extends ObjectType> void clockworkFinish(LensContext<F> context);
+	<F extends ObjectType> void clockworkFinish(ModelContext<F> context);
 
-	<F extends ObjectType> void projectorStart(LensContext<F> context);
+	<F extends ObjectType> void projectorStart(ModelContext<F> context);
 	
 	void projectorComponentSkip(String componentName);
 	
@@ -45,12 +47,12 @@ public interface ClockworkInspector {
 	
 	void projectorComponentFinish(String componentName);
 
-	<F extends ObjectType> void projectorFinish(LensContext<F> context);
+	<F extends ObjectType> void projectorFinish(ModelContext<F> context);
 
 	/**
 	 * May be used to gather profiling data, etc.
 	 */
-	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context, Mapping<?,?> evaluatedMapping);
+	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping);
 
 //	/**
 //	 * For all scripts expect for mappings.

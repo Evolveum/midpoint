@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,9 @@ import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
  * @author mederly
  */
 public class ItemApprovalHistoryPanel extends BasePanel<WfContextType> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ItemApprovalHistoryPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ItemApprovalHistoryPanel.class);
 
     private static final String ID_DECISIONS_DONE = "decisionsDone";
 

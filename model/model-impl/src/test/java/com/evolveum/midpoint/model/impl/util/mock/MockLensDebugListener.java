@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.model.impl.util.mock;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.ClockworkInspector;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -39,15 +41,15 @@ public class MockLensDebugListener implements ClockworkInspector {
 		return lastSyncContext;
 	}
 
-	public <F extends ObjectType> void setLastSyncContext(LensContext<F> lastSyncContext) {
-		this.lastSyncContext = lastSyncContext;
+	public <F extends ObjectType> void setLastSyncContext(ModelContext<F> lastSyncContext) {
+		this.lastSyncContext = (LensContext) lastSyncContext;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType> void clockworkStart(LensContext<F> context) {
+	public <F extends ObjectType> void clockworkStart(ModelContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.debugDump());
 	}
 
@@ -55,33 +57,28 @@ public class MockLensDebugListener implements ClockworkInspector {
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType> void clockworkFinish(LensContext<F> context) {
+	public <F extends ObjectType> void clockworkFinish(ModelContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.debugDump());
-		lastSyncContext = context;
+		lastSyncContext = (LensContext) context;
 	}
 
 	@Override
-	public <F extends ObjectType> void projectorStart(
-			LensContext<F> context) {
-
-	}
-
-	@Override
-	public <F extends ObjectType> void projectorFinish(
-			LensContext<F> context) {
+	public <F extends ObjectType> void projectorStart(ModelContext<F> context) {
 
 	}
 
 	@Override
-	public <F extends ObjectType> void afterMappingEvaluation(
-			LensContext<F> context,
-			Mapping<?,?> evaluatedMapping) {
+	public <F extends ObjectType> void projectorFinish(ModelContext<F> context) {
 
 	}
 
 	@Override
-	public <F extends ObjectType> void clockworkStateSwitch(LensContext<F> contextBefore,
-			ModelState newState) {
+	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
+
+	}
+
+	@Override
+	public <F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -102,6 +99,13 @@ public class MockLensDebugListener implements ClockworkInspector {
 	public void projectorComponentFinish(String componentName) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MockLensDebugListener.class, indent);
+		DebugUtil.debugDumpWithLabelToString(sb, "lastSyncContext", lastSyncContext, indent + 1);
+		return sb.toString();
 	}
 
 

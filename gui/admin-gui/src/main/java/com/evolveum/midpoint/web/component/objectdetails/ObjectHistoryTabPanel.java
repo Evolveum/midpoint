@@ -33,6 +33,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,7 +59,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Created by honchar.
  */
 public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
-    private static final String ID_MAIN_PANEL = "mainPanel";
+	
+	private static final long serialVersionUID = 1L;
+    
+	private static final String ID_MAIN_PANEL = "mainPanel";
     private static final Trace LOGGER = TraceManager.getTrace(ObjectHistoryTabPanel.class);
     private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
@@ -71,38 +75,14 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
     }
 
     private void initLayout(final LoadableModel<ObjectWrapper<F>> focusWrapperModel, final PageAdminObjectDetails<F> page) {
-        Map<String, Boolean> visibilityMap = new HashMap<>();
-        visibilityMap.put(AuditLogViewerPanel.TARGET_NAME_LABEL_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.TARGET_NAME_FIELD_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_LABEL_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_FIELD_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_LABEL_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_FIELD_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_COLUMN_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.TARGET_COLUMN_VISIBILITY, false);
-        visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_COLUMN_VISIBILITY, false);
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, visibilityMap) {
+        AuditSearchDto auditSearchDto = createAuditSearchDto(focusWrapperModel.getObject().getObject().asObjectable());
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, Model.of(auditSearchDto), true) {
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected AuditSearchDto initAuditSearchDto(){
-                AuditSearchDto searchDto = new AuditSearchDto();
-                ObjectReferenceType ort = new ObjectReferenceType();
-                ort.setOid(focusWrapperModel.getObject().getOid());
-                searchDto.setTargetNames(asList(ort));
-                searchDto.setEventStage(AuditEventStageType.EXECUTION);
-
-                return searchDto;
-            }
-
-            @Override
-            protected boolean useSessionStorageOnPanelLoad(){
-                return false;
-            }
 
             @Override
             protected List<IColumn<AuditEventRecordType, String>> initColumns() {
                 List<IColumn<AuditEventRecordType, String>> columns = super.initColumns();
+                
                 IColumn<AuditEventRecordType, String> column
                         = new MultiButtonColumn<AuditEventRecordType>(new Model(), 2) {
                     private static final long serialVersionUID = 1L;
@@ -173,11 +153,44 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                 return columns;
             }
 
+			@Override
+			protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
+				getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
+				getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
+				
+				
+			}
+
+			@Override
+			protected void resetAuditSearchStorage() {
+				getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(focusWrapperModel.getObject().getObject().asObjectable()));
+				
+			}
+
+			@Override
+			protected void updateCurrentPage(long current) {
+				getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(current);
+				
+			}
+
+			@Override
+			protected long getCurrentPage() {
+				return getPageBase().getSessionStorage().getUserHistoryAuditLog().getPageNumber();
+			}
+
         };
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
+    private AuditSearchDto createAuditSearchDto(F focus) {
+    	AuditSearchDto searchDto = new AuditSearchDto();
+		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(focus);
+		searchDto.setTargetNames(asList(ort));
+		searchDto.setEventStage(AuditEventStageType.EXECUTION);
+		return searchDto;
+    }
+    
     private void currentStateButtonClicked(AjaxRequestTarget target, String oid, String eventIdentifier,
                                            String date, Class type) {
         //TODO cases for PageRoleHistory, PageOrgHistory if needed...
