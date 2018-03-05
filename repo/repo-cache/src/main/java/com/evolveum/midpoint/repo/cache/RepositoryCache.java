@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -57,7 +60,7 @@ public class RepositoryCache implements RepositoryService {
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-	public static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
+	public static final String PROPERTY_CACHE_MAX_TTL = "repository.cacheMaxTTL";
 
 	private static final Set<Class<? extends ObjectType>> GLOBAL_CACHE_SUPPORTED_TYPES;
 
@@ -72,30 +75,46 @@ public class RepositoryCache implements RepositoryService {
 		GLOBAL_CACHE_SUPPORTED_TYPES = Collections.unmodifiableSet(set);
 	}
 
-	// todo make configurable
-	private static final long maxTTL = 20 * 1000;   // 20 seconds
-
 	private static final ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
 
 	private static final Map<CacheKey, CacheObject> globalCache = new HashMap<>();
 
 	private RepositoryService repository;
 
+	private PrismContext prismContext;
+
+	private MidpointConfiguration midpointConfiguration;
+
+
+	private long cacheMaxTTL;
+
 	private static final Random RND = new Random();
 
 	private Integer modifyRandomDelayRange;
 
-	private PrismContext prismContext;
-
 	public RepositoryCache() {
     }
 
-    public void setRepository(RepositoryService service, PrismContext prismContext) {
+    public void setRepository(RepositoryService service) {
         Validate.notNull(service, "Repository service must not be null.");
-		Validate.notNull(prismContext, "Prism context service must not be null.");
         this.repository = service;
-		this.prismContext = prismContext;
     }
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
+	public void setMidpointConfiguration(MidpointConfiguration midpointConfiguration) {
+		this.midpointConfiguration = midpointConfiguration;
+	}
+
+	public void initialize() {
+		Integer cacheMaxTTL = midpointConfiguration.getConfiguration("midpoint").getInt(PROPERTY_CACHE_MAX_TTL);
+		if (cacheMaxTTL == null || cacheMaxTTL < 0) {
+			cacheMaxTTL = 0;
+		}
+		this.cacheMaxTTL = cacheMaxTTL;
+	}
 
 	private static Cache getCache() {
 		return cacheInstance.get();
@@ -154,7 +173,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 
 			// version matches, renew ttl
-			cacheObject.setTimeToLive(System.currentTimeMillis() + maxTTL);
+			cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);
 
 			LOGGER.trace("Cache: Global HIT, version check {}", key);
 			return cacheObject.getObject();
@@ -725,7 +744,7 @@ public class RepositoryCache implements RepositoryService {
 	private <T extends ObjectType> boolean supportsGlobalCaching(
 			Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options) {
 
-		if (maxTTL <= 0) {
+		if (cacheMaxTTL <= 0) {
 			return false;
 		}
 
@@ -774,7 +793,7 @@ public class RepositoryCache implements RepositoryService {
 		try {
 			PrismObject object = repository.getObject(key.getType(), key.getOid(), options, result);
 
-			long ttl = System.currentTimeMillis() + maxTTL;
+			long ttl = System.currentTimeMillis() + cacheMaxTTL;
 			CacheObject<T> cacheObject = new CacheObject<>(object, ttl);
 
 			globalCache.put(key, cacheObject);
