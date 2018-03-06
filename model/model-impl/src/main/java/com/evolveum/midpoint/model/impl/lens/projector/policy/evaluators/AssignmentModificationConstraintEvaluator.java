@@ -74,7 +74,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 				!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
 				!relationMatches(constraint, ctx) ||
 				!pathsMatch(constraint, ctx) ||
-				!expressionPasses(constraint, ctx, result)) {
+				!expressionPasses(constraintElement, ctx, result)) {
 			return null;
 		}
 		// TODO check modifications
@@ -92,7 +92,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 				.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
 				.arg(ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	@NotNull
@@ -115,7 +115,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 				.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
 				.arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	private <F extends FocusType> boolean relationMatches(AssignmentModificationPolicyConstraintType constraint,

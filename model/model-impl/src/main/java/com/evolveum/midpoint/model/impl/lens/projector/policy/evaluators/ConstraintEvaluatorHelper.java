@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
@@ -52,12 +53,15 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInfo
 public class ConstraintEvaluatorHelper {
 
 	public static final QName VAR_EVALUATOR_HELPER = new QName(SchemaConstants.NS_C, "evaluatorHelper");
+	public static final QName VAR_CONSTRAINT_ELEMENT = new QName(SchemaConstants.NS_C, "constraintElement");
+	public static final QName VAR_CONSTRAINT = new QName(SchemaConstants.NS_C, "constraint");
 
 	@Autowired private PrismContext prismContext;
 	@Autowired protected ExpressionFactory expressionFactory;
 
 	// corresponds with PolicyRuleBasedAspect.processNameFromApprovalActions
-	public <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx) {
+	public <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx,
+			JAXBElement<? extends AbstractPolicyConstraintType> constraintElement) {
 		ExpressionVariables var = new ExpressionVariables();
 		PrismObject<F> object = rctx.getObject();
 		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
@@ -79,6 +83,8 @@ public class ConstraintEvaluatorHelper {
 		}
 		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
 		var.addVariableDefinition(VAR_EVALUATOR_HELPER, this);
+		var.addVariableDefinition(VAR_CONSTRAINT, constraintElement != null ? constraintElement.getValue() : null);
+		var.addVariableDefinition(VAR_CONSTRAINT_ELEMENT, constraintElement);
 		return var;
 	}
 
@@ -104,18 +110,19 @@ public class ConstraintEvaluatorHelper {
 	}
 
 	public <F extends FocusType> SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<F> rctx, JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return LensUtil.interpretLocalizableMessageTemplate(template, createExpressionVariables(rctx), expressionFactory, prismContext, rctx.task, result);
+		return LensUtil.interpretLocalizableMessageTemplate(template, createExpressionVariables(rctx, constraintElement), expressionFactory, prismContext, rctx.task, result);
 	}
 
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
-			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
+			JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		AbstractPolicyConstraintType constraint = constraintElement.getValue();
 		if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
 			SingleLocalizableMessageType messageType =
-					interpretLocalizableMessageTemplate(constraint.getPresentation().getMessage(), rctx, result);
+					interpretLocalizableMessageTemplate(constraint.getPresentation().getMessage(), rctx, constraintElement, result);
 			return LocalizationUtil.toLocalizableMessage(messageType);
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
@@ -128,12 +135,13 @@ public class ConstraintEvaluatorHelper {
 	}
 
 	public <F extends FocusType> LocalizableMessage createLocalizableShortMessage(
-			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
+			JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		AbstractPolicyConstraintType constraint = constraintElement.getValue();
 		if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
 			SingleLocalizableMessageType messageType =
-					interpretLocalizableMessageTemplate(constraint.getPresentation().getShortMessage(), rctx, result);
+					interpretLocalizableMessageTemplate(constraint.getPresentation().getShortMessage(), rctx, constraintElement, result);
 			return LocalizationUtil.toLocalizableMessage(messageType);
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
