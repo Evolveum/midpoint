@@ -47,7 +47,7 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel() {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getObjectContainerPath(), AssignmentType.F_CONSTRUCTION));
+			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(), AssignmentType.F_CONSTRUCTION));
 			constructionWrapper.setAddContainerButtonVisible(true);
 			constructionWrapper.setShowEmpty(true, false);
 			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
@@ -61,7 +61,8 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 		}
 		
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(new ItemPath(getObjectContainerPath(), AssignmentType.F_PERSONA_CONSTRUCTION));
+			ContainerWrapper<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
 			if (personasWrapper != null && personasWrapper.getValues() != null) {
 				personasWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 			}
@@ -71,7 +72,4 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 		return Model.of();
 	}
 
-	protected QName getObjectContainerPath(){
-		return FocusType.F_ASSIGNMENT;
-	}
 }
