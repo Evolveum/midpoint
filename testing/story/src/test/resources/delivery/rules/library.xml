@@ -88,6 +88,77 @@
 		</script>
 	</function>
 	<function>
+		<name>evaluateRolePresenceWithMessage</name>
+		<parameter>
+			<name>object</name>
+			<type>c:ObjectType</type>
+		</parameter>
+		<parameter>
+			<name>ruleEvaluationContext</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<parameter>
+			<name>assumeExistence</name>
+			<type>xsd:boolean</type>
+		</parameter>
+		<parameter>
+			<name>rolesAttributeName</name>
+			<type>xsd:string</type>
+		</parameter>
+		<parameter>
+			<name>evaluatorHelper</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<parameter>
+			<name>constraint</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<returnType>c:SingleLocalizableMessageType</returnType>
+		<script>
+			<code><![CDATA[
+				import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+				import com.evolveum.midpoint.schema.util.LocalizationUtil;
+ 
+ 				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(0)
+				this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+				log.info('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+
+				def roleRefs = basic.getPropertyValues(extension, rolesAttributeName)
+
+				def allExist = roleRefs?.every { roleRef ->
+					if (roleRef == null || roleRef.oid == null) {
+						throw new IllegalArgumentException('No attribute ' + rolesAttributeName + ' (' + roleRef + ') or oid (' + roleRef?.oid + ') defined');
+					}
+					
+					midpoint.isDirectlyAssigned(object, roleRef.oid)
+				}
+				matches = assumeExistence && !allExist || !assumeExistence && allExist
+				
+				if (matches) {
+					pathMessage = ruleEvaluationContext.policyRule?.assignmentPath?.segments
+						?.collect { it?.target?.name?.orig }
+						?.grep { it }
+						?.join (' > ');
+						
+					beforeAfter = evaluatorHelper.createBeforeAfterMessage(ruleEvaluationContext);
+
+					message = new LocalizableMessageBuilder()
+							.key('DefaultPolicyConstraint.objectState.namedWithPath')
+							.args([
+								beforeAfter, 
+								constraint.name ? constraint.name : '-', 
+								pathMessage ? pathMessage : '-'])
+							.build();
+							
+					return LocalizationUtil.createLocalizableMessageType(message);
+				
+				} else {
+					return null;
+				}
+			]]></code>
+		</script>
+	</function>	
+	<function>
 		<name>remediatorPresent</name>
 		<parameter>
 			<name>ruleEvaluationContext</name>
