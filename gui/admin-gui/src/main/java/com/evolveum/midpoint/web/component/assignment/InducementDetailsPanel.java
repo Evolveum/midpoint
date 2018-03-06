@@ -37,8 +37,4 @@ public class InducementDetailsPanel<R extends AbstractRoleType, C extends Contai
     public InducementDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(id, form, assignmentModel);
     }
-
-    protected QName getObjectContainerPath(){
-        return AbstractRoleType.F_INDUCEMENT;
-    }
 }

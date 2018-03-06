@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.Component;
@@ -94,8 +95,11 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				AbstractOrgTabPanel orgPanel = (AbstractOrgTabPanel) getParent().get(ID_ORG_TABS);
-				OrgTreePanel treePanel = (OrgTreePanel) orgPanel.getPanel();
-				List<OrgType> selectedOrgs = treePanel.getSelectedOrgs();
+				Panel treePanel = orgPanel.getPanel();
+				List<OrgType> selectedOrgs = new ArrayList<>();
+				if (treePanel != null && treePanel instanceof OrgTreePanel) {
+					selectedOrgs = ((OrgTreePanel)treePanel).getSelectedOrgs();
+				}
 				assignSelectedOrgPerformed(selectedOrgs, target);
 
 			}
