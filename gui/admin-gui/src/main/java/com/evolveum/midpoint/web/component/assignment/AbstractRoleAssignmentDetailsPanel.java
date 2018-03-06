@@ -47,7 +47,9 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel() {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(), AssignmentType.F_CONSTRUCTION));
+			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
+					AssignmentType.F_CONSTRUCTION));
+
 			constructionWrapper.setAddContainerButtonVisible(true);
 			constructionWrapper.setShowEmpty(true, false);
 			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
