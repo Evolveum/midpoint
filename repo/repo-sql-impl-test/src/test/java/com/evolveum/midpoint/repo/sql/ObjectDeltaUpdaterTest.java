@@ -165,7 +165,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(3, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(2, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
