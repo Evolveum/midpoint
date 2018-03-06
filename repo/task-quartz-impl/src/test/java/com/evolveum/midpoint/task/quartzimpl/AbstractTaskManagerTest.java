@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -78,8 +79,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	protected MockLongTaskHandler longTaskHandler;
 
 	protected static OperationResult createResult(String test, Trace logger) {
-		System.out.println("===[ test"+test+" ]===");
-		logger.info("===[ test"+test+" ]===");
+		TestUtil.displayTestTitle(test);
 		return new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".test" + test);
 	}
 

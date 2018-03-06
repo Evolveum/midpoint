@@ -1164,22 +1164,23 @@
 			<xsd:element name="bucket" type="tns:AbstractWorkBucketType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Current buckets of work. Some buckets might be present implicitly: for a coordinator or
-						standalone task, if the lowest sequence number is N then it is expected that buckets
-						1..(N-1) are completed. In a similar way, if no free bucket is available and we are not
-						at the end it is expected that some free buckets are yet to be created. (This is not applicable
-						to worker tasks where only selected buckets are present here.)
+						Current buckets of work. Some buckets might be present implicitly: if a complete bucket with
+						sequence number of N is present, it is expected that all buckets with lower numbers not explicitly
+						lister are either completed (for coordinator and standalone tasks) or not relevant (for worker tasks).
+
+						In a similar way, if no free bucket is available and we are not at the end it is expected that some
+						free buckets are yet to be created (for coordinator tasks).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						How many buckets are to be created? This is an indicative information, e.g. to be used when
-						estimating total progress. TODO decide what to do with this
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
+			<!--<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--How many buckets are to be created? This is an indicative information, e.g. to be used when-->
+						<!--estimating total progress. TODO decide what to do with this-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
 		</xsd:sequence>
 	</xsd:complexType>
 

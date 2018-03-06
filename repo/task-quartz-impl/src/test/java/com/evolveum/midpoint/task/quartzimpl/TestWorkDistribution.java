@@ -133,11 +133,20 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 	    assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
 	    List<AbstractWorkBucketType> cBuckets = coordinatorAfter.getTaskType().getWorkState().getBucket();
 	    assertNumericBucket(cBuckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1000);
+
+	    assertOptimizedCompletedBuckets(coordinatorAfter);
+
+	    suspendAndDeleteTasks(coordinatorAfter.getOid());
     }
+
+	private void suspendAndDeleteTasks(String... oids) {
+		taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
+	}
 
 	@Test
     public void test110AllocateTwoBucketsStandalone() throws Exception {
         final String TEST_NAME = "test110AllocateTwoBucketsStandalone";
+
         OperationResult result = createResult(TEST_NAME, LOGGER);
 		addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -169,6 +178,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		display("bucket obtained after complete", bucket3);
 		standalone = taskManager.getTask(standalone.getOid(), result);
 		display("task after complete+get", standalone);
+		assertOptimizedCompletedBuckets(standalone);
 
 		assertNumericBucket(bucket3, WorkBucketStateType.READY, 2, 100, 200);
 
@@ -194,6 +204,9 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertEquals(2, buckets.size());
 		assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 2, 100, 200);
 		assertNumericBucket(buckets.get(1), WorkBucketStateType.READY, 3, 200, 300);
+		assertOptimizedCompletedBuckets(standalone);
+
+		suspendAndDeleteTasks(standalone.getOid());
 	}
 
 	@Test
@@ -315,10 +328,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		buckets = new ArrayList<>(coordinator.getWorkState().getBucket());
 		sortBucketsBySequentialNumber(buckets);
 
-		assertEquals(3, buckets.size());
-		assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 3, 2, 3);
-		assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 4, 3, 4);
-		assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 5, 4, 5);
+		assertEquals(4, buckets.size());
+		assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 2, 1, 2);
+		assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 3, 2, 3);
+		assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 4, 3, 4);
+		assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
 		buckets = new ArrayList<>(worker1.getTaskType().getWorkState().getBucket());
 		assertEquals(1, buckets.size());
@@ -343,10 +357,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		buckets = new ArrayList<>(coordinator.getTaskType().getWorkState().getBucket());
 		sortBucketsBySequentialNumber(buckets);
 
-		assertEquals(3, buckets.size());
-		assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 3, 2, 3);
-		assertNumericBucket(buckets.get(1), WorkBucketStateType.READY, 4, 3, 4);
-		assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 5, 4, 5);
+		assertEquals(4, buckets.size());
+		assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 2, 1, 2);
+		assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 3, 2, 3);
+		assertNumericBucket(buckets.get(2), WorkBucketStateType.READY, 4, 3, 4);
+		assertNumericBucket(buckets.get(3), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
 		assertNoWorkBuckets(worker4.getTaskType().getWorkState());
 
@@ -366,9 +381,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		buckets = new ArrayList<>(coordinator.getWorkState().getBucket());
 		sortBucketsBySequentialNumber(buckets);
-		assertEquals(2, buckets.size());
-		assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 4, 3, 4);
-		assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 5, 4, 5);
+		assertEquals(3, buckets.size());
+		assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 3, 2, 3);
+		assertNumericBucket(buckets.get(1), WorkBucketStateType.DELEGATED, 4, 3, 4);
+		assertNumericBucket(buckets.get(2), WorkBucketStateType.DELEGATED, 5, 4, 5);
 
 		assertNoWorkBuckets(worker3.getTaskType().getWorkState());
 
@@ -429,6 +445,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertNumericBucket(buckets.get(0), WorkBucketStateType.COMPLETE, 5, 4, 5);
 
 		assertNoWorkBuckets(worker1.getTaskType().getWorkState());
+
+		suspendAndDeleteTasks(coordinator.getOid());
 	}
 
 	@Test
@@ -453,6 +471,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		display("worker task after", workerAfter);
 
 		assertTotalSuccessCount(30, singleton(workerAfter));
+
+		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
 
 	@Test
@@ -491,12 +511,16 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		display("worker2 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker2.getStoredOperationStats()));
 		display("worker3 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker3.getStoredOperationStats()));
 
+		assertOptimizedCompletedBuckets(coordinatorAfter);
+
 		assertTotalSuccessCount(107, Arrays.asList(worker1, worker2, worker3));
 
 		// WHEN
 		//taskManager.resumeTask();
 
 		// TODO other asserts
+
+		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
 
 	@Test
@@ -553,6 +577,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		assertTotalSuccessCount(107 - 6, Arrays.asList(worker1, worker2, worker3));
 
+		assertOptimizedCompletedBuckets(coordinatorAfter);
+
 		// TODO other asserts
 
 		// WHEN
@@ -572,9 +598,13 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		coordinatorAfter = taskManager.getTask(coordinatorTaskOid, result);
 		display("coordinator task after finished run", coordinatorAfter);
 
+		assertOptimizedCompletedBuckets(coordinatorAfter);
+
 		// TODO change after correct resuming
 		// this does not work as processed items from deleted subtask are missing
 		//assertTotalSuccessCount(107 - 6 + 10, coordinatorAfter.listSubtasks(result));
+
+		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
 
 	@Test
@@ -627,6 +657,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		assertTotalSuccessCount(107 - 6, Arrays.asList(worker1, worker2, worker3));
 
+		assertOptimizedCompletedBuckets(coordinatorAfter);
+
 		// TODO other asserts
 
 		// WHEN
@@ -657,6 +689,10 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		// TODO change after correct resuming
 		assertTotalSuccessCount(107 - 6 + 10, coordinatorAfter.listSubtasks(result));
+
+		assertOptimizedCompletedBuckets(coordinatorAfter);
+
+		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
 
 	private int getTotalItemsProcessed(String coordinatorTaskOid) {
@@ -715,4 +751,16 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertEquals("Wrong bucket end", BigInteger.valueOf(end), numBucket.getTo());
 	}
 
+	private void assertOptimizedCompletedBuckets(TaskQuartzImpl task) {
+		if (task.getWorkState() == null) {
+			return;
+		}
+		long completed = task.getWorkState().getBucket().stream()
+				.filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
+				.count();
+		if (completed > 1) {
+			display("Task with more than one completed bucket", task);
+			fail("More than one completed bucket found in task: " + completed + " in " + task);
+		}
+	}
 }

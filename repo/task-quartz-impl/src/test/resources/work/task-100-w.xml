@@ -23,7 +23,7 @@
     <taskIdentifier>44444444-2222-2222-2222-100w00000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<parent>44444444-2222-2222-2222-100c00000000</parent>
-    <executionStatus>runnable</executionStatus>
+    <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<recurrence>single</recurrence>
 	<workStateManagement xsi:type="NumericIntervalWorkStateManagementConfigurationType">

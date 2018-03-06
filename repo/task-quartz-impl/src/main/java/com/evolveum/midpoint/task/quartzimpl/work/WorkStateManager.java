@@ -122,6 +122,7 @@ public class WorkStateManager {
 		Context ctx = createContext(workerTaskOid, canRun, result);
 		AbstractWorkBucketType bucket = findSelfAllocatedBucket(ctx);
 		if (bucket != null) {
+			LOGGER.trace("Returning self-allocated bucket for {}: {}", workerTaskOid, bucket);
 			return bucket;
 		}
 		if (ctx.isStandalone()) {
@@ -157,6 +158,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
 				TaskWorkStateType coordinatorWorkState = getWorkStateOrNew(ctx.coordinatorTask.getTaskPrismObject());
 				GetBucketResult response = workStateStrategy.getBucket(coordinatorWorkState);
+				LOGGER.trace("getWorkBucketMultiNode: workStateStrategy returned {} for worker task {}, coordinator {}", response, ctx.workerTask, ctx.coordinatorTask);
 				try {
 					if (response instanceof NewBuckets) {
 						NewBuckets newBucketsResponse = (NewBuckets) response;
@@ -242,24 +244,25 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 		TaskWorkStateType originalState = coordinatorTask.getWorkState().clone();
 		TaskWorkStateType newState = coordinatorTask.getWorkState().clone();
-		boolean changed = false;
+		int reclaiming = 0;
 		for (AbstractWorkBucketType bucket : newState.getBucket()) {
 			if (bucket.getState() == WorkBucketStateType.DELEGATED) {
 				Task worker = WorkBucketUtil.findWorkerByBucketNumber(workers, bucket.getSequentialNumber());
 				if (worker == null || worker.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
 					LOGGER.info("Reclaiming wrongly allocated work bucket {} from worker task {}", bucket, worker);
 					bucket.setState(WorkBucketStateType.READY);
-					// TODO modify also the worker
-					changed = true;
+					// TODO modify also the worker if it exists (maybe)
+					reclaiming++;
 				}
 			}
 		}
-		if (changed) {
+		LOGGER.trace("Reclaiming wrongly allocated buckets found {} buckets to reclaim in {}", reclaiming, coordinatorTask);
+		if (reclaiming > 0) {
 			repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
 					bucketsReplaceDeltas(newState.getBucket()),
 					bucketsReplacePrecondition(originalState.getBucket()), null, result);
 		}
-		return changed;
+		return reclaiming > 0;
 	}
 
 	private AbstractWorkBucketType getWorkBucketStandalone(Context ctx, OperationResult result)
@@ -267,6 +270,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		WorkStateManagementStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkStateManagement());
 		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask.getTaskPrismObject());
 		GetBucketResult response = workStateStrategy.getBucket(workState);
+		LOGGER.trace("getWorkBucketStandalone: workStateStrategy returned {} for standalone task {}", response, ctx.workerTask);
 		if (response instanceof FoundExisting) {
 			throw new AssertionError("Found unallocated buckets in standalone worker task on a second pass: " + ctx.workerTask);
 		} else if (response instanceof NewBuckets) {
@@ -317,6 +321,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	public void completeWorkBucket(String workerTaskOid, int sequentialNumber, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 		Context ctx = createContext(workerTaskOid, null, result);
+		LOGGER.trace("Completing work bucket {} in {} (coordinator {})", workerTaskOid, ctx.workerTask, ctx.coordinatorTask);
 		if (ctx.isStandalone()) {
 			completeWorkBucketStandalone(ctx, sequentialNumber, result);
 		} else {
@@ -367,9 +372,9 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			throw new IllegalStateException("Work bucket " + sequentialNumber + " in " + ctx.coordinatorTask
 					+ " cannot be marked as complete, as it is not ready; its state = " + bucket.getState());
 		}
-		repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(),
-				bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE),
-				null, result);
+		Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE);
+		repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(), modifications, null, result);
+		ItemDelta.applyTo(modifications, ctx.workerTask.getTaskPrismObject());
 		compressCompletedBuckets(ctx.workerTask, result);
 	}
 
@@ -380,6 +385,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	public void releaseWorkBucket(String workerTaskOid, int sequentialNumber, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 		Context ctx = createContext(workerTaskOid, null, result);
+		LOGGER.trace("Releasing bucket {} in {} (coordinator {})", sequentialNumber, ctx.workerTask, ctx.coordinatorTask);
 		if (ctx.isStandalone()) {
 			throw new UnsupportedOperationException("Cannot release work bucket from standalone task " + ctx.workerTask);
 		} else {
@@ -422,23 +428,24 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		List<AbstractWorkBucketType> buckets = new ArrayList<>(getWorkState(task).getBucket());
 		WorkBucketUtil.sortBucketsBySequentialNumber(buckets);
-		int firstNotComplete;
-		for (firstNotComplete = 0; firstNotComplete < buckets.size(); firstNotComplete++) {
-			if (buckets.get(firstNotComplete).getState() != WorkBucketStateType.COMPLETE) {
-				break;
-			}
+		List<AbstractWorkBucketType> completeBuckets = buckets.stream()
+				.filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
+				.collect(Collectors.toList());
+		if (completeBuckets.size() <= 1) {
+			LOGGER.trace("Compression of completed buckets: # of complete buckets is too small ({}) in {}, exiting",
+					completeBuckets.size(), task);
+			return;
 		}
-		boolean allComplete = firstNotComplete == buckets.size();
-		int eraseUpToExcluding = !allComplete ? firstNotComplete : buckets.size() - 1;
-		if (eraseUpToExcluding <= 0) {
-			return;        // nothing to be erased
-		}
+
 		List<ItemDelta<?, ?>> deleteItemDeltas = new ArrayList<>();
-		for (int i = 0; i < eraseUpToExcluding; i++) {
-			deleteItemDeltas.addAll(bucketDeleteDeltas(buckets.get(i)));
+		for (int i = 0; i < completeBuckets.size() - 1; i++) {
+			deleteItemDeltas.addAll(bucketDeleteDeltas(completeBuckets.get(i)));
 		}
-		// these buckets should not be touched by anyone (as they are already complete); so we can execute without preconditions
-		repositoryService.modifyObject(TaskType.class, task.getOid(), deleteItemDeltas, null, result);
+		LOGGER.trace("Compression of completed buckets: deleting {} buckets before last completed one in {}", deleteItemDeltas.size(), task);
+		// these buckets should not be touched by anyone (as they are already completed); so we can execute without preconditions
+		if (!deleteItemDeltas.isEmpty()) {
+			repositoryService.modifyObject(TaskType.class, task.getOid(), deleteItemDeltas, null, result);
+		}
 	}
 
 	private Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(List<AbstractWorkBucketType> buckets) throws SchemaException {
