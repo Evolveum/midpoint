@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
@@ -142,12 +144,23 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 			// TODO retrieve localization messages from output
 		}
+		if (constraint.getMessageExpression() != null) {
+			LocalizableMessageType messageBean = evaluatorHelper
+					.evaluateLocalizableMessageType(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+							"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task,
+							result);
+			if (messageBean == null) {
+				return null;
+			} else {
+				LocalizableMessage message = LocalizationUtil.toLocalizableMessage(messageBean);
+				return new EvaluatedStateTrigger(OBJECT_STATE, constraint, message, message);
+			}
+		}
 		if (constraint.getExpression() != null) {
 			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
 					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
 				return null;
 			}
-			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
 		}
 
 		return new EvaluatedStateTrigger(OBJECT_STATE, constraint,

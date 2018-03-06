@@ -84,6 +84,13 @@ public class ConstraintEvaluatorHelper {
 				task, result);
 	}
 
+	public LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return LensUtil.evaluateLocalizableMessageType(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result);
+	}
+
 	public String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
