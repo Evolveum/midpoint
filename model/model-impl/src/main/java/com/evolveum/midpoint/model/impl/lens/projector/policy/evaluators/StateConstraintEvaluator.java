@@ -144,18 +144,6 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 			// TODO retrieve localization messages from output
 		}
-		if (constraint.getMessageExpression() != null) {
-			LocalizableMessageType messageBean = evaluatorHelper
-					.evaluateLocalizableMessageType(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
-							"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task,
-							result);
-			if (messageBean == null) {
-				return null;
-			} else {
-				LocalizableMessage message = LocalizationUtil.toLocalizableMessage(messageBean);
-				return new EvaluatedStateTrigger(OBJECT_STATE, constraint, message, message);
-			}
-		}
 		if (constraint.getExpression() != null) {
 			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
 					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
@@ -163,9 +151,22 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 		}
 
-		return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
-				createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, false, result),
-				createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, false, result));
+		if (constraint.getMessageExpression() != null) {
+			LocalizableMessageType messageBean = evaluatorHelper
+					.evaluateLocalizableMessageType(constraint.getMessageExpression(), evaluatorHelper.createExpressionVariables(ctx),
+							"message expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task,
+							result);
+			if (messageBean == null) {
+				return null;
+			} else {
+				LocalizableMessage message = LocalizationUtil.toLocalizableMessage(messageBean);
+				return new EvaluatedStateTrigger(OBJECT_STATE, constraint, message, message);
+			}
+		} else {
+			return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
+					createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, false, result),
+					createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, false, result));
+		}
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
