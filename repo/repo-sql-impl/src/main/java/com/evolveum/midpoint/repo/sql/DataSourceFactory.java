@@ -24,6 +24,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.jndi.JndiObjectFactoryBean;
 
+import javax.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.io.Closeable;
@@ -77,7 +78,7 @@ public class DataSourceFactory {
         return (DataSource) factory.getObject();
     }
 
-    public HikariConfig createConfig() {
+    private HikariConfig createConfig() {
         HikariConfig config = new HikariConfig();
 
         config.setDriverClassName(configuration.getDriverClassName());
@@ -90,6 +91,8 @@ public class DataSourceFactory {
         config.setMinimumIdle(configuration.getMinPoolSize());
         config.setMaximumPoolSize(configuration.getMaxPoolSize());
 
+//        config.setAutoCommit(false);
+
         TransactionIsolation ti = configuration.getTransactionIsolation();
         if (ti != null) {
             config.setTransactionIsolation("TRANSACTION_" + ti.name());
@@ -99,18 +102,18 @@ public class DataSourceFactory {
         //        config.setConnectionTesterClassName(MidPointConnectionTester.class.getName());
 
         if (configuration.isUsingMySqlCompatible()) {
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-
-            config.addDataSourceProperty("useServerPrepStmts", "true");
-            config.addDataSourceProperty("useLocalSessionState", "true");
-            config.addDataSourceProperty("useLocalTransactionState", "true");
-            config.addDataSourceProperty("rewriteBatchedStatements", "true");
-            config.addDataSourceProperty("cacheResultSetMetadata", "true");
-            config.addDataSourceProperty("cacheServerConfiguration", "true");
-            config.addDataSourceProperty("elideSetAutoCommits", "true");
-            config.addDataSourceProperty("maintainTimeStats", "false");
+//            config.addDataSourceProperty("cachePrepStmts", "true");
+//            config.addDataSourceProperty("prepStmtCacheSize", "250");
+//            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+//
+//            config.addDataSourceProperty("useServerPrepStmts", "true");
+//            config.addDataSourceProperty("useLocalSessionState", "true");
+//            config.addDataSourceProperty("useLocalTransactionState", "true");
+//            config.addDataSourceProperty("rewriteBatchedStatements", "true");
+//            config.addDataSourceProperty("cacheResultSetMetadata", "true");
+//            config.addDataSourceProperty("cacheServerConfiguration", "true");
+//            config.addDataSourceProperty("elideSetAutoCommits", "true");
+//            config.addDataSourceProperty("maintainTimeStats", "false");
         }
 
         return config;
@@ -122,6 +125,7 @@ public class DataSourceFactory {
         return new HikariDataSource(config);
     }
 
+    @PreDestroy
     public void destroy() throws IOException {
         if (dataSource instanceof Closeable) {
             ((Closeable) dataSource).close();

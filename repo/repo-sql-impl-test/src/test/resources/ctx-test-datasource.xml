@@ -40,7 +40,7 @@ It fakes JNDI context with simple H2 file DataSource.
 
 
     <bean id="sampleJNDIDataSourceFromConfig" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
-            lazy-init="false">
+            lazy-init="true">
         <property name="driverClassName" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
         <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
         <property name="username" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
