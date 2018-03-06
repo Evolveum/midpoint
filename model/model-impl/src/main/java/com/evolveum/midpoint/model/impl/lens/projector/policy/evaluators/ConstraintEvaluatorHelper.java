@@ -40,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
+
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
 
@@ -48,6 +50,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInfo
  */
 @Component
 public class ConstraintEvaluatorHelper {
+
+	public static final QName VAR_EVALUATOR_HELPER = new QName(SchemaConstants.NS_C, "evaluatorHelper");
 
 	@Autowired private PrismContext prismContext;
 	@Autowired protected ExpressionFactory expressionFactory;
@@ -74,6 +78,7 @@ public class ConstraintEvaluatorHelper {
 			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
 		}
 		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
+		var.addVariableDefinition(VAR_EVALUATOR_HELPER, this);
 		return var;
 	}
 
