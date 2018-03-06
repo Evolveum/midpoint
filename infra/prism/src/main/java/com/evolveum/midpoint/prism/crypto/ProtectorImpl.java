@@ -15,6 +15,37 @@
  */
 package com.evolveum.midpoint.prism.crypto;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.CipherDataType;
+import com.evolveum.prism.xml.ns._public.types_3.DigestMethodType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptionMethodType;
+import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.KeyInfoType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.xml.security.Init;
+import org.apache.xml.security.algorithms.JCEMapper;
+import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.utils.Base64;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -39,39 +70,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.xml.security.Init;
-import org.apache.xml.security.algorithms.JCEMapper;
-import org.apache.xml.security.encryption.XMLCipher;
-import org.apache.xml.security.utils.Base64;
-
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.CipherDataType;
-import com.evolveum.prism.xml.ns._public.types_3.DigestMethodType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptionMethodType;
-import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.KeyInfoType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Class that manages encrypted and hashed values. Java Cryptography Extension is
@@ -108,21 +106,14 @@ public class ProtectorImpl extends BaseProtector {
 
     private List<TrustManager> trustManagers;
     private static final KeyStore keyStore;
-    private static final Set<String> keyEntryAliasesInKeyStore = new HashSet<>();
-    private static final Map<String, SecretKey> secretKeysInKeyStore = new HashMap<>();
-    private static final ThreadLocal<MessageDigest> messageDigestThreadLocal;
+    private static final Map<String, SecretKey> aliasToSecretKeyHashMap = new HashMap<>();
+    private static final Map<SecretKey, String> secretKeyToDigestHashMap = new HashMap<>();
 
     static {
         try {
             keyStore = KeyStore.getInstance("jceks");
         } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
-        }
-        try {
-            messageDigestThreadLocal = new ThreadLocal<>();
-            messageDigestThreadLocal.set(MessageDigest.getInstance(KEY_DIGEST_TYPE));
-        } catch (Exception ex) {
-            throw new SystemException(new EncryptionException(ex.getMessage(), ex));
         }
     }
 
@@ -159,11 +150,20 @@ public class ProtectorImpl extends BaseProtector {
             // Test if we have valid stream
             if (stream == null) {
                 throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath()
-                        + "'");
+                    + "'");
             }
             // Load keystore
             keyStore.load(stream, getKeyStorePassword().toCharArray());
             Enumeration<String> aliases = keyStore.aliases();
+            Set<String> keyEntryAliasesInKeyStore = new HashSet<>();
+
+            MessageDigest sha1;
+            try {
+                sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
+            } catch (NoSuchAlgorithmException ex) {
+                throw new EncryptionException(ex.getMessage(), ex);
+            }
+
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 try {
@@ -176,12 +176,14 @@ public class ProtectorImpl extends BaseProtector {
                     if (!(key instanceof SecretKey)) {
                         continue;
                     }
-                    secretKeysInKeyStore.put(alias, (SecretKey) key);
+                    aliasToSecretKeyHashMap.put(alias, (SecretKey) key);
+                    secretKeyToDigestHashMap.put((SecretKey) key, Base64.encode(sha1.digest(key.getEncoded())));
+
                 } catch (UnrecoverableKeyException ex) {
                     LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[]{alias, ex.getMessage()});
                 }
             }
-            LOGGER.trace("Found {} aliases in keystore identified as secret keys", secretKeysInKeyStore.size());
+            LOGGER.trace("Found {} aliases in keystore identified as secret keys", aliasToSecretKeyHashMap.size());
             stream.close();
 
             // Initialize trust manager list
@@ -395,9 +397,12 @@ public class ProtectorImpl extends BaseProtector {
         return cipher;
     }
 
-    public String getSecretKeyDigest(SecretKey key) {
-        final MessageDigest sha1Digest = messageDigestThreadLocal.get();
-        return Base64.encode(sha1Digest.digest(key.getEncoded()));
+    public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
+        if (secretKeyToDigestHashMap.containsKey(key)) {
+            return secretKeyToDigestHashMap.get(key);
+        }
+        throw new EncryptionException("Could not find hash for secret key algorithm " + key.getAlgorithm()
+            + ". Hash values for keys must be recomputed during initialization");
     }
 
     @Override
@@ -470,7 +475,7 @@ public class ProtectorImpl extends BaseProtector {
     }
 
     private SecretKey getSecretKeyByDigest(String digest) throws EncryptionException {
-        final Iterator<Map.Entry<String, SecretKey>> it = secretKeysInKeyStore.entrySet().iterator();
+        final Iterator<Map.Entry<String, SecretKey>> it = aliasToSecretKeyHashMap.entrySet().iterator();
 
         while (it.hasNext()) {
             final Map.Entry<String, SecretKey> entry = it.next();
@@ -649,7 +654,6 @@ public class ProtectorImpl extends BaseProtector {
 
         return Arrays.equals(digestValue, hashBytes);
     }
-
 
 
 }
