@@ -65,7 +65,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -108,6 +107,7 @@ public class ProtectorImpl extends BaseProtector {
     private static final KeyStore keyStore;
     private static final Map<String, SecretKey> aliasToSecretKeyHashMap = new HashMap<>();
     private static final Map<SecretKey, String> secretKeyToDigestHashMap = new HashMap<>();
+    private static final Map<String, SecretKey> digestToSecretKeyHashMap = new HashMap<>();
 
     static {
         try {
@@ -176,9 +176,15 @@ public class ProtectorImpl extends BaseProtector {
                     if (!(key instanceof SecretKey)) {
                         continue;
                     }
-                    aliasToSecretKeyHashMap.put(alias, (SecretKey) key);
-                    secretKeyToDigestHashMap.put((SecretKey) key, Base64.encode(sha1.digest(key.getEncoded())));
+                    final SecretKey secretKey = (SecretKey) key;
+                    LOGGER.trace("Found secret key for alias {}", alias);
+                    aliasToSecretKeyHashMap.put(alias, secretKey);
 
+                    final String digest = Base64.encode(sha1.digest(key.getEncoded()));
+                    LOGGER.trace("Calculated digest {} for key alias {}", digest, key);
+                    secretKeyToDigestHashMap.put(secretKey, digest);
+                    digestToSecretKeyHashMap.put(digest, secretKey);
+                    
                 } catch (UnrecoverableKeyException ex) {
                     LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[]{alias, ex.getMessage()});
                 }
@@ -458,35 +464,27 @@ public class ProtectorImpl extends BaseProtector {
     }
 
     private SecretKey getSecretKeyByAlias(String alias) throws EncryptionException {
-        Key key;
-        try {
-            key = keyStore.getKey(alias, KEY_PASSWORD);
-        } catch (Exception ex) {
-            throw new EncryptionException("Couldn't obtain key '" + alias + "' from keystore, reason: "
-                + ex.getMessage(), ex);
+        if (alias == null || alias.isEmpty()) {
+            throw new EncryptionException("Key alias must be specified and cannot be blank.");
         }
-
-        if (key == null || !(key instanceof SecretKey)) {
-            throw new EncryptionException("Key with alias '" + alias
-                + "' is not instance of SecretKey, but '" + key + "'.");
+        
+        if (aliasToSecretKeyHashMap.containsKey(alias)) {
+            return aliasToSecretKeyHashMap.get(alias);
         }
-
-        return (SecretKey) key;
+        throw new EncryptionException("No key mapped to alias " + alias
+            + " could be found in the keystore. Keys by aliases must be recomputed during initialization");
     }
 
     private SecretKey getSecretKeyByDigest(String digest) throws EncryptionException {
-        final Iterator<Map.Entry<String, SecretKey>> it = aliasToSecretKeyHashMap.entrySet().iterator();
-
-        while (it.hasNext()) {
-            final Map.Entry<String, SecretKey> entry = it.next();
-            LOGGER.trace("Attempting to get secret key linked to alias {}", entry.getKey());
-            SecretKey key = entry.getValue();
-            String keyHash = getSecretKeyDigest(key);
-            if (digest.equals(keyHash)) {
-                return key;
-            }
+        if (digest == null || digest.isEmpty()) {
+            throw new EncryptionException("Key digest must be specified and cannot be blank.");
         }
-        throw new EncryptionException("Key '" + digest + "' is not in keystore.");
+
+        if (digestToSecretKeyHashMap.containsKey(digest)) {
+            return aliasToSecretKeyHashMap.get(digest);
+        }
+        throw new EncryptionException("No key mapped to key digest " + digest
+            + " could be found in the keystore. Keys digests must be recomputed during initialization");
     }
 
     @Override
@@ -510,7 +508,7 @@ public class ProtectorImpl extends BaseProtector {
                 hashedDataType = hashPbkd((ProtectedData<String>) protectedData, algorithmUri, algorithmQName.getLocalPart());
                 break;
             default:
-                throw new SchemaException("Unkown namespace " + algorithmNamespace);
+                throw new SchemaException("Unknown namespace " + algorithmNamespace);
         }
 
         protectedData.setHashedData(hashedDataType);
