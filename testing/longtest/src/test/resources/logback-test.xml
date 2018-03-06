@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,9 +30,17 @@
 	<logger name="org.springframework" level="WARN" />
 	
 	<logger name="com.evolveum.midpoint" level="INFO" />
+
 	<logger name="com.evolveum.midpoint.model" level="INFO" />
-	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
+<!-- 	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
+
 	<logger name="com.evolveum.midpoint.provisioning" level="INFO" />
+<!-- 	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" /> -->
 	<logger name="com.evolveum.midpoint.common" level="INFO" />
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 	
@@ -51,10 +59,6 @@
 	
 	<logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="TRACE" />
 	
-	<!-- 
-	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.lens.projector.ConsolidationProcessor" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />  -->
 	
 	<logger name="PROFILING" level="INFO" />
 	

@@ -343,39 +343,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return list;
     }
 
-
-
-    private List<AssignmentType> loadAssignments() {
-    	List<AssignmentType> list = new ArrayList<AssignmentType>();
-
-		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
-		PrismObject<F> focus = focusWrapper.getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-		for (AssignmentType assignment : assignments) {
-			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
-					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
-				//TODO set status
-				list.add(assignment);
-//				list.add(new AssignmentDto(assignment, StringUtils.isEmpty(focusWrapper.getOid()) ? UserDtoStatus.ADD : UserDtoStatus.MODIFY));
-			}
-		}
-//TODO uncomment
-//		Collections.sort(list);
-
-		return list;
-	}
-
-    private List<AssignmentType> loadPolicyRules() {
-		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
-		PrismObject<F> focus = focusWrapper.getObject();
-		List<AssignmentType> list = getPolicyRulesList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
-				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
-		//TODO uncomment
-//		Collections.sort(list);
-		return list;
-	}
-
-    protected List<AssignmentType> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
+  protected List<AssignmentType> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
 		List<AssignmentType> list = new ArrayList<AssignmentType>();
 		for (AssignmentType assignment : assignments) {
 			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
@@ -485,62 +453,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 																				boolean isDelegation) throws SchemaException {
 		ContainerDelta<AssignmentType> assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
-//		for (ContainerValueWrapper<AssignmentType> assignmentContainerWrapper : assignments) {
-//			switch (assignmentContainerWrapper.getStatus()) {
-//				case ADDED:
-//					assDelta.addValueToAdd(assignmentContainerWrapper.getContainerValue().clone());
-//					break;
-//				case NOT_CHANGED:
-//					assignmentContainerWrapper.collectModifications(focusDelta);
-//					break;
-//				case DELETED:
-//					assDelta.addValuesToDelete(assignmentContainerWrapper.getContainerValue().clone());
-//					break;
-//			}
-//
-
-
-//			PrismContainerValue<AssignmentType> newValue = assignmentContainerWrapper.getAssignment().asPrismContainerValue();
-//
-//			switch (assignmentContainerWrapper.getStatus()) {
-//				case ADD:
-//					newValue.applyDefinition(def, false);
-//					assDelta.addValueToAdd(newValue.clone());
-//					break;
-//				case DELETE:
-//					PrismContainerValue<AssignmentType> oldValue = assignmentContainerWrapper.getAssignment().asPrismContainerValue();
-//					if (isDelegation){
-//						oldValue.applyDefinition(def, false);
-//					} else {
-//						oldValue.applyDefinition(def);
-//					}
-//					assDelta.addValueToDelete(oldValue.clone());
-//					break;
-//				case MODIFY:
-//					Collection<? extends ItemDelta> deltas = assignmentContainerWrapper.computeAssignmentDelta();
-//					if (deltas != null || !deltas.isEmpty()) {
-//						focusDelta.addModifications(deltas);
-//					}
-//
-//					break;
-//				default:
-//					warn(getString("pageAdminUser.message.illegalAssignmentState", assignmentContainerWrapper.getStatus()));
-//			}
-//		}
-
 
 		if (!assDelta.isEmpty()) {
 			assDelta = focusDelta.addModification(assDelta);
 		}
-
-		// todo remove this block [lazyman] after model is updated - it has to
-		// remove resource from accountConstruction
-//		Collection<PrismContainerValue<AssignmentType>> values = assDelta.getValues(PrismContainerValue.class);
-//		for (PrismContainerValue<AssignmentType> value : values) {
-//			AssignmentType ass = new AssignmentType();
-//			ass.setupContainerValue(value);
-//			removeResourceFromAccConstruction(ass);
-//		}
 
 		return assDelta;
 	}
