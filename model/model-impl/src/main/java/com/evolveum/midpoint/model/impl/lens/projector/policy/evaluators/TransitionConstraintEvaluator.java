@@ -65,8 +65,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 					&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
 		if (match) {
 			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
-					createMessage(constraintElement.getValue(), rctx, result),
-					createShortMessage(constraintElement.getValue(), rctx, result),
+					createMessage(constraintElement, rctx, result),
+					createShortMessage(constraintElement, rctx, result),
 					triggers);
 		} else {
 			return null;
@@ -88,19 +88,19 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 		return expected == real;
 	}
 
-	private LocalizableMessage createMessage(AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+	private LocalizableMessage createMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
-	private LocalizableMessage createShortMessage(AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+	private LocalizableMessage createShortMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
 	}
 }

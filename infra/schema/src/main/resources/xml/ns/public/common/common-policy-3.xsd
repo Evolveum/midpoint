@@ -994,21 +994,31 @@
                     <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Filter that is to be used to determine the state. Mutually exclusive with expression and executeScript.
+                                Filter that is to be used to determine the state. Mutually exclusive with expression, messageExpression, and executeScript.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Expression that is to be used to determine the state. Mutually exclusive with filter and executeScript.
+                                Expression that is to be used to determine the state. Mutually exclusive with messageExpression, filter, and executeScript.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="messageExpression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is to be used to determine the state: if state matches it should return LocalizableMessageType to be used
+								(both as normal and short messages). Mutually exclusive with message, filter, and executeScript.
+
+								HIGHLY EXPERIMENTAL. Probably will change in the future.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter and expression.
+                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
