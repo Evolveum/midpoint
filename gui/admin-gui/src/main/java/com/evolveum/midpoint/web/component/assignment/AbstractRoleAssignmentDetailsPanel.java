@@ -18,12 +18,19 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
+import org.apache.wicket.model.Model;
+
+import javax.xml.namespace.QName;
 
 /**
  * TODO: is this class abstract or not?
@@ -38,16 +45,33 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 
 	
 	@Override
-	protected List<ItemPath> collectContainersToShow() {
-		List<ItemPath> pathsToShow = new ArrayList<>();
+	protected IModel<ContainerWrapper> getSpecificContainerModel() {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			pathsToShow.add(getAssignmentPath().append(AssignmentType.F_CONSTRUCTION));
+			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
+					AssignmentType.F_CONSTRUCTION));
+
+			constructionWrapper.setAddContainerButtonVisible(true);
+			constructionWrapper.setShowEmpty(true, false);
+			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
+				constructionWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
+			}
+			ContainerWrapper associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
+			if (associationWrapper != null) {
+				associationWrapper.setRemoveContainerButtonVisible(true);
+			}
+			return Model.of(constructionWrapper);
 		}
 		
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			pathsToShow.add(getAssignmentPath().append(AssignmentType.F_PERSONA_CONSTRUCTION));
+			ContainerWrapper<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
+			if (personasWrapper != null && personasWrapper.getValues() != null) {
+				personasWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
+			}
+
+			return Model.of(personasWrapper);
 		}
-		return pathsToShow;
+		return Model.of();
 	}
 
 }
