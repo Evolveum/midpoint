@@ -488,7 +488,7 @@ public class ProtectorImpl extends BaseProtector {
         }
 
         if (digestToSecretKeyHashMap.containsKey(digest)) {
-            return aliasToSecretKeyHashMap.get(digest);
+            return digestToSecretKeyHashMap.get(digest);
         }
         throw new EncryptionException("No key mapped to key digest " + digest
             + " could be found in the keystore. Keys digests must be recomputed during initialization");
