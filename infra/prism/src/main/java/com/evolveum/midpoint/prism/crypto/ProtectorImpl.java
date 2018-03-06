@@ -104,9 +104,10 @@ public class ProtectorImpl extends BaseProtector {
     private String digestAlgorithm;
 
     private List<TrustManager> trustManagers;
+
     private static final KeyStore keyStore;
+
     private static final Map<String, SecretKey> aliasToSecretKeyHashMap = new HashMap<>();
-    private static final Map<SecretKey, String> secretKeyToDigestHashMap = new HashMap<>();
     private static final Map<String, SecretKey> digestToSecretKeyHashMap = new HashMap<>();
 
     static {
@@ -182,9 +183,8 @@ public class ProtectorImpl extends BaseProtector {
 
                     final String digest = Base64.encode(sha1.digest(key.getEncoded()));
                     LOGGER.trace("Calculated digest {} for key alias {}", digest, key);
-                    secretKeyToDigestHashMap.put(secretKey, digest);
                     digestToSecretKeyHashMap.put(digest, secretKey);
-                    
+
                 } catch (UnrecoverableKeyException ex) {
                     LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[]{alias, ex.getMessage()});
                 }
@@ -403,10 +403,17 @@ public class ProtectorImpl extends BaseProtector {
         return cipher;
     }
 
+    /**
+     * TODO remove, used only in midpoint ninja cmd tool, not part of API
+     */
+    @Deprecated
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
-        if (secretKeyToDigestHashMap.containsKey(key)) {
-            return secretKeyToDigestHashMap.get(key);
+        for (Map.Entry<String, SecretKey> entry : digestToSecretKeyHashMap.entrySet()) {
+            if (entry.getValue().equals(key)) {
+                return entry.getKey();
+            }
         }
+
         throw new EncryptionException("Could not find hash for secret key algorithm " + key.getAlgorithm()
             + ". Hash values for keys must be recomputed during initialization");
     }
