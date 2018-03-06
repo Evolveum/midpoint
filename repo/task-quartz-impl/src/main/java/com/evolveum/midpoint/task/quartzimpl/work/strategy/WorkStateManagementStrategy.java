@@ -16,12 +16,17 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work.strategy;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author mederly
@@ -33,6 +38,10 @@ public interface WorkStateManagementStrategy {
 	 */
 	@NotNull
 	GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException;
+
+	// TODO experimental
+	List<ObjectFilter> createSpecificFilters(AbstractWorkBucketType bucket, Class<? extends ObjectType> type,
+			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider);
 
 	class GetBucketResult {
 		public static class NothingFound extends GetBucketResult {

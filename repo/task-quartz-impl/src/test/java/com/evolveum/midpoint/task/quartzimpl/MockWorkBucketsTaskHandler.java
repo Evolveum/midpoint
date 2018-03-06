@@ -15,16 +15,22 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,6 +58,10 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 	private boolean hasRun = false;
 
+	private ObjectQuery defaultQuery;
+
+	private List<ObjectQuery> queriesExecuted = new ArrayList<>();
+
 	@NotNull
 	@Override
 	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
@@ -65,6 +75,17 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 		OperationResult opResult = new OperationResult(MockWorkBucketsTaskHandler.class.getName()+".run");
 		opResult.recordSuccess();
+
+		if (defaultQuery != null) {
+			ObjectQuery narrowedQuery;
+			try {
+				narrowedQuery = taskManager.narrowQueryForWorkBucket(task, defaultQuery, UserType.class, null, workBucket, opResult);
+			} catch (SchemaException | ObjectNotFoundException e) {
+				throw new SystemException("Couldn't narrow query for work bucket", e);
+			}
+			queriesExecuted.add(narrowedQuery);
+			LOGGER.info("Using narrowed query in task {}:\n{}", task, narrowedQuery.debugDump());
+		}
 
 		NumericIntervalWorkBucketType wb = (NumericIntervalWorkBucketType) workBucket;
 		int from = wb.getFrom().intValue();
@@ -147,5 +168,23 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 				}
 			}
 		});
+	}
+
+	public ObjectQuery getDefaultQuery() {
+		return defaultQuery;
+	}
+
+	public void setDefaultQuery(ObjectQuery defaultQuery) {
+		this.defaultQuery = defaultQuery;
+	}
+
+	public List<ObjectQuery> getQueriesExecuted() {
+		return queriesExecuted;
+	}
+
+	public void resetBeforeTest() {
+		defaultQuery = null;
+		queriesExecuted.clear();
+		processor = null;
 	}
 }

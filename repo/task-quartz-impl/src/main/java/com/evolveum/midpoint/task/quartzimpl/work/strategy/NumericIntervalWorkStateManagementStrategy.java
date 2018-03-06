@@ -16,14 +16,20 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work.strategy;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkStateManagementStrategy;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import static java.util.Collections.singletonList;
 
@@ -130,5 +136,42 @@ public class NumericIntervalWorkStateManagementStrategy extends BaseWorkStateMan
 			}
 		}
 		return lastBucket;
+	}
+
+	// experimental implementation TODO
+	@Override
+	public List<ObjectFilter> createSpecificFilters(AbstractWorkBucketType bucket, Class<? extends ObjectType> type,
+			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
+		NumericIntervalWorkBucketType numBucket = (NumericIntervalWorkBucketType) bucket;
+		TaskQueryTailoringSpecificationType qt = configuration.getQueryTailoring();
+		if (qt == null || qt.getIdentifier() == null) {
+			return new ArrayList<>();
+		}
+		ItemPath identifier = qt.getIdentifier().getItemPath();
+		ItemDefinition<?> identifierDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(identifier) : null;
+		List<ObjectFilter> filters = new ArrayList<>();
+		if (numBucket.getFrom() != null) {
+			if (identifierDefinition != null) {
+				filters.add(QueryBuilder.queryFor(type, prismContext)
+						.item(identifier, identifierDefinition).ge(numBucket.getFrom())
+						.buildFilter());
+			} else {
+				filters.add(QueryBuilder.queryFor(type, prismContext)
+						.item(identifier).ge(numBucket.getFrom())
+						.buildFilter());
+			}
+		}
+		if (numBucket.getTo() != null) {
+			if (identifierDefinition != null) {
+				filters.add(QueryBuilder.queryFor(type, prismContext)
+						.item(identifier, identifierDefinition).lt(numBucket.getTo())
+						.buildFilter());
+			} else {
+				filters.add(QueryBuilder.queryFor(type, prismContext)
+						.item(identifier).lt(numBucket.getTo())
+						.buildFilter());
+			}
+		}
+		return filters;
 	}
 }

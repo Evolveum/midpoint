@@ -78,12 +78,6 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
 				"reindex", "reindex", taskManager, repositoryService);
 	}
 
-	@Override
-	protected boolean initializeRun(ReindexResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, ObjectType.class);

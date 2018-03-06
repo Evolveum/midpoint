@@ -16,10 +16,15 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -27,7 +32,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult;
 import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult.FoundExisting;
@@ -49,6 +54,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -66,7 +72,7 @@ public class WorkStateManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WorkStateManager.class);
 
-	@Autowired private TaskManagerQuartzImpl taskManager;
+	@Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkStateManagementStrategyFactory strategyFactory;
@@ -102,6 +108,10 @@ public class WorkStateManager {
 
 		public boolean canRun() {
 			return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
+		}
+
+		public AbstractTaskWorkStateManagementConfigurationType getWorkStateManagement() {
+			return isStandalone() ? workerTask.getWorkStateManagement() : coordinatorTask.getWorkStateManagement();
 		}
 	}
 
@@ -523,5 +533,31 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	public void setFreeBucketWaitInterval(long freeBucketWaitInterval) {
 		this.freeBucketWaitInterval = freeBucketWaitInterval;
+	}
+
+	// TODO
+	public ObjectQuery narrowQueryForWorkBucket(Task workerTask, ObjectQuery query, Class<? extends ObjectType> type,
+			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
+			AbstractWorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		Context ctx = createContext(workerTask.getOid(), () -> true, result);
+
+		AbstractTaskWorkStateManagementConfigurationType config = ctx.getWorkStateManagement();
+		WorkStateManagementStrategy workStateStrategy = strategyFactory.createStrategy(config);
+		List<ObjectFilter> conjunctionMembers = workStateStrategy.createSpecificFilters(workBucket, type, itemDefinitionProvider);
+		if (conjunctionMembers.isEmpty()) {
+			LOGGER.warn("Object query cannot be narrowed (TODO) for task", workerTask);
+			return query;
+		}
+		ObjectFilter existingFilter = query.getFilter();
+		if (existingFilter != null) {
+			conjunctionMembers.add(existingFilter);
+		}
+		ObjectFilter updatedFilter = AndFilter.createAnd(conjunctionMembers);
+
+		ObjectQuery updatedQuery = query.clone();
+		updatedQuery.setFilter(updatedFilter);
+
+		// TODO update sorting criteria
+		return updatedQuery;
 	}
 }

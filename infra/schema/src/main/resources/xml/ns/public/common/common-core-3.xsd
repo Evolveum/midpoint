@@ -1201,10 +1201,38 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="queryTailoring" type="tns:TaskQueryTailoringSpecificationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to tailor iteration query according to the work bucket. TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Configurable number of buckets. Optional.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="TaskQueryTailoringSpecificationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How to tailor iteration query according to the work bucket. TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="identifier" type="t:ItemPathType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifier that is to be constrained by the work bucket.
+						TODO will this always be present?
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

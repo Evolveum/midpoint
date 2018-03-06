@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -694,6 +695,39 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
+
+	@Test
+	public void test300NarrowQueryOneWorkerTask() throws Exception {
+		final String TEST_NAME = "test300NarrowQueryOneWorkerTask";
+		OperationResult result = createResult(TEST_NAME, LOGGER);
+		addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
+		addObjectFromFile(workerTaskFilename(TEST_NAME));
+
+		workBucketsTaskHandler1.resetBeforeTest();
+		workBucketsTaskHandler1.setDefaultQuery(new ObjectQuery());
+
+		TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(TEST_NAME), result);
+
+		// WHEN
+		taskManager.resumeTask(worker, result);
+
+		// THEN
+		String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
+		waitForTaskClose(coordinatorTaskOid, result, 10000, 200);
+
+		TaskQuartzImpl coordinatorAfter = taskManager.getTask(coordinatorTaskOid, result);
+		TaskQuartzImpl workerAfter = taskManager.getTask(worker.getOid(), result);
+		display("coordinator task after", coordinatorAfter);
+		display("worker task after", workerAfter);
+
+		assertTotalSuccessCount(30, singleton(workerAfter));
+
+		display("Queries executed", workBucketsTaskHandler1.getQueriesExecuted());
+		// TODO asserting queries executed
+
+		suspendAndDeleteTasks(coordinatorAfter.getOid());
+	}
+
 
 	private int getTotalItemsProcessed(String coordinatorTaskOid) {
 		OperationResult result = new OperationResult("getTotalItemsProcessed");

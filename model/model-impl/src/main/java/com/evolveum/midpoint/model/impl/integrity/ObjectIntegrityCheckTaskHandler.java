@@ -79,12 +79,6 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
                 repositoryService, systemObjectCache, opResult);
 	}
 
-	@Override
-	protected boolean initializeRun(ObjectIntegrityCheckResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
         return ObjectType.class;
