@@ -84,9 +84,9 @@ public class TaskRunResult {
         RESTART_REQUESTED
     }
 
-	private Long progress;          // null means "do not update, take whatever is in the task"
-	private TaskRunResultStatus runResultStatus;
-	private OperationResult operationResult;
+	protected Long progress;          // null means "do not update, take whatever is in the task"
+	protected TaskRunResultStatus runResultStatus;
+	protected OperationResult operationResult;
 
 	/**
 	 * @return the progress

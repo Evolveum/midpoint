@@ -23,7 +23,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,6 +43,8 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+
 /**
  * @author mederly
  */
@@ -49,6 +55,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	protected static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
 	protected static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
 	protected static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
+	protected static final String SINGLE_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-wb-task-handler";
 	protected static final String L1_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l1-task-handler";
 	protected static final String L2_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l2-task-handler";
 	protected static final String L3_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l3-task-handler";
@@ -63,6 +70,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	@Autowired protected PrismContext prismContext;
 
 	protected MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
+	protected MockWorkBucketsTaskHandler workBucketsTaskHandler1;
 	protected MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
 	protected MockSingleTaskHandler waitForSubtasksTaskHandler;
 	protected MockCycleTaskHandler cycleFinishingHandler;
@@ -87,6 +95,9 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		taskManager.registerHandler(SINGLE_TASK_HANDLER_2_URI, singleHandler2);
 		singleHandler3 = new MockSingleTaskHandler("3", taskManager);
 		taskManager.registerHandler(SINGLE_TASK_HANDLER_3_URI, singleHandler3);
+
+		workBucketsTaskHandler1 = new MockWorkBucketsTaskHandler("1", taskManager);
+		taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler1);
 
 		l1Handler = new MockSingleTaskHandler("L1", taskManager);
 		l2Handler = new MockSingleTaskHandler("L2", taskManager);
@@ -150,4 +161,29 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		}
 	}
 
+	protected void waitForTaskClose(String taskOid, OperationResult result, int timeoutInterval, int sleepInterval) throws
+			CommonException {
+	    waitFor("Waiting for task manager to execute the task", () -> {
+	        Task task = taskManager.getTask(taskOid, result);
+	        IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+	        return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+	    }, timeoutInterval, sleepInterval);
+	}
+
+	protected void waitForTaskStart(String oid, OperationResult result, int timeoutInterval, int sleepInterval) throws CommonException {
+			waitFor("Waiting for task manager to start the task", () -> {
+				Task task = taskManager.getTask(oid, result);
+				IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
+				return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
+			}, timeoutInterval, sleepInterval);
+		}
+
+	protected void waitForTaskProgress(String taskOid, OperationResult result, int timeoutInterval, int sleepInterval,
+	        int threshold) throws CommonException {
+	    waitFor("Waiting for task manager to execute the task", () -> {
+	        Task task = taskManager.getTask(taskOid, result);
+	        IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+	        return task.getProgress() >= threshold;
+	    }, timeoutInterval, sleepInterval);
+	}
 }

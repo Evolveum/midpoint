@@ -34,13 +34,15 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.quartz.*;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.InterruptableJob;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
@@ -55,8 +57,8 @@ public class JobExecutor implements InterruptableJob {
     /*
      * Ugly hack - this class is instantiated not by Spring but explicitly by Quartz.
      */
-	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl tmqi) {
-		taskManagerImpl = tmqi;
+	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl managerImpl) {
+		taskManagerImpl = managerImpl;
 	}
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
@@ -65,6 +67,7 @@ public class JobExecutor implements InterruptableJob {
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
     private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
+	private static final long FREE_BUCKET_WAIT_TIME = -1;        // indefinitely
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -454,7 +457,7 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
+	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) {
 
         Validate.notNull(handler, "Task handler is null");
 
@@ -501,7 +504,7 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-	private void executeRecurrentTask(TaskHandler handler) throws JobExecutionException {
+	private void executeRecurrentTask(TaskHandler handler) {
 
 		try {
 
@@ -638,7 +641,7 @@ mainCycle:
 
 	    TaskRunResult runResult;
 		if (handler instanceof WorkBucketAwareTaskHandler) {
-			runResult = executeWorkBucketAwareTaskHandlerWithCoordinator((WorkBucketAwareTaskHandler) handler, executionResult);
+			runResult = executeWorkBucketAwareTaskHandler((WorkBucketAwareTaskHandler) handler, executionResult);
 		} else {
 			runResult = executePlainTaskHandler(handler);
 		}
@@ -663,78 +666,64 @@ mainCycle:
 		return runResult;
 	}
 
-	// TODO review this thoroughly
-	private TaskRunResult executeWorkBucketAwareTaskHandlerWithCoordinator(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
-//		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
-//		String coordinatorTaskIdentifier = task.getParent();
-//		if (coordinatorTaskIdentifier == null) {
-//			if (task.getTaskType().getWorkStateManagement() == null) {
-//				// default behavior: no work distribution, no stateful suspend+resume
-//				return executePlainTaskHandler(handler);
-//			}
-//			coordinatorTaskIdentifier = task.getTaskIdentifier();     // at least stateful suspend+resume supported in this case
-//		}
-//		TaskWorkBucketProcessingResult runResult = null;
-//		for (;;) {
-//			Task coordinatorTask;
-//			try {
-//				coordinatorTask = taskManagerImpl.getTaskByIdentifier(coordinatorTaskIdentifier, executionResult);
-//			} catch (SchemaException | ObjectNotFoundException e) {
-//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve coordinator task for worker task {}", e, task);
-//				return createFailureTaskRunResult("Couldn't retrieve coordinator task", e);
-//			}
-//			// TODO check if the coordinator task is a legitimate one
-//			if (coordinatorTask.getTaskType().getWorkStateManagement() == null) {
-//				LOGGER.error("No work state management configuration in coordinator task {} (worker task {})", coordinatorTask, task);
-//				return createFailureTaskRunResult("No work state management configuration in coordinator task", null);
-//			}
-//
-//			AbstractWorkBucketType bucket;
-//			try {
-//				bucket = workStateManager.getWorkBucket(coordinatorTask.getTaskType(), task.getOid(), executionResult);
-//			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
-//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", e, task, null);
-//				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", e);
-//			}
-//			if (bucket == null) {
-//				LOGGER.trace("No (next) work bucket within {}, exiting", task);
-//				return runResult != null ? runResult : createSuccessTaskRunResult();
-//			}
-//			try {
-//				LOGGER.trace("Executing handler {} with work bucket of {}", handler.getClass().getName(), bucket);
-//				runResult = handler.run(task, bucket, runResult);
-//				if (runResult == null) {                // Obviously an error in task handler
-//					LOGGER.error("Unable to record run finish: task returned null result");
-//					releaseWorkBucketChecked(coordinatorTask, bucket, executionResult);
-//					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-//				}
-//			} catch (Throwable t) {
-//				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-//				releaseWorkBucketChecked(coordinatorTask, bucket, executionResult);
-//				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-//			}
-//			if (!runResult.isBucketComplete()) {
-//				return runResult;
-//			}
-//			try {
-//				taskManagerImpl.getWorkStateManager().releaseWorkBucket(coordinatorTask.getTaskType(), bucket.getSequentialNumber(), executionResult);
-//			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
-//				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {} (coordinator {})", e, task, coordinatorTask);
-//				return createFailureTaskRunResult("Couldn't release work bucket: " + e.getMessage(), e);
-//			}
-//			if (!task.canRun() || !runResult.isShouldContinue()) {
-//				return runResult;
-//			}
-//		}
-		return null;
+	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
+		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+
+		TaskWorkBucketProcessingResult runResult = null;
+		for (;;) {
+			AbstractWorkBucketType bucket;
+			try {
+				bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), executionResult);
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", e, task, null);
+				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", e);
+			} catch (InterruptedException e) {
+				LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+				if (task.canRun()) {
+					throw new IllegalStateException("Unexpected InterruptedException", e);
+				} else {
+					return createInterruptedTaskRunResult();
+				}
+			}
+			if (bucket == null) {
+				LOGGER.trace("No (next) work bucket within {}, exiting", task);
+				runResult = handler.onNoMoreBuckets(task, runResult);
+				return runResult != null ? runResult : createSuccessTaskRunResult();
+			}
+			try {
+				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
+				runResult = handler.run(task, bucket, runResult);
+				LOGGER.trace("runResult is {} for {}", runResult, task);
+				if (runResult == null) {                // Obviously an error in task handler
+					LOGGER.error("Unable to record run finish: task returned null result");
+					//releaseWorkBucketChecked(bucket, executionResult);
+					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+				}
+			} catch (Throwable t) {
+				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+				//releaseWorkBucketChecked(bucket, executionResult);
+				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+			}
+			if (!runResult.isBucketComplete()) {
+				return runResult;
+			}
+			try {
+				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
+				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
+			}
+			if (!task.canRun() || !runResult.isShouldContinue()) {
+				return runResult;
+			}
+		}
 	}
 
-
-//	private void releaseWorkBucketChecked(Task coordinatorTask, AbstractWorkBucketType bucket, OperationResult executionResult) {
+//	private void releaseWorkBucketChecked(AbstractWorkBucketType bucket, OperationResult executionResult) {
 //		try {
-//			taskManagerImpl.getWorkStateManager().releaseWorkBucket(coordinatorTask.getTaskType(), bucket.getSequentialNumber(), executionResult);
-//		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
-//			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {} (coordinator {})", e, task, coordinatorTask);
+//			taskManagerImpl.getWorkStateManager().releaseWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+//		} catch (com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+//			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {}", e, task);
 //		}
 //	}
 
@@ -767,6 +756,20 @@ mainCycle:
         opResult.recordSuccess();
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        return runResult;
+    }
+
+	private TaskRunResult createInterruptedTaskRunResult() {
+        TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult;
+        if (task.getResult() != null) {
+            opResult = task.getResult();
+        } else {
+            opResult = createOperationResult(DOT_CLASS + "executeHandler");
+        }
+        opResult.recordSuccess();
+        runResult.setOperationResult(opResult);
+        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
         return runResult;
     }
 
@@ -841,19 +844,18 @@ mainCycle:
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt() {
 		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
 
         boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
             task.unsetCanRun();
-            for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
-                TaskQuartzImpl subtaskq = (TaskQuartzImpl) subtask;
-                subtaskq.unsetCanRun();
+            for (TaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
-                subtaskq.getLightweightHandlerFuture().cancel(interruptsMaybe);
+                subtask.getLightweightHandlerFuture().cancel(interruptsMaybe);
             }
         }
         if (interruptsAlways) {

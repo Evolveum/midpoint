@@ -30,4 +30,7 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
 
 	TaskWorkBucketProcessingResult run(Task task, AbstractWorkBucketType workBucket, TaskWorkBucketProcessingResult previousRunResult);
 
+	default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
+		return previousRunResult;
+	}
 }

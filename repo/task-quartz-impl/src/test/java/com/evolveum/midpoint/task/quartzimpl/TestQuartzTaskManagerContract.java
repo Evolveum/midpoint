@@ -15,12 +15,10 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -51,12 +49,10 @@ import org.opends.server.types.SearchResultEntry;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -64,15 +60,11 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -481,11 +473,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // to pick up this
         // task
 
-        waitFor("Waiting for task manager to execute the task", () -> {
-            Task checkedTask = taskManager.getTask(taskOid(test), result);
-            IntegrationTestTools.display("Task while waiting for task manager to execute the task", checkedTask);
-            return checkedTask.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-        }, 10000, 1000);
+        waitForTaskClose(taskOid(test), result, 10000, 1000);
 
         logger.info("... done");
 
@@ -569,17 +557,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
         // task
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getProgress() > 0;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 10000, 2000);
+        waitForTaskProgress(taskOid(test), result, 10000, 2000, 1);
 
         // Check task status
 
@@ -645,17 +623,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename(test));
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 15000, 2000);
+        waitForTaskClose(taskOid(test), result, 15000, 2000);
 
         // Check task status
 
@@ -709,17 +677,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this task
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getProgress() >= 1;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 15000, 2000);
+        waitForTaskProgress(taskOid(test), result, 15000, 2000, 1);
 
         // Check task status
 
@@ -762,17 +720,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename(test));
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getProgress() >= 2;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 15000, 2000);
+        waitForTaskProgress(taskOid(test), result, 15000, 2000, 2);
 
         // Check task status
 
@@ -816,17 +764,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename(test));
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 30000, 2000);
+        waitForTaskClose(taskOid(test), result, 30000, 2000);
 
         // Check task status
 
@@ -896,17 +834,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         PrismProperty delay = taskTemp.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getProgress() >= 1;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 10000, 2000);
+        waitForTaskProgress(taskOid(test), result, 10000, 2000, 1);
 
         // Check task status (task is running 5 iterations where each takes 2000 ms)
 
@@ -959,17 +887,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.resumeTask(task, result);
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getProgress() >= 1;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 10000, 2000);
+        waitForTaskProgress(taskOid(test), result, 10000, 2000, 1);
 
         task.refresh(result);
 
@@ -1018,17 +936,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.debugDump());
 
-        waitFor("Waiting for task manager to start the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
-                return task.getLastRunStartTimestamp() != null;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 10000, 2000);
+        waitForTaskStart(taskOid(test), result, 10000, 2000);
 
         task.refresh(result);
 
@@ -1178,17 +1086,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
             final String rootOid = taskOid(test);
 
-            waitFor("Waiting for task manager to execute the task", new Checker() {
-                public boolean check() throws ObjectNotFoundException, SchemaException {
-                    Task task = taskManager.getTask(rootOid, result);
-                    IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                    return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-                }
-
-                @Override
-                public void timeout() {
-                }
-            }, 60000, 3000);
+            waitForTaskClose(rootOid, result, 60000, 3000);
 
             firstChildTask.refresh(result);
             secondChildTask.refresh(result);
@@ -1214,22 +1112,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         try {
             Task rootTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(test)), result);
-
             display("root task", rootTask);
-
-            final String rootOid = taskOid(test);
-
-            waitFor("Waiting for task manager to execute the task", new Checker() {
-                public boolean check() throws ObjectNotFoundException, SchemaException {
-                    Task task = taskManager.getTask(rootOid, result);
-                    IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                    return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-                }
-
-                @Override
-                public void timeout() {
-                }
-            }, 40000, 3000);
+            waitForTaskClose(taskOid(test), result, 40000, 3000);
         } finally {
             taskManager.getClusterManager().stopClusterManagerThread(10000L, result);
         }
@@ -1273,17 +1157,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename(test));
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 15000, 2000);
+        waitForTaskClose(taskOid(test), result, 15000, 2000);
 
         // Check task status
 
@@ -1426,17 +1300,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.scheduleRunnableTaskNow(task, result);
 
         // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getProgress() >= 1;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 10000, 2000);
+        waitForTaskProgress(taskOid(test), result, 10000, 2000, 1);
 
         task.refresh(result);
         System.out.println("After refresh: " + task.debugDump());
@@ -1467,18 +1331,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.debugDump());
 
-        waitFor("Waiting for task manager to execute the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 15000, 500);
-
+        waitForTaskClose(taskOid(test), result, 15000, 500);
         task.refresh(result);
         System.out.println("After refresh (task was executed): " + task.debugDump());
 
@@ -1503,17 +1356,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.debugDump());
 
-        waitFor("Waiting for task manager to start the task", new Checker() {
-            public boolean check() throws ObjectNotFoundException, SchemaException {
-                Task task = taskManager.getTask(taskOid(test), result);
-                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
-                return task.getLastRunStartTimestamp() != null && task.getLastRunStartTimestamp() != 0L;
-            }
-
-            @Override
-            public void timeout() {
-            }
-        }, 15000, 500);
+        waitForTaskStart(taskOid(test), result, 15000, 500);
 
         task.refresh(result);
         System.out.println("After refresh (task was started; and it should run now): " + task.debugDump());
@@ -1558,7 +1401,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
-        waitForTaskStart(task1.getOid(), result);
+        waitForTaskStart(task1.getOid(), result, 10000, 500);
 
         // import second task with the same group (expensive)
 		TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
@@ -1575,7 +1418,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
 		assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2.getOid(), result);
+		waitForTaskStart(task2.getOid(), result, 10000, 500);
 
 		// import third task that has another collision (large-ram) with the second one
         TaskType task3 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-3")).asObjectable();
@@ -1592,7 +1435,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         stopped = taskManager.suspendTasks(Collections.singleton(task2.getOid()), 20000L, result);
         assertTrue("Task 2 was not suspended successfully", stopped);
 
-        waitForTaskStart(task3.getOid(), result);
+        waitForTaskStart(task3.getOid(), result, 10000, 500);
 
 		taskManager.suspendTasks(Collections.singleton(task3.getOid()), 20000L, result);
     }
@@ -1606,7 +1449,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         taskManager.getExecutionManager().setLocalExecutionLimitations((TaskExecutionLimitationsType) null);
 
         TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
-        waitForTaskStart(task1.getOid(), result);
+        waitForTaskStart(task1.getOid(), result, 10000, 500);
 
         // import second task with the same group
 		TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
@@ -1625,7 +1468,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
 		assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2.getOid(), result);
+		waitForTaskStart(task2.getOid(), result, 10000, 500);
 		taskManager.suspendTasks(Collections.singleton(task2.getOid()), 20000L, result);
     }
 
@@ -1650,7 +1493,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
                         .groupLimitation(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0)));
 
         TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
-        waitForTaskStart(task.getOid(), result);
+        waitForTaskStart(task.getOid(), result, 10000, 500);
         task = getTaskType(task.getOid(), result);
         assertNotNull("Task was not started even if it should be", task.getLastRunStartTimestamp());
     }
@@ -1763,17 +1606,4 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals(value, attribute.iterator().next().getValue().toString());
     }
 
-    private void waitForTaskStart(String oid, OperationResult result) throws CommonException {
-		waitFor("Waiting for task manager to start the task", new Checker() {
-			public boolean check() throws ObjectNotFoundException, SchemaException {
-				Task task = taskManager.getTask(oid, result);
-				IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
-				return task.getLastRunStartTimestamp() != null;
-			}
-			@Override
-			public void timeout() {
-				fail("Timeout while waiting for task " + oid + " to start.");
-			}
-		}, 10000, 500);
-	}
 }

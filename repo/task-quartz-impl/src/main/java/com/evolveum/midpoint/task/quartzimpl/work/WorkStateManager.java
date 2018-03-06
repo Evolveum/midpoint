@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil.findBucketByNumber;
@@ -71,11 +73,19 @@ public class WorkStateManager {
 
 	public static final int MAX_ATTEMPTS = 40;                              // temporary
 	public static final long DELAY_INTERVAL = 5000L;                        // temporary
-	public static final long FREE_BUCKET_WAIT_INTERVAL = 120000L;
+	public static final long DEFAULT_FREE_BUCKET_WAIT_INTERVAL = 120000L;
+	public static final long DYNAMIC_SLEEP_INTERVAL = 100L;
+
+	public long freeBucketWaitInterval = DEFAULT_FREE_BUCKET_WAIT_INTERVAL;
 
 	private class Context {
 		Task workerTask;
 		Task coordinatorTask;           // null for standalone worker tasks
+		final Supplier<Boolean> canRunSupplier;
+
+		public Context(Supplier<Boolean> canRunSupplier) {
+			this.canRunSupplier = canRunSupplier;
+		}
 
 		public boolean isStandalone() {
 			WorkStateManagementTaskKindType kind = workerTask.getWorkStateManagement().getTaskKind();
@@ -88,6 +98,10 @@ public class WorkStateManager {
 
 		public void reloadWorkerTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
 			workerTask = taskManager.getTask(workerTask.getOid(), null, result);
+		}
+
+		public boolean canRun() {
+			return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
 		}
 	}
 
@@ -103,8 +117,9 @@ public class WorkStateManager {
 	 * @pre task is persistent and has work state management configured
 	 */
 	public AbstractWorkBucketType getWorkBucket(@NotNull String workerTaskOid, long freeBucketWaitTime,
-			@NotNull OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-		Context ctx = createContext(workerTaskOid, result);
+			Supplier<Boolean> canRun, @NotNull OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
+		Context ctx = createContext(workerTaskOid, canRun, result);
 		AbstractWorkBucketType bucket = findSelfAllocatedBucket(ctx);
 		if (bucket != null) {
 			return bucket;
@@ -132,7 +147,7 @@ public class WorkStateManager {
 	}
 
 	private AbstractWorkBucketType getWorkBucketMultiNode(Context ctx, long freeBucketWaitTime, OperationResult result)
-			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
 		WorkStateManagementStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkStateManagement());
 
@@ -177,11 +192,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 							if (toWait <= 0) {
 								return null;
 							}
-							try {
-								Thread.sleep(Math.min(toWait, FREE_BUCKET_WAIT_INTERVAL));
-							} catch (InterruptedException e) {
-								// TODO
-							}
+							dynamicSleep(Math.min(toWait, freeBucketWaitInterval), ctx);
 							ctx.reloadCoordinatorTask(result);
 							ctx.reloadWorkerTask(result);
 							if (reclaimWronglyAllocatedBuckets(ctx.coordinatorTask, result)) {
@@ -197,11 +208,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 				} catch (PreconditionViolationException e) {
 					long delay = (long) (Math.random() * DELAY_INTERVAL);
 					LOGGER.debug("getWorkBucketMultiNode: conflict; this was attempt #{}; waiting {} ms", attempt, delay, e);
-					try {
-						Thread.sleep(delay);
-					} catch (InterruptedException e1) {
-						// TODO
-					}
+					dynamicSleep(delay, ctx);
 					ctx.reloadCoordinatorTask(result);
 					ctx.reloadWorkerTask(result);
 					//noinspection UnnecessaryContinue,UnnecessaryLabelOnContinueStatement
@@ -210,6 +217,16 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			}
 			throw new SystemException(
 					"Couldn't allocate work bucket because of database conflicts; coordinator task = " + ctx.coordinatorTask);
+		}
+	}
+
+	private void dynamicSleep(long delay, Context ctx) throws InterruptedException {
+		while (delay > 0) {
+			if (!ctx.canRun()) {
+				throw new InterruptedException();
+			}
+			Thread.sleep(Math.min(delay, DYNAMIC_SLEEP_INTERVAL));
+			delay -= DYNAMIC_SLEEP_INTERVAL;
 		}
 	}
 
@@ -267,8 +284,9 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 	}
 
-	private Context createContext(String workerTaskOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		Context ctx = new Context();
+	private Context createContext(String workerTaskOid, Supplier<Boolean> canRun,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+		Context ctx = new Context(canRun);
 		ctx.workerTask = taskManager.getTask(workerTaskOid, result);
 		AbstractTaskWorkStateManagementConfigurationType workerWorkStateMgmt = ctx.workerTask.getWorkStateManagement();
 		if (workerWorkStateMgmt == null) {
@@ -298,7 +316,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	public void completeWorkBucket(String workerTaskOid, int sequentialNumber, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-		Context ctx = createContext(workerTaskOid, result);
+		Context ctx = createContext(workerTaskOid, null, result);
 		if (ctx.isStandalone()) {
 			completeWorkBucketStandalone(ctx, sequentialNumber, result);
 		} else {
@@ -361,7 +379,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	 */
 	public void releaseWorkBucket(String workerTaskOid, int sequentialNumber, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-		Context ctx = createContext(workerTaskOid, result);
+		Context ctx = createContext(workerTaskOid, null, result);
 		if (ctx.isStandalone()) {
 			throw new UnsupportedOperationException("Cannot release work bucket from standalone task " + ctx.workerTask);
 		} else {
@@ -490,5 +508,13 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		} else {
 			throw new SchemaException("No work state in task " + task);
 		}
+	}
+
+	public long getFreeBucketWaitInterval() {
+		return freeBucketWaitInterval;
+	}
+
+	public void setFreeBucketWaitInterval(long freeBucketWaitInterval) {
+		this.freeBucketWaitInterval = freeBucketWaitInterval;
 	}
 }

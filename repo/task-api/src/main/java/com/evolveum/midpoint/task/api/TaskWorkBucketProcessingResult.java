@@ -41,4 +41,15 @@ public class TaskWorkBucketProcessingResult extends TaskRunResult {
 	public void setShouldContinue(boolean shouldContinue) {
 		this.shouldContinue = shouldContinue;
 	}
+
+	@Override
+	public String toString() {
+		return "TaskWorkBucketProcessingResult{" +
+				"bucketComplete=" + bucketComplete +
+				", shouldContinue=" + shouldContinue +
+				", progress=" + progress +
+				", runResultStatus=" + runResultStatus +
+				", operationResult=" + operationResult +
+				'}';
+	}
 }

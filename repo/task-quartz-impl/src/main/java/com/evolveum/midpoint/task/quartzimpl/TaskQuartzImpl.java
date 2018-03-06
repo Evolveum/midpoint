@@ -2751,15 +2751,15 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public Set<? extends Task> getLightweightAsynchronousSubtasks() {
+	public Set<? extends TaskQuartzImpl> getLightweightAsynchronousSubtasks() {
 		return Collections.unmodifiableSet(lightweightAsynchronousSubtasks);
 	}
 
 	@Override
-	public Set<? extends Task> getRunningLightweightAsynchronousSubtasks() {
+	public Set<? extends TaskQuartzImpl> getRunningLightweightAsynchronousSubtasks() {
 		// beware: Do not touch task prism here, because this method can be called asynchronously
-		Set<Task> retval = new HashSet<>();
-		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+		Set<TaskQuartzImpl> retval = new HashSet<>();
+		for (TaskQuartzImpl subtask : getLightweightAsynchronousSubtasks()) {
 			if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && subtask.lightweightHandlerStartRequested()) {
 				retval.add(subtask);
 			}
