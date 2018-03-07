@@ -334,8 +334,7 @@ public class ShadowManager {
 			return null;
 		}
 		if (shadows.size() > 1) {
-			LOGGER.error("Too many shadows ({}) for secondary identifiers {}: ", shadows.size(), secondaryIdentifiers, 
-					shadows);
+			LOGGER.error("Too many shadows ({}) for secondary identifiers {}: {}", shadows.size(), secondaryIdentifiers, shadows);
 			throw new ConfigurationException("Too many shadows ("+shadows.size()+") for secondary identifiers "+secondaryIdentifiers);
 		}
 		return shadows.get(0);

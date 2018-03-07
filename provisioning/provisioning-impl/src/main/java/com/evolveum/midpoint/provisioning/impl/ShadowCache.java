@@ -2669,7 +2669,7 @@ public abstract class ShadowCache {
 								// Simply ignore this association value.
 								parentResult.muteLastSubresultError();
 								LOGGER.warn(
-										"The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
+										"The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}-{}",
 										new Object[] { associationCVal, resourceShadow, e.getMessage(), e });
 								continue;
 							}

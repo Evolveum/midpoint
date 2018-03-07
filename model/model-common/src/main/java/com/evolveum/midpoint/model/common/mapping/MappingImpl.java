@@ -635,7 +635,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	}
 
 	private void traceFailure(Throwable e) {
-		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
+		LOGGER.error("Error evaluating {}: {}-{}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		traceEvaluationEnd();
 		if (!isTrace()) {
 			return;
