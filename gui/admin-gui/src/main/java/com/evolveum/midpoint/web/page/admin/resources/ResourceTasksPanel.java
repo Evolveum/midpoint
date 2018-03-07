@@ -97,7 +97,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 								.item(TaskType.F_OBJECT_REF).ref(object.getOid())
 								.build(),
 						result, pageBase);
-		List<TaskType> tasksType = new ArrayList<TaskType>();
+		List<TaskType> tasksType = new ArrayList<>();
 		for (PrismObject<TaskType> task : tasks) {
 			tasksType.add(task.asObjectable());
 		}

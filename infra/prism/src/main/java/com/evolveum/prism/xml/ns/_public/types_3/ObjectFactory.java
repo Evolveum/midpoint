@@ -207,7 +207,7 @@ public class ObjectFactory implements Serializable {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "objectDelta")
     public JAXBElement<ObjectDeltaType> createObjectDelta(ObjectDeltaType value) {
-        return new JAXBElement<ObjectDeltaType>(_ObjectDelta_QNAME, ObjectDeltaType.class, null, value);
+        return new JAXBElement<>(_ObjectDelta_QNAME, ObjectDeltaType.class, null, value);
     }
 
     /**
@@ -216,7 +216,7 @@ public class ObjectFactory implements Serializable {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "norm", scope = PolyStringType.class)
     public JAXBElement<String> createPolyStringTypeNorm(String value) {
-        return new JAXBElement<String>(_PolyStringTypeNorm_QNAME, String.class, PolyStringType.class, value);
+        return new JAXBElement<>(_PolyStringTypeNorm_QNAME, String.class, PolyStringType.class, value);
     }
 
     /**
@@ -225,7 +225,7 @@ public class ObjectFactory implements Serializable {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "orig", scope = PolyStringType.class)
     public JAXBElement<String> createPolyStringTypeOrig(String value) {
-        return new JAXBElement<String>(_PolyStringTypeOrig_QNAME, String.class, PolyStringType.class, value);
+        return new JAXBElement<>(_PolyStringTypeOrig_QNAME, String.class, PolyStringType.class, value);
     }
 
     /**
@@ -234,12 +234,12 @@ public class ObjectFactory implements Serializable {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "encryptedData", scope = ProtectedDataType.class)
     public JAXBElement<EncryptedDataType> createProtectedDataTypeEncryptedData(EncryptedDataType value) {
-        return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedDataType.class, value);
+        return new JAXBElement<>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedDataType.class, value);
     }
 
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "encryptedData", scope = ProtectedStringType.class)
     public JAXBElement<EncryptedDataType> createProtectedStringTypeEncryptedData(EncryptedDataType value) {
-        return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedStringType.class, value);
+        return new JAXBElement<>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedStringType.class, value);
     }
 
     /**
@@ -248,17 +248,17 @@ public class ObjectFactory implements Serializable {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "hashedData", scope = ProtectedDataType.class)
     public JAXBElement<HashedDataType> createProtectedDataTypeHashedData(HashedDataType value) {
-        return new JAXBElement<HashedDataType>(_ProtectedDataTypeHashedData_QNAME, HashedDataType.class, ProtectedDataType.class, value);
+        return new JAXBElement<>(_ProtectedDataTypeHashedData_QNAME, HashedDataType.class, ProtectedDataType.class, value);
     }
 
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "hashedData", scope = ProtectedStringType.class)
     public JAXBElement<HashedDataType> createProtectedStringTypeHashedData(HashedDataType value) {
-        return new JAXBElement<HashedDataType>(_ProtectedDataTypeHashedData_QNAME, HashedDataType.class, ProtectedStringType.class, value);
+        return new JAXBElement<>(_ProtectedDataTypeHashedData_QNAME, HashedDataType.class, ProtectedStringType.class, value);
     }
 
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "path", scope = ItemPathType.class)
     public JAXBElement<ItemPath> createItemPathType(ItemPath value) {
-        return new JAXBElement<ItemPath>(_ItemPathType_QNAME, ItemPath.class, ItemPathType.class, value);
+        return new JAXBElement<>(_ItemPathType_QNAME, ItemPath.class, ItemPathType.class, value);
     }
 
     /**
@@ -267,7 +267,7 @@ public class ObjectFactory implements Serializable {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3a", name = "object")
     public JAXBElement<ObjectType> createObject(ObjectType value) {
-        return new JAXBElement<ObjectType>(_Object_QNAME, ObjectType.class, null, value);
+        return new JAXBElement<>(_Object_QNAME, ObjectType.class, null, value);
     }
 
     /**

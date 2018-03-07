@@ -214,7 +214,7 @@ public class OpResult implements Serializable, Visitable {
 
     public List<OpResult> getSubresults() {
         if (subresults == null) {
-            subresults = new ArrayList<OpResult>();
+            subresults = new ArrayList<>();
         }
         return subresults;
     }
@@ -237,14 +237,14 @@ public class OpResult implements Serializable, Visitable {
 
     public List<Param> getParams() {
         if (params == null) {
-            params = new ArrayList<Param>();
+            params = new ArrayList<>();
         }
         return params;
     }
 
     public List<Context> getContexts() {
         if (contexts == null) {
-        	contexts = new ArrayList<Context>();
+        	contexts = new ArrayList<>();
         }
         return contexts;
     }

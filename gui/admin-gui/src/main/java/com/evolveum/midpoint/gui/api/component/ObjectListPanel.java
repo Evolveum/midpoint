@@ -137,7 +137,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private void initLayout() {
-		Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<O>(ID_MAIN_FORM);
+		Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 		add(mainForm);
 
 		searchModel = initSearchModel();
@@ -226,7 +226,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
 		LOGGER.trace("Start to init custom columns for table of type {}", type);
-		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
+		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
 		List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
 		if (customColumns == null){
 			return columns;
@@ -250,7 +250,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns){
-		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
+		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
 		if (customColumns == null || customColumns.size() == 0){
 			return columns;
 		}
@@ -311,7 +311,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected List<IColumn<SelectableBean<O>, String>> initColumns() {
 		LOGGER.trace("Start to init columns for table of type {}", type);
-		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
+		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
 
 		CheckBoxHeaderColumn<SelectableBean<O>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<O>>) createCheckboxColumn();
 		if (checkboxColumn != null) {
@@ -335,7 +335,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
-		Set<O> selectedObjectsSet = selectedObjects == null ? null : new HashSet<O>(selectedObjects);
+		Set<O> selectedObjectsSet = selectedObjects == null ? null : new HashSet<>(selectedObjects);
 		SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
 				parentPage, (Class) type.getClassDefinition(), selectedObjectsSet) {
 			private static final long serialVersionUID = 1L;

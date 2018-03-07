@@ -75,7 +75,7 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
 
 
         ListView<ACValueConstructionDto> values = new ListView<ACValueConstructionDto>(ID_VALUES,
-                new PropertyModel<List<ACValueConstructionDto>>(getModel(), ACAttributeDto.F_VALUES)) {
+            new PropertyModel<>(getModel(), ACAttributeDto.F_VALUES)) {
 
             @Override
             protected void populateItem(ListItem<ACValueConstructionDto> listItem) {

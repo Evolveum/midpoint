@@ -26,8 +26,8 @@ public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 	}
 
 	private void initLayout(){
-		DropDownChoice<QName> type = new DropDownChoice<QName>(ID_OBJECT_TYPE, Model.of(UserType.COMPLEX_TYPE),
-				WebComponentUtil.createFocusTypeList(), new QNameObjectTypeChoiceRenderer());
+		DropDownChoice<QName> type = new DropDownChoice<>(ID_OBJECT_TYPE, Model.of(UserType.COMPLEX_TYPE),
+            WebComponentUtil.createFocusTypeList(), new QNameObjectTypeChoiceRenderer());
 		type.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 	        type.setOutputMarkupId(true);
 	        add(type);

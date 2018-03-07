@@ -465,7 +465,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
-        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        final List<PrismObject<ResourceType>> resources = new ArrayList<>();
 
         ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, false);
@@ -516,7 +516,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
-        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        final List<PrismObject<ResourceType>> resources = new ArrayList<>();
 
         ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, false);
@@ -689,7 +689,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         // precondition
         assertSteadyResources();
 
-        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        final List<PrismObject<ResourceType>> resources = new ArrayList<>();
 
         ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, true);

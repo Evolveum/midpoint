@@ -39,7 +39,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	// empty (can be filled-in later)
 	@NotNull
 	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition, boolean equals) {
-		return new GreaterFilter<T>(itemPath, definition, null, null, null, null, equals);
+		return new GreaterFilter<>(itemPath, definition, null, null, null, null, equals);
 	}
 
 	// value
@@ -47,7 +47,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
 			boolean equals, @NotNull PrismContext prismContext, Object anyValue) {
 		PrismPropertyValue<T> propertyValue = anyValueToPropertyValue(prismContext, anyValue);
-		return new GreaterFilter<T>(itemPath, definition, propertyValue, null, null, null, equals);
+		return new GreaterFilter<>(itemPath, definition, propertyValue, null, null, null, equals);
 	}
 
 	// expression-related
@@ -67,8 +67,8 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public GreaterFilter<T> clone() {
-		return new GreaterFilter<T>(getFullPath(), getDefinition(), getClonedValue(), getExpression(),
-				getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
+		return new GreaterFilter<>(getFullPath(), getDefinition(), getClonedValue(), getExpression(),
+            getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
 	}
 
 	@Override

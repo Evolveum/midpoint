@@ -32,7 +32,7 @@ import java.util.List;
  */
 class MyProxySelector extends ProxySelector {
 
-    private List<Proxy> proxyList = new ArrayList<Proxy>();
+    private List<Proxy> proxyList = new ArrayList<>();
 
     MyProxySelector(String proxyHost, int port) {
         proxyList.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, port)));

@@ -55,7 +55,7 @@ public class CapabilityCredentialsPanel extends BasePanel<CapabilityDto<Credenti
         Label passLabel = new Label(ID_LABEL_PASSWORD, createStringResource("capabilityCredentialsPanel.label.password"));
         add(passLabel);
 
-        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
+        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<>(getModel(), "capability.enabled"));
 		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -64,10 +64,10 @@ public class CapabilityCredentialsPanel extends BasePanel<CapabilityDto<Credenti
 		});
         add(enabled);
 
-        CheckBox passwordEnabled = new CheckBox(ID_PASSWORD_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.password.enabled"));
+        CheckBox passwordEnabled = new CheckBox(ID_PASSWORD_ENABLED, new PropertyModel<>(getModel(), "capability.password.enabled"));
         add(passwordEnabled);
 
-        CheckBox passwordReturned = new CheckBox(ID_PASSWORD_RETURNED, new PropertyModel<Boolean>(getModel(), "capability.password.returnedByDefault"));
+        CheckBox passwordReturned = new CheckBox(ID_PASSWORD_RETURNED, new PropertyModel<>(getModel(), "capability.password.returnedByDefault"));
         add(passwordReturned);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);

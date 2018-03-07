@@ -229,7 +229,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	 */
 	@Deprecated
 	private boolean skipProperty(PrismPropertyDefinition def) {
-		final List<QName> names = new ArrayList<QName>();
+		final List<QName> names = new ArrayList<>();
 		names.add(PasswordType.F_FAILED_LOGINS);
 		names.add(PasswordType.F_LAST_FAILED_LOGIN);
 		names.add(PasswordType.F_LAST_SUCCESSFUL_LOGIN);

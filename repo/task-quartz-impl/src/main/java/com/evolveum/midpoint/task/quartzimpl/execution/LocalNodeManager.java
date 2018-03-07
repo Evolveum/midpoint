@@ -452,7 +452,7 @@ public class LocalNodeManager {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<Task>();
+        Set<Task> retval = new HashSet<>();
 
         List<JobExecutionContext> jecs;
         try {

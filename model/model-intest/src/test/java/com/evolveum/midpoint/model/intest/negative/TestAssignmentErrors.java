@@ -182,7 +182,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_WHITE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 
@@ -269,7 +269,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         addObject(user);
         userLemonheadOid = user.getOid();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 
@@ -354,7 +354,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         addObject(user);
         userSharptoothOid = user.getOid();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 

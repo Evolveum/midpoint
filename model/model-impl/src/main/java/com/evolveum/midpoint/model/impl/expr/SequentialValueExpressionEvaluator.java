@@ -66,7 +66,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 
 		Item<V,D> output = outputDefinition.instantiate();
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
+			PrismPropertyValue<Object> pValue = new PrismPropertyValue<>(value);
 			((PrismProperty<Object>)output).add(pValue);
 		} else {
 			throw new UnsupportedOperationException("Can only generate values of property, not "+output.getClass());

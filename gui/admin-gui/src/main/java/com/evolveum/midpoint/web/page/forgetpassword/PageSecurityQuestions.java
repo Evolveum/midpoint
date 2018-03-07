@@ -119,7 +119,7 @@ public class PageSecurityQuestions extends PageBase {
 
 	int questionNumber;
 
-	private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+	private final Model<PrismObject<UserType>> principalModel = new Model<>();
 	private PasswordQuestionsDto dto = new PasswordQuestionsDto();
 	private IModel<PasswordQuestionsDto> model;
 	PageBase page = (PageBase) getPage();
@@ -149,7 +149,7 @@ public class PageSecurityQuestions extends PageBase {
 
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 
-		pqPanels = new ArrayList<MyPasswordQuestionsPanel>();
+		pqPanels = new ArrayList<>();
 
 		PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
 		LOGGER.trace("Found security policy: {}", securityPolicy);
@@ -167,7 +167,7 @@ public class PageSecurityQuestions extends PageBase {
 		policyQuestionList = securityPolicy.asObjectable().getCredentials() != null &&
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion() :
-		        new ArrayList<SecurityQuestionDefinitionType>();
+            new ArrayList<>();
 
 		List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
 
@@ -389,7 +389,7 @@ public class PageSecurityQuestions extends PageBase {
 		List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
 		if (secQuestAnsList != null) {
-			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
 			for (Iterator iterator = secQuestAnsList.iterator(); iterator.hasNext();) {
 				SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
 						.next();
@@ -519,7 +519,7 @@ public class PageSecurityQuestions extends PageBase {
 				CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
 
 		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);

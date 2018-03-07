@@ -39,7 +39,7 @@ public class DeleteHandlerPanel extends QueryBasedHandlerPanel<DeleteHandlerDto>
 
 	private void initLayout() {
 		WebMarkupContainer rawContainer = new WebMarkupContainer(ID_RAW_CONTAINER);
-		CheckBox raw = new CheckBox(ID_RAW, new PropertyModel<Boolean>(getModelObject(), DeleteHandlerDto.F_RAW));
+		CheckBox raw = new CheckBox(ID_RAW, new PropertyModel<>(getModelObject(), DeleteHandlerDto.F_RAW));
 		raw.setEnabled(false);
 		rawContainer.add(raw);
 		add(rawContainer);

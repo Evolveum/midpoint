@@ -119,7 +119,7 @@ public class CommandLineRunner {
     
     private List<String> produceCommandExec() {
     	Matcher match = REGEX_CODE_SPLITTER.matcher(code);
-        List<String> scriptParts = new ArrayList<String>();
+        List<String> scriptParts = new ArrayList<>();
         while (match.find()) {
             String processedCommand = match.group(1);
             scriptParts.add(processedCommand);
@@ -129,7 +129,7 @@ public class CommandLineRunner {
 	}
     
     private List<String> produceCommandShell() {
-        List<String> commands = new ArrayList<String>();
+        List<String> commands = new ArrayList<>();
         commands.add(SHELL);
         commands.add("-c");
         commands.add(code);

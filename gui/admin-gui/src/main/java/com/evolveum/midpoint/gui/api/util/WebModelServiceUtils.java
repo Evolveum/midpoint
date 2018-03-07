@@ -389,7 +389,7 @@ public class WebModelServiceUtils {
         } else {
             subResult = new OperationResult(OPERATION_SEARCH_OBJECTS);
         }
-        List<PrismObject<T>> objects = new ArrayList<PrismObject<T>>();
+        List<PrismObject<T>> objects = new ArrayList<>();
         try {
             Task task = createSimpleTask(subResult.getOperation(), principal, page.getTaskManager());
             List<PrismObject<T>> list = page.getModelService().searchObjects(type, query, options, task, subResult);
@@ -472,7 +472,7 @@ public class WebModelServiceUtils {
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
         options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         return options;

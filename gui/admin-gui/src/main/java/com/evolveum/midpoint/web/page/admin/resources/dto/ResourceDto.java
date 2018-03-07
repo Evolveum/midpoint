@@ -105,7 +105,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
     				continue;
     			}
     			if(objectTypes == null){
-    				objectTypes = new ArrayList<ResourceObjectTypeDto>();
+    				objectTypes = new ArrayList<>();
     			}
     			objectTypes.add(new ResourceObjectTypeDto(definition));
     		}
@@ -170,7 +170,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 
     public List<ResourceObjectTypeDto> getObjectTypes() {
 		if (objectTypes == null) {
-			objectTypes = new ArrayList<ResourceObjectTypeDto>();
+			objectTypes = new ArrayList<>();
 		}
 		return objectTypes;
 	}
@@ -192,7 +192,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
     @Override
     public List<InlineMenuItem> getMenuItems() {
         if (menuItems == null) {
-            menuItems = new ArrayList<InlineMenuItem>();
+            menuItems = new ArrayList<>();
         }
         return menuItems;
     }

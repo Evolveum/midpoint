@@ -48,7 +48,7 @@ public class ResourceListPanel extends BaseDeprecatedPanel {
     }
 
     private List<IColumn> initColumns() {
-        List<IColumn> columns = new ArrayList<IColumn>();
+        List<IColumn> columns = new ArrayList<>();
 
         IColumn column = new LinkColumn<SelectableBean<ResourceType>>(createStringResource("ObjectType.name"), "name",
                 "value.name") {

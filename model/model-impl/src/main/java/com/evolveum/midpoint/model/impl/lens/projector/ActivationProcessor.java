@@ -392,7 +392,7 @@ public class ActivationProcessor {
 
                         PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
                         disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
-                        disableReasonDelta.setValueToReplace(new PrismPropertyValue<String>(disableReason, OriginType.OUTBOUND, null));
+                        disableReasonDelta.setValueToReplace(new PrismPropertyValue<>(disableReason, OriginType.OUTBOUND, null));
                         accCtx.swallowToSecondaryDelta(disableReasonDelta);
                     }
                 }
@@ -840,16 +840,16 @@ public class ActivationProcessor {
 		existsDef.setMaxOccurs(1);
 		PrismProperty<Boolean> existsProp = existsDef.instantiate();
 
-		existsProp.add(new PrismPropertyValue<Boolean>(existsNew));
+		existsProp.add(new PrismPropertyValue<>(existsNew));
 
 		if (existsOld == existsNew) {
-			return new ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>>(existsProp);
+			return new ItemDeltaItem<>(existsProp);
 		} else {
 			PrismProperty<Boolean> existsPropOld = existsProp.clone();
 			existsPropOld.setRealValue(existsOld);
 			PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
-			existsDelta.setValuesToReplace(new PrismPropertyValue<Boolean>(existsNew));
-			return new ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>>(existsPropOld, existsDelta, existsProp);
+			existsDelta.setValuesToReplace(new PrismPropertyValue<>(existsNew));
+			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp);
 		}
 	}
 
@@ -913,7 +913,7 @@ public class ActivationProcessor {
         	if (lifecycle != null) {
         		PrismPropertyDefinition<String> propDef = projCtx.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_LIFECYCLE_STATE);
         		PropertyDelta<String> lifeCycleDelta = propDef.createEmptyDelta(SchemaConstants.PATH_LIFECYCLE_STATE);
-        		PrismPropertyValue<String> pval = new PrismPropertyValue<String>(lifecycle);
+        		PrismPropertyValue<String> pval = new PrismPropertyValue<>(lifecycle);
         		pval.setOriginType(OriginType.OUTBOUND);
 				lifeCycleDelta.setValuesToReplace(pval);
 				projCtx.swallowToSecondaryDelta(lifeCycleDelta);

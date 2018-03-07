@@ -81,7 +81,7 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
         	throw new SchemaException("Missing sequence reference in sequentialValue expression evaluator in "+contextDescription);
         }
 
-		return new SequentialValueExpressionEvaluator<V,D>(seqEvaluatorType, outputDefinition, protector, repositoryService, prismContext);
+		return new SequentialValueExpressionEvaluator<>(seqEvaluatorType, outputDefinition, protector, repositoryService, prismContext);
 	}
 
 }

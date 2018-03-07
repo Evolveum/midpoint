@@ -179,7 +179,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 	        	}
 			}
 		}
-		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<IV,ID>(subItemOld, itemDelta, subItemNew);
+		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, itemDelta, subItemNew);
 		subIdi.setSubItemDeltas(subSubItemDeltas);
 		subIdi.setResolvePath(path);
 		subIdi.setResidualPath(subResidualPath);
@@ -208,7 +208,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ObjectDelta<T> delta) throws SchemaException {
 		PrismObject<T> newObject = oldObject.clone();
 		delta.applyTo(newObject);
-		return new ObjectDeltaObject<T>(oldObject, delta, newObject);
+		return new ObjectDeltaObject<>(oldObject, delta, newObject);
 	}
 
 	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?,?>... itemDeltas) throws SchemaException {

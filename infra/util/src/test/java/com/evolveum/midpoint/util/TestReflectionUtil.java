@@ -49,7 +49,7 @@ public class TestReflectionUtil {
 	public void testFindMethodByArglist3() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
+		List<Object> argList = new ArrayList<>();
 		argList.add("foo");
 		argList.add(1);
 		argList.add(2L);
@@ -68,7 +68,7 @@ public class TestReflectionUtil {
 	public void testFindMethodByArglist2() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
+		List<Object> argList = new ArrayList<>();
 		argList.add("foo");
 		argList.add(1);
 
@@ -86,7 +86,7 @@ public class TestReflectionUtil {
 	public void testFindMethodByArglistVararg() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
+		List<Object> argList = new ArrayList<>();
 		argList.add("foo");
 		argList.add("bar");
 		argList.add("baz");
@@ -105,7 +105,7 @@ public class TestReflectionUtil {
 	public void testInvokeMethodByArglist3() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
+		List<Object> argList = new ArrayList<>();
 		argList.add("foo");
 		argList.add(1);
 		argList.add(2L);
@@ -121,7 +121,7 @@ public class TestReflectionUtil {
 	public void testInvokeMethodByArglist2() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
+		List<Object> argList = new ArrayList<>();
 		argList.add("foo");
 		argList.add(1);
 
@@ -136,7 +136,7 @@ public class TestReflectionUtil {
 	public void testInvokeMethodByArglistVararg() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
+		List<Object> argList = new ArrayList<>();
 		argList.add("foo");
 		argList.add("bar");
 		argList.add("baz");
@@ -152,8 +152,8 @@ public class TestReflectionUtil {
 	public void testInvokeMethodByArglistCollection() throws Exception {
 		// GIVEN
 		ReflectionTestFunctionLibrary library = new ReflectionTestFunctionLibrary();
-		List<Object> argList = new ArrayList<Object>();
-		List<String> l = new ArrayList<String>();
+		List<Object> argList = new ArrayList<>();
+		List<String> l = new ArrayList<>();
 		l.add("foo");
 		argList.add(l);
 

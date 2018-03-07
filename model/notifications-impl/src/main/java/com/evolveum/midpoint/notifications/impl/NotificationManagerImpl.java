@@ -64,7 +64,7 @@ public class NotificationManagerImpl implements NotificationManager {
     private boolean disabled = false;               // for testing purposes (in order for model-intest to run more quickly)
 
     private HashMap<Class<? extends EventHandlerType>,EventHandler> handlers = new HashMap<>();
-    private HashMap<String,Transport> transports = new HashMap<String,Transport>();
+    private HashMap<String,Transport> transports = new HashMap<>();
 
     public void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler) {
         LOGGER.trace("Registering event handler " + handler + " for " + clazz);

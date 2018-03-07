@@ -282,7 +282,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Configuration container", configContainer);
 		cc.configure(configContainer, result);
 
-		List<QName> objectClassesToGenerate = new ArrayList<QName>();
+		List<QName> objectClassesToGenerate = new ArrayList<>();
 		QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
 		objectClassesToGenerate.add(accountObjectClass);
 		// WHEN
@@ -359,7 +359,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
-		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
 		ShadowResultHandler handler = new ShadowResultHandler() {
 

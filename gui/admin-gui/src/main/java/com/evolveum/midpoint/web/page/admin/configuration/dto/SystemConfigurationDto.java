@@ -294,10 +294,10 @@ public class SystemConfigurationDto implements Serializable {
 		ObjectReferenceType securityPolicy = config.getGlobalSecurityPolicyRef();
 
 		if (securityPolicy != null) {
-			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>(securityPolicy.getOid(),
-					WebComponentUtil.getName(securityPolicy));
+			securityPolicyDto = new ObjectViewDto<>(securityPolicy.getOid(),
+                WebComponentUtil.getName(securityPolicy));
 		} else {
-			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>();
+			securityPolicyDto = new ObjectViewDto<>();
 		}
 
 		securityPolicyDto.setType(SecurityPolicyType.class);

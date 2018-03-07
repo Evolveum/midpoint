@@ -48,7 +48,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 	private void initLayout() {
 		GenericMultiValueLabelEditPanel<RichHyperlinkType> dashboardLinkEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(
 				ID_DASHBOARD_LINK_EDITOR,
-				new PropertyModel<List<RichHyperlinkType>>(getModel(), "userDashboardLink"),
+            new PropertyModel<>(getModel(), "userDashboardLink"),
 				createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE,
 				true) {
 
@@ -56,7 +56,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 
 			@Override
 			protected IModel<String> createTextModel(final IModel<RichHyperlinkType> model) {
-				return new PropertyModel<String>(model, "label");
+				return new PropertyModel<>(model, "label");
 			}
 
 			@Override
@@ -91,14 +91,14 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 
 		GenericMultiValueLabelEditPanel<RichHyperlinkType> additionalMenuItemEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(
 				ID_ADDITIONAL_MENU_ITEM_EDITOR,
-				new PropertyModel<List<RichHyperlinkType>>(getModel(), "additionalMenuLink"),
+            new PropertyModel<>(getModel(), "additionalMenuLink"),
 				createStringResource("AdminGuiConfigPanel.additionalMenuItemConfig"), LABEL_SIZE, INPUT_SIZE,
 				true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IModel<String> createTextModel(final IModel<RichHyperlinkType> model) {
-				return new PropertyModel<String>(model, "label");
+				return new PropertyModel<>(model, "label");
 			}
 
 			@Override

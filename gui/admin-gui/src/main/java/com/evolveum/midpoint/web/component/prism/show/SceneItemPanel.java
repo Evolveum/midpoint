@@ -46,7 +46,7 @@ public class SceneItemPanel extends Panel {
 
     private void initLayout(final IModel<SceneItemDto> model) {
 		ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES,
-                new PropertyModel<List<SceneItemLineDto>>(model, SceneItemDto.F_LINES)) {
+            new PropertyModel<>(model, SceneItemDto.F_LINES)) {
 
 			@Override
 			protected void populateItem(ListItem<SceneItemLineDto> item) {

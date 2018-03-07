@@ -54,7 +54,7 @@ public class ClassPathUtil {
     }
 
     public static Set<Class> listClasses(String packageName) {
-        Set<Class> classes = new HashSet<Class>();
+        Set<Class> classes = new HashSet<>();
         searchClasses(packageName, c -> classes.add(c));
         return classes;
     }

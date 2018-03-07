@@ -86,17 +86,17 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
         add(filterTextArea);
 		add(WebComponentUtil.createHelp(ID_SEARCH_FILTER_HELP));
 
-        add(new CheckBox(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS)));
-        add(new CheckBox(ID_INCLUDE_INDUCEMENTS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_INDUCEMENTS)));
+        add(new CheckBox(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS)));
+        add(new CheckBox(ID_INCLUDE_INDUCEMENTS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_INDUCEMENTS)));
 		add(WebComponentUtil.createHelp(ID_ASSIGNMENTS_INDUCEMENTS_HELP));
 
-		add(new CheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
-        add(new CheckBox(ID_INCLUDE_ROLES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ROLES)));
-        add(new CheckBox(ID_INCLUDE_ORGS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS)));
-		add(new CheckBox(ID_INCLUDE_SERVICES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES)));
+		add(new CheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
+        add(new CheckBox(ID_INCLUDE_ROLES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ROLES)));
+        add(new CheckBox(ID_INCLUDE_ORGS, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS)));
+		add(new CheckBox(ID_INCLUDE_SERVICES, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES)));
 		add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));
 
-        add(new CheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)));
+        add(new CheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)));
 		add(WebComponentUtil.createHelp(ID_INCLUDE_BY_STATUS_HELP));
     }
 }

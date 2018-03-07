@@ -78,7 +78,7 @@ public class MainPopupDialog extends ModalWindow {
             return;
         }
 
-        setBody(new Label(ID_MAIN_POPUP_BODY, new Model<String>("Not initialized")));
+        setBody(new Label(ID_MAIN_POPUP_BODY, new Model<>("Not initialized")));
        initialized = true;
     }
 

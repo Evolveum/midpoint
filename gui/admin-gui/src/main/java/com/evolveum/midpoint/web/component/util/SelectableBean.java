@@ -82,7 +82,7 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 
 	public List<InlineMenuItem> getMenuItems() {
     	if (menuItems == null) {
-    		menuItems = new ArrayList<InlineMenuItem>();
+    		menuItems = new ArrayList<>();
     	}
 		return menuItems;
 	}

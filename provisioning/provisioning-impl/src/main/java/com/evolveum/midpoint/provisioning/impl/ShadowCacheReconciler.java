@@ -171,7 +171,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 		}
 		
 		if (modifications == null){
-			modifications =  new ArrayList<ItemDelta>();
+			modifications = new ArrayList<>();
 		}
 		
 		return modifications;

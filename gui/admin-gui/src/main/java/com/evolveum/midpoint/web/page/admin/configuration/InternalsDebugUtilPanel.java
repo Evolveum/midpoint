@@ -37,7 +37,7 @@ public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
 		form.setOutputMarkupId(true);
 		add(form);
 		CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,
-                new PropertyModel<Boolean>(getModel(), InternalsConfigDto.F_DETAILED_DEBUG_DUMP),
+            new PropertyModel<>(getModel(), InternalsConfigDto.F_DETAILED_DEBUG_DUMP),
                 createStringResource("PageInternals.detailedDebugDump"), LABEL_SIZE, INPUT_SIZE);
         form.add(detailed);
 

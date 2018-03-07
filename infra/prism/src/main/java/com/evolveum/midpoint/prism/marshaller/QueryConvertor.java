@@ -215,7 +215,7 @@ public class QueryConvertor {
 
 	private static <C extends Containerable> List<ObjectFilter> parseLogicalFilter(MapXNode clauseXMap,
                                                                                    PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException {
-        List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
+        List<ObjectFilter> subfilters = new ArrayList<>();
 		for (Entry<QName, XNode> entry : clauseXMap.entrySet()) {
 			if (entry.getValue() instanceof ListXNode){
 				Iterator<XNode> subNodes = ((ListXNode) entry.getValue()).iterator();

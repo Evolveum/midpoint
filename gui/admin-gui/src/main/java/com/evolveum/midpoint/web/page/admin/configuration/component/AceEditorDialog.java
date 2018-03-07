@@ -34,7 +34,7 @@ public class AceEditorDialog extends BasePanel<String> {
 	    private static final String ID_BUTTON_CLOSE = "closeButton";
 
 
-	    private IModel<String> xmlModel = new Model<String>("");
+	    private IModel<String> xmlModel = new Model<>("");
 
 	    public AceEditorDialog(String id){
 	    	super(id);

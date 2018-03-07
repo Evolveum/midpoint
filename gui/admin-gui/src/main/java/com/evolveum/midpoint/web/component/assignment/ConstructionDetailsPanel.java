@@ -128,7 +128,7 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
         List<ItemWrapper> propertiesList = getModelObject().getItems();
         for (ItemWrapper property : propertiesList){
             if (property.getName().equals(ConstructionType.F_ASSOCIATION)){
-                return new PropertyModel<List<ContainerValueWrapper<ResourceObjectAssociationType>>>(property, "values");
+                return new PropertyModel<>(property, "values");
             }
         }
         return null;

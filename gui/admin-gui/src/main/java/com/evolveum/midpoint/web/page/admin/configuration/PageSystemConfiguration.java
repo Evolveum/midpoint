@@ -174,7 +174,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				notificationConfigPanel = new NotificationConfigPanel(panelId,
-						new PropertyModel<NotificationConfigurationDto>(model, "notificationConfig"), getPageParameters());
+                    new PropertyModel<>(model, "notificationConfig"), getPageParameters());
 				return notificationConfigPanel;
 			}
 		});
@@ -184,7 +184,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				loggingConfigPanel = new LoggingConfigPanel(panelId,
-						new PropertyModel<LoggingDto>(model, "loggingConfig"));
+                    new PropertyModel<>(model, "loggingConfig"));
 				return loggingConfigPanel;
 			}
 		});
@@ -194,7 +194,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				profilingConfigPanel = new ProfilingConfigPanel(panelId,
-						new PropertyModel<ProfilingDto>(model, "profilingDto"), PageSystemConfiguration.this);
+                    new PropertyModel<>(model, "profilingDto"), PageSystemConfiguration.this);
 				return profilingConfigPanel;
 			}
 		});

@@ -221,7 +221,7 @@ public class ContainerWrapperFactory {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapper<C> cWrapper = new ContainerWrapper<C>(container, objectStatus, status, path, readonly);
+		ContainerWrapper<C> cWrapper = new ContainerWrapper<>(container, objectStatus, status, path, readonly);
 
 		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
         cWrapper.setProperties(containerValues);

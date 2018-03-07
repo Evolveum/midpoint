@@ -511,7 +511,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		// Change part of connector configuration. We change quite a useless part. But midPoint does not know that
 		// it is useless and need to re-initialize the connector
-		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
 		PropertyDelta<String> uselessStringDelta = createUselessStringDelta("patlama chamalalija paprtala");
 		((Collection)modifications).add(uselessStringDelta);
 
@@ -542,7 +542,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		// Change part of connector configuration. We change quite a useless part. But midPoint does not know that
 		// it is useless and need to re-initialize the connector
-		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
 		PropertyDelta<String> uselessStringDelta = createUselessStringDelta("Rudolfovo Tajemstvi");
 		((Collection)modifications).add(uselessStringDelta);
 

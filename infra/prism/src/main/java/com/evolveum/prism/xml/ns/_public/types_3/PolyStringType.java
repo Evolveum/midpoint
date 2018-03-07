@@ -185,7 +185,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
      */
     public List<Object> getAny() {
         if (any == null) {
-            any = new ArrayList<Object>();
+            any = new ArrayList<>();
         }
         return this.any;
     }
@@ -481,7 +481,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
     private static JAXBElement<String> copyOfStringElement(final JAXBElement<String> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         if (e!= null) {
-            final JAXBElement<String> copy = new JAXBElement<String>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
+            final JAXBElement<String> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CBuiltinLeafInfo: java.lang.String
             copy.setValue(((String) copy.getValue()));

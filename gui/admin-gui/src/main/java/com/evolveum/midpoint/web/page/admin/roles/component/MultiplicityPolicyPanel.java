@@ -99,17 +99,17 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 		add(form);
 
 		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-				new PropertyModel<String>(model,
-						MultiplicityPolicyConstraintType.F_DESCRIPTION.getLocalPart()),
+            new PropertyModel<>(model,
+                MultiplicityPolicyConstraintType.F_DESCRIPTION.getLocalPart()),
 				createStringResource("multiplicityContainer.label.description"), ID_LABEL_SIZE,
 				ID_INPUT_SIZE);
 		form.add(description);
 
 		DropDownFormGroup enforcement = new DropDownFormGroup<>(ID_ENFORCEMENT,
-				new PropertyModel<PolicyConstraintEnforcementType>(model,
-						MultiplicityPolicyConstraintType.F_ENFORCEMENT.getLocalPart()),
+            new PropertyModel<>(model,
+                MultiplicityPolicyConstraintType.F_ENFORCEMENT.getLocalPart()),
 				WebComponentUtil.createReadonlyModelFromEnum(PolicyConstraintEnforcementType.class),
-				new EnumChoiceRenderer<PolicyConstraintEnforcementType>(),
+            new EnumChoiceRenderer<>(),
 				createStringResource("multiplicityContainer.label.enforcement"), ID_LABEL_SIZE, ID_INPUT_SIZE,
 				false);
 		form.add(enforcement);
@@ -131,7 +131,7 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 		multiplicityContainer.add(multiplicity);
 
 		CheckBox multiplicityUnbounded = new CheckBox(ID_MULTIPLICITY_UNBOUND,
-				new PropertyModel<Boolean>(this, MULTIPLICITY_UNBOUNDED));
+            new PropertyModel<>(this, MULTIPLICITY_UNBOUNDED));
 		multiplicityUnbounded.add(new OnChangeAjaxBehavior() {
 
 			@Override

@@ -137,9 +137,9 @@ public class PageAccount extends PageAdminResources {
         });
         mainForm.add(protectedMessage);
 
-        PrismPanel<ShadowType> userForm = new PrismPanel<ShadowType>("account", new ContainerWrapperListFromObjectWrapperModel<>(accountModel, WebComponentUtil.getShadowItemsToShow()), new PackageResourceReference(
-                ImgResources.class, ImgResources.HDD_PRISM), mainForm, 
-        		itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, accountModel), this);
+        PrismPanel<ShadowType> userForm = new PrismPanel<>("account", new ContainerWrapperListFromObjectWrapperModel<>(accountModel, WebComponentUtil.getShadowItemsToShow()), new PackageResourceReference(
+            ImgResources.class, ImgResources.HDD_PRISM), mainForm,
+            itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, accountModel), this);
         mainForm.add(userForm);
         
         initButtons(mainForm);
@@ -220,7 +220,7 @@ public class PageAccount extends PageAdminResources {
             WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 
             Task task = createSimpleTask(OPERATION_SAVE_ACCOUNT);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(delta);
 
             getModelService().executeChanges(deltas, null, task, result);

@@ -155,7 +155,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     public W createDataObjectWrapper(PrismObject<T> obj) {
-    	SelectableBean<T> selectable = new SelectableBean<T>(obj.asObjectable());
+    	SelectableBean<T> selectable = new SelectableBean<>(obj.asObjectable());
     	if (selected.contains(obj.asObjectable())){
     		selectable.setSelected(true);
     	}

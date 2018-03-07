@@ -44,7 +44,7 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
 
     @Override
     protected Item<T> newRowItem(String id, int index, final IModel<T> model) {
-        final Item<T> rowItem = new SelectableRowItem<T>(id, index, model);
+        final Item<T> rowItem = new SelectableRowItem<>(id, index, model);
 
         rowItem.setOutputMarkupId(true);
         return rowItem;

@@ -46,7 +46,7 @@ public class SqlPerformanceMonitor {
 
     private AtomicLong currentHandle = new AtomicLong();
 
-    private ConcurrentMap<Long,OperationRecord> outstandingOperations = new ConcurrentHashMap<Long, OperationRecord>();
+    private ConcurrentMap<Long,OperationRecord> outstandingOperations = new ConcurrentHashMap<>();
     private List<OperationRecord> finishedOperations = Collections.synchronizedList(new ArrayList<OperationRecord>());
 
     private SqlRepositoryFactory sqlRepositoryFactory;

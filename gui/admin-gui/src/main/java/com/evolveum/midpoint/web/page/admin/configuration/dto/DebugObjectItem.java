@@ -121,6 +121,6 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
 	@Override
     public List<InlineMenuItem> getMenuItems() {
-        return new ArrayList<InlineMenuItem>();
+        return new ArrayList<>();
     }
 }

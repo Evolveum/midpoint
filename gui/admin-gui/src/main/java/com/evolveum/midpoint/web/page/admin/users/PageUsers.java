@@ -223,7 +223,7 @@ public class PageUsers extends PageAdminUsers {
 	}
 
 	private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
-		List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<IColumn<SelectableBean<UserType>, String>>();
+		List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
 		IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
 				createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
@@ -272,11 +272,11 @@ public class PageUsers extends PageAdminUsers {
 				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId() :
 				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId();
 
-		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new InlineMenuItem(
 				createStringResource("pageUsers.menu.enable"),
-				new Model<Boolean>(false),
-				new Model<Boolean>(false),
+            new Model<>(false),
+            new Model<>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
@@ -310,8 +310,8 @@ public class PageUsers extends PageAdminUsers {
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
@@ -346,7 +346,7 @@ public class PageUsers extends PageAdminUsers {
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -436,8 +436,8 @@ public class PageUsers extends PageAdminUsers {
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 

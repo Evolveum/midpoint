@@ -121,18 +121,18 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
         form.setOutputMarkupId(true);
         content.add(form);
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".name"),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".name"),
                 createStringResource("SynchronizationActionEditorDialog.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(name);
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PropertyModel<String>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".description"),
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PropertyModel<>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".description"),
                 createStringResource("SynchronizationActionEditorDialog.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(description);
 
         DropDownFormGroup<SynchronizationActionTypeDto.HandlerUriActions> handlerUri = new DropDownFormGroup<SynchronizationActionTypeDto.HandlerUriActions>(ID_HANDLER_URI,
-                new PropertyModel<SynchronizationActionTypeDto.HandlerUriActions>(model, SynchronizationActionTypeDto.F_HANDLER_URI),
+            new PropertyModel<>(model, SynchronizationActionTypeDto.F_HANDLER_URI),
                 WebComponentUtil.createReadonlyModelFromEnum(SynchronizationActionTypeDto.HandlerUriActions.class),
-                new EnumChoiceRenderer<SynchronizationActionTypeDto.HandlerUriActions>(this), createStringResource("SynchronizationActionEditorDialog.label.handlerUri"),
+            new EnumChoiceRenderer<>(this), createStringResource("SynchronizationActionEditorDialog.label.handlerUri"),
                 "SynchronizationStep.action.tooltip.handlerUri", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override
@@ -146,8 +146,8 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
         };
         form.add(handlerUri);
 
-        DropDownFormGroup<BeforeAfterType> order = new DropDownFormGroup<BeforeAfterType>(ID_ORDER, new PropertyModel<BeforeAfterType>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".order"),
-                WebComponentUtil.createReadonlyModelFromEnum(BeforeAfterType.class), new EnumChoiceRenderer<BeforeAfterType>(this),
+        DropDownFormGroup<BeforeAfterType> order = new DropDownFormGroup<BeforeAfterType>(ID_ORDER, new PropertyModel<>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".order"),
+                WebComponentUtil.createReadonlyModelFromEnum(BeforeAfterType.class), new EnumChoiceRenderer<>(this),
                 createStringResource("SynchronizationActionEditorDialog.label.order"), "SynchronizationStep.action.tooltip.order", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override

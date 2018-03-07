@@ -253,7 +253,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      */
     @Override
 	public List<PrismPropertyDefinition> getPropertyDefinitions() {
-    	List<PrismPropertyDefinition> props = new ArrayList<PrismPropertyDefinition>();
+    	List<PrismPropertyDefinition> props = new ArrayList<>();
         for (ItemDefinition def : complexTypeDefinition.getDefinitions()) {
             if (def instanceof PrismPropertyDefinition) {
                 props.add((PrismPropertyDefinition) def);
@@ -297,7 +297,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     @NotNull
 	@Override
     public PrismContainerDefinitionImpl<C> clone() {
-        PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<C>(name, complexTypeDefinition, prismContext, compileTimeClass);
+        PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext, compileTimeClass);
         copyDefinitionData(clone);
         return clone;
     }
@@ -457,7 +457,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     public PrismContainerDefinition<C> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
             int minOccurs, int maxOccurs) {
-    	PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<C>(name, complexTypeDefinition, prismContext);
+    	PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext);
         def.setMinOccurs(minOccurs);
         def.setMaxOccurs(maxOccurs);
         addDefinition(def);

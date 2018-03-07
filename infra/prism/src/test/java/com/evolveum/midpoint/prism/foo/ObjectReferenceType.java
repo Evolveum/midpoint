@@ -267,7 +267,7 @@ public class ObjectReferenceType
          */
         public List<java.lang.Object> getAny() {
             if (any == null) {
-                any = new ArrayList<java.lang.Object>();
+                any = new ArrayList<>();
             }
             return this.any;
         }
@@ -307,7 +307,7 @@ public class ObjectReferenceType
         @XmlAnyElement(lax = true)
         protected List<java.lang.Object> any;
         @XmlAnyAttribute
-        private Map<QName, String> otherAttributes = new HashMap<QName, String>();
+        private Map<QName, String> otherAttributes = new HashMap<>();
 
         /**
          * Gets the value of the any property.
@@ -334,7 +334,7 @@ public class ObjectReferenceType
          */
         public List<java.lang.Object> getAny() {
             if (any == null) {
-                any = new ArrayList<java.lang.Object>();
+                any = new ArrayList<>();
             }
             return this.any;
         }

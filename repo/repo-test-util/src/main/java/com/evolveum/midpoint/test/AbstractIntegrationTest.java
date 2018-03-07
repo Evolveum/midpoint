@@ -164,7 +164,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
-	protected static Set<Class> initializedClasses = new HashSet<Class>();
+	protected static Set<Class> initializedClasses = new HashSet<>();
 	private long lastDummyResourceGroupMembersReadCount;
 	private long lastDummyResourceWriteOperationCount;
 
@@ -591,7 +591,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.createModificationDeleteProperty(new ItemPath(ResourceType.F_PROJECTION),
 						objectDefinition.findPropertyDefinition(ResourceType.F_PROJECTION), syncSettings);
 
-		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		Collection<ItemDelta> modifications = new ArrayList<>();
 		modifications.add(deleteAssigmentEnforcement);
 
 		OperationResult result = new OperationResult("Aplying sync settings");
@@ -2003,7 +2003,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
-		List<String> refOids = new ArrayList<String>();
+		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
 			refOids.add(ref.getOid());
 			assertNotNull("Missing type in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getType());
@@ -2014,7 +2014,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected <F extends FocusType> void assertRoleMembershipRefs(PrismObject<F> focus, Collection<String> roleOids) {
-		List<String> refOids = new ArrayList<String>();
+		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
 			refOids.add(ref.getOid());
 			assertNotNull("Missing type in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getType());

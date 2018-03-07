@@ -334,7 +334,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			return createAddingObjectDelta();
 		}
 
-		ObjectDelta<O> delta = new ObjectDelta<O>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
+		ObjectDelta<O> delta = new ObjectDelta<>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper<? extends Containerable>> containers = getContainers();
@@ -444,7 +444,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	private void cleanupEmptyContainers(PrismContainer container) {
 		List<PrismContainerValue> values = container.getValues();
-		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<PrismContainerValue>();
+		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<>();
 		for (PrismContainerValue value : values) {
 			List<? extends Item> items = value.getItems();
 			if (items != null) {

@@ -215,7 +215,7 @@ public class UserType
      */
     public List<String> getAdditionalNames() {
         if (additionalNames == null) {
-            additionalNames = new ArrayList<String>();
+            additionalNames = new ArrayList<>();
         }
         return this.additionalNames;
     }
@@ -268,7 +268,7 @@ public class UserType
      */
     public List<AssignmentType> getAssignment() {
         if (assignment == null) {
-            assignment = new ArrayList<AssignmentType>();
+            assignment = new ArrayList<>();
         }
         return this.assignment;
     }

@@ -133,7 +133,7 @@ public class SearchTest extends BaseSQLRepoTest {
     private void iterateGeneral(int offset, int size, int batch, final String... names) throws Exception {
         OperationResult result = new OperationResult("search general");
 
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
 
         ResultHandler handler = new ResultHandler() {
 

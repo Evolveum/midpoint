@@ -271,7 +271,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
 	@Override
 	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
-		List<AuditEventRecord> result = new ArrayList<AuditEventRecord>();
+		List<AuditEventRecord> result = new ArrayList<>();
 		for (AuditService service : services) {
 			if (service.supportsRetrieval()) {
 				List<AuditEventRecord> records = service.listRecords(query, params);

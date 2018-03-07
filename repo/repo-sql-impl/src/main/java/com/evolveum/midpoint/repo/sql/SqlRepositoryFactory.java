@@ -225,7 +225,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 //        [-ifExists]             Only existing databases may be opened (all servers)
 //        [-trace]                Print additional trace information (all servers)
 
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         if (StringUtils.isNotEmpty(config.getBaseDir())) {
             args.add("-baseDir");
             args.add(getRelativeBaseDirPath(config.getBaseDir()));

@@ -87,7 +87,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 
     }
 
-    private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();
+    private Map<TableId, Integer> tables = new HashMap<>();
 
     public Integer getPagingSize(TableId key) {
         Validate.notNull(key, "Key must not be null.");
