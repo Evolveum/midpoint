@@ -92,7 +92,7 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
 	}
 
 	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(ObjectIntegrityCheckResultHandler resultHandler,
+	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(ObjectIntegrityCheckResultHandler resultHandler,
 			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
 		return SelectorOptions.createCollection(GetOperationOptions.createAttachDiagData());
 	}

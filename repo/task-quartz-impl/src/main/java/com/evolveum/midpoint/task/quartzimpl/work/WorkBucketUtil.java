@@ -18,8 +18,6 @@ package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -47,17 +45,6 @@ public class WorkBucketUtil {
 			}
 		}
 		return null;
-	}
-
-	@Nullable
-	public static WorkBucketType getLastBucket(List<WorkBucketType> buckets) {
-		WorkBucketType lastBucket = null;
-		for (WorkBucketType bucket : buckets) {
-			if (lastBucket == null || lastBucket.getSequentialNumber() < bucket.getSequentialNumber()) {
-				lastBucket = bucket;
-			}
-		}
-		return lastBucket;
 	}
 
 }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,7 +58,7 @@ public abstract class BaseWorkBucketPartitioningStrategy implements WorkBucketPa
 		List<? extends AbstractWorkBucketContentType> newBucketsContent = createAdditionalBuckets(workState);
 		if (!newBucketsContent.isEmpty()) {
 			List<WorkBucketType> newBuckets = new ArrayList<>(newBucketsContent.size());
-			WorkBucketType lastBucket = WorkBucketUtil.getLastBucket(workState.getBucket());
+			WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
 			int sequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
 			for (AbstractWorkBucketContentType newBucketContent : newBucketsContent) {
 				newBuckets.add(new WorkBucketType(prismContext)

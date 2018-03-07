@@ -21,8 +21,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,7 +70,7 @@ public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucke
 		BigInteger from = getFrom();
 		BigInteger to = getOrComputeTo();
 
-		WorkBucketType lastBucket = WorkBucketUtil.getLastBucket(workState.getBucket());
+		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
 		NumericIntervalWorkBucketContentType newContent;
 		if (lastBucket != null) {
 			if (!(lastBucket.getContent() instanceof NumericIntervalWorkBucketContentType)) {
