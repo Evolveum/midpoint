@@ -274,7 +274,7 @@ public class CryptoUtil {
 				providerResult.addContext("properties", propXml);
 				providerResult.recordSuccess();
 			} catch (Throwable e) {
-				LOGGER.error("Security self test (provider properties) failed: ", e.getMessage() ,e);
+				LOGGER.error("Security self test (provider properties) failed: {}", e.getMessage() ,e);
 				providerResult.recordFatalError(e);
 			}
 		}
@@ -341,11 +341,11 @@ public class CryptoUtil {
 					new Object[] {algorithmName, transformationName, keySize});
 		} catch (Throwable e) {
 			if (critical) {
-				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}",
+				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{}",
 						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
 				subresult.recordFatalError(e);
 			} else {
-				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {} (failure is expected in some cases)",
+				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{} (failure is expected in some cases)",
 						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
 				subresult.recordWarning(e);
 			}

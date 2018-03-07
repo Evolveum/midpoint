@@ -60,7 +60,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
 	private static DummyAuditService instance = null;
 
-	private List<AuditEventRecord> records = new ArrayList<AuditEventRecord>();
+	private List<AuditEventRecord> records = new ArrayList<>();
 
 	public static DummyAuditService getInstance() {
 		if (instance == null) {
@@ -153,7 +153,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	}
 
     public List<AuditEventRecord> getRecordsOfType(AuditEventType type) {
-        List<AuditEventRecord> retval = new ArrayList<AuditEventRecord>();
+        List<AuditEventRecord> retval = new ArrayList<>();
         for (AuditEventRecord record : records) {
             if (record.getEventType() == type) {
                 retval.add(record);

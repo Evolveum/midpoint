@@ -139,7 +139,7 @@ public class RemoteNodesManager {
                     nodeInfo.setExecutionStatus(NodeExecutionStatusType.PAUSED);
                 }
 
-                List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
+                List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
                 if (mbeanProxy != null) {
                     TabularData jobs = mbeanProxy.getCurrentlyExecutingJobs();
                     for (CompositeData job : (Collection<CompositeData>) jobs.values()) {
@@ -314,7 +314,7 @@ public class RemoteNodesManager {
         JMXServiceURL url =
                 new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + address + "/jmxrmi");
 
-        Map<String,Object> env = new HashMap<String,Object>();
+        Map<String,Object> env = new HashMap<>();
 		String jmxUsername = taskManager.getConfiguration().getJmxUsername();
 		String jmxPassword = taskManager.getConfiguration().getJmxPassword();
 		if (jmxUsername != null || jmxPassword != null) {

@@ -161,7 +161,7 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(modelPort);
 		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
 
-		Map<String,Object> wssProps = new HashMap<String,Object>();
+		Map<String,Object> wssProps = new HashMap<>();
 
 		if (!commandLine.hasOption('a') ||
 				(commandLine.hasOption('a') && WSHandlerConstants.USERNAME_TOKEN.equals(commandLine.getOptionValue('a')))) {

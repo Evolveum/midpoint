@@ -90,8 +90,8 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AsIsExpressionEvaluatorType)) {
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        return new AsIsExpressionEvaluator<V,D>((AsIsExpressionEvaluatorType)evaluatorTypeObject,
-        		outputDefinition, protector, prismContext);
+        return new AsIsExpressionEvaluator<>((AsIsExpressionEvaluatorType) evaluatorTypeObject,
+            outputDefinition, protector, prismContext);
 	}
 
 }

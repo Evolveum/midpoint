@@ -37,7 +37,7 @@ public abstract class SchemaConstants {
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
-	public static final Map<String, String> prefixNsMap = new HashMap<String, String>();
+	public static final Map<String, String> prefixNsMap = new HashMap<>();
 
 	// NAMESPACES
 

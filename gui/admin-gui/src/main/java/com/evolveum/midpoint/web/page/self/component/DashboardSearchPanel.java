@@ -121,7 +121,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
                     final AjaxLink searchTypeLink = new AjaxLink(ID_SEARCH_TYPE_ITEM) {
                         @Override
                         public IModel<?> getBody() {
-                            return new Model<String>(item.getModel().getObject());
+                            return new Model<>(item.getModel().getObject());
                         }
 
                         @Override

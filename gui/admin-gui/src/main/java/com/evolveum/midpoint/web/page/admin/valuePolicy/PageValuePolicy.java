@@ -175,8 +175,7 @@ public class PageValuePolicy extends PageAdminValuePolicies {
         add(mainForm);
 
 
-
-       // List<ItemPath> itemPath = new ArrayList<ItemPath>();
+       // List<ItemPath> itemPath = new ArrayList<>();
        // itemPath.add(ItemPath.EMPTY_PATH);
 
         // itemPath.add(new ItemPath(ValuePolicyType.F_STRING_POLICY));
@@ -250,7 +249,7 @@ public class PageValuePolicy extends PageAdminValuePolicies {
             }
 
             Task task = createSimpleTask(OPERATION_SAVE_VALUEPOLICY);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(delta);
             getModelService().executeChanges(deltas, null, task, result);
             result.recomputeStatus();

@@ -122,7 +122,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
     }
 
     private List<IColumn<SelectableBean<ValuePolicyType>, String>> initColumns() {
-        List<IColumn<SelectableBean<ValuePolicyType>, String>> columns = new ArrayList<IColumn<SelectableBean<ValuePolicyType>, String>>();
+        List<IColumn<SelectableBean<ValuePolicyType>, String>> columns = new ArrayList<>();
 
         IColumn column = new PropertyColumn(createStringResource("pageValuePolicies.table.description"), "value.description");
         columns.add(column);
@@ -148,7 +148,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
     private List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> menu = new ArrayList<>();
         menu.add(new InlineMenuItem(createStringResource("pageValuePolicies.button.delete"),
-                new Model<Boolean>(true), new Model<Boolean>(true), false,
+            new Model<>(true), new Model<>(true), false,
                 new ColumnMenuAction<SelectableBean<ReportType>>() {
 
                     @Override

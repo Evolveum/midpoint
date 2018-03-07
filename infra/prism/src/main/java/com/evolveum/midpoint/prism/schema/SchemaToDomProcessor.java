@@ -69,7 +69,7 @@ public class SchemaToDomProcessor {
 	private Document document;
 
 	SchemaToDomProcessor() {
-		importNamespaces = new HashSet<String>();
+		importNamespaces = new HashSet<>();
 	}
 
 	public PrismContext getPrismContext() {

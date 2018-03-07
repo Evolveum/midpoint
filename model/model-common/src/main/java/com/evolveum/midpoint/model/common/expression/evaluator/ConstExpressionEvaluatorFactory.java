@@ -92,7 +92,7 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
 
-		return new ConstExpressionEvaluator<V,D>((ConstExpressionEvaluatorType)evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
+		return new ConstExpressionEvaluator<>((ConstExpressionEvaluatorType) evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
 	}
 
 }

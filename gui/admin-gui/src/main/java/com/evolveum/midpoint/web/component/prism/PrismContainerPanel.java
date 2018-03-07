@@ -113,7 +113,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
     private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
     	
     	
-    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
+    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<>(model, "values")) {
 			
 			private static final long serialVersionUID = 1L;
 
@@ -125,7 +125,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 //                    panel.setOutputMarkupId(true);
 //                    item.add(panel);
 //                } else {
-                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
+                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<>("value", item.getModel(), true, form, isPanelVisible, pageBase);
                     containerPanel.setOutputMarkupId(true);
                     item.add(containerPanel);
 //                }

@@ -765,8 +765,8 @@ public class AbstractTestForExchangeConnector {
 
     protected SystemConfigurationType getConfiguration() throws FaultMessage {
 
-		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectType> objectHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
 		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
 		modelPort.getObject(ModelClientUtil.getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
@@ -777,8 +777,8 @@ public class AbstractTestForExchangeConnector {
 
     protected Collection<ResourceType> listResources() throws SAXException, IOException, FaultMessage {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
 
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(ResourceType.class), null, options, objectListHolder, resultHolder);
 
@@ -810,7 +810,7 @@ public class AbstractTestForExchangeConnector {
 
     protected <T extends ObjectType> T getObject(Class<T> clazz, String oid, SelectorQualifiedGetOptionsType options) throws SAXException, IOException, FaultMessage {
         Holder<ObjectType> objectHolder = new Holder<>();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
 
         modelPort.getObject(ModelClientUtil.getTypeQName(clazz), oid, options, objectHolder, resultHolder);
 
@@ -819,8 +819,8 @@ public class AbstractTestForExchangeConnector {
 
     protected Collection<UserType> listUsers() throws SAXException, IOException, FaultMessage {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
 
         // let's say we want to get first 3 users, sorted alphabetically by user name
         QueryType queryType = new QueryType();          // holds search query + paging options
@@ -854,8 +854,8 @@ public class AbstractTestForExchangeConnector {
         // add newly created option to the list of operation options
         operationOptions.getOption().add(getNextScheduledTimeOption);
 
-        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectListType> objectListHolder = new Holder<>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
 
         modelPort.searchObjects(ModelClientUtil.getTypeQName(TaskType.class), null, operationOptions, objectListHolder, resultHolder);
 
@@ -1254,8 +1254,8 @@ public class AbstractTestForExchangeConnector {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectListType> objectListHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
 
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(UserType.class), query, options, objectListHolder, resultHolder);
 
@@ -1281,8 +1281,8 @@ public class AbstractTestForExchangeConnector {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectListType> objectListHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
 
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(RoleType.class), query, options, objectListHolder, resultHolder);
 
@@ -1307,8 +1307,8 @@ public class AbstractTestForExchangeConnector {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectListType> objectListHolder = new Holder<>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
 
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(RoleType.class), query, options, objectListHolder, resultHolder);
 
@@ -1371,7 +1371,7 @@ public class AbstractTestForExchangeConnector {
 
         org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
 
-		Map<String,Object> outProps = new HashMap<String,Object>();
+		Map<String,Object> outProps = new HashMap<>();
 
 		outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
 		outProps.put(WSHandlerConstants.USER, ADM_USERNAME);

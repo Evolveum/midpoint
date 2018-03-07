@@ -62,8 +62,8 @@ public class TestParseFilter {
 		System.out.println("Parsed filter:");
 		System.out.println(filter.debugDump());
 
-        String serialized = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<SearchFilterType>(
-                new QName(SchemaConstants.NS_QUERY, "filter"), SearchFilterType.class, filter));
+        String serialized = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<>(
+            new QName(SchemaConstants.NS_QUERY, "filter"), SearchFilterType.class, filter));
         System.out.println("JAXB serialization result:\n"+serialized);
 
         // WHEN2

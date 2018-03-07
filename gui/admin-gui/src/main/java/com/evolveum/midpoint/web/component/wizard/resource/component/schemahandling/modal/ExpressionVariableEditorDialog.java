@@ -149,24 +149,24 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 		// TODO - shouldn't this be some AutoCompleteField? If yer, where do we
 		// get value?
 		TextFormGroup name = new TextFormGroup(ID_NAME,
-				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".name.localPart"),
+            new PropertyModel<>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".name.localPart"),
 				createStringResource("ExpressionVariableEditor.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		form.add(name);
 
 		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".description"),
+            new PropertyModel<>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".description"),
 				createStringResource("ExpressionVariableEditor.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE,
 				false);
 		form.add(description);
 
 		TextFormGroup path = new TextFormGroup(ID_PATH,
-				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_PATH),
+            new PropertyModel<>(model, ExpressionVariableDefinitionTypeDto.F_PATH),
 				createStringResource("ExpressionVariableEditor.label.path"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		form.add(path);
 
 		DropDownFormGroup objectReference = new DropDownFormGroup<>(ID_OBJECT_REFERENCE,
-				new PropertyModel<ObjectReferenceType>(model,
-						ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".objectRef"),
+            new PropertyModel<>(model,
+                ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".objectRef"),
 				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
 					@Override
@@ -178,7 +178,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 		form.add(objectReference);
 
 		TextAreaFormGroup value = new TextAreaFormGroup(ID_VALUE,
-				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VALUE),
+            new PropertyModel<>(model, ExpressionVariableDefinitionTypeDto.F_VALUE),
 				createStringResource("ExpressionVariableEditor.label.value"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		form.add(value);
 

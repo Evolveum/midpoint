@@ -226,7 +226,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         labelContainer.add(hasPendingModification);
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
-                new PropertyModel<List<ValueWrapper>>(model, "values")) {
+            new PropertyModel<>(model, "values")) {
         	private static final long serialVersionUID = 1L;
 
             @Override

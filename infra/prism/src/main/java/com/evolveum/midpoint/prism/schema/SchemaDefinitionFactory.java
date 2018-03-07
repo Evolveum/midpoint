@@ -61,12 +61,12 @@ public class SchemaDefinitionFactory {
 
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext);
+		return new PrismPropertyDefinitionImpl<>(elementName, typeName, prismContext);
 	}
 
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
-		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext, allowedValues, defaultValue);
+		return new PrismPropertyDefinitionImpl<>(elementName, typeName, prismContext, allowedValues, defaultValue);
 	}
 
 	public PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,

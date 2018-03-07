@@ -301,7 +301,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 																Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		final List<V> list = new ArrayList<V>();
+		final List<V> list = new ArrayList<>();
 
 		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
 		if (!searchOnResource) {

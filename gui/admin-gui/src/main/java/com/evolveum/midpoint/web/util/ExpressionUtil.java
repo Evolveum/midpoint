@@ -323,7 +323,7 @@ public class ExpressionUtil {
             element = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
                     new RawType(prismContext));
         }
-        element.setValue(new RawType(new PrimitiveXNode<String>(value), prismContext));
+        element.setValue(new RawType(new PrimitiveXNode<>(value), prismContext));
         expression.getExpressionEvaluator().add(element);
     }
 
@@ -379,7 +379,7 @@ public class ExpressionUtil {
         }
         PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)values.get(new QName("path"));
         if (pathValue == null){
-            pathValue = new PrimitiveXNode<ItemPathType>();
+            pathValue = new PrimitiveXNode<>();
         }
         pathValue.setValue(path, null);
 

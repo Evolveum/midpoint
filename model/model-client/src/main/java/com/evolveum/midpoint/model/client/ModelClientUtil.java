@@ -178,7 +178,7 @@ public class ModelClientUtil {
 	}
 
 	public static <T> JAXBElement<T> toJaxbElement(QName name, T value) {
-		return new JAXBElement<T>(name, (Class<T>) value.getClass(), value);
+		return new JAXBElement<>(name, (Class<T>) value.getClass(), value);
 	}
 
 	public static Document getDocumnent() {
@@ -356,7 +356,7 @@ public class ModelClientUtil {
     	}
     	java.io.StringWriter sw = new StringWriter();
     	Class<O> type = (Class<O>) object.getClass();
-    	JAXBElement<O> element = new JAXBElement<O>(getElementName(type), type, object);
+    	JAXBElement<O> element = new JAXBElement<>(getElementName(type), type, object);
     	marshaller.marshal(element, sw);
     	return sw.toString();
     }
@@ -368,7 +368,7 @@ public class ModelClientUtil {
     		marshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE );
     	}
     	java.io.StringWriter sw = new StringWriter();
-    	JAXBElement<T> element = new JAXBElement<T>(elementName, (Class<T>) object.getClass(), object);
+    	JAXBElement<T> element = new JAXBElement<>(elementName, (Class<T>) object.getClass(), object);
     	marshaller.marshal(element, sw);
     	return sw.toString();
     }

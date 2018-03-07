@@ -43,7 +43,7 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 	    }
 
 	private void initLayout(final IModel<ItemDefinition<?>> model) {
-		final Model<String> itemDefinitionAsStringModel = new Model<String>(null);
+		final Model<String> itemDefinitionAsStringModel = new Model<>(null);
 		AutoCompleteTextField<String> input = new AutoCompleteTextField<String>(
 				ID_INPUT, itemDefinitionAsStringModel, String.class, createAutoCompleteSettings()) {
 
@@ -86,7 +86,7 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 	}
 
 	protected Map<String, ItemDefinition<?>> listChoices(String input){
-		return new HashMap<String, ItemDefinition<?>>();
+		return new HashMap<>();
 	}
 
 	@Override

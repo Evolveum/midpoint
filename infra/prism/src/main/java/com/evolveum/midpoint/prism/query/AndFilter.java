@@ -52,7 +52,7 @@ public class AndFilter extends NaryLogicalFilter {
 	
 	@Override
 	public AndFilter cloneEmpty() {
-		return new AndFilter(new ArrayList<ObjectFilter>());
+		return new AndFilter(new ArrayList<>());
 	}
 	
 	@Override

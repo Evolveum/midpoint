@@ -977,7 +977,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
                 }
             }
         }
-        AssertJUnit.assertEquals("Wrong values", new HashSet<String>(Arrays.asList(expectedValues)), realValues);
+        AssertJUnit.assertEquals("Wrong values", new HashSet<>(Arrays.asList(expectedValues)), realValues);
     }
 
 	protected AssignmentEvaluator<UserType> createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {

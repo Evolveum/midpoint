@@ -79,10 +79,10 @@ public class PageBulkAction extends PageAdminConfiguration {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<Boolean>(model, BulkActionDto.F_ASYNC));
+        CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<>(model, BulkActionDto.F_ASYNC));
         mainForm.add(async);
 
-        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(model, BulkActionDto.F_SCRIPT));
+        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<>(model, BulkActionDto.F_SCRIPT));
         mainForm.add(editor);
 
         AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkAction.button.start")) {

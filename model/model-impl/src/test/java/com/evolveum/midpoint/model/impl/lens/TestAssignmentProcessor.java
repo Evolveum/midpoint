@@ -830,7 +830,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private <T> Collection<T> getMultiValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple,
     		Collection<? extends PrismPropertyValue<?>> set) {
-    	Collection<T> vals = new ArrayList<T>(set.size());
+    	Collection<T> vals = new ArrayList<>(set.size());
     	for (PrismPropertyValue<?> pval: set) {
     		vals.add((T)pval.getValue());
     	}

@@ -247,7 +247,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			return null;
 		}
 		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
-		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+		List<PrismObject<OrgType>> orgs = new ArrayList<>();
 		PrismObject<R> resultObject = null;
 
 		for (PrismReferenceValue orgRefValue : orgRefValues) {
@@ -309,7 +309,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			return null;
 		}
 		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
-		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+		List<PrismObject<OrgType>> orgs = new ArrayList<>();
 
 		for (PrismReferenceValue orgRefValue : orgRefValues) {
 			if (orgRefValue != null) {

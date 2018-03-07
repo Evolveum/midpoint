@@ -35,7 +35,7 @@ public abstract class AbstractFilter implements Filter {
     @Override
     public List<Object> getParameters() {
         if (parameters == null) {
-            parameters = new ArrayList<Object>();
+            parameters = new ArrayList<>();
         }
         return parameters;
     }

@@ -85,7 +85,7 @@ public class DeltaPanel extends BasePanel<DeltaDto> {
 
         ContainerValuePanel objectToAddPanel =
                 new ContainerValuePanel(ID_OBJECT_TO_ADD,
-                        new PropertyModel<ContainerValueDto>(getModel(), DeltaDto.F_OBJECT_TO_ADD));
+                    new PropertyModel<>(getModel(), DeltaDto.F_OBJECT_TO_ADD));
         objectToAddPanel.add(isAdd);
         add(objectToAddPanel);
 

@@ -120,8 +120,8 @@ public class BasicValidatorTest {
 
     	OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
 
-        final List<String> postMarshallHandledOids = new ArrayList<String>();
-        final List<String> preMarshallHandledOids = new ArrayList<String>();
+        final List<String> postMarshallHandledOids = new ArrayList<>();
+        final List<String> preMarshallHandledOids = new ArrayList<>();
 
         EventHandler handler = new EventHandler() {
 

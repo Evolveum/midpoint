@@ -39,7 +39,7 @@ public class DummyFilterTranslator implements FilterTranslator<String> {
 		log.info("translate::filter: {0}",filter == null ? "null" : filter.toString());
 
 		log.info("translate::end");
-		return new ArrayList<String>();
+		return new ArrayList<>();
 	}
 
 }

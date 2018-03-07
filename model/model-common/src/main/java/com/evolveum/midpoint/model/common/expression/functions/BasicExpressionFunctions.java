@@ -381,7 +381,7 @@ public class BasicExpressionFunctions {
             return null;
         }
 
-        Collection<String> oids = new ArrayList<String>();
+        Collection<String> oids = new ArrayList<>();
         for (ObjectReferenceType ort : refs) {
             if (StringUtils.isNotBlank(ort.getOid())) {
                 oids.add(ort.getOid());
@@ -666,7 +666,7 @@ public class BasicExpressionFunctions {
         if (firstElement instanceof String) {
             stringValues = (Collection) values;
         } else if (firstElement instanceof Element) {
-            stringValues = new ArrayList<String>(values.size());
+            stringValues = new ArrayList<>(values.size());
             for (Object value : values) {
                 Element element = (Element) value;
                 stringValues.add(element.getTextContent());

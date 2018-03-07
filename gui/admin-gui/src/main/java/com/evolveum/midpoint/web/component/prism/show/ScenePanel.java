@@ -262,7 +262,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		});
 		itemsTable.add(valueLabel);
 		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS,
-				new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
+            new PropertyModel<>(model, SceneDto.F_ITEMS)) {
 
 			@Override
 			protected void populateItem(ListItem<SceneItemDto> item) {
@@ -276,7 +276,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		body.add(itemsTable);
 
         ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES,
-				new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
+            new PropertyModel<>(model, SceneDto.F_PARTIAL_SCENES)) {
 
             @Override
             protected void populateItem(ListItem<SceneDto> item) {

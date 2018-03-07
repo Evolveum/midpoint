@@ -71,8 +71,8 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				T val = ((PrismPropertyValue<T>) value).getValue();
 				if (val instanceof PolyString) {
 					PolyString poly = (PolyString) val;
-					this.value = new PrismPropertyValue<PolyString>(new PolyString(poly.getOrig(), poly.getNorm()),
-							value.getOriginType(), value.getOriginObject());
+					this.value = new PrismPropertyValue<>(new PolyString(poly.getOrig(), poly.getNorm()),
+                        value.getOriginType(), value.getOriginObject());
 				} else if (val instanceof ProtectedStringType) {
 					this.value = value.clone();
 					// prevents
@@ -106,7 +106,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<T>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
+            oldValue = new PrismPropertyValue<>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
 
         this.oldValue = oldValue;

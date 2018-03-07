@@ -312,7 +312,7 @@ public class XPathTest {
     @Test
     public void pureXPathRoundTripTest() {
 
-    	Map<String, String> namespaceMap = new HashMap<String, String>();
+    	Map<String, String> namespaceMap = new HashMap<>();
     	namespaceMap.put("foo", "http://foo");
     	namespaceMap.put("bar", "http://bar");
 

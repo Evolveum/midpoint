@@ -187,7 +187,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	}
 
 	private Collection<ResourceAttribute<?>> extractAttributesByDefinitions(Collection<? extends ResourceAttributeDefinition> definitions) {
-		Collection<ResourceAttribute<?>> attributes = new ArrayList<ResourceAttribute<?>>(definitions.size());
+		Collection<ResourceAttribute<?>> attributes = new ArrayList<>(definitions.size());
 		for (ResourceAttributeDefinition attrDef : definitions) {
 			for (ResourceAttribute<?> property : getAttributes()){
 				if (attrDef.getName().equals(property.getElementName())){

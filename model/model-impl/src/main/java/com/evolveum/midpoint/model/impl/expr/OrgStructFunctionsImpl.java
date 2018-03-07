@@ -78,7 +78,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
      */
     @Override
     public Collection<String> getManagersOids(UserType user, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        Set<String> retval = new HashSet<String>();
+        Set<String> retval = new HashSet<>();
         for (UserType u : getManagers(user, preAuthorized)) {
             retval.add(u.getOid());
         }
@@ -119,14 +119,14 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        Set<UserType> retval = new HashSet<UserType>();
+        Set<UserType> retval = new HashSet<>();
         if (user == null) {
         	return retval;
         }
         Collection<String> orgOids = getOrgUnits(user, null, preAuthorized);
         while (!orgOids.isEmpty()) {
             LOGGER.trace("orgOids: {}", orgOids);
-            Collection<OrgType> thisLevelOrgs = new ArrayList<OrgType>();
+            Collection<OrgType> thisLevelOrgs = new ArrayList<>();
             for (String orgOid : orgOids) {
                 if (orgType != null) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
@@ -150,7 +150,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             if (!retval.isEmpty()) {
                 return retval;
             }
-            Collection<String> nextLevelOids = new ArrayList<String>();
+            Collection<String> nextLevelOids = new ArrayList<>();
             if (orgType == null) {
                 for (String orgOid : orgOids) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
@@ -176,7 +176,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     // however, the syntax of orgType attribute is not standardized
     @Override
     public Collection<String> getOrgUnits(UserType user, boolean preAuthorized) {
-        Set<String> retval = new HashSet<String>();
+        Set<String> retval = new HashSet<>();
         if (user == null){
             return retval;
         }
@@ -285,7 +285,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<UserType> getManagersOfOrg(String orgOid, boolean preAuthorized) throws SchemaException, SecurityViolationException {
-        Set<UserType> retval = new HashSet<UserType>();
+        Set<UserType> retval = new HashSet<>();
         OperationResult result = new OperationResult("getManagerOfOrg");
 
         PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);

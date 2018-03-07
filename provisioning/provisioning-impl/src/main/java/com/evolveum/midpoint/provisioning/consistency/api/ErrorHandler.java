@@ -76,7 +76,7 @@ public abstract class ErrorHandler {
 			Collection<ItemDelta> modifications) {
 
 		if (modifications == null) {
-			modifications = new ArrayList<ItemDelta>();
+			modifications = new ArrayList<>();
 		}
 		PropertyDelta attemptDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
 				ShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));

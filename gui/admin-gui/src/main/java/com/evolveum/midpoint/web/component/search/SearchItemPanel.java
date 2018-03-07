@@ -158,7 +158,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         popover.add(popoverBody);
 
         ListView values = new ListView<DisplayableValue>(ID_VALUES,
-                new PropertyModel<List<DisplayableValue>>(popoverModel, SearchItem.F_VALUES)) {
+            new PropertyModel<>(popoverModel, SearchItem.F_VALUES)) {
 
             @Override
             protected void populateItem(final ListItem<DisplayableValue> item) {

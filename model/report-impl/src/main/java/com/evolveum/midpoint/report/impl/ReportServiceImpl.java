@@ -229,7 +229,7 @@ public class ReportServiceImpl implements ReportService {
 
 	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		Collection<AuditEventRecord> results = new ArrayList<AuditEventRecord>();
+		Collection<AuditEventRecord> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
@@ -277,7 +277,7 @@ public class ReportServiceImpl implements ReportService {
 			return null;
 		}
 
-		Map<String, Object> resultParams = new HashMap<String, Object>();
+		Map<String, Object> resultParams = new HashMap<>();
 		Set<Entry<QName, Object>> paramEntries = parameters.entrySet();
 		for (Entry<QName, Object> e : paramEntries) {
 			if (e.getValue() instanceof PrismPropertyValue) {

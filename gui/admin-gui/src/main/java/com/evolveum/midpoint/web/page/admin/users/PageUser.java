@@ -381,7 +381,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private void saveDelegationToUser(UserType user, List<AssignmentEditorDto> assignmentEditorDtos) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
         ObjectDelta<UserType> delta;
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         try {
             delta = user.asPrismObject().createModifyDelta();
             deltas.add(delta);
@@ -425,7 +425,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     protected List<AssignmentType> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentType> list = new ArrayList<AssignmentType>();
+		List<AssignmentType> list = new ArrayList<>();
 		for (AssignmentType assignment : assignments) {
 			if (isConsentAssignment(assignment)) {
 			    //TODO set status

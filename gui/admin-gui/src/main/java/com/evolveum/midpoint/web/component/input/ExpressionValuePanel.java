@@ -263,7 +263,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                         query.setFilter(filter);
                     }
                 } catch (SchemaException ex) {
-                    LOGGER.error("Couldn't create query filter for ShadowType popup list" , ex.getErrorTypeMessage());
+                    LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
                 }
                 return query;
             }
@@ -312,7 +312,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         };
         targetSearchContainer.add(removeButton);
 
-        TextPanel<String> targetSearchFilterPathInput = new TextPanel<String>(ID_TARGET_SEARCH_PATH_INPUT, Model.of(ExpressionUtil.getTargetSearchExpPathValue(getModelObject())));
+        TextPanel<String> targetSearchFilterPathInput = new TextPanel<>(ID_TARGET_SEARCH_PATH_INPUT, Model.of(ExpressionUtil.getTargetSearchExpPathValue(getModelObject())));
         targetSearchFilterPathInput.setOutputMarkupId(true);
         targetSearchFilterPathInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             private static final long serialVersionUID = 1L;
@@ -334,7 +334,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         });
         targetSearchContainer.add(targetSearchFilterPathInput);
 
-        TextPanel<String> targetSearchFilterValueInput = new TextPanel<String>(ID_TARGET_SEARCH_VALUE_INPUT, Model.of(ExpressionUtil.getTargetSearchExpValue(getModelObject())));
+        TextPanel<String> targetSearchFilterValueInput = new TextPanel<>(ID_TARGET_SEARCH_VALUE_INPUT, Model.of(ExpressionUtil.getTargetSearchExpValue(getModelObject())));
         targetSearchFilterValueInput.setOutputMarkupId(true);
         targetSearchFilterValueInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             private static final long serialVersionUID = 1L;
@@ -431,7 +431,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         try{
             return ExpressionUtil.getLiteralExpressionValues(getModelObject());
         } catch (SchemaException ex){
-            LOGGER.error("Couldn't get literal expression value, ", ex.getLocalizedMessage());
+            LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
         }
         return literalValueList;
     }

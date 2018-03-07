@@ -325,7 +325,7 @@ public class AssignmentProcessor {
 
 						if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
 							LOGGER.trace(
-									"Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");    // TODO is this message OK? [med]
+									"Processing of shadow identified by {} will be skipped because of limitation for discovery channel.", context.getChannel());    // TODO is this message OK? [med]
 							processOnlyExistingProjCxts = true;
 						}
 					}

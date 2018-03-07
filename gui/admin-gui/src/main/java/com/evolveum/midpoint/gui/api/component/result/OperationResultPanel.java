@@ -406,8 +406,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 			@Override
 			protected void populateItem(ListItem<Param> item) {
-				item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
-				item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
+				item.add(new Label("paramName", new PropertyModel<>(item.getModel(), "name")));
+				item.add(new Label("paramValue", new PropertyModel<>(item.getModel(), "value")));
 			}
 		};
 		params.setOutputMarkupId(true);
@@ -466,8 +466,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 			@Override
 			protected void populateItem(ListItem<Context> item) {
-				item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));
-				item.add(new Label("contextValue", new PropertyModel<Object>(item.getModel(), "value")));
+				item.add(new Label("contextName", new PropertyModel<>(item.getModel(), "name")));
+				item.add(new Label("contextValue", new PropertyModel<>(item.getModel(), "value")));
 			}
 		};
 		contexts.setOutputMarkupId(true);
@@ -641,7 +641,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 				OpResult result = model.getObject();
 				List<OpResult> subresults = result.getSubresults();
 				if (subresults == null) {
-					subresults = new ArrayList<OpResult>();
+					subresults = new ArrayList<>();
 				}
 
 				return subresults;

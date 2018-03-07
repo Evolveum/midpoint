@@ -117,7 +117,7 @@ public class EventHandlerChainType
      */
     public List<JAXBElement<? extends EventHandlerType>> getHandler() {
         if (handler == null) {
-            handler = new ArrayList<JAXBElement<? extends EventHandlerType>>();
+            handler = new ArrayList<>();
         }
         return this.handler;
     }
@@ -232,7 +232,7 @@ public class EventHandlerChainType
     private static JAXBElement<EventOperationFilterType> copyOfEventOperationFilterTypeElement(final JAXBElement<EventOperationFilterType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         if (e!= null) {
-            final JAXBElement<EventOperationFilterType> copy = new JAXBElement<EventOperationFilterType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
+            final JAXBElement<EventOperationFilterType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType
             copy.setValue(((((EventOperationFilterType) copy.getValue()) == null)?null:((EventOperationFilterType) copy.getValue()).clone()));
@@ -254,7 +254,7 @@ public class EventHandlerChainType
     private static JAXBElement<EventStatusFilterType> copyOfEventStatusFilterTypeElement(final JAXBElement<EventStatusFilterType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         if (e!= null) {
-            final JAXBElement<EventStatusFilterType> copy = new JAXBElement<EventStatusFilterType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
+            final JAXBElement<EventStatusFilterType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType
             copy.setValue(((((EventStatusFilterType) copy.getValue()) == null)?null:((EventStatusFilterType) copy.getValue()).clone()));
@@ -275,7 +275,7 @@ public class EventHandlerChainType
     private static JAXBElement<EventCategoryFilterType> copyOfEventCategoryFilterTypeElement(final JAXBElement<EventCategoryFilterType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         if (e!= null) {
-            final JAXBElement<EventCategoryFilterType> copy = new JAXBElement<EventCategoryFilterType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
+            final JAXBElement<EventCategoryFilterType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType
             copy.setValue(((((EventCategoryFilterType) copy.getValue()) == null)?null:((EventCategoryFilterType) copy.getValue()).clone()));
@@ -297,7 +297,7 @@ public class EventHandlerChainType
     private static JAXBElement<EventHandlerChainType> copyOfEventHandlerChainTypeElement(final JAXBElement<EventHandlerChainType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         if (e!= null) {
-            final JAXBElement<EventHandlerChainType> copy = new JAXBElement<EventHandlerChainType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
+            final JAXBElement<EventHandlerChainType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType
             copy.setValue(((((EventHandlerChainType) copy.getValue()) == null)?null:((EventHandlerChainType) copy.getValue()).clone()));
@@ -319,7 +319,7 @@ public class EventHandlerChainType
     private static JAXBElement<EventHandlerType> copyOfEventHandlerTypeElement(final JAXBElement<EventHandlerType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         if (e!= null) {
-            final JAXBElement<EventHandlerType> copy = new JAXBElement<EventHandlerType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
+            final JAXBElement<EventHandlerType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType
             copy.setValue(((((EventHandlerType) copy.getValue()) == null)?null:((EventHandlerType) copy.getValue()).clone()));

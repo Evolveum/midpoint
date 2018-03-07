@@ -112,7 +112,7 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
      */
     public List<Object> getContent() {
         if (content == null) {
-            content = new ArrayList<Object>();
+            content = new ArrayList<>();
         }
         return this.content;
     }

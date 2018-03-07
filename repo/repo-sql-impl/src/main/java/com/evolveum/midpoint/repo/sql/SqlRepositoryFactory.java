@@ -225,7 +225,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 //        [-ifExists]             Only existing databases may be opened (all servers)
 //        [-trace]                Print additional trace information (all servers)
 
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         if (StringUtils.isNotEmpty(config.getBaseDir())) {
             args.add("-baseDir");
             args.add(getRelativeBaseDirPath(config.getBaseDir()));
@@ -288,7 +288,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         if (file.exists()) {
             LOGGER.info("Deleting file '{}', result: {}", new Object[]{file.getAbsolutePath(), file.delete()});
         } else {
-            LOGGER.info("File '{}' doesn't exist.", new Object[]{file.getAbsolutePath(), file.delete()});
+            LOGGER.info("File '{}' doesn't exist: delete status {}", new Object[]{file.getAbsolutePath(), file.delete()});
         }
     }
 

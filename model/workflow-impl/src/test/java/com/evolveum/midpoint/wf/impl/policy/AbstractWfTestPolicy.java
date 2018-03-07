@@ -272,7 +272,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2,
 			WorkflowResult approved2) {
-		Map<String, WorkflowResult> retval = new HashMap<String, WorkflowResult>();
+		Map<String, WorkflowResult> retval = new HashMap<>();
 		retval.put(oid, approved);
 		retval.put(oid2, approved2);
 		return retval;
@@ -280,7 +280,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2,
 			WorkflowResult approved2, String oid3, WorkflowResult approved3) {
-		Map<String, WorkflowResult> retval = new HashMap<String, WorkflowResult>();
+		Map<String, WorkflowResult> retval = new HashMap<>();
 		retval.put(oid, approved);
 		retval.put(oid2, approved2);
 		retval.put(oid3, approved3);

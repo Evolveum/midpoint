@@ -840,7 +840,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Script history", getDummyResource().getScriptHistory());
 
-        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
@@ -989,7 +989,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Script history", getDummyResource().getScriptHistory());
 
-        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
@@ -1060,7 +1060,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource", getDummyResource().debugDump());
 
         display("Script history", getDummyResource().getScriptHistory());
-        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         // Guybrush is broken.
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true, false);
@@ -1150,7 +1150,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Script history", getDummyResource().getScriptHistory());
 
-        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
@@ -1240,7 +1240,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         display("Script history", getDummyResource().getScriptHistory());
 
-        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<>();
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", false);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);

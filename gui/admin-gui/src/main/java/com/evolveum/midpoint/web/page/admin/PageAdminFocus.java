@@ -312,18 +312,18 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 			subResult.computeStatus();
 
-			return new FocusSubwrapperDto<S>(wrapper, UserDtoStatus.MODIFY);
+			return new FocusSubwrapperDto<>(wrapper, UserDtoStatus.MODIFY);
 
 		} catch (Exception ex) {
 			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
 			subResult.computeStatus();
-			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
+			return new FocusSubwrapperDto<>(false, resourceName, subResult);
 		}
 	}
 
     private List<AssignmentEditorDto> loadDelegatedToMe() {
-        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+        List<AssignmentEditorDto> list = new ArrayList<>();
 
         ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
         PrismObject<F> focus = focusWrapper.getObject();
@@ -344,7 +344,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
   protected List<AssignmentType> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentType> list = new ArrayList<AssignmentType>();
+		List<AssignmentType> list = new ArrayList<>();
 		for (AssignmentType assignment : assignments) {
 			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
 				//TODO set status
@@ -511,7 +511,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private ObjectDelta getForceDeleteDelta(ObjectWrapper focusWrapper) throws SchemaException {
 
 		List<FocusSubwrapperDto<ShadowType>> accountDtos = getFocusShadows();
-		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+		List<ReferenceDelta> refDeltas = new ArrayList<>();
 		ObjectDelta<F> forceDeleteDelta = null;
 		for (FocusSubwrapperDto<ShadowType> accDto : accountDtos) {
 			if (!accDto.isLoadedOK()) {

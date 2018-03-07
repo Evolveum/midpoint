@@ -41,7 +41,7 @@ public class Accordion extends Border {
     public Accordion(String id) {
         super(id);
 
-        add(new AttributeAppender("class", new Model<String>("accordions"), " "));
+        add(new AttributeAppender("class", new Model<>("accordions"), " "));
 
         WebMarkupContainer parent = new WebMarkupContainer("parent");
         parent.setOutputMarkupId(true);

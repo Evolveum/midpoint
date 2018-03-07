@@ -439,7 +439,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 			if (ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())) {
 				return new LockoutStatusPanel(id, getModel().getObject(),
-						new PropertyModel<LockoutStatusType>(getModel(), baseExpression));
+                    new PropertyModel<>(getModel(), baseExpression));
 			}
 			if (ExpressionType.COMPLEX_TYPE.equals(valueType)) {
 				//it is expected that ExpressionType property is in the
@@ -456,17 +456,17 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				} catch (Exception ex){
 					LOGGER.error("Unable to find Construction container for expression property");
 				}
-				return new ExpressionValuePanel(id, new PropertyModel<ExpressionType>(getModel(), baseExpression), construction, getPageBase());
+				return new ExpressionValuePanel(id, new PropertyModel<>(getModel(), baseExpression), construction, getPageBase());
 			}
 
 			if (DOMUtil.XSD_DATETIME.equals(valueType)) {
-				panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(getModel(), baseExpression));
+				panel = new DatePanel(id, new PropertyModel<>(getModel(), baseExpression));
 
 			} else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-				panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(getModel(), baseExpression),
+				panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
 						getModel().getObject().isReadonly());
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-				panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(getModel(), baseExpression));
+				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
 
 			} else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
 				InputPanel inputPanel;
@@ -485,8 +485,8 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 					if (lookupTable != null) {
 
-						inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(getModel(),
-								baseExpression + ".orig", lookupTable.asObjectable()), String.class) {
+						inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+                            baseExpression + ".orig", lookupTable.asObjectable()), String.class) {
 
 							@Override
 							public Iterator<String> getIterator(String input) {
@@ -562,37 +562,37 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					}
 				});
 			} else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
-				return new TextAreaPanel<String>(id, new AbstractReadOnlyModel<String>() {
+				return new TextAreaPanel<>(id, new AbstractReadOnlyModel<String>() {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public String getObject() {
-						if (getModel().getObject() == null || getModel().getObject().getValue() == null) {
-							return null;
-						}
-						PrismPropertyValue ppv = (PrismPropertyValue) getModel().getObject().getValue();
-						if (ppv == null || ppv.getValue() == null) {
-							return null;
-						}
-						QName name = property.getElementName();
-						if (name == null && property.getDefinition() != null) {
-							name = property.getDefinition().getName();
-						}
-						if (name == null) {
-							name = SchemaConstants.C_VALUE;
-						}
-						PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
-						try {
-							return prismContext.xmlSerializer().serializeAnyData(ppv.getValue(), name);
-						} catch (SchemaException e) {
-							throw new SystemException(
-									"Couldn't serialize property value of type: " + valueType + ": " + e.getMessage(), e);
-						}
-					}
-				}, 10);
+                    @Override
+                    public String getObject() {
+                        if (getModel().getObject() == null || getModel().getObject().getValue() == null) {
+                            return null;
+                        }
+                        PrismPropertyValue ppv = (PrismPropertyValue) getModel().getObject().getValue();
+                        if (ppv == null || ppv.getValue() == null) {
+                            return null;
+                        }
+                        QName name = property.getElementName();
+                        if (name == null && property.getDefinition() != null) {
+                            name = property.getDefinition().getName();
+                        }
+                        if (name == null) {
+                            name = SchemaConstants.C_VALUE;
+                        }
+                        PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
+                        try {
+                            return prismContext.xmlSerializer().serializeAnyData(ppv.getValue(), name);
+                        } catch (SchemaException e) {
+                            throw new SystemException(
+                                "Couldn't serialize property value of type: " + valueType + ": " + e.getMessage(), e);
+                        }
+                    }
+                }, 10);
 			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
-				return new QNameEditorPanel(id, new PropertyModel<ItemPathType>(getModel(), baseExpression), null, null,
+				return new QNameEditorPanel(id, new PropertyModel<>(getModel(), baseExpression), null, null,
 						false, false) {
 					@Override
 					protected AttributeAppender getSpecificLabelStyleAppender() {
@@ -640,8 +640,8 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 					if (lookupTable != null) {
 
-						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(getModel(),
-								baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), type) {
+						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+                            baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), type) {
 
 							@Override
 							public Iterator<String> getIterator(String input) {

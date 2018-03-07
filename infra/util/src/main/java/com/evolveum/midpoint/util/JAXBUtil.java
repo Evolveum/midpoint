@@ -172,7 +172,7 @@ public final class JAXBUtil {
 		if (parentElement == null) {
 			return null;
 		}
-		List<Object> childElements = new ArrayList<Object>();
+		List<Object> childElements = new ArrayList<>();
 		if (parentElement instanceof Element) {
 			Element parentEl = (Element) parentElement;
 			NodeList childNodes = parentEl.getChildNodes();

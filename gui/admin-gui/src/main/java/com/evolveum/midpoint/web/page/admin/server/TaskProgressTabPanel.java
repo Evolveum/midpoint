@@ -73,7 +73,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		add(iterativeInformationPanel);
 
 		synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
-				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);
+            new PropertyModel<>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);
 		synchronizationInformationPanelBefore.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -84,7 +84,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		add(synchronizationInformationPanelBefore);
 
 		synchronizationInformationPanelAfter = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER,
-				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_AFTER_DTO), true);
+            new PropertyModel<>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_AFTER_DTO), true);
 		synchronizationInformationPanelAfter.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -95,7 +95,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		add(synchronizationInformationPanelAfter);
 
 		actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
-				new PropertyModel<ActionsExecutedInformationDto>(model, TaskCurrentStateDto.F_ACTIONS_EXECUTED_INFORMATION_DTO));
+            new PropertyModel<>(model, TaskCurrentStateDto.F_ACTIONS_EXECUTED_INFORMATION_DTO));
 		actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {

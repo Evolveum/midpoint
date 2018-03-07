@@ -285,9 +285,9 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorDescription);
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
-                new PropertyModel<ShadowKindType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".kind"),
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".kind"),
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
-                new EnumChoiceRenderer<ShadowKindType>());
+            new EnumChoiceRenderer<>());
         editorKind.setNullValid(true);
 		editorKind.add(new UpdateNamesBehaviour());
 		parentPage.addEditingEnabledBehavior(editorKind);
@@ -300,7 +300,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<List<QName>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, parentPage.getReadOnlyModel()) {
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
@@ -341,8 +341,8 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorObjectClass);
 
         // TODO: switch to ObjectTypeSelectPanel
-        DropDownChoice editorFocus = new DropDownChoice<>(ID_EDITOR_FOCUS, new PropertyModel<QName>(syncDtoModel,
-                ResourceSynchronizationDto.F_SELECTED + ".focusType"),
+        DropDownChoice editorFocus = new DropDownChoice<>(ID_EDITOR_FOCUS, new PropertyModel<>(syncDtoModel,
+            ResourceSynchronizationDto.F_SELECTED + ".focusType"),
                 new AbstractReadOnlyModel<List<QName>>() {
 
                     @Override
@@ -355,8 +355,8 @@ public class SynchronizationStep extends WizardStep {
 		parentPage.addEditingEnabledBehavior(editorFocus);
         editor.add(editorFocus);
 
-        CheckBox editorEnabled = new CheckBox(ID_EDITOR_ENABLED, new PropertyModel<Boolean>(syncDtoModel,
-                ResourceSynchronizationDto.F_SELECTED + ".enabled"));
+        CheckBox editorEnabled = new CheckBox(ID_EDITOR_ENABLED, new PropertyModel<>(syncDtoModel,
+            ResourceSynchronizationDto.F_SELECTED + ".enabled"));
 		parentPage.addEditingEnabledBehavior(editorEnabled);
         editor.add(editorEnabled);
 
@@ -381,7 +381,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorConfirmation);
 
         DropDownChoice editorObjectTemplate = new DropDownChoice<>(ID_EDITOR_OBJECT_TEMPLATE,
-                new PropertyModel<ObjectReferenceType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectTemplateRef"),
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectTemplateRef"),
                 new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
                     @Override
@@ -393,18 +393,18 @@ public class SynchronizationStep extends WizardStep {
 		parentPage.addEditingEnabledBehavior(editorObjectTemplate);
         editor.add(editorObjectTemplate);
 
-        CheckBox editorReconcile = new CheckBox(ID_EDITOR_RECONCILE, new PropertyModel<Boolean>(syncDtoModel,
-                ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
+        CheckBox editorReconcile = new CheckBox(ID_EDITOR_RECONCILE, new PropertyModel<>(syncDtoModel,
+            ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
 		parentPage.addEditingEnabledBehavior(editorReconcile);
         editor.add(editorReconcile);
 
-        TriStateComboPanel opportunistic = new TriStateComboPanel(ID_EDITOR_OPPORTUNISTIC, new PropertyModel<Boolean>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
+        TriStateComboPanel opportunistic = new TriStateComboPanel(ID_EDITOR_OPPORTUNISTIC, new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
 		parentPage.addEditingEnabledBehavior(opportunistic);
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
-				new PropertyModel<ConditionalSearchFilterType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
 				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
@@ -457,8 +457,8 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
-                new PropertyModel<SynchronizationReactionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
 				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
@@ -644,7 +644,7 @@ public class SynchronizationStep extends WizardStep {
 
     private void conditionEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ExpressionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".condition"), parentPage) {
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".condition"), parentPage) {
 
             @Override
             public String getLabel(){
@@ -658,7 +658,7 @@ public class SynchronizationStep extends WizardStep {
 
     private void confirmationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ExpressionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".confirmation"), parentPage){
+            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".confirmation"), parentPage){
 
             @Override
             public String getLabel(){
