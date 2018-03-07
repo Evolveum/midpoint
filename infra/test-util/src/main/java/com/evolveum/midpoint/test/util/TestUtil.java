@@ -171,8 +171,8 @@ public class TestUtil {
 	}
 
 	public static void assertExceptionSanity(ObjectAlreadyExistsException e) {
-		LOGGER.debug("Excpetion (expected)", e, e);
-		System.out.println("Excpetion (expected)");
+		LOGGER.debug("Exception (expected) {}", e, e);
+		System.out.println("Exception (expected)");
 		System.out.println(ExceptionUtils.getFullStackTrace(e));
 		assert !e.getMessage().isEmpty() : "Empty exception message";
 		assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("

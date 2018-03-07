@@ -696,7 +696,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			}
 		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage(), ex});
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}-{}", new Object[] { bundleUrl, ex.getMessage(), ex});
 			} else {
 				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
 			}
@@ -912,5 +912,4 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		LOGGER.info("Shutting down ConnId framework");
 		ConnectorFacadeFactory.getInstance().dispose();
 	}
-
 }

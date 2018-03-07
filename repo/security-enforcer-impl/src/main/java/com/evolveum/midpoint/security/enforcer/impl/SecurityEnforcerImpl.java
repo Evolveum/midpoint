@@ -1280,7 +1280,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, queryItemsSpec, origFilter);
 								if (objSpecRoleRelationFilter == null) {
 									if (autz.maySkipOnSearch()) {
-										LOGGER.trace("    not applying roleRelation filter because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
+										LOGGER.trace("    not applying roleRelation filter {} because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
 										applicable = false;
 									} else {
 										objSpecRoleRelationFilter = NoneFilter.createNone();

@@ -252,7 +252,7 @@ public class PageAccountActivation extends PageBase {
 		try {
 			token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value));
 		} catch (Exception ex) {
-			LOGGER.error("Failed to authenticate user, reason ", ex.getMessage());
+			LOGGER.error("Failed to authenticate user, reason {}", ex.getMessage());
 			getSession().error(getString("PageAccountActivation.authentication.failed"));
 			throw new RestartResponseException(PageAccountActivation.class, getPageParameters());
 		}

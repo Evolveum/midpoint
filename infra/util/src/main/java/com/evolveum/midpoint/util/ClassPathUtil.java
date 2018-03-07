@@ -204,7 +204,7 @@ public class ClassPathUtil {
 
                 // skip other files
                 if (!jarEntry.getName().contains(srcPath)) {
-                    LOGGER.trace("Not relevant: ", jarEntry.getName());
+                    LOGGER.trace("Not relevant: {}", jarEntry.getName());
                     continue;
                 }
 

@@ -498,7 +498,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// TODO: what else do to with objResult??
 
 			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-				LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+				LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
 						repoObject, e.getMessage(), e });
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -514,7 +514,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// ICF exceptions are still translated to system exceptions.
 				// So this provides
 				// a better robustness now.
-				LOGGER.error("System error while completing {}: {}. Using non-complete object.", new Object[] {
+				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", new Object[] {
 						repoObject, e.getMessage(), e });
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -890,7 +890,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		result.cleanupResult();
 
-		LOGGER.debug("Finished refreshing shadow {}: ", shadow, result);
+		LOGGER.debug("Finished refreshing shadow {}: {}", shadow, result);
 	}
 
 	private  void refreshShadowLegacy(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult result)
@@ -925,7 +925,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			completeObject = completeObject(type, object, options, task, objResult);
 
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-			LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+			LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
 					object, e.getMessage(), e });
 			objResult.recordFatalError(e);
 			object.asObjectable().setFetchResult(objResult.createOperationResultType());

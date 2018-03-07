@@ -465,7 +465,7 @@ public class ResourceObjectConverter {
 		try {
 		
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Modifying resource object {}, deltas:\n", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
+				LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
 			}
 			
 			RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
@@ -2388,7 +2388,7 @@ public class ResourceObjectConverter {
 			}
 
 		} else {
-			LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async");
+			LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async", shadow.getOid());
 			result.recordNotApplicableIfUnknown();
 		}
 

@@ -134,7 +134,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
     }
 
 	protected Panel getPanel(){
-		return (Panel) get(ID_TABS).get("panel");
+        if (get(ID_TABS).get("panel") instanceof Panel) {
+            return (Panel) get(ID_TABS).get("panel");
+        }
+        return null;
 	}
 
 	public AjaxTabbedPanel<ITab> getTabbedPanel(){

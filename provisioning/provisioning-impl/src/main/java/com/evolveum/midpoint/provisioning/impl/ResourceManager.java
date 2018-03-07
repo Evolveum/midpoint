@@ -1158,7 +1158,8 @@ public class ResourceManager {
             // Probably a malformed connector. To be kind of robust, lets allow the import.
             // Mark the error ... there is nothing more to do
             objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
-            LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+            LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}-{}",
+				new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
             return;
         }
         

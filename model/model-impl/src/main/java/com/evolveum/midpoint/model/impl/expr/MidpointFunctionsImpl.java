@@ -1345,7 +1345,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 								value = null;
 							}
 						} else {
-							LOGGER.trace("No value between xml tags, tag name : {0}", endName);
+							LOGGER.trace("No value between xml tags, tag name : {}", endName);
 						}
 
 					} else if (code == XMLStreamConstants.END_DOCUMENT) {

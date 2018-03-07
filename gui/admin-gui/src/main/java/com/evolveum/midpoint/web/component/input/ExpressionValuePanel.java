@@ -263,7 +263,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                         query.setFilter(filter);
                     }
                 } catch (SchemaException ex) {
-                    LOGGER.error("Couldn't create query filter for ShadowType popup list" , ex.getErrorTypeMessage());
+                    LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
                 }
                 return query;
             }
@@ -431,7 +431,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         try{
             return ExpressionUtil.getLiteralExpressionValues(getModelObject());
         } catch (SchemaException ex){
-            LOGGER.error("Couldn't get literal expression value, ", ex.getLocalizedMessage());
+            LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
         }
         return literalValueList;
     }

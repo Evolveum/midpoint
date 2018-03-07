@@ -68,7 +68,7 @@ private static final Object LOG_FUNCTION_NAME = "logDebug";
 		} catch (InvocationTargetException e) {
 			throw new XPathFunctionException(e);
 		} catch (NoSuchMethodException e) {
-			LOGGER.error("Cannot find {} function with {} arguments", new Object[]{functionName, arity, e});
+			LOGGER.error("Cannot find {} function with {} arguments: {}", new Object[]{functionName, arity, e});
 			throw new XPathFunctionException(e);
 		}
 

@@ -155,7 +155,7 @@ public class ConnIdUtil {
             RemoteWrappedException remoteWrappedException = (RemoteWrappedException) connIdException;
             String className = remoteWrappedException.getExceptionClass();
             if (className == null) {
-                LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one: {}", connIdException);
+                LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one", connIdException);
             } else if (DOT_NET_ARGUMENT_EXCEPTION.equals(className) && remoteWrappedException.getMessage().contains("0x800708C5")) {       // password too weak
                 connIdException = new SecurityViolationException(connIdException.getMessage(), connIdException);
             } else {
@@ -599,7 +599,7 @@ public class ConnIdUtil {
 		try {
 			return new GuardedString(protector.decryptString(ps).toCharArray());
 		} catch (EncryptionException e) {
-			LOGGER.error("Unable to decrypt value of element {}: {}",
+			LOGGER.error("Unable to decrypt value of element {}: {}-{}",
 					new Object[] { propertyName, e.getMessage(), e });
 			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);

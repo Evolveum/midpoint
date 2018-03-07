@@ -54,8 +54,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
-
 /**
  * @author lazyman
  * @author katkav

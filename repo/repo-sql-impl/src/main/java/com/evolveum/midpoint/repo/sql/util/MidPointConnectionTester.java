@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.mchange.v2.c3p0.impl.DefaultConnectionTester;
+//import com.mchange.v2.c3p0.impl.DefaultConnectionTester;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -39,31 +39,31 @@ import java.sql.SQLException;
  * @author mederly
  */
 
-public class MidPointConnectionTester extends DefaultConnectionTester {
+public class MidPointConnectionTester { // extends DefaultConnectionTester {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointConnectionTester.class);
-
-    public static final String POSTGRESQL_PRODUCT_NAME = "PostgreSQL";
-
-    private void rollbackChecked(Connection c) {
-        try {
-            if (POSTGRESQL_PRODUCT_NAME.equals(c.getMetaData().getDatabaseProductName())) {
-                c.rollback();
-            }
-        } catch (SQLException e) {
-            LOGGER.debug("An exception got when rolling back current transaction on suspicious DB connection", e);
-        }
-    }
-
-    @Override
-    public int activeCheckConnection(Connection c, String query, Throwable[] rootCauseOutParamHolder) {
-        rollbackChecked(c);
-        return super.activeCheckConnection(c, query, rootCauseOutParamHolder);
-    }
-
-    @Override
-    public int statusOnException(Connection c, Throwable t, String query, Throwable[] rootCauseOutParamHolder) {
-        rollbackChecked(c);
-        return super.statusOnException(c, t, query, rootCauseOutParamHolder);
-    }
+//    private static final Trace LOGGER = TraceManager.getTrace(MidPointConnectionTester.class);
+//
+//    public static final String POSTGRESQL_PRODUCT_NAME = "PostgreSQL";
+//
+//    private void rollbackChecked(Connection c) {
+//        try {
+//            if (POSTGRESQL_PRODUCT_NAME.equals(c.getMetaData().getDatabaseProductName())) {
+//                c.rollback();
+//            }
+//        } catch (SQLException e) {
+//            LOGGER.debug("An exception got when rolling back current transaction on suspicious DB connection", e);
+//        }
+//    }
+//
+//    @Override
+//    public int activeCheckConnection(Connection c, String query, Throwable[] rootCauseOutParamHolder) {
+//        rollbackChecked(c);
+//        return super.activeCheckConnection(c, query, rootCauseOutParamHolder);
+//    }
+//
+//    @Override
+//    public int statusOnException(Connection c, Throwable t, String query, Throwable[] rootCauseOutParamHolder) {
+//        rollbackChecked(c);
+//        return super.statusOnException(c, t, query, rootCauseOutParamHolder);
+//    }
 }

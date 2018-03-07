@@ -1014,13 +1014,13 @@ public class ReconciliationProcessor {
 			if (isInDeltaValue instanceof PrismPropertyValue){
 				PrismPropertyValue isInRealValue = (PrismPropertyValue) isInDeltaValue;
 				if (matchValue(isInRealValue.getValue(), value, valueMatcher)) {
-					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there");
+					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there", value);
 					return true;
 				}
 			} else if (isInDeltaValue instanceof PrismContainerValue) {
 				PrismContainerValue isInRealValue = (PrismContainerValue) isInDeltaValue;
 				if (matchValue(isInRealValue.asContainerable(), value, valueMatcher)){
-					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there");
+					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there", value);
 					return true;
 				}
 			} //TODO: reference delta???
