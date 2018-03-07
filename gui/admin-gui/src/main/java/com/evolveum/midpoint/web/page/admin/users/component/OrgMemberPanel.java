@@ -147,8 +147,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}
 		});
 
-		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE,
-				Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<ObjectTypes>());
+		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<>(ID_SEARCH_BY_TYPE,
+            Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<>());
 		objectType.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -161,9 +161,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		objectType.setOutputMarkupId(true);
 		form.add(objectType);
 
-		DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE,
-				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
-				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
+		DropDownChoice<String> seachScrope = new DropDownChoice<>(ID_SEARCH_SCOPE,
+            Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
+            new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
 		seachScrope.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -175,10 +175,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		seachScrope.setOutputMarkupId(true);
 		form.add(seachScrope);
 
-		List<RelationTypes> relationTypes = new ArrayList<RelationTypes>(Arrays.asList(RelationTypes.values()));
-		DropDownChoicePanel<RelationTypes> relationSelector = new DropDownChoicePanel<RelationTypes>(ID_SEARCH_BY_RELATION,
-				Model.of(), Model.ofList(relationTypes),
-				new EnumChoiceRenderer<RelationTypes>(), true);
+		List<RelationTypes> relationTypes = new ArrayList<>(Arrays.asList(RelationTypes.values()));
+		DropDownChoicePanel<RelationTypes> relationSelector = new DropDownChoicePanel<>(ID_SEARCH_BY_RELATION,
+            Model.of(), Model.ofList(relationTypes),
+            new EnumChoiceRenderer<>(), true);
 		relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		relationSelector.setOutputMarkupId(true);
 		relationSelector.setOutputMarkupPlaceholderTag(true);
@@ -336,7 +336,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		managerContainer.add(view);
 
 		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU,
-				new Model<Serializable>((Serializable) createManagersHeaderInlineMenu()));
+            new Model<>((Serializable) createManagersHeaderInlineMenu()));
 
 		add(menupanel);
 		menupanel.setOutputMarkupId(true);

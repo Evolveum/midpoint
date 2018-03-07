@@ -46,7 +46,7 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
     private ApplicationContext applicationContext;
     @Autowired
     MidpointConfiguration midpointConfiguration;
-    private List<AuditServiceFactory> serviceFactories = new ArrayList<AuditServiceFactory>();
+    private List<AuditServiceFactory> serviceFactories = new ArrayList<>();
     private AuditService auditService;
 
     public void init() {

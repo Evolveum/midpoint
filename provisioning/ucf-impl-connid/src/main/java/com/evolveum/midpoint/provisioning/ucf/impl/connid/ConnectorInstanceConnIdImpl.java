@@ -1200,7 +1200,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				&& (attrs == null || attrs.isEmpty())) {
 			return;
 		}
-		List<String> icfAttrsToGet = new ArrayList<String>();
+		List<String> icfAttrsToGet = new ArrayList<>();
 		if (attributesToReturn.isReturnDefaultAttributes()) {
 			if (supportsReturnDefaultAttributes) {
 				optionsBuilder.setReturnDefaultAttributes(true);
@@ -1503,9 +1503,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		Set<Attribute> attributesToUpdate = new HashSet<>();
 		Set<Attribute> attributesToRemove = new HashSet<>();
 
-		Set<Operation> additionalOperations = new HashSet<Operation>();
+		Set<Operation> additionalOperations = new HashSet<>();
 		PasswordChangeOperation passwordChangeOperation = null;
-		Collection<PropertyDelta<?>> activationDeltas = new HashSet<PropertyDelta<?>>();
+		Collection<PropertyDelta<?>> activationDeltas = new HashSet<>();
 		PropertyDelta<ProtectedStringType> passwordDelta = null;
 		PropertyDelta<QName> auxiliaryObjectClassDelta = null;
 
@@ -1896,7 +1896,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
 				uidDefinition, prismContext);
-		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
+		uidDelta.setValueToReplace(new PrismPropertyValue<>(uid.getUidValue()));
 		return uidDelta;
 	}
 
@@ -2072,7 +2072,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		final List<SyncDelta> syncDeltas = new ArrayList<SyncDelta>();
+		final List<SyncDelta> syncDeltas = new ArrayList<>();
 		// get icf object class
 		ObjectClass icfObjectClass;
 		if (objectClass == null) {
@@ -2736,7 +2736,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private List<Change> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas,
 			PrismSchema schema, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException {
-		List<Change> changeList = new ArrayList<Change>();
+		List<Change> changeList = new ArrayList<>();
 
 		QName objectClass = connIdNameMapper.objectClassToQname(connIdObjClass, getSchemaNamespace(), legacySchema);
 		ObjectClassComplexTypeDefinition objClassDefinition = null;
@@ -2768,8 +2768,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
 			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
 				LOGGER.trace("START creating delta of type DELETE");
-				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
-						ShadowType.class, ChangeType.DELETE, prismContext);
+				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(
+                    ShadowType.class, ChangeType.DELETE, prismContext);
 				Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(icfDelta.getUid(),
 						deltaObjClassDefinition, resourceSchema);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2791,8 +2791,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
 
-				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
-						ShadowType.class, ChangeType.ADD, prismContext);
+				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(
+                    ShadowType.class, ChangeType.ADD, prismContext);
 				objectDelta.setObjectToAdd(currentShadow);
 
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2861,8 +2861,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private <T> PrismProperty<T> createTokenProperty(T object) {
 		QName type = XsdTypeMapper.toXsdType(object.getClass());
 
-		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<PrismPropertyValue<T>>();
-		syncTokenValues.add(new PrismPropertyValue<T>(object));
+		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<>();
+		syncTokenValues.add(new PrismPropertyValue<>(object));
 		PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN,
 				type, prismContext);
 		propDef.setDynamic(true);
@@ -3006,7 +3006,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private ScriptContext convertToScriptContext(ExecuteProvisioningScriptOperation executeOp) {
 		// creating script arguments map form the execute script operation
 		// arguments
-		Map<String, Object> scriptArguments = new HashMap<String, Object>();
+		Map<String, Object> scriptArguments = new HashMap<>();
 		for (ExecuteScriptArgument argument : executeOp.getArgument()) {
 			scriptArguments.put(argument.getArgumentName(), argument.getArgumentValue());
 		}

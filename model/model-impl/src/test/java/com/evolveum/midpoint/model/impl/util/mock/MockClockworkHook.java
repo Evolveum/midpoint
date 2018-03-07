@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MockClockworkHook implements ChangeHook, DebugDumpable {
 
-	private List<LensContext<?>> contexts = new ArrayList<LensContext<?>>();
+	private List<LensContext<?>> contexts = new ArrayList<>();
 	private LensContext<?> lastAsyncContext = null;
 	private boolean record = false;
 	private boolean asynchronous = false;

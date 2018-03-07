@@ -1964,7 +1964,7 @@ public abstract class ShadowCache {
 
 				// traditional way of counting objects (i.e. counting them one
 				// by one)
-				final Holder<Integer> countHolder = new Holder<Integer>(0);
+				final Holder<Integer> countHolder = new Holder<>(0);
 
 				final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
@@ -2223,7 +2223,7 @@ public abstract class ShadowCache {
 			OperationResult shadowResult) {
 		PrismObjectDefinition<ShadowType> shadowDefinition = getResourceObjectShadowDefinition();
 
-		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		Collection<ItemDelta> modifications = new ArrayList<>();
 		PropertyDelta resultDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_RESULT,
 				shadowDefinition, shadowResult.createOperationResultType());
 		modifications.add(resultDelta);
@@ -2669,7 +2669,7 @@ public abstract class ShadowCache {
 								// Simply ignore this association value.
 								parentResult.muteLastSubresultError();
 								LOGGER.warn(
-										"The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
+										"The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}-{}",
 										new Object[] { associationCVal, resourceShadow, e.getMessage(), e });
 								continue;
 							}

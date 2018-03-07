@@ -135,7 +135,7 @@ public class PrismAsserts {
 	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
 		assertEquals(message+" - unexpected number of results", expected.size(), results.size());
 
-        Set<Object> values = new HashSet<Object>();
+        Set<Object> values = new HashSet<>();
         for (PrismPropertyValue<T> result : results) {
             values.add(result.getValue());
         }
@@ -294,7 +294,7 @@ public class PrismAsserts {
 	}
 
 	public static<C extends Containerable> void assertValueId(Long expectedId, PrismContainer<C> container) {
-		List<Long> ids = new ArrayList<Long>();
+		List<Long> ids = new ArrayList<>();
 		for (PrismContainerValue<C> value: container.getValues()) {
 			if (MiscUtil.equals(expectedId, value.getId())) {
 				return;

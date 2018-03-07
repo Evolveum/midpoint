@@ -1022,7 +1022,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			add(zipCheck);
 
 			SearchPanel search = new SearchPanel(ID_SEARCH,
-					new PropertyModel<Search>(model, DebugSearchDto.F_SEARCH)) {
+                new PropertyModel<>(model, DebugSearchDto.F_SEARCH)) {
 
 				@Override
 				public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {

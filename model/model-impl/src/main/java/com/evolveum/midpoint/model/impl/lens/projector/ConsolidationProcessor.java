@@ -156,7 +156,7 @@ public class ConsolidationProcessor {
 
     	squeezeAll(context, projCtx);
         
-        ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class, ChangeType.MODIFY, prismContext);
         objectDelta.setOid(projCtx.getOid());
         ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
 
@@ -764,7 +764,7 @@ public class ConsolidationProcessor {
 						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = new PrismValueDeltaSetTriple<>();
 						if (construction.getAuxiliaryObjectClassDefinitions() != null) {
 							for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: construction.getAuxiliaryObjectClassDefinitions()) {
-								triple.addToZeroSet(new PrismPropertyValue<QName>(auxiliaryObjectClassDefinition.getTypeName()));
+								triple.addToZeroSet(new PrismPropertyValue<>(auxiliaryObjectClassDefinition.getTypeName()));
 							}
 						}
 						return triple;
@@ -796,6 +796,10 @@ public class ConsolidationProcessor {
 					@Override
 					public String toHumanReadableDescription() {
 						return "auxiliary object class construction " + construction;
+					}
+					@Override
+					public String toString() {
+						return "extractor(" + toHumanReadableDescription() +")";
 					}
 				};
 				Collection<PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> col = new ArrayList<>(1);
@@ -997,7 +1001,7 @@ public class ConsolidationProcessor {
 			PrismValueDeltaSetTripleProducer<V, D> mapping, Construction<F> construction) {
 		if (fromSet != null) {
 			for (V from: fromSet) {
-				ItemValueWithOrigin<V,D> pvwo = new ItemValueWithOrigin<V,D>(from, mapping, construction);
+				ItemValueWithOrigin<V,D> pvwo = new ItemValueWithOrigin<>(from, mapping, construction);
 				toSet.add(pvwo);
 			}
 		}
@@ -1007,7 +1011,7 @@ public class ConsolidationProcessor {
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap, QName itemName) {
 		DeltaSetTriple<ItemValueWithOrigin<V,D>> triple = squeezedMap.get(itemName);
 		if (triple == null) {
-			triple = new DeltaSetTriple<ItemValueWithOrigin<V,D>>();
+			triple = new DeltaSetTriple<>();
 			squeezedMap.put(itemName, triple);
 		}
 		return triple;
@@ -1040,7 +1044,7 @@ public class ConsolidationProcessor {
     	}
 
     	
-    	ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
+    	ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(projCtx.getOid());
     	ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
 

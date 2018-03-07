@@ -119,7 +119,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
 		}
 
-		List<V> pvals = new ArrayList<V>();
+		List<V> pvals = new ArrayList<>();
 		if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
 			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 		}

@@ -26,7 +26,7 @@ import java.util.Map;
 public class ProvisioningScriptSpec {
 
 	private String code;
-	private Map<String,Object> args = new HashMap<String, Object>();
+	private Map<String,Object> args = new HashMap<>();
 	private String language;
 
 	public ProvisioningScriptSpec(String code) {

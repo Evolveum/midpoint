@@ -529,7 +529,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
 
-		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinitionImpl<Boolean>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
+		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinitionImpl<>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
 		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
 		// but now remove the parent! TODO: PM: why???
@@ -635,7 +635,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	}
 
 	private void traceFailure(Throwable e) {
-		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
+		LOGGER.error("Error evaluating {}: {}-{}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		traceEvaluationEnd();
 		if (!isTrace()) {
 			return;
@@ -1013,8 +1013,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
 			// True -> True
-			conditionOutputTriple = new PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>>();
-			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<Boolean>(Boolean.TRUE));
+			conditionOutputTriple = new PrismValueDeltaSetTriple<>();
+			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<>(Boolean.TRUE));
 			return;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =

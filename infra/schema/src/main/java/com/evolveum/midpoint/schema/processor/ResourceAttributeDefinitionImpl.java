@@ -161,7 +161,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	@NotNull
 	@Override
 	public ResourceAttributeDefinition<T> clone() {
-		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<T>(getName(), getTypeName(), getPrismContext());
+		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<>(getName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}

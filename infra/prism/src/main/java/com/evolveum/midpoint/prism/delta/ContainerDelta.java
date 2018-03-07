@@ -169,7 +169,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		if (cvalues == null) {
 			return null;
 		}
-		Collection<PrismValue> subValues = new ArrayList<PrismValue>();
+		Collection<PrismValue> subValues = new ArrayList<>();
 		for (PrismContainerValue<V> cvalue: cvalues) {
 			if (id == null || id == cvalue.getId()) {
 				Item<?,?> item = cvalue.findItem(path);
@@ -255,7 +255,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 
     @Override
 	public ContainerDelta<V> clone() {
-		ContainerDelta<V> clone = new ContainerDelta<V>(getElementName(), getDefinition(), getPrismContext());
+		ContainerDelta<V> clone = new ContainerDelta<>(getElementName(), getDefinition(), getPrismContext());
 		copyValues(clone);
 		return clone;
 	}
@@ -286,12 +286,12 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		if (containerDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+containerPath+" in "+objectDefinition);
 		}
-		ContainerDelta<T> delta = new ContainerDelta<T>(containerPath, containerDefinition, objectDefinition.getPrismContext());
+		ContainerDelta<T> delta = new ContainerDelta<>(containerPath, containerDefinition, objectDefinition.getPrismContext());
 		return delta;
 	}
 
 	public static <T extends Containerable> ContainerDelta<T> createDelta(QName containerName, PrismContainerDefinition<T> containerDefinition) {
-		ContainerDelta<T> delta = new ContainerDelta<T>(new ItemPath(containerName), containerDefinition, containerDefinition.getPrismContext());
+		ContainerDelta<T> delta = new ContainerDelta<>(new ItemPath(containerName), containerDefinition, containerDefinition.getPrismContext());
 		return delta;
 	}
 
@@ -391,7 +391,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	// cValues should be parent-less
 	public static Collection<? extends ItemDelta> createModificationReplaceContainerCollection(QName containerName,
 																							   PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
-		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
 		ContainerDelta delta = createDelta(containerName, objectDefinition.findContainerDefinition(containerName));
 		delta.setValuesToReplace(cValues);
 		((Collection)modifications).add(delta);

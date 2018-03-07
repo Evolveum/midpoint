@@ -326,7 +326,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             }
             AssertJUnit.assertEquals(4, orgClosure.size());
 
-            List<String> ancestors = new ArrayList<String>();
+            List<String> ancestors = new ArrayList<>();
             ancestors.add(MODIFY_ORG_ADD_REF_OID);
             ancestors.add(ORG_F003_OID);
             ancestors.add(ORG_F001_OID);
@@ -380,7 +380,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             }
             AssertJUnit.assertEquals(5, orgClosure.size());
 
-            List<String> ancestors = new ArrayList<String>();
+            List<String> ancestors = new ArrayList<>();
             ancestors.add(MODIFY_ORG_INCORRECT_ADD_REF_OID);
             ancestors.add(ORG_F001_OID);
             ancestors.add(ORG_F002_OID);

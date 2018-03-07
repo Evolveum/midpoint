@@ -239,7 +239,7 @@ public abstract class ObjectType
 
     public List<ObjectReferenceType> getParentOrgRef() {
         if (parentOrgRef == null) {
-            parentOrgRef = new ArrayList<ObjectReferenceType>();
+            parentOrgRef = new ArrayList<>();
         }
         return parentOrgRef;
     }

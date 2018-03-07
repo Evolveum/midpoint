@@ -116,9 +116,9 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         add(typeLabel);
 
         DropDownChoice type = new DropDownChoice<>(ID_TYPE,
-                new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(dtoModel, ExpressionTypeDto.F_TYPE),
+            new PropertyModel<>(dtoModel, ExpressionTypeDto.F_TYPE),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
-                new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this));
+            new EnumChoiceRenderer<>(this));
 		//parentPage.addEditingEnabledBehavior(type);
 		type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -148,9 +148,9 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 		add(languageContainer);
 
         DropDownChoice language = new DropDownChoice<>(ID_LANGUAGE,
-                new PropertyModel<ExpressionUtil.Language>(dtoModel, ExpressionTypeDto.F_LANGUAGE),
+            new PropertyModel<>(dtoModel, ExpressionTypeDto.F_LANGUAGE),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-                new EnumChoiceRenderer<ExpressionUtil.Language>(this));
+            new EnumChoiceRenderer<>(this));
 		//parentPage.addEditingEnabledBehavior(language);
 		language.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -177,7 +177,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         add(policyContainer);
 
         DropDownChoice policyRef = new DropDownChoice<>(ID_POLICY_REF,
-                new PropertyModel<ObjectReferenceType>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
+            new PropertyModel<>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
                 new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
                     @Override
@@ -200,7 +200,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         Label expressionLabel = new Label(ID_LABEL_EXPRESSION, createStringResource(getExpressionLabelKey()));
         add(expressionLabel);
 
-        AceEditor expression = new AceEditor(ID_EXPRESSION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_EXPRESSION));
+        AceEditor expression = new AceEditor(ID_EXPRESSION, new PropertyModel<>(dtoModel, ExpressionTypeDto.F_EXPRESSION));
         expression.setOutputMarkupId(true);
 		//parentPage.addEditingEnabledBehavior(expression);
 		add(expression);

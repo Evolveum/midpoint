@@ -682,7 +682,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
             environmentName = deploymentInfoModel.getObject().getName();
         }
-        Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
+        Model<String> deploymentNameModel = new Model<>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
         Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
         deploymentName.add(new VisibleEnableBehaviour() {
             public boolean isVisible() {
@@ -1395,10 +1395,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             items.add(createResourcesItems());
         }
  //TODO uncomment after ValuePolicies pages are finished
-     /*   if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createValuePolicieItems());
-        }*/
+//        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+//                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+//            items.add(createValuePolicieItems());
+//        }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,

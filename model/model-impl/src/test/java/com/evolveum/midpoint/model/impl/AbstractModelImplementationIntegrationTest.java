@@ -64,11 +64,11 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 	}
 
 	protected <O extends ObjectType> LensContext<O> createLensContext(Class<O> focusType) {
-		return new LensContext<O>(focusType, prismContext, provisioningService);
+		return new LensContext<>(focusType, prismContext, provisioningService);
 	}
 
 	protected LensContext<UserType> createUserLensContext() {
-		return new LensContext<UserType>(UserType.class, prismContext, provisioningService);
+		return new LensContext<>(UserType.class, prismContext, provisioningService);
 	}
 
 	protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(LensContext<O> context, PrismObject<O> focus)

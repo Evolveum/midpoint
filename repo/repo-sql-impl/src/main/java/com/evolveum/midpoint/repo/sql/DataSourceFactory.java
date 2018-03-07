@@ -17,17 +17,18 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
-import com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.jndi.JndiObjectFactoryBean;
 
+import javax.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -39,6 +40,10 @@ public class DataSourceFactory {
     private SqlRepositoryConfiguration configuration;
 
     private DataSource dataSource;
+
+    public SqlRepositoryConfiguration getConfiguration() {
+        return configuration;
+    }
 
     public void setConfiguration(SqlRepositoryConfiguration configuration) {
         this.configuration = configuration;
@@ -57,8 +62,8 @@ public class DataSourceFactory {
                 return createJNDIDataSource();
             }
 
-            LOGGER.info("Constructing default C3P0 datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
-            dataSource = createC3P0DataSource();
+            LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
+            dataSource = createDataSourceInternal();
             return dataSource;
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException("Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
@@ -73,27 +78,57 @@ public class DataSourceFactory {
         return (DataSource) factory.getObject();
     }
 
-    private DataSource createC3P0DataSource() throws PropertyVetoException {
-        ComboPooledDataSource ds = new ComboPooledDataSource();
-        ds.setDriverClass(configuration.getDriverClassName());
-        ds.setJdbcUrl(configuration.getJdbcUrl());
-        ds.setUser(configuration.getJdbcUsername());
-        ds.setPassword(configuration.getJdbcPassword());
+    private HikariConfig createConfig() {
+        HikariConfig config = new HikariConfig();
 
-        ds.setAcquireIncrement(3);
-        ds.setMinPoolSize(configuration.getMinPoolSize());
-        ds.setMaxPoolSize(configuration.getMaxPoolSize());
-        ds.setIdleConnectionTestPeriod(1800);
-        ds.setConnectionTesterClassName(MidPointConnectionTester.class.getName());
-        ds.setConnectionCustomizerClassName(MidPointConnectionCustomizer.class.getName());
+        config.setDriverClassName(configuration.getDriverClassName());
+        config.setJdbcUrl(configuration.getJdbcUrl());
+        config.setUsername(configuration.getJdbcUsername());
+        config.setPassword(configuration.getJdbcPassword());
 
-        return ds;
+        config.setRegisterMbeans(true);
+
+        config.setMinimumIdle(configuration.getMinPoolSize());
+        config.setMaximumPoolSize(configuration.getMaxPoolSize());
+
+//        config.setAutoCommit(false);
+
+        TransactionIsolation ti = configuration.getTransactionIsolation();
+        if (ti != null) {
+            config.setTransactionIsolation("TRANSACTION_" + ti.name());
+        }
+
+        // todo fix this !!! and the same in ctx-test-datasource.xml
+        //        config.setConnectionTesterClassName(MidPointConnectionTester.class.getName());
+
+        if (configuration.isUsingMySqlCompatible()) {
+            config.addDataSourceProperty("cachePrepStmts", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "250");
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+//            config.addDataSourceProperty("useServerPrepStmts", "true");
+//            config.addDataSourceProperty("useLocalSessionState", "true");
+//            config.addDataSourceProperty("useLocalTransactionState", "true");
+//            config.addDataSourceProperty("rewriteBatchedStatements", "true");
+//            config.addDataSourceProperty("cacheResultSetMetadata", "true");
+//            config.addDataSourceProperty("cacheServerConfiguration", "true");
+//            config.addDataSourceProperty("elideSetAutoCommits", "true");
+//            config.addDataSourceProperty("maintainTimeStats", "false");
+        }
+
+        return config;
     }
 
-    public void destroy() {
-        if (dataSource instanceof ComboPooledDataSource) {
-            ComboPooledDataSource ds = (ComboPooledDataSource) dataSource;
-            ds.close();
+    private DataSource createDataSourceInternal() {
+        HikariConfig config = createConfig();
+
+        return new HikariDataSource(config);
+    }
+
+    @PreDestroy
+    public void destroy() throws IOException {
+        if (dataSource instanceof Closeable) {
+            ((Closeable) dataSource).close();
         }
     }
 }

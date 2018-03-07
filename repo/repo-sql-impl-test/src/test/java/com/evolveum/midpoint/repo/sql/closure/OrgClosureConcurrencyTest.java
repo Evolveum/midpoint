@@ -434,7 +434,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     private void rebuildGraph() {
         OperationResult result = new OperationResult("dummy");
         info("Graph before rebuilding: " + orgGraph.vertexSet().size() + " vertices, " + orgGraph.edgeSet().size() + " edges");
-        orgGraph.removeAllVertices(new HashSet<String>(orgGraph.vertexSet()));
+        orgGraph.removeAllVertices(new HashSet<>(orgGraph.vertexSet()));
         List<PrismObject> objects = null;
         try {
             objects = (List) repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, result);

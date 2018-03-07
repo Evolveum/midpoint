@@ -74,7 +74,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 		add(label);
 
 		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns);
+		TablePanel taskTable = new TablePanel<>(ID_TASK_TABLE, taskDtoProvider, taskColumns);
 		add(taskTable);
 
 		taskTable.add(new VisibleEnableBehaviour() {
@@ -86,7 +86,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 	}
 
 	private List<IColumn<TaskDto, String>> initTaskColumns() {
-		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
+		List<IColumn<TaskDto, String>> columns = new ArrayList<>();
 
 		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
 		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));

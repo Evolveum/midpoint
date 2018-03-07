@@ -1223,7 +1223,7 @@ public class OrgClosureManager {
             query.setParameterList("oids", oids);
             return query.list();
         } else {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 

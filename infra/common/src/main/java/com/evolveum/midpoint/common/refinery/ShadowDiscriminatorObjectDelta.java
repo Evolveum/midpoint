@@ -56,7 +56,7 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends Object
      */
     public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createModificationReplaceProperty(Class<O> type,
     		String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
-    	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, kind, intent));
     	fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;

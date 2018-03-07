@@ -283,7 +283,7 @@ public class PageResource extends PageAdminResources {
 	}
 
 	private AjaxTabbedPanel<ITab> createTabsPanel(){
-		List<ITab> tabs = new ArrayList<ITab>();
+		List<ITab> tabs = new ArrayList<>();
 
 		tabs.add(new PanelTab(createStringResource("PageResource.tab.details")) {
 			private static final long serialVersionUID = 1L;

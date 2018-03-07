@@ -149,11 +149,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
 
 		if (selectable) {
-			columns.add(new CheckBoxHeaderColumn<SelectableBean<OrgType>>());
+			columns.add(new CheckBoxHeaderColumn<>());
 		}
 
-		columns.add(new TreeColumn<SelectableBean<OrgType>, String>(
-				createStringResource("TreeTablePanel.hierarchy")));
+		columns.add(new TreeColumn<>(
+            createStringResource("TreeTablePanel.hierarchy")));
 		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
 
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
@@ -264,7 +264,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {
 		private static final long serialVersionUID = 1L;
 
-		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<SelectableBean<OrgType>>();
+		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<>();
 		private ISortableTreeProvider provider;
 		private OrgTreePanel panel;
 

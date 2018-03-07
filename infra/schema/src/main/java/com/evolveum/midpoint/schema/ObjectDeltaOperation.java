@@ -109,7 +109,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	}
 
 	public ObjectDeltaOperation<T> clone() {
-		ObjectDeltaOperation<T> clone = new ObjectDeltaOperation<T>();
+		ObjectDeltaOperation<T> clone = new ObjectDeltaOperation<>();
 		copyToClone(clone);
 		return clone;
 	}
@@ -138,7 +138,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 
 	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneCollection(
 			Collection<ObjectDeltaOperation<? extends ObjectType>> origCollection) {
-		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
+		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
 		for (ObjectDeltaOperation<? extends ObjectType> origDeltaOp: origCollection) {
 			ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = origDeltaOp.clone();
 			clonedCollection.add(clonedDeltaOp);
@@ -148,7 +148,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 
 	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneDeltaCollection(
 			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
-		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
+		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
 		for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
 			ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = new ObjectDeltaOperation(origDelta.clone());
 			clonedCollection.add(clonedDeltaOp);

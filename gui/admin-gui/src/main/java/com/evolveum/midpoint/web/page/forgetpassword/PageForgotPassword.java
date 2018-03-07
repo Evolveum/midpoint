@@ -146,7 +146,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		userNameContainer.setOutputMarkupId(true);
 		staticLayout.add(userNameContainer);
 
-		RequiredTextField<String> userName = new RequiredTextField<String>(ID_USERNAME, new Model<String>());
+		RequiredTextField<String> userName = new RequiredTextField<>(ID_USERNAME, new Model<>());
 		userName.setOutputMarkupId(true);
 		userNameContainer.add(userName);
 		userNameContainer.add(new VisibleEnableBehaviour() {
@@ -161,7 +161,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		WebMarkupContainer emailContainer = new WebMarkupContainer(ID_EMAIL_CONTAINER);
 		emailContainer.setOutputMarkupId(true);
 		staticLayout.add(emailContainer);
-		RequiredTextField<String> email = new RequiredTextField<String>(ID_EMAIL, new Model<String>());
+		RequiredTextField<String> email = new RequiredTextField<>(ID_EMAIL, new Model<>());
 		email.add(RfcCompliantEmailAddressValidator.getInstance());
 		email.setOutputMarkupId(true);
 		emailContainer.add(email);

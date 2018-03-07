@@ -223,14 +223,14 @@ public class PageTaskAdd extends PageAdminTasks {
         add(mainForm);
 
         final DropDownChoice resource = new DropDownChoice<>(ID_RESOURCE,
-                new PropertyModel<TaskAddResourcesDto>(model, TaskAddDto.F_RESOURCE),
+            new PropertyModel<>(model, TaskAddDto.F_RESOURCE),
                 new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
 
                     @Override
                     public List<TaskAddResourcesDto> getObject() {
                         return createResourceList();
                     }
-                }, new ChoiceableChoiceRenderer<TaskAddResourcesDto>());
+                }, new ChoiceableChoiceRenderer<>());
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -254,7 +254,7 @@ public class PageTaskAdd extends PageAdminTasks {
         mainForm.add(resource);
 
         final DropDownChoice focusType = new DropDownChoice<>(ID_FOCUS_TYPE,
-                new PropertyModel<QName>(model, TaskAddDto.F_FOCUS_TYPE),
+            new PropertyModel<>(model, TaskAddDto.F_FOCUS_TYPE),
                 new AbstractReadOnlyModel<List<QName>>() {
 
                     @Override
@@ -275,8 +275,8 @@ public class PageTaskAdd extends PageAdminTasks {
 
 
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
-                new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
-                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
+            new PropertyModel<>(model, TaskAddDto.F_KIND),
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<>());
         kind.setOutputMarkupId(true);
         kind.add(new VisibleEnableBehaviour(){
 
@@ -315,7 +315,7 @@ public class PageTaskAdd extends PageAdminTasks {
         autoCompleteSettings.setShowListOnEmptyInput(true);
         autoCompleteSettings.setMaxHeightInPx(200);
         final AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_OBJECT_CLASS,
-                new PropertyModel<String>(model, TaskAddDto.F_OBJECT_CLASS), autoCompleteSettings) {
+            new PropertyModel<>(model, TaskAddDto.F_OBJECT_CLASS), autoCompleteSettings) {
 
             @Override
             protected Iterator<String> getChoices(String input) {
@@ -335,7 +335,7 @@ public class PageTaskAdd extends PageAdminTasks {
         });
         mainForm.add(objectClass);
 
-        DropDownChoice type = new DropDownChoice<>(ID_CATEGORY, new PropertyModel<String>(model, TaskAddDto.F_CATEGORY),
+        DropDownChoice type = new DropDownChoice<>(ID_CATEGORY, new PropertyModel<>(model, TaskAddDto.F_CATEGORY),
                 new AbstractReadOnlyModel<List<String>>() {
 
                     @Override
@@ -364,7 +364,7 @@ public class PageTaskAdd extends PageAdminTasks {
         initScheduling(mainForm);
         initAdvanced(mainForm);
 
-        CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(model, TaskAddDto.F_DRY_RUN));
+        CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<>(model, TaskAddDto.F_DRY_RUN));
         mainForm.add(dryRun);
 
         initButtons(mainForm);
@@ -501,7 +501,7 @@ public class PageTaskAdd extends PageAdminTasks {
         cronContainer.add(cronHelp);
 
         final DateTimeField notStartBefore = new DateTimeField(ID_NO_START_BEFORE_FIELD,
-                new PropertyModel<Date>(model, TaskAddDto.F_NOT_START_BEFORE)) {
+            new PropertyModel<>(model, TaskAddDto.F_NOT_START_BEFORE)) {
             @Override
             protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
                 return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy"); // todo i18n
@@ -510,8 +510,8 @@ public class PageTaskAdd extends PageAdminTasks {
         notStartBefore.setOutputMarkupId(true);
         mainForm.add(notStartBefore);
 
-        final DateTimeField notStartAfter = new DateTimeField(ID_NO_START_AFTER_FIELD, new PropertyModel<Date>(
-                model, TaskAddDto.F_NOT_START_AFTER)) {
+        final DateTimeField notStartAfter = new DateTimeField(ID_NO_START_AFTER_FIELD, new PropertyModel<>(
+            model, TaskAddDto.F_NOT_START_AFTER)) {
             @Override
             protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
                 return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy"); // todo i18n
@@ -526,8 +526,8 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private void initAdvanced(Form mainForm) {
-        CheckBox runUntilNodeDown = new CheckBox(ID_RUN_UNTIL_NODW_DOWN, new PropertyModel<Boolean>(model,
-                TaskAddDto.F_RUN_UNTIL_NODW_DOWN));
+        CheckBox runUntilNodeDown = new CheckBox(ID_RUN_UNTIL_NODW_DOWN, new PropertyModel<>(model,
+            TaskAddDto.F_RUN_UNTIL_NODW_DOWN));
         mainForm.add(runUntilNodeDown);
 
         final IModel<Boolean> createSuspendedCheck = new PropertyModel<>(model, TaskAddDto.F_SUSPENDED_STATE);
@@ -554,14 +554,14 @@ public class PageTaskAdd extends PageAdminTasks {
                 model.getObject().setThreadStop(object);
             }
         }, WebComponentUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
-                new EnumChoiceRenderer<ThreadStopActionType>(PageTaskAdd.this));
+            new EnumChoiceRenderer<>(PageTaskAdd.this));
         mainForm.add(threadStop);
 
         mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
 
-        DropDownChoice misfire = new DropDownChoice<>(ID_MISFIRE_ACTION, new PropertyModel<MisfireActionType>(
-                model, TaskAddDto.F_MISFIRE_ACTION), WebComponentUtil.createReadonlyModelFromEnum(MisfireActionType.class),
-                new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
+        DropDownChoice misfire = new DropDownChoice<>(ID_MISFIRE_ACTION, new PropertyModel<>(
+            model, TaskAddDto.F_MISFIRE_ACTION), WebComponentUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+            new EnumChoiceRenderer<>(PageTaskAdd.this));
         mainForm.add(misfire);
     }
 
@@ -619,7 +619,7 @@ public class PageTaskAdd extends PageAdminTasks {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
         Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
         List<PrismObject<ResourceType>> resources = null;
-        List<TaskAddResourcesDto> resourceList = new ArrayList<TaskAddResourcesDto>();
+        List<TaskAddResourcesDto> resourceList = new ArrayList<>();
 
         try {
             resources = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
@@ -669,7 +669,7 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private List<ObjectDelta<? extends ObjectType>> prepareChangesToExecute(TaskType taskToBeAdded) {
-        List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<>();
         retval.add(ObjectDelta.createAddDelta(taskToBeAdded.asPrismObject()));
         return retval;
     }

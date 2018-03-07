@@ -181,7 +181,7 @@ public class Validator {
 		XMLStreamReader stream;
 		try {
 
-			Map<String, String> rootNamespaceDeclarations = new HashMap<String, String>();
+			Map<String, String> rootNamespaceDeclarations = new HashMap<>();
 
 			XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 			stream = xmlInputFactory.createXMLStreamReader(inputStream);

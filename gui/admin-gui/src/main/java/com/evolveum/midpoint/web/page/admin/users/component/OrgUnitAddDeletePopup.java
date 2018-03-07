@@ -91,7 +91,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
         ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), OrgType.class);
         provider.setQuery(getDataProviderQuery());
 
-        TablePanel table = new TablePanel<SelectableBean<ObjectType>>(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
@@ -118,7 +118,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
     }
 
     private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
-        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<IColumn<SelectableBean<ObjectType>, String>>();
+        List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<OrgType>();
         columns.add(column);

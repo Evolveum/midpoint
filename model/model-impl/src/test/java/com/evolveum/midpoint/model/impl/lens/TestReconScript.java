@@ -64,20 +64,20 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
 		ObjectDelta<UserType> delta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(delta);
 
 		task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 
 		delta = createModifyUserReplaceDelta(USER_JACK_OID, new ItemPath(UserType.F_FULL_NAME), new PolyString("tralala"));
-		deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas = new ArrayList<>();
 		deltas.add(delta);
 
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 
 		delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, new ItemPath(UserType.F_FULL_NAME), new PolyString("tralala"));
-		deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas = new ArrayList<>();
 		deltas.add(delta);
 
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);

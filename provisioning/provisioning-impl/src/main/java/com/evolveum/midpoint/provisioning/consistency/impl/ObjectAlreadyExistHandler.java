@@ -147,7 +147,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private List<PrismObject<ShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 			SecurityViolationException, ExpressionEvaluationException {
-		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
 		ResultHandler<ShadowType> handler = new ResultHandler() {
 
 			@Override

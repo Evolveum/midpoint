@@ -51,7 +51,7 @@ public class ResourceObjectPattern implements Serializable {
 
 	public Collection<ResourceAttribute<?>> getIdentifiers() {
 		if (identifiers == null) {
-			identifiers = new ArrayList<ResourceAttribute<?>>();
+			identifiers = new ArrayList<>();
 		}
 		return identifiers;
 	}

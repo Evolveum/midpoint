@@ -156,7 +156,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 			if (getDefinition().isSingleValue()) {
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).
-				PrismContainerValue<C> pValue = new PrismContainerValue<C>(null, null, this, null, null, prismContext);
+				PrismContainerValue<C> pValue = new PrismContainerValue<>(null, null, this, null, null, prismContext);
 		        try {
 					add(pValue);
 				} catch (SchemaException e) {
@@ -170,7 +170,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		} else {
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
 	        // it is clear that it has at least one value (and that value is empty).
-			PrismContainerValue<C> pValue = new PrismContainerValue<C>(null, null, this, null, null, prismContext);
+			PrismContainerValue<C> pValue = new PrismContainerValue<>(null, null, this, null, null, prismContext);
 	        try {
 				add(pValue);
 			} catch (SchemaException e) {
@@ -427,7 +427,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-    		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>) this, null);
+    		return new PartiallyResolvedItem<>((Item<IV, ID>) this, null);
     	}
 
     	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
@@ -672,12 +672,12 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
     @Override
 	public ContainerDelta<C> createDelta() {
-    	return new ContainerDelta<C>(getPath(), getDefinition(), getPrismContext());
+    	return new ContainerDelta<>(getPath(), getDefinition(), getPrismContext());
 	}
 
     @Override
 	public ContainerDelta<C> createDelta(ItemPath path) {
-    	return new ContainerDelta<C>(path, getDefinition(), getPrismContext());
+    	return new ContainerDelta<>(path, getDefinition(), getPrismContext());
 	}
 
     public boolean isEmpty() {

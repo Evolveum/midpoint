@@ -133,7 +133,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     @NotNull
     @Override
     public Collection<T> getRealValues() {
-		Collection<T> realValues = new ArrayList<T>(getValues().size());
+		Collection<T> realValues = new ArrayList<>(getValues().size());
 		for (PrismPropertyValue<T> pValue: getValues()) {
 			realValues.add(pValue.getValue());
 		}
@@ -145,7 +145,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
      */
 
 	public <X> Collection<X> getRealValues(Class<X> type) {
-		Collection<X> realValues = new ArrayList<X>(getValues().size());
+		Collection<X> realValues = new ArrayList<>(getValues().size());
 		for (PrismPropertyValue<T> pValue: getValues()) {
 			realValues.add((X) pValue.getValue());
 		}
@@ -282,7 +282,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public void addRealValue(T valueToAdd) {
-    	PrismPropertyValue<T> pval = new PrismPropertyValue<T>(valueToAdd);
+    	PrismPropertyValue<T> pval = new PrismPropertyValue<>(valueToAdd);
     	addValue(pval);
     }
 
@@ -372,12 +372,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 
     @Override
 	public PropertyDelta<T> createDelta() {
-		return new PropertyDelta<T>(getPath(), getDefinition(), prismContext);
+		return new PropertyDelta<>(getPath(), getDefinition(), prismContext);
 	}
 
     @Override
 	public PropertyDelta<T> createDelta(ItemPath path) {
-		return new PropertyDelta<T>(path, getDefinition(), prismContext);
+		return new PropertyDelta<>(path, getDefinition(), prismContext);
 	}
 
     @Override
@@ -395,7 +395,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)this, null);
+			return new PartiallyResolvedItem<>((Item<IV, ID>) this, null);
 		}
 		for (PrismPropertyValue<T> pvalue: getValues()) {
 			T value = pvalue.getValue();
@@ -403,7 +403,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 				throw new IllegalArgumentException("Attempt to resolve sub-path '"+path+"' on non-structured property value "+pvalue);
 			}
 		}
-		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)this, path);
+		return new PartiallyResolvedItem<>((Item<IV, ID>) this, path);
 	}
 
 	public PropertyDelta<T> diff(PrismProperty<T> other) {
@@ -441,7 +441,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	
 	@Override
     public PrismProperty<T> cloneComplex(CloneStrategy strategy) {
-        PrismProperty<T> clone = new PrismProperty<T>(getElementName(), getDefinition(), prismContext);
+        PrismProperty<T> clone = new PrismProperty<>(getElementName(), getDefinition(), prismContext);
         copyValues(strategy, clone);
         return clone;
     }
@@ -480,7 +480,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 			PrismProperty<T> other = (PrismProperty<T>)otherItem;
 			PropertyDelta<T> propertyDelta = (PropertyDelta<T>)delta;
 			delta.clear();
-    		Collection<PrismPropertyValue<T>> replaceValues = new ArrayList<PrismPropertyValue<T>>(other.getValues().size());
+    		Collection<PrismPropertyValue<T>> replaceValues = new ArrayList<>(other.getValues().size());
             for (PrismPropertyValue<T> value : other.getValues()) {
             	replaceValues.add(value.clone());
             }

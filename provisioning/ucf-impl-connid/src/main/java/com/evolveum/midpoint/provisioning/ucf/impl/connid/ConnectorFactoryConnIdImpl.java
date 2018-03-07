@@ -155,7 +155,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
 
-    static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<String, Class<? extends APIOperation>>();
+    static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<>();
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
@@ -196,7 +196,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 		// OLD
 		// bundleURLs = listBundleJars();
-		bundleURLs = new HashSet<URL>();
+		bundleURLs = new HashSet<>();
 
 		Configuration config = midpointConfiguration.getConfiguration("midpoint.icf");
 
@@ -308,7 +308,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	private Set<ConnectorType> listLocalConnectors() {
 		if (localConnectorTypes == null) {
 			// Lazy initialize connector list
-			localConnectorTypes = new HashSet<ConnectorType>();
+			localConnectorTypes = new HashSet<>();
 
 
 			// Fetch list of local connectors from ICF
@@ -330,7 +330,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	private Set<ConnectorType> listRemoteConnectors(ConnectorHostType host) {
 		ConnectorInfoManager remoteConnectorInfoManager = getRemoteConnectorInfoManager(host);
-		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
+		Set<ConnectorType> connectorTypes = new HashSet<>();
 		List<ConnectorInfo> connectorInfos = remoteConnectorInfoManager.getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
 			try {
@@ -544,7 +544,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 * @return Set of all bundle URL
 	 */
 	private Set<URL> scanClassPathForBundles() {
-		Set<URL> bundle = new HashSet<URL>();
+		Set<URL> bundle = new HashSet<>();
 
 		// scan class path for bundles
 		Enumeration<URL> en = null;
@@ -626,7 +626,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	private Set<URL> scanDirectory(String path) {
 
 		// Prepare return object
-		Set<URL> bundle = new HashSet<URL>();
+		Set<URL> bundle = new HashSet<>();
 		// COnvert path to object File
 		File dir = new File(path);
 
@@ -696,7 +696,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			}
 		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage(), ex});
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}-{}", new Object[] { bundleUrl, ex.getMessage(), ex});
 			} else {
 				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
 			}
@@ -912,5 +912,4 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		LOGGER.info("Shutting down ConnId framework");
 		ConnectorFacadeFactory.getInstance().dispose();
 	}
-
 }

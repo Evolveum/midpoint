@@ -68,7 +68,7 @@ public class MiscUtil {
 	}
 
 	public static <T> Collection<? extends T> unionExtends(Collection<? extends T>... sets) {
-		Set<T> resultSet = new HashSet<T>();
+		Set<T> resultSet = new HashSet<>();
 		for (Collection<? extends T> set: sets) {
 			if (set != null) {
 				resultSet.addAll(set);
@@ -266,7 +266,7 @@ public class MiscUtil {
 
 	@SafeVarargs
 	public static <T> Collection<T> createCollection(T... items) {
-		Collection<T> collection = new ArrayList<T>(items.length);
+		Collection<T> collection = new ArrayList<>(items.length);
 		for (T item: items) {
 			collection.add(item);
 		}
@@ -360,9 +360,9 @@ public class MiscUtil {
     }
 
     public static <T> void carthesian(Collection<Collection<T>> dimensions, Processor<Collection<T>> processor) {
-    	List<Collection<T>> dimensionList = new ArrayList<Collection<T>>(dimensions.size());
+    	List<Collection<T>> dimensionList = new ArrayList<>(dimensions.size());
     	dimensionList.addAll(dimensions);
-    	carthesian(new ArrayList<T>(dimensions.size()), dimensionList, 0, processor);
+    	carthesian(new ArrayList<>(dimensions.size()), dimensionList, 0, processor);
     }
 
     private static <T> void carthesian(List<T> items, List<Collection<T>> dimensions, int dimensionNum, Processor<Collection<T>> processor) {
@@ -438,7 +438,7 @@ public class MiscUtil {
 		if (orig == null) {
 			return null;
 		}
-		Map<K,V> clone = new HashMap<K, V>();
+		Map<K,V> clone = new HashMap<>();
 		for (Entry<K, V> origEntry: orig.entrySet()) {
 			clone.put(origEntry.getKey(), origEntry.getValue());
 		}
@@ -453,7 +453,7 @@ public class MiscUtil {
 	}
 
 	public static List<String> splitLines(String string) {
-		List<String> lines = new ArrayList<String>();
+		List<String> lines = new ArrayList<>();
 		Scanner scanner = new Scanner(string);
 		while (scanner.hasNextLine()) {
 		  lines.add(scanner.nextLine());
@@ -486,7 +486,7 @@ public class MiscUtil {
     	if (disps == null) {
     		return null;
     	}
-    	List<T> out = new ArrayList<T>(disps.size());
+    	List<T> out = new ArrayList<>(disps.size());
     	for (DisplayableValue<T> disp: disps) {
     		out.add(disp.getValue());
     	}

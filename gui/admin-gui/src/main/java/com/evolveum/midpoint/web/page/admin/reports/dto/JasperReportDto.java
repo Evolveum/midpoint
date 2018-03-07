@@ -50,7 +50,7 @@ public class JasperReportDto implements Serializable{
 			design = ReportTypeUtil.loadJasperDesign(jasperReportXml);
 			query = design.getQuery().getText();
 
-			fields = new ArrayList<JasperReportFieldDto>();
+			fields = new ArrayList<>();
 			for (JRField field : design.getFieldsList()){
 				fields.add(new JasperReportFieldDto(field.getName(), field.getValueClass(), field.getValueClassName()));
 			}
@@ -59,7 +59,7 @@ public class JasperReportDto implements Serializable{
 				design.removeField(field.getName());
 			}
 
-			parameters = new ArrayList<JasperReportParameterDto>();
+			parameters = new ArrayList<>();
 			for (JRParameter parameter : design.getParametersList()){
 				if (parameter.isSystemDefined()){
 					continue;

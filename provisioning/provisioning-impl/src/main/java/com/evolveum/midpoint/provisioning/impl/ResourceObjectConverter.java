@@ -193,7 +193,7 @@ public class ResourceObjectConverter {
             ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
 					.build();
-			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
+			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
 			ShadowResultHandler handler = new ShadowResultHandler() {
 				@Override
 				public boolean handle(PrismObject<ShadowType> shadow) {
@@ -266,7 +266,7 @@ public class ResourceObjectConverter {
 		
 		checkForAddConflicts(ctx, shadow, result);
 		
-		Collection<Operation> additionalOperations = new ArrayList<Operation>();
+		Collection<Operation> additionalOperations = new ArrayList<>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
 				result);
 		entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
@@ -395,7 +395,7 @@ public class ResourceObjectConverter {
 		// Execute entitlement modification on other objects (if needed)
 		executeEntitlementChangesDelete(ctx, shadow, scripts, result);
 
-		Collection<Operation> additionalOperations = new ArrayList<Operation>();
+		Collection<Operation> additionalOperations = new ArrayList<>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, ctx.getResource(),
 				result);
 
@@ -465,11 +465,11 @@ public class ResourceObjectConverter {
 		try {
 		
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Modifying resource object {}, deltas:\n", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
+				LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
 			}
 			
 			RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-			Collection<Operation> operations = new ArrayList<Operation>();
+			Collection<Operation> operations = new ArrayList<>();
 			
 			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
@@ -644,7 +644,7 @@ public class ResourceObjectConverter {
 	
 	private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDelta(
 			Collection<PropertyModificationOperation> sideEffectOperations) {
-		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = new ArrayList<PropertyDelta<PrismPropertyValue>>();
+		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = new ArrayList<>();
 		if (sideEffectOperations != null) {
 			for (PropertyModificationOperation mod : sideEffectOperations){
 				sideEffectDeltas.add(mod.getPropertyDelta());
@@ -1660,7 +1660,7 @@ public class ResourceObjectConverter {
 			Collection<? extends ItemDelta> objectChange, Collection<Operation> operations, 
 			PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (operations == null) {
-			operations = new ArrayList<Operation>();
+			operations = new ArrayList<>();
 		}
 		boolean activationProcessed = false;
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
@@ -2388,7 +2388,7 @@ public class ResourceObjectConverter {
 			}
 
 		} else {
-			LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async");
+			LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async", shadow.getOid());
 			result.recordNotApplicableIfUnknown();
 		}
 

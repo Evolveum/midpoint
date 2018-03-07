@@ -1123,7 +1123,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
 		} else {
@@ -1141,7 +1141,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(long id, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 		cval.setId(id);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
@@ -1275,7 +1275,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 		if (adding) {
 			assignmentDelta.addValueToAdd(cval);
 		} else {
@@ -1366,7 +1366,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, ConstructionType newValue) throws SchemaException {
         PrismContainerDefinition pcd = getAssignmentDefinition().findContainerDefinition(AssignmentType.F_CONSTRUCTION);
-        ContainerDelta<ConstructionType> acDelta = new ContainerDelta<ConstructionType>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd, prismContext);
+        ContainerDelta<ConstructionType> acDelta = new ContainerDelta<>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd, prismContext);
 //                ContainerDelta.createDelta(prismContext, ConstructionType.class, AssignmentType.F_CONSTRUCTION);
         acDelta.setValueToReplace(newValue.asPrismContainerValue());
 //        PropertyDelta.createModificationReplaceProperty(
@@ -2514,7 +2514,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	assignmentDeltaValue = assignmentDelta.getValuesToDelete().iterator().next();
         }
         PrismContainer<ActivationType> activationContainer = assignmentDeltaValue.findOrCreateContainer(AssignmentType.F_ACTIVATION);
-        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>(prismContext);
+        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<>(prismContext);
 		activationContainer.add(emptyValue);
 	}
 
@@ -4316,7 +4316,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected Collection<ConfigAttribute> createConfigAttributes(String action) {
-		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
+		Collection<ConfigAttribute> attrs = new ArrayList<>();
 		attrs.add(new SecurityConfig(action));
 		return attrs;
 	}
@@ -4541,7 +4541,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void checkApprovers(PrismObject<? extends ObjectType> object, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		HashSet<String> realApproversSet = new HashSet<String>();
+		HashSet<String> realApproversSet = new HashSet<>();
 		for (ObjectReferenceType approver : realApprovers) {
 			realApproversSet.add(approver.getOid());
 			assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());

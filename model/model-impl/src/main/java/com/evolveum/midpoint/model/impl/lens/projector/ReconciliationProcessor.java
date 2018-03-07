@@ -777,9 +777,9 @@ public class ReconciliationProcessor {
             }
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Before decideIfTolerateAssociation:");
-				LOGGER.trace("areCValues:\n{}", DebugUtil.debugDump(areCValues));
-				LOGGER.trace("shouldBeCValues:\n{}", DebugUtil.debugDump(shouldBeCValues));
+				LOGGER.trace("  association {} before decideIfTolerateAssociation:", assocName.getLocalPart());
+				LOGGER.trace("    areCValues:\n{}", DebugUtil.debugDump(areCValues));
+				LOGGER.trace("    shouldBeCValues:\n{}", DebugUtil.debugDump(shouldBeCValues));
 			}
 
 			decideIfTolerateAssociation(projCtx, associationDefinition, areCValues, shouldBeCValues, associationValueMatcher,
@@ -928,7 +928,7 @@ public class ReconciliationProcessor {
 					new ItemPath(parentPath, attrDef.getName()));
 		}
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Reconciliation will {} value of attribute {}: {} because {}", changeType,
+			LOGGER.trace("  reconciliation will {} value of attribute {}: {} because {}", changeType,
 					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason);
 		}
 
@@ -1014,13 +1014,13 @@ public class ReconciliationProcessor {
 			if (isInDeltaValue instanceof PrismPropertyValue){
 				PrismPropertyValue isInRealValue = (PrismPropertyValue) isInDeltaValue;
 				if (matchValue(isInRealValue.getValue(), value, valueMatcher)) {
-					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there");
+					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there", value);
 					return true;
 				}
 			} else if (isInDeltaValue instanceof PrismContainerValue) {
 				PrismContainerValue isInRealValue = (PrismContainerValue) isInDeltaValue;
 				if (matchValue(isInRealValue.asContainerable(), value, valueMatcher)){
-					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there");
+					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there", value);
 					return true;
 				}
 			} //TODO: reference delta???

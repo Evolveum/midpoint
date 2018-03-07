@@ -263,7 +263,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 	
 	private <T extends ShadowType> Collection<ItemDelta> createShadowModification(T shadow) throws ObjectNotFoundException, SchemaException {
-		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		Collection<ItemDelta> modifications = new ArrayList<>();
 
 		PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
 				.getDefinition(), ShadowType.F_RESULT, shadow.getResult());

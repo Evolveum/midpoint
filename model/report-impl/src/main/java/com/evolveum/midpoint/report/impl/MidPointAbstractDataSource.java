@@ -65,7 +65,7 @@ public class MidPointAbstractDataSource implements JRDataSource{
 				return ((PrismReference) i).getValue().asReferencable();
 			}
 
-			List<Referencable> refs = new ArrayList<Referencable>();
+			List<Referencable> refs = new ArrayList<>();
 			for (PrismReferenceValue refVal : ((PrismReference) i).getValues()){
 				refs.add(refVal.asReferencable());
 			}
@@ -74,7 +74,7 @@ public class MidPointAbstractDataSource implements JRDataSource{
 			if (i.isSingleValue()){
 				return ((PrismContainer) i).getValue().asContainerable();
 			}
-			List<Containerable> containers = new ArrayList<Containerable>();
+			List<Containerable> containers = new ArrayList<>();
 			for (Object pcv : i.getValues()){
 				if (pcv instanceof PrismContainerValue){
 					containers.add(((PrismContainerValue) pcv).asContainerable());

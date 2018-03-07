@@ -150,7 +150,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
             if (secQuestAnsList != null) {
 
                 LOGGER.debug("User SecurityQuestion ANswer List is Not null");
-                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
                 for (Iterator iterator = secQuestAnsList.iterator(); iterator
                         .hasNext(); ) {
                     SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
@@ -184,7 +184,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 
 		//question panel list
-		pqPanels = new ArrayList<MyPasswordQuestionsPanel>();
+		pqPanels = new ArrayList<>();
 		OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
 		try{
 
@@ -207,7 +207,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
                     policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
                 } else {
                     questionNumber = 0;
-                    policyQuestionList = new ArrayList<SecurityQuestionDefinitionType>();
+                    policyQuestionList = new ArrayList<>();
                 }
 			}catch(Exception ex){
 				ex.printStackTrace();

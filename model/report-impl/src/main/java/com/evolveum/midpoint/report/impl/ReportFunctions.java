@@ -225,7 +225,7 @@ public class ReportFunctions {
             return new ArrayList<>();
         }
 
-        Map<String, Object> resultSet = new HashMap<String, Object>();
+        Map<String, Object> resultSet = new HashMap<>();
         Set<Entry<String, Object>> paramSet = params.entrySet();
         for (Entry<String, Object> p : paramSet) {
             if (p.getValue() instanceof AuditEventTypeType) {

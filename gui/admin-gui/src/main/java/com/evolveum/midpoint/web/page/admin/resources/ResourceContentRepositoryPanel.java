@@ -166,7 +166,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
 	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
-		return new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch());
+		return new SelectorOptions<>(GetOperationOptions.createNoFetch());
 	}
 
 	@Override

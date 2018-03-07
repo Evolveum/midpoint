@@ -138,7 +138,7 @@ public class FocusLifecycleProcessor {
 				LOGGER.debug("Lifecycle state transition of {}: {} -> {}", objectNew, startLifecycleState, targetLifecycleState);
 				recordLifecycleTransitionDelta(focusContext, targetLifecycleState);
 				executeEntryActions(context, lifecycleStateModel, targetLifecycleState, now, task, result);
-				LOGGER.trace("Lifecycle state transition of {} to {} done", objectNew, startLifecycleState, targetLifecycleState);
+				LOGGER.trace("Lifecycle state transition of {} from {} to {} done", objectNew, startLifecycleState, targetLifecycleState);
 				break;
 			}
 		}

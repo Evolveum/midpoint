@@ -313,7 +313,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Collection<ResourceType> resources = new ArrayList<ResourceType>();
+		Collection<ResourceType> resources = new ArrayList<>();
 		for (Construction<F> acctConstr: constructionTriple.getAllValues()) {
 			resources.add(acctConstr.getResource(task, result));
 		}

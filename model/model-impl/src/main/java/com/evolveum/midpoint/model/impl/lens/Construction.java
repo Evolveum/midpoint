@@ -215,7 +215,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	public Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
 		if (associationMappings == null) {
-			associationMappings = new ArrayList<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>();
+			associationMappings = new ArrayList<>();
 		}
 		return associationMappings;
 	}

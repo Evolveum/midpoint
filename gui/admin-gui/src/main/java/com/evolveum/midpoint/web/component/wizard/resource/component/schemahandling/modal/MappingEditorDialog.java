@@ -202,42 +202,42 @@ public class MappingEditorDialog extends ModalWindow {
 		content.add(form);
 
 		TextFormGroup name = new TextFormGroup(ID_NAME,
-				new PropertyModel<String>(model, MappingTypeDto.F_MAPPING + ".name"),
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".name"),
 				createStringResource("MappingEditorDialog.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		name.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(name);
 
 		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-				new PropertyModel<String>(model, MappingTypeDto.F_MAPPING + ".description"),
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".description"),
 				createStringResource("MappingEditorDialog.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(description);
 
 		CheckFormGroup authoritative = new CheckFormGroup(ID_AUTHORITATIVE,
-				new PropertyModel<Boolean>(model, MappingTypeDto.F_MAPPING + ".authoritative"),
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".authoritative"),
 				createStringResource("MappingEditorDialog.label.authoritative"),
 				"SchemaHandlingStep.mapping.tooltip.authoritative", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
 		authoritative.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(authoritative);
 
 		CheckFormGroup exclusive = new CheckFormGroup(ID_EXCLUSIVE,
-				new PropertyModel<Boolean>(model, MappingTypeDto.F_MAPPING + ".exclusive"),
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".exclusive"),
 				createStringResource("MappingEditorDialog.label.exclusive"),
 				"SchemaHandlingStep.mapping.tooltip.exclusive", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
 		exclusive.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(exclusive);
 
 		DropDownFormGroup strength = new DropDownFormGroup<>(ID_STRENGTH,
-				new PropertyModel<MappingStrengthType>(model, MappingTypeDto.F_MAPPING + ".strength"),
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".strength"),
 				WebComponentUtil.createReadonlyModelFromEnum(MappingStrengthType.class),
-				new EnumChoiceRenderer<MappingStrengthType>(this),
+            new EnumChoiceRenderer<>(this),
 				createStringResource("MappingEditorDialog.label.strength"),
 				"SchemaHandlingStep.mapping.tooltip.strength", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		strength.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(strength);
 
 		MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, readOnlyModel) {
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".channel"), true, readOnlyModel) {
 
 			@Override
 			protected String createNewEmptyItem() {
@@ -264,7 +264,7 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(channel);
 
 		MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"), true, readOnlyModel) {
+            new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"), true, readOnlyModel) {
 
 			@Override
 			protected String createNewEmptyItem() {
@@ -295,7 +295,7 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(source);
 
 		// TODO - create some nice ItemPathType editor in near future
-		TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<String>(model, MappingTypeDto.F_TARGET),
+		TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<>(model, MappingTypeDto.F_TARGET),
 				createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
 				true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, isTargetRequired);
 		target.setOutputMarkupId(true);
@@ -304,9 +304,9 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
 				ID_EXPRESSION_TYPE,
-				new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_EXPRESSION_TYPE),
+            new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_TYPE),
 				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
-				new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this),
+            new EnumChoiceRenderer<>(this),
 				createStringResource("MappingEditorDialog.label.expressionType"),
 				"SchemaHandlingStep.mapping.tooltip.expressionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
@@ -331,9 +331,9 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(expressionType);
 
 		DropDownFormGroup expressionLanguage = new DropDownFormGroup<>(ID_EXPRESSION_LANG,
-				new PropertyModel<ExpressionUtil.Language>(model, MappingTypeDto.F_EXPRESSION_LANG),
+            new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_LANG),
 				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-				new EnumChoiceRenderer<ExpressionUtil.Language>(this),
+            new EnumChoiceRenderer<>(this),
 				createStringResource("MappingEditorDialog.label.language"),
 				"SchemaHandlingStep.mapping.tooltip.expressionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		expressionLanguage.setOutputMarkupId(true);
@@ -359,7 +359,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup<ObjectReferenceType> expressionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
 				ID_EXPRESSION_POLICY_REF,
-				new PropertyModel<ObjectReferenceType>(model, MappingTypeDto.F_EXPRESSION_POLICY_REF),
+            new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_POLICY_REF),
 				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
 					@Override
@@ -399,7 +399,7 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(expressionGeneratePolicy);
 
 		AceEditorFormGroup expression = new AceEditorFormGroup(ID_EXPRESSION,
-				new PropertyModel<String>(model, MappingTypeDto.F_EXPRESSION),
+            new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION),
 				createStringResource("MappingEditorDialog.label.expression"),
 				"SchemaHandlingStep.mapping.tooltip.expression", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
 				CODE_ROW_COUNT);
@@ -409,9 +409,9 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> conditionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
 				ID_CONDITION_TYPE,
-				new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_CONDITION_TYPE),
+            new PropertyModel<>(model, MappingTypeDto.F_CONDITION_TYPE),
 				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
-				new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this),
+            new EnumChoiceRenderer<>(this),
 				createStringResource("MappingEditorDialog.label.conditionType"),
 				"SchemaHandlingStep.mapping.tooltip.conditionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
@@ -436,9 +436,9 @@ public class MappingEditorDialog extends ModalWindow {
 		conditionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 
 		DropDownFormGroup conditionLanguage = new DropDownFormGroup<>(ID_CONDITION_LANG,
-				new PropertyModel<ExpressionUtil.Language>(model, MappingTypeDto.F_CONDITION_LANG),
+            new PropertyModel<>(model, MappingTypeDto.F_CONDITION_LANG),
 				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-				new EnumChoiceRenderer<ExpressionUtil.Language>(this),
+            new EnumChoiceRenderer<>(this),
 				createStringResource("MappingEditorDialog.label.language"),
 				"SchemaHandlingStep.mapping.tooltip.conditionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		conditionLanguage.setOutputMarkupId(true);
@@ -467,7 +467,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup<ObjectReferenceType> conditionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
 				ID_CONDITION_POLICY_REF,
-				new PropertyModel<ObjectReferenceType>(model, MappingTypeDto.F_CONDITION_POLICY_REF),
+            new PropertyModel<>(model, MappingTypeDto.F_CONDITION_POLICY_REF),
 				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
 					@Override
@@ -509,7 +509,7 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(conditionGeneratePolicy);
 
 		AceEditorFormGroup condition = new AceEditorFormGroup(ID_CONDITION,
-				new PropertyModel<String>(model, MappingTypeDto.F_CONDITION),
+            new PropertyModel<>(model, MappingTypeDto.F_CONDITION),
 				createStringResource("MappingEditorDialog.label.condition"),
 				"SchemaHandlingStep.mapping.tooltip.condition", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
 				CODE_ROW_COUNT);

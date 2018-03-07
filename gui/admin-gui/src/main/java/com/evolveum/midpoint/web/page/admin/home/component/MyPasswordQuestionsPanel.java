@@ -64,7 +64,7 @@ public class MyPasswordQuestionsPanel extends InputPanel {
 	 */
 	@Override
 	public List<FormComponent> getFormComponents() {
-		List<FormComponent> list = new ArrayList<FormComponent>();
+		List<FormComponent> list = new ArrayList<>();
 		list.add((FormComponent) get(F_QUESTION));
 		list.add((FormComponent) get(F_ANSWER));
 

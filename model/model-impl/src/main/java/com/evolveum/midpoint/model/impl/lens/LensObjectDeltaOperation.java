@@ -85,7 +85,7 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
     }
 
 	public LensObjectDeltaOperation<T> clone() {
-		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<T>();
+		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<>();
 		super.copyToClone(clone);
 		copyToClone(clone);
 		return clone;

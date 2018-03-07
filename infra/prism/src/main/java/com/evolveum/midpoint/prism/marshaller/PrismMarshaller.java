@@ -468,7 +468,7 @@ public class PrismMarshaller {
 
     @NotNull
     private <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
-        PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+        PrimitiveXNode<T> xprim = new PrimitiveXNode<>();
         xprim.setValue(val, type);
         return xprim;
     }

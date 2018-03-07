@@ -340,7 +340,7 @@ public class PersonaProcessor {
 					throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 					CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
 		PrismObject<F> focus = context.getFocusContext().getObjectOld();
-		LOGGER.debug("Deleting persona {} for {}: ", key, focus, existingPersona);
+		LOGGER.debug("Deleting persona {} for {}: {}", key, focus, existingPersona);
 		ObjectDelta<? extends FocusType> targetDelta = existingPersona.asPrismObject().createDeleteDelta();
 
 		executePersonaDelta(targetDelta, task, result);

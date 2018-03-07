@@ -40,19 +40,19 @@ public class RoleSelectionSpecification {
 	}
 
 	public void setNoRoleTypes() {
-		roleTypes = new ArrayList<DisplayableValue<String>>();
+		roleTypes = new ArrayList<>();
 	}
 
 	public void addRoleType(DisplayableValue<String> roleType) {
 		if (roleTypes == null) {
-			roleTypes = new ArrayList<DisplayableValue<String>>();
+			roleTypes = new ArrayList<>();
 		}
 		((Collection)roleTypes).add(roleType);
 	}
 
 	public void addRoleTypes(Collection<? extends DisplayableValue<String>> roleTypes) {
 		if (this.roleTypes == null) {
-			this.roleTypes = new ArrayList<DisplayableValue<String>>();
+			this.roleTypes = new ArrayList<>();
 		}
 		this.roleTypes.addAll((Collection)roleTypes);
 	}

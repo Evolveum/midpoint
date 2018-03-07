@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.valuePolicy;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,18 +36,26 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicyBasicPanel;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicyStringPoliciesPanel;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicySummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -86,8 +95,8 @@ public class PageValuePolicy extends PageAdminValuePolicies {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
-
-    private static final String ID_VALUE_POLICY_BASIC_DETAIL = "valuePolicyBasic";
+    private static final String ID_TAB_PANEL = "tabPanel";
+   // private static final String ID_VALUE_POLICY_BASIC_DETAIL = "valuePolicyBasic";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
@@ -166,20 +175,39 @@ public class PageValuePolicy extends PageAdminValuePolicies {
         add(mainForm);
 
 
-
-        List<ItemPath> itemPath = new ArrayList<ItemPath>();
-        itemPath.add(ItemPath.EMPTY_PATH);
+       // List<ItemPath> itemPath = new ArrayList<>();
+       // itemPath.add(ItemPath.EMPTY_PATH);
 
         // itemPath.add(new ItemPath(ValuePolicyType.F_STRING_POLICY));
 
 
-        PrismPanel<ValuePolicyType> valuePolicyForm = new PrismPanel<>(ID_VALUE_POLICY_BASIC_DETAIL, new ContainerWrapperListFromObjectWrapperModel<ValuePolicyType,ValuePolicyType>(valuePolicyModel, itemPath),null, mainForm, null, this);
+       //PrismPanel<ValuePolicyType> valuePolicyForm = new PrismPanel<>(ID_VALUE_POLICY_BASIC_DETAIL, new ContainerWrapperListFromObjectWrapperModel<ValuePolicyType,ValuePolicyType>(valuePolicyModel, itemPath),null, mainForm, null, this);
 
-        mainForm.add(valuePolicyForm);
+       // mainForm.add(valuePolicyForm);
+        initTabs(mainForm);
         initButtons(mainForm);
 
     }
+    private void initTabs(Form mainForm){
+        List<ITab> tabs = new ArrayList<>();
+            PageBase baseParameter = this;
+        tabs.add(new AbstractTab(createStringResource("PageValuePolicy.basic")) {
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new ValuePolicyBasicPanel(panelId,mainForm,valuePolicyModel,baseParameter);
+            }
+        });
 
+      //  tabs.add(new AbstractTab(createStringResource("PageValuePolicy.stringPolicy")) {
+       //     @Override
+        //    public WebMarkupContainer getPanel(String panelId) {
+          //      return new ValuePolicyStringPoliciesPanel(panelId,mainForm,valuePolicyModel,baseParameter);
+           // }
+       // });
+        TabbedPanel tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
+        mainForm.add(tabPanel);
+
+    }
     private void initButtons(Form mainForm){
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON,createStringResource("PageValuePolicy.button.back")){
             @Override
@@ -221,7 +249,7 @@ public class PageValuePolicy extends PageAdminValuePolicies {
             }
 
             Task task = createSimpleTask(OPERATION_SAVE_VALUEPOLICY);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(delta);
             getModelService().executeChanges(deltas, null, task, result);
             result.recomputeStatus();

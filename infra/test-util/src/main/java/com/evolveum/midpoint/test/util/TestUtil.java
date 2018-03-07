@@ -102,7 +102,7 @@ public class TestUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(TestUtil.class);
 
     public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
-        Set<T> set = new HashSet<T>();
+        Set<T> set = new HashSet<>();
         for (PrismPropertyValue<T> value : actual) {
             set.add(value.getValue());
         }
@@ -114,9 +114,9 @@ public class TestUtil {
     }
 
     public static <T> void assertSetEquals(String message, Collection<T> actual, T... expected) {
-        Set<T> expectedSet = new HashSet<T>();
+        Set<T> expectedSet = new HashSet<>();
         expectedSet.addAll(Arrays.asList(expected));
-        Set<T> actualSet = new HashSet<T>();
+        Set<T> actualSet = new HashSet<>();
         actualSet.addAll(actual);
         if (message != null) {
             assertEquals(message, expectedSet, actualSet);
@@ -171,8 +171,8 @@ public class TestUtil {
 	}
 
 	public static void assertExceptionSanity(ObjectAlreadyExistsException e) {
-		LOGGER.debug("Excpetion (expected)", e, e);
-		System.out.println("Excpetion (expected)");
+		LOGGER.debug("Exception (expected) {}", e, e);
+		System.out.println("Exception (expected)");
 		System.out.println(ExceptionUtils.getFullStackTrace(e));
 		assert !e.getMessage().isEmpty() : "Empty exception message";
 		assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
