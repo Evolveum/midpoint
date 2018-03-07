@@ -698,6 +698,6 @@ public interface TaskManager {
 	 */
 	ObjectQuery narrowQueryForWorkBucket(Task workerTask, ObjectQuery query, Class<? extends ObjectType> type,
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
-			AbstractWorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
+			WorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
 
 }

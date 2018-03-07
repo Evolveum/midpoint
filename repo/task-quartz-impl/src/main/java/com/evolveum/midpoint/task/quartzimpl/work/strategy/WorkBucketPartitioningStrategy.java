@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
@@ -29,9 +29,11 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * Strategy related to work buckets partitioning. Deals with creation of buckets and with translation of buckets into object queries.
+ *
  * @author mederly
  */
-public interface WorkStateManagementStrategy {
+public interface WorkBucketPartitioningStrategy {
 
 	/**
 	 * Finds or creates a free (unallocated and not complete) bucket.
@@ -40,7 +42,7 @@ public interface WorkStateManagementStrategy {
 	GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException;
 
 	// TODO experimental
-	List<ObjectFilter> createSpecificFilters(AbstractWorkBucketType bucket, Class<? extends ObjectType> type,
+	List<ObjectFilter> createSpecificFilters(WorkBucketType bucket, Class<? extends ObjectType> type,
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider);
 
 	class GetBucketResult {
@@ -58,9 +60,9 @@ public interface WorkStateManagementStrategy {
 			/**
 			 * Free bucket that is provided as a result of the operation; or null if no bucket could be obtained.
 			 */
-			@NotNull public final AbstractWorkBucketType bucket;
+			@NotNull public final WorkBucketType bucket;
 
-			public FoundExisting(@NotNull AbstractWorkBucketType bucket) {
+			public FoundExisting(@NotNull WorkBucketType bucket) {
 				this.bucket = bucket;
 			}
 		}
@@ -71,9 +73,9 @@ public interface WorkStateManagementStrategy {
 			/**
 			 * New buckets. The first one is to be returned as the one to be processed.
 			 */
-			@NotNull public final List<AbstractWorkBucketType> newBuckets;
+			@NotNull public final List<WorkBucketType> newBuckets;
 
-			public NewBuckets(@NotNull List<AbstractWorkBucketType> newBuckets) {
+			public NewBuckets(@NotNull List<WorkBucketType> newBuckets) {
 				this.newBuckets = newBuckets;
 			}
 		}

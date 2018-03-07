@@ -26,7 +26,7 @@
     <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
 	<recurrence>single</recurrence>
-	<workStateManagement xsi:type="NumericIntervalWorkStateManagementConfigurationType">
+	<workStateConfiguration>
 		<taskKind>worker</taskKind>
-	</workStateManagement>
+	</workStateConfiguration>
 </task>

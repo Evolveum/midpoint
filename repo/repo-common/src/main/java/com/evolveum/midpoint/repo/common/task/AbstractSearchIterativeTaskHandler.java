@@ -174,7 +174,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, AbstractWorkBucketType workBucket,
+	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
 			TaskWorkBucketProcessingResult previousRunResult) {
 	    LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}", taskName,
 			    localCoordinatorTask, workBucket, previousRunResult);

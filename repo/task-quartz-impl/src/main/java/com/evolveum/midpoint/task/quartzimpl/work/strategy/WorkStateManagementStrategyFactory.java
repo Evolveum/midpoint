@@ -17,20 +17,16 @@
 package com.evolveum.midpoint.task.quartzimpl.work.strategy;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkStateManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkStateManagementConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Responsible for creation of configured work state management strategies.
+ * Responsible for creation of configured work state related strategies.
  *
  * @author mederly
  */
@@ -39,32 +35,40 @@ public class WorkStateManagementStrategyFactory {
 
 	@Autowired private PrismContext prismContext;
 
-	private final Map<Class<? extends AbstractTaskWorkStateManagementConfigurationType>, Class<? extends WorkStateManagementStrategy>> strategyClassMap = new HashMap<>();
+	private final Map<Class<? extends TaskWorkStateConfigurationType>, Class<? extends WorkBucketPartitioningStrategy>> strategyClassMap = new HashMap<>();
 
 	{
-		registerStrategyClass(NumericIntervalWorkStateManagementConfigurationType.class, NumericIntervalWorkStateManagementStrategy.class);
+		//registerStrategyClass(NumericIntervalWorkStateManagementConfigurationType.class, NumericIntervalWorkBucketPartitioningStrategy.class);
 	}
 
 	/**
 	 * Creates work state management strategy based on provided configuration.
 	 */
 	@NotNull
-	public WorkStateManagementStrategy createStrategy(@NotNull AbstractTaskWorkStateManagementConfigurationType configuration) {
-		Class<? extends WorkStateManagementStrategy> strategyClass = strategyClassMap.get(configuration.getClass());
-		if (strategyClass == null) {
-			throw new IllegalStateException("Unknown or unsupported work state management configuration: " + configuration);
+	public WorkBucketPartitioningStrategy createStrategy(TaskWorkStateConfigurationType configuration) {
+
+		if (configuration == null || configuration.getNumericIntervalBuckets() == null) {
+			return new SingleWorkBucketPartitioningStrategy(configuration, prismContext);
 		}
-		try {
-			Constructor<? extends WorkStateManagementStrategy> constructor = strategyClass.getConstructor(configuration.getClass(),
-					PrismContext.class);
-			return constructor.newInstance(configuration, prismContext);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-			throw new SystemException("Couldn't instantiate work state management strategy " + strategyClass + " for " + configuration);
-		}
+
+		// TODO
+		return new NumericIntervalWorkBucketPartitioningStrategy(configuration, prismContext);
+
+//		Class<? extends WorkBucketPartitioningStrategy> strategyClass = strategyClassMap.get(configuration.getClass());
+//		if (strategyClass == null) {
+//			throw new IllegalStateException("Unknown or unsupported work state management configuration: " + configuration);
+//		}
+//		try {
+//			Constructor<? extends WorkBucketPartitioningStrategy> constructor = strategyClass.getConstructor(configuration.getClass(),
+//					PrismContext.class);
+//			return constructor.newInstance(configuration, prismContext);
+//		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+//			throw new SystemException("Couldn't instantiate work state management strategy " + strategyClass + " for " + configuration);
+//		}
 	}
 
-	public void registerStrategyClass(Class<? extends AbstractTaskWorkStateManagementConfigurationType> configurationClass,
-			Class<? extends WorkStateManagementStrategy> strategyClass) {
+	public void registerStrategyClass(Class<? extends TaskWorkStateConfigurationType> configurationClass,
+			Class<? extends WorkBucketPartitioningStrategy> strategyClass) {
 		strategyClassMap.put(configurationClass, strategyClass);
 	}
 }

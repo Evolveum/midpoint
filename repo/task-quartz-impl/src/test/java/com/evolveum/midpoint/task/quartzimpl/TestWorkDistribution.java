@@ -15,16 +15,18 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -36,9 +38,11 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.annotation.PostConstruct;
-
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil.sortBucketsBySequentialNumber;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -102,6 +106,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 	public void initialize() throws Exception {
 		super.initialize();
 		workStateManager.setFreeBucketWaitInterval(1000L);
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
     @Test
@@ -120,7 +125,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
         TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(TEST_NAME), result);
 
         // WHEN
-	    AbstractWorkBucketType bucket = workStateManager.getWorkBucket(worker.getOid(), 0, null, result);
+	    WorkBucketType bucket = workStateManager.getWorkBucket(worker.getOid(), 0, null, result);
 
 	    // THEN
 	    display("allocated bucket", bucket);
@@ -130,14 +135,37 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 	    display("worker task after", workerAfter);
 
 	    assertNumericBucket(bucket, null, 1, 0, 1000);
-	    List<AbstractWorkBucketType> wBuckets = workerAfter.getTaskType().getWorkState().getBucket();
+	    List<WorkBucketType> wBuckets = workerAfter.getTaskType().getWorkState().getBucket();
 	    assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
-	    List<AbstractWorkBucketType> cBuckets = coordinatorAfter.getTaskType().getWorkState().getBucket();
+	    List<WorkBucketType> cBuckets = coordinatorAfter.getTaskType().getWorkState().getBucket();
 	    assertNumericBucket(cBuckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1000);
 
 	    assertOptimizedCompletedBuckets(coordinatorAfter);
 
 	    suspendAndDeleteTasks(coordinatorAfter.getOid());
+    }
+
+    @Test
+    public void test105AllocateBucketStandalone() throws Exception {
+        final String TEST_NAME = "test105AllocateBucketStandalone";
+        OperationResult result = createResult(TEST_NAME, LOGGER);
+        addObjectFromFile(taskFilename(TEST_NAME));
+
+        TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
+
+        // WHEN
+	    WorkBucketType bucket = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
+
+	    // THEN
+	    display("allocated bucket", bucket);
+	    TaskQuartzImpl standaloneAfter = taskManager.getTask(standalone.getOid(), result);
+	    display("task after", standaloneAfter);
+
+	    //assertNumericBucket(bucket, null, 1, 0, 1000);
+//	    List<WorkBucketType> wBuckets = standaloneAfter.getTaskType().getWorkState().getBucket();
+//	    assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
+
+	    suspendAndDeleteTasks(standalone.getOid());
     }
 
 	private void suspendAndDeleteTasks(String... oids) {
@@ -154,8 +182,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
         TaskQuartzImpl standalone = taskManager.getTask(taskOid(TEST_NAME), result);
 
         // WHEN
-	    AbstractWorkBucketType bucket1 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
-	    AbstractWorkBucketType bucket2 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
+	    WorkBucketType bucket1 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
+	    WorkBucketType bucket2 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
 
 	    // THEN
 	    display("1st obtained bucket", bucket1);
@@ -166,14 +194,14 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertNumericBucket(bucket1, WorkBucketStateType.READY, 1, 0, 100);
 		assertNumericBucket(bucket2, WorkBucketStateType.READY, 1, 0, 100);     // should be the same
 
-		List<AbstractWorkBucketType> buckets = new ArrayList<>(standalone.getWorkState().getBucket());
+		List<WorkBucketType> buckets = new ArrayList<>(standalone.getWorkState().getBucket());
 		sortBucketsBySequentialNumber(buckets);
 		assertEquals(1, buckets.size());
 		assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 1, 0, 100);
 
 		// WHEN
 		workStateManager.completeWorkBucket(standalone.getOid(), 1, result);
-		AbstractWorkBucketType bucket3 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
+		WorkBucketType bucket3 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
 
 		// THEN
 		display("bucket obtained after complete", bucket3);
@@ -191,7 +219,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		// WHEN
 		workStateManager.completeWorkBucket(standalone.getOid(), 2, result);
-		AbstractWorkBucketType bucket4 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
+		WorkBucketType bucket4 = workStateManager.getWorkBucket(standalone.getOid(), 0, null, result);
 
 		// THEN
 		display("bucket obtained after 2nd complete", bucket4);
@@ -222,7 +250,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		try {
 			workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 			fail("unexpected success");
-		} catch (SchemaException e) {
+		} catch (IllegalStateException e) {
 			System.out.println("Got expected exception: " + e.getMessage());
 		}
     }
@@ -245,11 +273,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
         TaskQuartzImpl worker5 = taskManager.getTask(taskOid(TEST_NAME, "5"), result);
 
         // WHEN
-	    AbstractWorkBucketType bucket1 = workStateManager.getWorkBucket(worker1.getOid(), 0, null, result);
-	    AbstractWorkBucketType bucket2 = workStateManager.getWorkBucket(worker2.getOid(), 0, null, result);
-	    AbstractWorkBucketType bucket3 = workStateManager.getWorkBucket(worker3.getOid(), 0, null, result);
-	    AbstractWorkBucketType bucket4 = workStateManager.getWorkBucket(worker4.getOid(), 0, null, result);
-	    AbstractWorkBucketType bucket4a = workStateManager.getWorkBucket(worker4.getOid(), 0, null, result);     // should be the same as bucket4
+	    WorkBucketType bucket1 = workStateManager.getWorkBucket(worker1.getOid(), 0, null, result);
+	    WorkBucketType bucket2 = workStateManager.getWorkBucket(worker2.getOid(), 0, null, result);
+	    WorkBucketType bucket3 = workStateManager.getWorkBucket(worker3.getOid(), 0, null, result);
+	    WorkBucketType bucket4 = workStateManager.getWorkBucket(worker4.getOid(), 0, null, result);
+	    WorkBucketType bucket4a = workStateManager.getWorkBucket(worker4.getOid(), 0, null, result);     // should be the same as bucket4
 
 	    // THEN
 	    display("1st allocated bucket", bucket1);
@@ -273,7 +301,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertNumericBucket(bucket3, null, 3, 2, 3);
 		assertNumericBucket(bucket4, null, 4, 3, 4);
 		assertNumericBucket(bucket4a, null, 4, 3, 4);
-		List<AbstractWorkBucketType> buckets = new ArrayList<>(coordinator.getTaskType().getWorkState().getBucket());
+		List<WorkBucketType> buckets = new ArrayList<>(coordinator.getTaskType().getWorkState().getBucket());
 		sortBucketsBySequentialNumber(buckets);
 		assertEquals(4, buckets.size());
 		assertNumericBucket(buckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1);
@@ -316,7 +344,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		// WHEN
 		workStateManager.completeWorkBucket(worker1.getOid(), 1, result);
-		AbstractWorkBucketType bucket = workStateManager.getWorkBucket(worker1.getOid(), 0, null, result);
+		WorkBucketType bucket = workStateManager.getWorkBucket(worker1.getOid(), 0, null, result);
 
 		// THEN
 		worker1 = taskManager.getTask(worker1.getOid(), result);
@@ -340,7 +368,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertNumericBucket(buckets.get(0), WorkBucketStateType.READY, 5, 4, 5);
 
 		// WHEN
-		AbstractWorkBucketType nothing = workStateManager.getWorkBucket(worker5.getOid(), 0, null, result);
+		WorkBucketType nothing = workStateManager.getWorkBucket(worker5.getOid(), 0, null, result);
 
 		// THEN
 		assertNull("Found bucket even if none should be found", nothing);
@@ -722,9 +750,24 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		assertTotalSuccessCount(30, singleton(workerAfter));
 
-		display("Queries executed", workBucketsTaskHandler1.getQueriesExecuted());
-		// TODO asserting queries executed
-
+		List<ObjectQuery> qe = workBucketsTaskHandler1.getQueriesExecuted();
+		display("Queries executed", qe);
+		assertEquals("Wrong # of queries", 3, qe.size());
+		ObjectQuery q1 = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_ITERATION).ge(BigInteger.valueOf(0))
+				.and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(10))
+				.build();
+		ObjectQuery q2 = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_ITERATION).ge(BigInteger.valueOf(10))
+				.and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(20))
+				.build();
+		ObjectQuery q3 = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_ITERATION).ge(BigInteger.valueOf(20))
+				.and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(30))
+				.build();
+		PrismAsserts.assertQueriesEquivalent("Wrong query #1", q1, qe.get(0));
+		PrismAsserts.assertQueriesEquivalent("Wrong query #2", q2, qe.get(1));
+		PrismAsserts.assertQueriesEquivalent("Wrong query #3", q3, qe.get(2));
 		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
 
@@ -774,15 +817,16 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		assertTrue(ws == null || ws.getBucket().isEmpty());
 	}
 
-	private void assertNumericBucket(AbstractWorkBucketType bucket, WorkBucketStateType state, int seqNumber, int start, int end) {
-		assertEquals("Wrong bucket class", NumericIntervalWorkBucketType.class, bucket.getClass());
-		NumericIntervalWorkBucketType numBucket = (NumericIntervalWorkBucketType) bucket;
+	private void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, int start, int end) {
+		AbstractWorkBucketContentType content = bucket.getContent();
+		assertEquals("Wrong bucket content class", NumericIntervalWorkBucketContentType.class, content.getClass());
+		NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
 		if (state != null) {
 			assertEquals("Wrong bucket state", state, bucket.getState());
 		}
 		assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
-		assertEquals("Wrong bucket start", BigInteger.valueOf(start), numBucket.getFrom());
-		assertEquals("Wrong bucket end", BigInteger.valueOf(end), numBucket.getTo());
+		assertEquals("Wrong bucket start", BigInteger.valueOf(start), numContent.getFrom());
+		assertEquals("Wrong bucket end", BigInteger.valueOf(end), numContent.getTo());
 	}
 
 	private void assertOptimizedCompletedBuckets(TaskQuartzImpl task) {

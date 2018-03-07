@@ -24,8 +24,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 	@FunctionalInterface
 	public interface Processor {
-    	void process(Task task, NumericIntervalWorkBucketType bucket, int index);
+    	void process(Task task, WorkBucketType bucket, int index);
 	}
 
 	private Processor processor;
@@ -69,7 +69,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task task, AbstractWorkBucketType workBucket,
+	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
 			TaskWorkBucketProcessingResult previousRunResult) {
 		LOGGER.info("Run starting (id = {}); task = {}", id, task);
 
@@ -87,10 +87,11 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 			LOGGER.info("Using narrowed query in task {}:\n{}", task, narrowedQuery.debugDump());
 		}
 
-		NumericIntervalWorkBucketType wb = (NumericIntervalWorkBucketType) workBucket;
-		int from = wb.getFrom().intValue();
-		int to = wb.getTo().intValue();         // beware of nullability
-		LOGGER.info("Processing bucket {}; task = {}", wb, task);
+		// TODO what about single-bucket cases?
+		NumericIntervalWorkBucketContentType content = (NumericIntervalWorkBucketContentType) workBucket.getContent();
+		int from = content.getFrom().intValue();
+		int to = content.getTo().intValue();         // beware of nullability
+		LOGGER.info("Processing bucket {}; task = {}", content, task);
 		for (int i = from; i < to; i++) {
 			String objectName = "item " + i;
 			String objectOid = String.valueOf(i);
@@ -98,7 +99,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 			task.recordIterativeOperationStart(objectName, null, ObjectType.COMPLEX_TYPE, objectOid);
 			LOGGER.info("Processing item #{}; task = {}", i, task);
 			if (processor != null) {
-				processor.process(task, wb, i);
+				processor.process(task, workBucket, i);
 			}
 			task.recordIterativeOperationEnd(objectName, null, ObjectType.COMPLEX_TYPE, objectOid,
 					System.currentTimeMillis() - start, null);

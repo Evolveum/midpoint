@@ -17,14 +17,13 @@
 package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult.NothingFound;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,11 +31,12 @@ import java.util.List;
  *
  * @author mederly
  */
-public abstract class BaseWorkStateManagementStrategy<WBT extends AbstractWorkBucketType> implements WorkStateManagementStrategy {
+// <CNT extends AbstractWorkBucketContentType, CFG extends AbstractTaskWorkBucketsConfigurationType>
+public abstract class BaseWorkBucketPartitioningStrategy implements WorkBucketPartitioningStrategy {
 
 	protected final PrismContext prismContext;
 
-	protected BaseWorkStateManagementStrategy(PrismContext prismContext) {
+	protected BaseWorkBucketPartitioningStrategy(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
 
@@ -47,25 +47,30 @@ public abstract class BaseWorkStateManagementStrategy<WBT extends AbstractWorkBu
 	@Override
 	public GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException {
 		boolean somethingDelegated = false;
-		for (AbstractWorkBucketType bucket : workState.getBucket()) {
+		for (WorkBucketType bucket : workState.getBucket()) {
 			if (bucket.getState() == WorkBucketStateType.READY) {
 				return new GetBucketResult.FoundExisting(bucket);
 			} else if (bucket.getState() == WorkBucketStateType.DELEGATED) {
 				somethingDelegated = true;
 			}
 		}
-		GetBucketResult.NewBuckets additionalBuckets = createAdditionalBuckets(workState);
-		if (additionalBuckets != null) {
-			return additionalBuckets;
+		List<? extends AbstractWorkBucketContentType> newBucketsContent = createAdditionalBuckets(workState);
+		if (!newBucketsContent.isEmpty()) {
+			List<WorkBucketType> newBuckets = new ArrayList<>(newBucketsContent.size());
+			WorkBucketType lastBucket = WorkBucketUtil.getLastBucket(workState.getBucket());
+			int sequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
+			for (AbstractWorkBucketContentType newBucketContent : newBucketsContent) {
+				newBuckets.add(new WorkBucketType(prismContext)
+						.sequentialNumber(sequentialNumber++)
+						.content(newBucketContent)
+						.state(WorkBucketStateType.READY));
+			}
+			return new GetBucketResult.NewBuckets(newBuckets);
 		} else {
 			return new NothingFound(!somethingDelegated);
 		}
 	}
 
-	protected abstract GetBucketResult.NewBuckets createAdditionalBuckets(TaskWorkStateType workState) throws SchemaException;
-
-	protected List<WBT> cast(List<AbstractWorkBucketType> buckets) {
-		//noinspection unchecked
-		return (List<WBT>) buckets;
-	}
+	@NotNull
+	protected abstract List<? extends AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) throws SchemaException;
 }

@@ -26,9 +26,11 @@
 	<waitingReason>otherTasks</waitingReason>
 	<!--<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>-->
 	<recurrence>single</recurrence>
-	<workStateManagement xsi:type="NumericIntervalWorkStateManagementConfigurationType">
+	<workStateConfiguration>
 		<taskKind>coordinator</taskKind>
-		<numberOfBuckets>3</numberOfBuckets>
-		<bucketSize>10</bucketSize>
-	</workStateManagement>
+		<numericIntervalBuckets>
+			<numberOfBuckets>3</numberOfBuckets>
+			<bucketSize>10</bucketSize>
+		</numericIntervalBuckets>
+	</workStateConfiguration>
 </task>

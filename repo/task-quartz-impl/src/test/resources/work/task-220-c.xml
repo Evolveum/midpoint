@@ -25,9 +25,11 @@
 	<executionStatus>waiting</executionStatus>
 	<waitingReason>otherTasks</waitingReason>
 	<recurrence>single</recurrence>
-	<workStateManagement xsi:type="NumericIntervalWorkStateManagementConfigurationType">
+	<workStateConfiguration>
 		<taskKind>coordinator</taskKind>
-		<to>107</to>
-		<bucketSize>10</bucketSize>
-	</workStateManagement>
+		<numericIntervalBuckets>
+			<to>107</to>
+			<bucketSize>10</bucketSize>
+		</numericIntervalBuckets>
+	</workStateConfiguration>
 </task>

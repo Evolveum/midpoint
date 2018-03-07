@@ -25,9 +25,11 @@
     <executionStatus>runnable</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<recurrence>single</recurrence>
-	<workStateManagement xsi:type="NumericIntervalWorkStateManagementConfigurationType">
+	<workStateConfiguration>
 		<taskKind>coordinator</taskKind>
-		<numberOfBuckets>5</numberOfBuckets>
-		<bucketSize>1</bucketSize>
-	</workStateManagement>
+		<numericIntervalBuckets>
+			<numberOfBuckets>5</numberOfBuckets>
+			<bucketSize>1</bucketSize>
+		</numericIntervalBuckets>
+	</workStateConfiguration>
 </task>

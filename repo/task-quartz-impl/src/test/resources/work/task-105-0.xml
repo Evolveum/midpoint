@@ -15,18 +15,14 @@
   ~ limitations under the License.
   -->
 
-<task oid="44444444-2222-2222-2222-220100000000"
+<task oid="44444444-2222-2222-2222-105000000000"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<name>task-220-1-single</name>
-    <taskIdentifier>44444444-2222-2222-2222-220100000000</taskIdentifier>
+	<name>task-105-0-single</name>
+    <taskIdentifier>44444444-2222-2222-2222-105000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-	<parent>44444444-2222-2222-2222-220c00000000</parent>
     <executionStatus>suspended</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<recurrence>single</recurrence>
-	<workStateConfiguration>
-		<taskKind>worker</taskKind>
-	</workStateConfiguration>
 </task>

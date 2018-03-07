@@ -1161,7 +1161,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="bucket" type="tns:AbstractWorkBucketType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="bucket" type="tns:WorkBucketType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Current buckets of work. Some buckets might be present implicitly: if a complete bucket with
@@ -1184,7 +1184,7 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="AbstractTaskWorkStateManagementConfigurationType">
+	<xsd:complexType name="TaskWorkStateConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Describes how we are going to manage the task work state.
@@ -1201,13 +1201,28 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="queryTailoring" type="tns:TaskQueryTailoringSpecificationType" minOccurs="0">
+			<xsd:element name="numericIntervalBuckets" type="tns:NumericIntervalWorkBucketsConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						How to tailor iteration query according to the work bucket. TODO
+						How to partition the work into buckets and manage them.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<!-- Work buckets configurations -->
+
+	<xsd:complexType name="AbstractTaskWorkBucketsConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes how to partition the work into buckets and manage them.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
 			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -1215,42 +1230,28 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:complexType name="TaskQueryTailoringSpecificationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				How to tailor iteration query according to the work bucket. TODO
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.8</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="identifier" type="t:ItemPathType">
+			<xsd:element name="discriminator" type="t:ItemPathType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Identifier that is to be constrained by the work bucket.
-						TODO will this always be present?
+						Item or OID whose values will used to divide objects into buckets - if applicable.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="NumericIntervalWorkStateManagementConfigurationType">
+	<xsd:complexType name="NumericIntervalWorkBucketsConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Work state management strategy that divides the processing space (represented by an interval of numeric
-				identifiers) into a number of work buckets. Each bucket itself is defined as an interval of identifier values.
+				values) into a number of work buckets. Each bucket itself is defined as an interval of values.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.8</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractTaskWorkStateManagementConfigurationType">
+			<xsd:extension base="tns:AbstractTaskWorkBucketsConfigurationType">
 				<xsd:sequence>
 					<xsd:element name="from" type="xsd:integer" minOccurs="0">
 						<xsd:annotation>
@@ -1280,11 +1281,13 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="AbstractWorkBucketType">
+	<!-- Work bucket runtime structures -->
+
+	<xsd:complexType name="WorkBucketType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Abstract supertype for work buckets. Buckets are used e.g. to distribute workload in multi-node tasks or
-				to implement stateful suspend+resume.
+				Description of a state and content of a work bucket. Buckets are used e.g. to distribute workload
+				in multi-node tasks or to implement stateful suspend+resume.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container>true</a:container>
@@ -1306,6 +1309,20 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="content" type="tns:AbstractWorkBucketContentType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Content of the bucket described e.g. as a numeric interval of discriminator values.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="progress" type="tns:AbstractWorkBucketProgressType">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Progress of bucket processing.-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
 			<!--<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->
@@ -1327,18 +1344,30 @@
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 
-	<xsd:complexType name="NumericIntervalWorkBucketType">
+	<xsd:complexType name="AbstractWorkBucketContentType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Work bucket defined as a interval of numeric identifiers.
+				Abstract supertype for description of bucket contents.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="NumericIntervalWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined as a interval of numeric values of discriminator item.
+			</xsd:documentation>
+			<xsd:appinfo>
 				<a:since>3.8</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractWorkBucketType">
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
 				<xsd:sequence>
 					<xsd:element name="from" type="xsd:integer" minOccurs="0">
 						<xsd:annotation>
@@ -1355,34 +1384,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="lastProcessed" type="xsd:integer" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Last processed identifier in this work bucket (if any and if known).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="AlphanumericIntervalWorkBucketType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Abstract supertype for work buckets used e.g. to distribute workload in multi-node tasks.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container>true</a:container>
-				<a:since>3.8</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractWorkBucketType">
-				<xsd:sequence>
-					<xsd:element name="from" type="xsd:string" minOccurs="0"/>
-					<xsd:element name="to" type="xsd:string" minOccurs="0"/>
-					<xsd:element name="lastProcessed" type="xsd:string" minOccurs="0"/>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1474,7 +1475,6 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-
 
 	<!-- Property-related types -->
 
@@ -2253,7 +2253,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="workStateManagement" type="tns:AbstractTaskWorkStateManagementConfigurationType" minOccurs="0">
+					<xsd:element name="workStateConfiguration" type="tns:TaskWorkStateConfigurationType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Configuration of work distribution and stateful suspend+resume features.

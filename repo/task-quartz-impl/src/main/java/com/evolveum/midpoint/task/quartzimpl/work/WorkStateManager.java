@@ -33,11 +33,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult.FoundExisting;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult.NewBuckets;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategy.GetBucketResult.NothingFound;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.FoundExisting;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets;
+import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategyFactory;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,12 +77,12 @@ public class WorkStateManager {
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkStateManagementStrategyFactory strategyFactory;
 
-	public static final int MAX_ATTEMPTS = 40;                              // temporary
-	public static final long DELAY_INTERVAL = 5000L;                        // temporary
-	public static final long DEFAULT_FREE_BUCKET_WAIT_INTERVAL = 120000L;
-	public static final long DYNAMIC_SLEEP_INTERVAL = 100L;
+	private static final int MAX_ATTEMPTS = 40;                              // temporary
+	private static final long DELAY_INTERVAL = 5000L;                        // temporary
+	private static final long DEFAULT_FREE_BUCKET_WAIT_INTERVAL = 120000L;
+	private static final long DYNAMIC_SLEEP_INTERVAL = 100L;
 
-	public long freeBucketWaitInterval = DEFAULT_FREE_BUCKET_WAIT_INTERVAL;
+	private long freeBucketWaitInterval = DEFAULT_FREE_BUCKET_WAIT_INTERVAL;
 
 	private class Context {
 		Task workerTask;
@@ -94,7 +94,10 @@ public class WorkStateManager {
 		}
 
 		public boolean isStandalone() {
-			WorkStateManagementTaskKindType kind = workerTask.getWorkStateManagement().getTaskKind();
+			if (workerTask.getWorkStateConfiguration() == null) {
+				return true;
+			}
+			WorkStateManagementTaskKindType kind = workerTask.getWorkStateConfiguration().getTaskKind();
 			return kind == null || kind == WorkStateManagementTaskKindType.STANDALONE;
 		}
 
@@ -110,8 +113,8 @@ public class WorkStateManager {
 			return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
 		}
 
-		public AbstractTaskWorkStateManagementConfigurationType getWorkStateManagement() {
-			return isStandalone() ? workerTask.getWorkStateManagement() : coordinatorTask.getWorkStateManagement();
+		public TaskWorkStateConfigurationType getWorkStateConfiguration() {
+			return isStandalone() ? workerTask.getWorkStateConfiguration() : coordinatorTask.getWorkStateConfiguration();
 		}
 	}
 
@@ -126,11 +129,11 @@ public class WorkStateManager {
 	 *
 	 * @pre task is persistent and has work state management configured
 	 */
-	public AbstractWorkBucketType getWorkBucket(@NotNull String workerTaskOid, long freeBucketWaitTime,
+	public WorkBucketType getWorkBucket(@NotNull String workerTaskOid, long freeBucketWaitTime,
 			Supplier<Boolean> canRun, @NotNull OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
 		Context ctx = createContext(workerTaskOid, canRun, result);
-		AbstractWorkBucketType bucket = findSelfAllocatedBucket(ctx);
+		WorkBucketType bucket = findSelfAllocatedBucket(ctx);
 		if (bucket != null) {
 			LOGGER.trace("Returning self-allocated bucket for {}: {}", workerTaskOid, bucket);
 			return bucket;
@@ -142,14 +145,14 @@ public class WorkStateManager {
 		}
 	}
 
-	private AbstractWorkBucketType findSelfAllocatedBucket(Context ctx) {
+	private WorkBucketType findSelfAllocatedBucket(Context ctx) {
 		TaskWorkStateType workState = ctx.workerTask.getTaskType().getWorkState();
 		if (workState == null || workState.getBucket().isEmpty()) {
 			return null;
 		}
-		List<AbstractWorkBucketType> buckets = new ArrayList<>(workState.getBucket());
+		List<WorkBucketType> buckets = new ArrayList<>(workState.getBucket());
 		WorkBucketUtil.sortBucketsBySequentialNumber(buckets);
-		for (AbstractWorkBucketType bucket : buckets) {
+		for (WorkBucketType bucket : buckets) {
 			if (bucket.getState() == WorkBucketStateType.READY) {
 				return bucket;
 			}
@@ -157,10 +160,10 @@ public class WorkStateManager {
 		return null;
 	}
 
-	private AbstractWorkBucketType getWorkBucketMultiNode(Context ctx, long freeBucketWaitTime, OperationResult result)
+	private WorkBucketType getWorkBucketMultiNode(Context ctx, long freeBucketWaitTime, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
-		WorkStateManagementStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkStateManagement());
+		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkStateConfiguration());
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
@@ -172,7 +175,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 				try {
 					if (response instanceof NewBuckets) {
 						NewBuckets newBucketsResponse = (NewBuckets) response;
-						List<AbstractWorkBucketType> newCoordinatorBuckets = new ArrayList<>(coordinatorWorkState.getBucket());
+						List<WorkBucketType> newCoordinatorBuckets = new ArrayList<>(coordinatorWorkState.getBucket());
 						for (int i = 0; i < newBucketsResponse.newBuckets.size(); i++) {
 							if (i == 0) {
 								newCoordinatorBuckets.add(newBucketsResponse.newBuckets.get(i).clone().state(WorkBucketStateType.DELEGATED));
@@ -191,7 +194,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 						repositoryService.modifyObject(TaskType.class, ctx.coordinatorTask.getOid(),
 								bucketStateChangeDeltas(existingResponse.bucket, WorkBucketStateType.DELEGATED),
 								bucketUnchangedPrecondition(existingResponse.bucket), null, result);
-						AbstractWorkBucketType foundBucket = existingResponse.bucket.clone();
+						WorkBucketType foundBucket = existingResponse.bucket.clone();
 						repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(),
 								bucketsAddDeltas(singletonList(foundBucket)), null, result);
 						return foundBucket;
@@ -255,7 +258,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		TaskWorkStateType originalState = coordinatorTask.getWorkState().clone();
 		TaskWorkStateType newState = coordinatorTask.getWorkState().clone();
 		int reclaiming = 0;
-		for (AbstractWorkBucketType bucket : newState.getBucket()) {
+		for (WorkBucketType bucket : newState.getBucket()) {
 			if (bucket.getState() == WorkBucketStateType.DELEGATED) {
 				Task worker = WorkBucketUtil.findWorkerByBucketNumber(workers, bucket.getSequentialNumber());
 				if (worker == null || worker.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
@@ -275,9 +278,9 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		return reclaiming > 0;
 	}
 
-	private AbstractWorkBucketType getWorkBucketStandalone(Context ctx, OperationResult result)
+	private WorkBucketType getWorkBucketStandalone(Context ctx, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		WorkStateManagementStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkStateManagement());
+		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkStateConfiguration());
 		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask.getTaskPrismObject());
 		GetBucketResult response = workStateStrategy.getBucket(workState);
 		LOGGER.trace("getWorkBucketStandalone: workStateStrategy returned {} for standalone task {}", response, ctx.workerTask);
@@ -302,15 +305,12 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Context ctx = new Context(canRun);
 		ctx.workerTask = taskManager.getTask(workerTaskOid, result);
-		AbstractTaskWorkStateManagementConfigurationType workerWorkStateMgmt = ctx.workerTask.getWorkStateManagement();
-		if (workerWorkStateMgmt == null) {
-			throw new IllegalStateException("No state management configuration in worker task " + ctx.workerTask);
+		TaskWorkStateConfigurationType wsConfig = ctx.workerTask.getWorkStateConfiguration();
+		if (wsConfig != null && wsConfig.getTaskKind() != null && wsConfig.getTaskKind() != WorkStateManagementTaskKindType.WORKER &&
+				wsConfig.getTaskKind() != WorkStateManagementTaskKindType.STANDALONE) {
+			throw new IllegalStateException("Wrong task kind for worker task " + ctx.workerTask + ": " + wsConfig.getTaskKind());
 		}
-		if (workerWorkStateMgmt.getTaskKind() != null && workerWorkStateMgmt.getTaskKind() != WorkStateManagementTaskKindType.WORKER &&
-				workerWorkStateMgmt.getTaskKind() != WorkStateManagementTaskKindType.STANDALONE) {
-			throw new IllegalStateException("Wrong task kind for worker task " + ctx.workerTask + ": " + workerWorkStateMgmt.getTaskKind());
-		}
-		if (workerWorkStateMgmt.getTaskKind() == WorkStateManagementTaskKindType.WORKER) {
+		if (wsConfig != null && wsConfig.getTaskKind() == WorkStateManagementTaskKindType.WORKER) {
 			ctx.coordinatorTask = getCoordinatorTask(ctx.workerTask, result);
 		}
 		return ctx;
@@ -321,8 +321,8 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		if (parent == null) {
 			throw new IllegalStateException("No coordinator task for worker task " + workerTask);
 		}
-		AbstractTaskWorkStateManagementConfigurationType workStateManagement = parent.getWorkStateManagement();
-		if (workStateManagement == null || workStateManagement.getTaskKind() != WorkStateManagementTaskKindType.COORDINATOR) {
+		TaskWorkStateConfigurationType wsConfig = parent.getWorkStateConfiguration();
+		if (wsConfig == null || wsConfig.getTaskKind() != WorkStateManagementTaskKindType.COORDINATOR) {
 			throw new IllegalStateException("Coordinator task for worker task " + workerTask + " is not marked as such: " + parent);
 		}
 		return parent;
@@ -342,7 +342,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	private void completeWorkBucketMultiNode(Context ctx, int sequentialNumber, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskWorkStateType workState = getWorkState(ctx.coordinatorTask);
-		AbstractWorkBucketType bucket = WorkBucketUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+		WorkBucketType bucket = WorkBucketUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
 		if (bucket == null) {
 			throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.coordinatorTask);
 		}
@@ -361,7 +361,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		compressCompletedBuckets(ctx.coordinatorTask, result);
 
 		TaskWorkStateType workerWorkState = getWorkState(ctx.workerTask);
-		AbstractWorkBucketType workerBucket = WorkBucketUtil.findBucketByNumber(workerWorkState.getBucket(), sequentialNumber);
+		WorkBucketType workerBucket = WorkBucketUtil.findBucketByNumber(workerWorkState.getBucket(), sequentialNumber);
 		if (workerBucket == null) {
 			//LOGGER.warn("No work bucket with sequential number of " + sequentialNumber + " in worker task " + ctx.workerTask);
 			//return;
@@ -374,7 +374,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	private void completeWorkBucketStandalone(Context ctx, int sequentialNumber, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskWorkStateType workState = getWorkState(ctx.workerTask);
-		AbstractWorkBucketType bucket = WorkBucketUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+		WorkBucketType bucket = WorkBucketUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
 		if (bucket == null) {
 			throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.workerTask);
 		}
@@ -406,7 +406,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	private void releaseWorkBucketMultiNode(Context ctx, int sequentialNumber, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskWorkStateType workState = getWorkState(ctx.coordinatorTask);
-		AbstractWorkBucketType bucket = WorkBucketUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
+		WorkBucketType bucket = WorkBucketUtil.findBucketByNumber(workState.getBucket(), sequentialNumber);
 		if (bucket == null) {
 			throw new IllegalStateException("No work bucket with sequential number of " + sequentialNumber + " in " + ctx.coordinatorTask);
 		}
@@ -424,7 +424,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 
 		TaskWorkStateType workerWorkState = getWorkState(ctx.workerTask);
-		AbstractWorkBucketType workerBucket = WorkBucketUtil.findBucketByNumber(workerWorkState.getBucket(), sequentialNumber);
+		WorkBucketType workerBucket = WorkBucketUtil.findBucketByNumber(workerWorkState.getBucket(), sequentialNumber);
 		if (workerBucket == null) {
 			//LOGGER.warn("No work bucket with sequential number of " + sequentialNumber + " in worker task " + ctx.workerTask);
 			//return;
@@ -436,9 +436,9 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	private void compressCompletedBuckets(Task task, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		List<AbstractWorkBucketType> buckets = new ArrayList<>(getWorkState(task).getBucket());
+		List<WorkBucketType> buckets = new ArrayList<>(getWorkState(task).getBucket());
 		WorkBucketUtil.sortBucketsBySequentialNumber(buckets);
-		List<AbstractWorkBucketType> completeBuckets = buckets.stream()
+		List<WorkBucketType> completeBuckets = buckets.stream()
 				.filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
 				.collect(Collectors.toList());
 		if (completeBuckets.size() <= 1) {
@@ -458,38 +458,38 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 	}
 
-	private Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(List<AbstractWorkBucketType> buckets) throws SchemaException {
+	private Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(List<WorkBucketType> buckets) throws SchemaException {
 		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
 				.replaceRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
 	}
 
-	private Collection<ItemDelta<?, ?>> bucketsAddDeltas(List<AbstractWorkBucketType> buckets) throws SchemaException {
+	private Collection<ItemDelta<?, ?>> bucketsAddDeltas(List<WorkBucketType> buckets) throws SchemaException {
 		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
 				.addRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
 	}
 
-	private ModificationPrecondition<TaskType> bucketsReplacePrecondition(List<AbstractWorkBucketType> originalBuckets) {
+	private ModificationPrecondition<TaskType> bucketsReplacePrecondition(List<WorkBucketType> originalBuckets) {
 		// performance is not optimal but OK for precondition checking
 		return taskObject -> cloneNoId(originalBuckets).equals(cloneNoId(getWorkStateOrNew(taskObject).getBucket()));
 	}
 
-	private Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(AbstractWorkBucketType bucket, WorkBucketStateType newState) throws SchemaException {
+	private Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(WorkBucketType bucket, WorkBucketStateType newState) throws SchemaException {
 		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
-				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET, bucket.getId(), AbstractWorkBucketType.F_STATE)
+				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET, bucket.getId(), WorkBucketType.F_STATE)
 				.replace(newState).asItemDeltas();
 	}
 
-	private Collection<ItemDelta<?, ?>> bucketDeleteDeltas(AbstractWorkBucketType bucket) throws SchemaException {
+	private Collection<ItemDelta<?, ?>> bucketDeleteDeltas(WorkBucketType bucket) throws SchemaException {
 		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
 				.delete(bucket.clone()).asItemDeltas();
 	}
 
-	private ModificationPrecondition<TaskType> bucketUnchangedPrecondition(AbstractWorkBucketType originalBucket) {
+	private ModificationPrecondition<TaskType> bucketUnchangedPrecondition(WorkBucketType originalBucket) {
 		return taskObject -> {
-			AbstractWorkBucketType currentBucket = findBucketByNumber(getWorkStateOrNew(taskObject).getBucket(),
+			WorkBucketType currentBucket = findBucketByNumber(getWorkStateOrNew(taskObject).getBucket(),
 					originalBucket.getSequentialNumber());
 			// performance is not optimal but OK for precondition checking
 			boolean rv = currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
@@ -500,11 +500,11 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		};
 	}
 
-	private AbstractWorkBucketType cloneNoId(AbstractWorkBucketType bucket) {
+	private WorkBucketType cloneNoId(WorkBucketType bucket) {
 		return bucket.clone().id(null);
 	}
 
-	private List<AbstractWorkBucketType> cloneNoId(List<AbstractWorkBucketType> buckets) {
+	private List<WorkBucketType> cloneNoId(List<WorkBucketType> buckets) {
 		return buckets.stream().map(this::cloneNoId)
 				.collect(Collectors.toCollection(() -> new ArrayList<>(buckets.size())));
 	}
@@ -527,10 +527,6 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 	}
 
-	public long getFreeBucketWaitInterval() {
-		return freeBucketWaitInterval;
-	}
-
 	public void setFreeBucketWaitInterval(long freeBucketWaitInterval) {
 		this.freeBucketWaitInterval = freeBucketWaitInterval;
 	}
@@ -538,11 +534,11 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	// TODO
 	public ObjectQuery narrowQueryForWorkBucket(Task workerTask, ObjectQuery query, Class<? extends ObjectType> type,
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
-			AbstractWorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			WorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Context ctx = createContext(workerTask.getOid(), () -> true, result);
 
-		AbstractTaskWorkStateManagementConfigurationType config = ctx.getWorkStateManagement();
-		WorkStateManagementStrategy workStateStrategy = strategyFactory.createStrategy(config);
+		TaskWorkStateConfigurationType config = ctx.getWorkStateConfiguration();
+		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(config);
 		List<ObjectFilter> conjunctionMembers = workStateStrategy.createSpecificFilters(workBucket, type, itemDefinitionProvider);
 		if (conjunctionMembers.isEmpty()) {
 			LOGGER.warn("Object query cannot be narrowed (TODO) for task", workerTask);

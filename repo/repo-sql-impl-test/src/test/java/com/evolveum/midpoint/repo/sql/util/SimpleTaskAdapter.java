@@ -875,7 +875,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public AbstractTaskWorkStateManagementConfigurationType getWorkStateManagement() {
+    public TaskWorkStateConfigurationType getWorkStateConfiguration() {
         return null;
     }
 

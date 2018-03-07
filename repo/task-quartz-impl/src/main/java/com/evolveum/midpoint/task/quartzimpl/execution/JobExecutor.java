@@ -671,7 +671,7 @@ mainCycle:
 
 		TaskWorkBucketProcessingResult runResult = null;
 		for (;;) {
-			AbstractWorkBucketType bucket;
+			WorkBucketType bucket;
 			try {
 				bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), executionResult);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
