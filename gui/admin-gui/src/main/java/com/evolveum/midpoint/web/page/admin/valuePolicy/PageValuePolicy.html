@@ -20,17 +20,14 @@
 <wicket:extend>
     <div wicket:id="summaryPanel"/>
     <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
 
-        <div class="row">
-            <div class="col-md-12">
-                <div wicket:id="valuePolicyBasic"/>
-            </div>
-        </div>
         <div class="main-button-bar">
             <span class="button-group">
-                <a class="btn btn-default" wicket:id="backButton" />
-            </span>
+            <a class="btn btn-default" wicket:id="backButton" />
+
             <a class="btn btn-primary" wicket:id="saveButton"/>
+            </span>
         </div>
     </form>
 </wicket:extend>
