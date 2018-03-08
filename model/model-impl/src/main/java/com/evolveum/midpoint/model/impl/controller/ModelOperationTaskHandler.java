@@ -151,11 +151,6 @@ public class ModelOperationTaskHandler implements TaskHandler {
         return TaskCategory.WORKFLOW;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
 	@PostConstruct
 	private void initialize() {
         if (LOGGER.isTraceEnabled()) {

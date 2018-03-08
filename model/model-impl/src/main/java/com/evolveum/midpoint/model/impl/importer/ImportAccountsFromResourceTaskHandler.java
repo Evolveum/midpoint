@@ -289,11 +289,6 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         return TaskCategory.IMPORTING_ACCOUNTS;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
     /**
      * Imports a single shadow. Synchronously. The task is NOT switched to background by default.
      */

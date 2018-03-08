@@ -494,6 +494,8 @@ public class JobExecutor implements InterruptableJob {
                 // FINISHED/FINISHED_HANDLER means we continue with other handlers, if there are any
                 task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers
                 // if there are remaining handlers, task will be re-executed by Quartz
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
+	            LOGGER.trace("Task switched to waiting state, exiting the execution routine. Task = {}", task);
             } else {
                 throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
             }
@@ -550,6 +552,9 @@ mainCycle:
                     break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
                     LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
+                    LOGGER.trace("Task switched to waiting state, exiting the execution cycle. Task = {}", task);
+                    break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
                     LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
                     task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers

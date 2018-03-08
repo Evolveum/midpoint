@@ -125,7 +125,9 @@ public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucke
 		if (bucketsConfiguration.getTo() != null) {
 			return bucketsConfiguration.getTo();
 		} else if (bucketsConfiguration.getBucketSize() != null && bucketsConfiguration.getNumberOfBuckets() != null) {
-			return bucketsConfiguration.getBucketSize().multiply(BigInteger.valueOf(bucketsConfiguration.getNumberOfBuckets()));
+			return getFrom()
+					.add(bucketsConfiguration.getBucketSize()
+							.multiply(BigInteger.valueOf(bucketsConfiguration.getNumberOfBuckets())));
 		} else {
 			throw new IllegalStateException("Neither upper bound nor bucketSize + numberOfBucket specified");
 		}

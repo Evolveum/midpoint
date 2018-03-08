@@ -110,11 +110,6 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 	}
 
 	@Override
-	public List<String> getCategoryNames() {
-		return null;
-	}
-
-	@Override
 	protected ObjectQuery createQuery(PropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();

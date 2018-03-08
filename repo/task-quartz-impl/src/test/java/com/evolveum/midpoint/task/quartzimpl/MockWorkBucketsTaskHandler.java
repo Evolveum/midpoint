@@ -141,11 +141,6 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
         return TaskCategory.MOCK;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
     public TaskManagerQuartzImpl getTaskManager() {
         return taskManager;
     }

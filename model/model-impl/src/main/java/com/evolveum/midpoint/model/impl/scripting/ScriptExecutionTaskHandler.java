@@ -109,11 +109,6 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         return TaskCategory.BULK_ACTIONS;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
 	@PostConstruct
 	private void initialize() {
         if (LOGGER.isTraceEnabled()) {

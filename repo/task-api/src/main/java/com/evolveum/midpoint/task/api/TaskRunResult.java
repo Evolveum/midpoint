@@ -17,6 +17,7 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -28,7 +29,7 @@ import java.util.Objects;
  * @author Radovan Semancik
  *
  */
-public class TaskRunResult {
+public class TaskRunResult implements Serializable {
 
 	public enum TaskRunResultStatus {
 		/**
@@ -81,7 +82,12 @@ public class TaskRunResult {
          * Task has to be restarted, typically because a new handler was put onto the handler stack during
          * the task run.
          */
-        RESTART_REQUESTED
+        RESTART_REQUESTED,
+
+		/**
+		 * Task has entered waiting state. TODO. EXPERIMENTAL.
+		 */
+		IS_WAITING
     }
 
 	protected Long progress;          // null means "do not update, take whatever is in the task"

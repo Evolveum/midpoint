@@ -159,13 +159,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Status-changing method. It changes task's execution status to WAITING.
-     * Currently use ONLY on transient tasks.
+     * Currently use only on transient tasks or from within task handler.
      */
     void makeWaiting();
 
     /**
      * Changes exec status to WAITING, with a given waiting reason.
-     * Currently use ONLY on transient tasks.
+     * Currently use only on transient tasks or from within task handler.
      * @param reason
      */
     void makeWaiting(TaskWaitingReason reason);
@@ -833,6 +833,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @return
      * @throws SchemaException
      */
+	@NotNull
     List<Task> listSubtasks(OperationResult parentResult) throws SchemaException;
 
     /**

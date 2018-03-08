@@ -128,9 +128,4 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
     public String getCategoryName(Task task) {
         return TaskCategory.ACCESS_CERTIFICATION;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

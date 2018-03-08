@@ -119,9 +119,4 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

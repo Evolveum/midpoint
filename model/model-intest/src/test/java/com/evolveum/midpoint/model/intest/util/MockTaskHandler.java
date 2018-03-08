@@ -87,9 +87,4 @@ public class MockTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.SYSTEM;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

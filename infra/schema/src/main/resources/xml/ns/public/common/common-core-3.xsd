@@ -1208,6 +1208,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="workers" type="tns:WorkerTasksConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to create workers.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -2786,6 +2793,101 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         List of deltas that should be put into extension when starting this handler.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkerTasksConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to create worker tasks. EXPERIMENTAL.
+            </xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="handlerUri" type="xsd:anyURI">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Worker tasks handler URI.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to derive names for the tasks. It is possible to use substitution strings of {node} and {index}
+						here. Node is the node identifier and index numbers workers created for particular node, starting at 1.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workersPerNode" type="tns:WorkerTasksPerNodeConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many tasks to create?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other deltas to be applied to newly created worker task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkerTasksPerNodeConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to create worker tasks per node. EXPERIMENTAL.
+            </xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nodeIdentifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node identifier(s) for which we are going to generate the tasks.
+						Empty list means all nodes that are currently defined in the repository.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many workers to create for given node(s). Default is 1 per node.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionGroup" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution group for created workers. It is possible to use substitution strings of {node} and {index}
+						here. Node is the node identifier and index numbers workers created for particular node, starting at 1.
+						Default is "{node}".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to derive names for the tasks. This overrides the name setting of parent element.
+						It is possible to use substitution strings of {node} and {index} here. Node is the node
+						identifier and index numbers workers created for particular node, starting at 1.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other deltas to be applied to newly created worker task in this group.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

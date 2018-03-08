@@ -211,9 +211,4 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.IMPORT_FROM_FILE;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
 }

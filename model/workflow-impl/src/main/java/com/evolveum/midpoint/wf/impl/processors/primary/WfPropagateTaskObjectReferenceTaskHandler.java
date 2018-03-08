@@ -186,11 +186,6 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.WORKFLOW;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
     //endregion
 
 }

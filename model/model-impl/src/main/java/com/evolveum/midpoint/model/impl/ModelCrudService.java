@@ -530,8 +530,4 @@ public class ModelCrudService {
         return taskService.getAllTaskCategories();
     }
 
-    public String getHandlerUriForCategory(String category) {
-        return taskService.getHandlerUriForCategory(category);
-    }
-
 }

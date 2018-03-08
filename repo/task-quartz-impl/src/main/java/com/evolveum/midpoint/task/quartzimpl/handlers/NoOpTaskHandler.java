@@ -137,9 +137,4 @@ public class NoOpTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.DEMO;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

@@ -556,6 +556,7 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @NotNull
     @Override
     public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");

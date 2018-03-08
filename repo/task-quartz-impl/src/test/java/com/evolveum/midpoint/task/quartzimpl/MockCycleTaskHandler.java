@@ -84,9 +84,4 @@ public class MockCycleTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

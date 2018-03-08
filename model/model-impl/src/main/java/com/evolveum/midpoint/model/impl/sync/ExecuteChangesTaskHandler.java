@@ -142,10 +142,4 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
     public String getCategoryName(Task task) {
         return TaskCategory.EXECUTE_CHANGES;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
 }

@@ -245,9 +245,4 @@ public class LiveSyncTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.LIVE_SYNCHRONIZATION;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

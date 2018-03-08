@@ -160,11 +160,6 @@ public class AuditReindexTaskHandler implements TaskHandler {
 		return TaskCategory.UTIL;
 	}
 
-	@Override
-	public List<String> getCategoryNames() {
-		return null;
-	}
-
 	// TODO: copied from abstract search iterative handler
 	private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, AuditResultHandler resultHandler,
 			String message, Throwable e, OperationResultStatus opStatus, TaskRunResultStatus status) {

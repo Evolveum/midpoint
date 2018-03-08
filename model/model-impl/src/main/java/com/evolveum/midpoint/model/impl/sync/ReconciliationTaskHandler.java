@@ -698,9 +698,4 @@ public class ReconciliationTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.RECONCILIATION;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

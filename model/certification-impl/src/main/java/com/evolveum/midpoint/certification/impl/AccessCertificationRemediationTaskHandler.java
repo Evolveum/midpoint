@@ -167,11 +167,6 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         return TaskCategory.ACCESS_CERTIFICATION;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
     public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.info("Launching remediation task handler for campaign {} as asynchronous task", ObjectTypeUtil.toShortString(campaign));

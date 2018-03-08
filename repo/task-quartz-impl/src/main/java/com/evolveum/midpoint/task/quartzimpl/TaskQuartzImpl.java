@@ -1075,9 +1075,9 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void makeWaiting() {
-		if (!isTransient()) {
-			throw new IllegalStateException("makeWaiting can be invoked only on transient tasks; task = " + this);
-		}
+//		if (!isTransient()) {
+//			throw new IllegalStateException("makeWaiting can be invoked only on transient tasks; task = " + this);
+//		}
 		setExecutionStatus(TaskExecutionStatus.WAITING);
 	}
 
@@ -2665,6 +2665,7 @@ public class TaskQuartzImpl implements Task {
 		return list;
 	}
 
+	@NotNull
 	@Override
 	public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
 
@@ -2675,6 +2676,7 @@ public class TaskQuartzImpl implements Task {
 		return listSubtasksInternal(result);
 	}
 
+	@NotNull
 	private List<Task> listSubtasksInternal(OperationResult result) throws SchemaException {
 		List<Task> retval = new ArrayList<>();
 		// persistent subtasks
