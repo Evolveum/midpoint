@@ -1,6 +1,6 @@
 Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
 
-midPoint 3.7.1 "Darwin" Update 1
+midPoint 3.7.x "Darwin" (support branch)
 ----------------------------------------
 
 General information:
