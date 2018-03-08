@@ -24,7 +24,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.7.1-SNAPSHOT</version>
+        <version>3.7.1</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.7.1-SNAPSHOT</version>
+            <version>3.7.1</version>
         </dependency>
 		<!--<dependency>-->
 			<!--<groupId>com.evolveum.midpoint.infra</groupId>-->
@@ -188,7 +188,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.7.1-SNAPSHOT</version>
+            <version>3.7.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

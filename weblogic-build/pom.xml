@@ -20,7 +20,7 @@
     <groupId>com.evolveum.midpoint.dist</groupId>
     <artifactId>midPoint-weblogic</artifactId>
     <packaging>ear</packaging>
-    <version>3.7.1-SNAPSHOT</version>
+    <version>3.7.1</version>
     <description>midPoint distribution for WebLogic Server</description>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
