@@ -213,14 +213,14 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     protected void initBodyLayout(WebMarkupContainer body) {
         DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
-                AssignmentsUtil.createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+                AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
+                    AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
         validFrom.setEnabled(getModel().getObject().isEditable());
         body.add(validFrom);
 
         DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
-                AssignmentsUtil.createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+                AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
+                    AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         validTo.setEnabled(getModel().getObject().isEditable());
         body.add(validTo);
 
@@ -439,7 +439,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(certificationRights);
 
         AjaxCheckBox managementWorkItems = new AjaxCheckBox(ID_DELEGATE_MANAGEMENT_WI,
-                new Model<Boolean>(false)) {
+            new Model<>(false)) {
             private static final long serialVersionUID = 1L;
 
             @Override

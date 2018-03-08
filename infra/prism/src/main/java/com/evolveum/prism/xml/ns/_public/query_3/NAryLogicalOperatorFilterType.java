@@ -111,7 +111,7 @@ public class NAryLogicalOperatorFilterType
      */
     public List<Element> getFilter() {
         if (filter == null) {
-            filter = new ArrayList<Element>();
+            filter = new ArrayList<>();
         }
         return this.filter;
     }

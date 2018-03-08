@@ -1556,7 +1556,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         OperationResult result = task.getResult();
 
         // assign
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_RED_OID, null, true);
         deltas.add(userDelta);
@@ -1568,7 +1568,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
 		// unassign
-        deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        deltas = new ArrayList<>();
         userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
         deltas.add(userDelta);
 

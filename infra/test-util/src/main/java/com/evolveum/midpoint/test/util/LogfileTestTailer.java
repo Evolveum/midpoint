@@ -65,12 +65,12 @@ public class LogfileTestTailer {
 	private BufferedReader reader;
 	private boolean seenMarker;
 	private Set<String> loggedMarkers;
-	private List<String> auditMessages = new ArrayList<String>();
+	private List<String> auditMessages = new ArrayList<>();
 	private String expectedMessage;
 	private String expectedMessageLine;
 	private boolean allowPrefix = false;
-	private Collection<String> errors = new ArrayList<String>();
-	private Collection<String> warnings = new ArrayList<String>();
+	private Collection<String> errors = new ArrayList<>();
+	private Collection<String> warnings = new ArrayList<>();
 
 	public LogfileTestTailer(String auditLoggerName) throws IOException {
 		this(TEST_LOG_FILE, auditLoggerName, true);
@@ -120,8 +120,8 @@ public class LogfileTestTailer {
 
 	public void reset() {
 		seenMarker = false;
-		loggedMarkers = new HashSet<String>();
-		auditMessages = new ArrayList<String>();
+		loggedMarkers = new HashSet<>();
+		auditMessages = new ArrayList<>();
 		expectedMessageLine = null;
 	}
 

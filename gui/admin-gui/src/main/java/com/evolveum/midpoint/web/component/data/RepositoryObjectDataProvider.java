@@ -56,7 +56,7 @@ public class RepositoryObjectDataProvider
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
     private Class<? extends ObjectType> type;
 
-    private Map<String, ResourceDescription> resourceCache = new HashMap<String, ResourceDescription>();
+    private Map<String, ResourceDescription> resourceCache = new HashMap<>();
 
     public RepositoryObjectDataProvider(Component component, Class<? extends ObjectType> type) {
         super(component, true);
@@ -79,7 +79,7 @@ public class RepositoryObjectDataProvider
 			query.setPaging(paging);
 
             //RAW and DEFAULT retrieve option selected
-            Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+            Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
             GetOperationOptions opt = GetOperationOptions.createRaw();
             opt.setRetrieve(RetrieveOption.DEFAULT);
             options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));

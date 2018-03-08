@@ -205,20 +205,20 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
-        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        Map<String,WorkflowResult> retval = new HashMap<>();
         retval.put(oid, result);
         return retval;
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2, WorkflowResult approved2) {
-        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        Map<String,WorkflowResult> retval = new HashMap<>();
         retval.put(oid, approved);
         retval.put(oid2, approved2);
         return retval;
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2, WorkflowResult approved2, String oid3, WorkflowResult approved3) {
-        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        Map<String,WorkflowResult> retval = new HashMap<>();
         retval.put(oid, approved);
         retval.put(oid2, approved2);
         retval.put(oid3, approved3);
@@ -481,7 +481,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
             PrismObject<UserType> user = findUserInRepo(name, result);
 
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), prismContext));
             modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
 

@@ -196,7 +196,7 @@ public abstract class BaseHandler implements EventHandler {
 
     protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+        Map<QName, Object> variables = new HashMap<>();
 		event.createExpressionVariables(variables, result);
 		expressionVariables.addVariableDefinitions(variables);
         return expressionVariables;

@@ -395,7 +395,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -597,7 +597,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -782,7 +782,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}

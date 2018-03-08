@@ -478,8 +478,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-		final Holder<Boolean> seenMeathookHolder = new Holder<Boolean>(false);
-		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		final Holder<Boolean> seenMeathookHolder = new Holder<>(false);
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
 			@Override
@@ -585,7 +585,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
 		ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
 				foundObjects.add(shadow);
 
@@ -638,7 +638,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 				ShadowKindType.ACCOUNT, "default", prismContext);
 		display("query", query);
 
-		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
 
 		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -2231,7 +2231,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
 			@Override
@@ -3476,14 +3476,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+		Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
 		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
 		PropertyDelta fullnameDelta = fullnameAttr.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES,
 				fullnameAttrDef.getName()));
-		fullnameDelta.setValueToReplace(new PrismPropertyValue<String>("Good Daemon"));
+		fullnameDelta.setValueToReplace(new PrismPropertyValue<>("Good Daemon"));
 		((Collection) modifications).add(fullnameDelta);
 
 		// WHEN

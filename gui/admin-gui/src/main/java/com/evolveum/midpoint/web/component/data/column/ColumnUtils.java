@@ -56,8 +56,8 @@ public class ColumnUtils {
 						column.getColumnValue(), column.isMultivalue());
 
 			} else {
-				tableColumn = new PropertyColumn<T, String>(createStringResource(column.getColumnName()),
-						column.getColumnValue());
+				tableColumn = new PropertyColumn<>(createStringResource(column.getColumnName()),
+                    column.getColumnValue());
 			}
 			tableColumns.add(tableColumn);
 
@@ -74,7 +74,7 @@ public class ColumnUtils {
 			@Override
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				if (multivalue) {
-					IModel<List> values = new PropertyModel<List>(rowModel, expression);
+					IModel<List> values = new PropertyModel<>(rowModel, expression);
 					RepeatingView repeater = new RepeatingView(componentId);
 					for (final Object task : values.getObject()) {
 						repeater.add(new Label(repeater.newChildId(), task.toString()));
@@ -418,7 +418,7 @@ public class ColumnUtils {
 	}
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultUserColumns() {
-		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
 				new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
@@ -438,7 +438,7 @@ public class ColumnUtils {
 	}
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultTaskColumns() {
-		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 		columns.add(
 				new AbstractColumn<SelectableBean<T>, String>(createStringResource("TaskType.kind")) {
@@ -514,7 +514,7 @@ public class ColumnUtils {
 	}
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
-		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 
 		columns.addAll((Collection)getDefaultAbstractRoleColumns(RoleType.COMPLEX_TYPE));
@@ -523,7 +523,7 @@ public class ColumnUtils {
 	}
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
-		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 		columns.addAll((Collection)getDefaultAbstractRoleColumns(ServiceType.COMPLEX_TYPE));
 
@@ -531,7 +531,7 @@ public class ColumnUtils {
 	}
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
-		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 		columns.addAll((Collection)getDefaultAbstractRoleColumns(OrgType.COMPLEX_TYPE));
 
@@ -562,7 +562,7 @@ public class ColumnUtils {
 	}
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {
-		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
 		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
 				new ColumnTypeDto<String>("AbstractRoleType.description", null,

@@ -262,7 +262,7 @@ public class ProjectionValuesProcessor {
 
 		        // Check constraints
 		        boolean conflict = true;
-		        ShadowConstraintsChecker<F> checker = new ShadowConstraintsChecker<F>(projContext);
+		        ShadowConstraintsChecker<F> checker = new ShadowConstraintsChecker<>(projContext);
 
 		        if (skipUniquenessCheck) {
 		        	skipUniquenessCheck = false;
@@ -642,13 +642,13 @@ public class ProjectionValuesProcessor {
 		}
 		PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<Integer>(accountContext.getIteration());
+		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<>(accountContext.getIteration());
 		iterationVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION, iterationVal);
 		accountContext.swallowToSecondaryDelta(iterationDelta);
 
-		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<String>(accountContext.getIterationToken());
+		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<>(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);

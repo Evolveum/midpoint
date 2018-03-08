@@ -109,7 +109,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model<String>("fa fa-shield"));
+        bc.setIcon(new Model<>("fa fa-shield"));
     }
 
     public PageAbstractSelfCredentials(final MyPasswordsDto myPasswordsDto) {
@@ -336,7 +336,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
 
             for (PasswordAccountDto accDto : selectedAccounts) {

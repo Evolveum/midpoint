@@ -120,7 +120,7 @@ public class EventStatusFilterType
      */
     public List<String> getStatus() {
         if (status == null) {
-            status = new ArrayList<String>();
+            status = new ArrayList<>();
         }
         return this.status;
     }

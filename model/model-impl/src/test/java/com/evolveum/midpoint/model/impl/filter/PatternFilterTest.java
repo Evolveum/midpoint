@@ -52,14 +52,14 @@ public class PatternFilterTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testEmptyParameters() {
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>("");
+        PrismPropertyValue<String> value = new PrismPropertyValue<>("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
@@ -69,7 +69,7 @@ public class PatternFilterTest {
         List<Object> parameters = createGoodParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -79,7 +79,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -89,13 +89,13 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters2();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
 
     private List<Object> createGoodParameters() {
-        List<Object> parameters = new ArrayList<Object>();
+        List<Object> parameters = new ArrayList<>();
         parameters.add(new Object());
 
         Document document = DOMUtil.getDocument();
@@ -120,7 +120,7 @@ public class PatternFilterTest {
     }
 
     private List<Object> createBadParameters() {
-        List<Object> parameters = new ArrayList<Object>();
+        List<Object> parameters = new ArrayList<>();
         parameters.add(new Object());
 
         Document document = DOMUtil.getDocument();
@@ -147,7 +147,7 @@ public class PatternFilterTest {
     }
 
     private List<Object> createBadParameters2() {
-        List<Object> parameters = new ArrayList<Object>();
+        List<Object> parameters = new ArrayList<>();
         parameters.add(new Object());
 
         Document document = DOMUtil.getDocument();

@@ -284,9 +284,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), null);
+			return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), null);
 		}
-		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), path);
+		return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), path);
 	}
 
 	private boolean compareLocalPart(QName a, QName b) {

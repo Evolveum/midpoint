@@ -286,7 +286,7 @@ public class ShadowManager {
 			return null;
 		}
 
-		List<PrismObject<ShadowType>> conflictingShadows = new ArrayList<PrismObject<ShadowType>>();
+		List<PrismObject<ShadowType>> conflictingShadows = new ArrayList<>();
 		for (PrismObject<ShadowType> shadow: results){
 			ShadowType repoShadowType = shadow.asObjectable();
 			if (shadow != null) {
@@ -334,8 +334,7 @@ public class ShadowManager {
 			return null;
 		}
 		if (shadows.size() > 1) {
-			LOGGER.error("Too many shadows ({}) for secondary identifiers {}: ", shadows.size(), secondaryIdentifiers, 
-					shadows);
+			LOGGER.error("Too many shadows ({}) for secondary identifiers {}: {}", shadows.size(), secondaryIdentifiers, shadows);
 			throw new ConfigurationException("Too many shadows ("+shadows.size()+") for secondary identifiers "+secondaryIdentifiers);
 		}
 		return shadows.get(0);
@@ -721,7 +720,7 @@ public class ShadowManager {
 		}
 		Class<?> valueClass = null;
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
-		List<PrismValue> newValues = new ArrayList<PrismValue>();
+		List<PrismValue> newValues = new ArrayList<>();
 		if (eqFilter.getValues() != null) {
 			for (PrismPropertyValue<T> ppval : eqFilter.getValues()) {
 				T normalizedRealValue = matchingRule.normalize(ppval.getValue());
@@ -1485,7 +1484,7 @@ public class ShadowManager {
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
-		Collection<ItemDelta> repoChanges = new ArrayList<ItemDelta>();
+		Collection<ItemDelta> repoChanges = new ArrayList<>();
 		for (ItemDelta itemDelta : objectChange) {
 			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
 				QName attrName = itemDelta.getElementName();
@@ -1566,7 +1565,7 @@ public class ShadowManager {
 			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, resourceShadow.getOid(), null, result);
 		
-		Collection<ItemDelta> repoShadowChanges = new ArrayList<ItemDelta>();
+		Collection<ItemDelta> repoShadowChanges = new ArrayList<>();
 		
 		computeUpdateShadowAttributeChanges(ctx, repoShadowChanges, resourceShadow, repoShadow);
 
@@ -1974,7 +1973,7 @@ public class ShadowManager {
 		if (matchingRule == null) {
 			return attribute.getRealValues();
 		} else {
-			Collection<T> normalizedValues = new ArrayList<T>();
+			Collection<T> normalizedValues = new ArrayList<>();
 			for (PrismPropertyValue<T> pval: attribute.getValues()) {
 				T normalizedRealValue = matchingRule.normalize(pval.getValue());
 				normalizedValues.add(normalizedRealValue);

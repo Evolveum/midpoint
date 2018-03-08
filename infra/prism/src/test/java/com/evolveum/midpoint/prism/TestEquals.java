@@ -70,7 +70,7 @@ public class TestEquals extends AbstractPrismTest {
 		PrismContainer<AssignmentType> brokenAssignment = goodAssignment.clone();
 		assertEquals("Not equals after clone", goodAssignment, brokenAssignment);
 		// lets break one of these ...
-		PrismContainerValue<AssignmentType> emptyValue = new PrismContainerValue<AssignmentType>(PrismTestUtil.getPrismContext());
+		PrismContainerValue<AssignmentType> emptyValue = new PrismContainerValue<>(PrismTestUtil.getPrismContext());
 		brokenAssignment.add(emptyValue);
 
 		// WHEN

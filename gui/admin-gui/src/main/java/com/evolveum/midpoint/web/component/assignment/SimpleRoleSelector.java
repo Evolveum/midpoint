@@ -99,7 +99,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
             @Override
             public IModel<?> getBody() {
-                return new Model<String>(getModel().getObject().asObjectable().getName().getOrig());
+                return new Model<>(getModel().getObject().asObjectable().getName().getOrig());
             }
 
             @Override

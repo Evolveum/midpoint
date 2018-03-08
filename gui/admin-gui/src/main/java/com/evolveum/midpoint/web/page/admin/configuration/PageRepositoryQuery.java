@@ -177,7 +177,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			}
 		});
 		DropDownChoice<QName> objectTypeChoice = new DropDownChoice<>(ID_OBJECT_TYPE,
-				new PropertyModel<QName>(model, RepoQueryDto.F_OBJECT_TYPE),
+            new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
 				new ListModel<>(objectTypeList),
 				new QNameChoiceRenderer());
 		objectTypeChoice.setOutputMarkupId(true);
@@ -190,19 +190,19 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		});
 		mainForm.add(objectTypeChoice);
 
-		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<String>(model, RepoQueryDto.F_MIDPOINT_QUERY));
+		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY));
 		editorMidPoint.setHeight(400);
 		editorMidPoint.setResizeToMaxHeight(false);
         mainForm.add(editorMidPoint);
 
-		AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_QUERY));
+		AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_QUERY));
 		editorHibernate.setHeight(300);
 		editorHibernate.setResizeToMaxHeight(false);
 		editorHibernate.setReadonly(!isAdmin);
 		editorHibernate.setMode(null);
 		mainForm.add(editorHibernate);
 
-		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
+		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
 		hibernateParameters.setReadonly(true);
 		hibernateParameters.setHeight(100);
 		hibernateParameters.setResizeToMaxHeight(false);
@@ -342,7 +342,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		});
 		mainForm.add(incompleteResultsNote);
 
-		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<String>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
+		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
 		resultText.setReadonly(true);
 		resultText.setHeight(300);
 		resultText.setResizeToMaxHeight(false);

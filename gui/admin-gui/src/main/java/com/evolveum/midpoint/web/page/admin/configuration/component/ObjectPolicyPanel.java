@@ -161,7 +161,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		add(form);
 
 		DropDownFormGroup type = new DropDownFormGroup<>(ID_TYPE,
-				new PropertyModel<QName>(model, ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
+            new PropertyModel<>(model, ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
 				new QNameChoiceRenderer(), createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE,
 				ID_INPUT_SIZE, false);
 		form.add(type);
@@ -173,8 +173,8 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		form.add(fieldSubtype);
 
 		DropDownFormGroup template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE,
-				new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
-				createObjectTemplateList(), new ChoiceableChoiceRenderer<ObjectTemplateConfigTypeReferenceDto>(),
+            new PropertyModel<>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
+				createObjectTemplateList(), new ChoiceableChoiceRenderer<>(),
 				createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		form.add(template);
 		template.getInput().setNullValid(config.getConflictResolution() != null);
@@ -185,7 +185,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		form.add(conflictResolutionContainer);
 
 		ListView repeater = new ListView<PropertyConstraintTypeDto>(ID_REPEATER,
-				new PropertyModel<List<PropertyConstraintTypeDto>>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {
+            new PropertyModel<>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {
 
 			@Override
 			protected void populateItem(final ListItem item) {
@@ -215,7 +215,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				textWrapper.add(property);
 
 				CheckBox oidBound = new CheckBox(ID_OID_BOUND,
-						new PropertyModel<Boolean>(item.getModel(), PropertyConstraintTypeDto.F_OID_BOUND));
+                    new PropertyModel<>(item.getModel(), PropertyConstraintTypeDto.F_OID_BOUND));
 				oidBound.add(AttributeModifier.replace("title",
 						createStringResource("ObjectPolicyDialog.label.oidBound.help")));
 				textWrapper.add(oidBound);

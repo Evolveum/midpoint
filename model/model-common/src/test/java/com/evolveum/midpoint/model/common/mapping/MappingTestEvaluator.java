@@ -176,7 +176,7 @@ public class MappingTestEvaluator {
 
 		// Variable $account
 		PrismObject<ShadowType> account = getAccount();
-		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<ShadowType>(account , null, null);
+		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<>(account, null, null);
 		accountOdo.recompute();
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
 

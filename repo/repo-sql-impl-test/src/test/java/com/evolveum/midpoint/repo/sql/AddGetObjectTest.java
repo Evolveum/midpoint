@@ -131,7 +131,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     private void addGetCompare(File file) throws Exception {
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
-        List<String> oids = new ArrayList<String>();
+        List<String> oids = new ArrayList<>();
 
         OperationResult result = new OperationResult("Simple Add Get Test");
         long time = System.currentTimeMillis();
@@ -215,7 +215,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         LOGGER.info("Checking: " + parentName);
         AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id="+newValue.getId(), size(oldValue), size(newValue));
 
-        List<QName> checked = new ArrayList<QName>();
+        List<QName> checked = new ArrayList<>();
 
         for (Item item : (List<Item>) newValue.getItems()) {
             if (!(item instanceof PrismContainer)) {
@@ -251,7 +251,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         	// Comparison item-by-item is not reliable
         	return;
         }
-        List<Long> checked = new ArrayList<Long>();
+        List<Long> checked = new ArrayList<>();
         List<PrismContainerValue> newValues = newContainer.getValues();
         for (PrismContainerValue value : newValues) {
             PrismContainerValue oldValue = oldContainer.getValue(value.getId());
@@ -359,7 +359,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
                 SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
                 PrismReferenceValue.createFromTarget(repoPasswordPolicy));
-        List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+        List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
         repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
@@ -495,7 +495,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void test() throws Exception {
         OperationResult result = new OperationResult("asdf");
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
         ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
 
             @Override

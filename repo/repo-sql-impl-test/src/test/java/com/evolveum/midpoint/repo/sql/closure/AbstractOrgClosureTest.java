@@ -280,7 +280,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected Set<String> getActualChildrenOf(String ancestor) {
         List<ROrgClosure> descendantRecords = getOrgClosureByAncestor(ancestor);
-        Set<String> rv = new HashSet<String>();
+        Set<String> rv = new HashSet<>();
         for (ROrgClosure c : descendantRecords) {
             rv.add(c.getDescendantOid());
         }
@@ -431,14 +431,14 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected List<String> getUsersAtThisLevelSafe(int level) {
         while (usersByLevels.size() <= level) {
-            usersByLevels.add(new ArrayList<String>());
+            usersByLevels.add(new ArrayList<>());
         }
         return usersByLevels.get(level);
     }
 
     protected List<String> getOrgsAtThisLevelSafe(int level) {
         while (orgsByLevels.size() <= level) {
-            orgsByLevels.add(new ArrayList<String>());
+            orgsByLevels.add(new ArrayList<>());
         }
         return orgsByLevels.get(level);
     }
@@ -560,7 +560,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected Collection<String> getParentsOids(PrismObject<? extends ObjectType> object) {
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for(ObjectReferenceType objectReferenceType : object.asObjectable().getParentOrgRef()) {
             retval.add(objectReferenceType.getOid());
         }
@@ -572,7 +572,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         if (totalParents == 0) {
             return rv;
         }
-        List<String> potentialParents = level > 0 ? new ArrayList<String>(orgsByLevels.get(level-1)) : new ArrayList<String>();
+        List<String> potentialParents = level > 0 ? new ArrayList<>(orgsByLevels.get(level - 1)) : new ArrayList<>();
         if (explicitParentOid != null) {
             rv.add(explicitParentOid);
             potentialParents.remove(explicitParentOid);

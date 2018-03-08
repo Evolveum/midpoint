@@ -86,7 +86,7 @@ public class PrismPropertyRealValueFromContainerableModel<T, C extends Container
                     object = (T) new PolyString((String) object);
                 }
 
-                property.setValue(new PrismPropertyValue<T>(object, OriginType.USER_ACTION, null));
+                property.setValue(new PrismPropertyValue<>(object, OriginType.USER_ACTION, null));
             } else {
                 PrismContainerValue parent = (PrismContainerValue) property.getParent();
                 parent.remove(property);

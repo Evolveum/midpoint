@@ -115,7 +115,7 @@ public class DependencyProcessor {
 	private <F extends ObjectType> LensProjectionContext determineProjectionWaveProvision(LensContext<F> context,
 			LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (depPath == null) {
-			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
+			depPath = new ArrayList<>();
 		}
 		int determinedWave = 0;
 		int determinedOrder = 0;
@@ -185,7 +185,7 @@ public class DependencyProcessor {
 	private <F extends ObjectType> LensProjectionContext determineProjectionWaveDeprovision(LensContext<F> context,
 				LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (depPath == null) {
-			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
+			depPath = new ArrayList<>();
 		}
 		int determinedWave = 0;
 		int determinedOrder = 0;

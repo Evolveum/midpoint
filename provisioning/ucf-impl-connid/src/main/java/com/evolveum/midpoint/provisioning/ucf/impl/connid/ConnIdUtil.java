@@ -155,7 +155,7 @@ public class ConnIdUtil {
             RemoteWrappedException remoteWrappedException = (RemoteWrappedException) connIdException;
             String className = remoteWrappedException.getExceptionClass();
             if (className == null) {
-                LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one: {}", connIdException);
+                LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one", connIdException);
             } else if (DOT_NET_ARGUMENT_EXCEPTION.equals(className) && remoteWrappedException.getMessage().contains("0x800708C5")) {       // password too weak
                 connIdException = new SecurityViolationException(connIdException.getMessage(), connIdException);
             } else {
@@ -568,9 +568,9 @@ public class ConnIdUtil {
 			throw new SchemaException("No definition for ConnId UID attribute found in definition "
 					+ ocDef);
 		}
-		Collection<ResourceAttribute<?>> identifiers = new ArrayList<ResourceAttribute<?>>(2);
+		Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
 		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
-		uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
+		uidRoa.setValue(new PrismPropertyValue<>(uid.getUidValue()));
 		identifiers.add(uidRoa);
 		if (uid.getNameHint() != null) {
 			ResourceAttributeDefinition<String> nameDefinition = getNameDefinition(concreteObjectClassDefinition);
@@ -579,7 +579,7 @@ public class ConnIdUtil {
 						+ ocDef);
 			}
 			ResourceAttribute<String> nameRoa = nameDefinition.instantiate();
-			nameRoa.setValue(new PrismPropertyValue<String>(uid.getNameHintValue()));
+			nameRoa.setValue(new PrismPropertyValue<>(uid.getNameHintValue()));
 			identifiers.add(nameRoa);
 		}
 		return identifiers;
@@ -599,7 +599,7 @@ public class ConnIdUtil {
 		try {
 			return new GuardedString(protector.decryptString(ps).toCharArray());
 		} catch (EncryptionException e) {
-			LOGGER.error("Unable to decrypt value of element {}: {}",
+			LOGGER.error("Unable to decrypt value of element {}: {}-{}",
 					new Object[] { propertyName, e.getMessage(), e });
 			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);

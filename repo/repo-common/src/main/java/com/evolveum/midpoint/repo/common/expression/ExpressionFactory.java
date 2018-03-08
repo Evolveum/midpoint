@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  */
 public class ExpressionFactory implements Cacheable {
 
-	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
+	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
 	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
 	final private PrismContext prismContext;

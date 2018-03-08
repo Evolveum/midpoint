@@ -180,7 +180,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
+			PrismPropertyValue<Object> pValue = new PrismPropertyValue<>(value);
 			((PrismProperty<Object>) output).add(pValue);
 		} else {
 			throw new UnsupportedOperationException(

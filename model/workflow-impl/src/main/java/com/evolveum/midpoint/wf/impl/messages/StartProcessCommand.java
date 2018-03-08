@@ -68,7 +68,7 @@ public class StartProcessCommand {
 
     public void addVariable(String name, Object value) {
         if (variables == null) {
-            variables = new HashMap<String,Object>();
+            variables = new HashMap<>();
         }
         variables.put(name, value);
     }

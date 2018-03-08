@@ -2253,7 +2253,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         AssertJUnit.assertNotNull("User must not be null.", userWorld);
 
 		ObjectDelta<UserType> delta = ObjectDelta.createDeleteDelta(UserType.class, userWorld.getOid(), prismContext);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(delta);
 		modelService.executeChanges(deltas, null, task, result);
 
@@ -2272,7 +2272,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
 
-        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(ROLE_FIGHT_OID);
 		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);

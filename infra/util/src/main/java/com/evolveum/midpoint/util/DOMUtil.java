@@ -1210,7 +1210,7 @@ public class DOMUtil {
 	private static final Pattern SPACE_PATTERN = Pattern.compile(SPACE_REGEX);
 
 	private static List<Node> canonizeNodeList(NodeList nodelist) {
-		List<Node> list = new ArrayList<Node>(nodelist.getLength());
+		List<Node> list = new ArrayList<>(nodelist.getLength());
 		for (int i = 0; i < nodelist.getLength(); i++) {
 			Node aItem = nodelist.item(i);
 			if (aItem.getNodeType() == Node.ELEMENT_NODE || aItem.getNodeType() == Node.ATTRIBUTE_NODE) {

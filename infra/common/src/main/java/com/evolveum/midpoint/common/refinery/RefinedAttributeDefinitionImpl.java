@@ -373,7 +373,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
                                             ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
                                             String contextDescription) throws SchemaException {
 
-        RefinedAttributeDefinitionImpl<T> rAttrDef = new RefinedAttributeDefinitionImpl<T>(schemaAttrDef, prismContext);
+        RefinedAttributeDefinitionImpl<T> rAttrDef = new RefinedAttributeDefinitionImpl<>(schemaAttrDef, prismContext);
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
             rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
@@ -533,7 +533,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 	@Override
 	public RefinedAttributeDefinition<T> clone() {
     	ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
-		RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<T>(attrDefClone, prismContext);
+		RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<>(attrDefClone, prismContext);
 		copyDefinitionData(clone);
 		return clone;
 	}

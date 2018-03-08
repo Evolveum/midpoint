@@ -59,11 +59,11 @@ public class AuditPopupPanel extends BasePanel<AuditReportDto> {
     @SuppressWarnings("serial")
     private void initLayout(final Component component) {
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), AuditReportDto.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<>(getModel(), AuditReportDto.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
-        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), AuditReportDto.F_DESCRIPTION),
+        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<>(getModel(), AuditReportDto.F_DESCRIPTION),
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
@@ -78,11 +78,11 @@ public class AuditPopupPanel extends BasePanel<AuditReportDto> {
                 choices, renderer, createStringResource("AuditPopupPanel.auditEventType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(auditEventType);
 
-        DateFormGroup dateFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<XMLGregorianCalendar>(getModel(), AuditReportDto.F_FROM_GREG),
+        DateFormGroup dateFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<>(getModel(), AuditReportDto.F_FROM_GREG),
                 createStringResource("AuditPopupPanel.dateFrom"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(dateFrom);
 
-        DateFormGroup dateTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<XMLGregorianCalendar>(getModel(), AuditReportDto.F_TO_GREG),
+        DateFormGroup dateTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<>(getModel(), AuditReportDto.F_TO_GREG),
                 createStringResource("AuditPopupPanel.dateTo"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(dateTo);
     }

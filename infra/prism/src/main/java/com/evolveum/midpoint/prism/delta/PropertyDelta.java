@@ -129,7 +129,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 
 	@Override
 	public PropertyDelta<T> clone() {
-		PropertyDelta<T> clone = new PropertyDelta<T>(getElementName(), getPropertyDefinition(), getPrismContext());
+		PropertyDelta<T> clone = new PropertyDelta<>(getElementName(), getPropertyDefinition(), getPrismContext());
 		copyValues(clone);
 		return clone;
 	}
@@ -146,12 +146,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
 		}
-		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition, containerDefinition.getPrismContext());            // hoping the prismContext is there
+		PropertyDelta<T> delta = new PropertyDelta<>(propertyName, propertyDefinition, containerDefinition.getPrismContext());            // hoping the prismContext is there
 		Collection<PrismPropertyValue<T>> valuesToReplace = delta.getValuesToReplace();
 		if (valuesToReplace == null)
-			valuesToReplace = new ArrayList<PrismPropertyValue<T>>(realValues.length);
+			valuesToReplace = new ArrayList<>(realValues.length);
 		for (T realVal: realValues) {
-			valuesToReplace.add(new PrismPropertyValue<T>(realVal));
+			valuesToReplace.add(new PrismPropertyValue<>(realVal));
 		}
 		delta.setValuesToReplace(valuesToReplace);
 		return delta;
@@ -163,8 +163,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (propertyDefinition == null) {
 			throw new IllegalArgumentException("No definition for "+propertyName+" in "+containerDefinition);
 		}
-		PropertyDelta<T> delta = new PropertyDelta<T>(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
-		Collection<PrismPropertyValue<T>> valuesToReplace = new ArrayList<PrismPropertyValue<T>>(pValues.length);
+		PropertyDelta<T> delta = new PropertyDelta<>(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
+		Collection<PrismPropertyValue<T>> valuesToReplace = new ArrayList<>(pValues.length);
 		for (PrismPropertyValue<T> pVal: pValues) {
 			valuesToReplace.add(pVal);
 		}
@@ -335,9 +335,9 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     		T... propertyValues) {
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());              // hoping the prismContext is there
-    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
+    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<T>(val));
+    		pValues.add(new PrismPropertyValue<>(val));
     	}
 		propertyDelta.setValuesToReplace(pValues);
     	return propertyDelta;
@@ -347,9 +347,9 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 																		 Collection<T> propertyValues) {
 		PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
 		PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());              // hoping the prismContext is there
-		Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.size());
+		Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.size());
 		for (T val: propertyValues) {
-			pValues.add(new PrismPropertyValue<T>(val));
+			pValues.add(new PrismPropertyValue<>(val));
 		}
 		propertyDelta.setValuesToReplace(pValues);
 		return propertyDelta;
@@ -358,9 +358,9 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
     		T... propertyValues) {
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
-    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
+    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<T>(val));
+    		pValues.add(new PrismPropertyValue<>(val));
     	}
 		propertyDelta.setValuesToReplace(pValues);
     	return propertyDelta;
@@ -369,9 +369,9 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
     		T... propertyValues) {
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());         // hoping the prismContext is there
-    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
+    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<T>(val));
+    		pValues.add(new PrismPropertyValue<>(val));
     	}
 		propertyDelta.addValuesToAdd(pValues);
     	return propertyDelta;
@@ -380,9 +380,9 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
     		T... propertyValues) {
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
-    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
+    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<T>(val));
+    		pValues.add(new PrismPropertyValue<>(val));
     	}
 		propertyDelta.addValuesToDelete(pValues);
     	return propertyDelta;
@@ -394,7 +394,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
      */
     public static Collection<? extends ItemDelta> createModificationReplacePropertyCollection(QName propertyName,
     		PrismObjectDefinition<?> objectDefinition, Object... propertyValues) {
-    	Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
+    	Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
     	PropertyDelta delta = createModificationReplaceProperty(propertyName, objectDefinition, propertyValues);
     	((Collection)modifications).add(delta);
     	return modifications;

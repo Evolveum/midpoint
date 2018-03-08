@@ -202,7 +202,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				}
 			}
 		}
-		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<IV,ID>(subItemOld, subDelta, subItemNew);
+		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<>(subItemOld, subDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);
 		subIdi.resolvePath = newResolvePath;
 
@@ -286,7 +286,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
 		PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);
 		PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, outputPath);
-		return new ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>>(outputPropertyOld, outputDelta, outputPropertyNew);
+		return new ItemDeltaItem<>(outputPropertyOld, outputDelta, outputPropertyNew);
 	}
 
 	private <X> PrismProperty<X> resolveStructuredPropertyItem(PrismProperty<Structured> sourceProperty, ItemPath resolvePath, PrismPropertyDefinition outputDefinition) {
@@ -325,11 +325,11 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		if (set == null) {
 			return null;
 		}
-		Collection<PrismPropertyValue<X>> outputSet = new ArrayList<PrismPropertyValue<X>>(set.size());
+		Collection<PrismPropertyValue<X>> outputSet = new ArrayList<>(set.size());
 		for (PrismPropertyValue<Structured> structuredPVal: set) {
 			Structured structured = structuredPVal.getValue();
 			X outputRval = (X) structured.resolve(resolvePath);
-			outputSet.add(new PrismPropertyValue<X>(outputRval));
+			outputSet.add(new PrismPropertyValue<>(outputRval));
 		}
 		return outputSet;
 	}

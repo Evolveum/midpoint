@@ -99,7 +99,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	}
 	
 	public IModel<String> getLabel() {
-		return new Model<String>("label");
+		return new Model<>("label");
 	}
 
 

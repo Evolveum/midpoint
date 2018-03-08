@@ -183,7 +183,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		};
 
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
-		columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(getAssignmentMenuActions(), 2, getPageBase()));
 
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
 				assignmentsProvider, columns, getTableId(), getItemsPerPage()) {
@@ -373,11 +373,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	private List<InlineMenuItem> getAssignmentMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<Boolean>(true),
-				new Model<Boolean>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
+		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
+            new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<Boolean>(true),
-				new Model<Boolean>(true), false, createEditColumnAction(), 1, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
+            new Model<>(true), false, createEditColumnAction(), 1, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
 		return menuItems;
 	}
@@ -460,7 +460,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 		ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
-                getModelObject().getObjectStatus(), ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
+                getModelObject().getObjectStatus(), ValueStatus.ADDED, getModelObject().getPath());
 		valueWrapper.setShowEmpty(true, false);
 		getModelObject().getValues().add(valueWrapper);
 		return valueWrapper;

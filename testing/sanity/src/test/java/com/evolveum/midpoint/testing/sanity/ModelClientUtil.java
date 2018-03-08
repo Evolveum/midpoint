@@ -123,7 +123,7 @@ public class ModelClientUtil {
         return protectedString;	}
 
 	public static <T> JAXBElement<T> toJaxbElement(QName name, T value) {
-		return new JAXBElement<T>(name, (Class<T>) value.getClass(), value);
+		return new JAXBElement<>(name, (Class<T>) value.getClass(), value);
 	}
 
 	public static Document getDocumnent() {

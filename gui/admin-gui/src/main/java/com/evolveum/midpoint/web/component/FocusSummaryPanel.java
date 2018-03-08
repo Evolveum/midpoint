@@ -54,7 +54,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	private IModel<ObjectWrapper<O>> wrapperModel;
 
 	public FocusSummaryPanel(String id, Class<O> type, final IModel<ObjectWrapper<O>> model, ModelServiceLocator serviceLocator) {
-		super(id, type, new ReadOnlyPrismObjectFromObjectWrapperModel<O>(model), serviceLocator);
+		super(id, type, new ReadOnlyPrismObjectFromObjectWrapperModel<>(model), serviceLocator);
 
 		this.wrapperModel = model;
 		initLayoutCommon(serviceLocator);	// calls getParentOrgModel that depends on wrapperModel

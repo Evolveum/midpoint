@@ -386,7 +386,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updatePrismContainer(Outline outline) {
-        Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
+        Set<JDefinedClass> containers = new HashSet<>();
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -501,7 +501,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Set<JDefinedClass> updatePrismObject(Outline outline) {
-        Set<JDefinedClass> containers = new HashSet<JDefinedClass>();
+        Set<JDefinedClass> containers = new HashSet<>();
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -1018,7 +1018,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private Map<QName, List<QName>> getComplexTypeToElementName(ClassOutline classOutline) {
-        Map<QName, List<QName>> complexTypeToElementName = new HashMap<QName, List<QName>>();
+        Map<QName, List<QName>> complexTypeToElementName = new HashMap<>();
 
         XSSchemaSet schemaSet = classOutline.target.getSchemaComponent().getRoot();
         for (XSSchema schema : schemaSet.getSchemas()) {
@@ -1034,7 +1034,7 @@ public class SchemaProcessor implements Processor {
                 List<QName> qnames = complexTypeToElementName.get(type);
 
                 if (qnames == null) {
-                    qnames = new ArrayList<QName>();
+                    qnames = new ArrayList<>();
                     complexTypeToElementName.put(type, qnames);
                 }
                 qnames.add(new QName(decl.getTargetNamespace(), decl.getName()));
@@ -1074,7 +1074,7 @@ public class SchemaProcessor implements Processor {
 
             boolean isObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
 
-            List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
+            List<FieldBox<QName>> boxes = new ArrayList<>();
             for (Entry<String, JFieldVar> fieldEntry : fields.entrySet()) {
                 String field = normalizeFieldName(fieldEntry.getKey());
                 if ((isObject && ("oid".equals(field) || "version".equals(field)) ||

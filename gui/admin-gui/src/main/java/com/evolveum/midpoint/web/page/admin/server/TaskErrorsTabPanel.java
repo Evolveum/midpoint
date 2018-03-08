@@ -84,7 +84,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
         return new TaskErrorDto(object, taskDtoModel.getObject().getOid());
     }
     private List<IColumn<TaskErrorDto, String>> initColumns() {
-        List<IColumn<TaskErrorDto, String>> columns = new ArrayList<IColumn<TaskErrorDto, String>>();
+        List<IColumn<TaskErrorDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME));
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorDto.F_MESSAGE));

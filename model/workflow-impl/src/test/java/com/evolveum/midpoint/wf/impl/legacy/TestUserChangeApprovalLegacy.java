@@ -286,7 +286,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED));
-                checkUserApprovers(USER_JACK_OID, new ArrayList<String>(), result);
+                checkUserApprovers(USER_JACK_OID, new ArrayList<>(), result);
             }
 
             @Override
@@ -437,7 +437,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
-                checkUserApprovers(USER_JACK_OID, new ArrayList<String>(), result);
+                checkUserApprovers(USER_JACK_OID, new ArrayList<>(), result);
             }
 
             @Override
@@ -1215,12 +1215,12 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertNotNull("no attributeDef", attributeDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
-        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDelta<ResourceAttributeDefinitionType>(
-                new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                        new IdItemPathSegment(assignmentId),
-                        new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
-                        new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
-                attributeDef, prismContext);
+        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDelta<>(
+            new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                new IdItemPathSegment(assignmentId),
+                new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
+                new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
+            attributeDef, prismContext);
         ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
         if (add) {
             attributeDelta.addValueToAdd(attributeDefinitionType.asPrismContainerValue());

@@ -82,7 +82,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 		textWrapper.setOutputMarkupId(true);
 
-		TextField<String> text = new TextField<String>(ID_TEXT, createTextModel());
+		TextField<String> text = new TextField<>(ID_TEXT, createTextModel());
 		text.add(new AjaxFormComponentUpdatingBehavior("blur") {
 			private static final long serialVersionUID = 1L;
 

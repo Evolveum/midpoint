@@ -31,7 +31,7 @@ public class AccountCallableResult<T> extends CallableResult<T> {
 
     public List<OperationResult> getFetchResults() {
         if (fetchResults == null) {
-            fetchResults = new ArrayList<OperationResult>();
+            fetchResults = new ArrayList<>();
         }
         return fetchResults;
     }

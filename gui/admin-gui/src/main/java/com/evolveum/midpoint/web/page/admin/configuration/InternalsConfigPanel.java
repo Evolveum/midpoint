@@ -88,7 +88,7 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 	}
 
 	private CheckFormGroup createCheckbox(String id, String propName) {
-		return new CheckFormGroup(id, new PropertyModel<Boolean>(getModel(), propName),
+		return new CheckFormGroup(id, new PropertyModel<>(getModel(), propName),
 				createStringResource("PageInternals." + propName), LABEL_SIZE, INPUT_SIZE);
 	}
 }

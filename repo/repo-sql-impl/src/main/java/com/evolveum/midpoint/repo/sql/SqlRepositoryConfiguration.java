@@ -371,6 +371,9 @@ public class SqlRepositoryConfiguration {
 	// that were not yet initialized.
 	private static String getDefaultDriverClassName(String dataSource, Database database) {
     	if (dataSource != null) {
+    	    if (database != null) {
+    	        return database.getDefaultDriverClassName();
+            }
     		return null;                // driver is not needed here
 	    } else if (database != null) {
 			return database.getDefaultDriverClassName();
@@ -407,7 +410,7 @@ public class SqlRepositoryConfiguration {
             defaultLockForUpdateViaSql = false;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
-	        defaultTransactionIsolation = TransactionIsolation.REPEATABLE_READ;
+	        defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = true;
 	        defaultUseReadOnlyTransactions = true;
@@ -600,7 +603,7 @@ public class SqlRepositoryConfiguration {
 
     private void applyTransactionIsolation() {
         // ugly hack, but I know of no way to work around
-        MidPointConnectionCustomizer.setTransactionIsolation(transactionIsolation);
+//        MidPointConnectionCustomizer.setTransactionIsolation(transactionIsolation);
     }
 
     public boolean isLockForUpdateViaHibernate() {

@@ -152,7 +152,7 @@ public final class ProcessorUtils {
     }
 
     public static void copyAnnotations(JAnnotatable to, JAnnotatable... froms) {
-        List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
+        List<JAnnotationUse> annotations = new ArrayList<>();
         for (JAnnotatable from : froms) {
             List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(from);
             if (existingAnnotations != null && !existingAnnotations.isEmpty()) {
@@ -186,7 +186,7 @@ public final class ProcessorUtils {
     }
 
     public static List<JAnnotationUse> getAnnotations(JAnnotatable from, boolean returnNewList) {
-        List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
+        List<JAnnotationUse> annotations = new ArrayList<>();
 
         try {
             Class clazz = from.getClass();

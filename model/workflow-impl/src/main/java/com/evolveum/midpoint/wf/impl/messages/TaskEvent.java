@@ -32,7 +32,7 @@ public class TaskEvent {
     /**
      * Workflow process instance variables, merged with form properties (TODO: verify this).
      */
-    private Map<String,Object> variables = new HashMap<String,Object>();
+    private Map<String,Object> variables = new HashMap<>();
 
     /**
      * Workflow task ID.

@@ -46,8 +46,8 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  */
 public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper implements DynamicNamespacePrefixMapper, DebugDumpable {
 
-	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<String, String>();
-	private Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
+	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<>();
+	private Map<String, String> localNamespacePrefixMap = new HashMap<>();
 	private String defaultNamespace = null;
 	private boolean alwaysExplicit = false;
     private final Set<String> prefixesDeclaredByDefault = new HashSet<>();
@@ -202,7 +202,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		if (map == null) {
 			return null;
 		}
-		Map<String, String> clone = new HashMap<String,String>();
+		Map<String, String> clone = new HashMap<>();
 		for (Entry<String, String> entry: map.entrySet()) {
 			clone.put(entry.getKey(), entry.getValue());
 		}

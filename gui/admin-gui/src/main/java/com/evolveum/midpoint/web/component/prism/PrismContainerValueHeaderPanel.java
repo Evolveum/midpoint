@@ -175,27 +175,27 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		add(childContainersSelectorPanel);
 
 		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
-		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<QName>(ID_CHILD_CONTAINERS_LIST,
-				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-				new IChoiceRenderer<QName>() {
-					@Override
-					public Object getDisplayValue(QName qName) {
-						return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
-					}
+		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
+            Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
+            new IChoiceRenderer<QName>() {
+                @Override
+                public Object getDisplayValue(QName qName) {
+                    return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
+                }
 
-					@Override
-					public String getIdValue(QName qName, int i) {
-						return Integer.toString(i);
-					}
+                @Override
+                public String getIdValue(QName qName, int i) {
+                    return Integer.toString(i);
+                }
 
-					@Override
-					public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-						if (StringUtils.isBlank(id)) {
-							return null;
-						}
-						return choices.getObject().get(Integer.parseInt(id));
-					}
-				});
+                @Override
+                public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+                    if (StringUtils.isBlank(id)) {
+                        return null;
+                    }
+                    return choices.getObject().get(Integer.parseInt(id));
+                }
+            });
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {

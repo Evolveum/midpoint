@@ -48,7 +48,7 @@ public class ModelOperationStatusPanel extends BasePanel<ModelOperationStatusDto
 //        add(new Label(ID_FOCUS_NAME, new PropertyModel<String>(getModel(), ModelOperationStatusDto.F_FOCUS_NAME)));
 
 
-        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<SceneDto>(getModel(), ModelOperationStatusDto.F_PRIMARY_DELTA));
+        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<>(getModel(), ModelOperationStatusDto.F_PRIMARY_DELTA));
         deltaPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
