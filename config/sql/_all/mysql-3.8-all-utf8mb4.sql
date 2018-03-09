@@ -17,6 +17,8 @@ CREATE TABLE m_acc_cert_campaign (
   oid                     VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_acc_cert_case (
   id                       INTEGER     NOT NULL,
@@ -52,6 +54,8 @@ CREATE TABLE m_acc_cert_case (
   tenantRef_type           INTEGER,
   PRIMARY KEY (owner_oid, id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_acc_cert_definition (
   handlerUri                   VARCHAR(255),
@@ -65,6 +69,8 @@ CREATE TABLE m_acc_cert_definition (
   oid                          VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_acc_cert_wi (
   id                     INTEGER     NOT NULL,
@@ -79,6 +85,8 @@ CREATE TABLE m_acc_cert_wi (
   stageNumber            INTEGER,
   PRIMARY KEY (owner_owner_oid, owner_id, id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_acc_cert_wi_reference (
   owner_id              INTEGER      NOT NULL,
@@ -89,6 +97,8 @@ CREATE TABLE m_acc_cert_wi_reference (
   targetType            INTEGER,
   PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation, targetOid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment (
   id                      INTEGER     NOT NULL,
@@ -132,6 +142,8 @@ CREATE TABLE m_assignment (
   extOid                  VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
   PRIMARY KEY (owner_oid, id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_ext_boolean (
   item_id                      INTEGER     NOT NULL,
@@ -140,6 +152,8 @@ CREATE TABLE m_assignment_ext_boolean (
   booleanValue                 BIT         NOT NULL,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, booleanValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_ext_date (
   item_id                      INTEGER     NOT NULL,
@@ -148,6 +162,8 @@ CREATE TABLE m_assignment_ext_date (
   dateValue                    DATETIME(6) NOT NULL,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, dateValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_ext_long (
   item_id                      INTEGER     NOT NULL,
@@ -156,6 +172,8 @@ CREATE TABLE m_assignment_ext_long (
   longValue                    BIGINT      NOT NULL,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, longValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_ext_poly (
   item_id                      INTEGER      NOT NULL,
@@ -165,6 +183,8 @@ CREATE TABLE m_assignment_ext_poly (
   norm                         VARCHAR(191),
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, orig)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_ext_reference (
   item_id                      INTEGER     NOT NULL,
@@ -175,6 +195,8 @@ CREATE TABLE m_assignment_ext_reference (
   targetType                   INTEGER,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, targetoid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_ext_string (
   item_id                      INTEGER      NOT NULL,
@@ -183,6 +205,8 @@ CREATE TABLE m_assignment_ext_string (
   stringValue                  VARCHAR(191) NOT NULL,
   PRIMARY KEY (anyContainer_owner_owner_oid, anyContainer_owner_id, item_id, stringValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_extension (
   owner_id        INTEGER     NOT NULL,
@@ -195,12 +219,16 @@ CREATE TABLE m_assignment_extension (
   stringsCount    SMALLINT,
   PRIMARY KEY (owner_owner_oid, owner_id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_policy_situation (
   assignment_id   INTEGER     NOT NULL,
   assignment_oid  VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   policySituation VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_assignment_reference (
   owner_id        INTEGER      NOT NULL,
@@ -211,6 +239,8 @@ CREATE TABLE m_assignment_reference (
   targetType      INTEGER,
   PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_delta (
   checksum          VARCHAR(32) NOT NULL,
@@ -227,6 +257,8 @@ CREATE TABLE m_audit_delta (
   status            INTEGER,
   PRIMARY KEY (record_id, checksum)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_event (
   id                BIGINT NOT NULL AUTO_INCREMENT,
@@ -257,12 +289,16 @@ CREATE TABLE m_audit_event (
   timestampValue    DATETIME(6),
   PRIMARY KEY (id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_item (
   changedItemPath VARCHAR(255)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, changedItemPath)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_prop_value (
   id        BIGINT NOT NULL AUTO_INCREMENT,
@@ -271,6 +307,8 @@ CREATE TABLE m_audit_prop_value (
   value     VARCHAR(1024),
   PRIMARY KEY (id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_ref_value (
   id              BIGINT NOT NULL AUTO_INCREMENT,
@@ -282,11 +320,15 @@ CREATE TABLE m_audit_ref_value (
   type            VARCHAR(255),
   PRIMARY KEY (id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   targetSystemType VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_ext_item (
   id       INTEGER NOT NULL AUTO_INCREMENT,
@@ -295,17 +337,23 @@ CREATE TABLE m_ext_item (
   itemType VARCHAR(157),
   PRIMARY KEY (id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_focus_photo (
   owner_oid VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   photo     LONGBLOB,
   PRIMARY KEY (owner_oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_focus_policy_situation (
   focus_oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   policySituation VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object (
   oid                   VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
@@ -336,6 +384,8 @@ CREATE TABLE m_object (
   version               INTEGER     NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_ext_boolean (
   item_id      INTEGER     NOT NULL,
@@ -344,6 +394,8 @@ CREATE TABLE m_object_ext_boolean (
   booleanValue BIT         NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, booleanValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_ext_date (
   item_id   INTEGER     NOT NULL,
@@ -352,6 +404,8 @@ CREATE TABLE m_object_ext_date (
   dateValue DATETIME(6) NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, dateValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_ext_long (
   item_id   INTEGER     NOT NULL,
@@ -360,6 +414,8 @@ CREATE TABLE m_object_ext_long (
   longValue BIGINT      NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, longValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_ext_poly (
   item_id   INTEGER      NOT NULL,
@@ -369,6 +425,8 @@ CREATE TABLE m_object_ext_poly (
   norm      VARCHAR(191),
   PRIMARY KEY (owner_oid, ownerType, item_id, orig)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_ext_reference (
   item_id    INTEGER     NOT NULL,
@@ -379,6 +437,8 @@ CREATE TABLE m_object_ext_reference (
   targetType INTEGER,
   PRIMARY KEY (owner_oid, ownerType, item_id, targetoid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_ext_string (
   item_id     INTEGER      NOT NULL,
@@ -387,17 +447,23 @@ CREATE TABLE m_object_ext_string (
   stringValue VARCHAR(191) NOT NULL,
   PRIMARY KEY (owner_oid, ownerType, item_id, stringValue)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_subtype (
   object_oid VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   subType    VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_text_info (
   owner_oid VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   text      VARCHAR(191) NOT NULL,
   PRIMARY KEY (owner_oid, text)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_operation_execution (
   id                     INTEGER     NOT NULL,
@@ -412,6 +478,8 @@ CREATE TABLE m_operation_execution (
   timestampValue         DATETIME(6),
   PRIMARY KEY (owner_oid, id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_org_closure (
   ancestor_oid   VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
@@ -419,11 +487,15 @@ CREATE TABLE m_org_closure (
   val            INTEGER,
   PRIMARY KEY (ancestor_oid, descendant_oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_org_org_type (
   org_oid VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   orgType VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_reference (
   owner_oid      VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin  NOT NULL,
@@ -433,11 +505,15 @@ CREATE TABLE m_reference (
   targetType     INTEGER,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_service_type (
   service_oid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   serviceType VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_shadow (
   attemptNumber                INTEGER,
@@ -460,6 +536,8 @@ CREATE TABLE m_shadow (
   oid                          VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_task (
   binding                  INTEGER,
@@ -500,28 +578,38 @@ CREATE TABLE m_task (
   oid                      VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_task_dependent (
   task_oid  VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   dependent VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_user_employee_type (
   user_oid     VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   employeeType VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_user_organization (
   user_oid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_abstract_role (
   approvalProcess    VARCHAR(255),
@@ -537,6 +625,8 @@ CREATE TABLE m_abstract_role (
   oid                VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_case (
   name_norm VARCHAR(191),
@@ -544,6 +634,8 @@ CREATE TABLE m_case (
   oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_connector (
   connectorBundle            VARCHAR(255),
@@ -558,6 +650,8 @@ CREATE TABLE m_connector (
   oid                        VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_connector_host (
   hostname  VARCHAR(255),
@@ -567,6 +661,8 @@ CREATE TABLE m_connector_host (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_focus (
   administrativeStatus    INTEGER,
@@ -591,6 +687,8 @@ CREATE TABLE m_focus (
   oid                     VARCHAR(36)    CHARSET utf8 COLLATE utf8_bin     NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_form (
   name_norm VARCHAR(191),
@@ -598,6 +696,8 @@ CREATE TABLE m_form (
   oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_function_library (
   name_norm VARCHAR(191),
@@ -605,6 +705,8 @@ CREATE TABLE m_function_library (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR(191),
@@ -613,6 +715,8 @@ CREATE TABLE m_generic_object (
   oid        VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_lookup_table (
   name_norm VARCHAR(191),
@@ -620,6 +724,8 @@ CREATE TABLE m_lookup_table (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_lookup_table_row (
   id                  INTEGER     NOT NULL,
@@ -631,6 +737,8 @@ CREATE TABLE m_lookup_table_row (
   row_value           VARCHAR(255),
   PRIMARY KEY (owner_oid, id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_node (
   name_norm      VARCHAR(191),
@@ -639,6 +747,8 @@ CREATE TABLE m_node (
   oid            VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object_template (
   name_norm VARCHAR(191),
@@ -647,6 +757,8 @@ CREATE TABLE m_object_template (
   oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_org (
   displayOrder INTEGER,
@@ -656,6 +768,8 @@ CREATE TABLE m_org (
   oid          VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_report (
   export              INTEGER,
@@ -667,6 +781,8 @@ CREATE TABLE m_report (
   oid                 VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_report_output (
   name_norm           VARCHAR(255),
@@ -677,6 +793,8 @@ CREATE TABLE m_report_output (
   oid                 VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_resource (
   administrativeState        INTEGER,
@@ -689,6 +807,8 @@ CREATE TABLE m_resource (
   oid                        VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_role (
   name_norm VARCHAR(191),
@@ -697,6 +817,8 @@ CREATE TABLE m_role (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_security_policy (
   name_norm VARCHAR(191),
@@ -704,6 +826,8 @@ CREATE TABLE m_security_policy (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_sequence (
   name_norm VARCHAR(191),
@@ -711,6 +835,8 @@ CREATE TABLE m_sequence (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_service (
   displayOrder INTEGER,
@@ -719,6 +845,8 @@ CREATE TABLE m_service (
   oid          VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_system_configuration (
   name_norm VARCHAR(191),
@@ -726,6 +854,8 @@ CREATE TABLE m_system_configuration (
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_trigger (
   id             INTEGER     NOT NULL,
@@ -734,6 +864,8 @@ CREATE TABLE m_trigger (
   timestampValue DATETIME(6),
   PRIMARY KEY (owner_oid, id)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_user (
   additionalName_norm  VARCHAR(255),
@@ -758,6 +890,8 @@ CREATE TABLE m_user (
   oid                  VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_value_policy (
   name_norm VARCHAR(191),
@@ -765,6 +899,8 @@ CREATE TABLE m_value_policy (
   oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin  NOT NULL,
   PRIMARY KEY (oid)
 )
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 ALTER TABLE m_acc_cert_campaign
   ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
@@ -1126,7 +1262,9 @@ CREATE TABLE QRTZ_JOB_DETAILS(
   REQUESTS_RECOVERY VARCHAR(1) NOT NULL,
   JOB_DATA BLOB NULL,
   PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_TRIGGERS (
   SCHED_NAME VARCHAR(120) NOT NULL,
@@ -1149,7 +1287,9 @@ CREATE TABLE QRTZ_TRIGGERS (
   PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
   FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
   REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_SIMPLE_TRIGGERS (
   SCHED_NAME VARCHAR(120) NOT NULL,
@@ -1161,7 +1301,9 @@ CREATE TABLE QRTZ_SIMPLE_TRIGGERS (
   PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
   FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
   REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_CRON_TRIGGERS (
   SCHED_NAME VARCHAR(120) NOT NULL,
@@ -1172,7 +1314,9 @@ CREATE TABLE QRTZ_CRON_TRIGGERS (
   PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
   FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
   REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_SIMPROP_TRIGGERS
 (
@@ -1193,7 +1337,9 @@ CREATE TABLE QRTZ_SIMPROP_TRIGGERS
   PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
   FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
   REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_BLOB_TRIGGERS (
   SCHED_NAME VARCHAR(120) NOT NULL,
@@ -1204,20 +1350,26 @@ CREATE TABLE QRTZ_BLOB_TRIGGERS (
   INDEX (SCHED_NAME,TRIGGER_NAME, TRIGGER_GROUP),
   FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
   REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_CALENDARS (
   SCHED_NAME VARCHAR(120) NOT NULL,
   CALENDAR_NAME VARCHAR(191) NOT NULL,
   CALENDAR BLOB NOT NULL,
   PRIMARY KEY (SCHED_NAME,CALENDAR_NAME))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_PAUSED_TRIGGER_GRPS (
   SCHED_NAME VARCHAR(120) NOT NULL,
   TRIGGER_GROUP VARCHAR(191) NOT NULL,
   PRIMARY KEY (SCHED_NAME,TRIGGER_GROUP))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_FIRED_TRIGGERS (
   SCHED_NAME VARCHAR(120) NOT NULL,
@@ -1235,7 +1387,9 @@ CREATE TABLE QRTZ_FIRED_TRIGGERS (
   IS_NONCONCURRENT VARCHAR(1) NULL,
   REQUESTS_RECOVERY VARCHAR(1) NULL,
   PRIMARY KEY (SCHED_NAME,ENTRY_ID))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_SCHEDULER_STATE (
   SCHED_NAME VARCHAR(120) NOT NULL,
@@ -1243,13 +1397,17 @@ CREATE TABLE QRTZ_SCHEDULER_STATE (
   LAST_CHECKIN_TIME BIGINT(13) NOT NULL,
   CHECKIN_INTERVAL BIGINT(13) NOT NULL,
   PRIMARY KEY (SCHED_NAME,INSTANCE_NAME))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE TABLE QRTZ_LOCKS (
   SCHED_NAME VARCHAR(120) NOT NULL,
   LOCK_NAME VARCHAR(40) NOT NULL,
   PRIMARY KEY (SCHED_NAME,LOCK_NAME))
-  ENGINE=InnoDB;
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE INDEX IDX_QRTZ_J_REQ_RECOVERY ON QRTZ_JOB_DETAILS(SCHED_NAME,REQUESTS_RECOVERY);
 CREATE INDEX IDX_QRTZ_J_GRP ON QRTZ_JOB_DETAILS(SCHED_NAME,JOB_GROUP);
@@ -1279,7 +1437,9 @@ create table ACT_GE_PROPERTY (
   VALUE_ varchar(300),
   REV_ integer,
   primary key (NAME_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 insert into ACT_GE_PROPERTY
 values ('schema.version', '5.22.0.0', 1);
@@ -1298,7 +1458,9 @@ create table ACT_GE_BYTEARRAY (
   BYTES_ LONGBLOB,
   GENERATED_ TINYINT,
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RE_DEPLOYMENT (
   ID_ varchar(64),
@@ -1307,7 +1469,9 @@ create table ACT_RE_DEPLOYMENT (
   TENANT_ID_ varchar(255) default '',
   DEPLOY_TIME_ timestamp(3) NULL,
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RE_MODEL (
   ID_ varchar(64) not null,
@@ -1324,13 +1488,15 @@ create table ACT_RE_MODEL (
   EDITOR_SOURCE_EXTRA_VALUE_ID_ varchar(64),
   TENANT_ID_ varchar(255) default '',
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RU_EXECUTION (
   ID_ varchar(64),
   REV_ integer,
   PROC_INST_ID_ varchar(64),
-  BUSINESS_KEY_ varchar(255),
+  BUSINESS_KEY_ varchar(191),
   PARENT_ID_ varchar(64),
   PROC_DEF_ID_ varchar(64),
   SUPER_EXEC_ varchar(64),
@@ -1345,7 +1511,9 @@ create table ACT_RU_EXECUTION (
   NAME_ varchar(255),
   LOCK_TIME_ timestamp(3) NULL,
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RU_JOB (
   ID_ varchar(64) NOT NULL,
@@ -1366,14 +1534,16 @@ create table ACT_RU_JOB (
   HANDLER_CFG_ varchar(4000),
   TENANT_ID_ varchar(255) default '',
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RE_PROCDEF (
   ID_ varchar(64) not null,
   REV_ integer,
   CATEGORY_ varchar(255),
   NAME_ varchar(255),
-  KEY_ varchar(255) not null,
+  KEY_ varchar(191) not null,
   VERSION_ integer not null,
   DEPLOYMENT_ID_ varchar(64),
   RESOURCE_NAME_ varchar(4000),
@@ -1382,9 +1552,11 @@ create table ACT_RE_PROCDEF (
   HAS_START_FORM_KEY_ TINYINT,
   HAS_GRAPHICAL_NOTATION_ TINYINT,
   SUSPENSION_STATE_ integer,
-  TENANT_ID_ varchar(255) default '',
+  TENANT_ID_ varchar(191) default '',
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RU_TASK (
   ID_ varchar(64),
@@ -1407,19 +1579,23 @@ create table ACT_RU_TASK (
   TENANT_ID_ varchar(255) default '',
   FORM_KEY_ varchar(255),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RU_IDENTITYLINK (
   ID_ varchar(64),
   REV_ integer,
-  GROUP_ID_ varchar(255),
+  GROUP_ID_ varchar(191),
   TYPE_ varchar(255),
-  USER_ID_ varchar(255),
+  USER_ID_ varchar(191),
   TASK_ID_ varchar(64),
   PROC_INST_ID_ varchar(64),
   PROC_DEF_ID_ varchar(64),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RU_VARIABLE (
   ID_ varchar(64) not null,
@@ -1435,7 +1611,9 @@ create table ACT_RU_VARIABLE (
   TEXT_ varchar(4000),
   TEXT2_ varchar(4000),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_RU_EVENT_SUBSCR (
   ID_ varchar(64) not null,
@@ -1445,12 +1623,14 @@ create table ACT_RU_EVENT_SUBSCR (
   EXECUTION_ID_ varchar(64),
   PROC_INST_ID_ varchar(64),
   ACTIVITY_ID_ varchar(64),
-  CONFIGURATION_ varchar(255),
+  CONFIGURATION_ varchar(191),
   CREATED_ timestamp(3) not null DEFAULT CURRENT_TIMESTAMP(3),
   PROC_DEF_ID_ varchar(64),
   TENANT_ID_ varchar(255) default '',
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_EVT_LOG (
   LOG_NR_ bigint auto_increment,
@@ -1466,7 +1646,9 @@ create table ACT_EVT_LOG (
   LOCK_TIME_ timestamp(3) null,
   IS_PROCESSED_ tinyint default 0,
   primary key (LOG_NR_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_PROCDEF_INFO (
   ID_ varchar(64) not null,
@@ -1474,7 +1656,9 @@ create table ACT_PROCDEF_INFO (
   REV_ integer,
   INFO_JSON_ID_ varchar(64),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create index ACT_IDX_EXEC_BUSKEY on ACT_RU_EXECUTION(BUSINESS_KEY_);
 create index ACT_IDX_TASK_CREATE on ACT_RU_TASK(CREATE_TIME_);
@@ -1601,7 +1785,7 @@ unique (PROC_DEF_ID_);
 create table ACT_HI_PROCINST (
   ID_ varchar(64) not null,
   PROC_INST_ID_ varchar(64) not null,
-  BUSINESS_KEY_ varchar(255),
+  BUSINESS_KEY_ varchar(191),
   PROC_DEF_ID_ varchar(64) not null,
   START_TIME_ datetime(3) not null,
   END_TIME_ datetime(3),
@@ -1615,14 +1799,16 @@ create table ACT_HI_PROCINST (
   NAME_ varchar(255),
   primary key (ID_),
   unique (PROC_INST_ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_ACTINST (
   ID_ varchar(64) not null,
   PROC_DEF_ID_ varchar(64) not null,
   PROC_INST_ID_ varchar(64) not null,
   EXECUTION_ID_ varchar(64) not null,
-  ACT_ID_ varchar(255) not null,
+  ACT_ID_ varchar(191) not null,
   TASK_ID_ varchar(64),
   CALL_PROC_INST_ID_ varchar(64),
   ACT_NAME_ varchar(255),
@@ -1633,7 +1819,9 @@ create table ACT_HI_ACTINST (
   DURATION_ bigint,
   TENANT_ID_ varchar(255) default '',
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_TASKINST (
   ID_ varchar(64) not null,
@@ -1657,14 +1845,16 @@ create table ACT_HI_TASKINST (
   CATEGORY_ varchar(255),
   TENANT_ID_ varchar(255) default '',
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_VARINST (
   ID_ varchar(64) not null,
   PROC_INST_ID_ varchar(64),
   EXECUTION_ID_ varchar(64),
   TASK_ID_ varchar(64),
-  NAME_ varchar(255) not null,
+  NAME_ varchar(191) not null,
   VAR_TYPE_ varchar(100),
   REV_ integer,
   BYTEARRAY_ID_ varchar(64),
@@ -1675,7 +1865,9 @@ create table ACT_HI_VARINST (
   CREATE_TIME_ datetime(3),
   LAST_UPDATED_TIME_ datetime(3),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_DETAIL (
   ID_ varchar(64) not null,
@@ -1684,7 +1876,7 @@ create table ACT_HI_DETAIL (
   EXECUTION_ID_ varchar(64),
   TASK_ID_ varchar(64),
   ACT_INST_ID_ varchar(64),
-  NAME_ varchar(255) not null,
+  NAME_ varchar(191) not null,
   VAR_TYPE_ varchar(255),
   REV_ integer,
   TIME_ datetime(3) not null,
@@ -1694,7 +1886,9 @@ create table ACT_HI_DETAIL (
   TEXT_ varchar(4000),
   TEXT2_ varchar(4000),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_COMMENT (
   ID_ varchar(64) not null,
@@ -1707,7 +1901,9 @@ create table ACT_HI_COMMENT (
   MESSAGE_ varchar(4000),
   FULL_MSG_ LONGBLOB,
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_ATTACHMENT (
   ID_ varchar(64) not null,
@@ -1722,17 +1918,21 @@ create table ACT_HI_ATTACHMENT (
   CONTENT_ID_ varchar(64),
   TIME_ datetime(3),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_HI_IDENTITYLINK (
   ID_ varchar(64),
   GROUP_ID_ varchar(255),
   TYPE_ varchar(255),
-  USER_ID_ varchar(255),
+  USER_ID_ varchar(191),
   TASK_ID_ varchar(64),
   PROC_INST_ID_ varchar(64),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 
 create index ACT_IDX_HI_PRO_INST_END on ACT_HI_PROCINST(END_TIME_);
@@ -1760,13 +1960,17 @@ create table ACT_ID_GROUP (
   NAME_ varchar(255),
   TYPE_ varchar(255),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_ID_MEMBERSHIP (
   USER_ID_ varchar(64),
   GROUP_ID_ varchar(64),
   primary key (USER_ID_, GROUP_ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_ID_USER (
   ID_ varchar(64),
@@ -1777,7 +1981,9 @@ create table ACT_ID_USER (
   PWD_ varchar(255),
   PICTURE_ID_ varchar(64),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 create table ACT_ID_INFO (
   ID_ varchar(64),
@@ -1789,7 +1995,9 @@ create table ACT_ID_INFO (
   PASSWORD_ LONGBLOB,
   PARENT_ID_ varchar(255),
   primary key (ID_)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_bin;
+)   DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 alter table ACT_ID_MEMBERSHIP
   add constraint ACT_FK_MEMB_GROUP
