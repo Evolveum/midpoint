@@ -13282,6 +13282,54 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="applicablePolicies" type="tns:ApplicablePoliciesType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of policies that are applicable to this object type.
+						This should refer to all applicable policies, not just those that
+						are applied. The puspose is primarily for presentation purposes,
+						so the user inteface can present choice of all policies to the
+						user.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.8</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ApplicablePoliciesType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specification of policies that are applicable to this object type.
+				This should refer to all applicable policies, not just those that
+				are applied. The puspose is primarily for presentation purposes,
+				so the user inteface can present choice of all policies to the
+				user.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="policyGroupRef" type="tns:ObjectReferenceType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to org that acts as a policy group.
+						The org itself will be presented as a groups of policies,
+						e.g. the org displayName will be used as a label of the section
+						where individual policies are presented.
+						Any meta-roles that are members of the org will be presented as
+						policies, e.g. with a checkbox for each meta-role to apply or
+						not apply that policy.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
