@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -92,7 +93,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 	public static final File ROLE_ORG_GROUPING_FILE = new File(TEST_DIR, "role-org-grouping.xml");
 	public static final String ROLE_ORG_GROUPING_OID = "171add4c-25f4-11e8-9ea1-6f9ae2cfd841";
-	public static final String ROLE_ORG_GROUPING_NAME = "Organizational Grouping";
+	
+	public static final File ROLE_ORG_GROUPING_REPO_FILE = new File(TEST_DIR, "role-org-grouping-repo.xml");
+	public static final String ROLE_ORG_GROUPING_REPO_OID = "02bdd108-261f-11e8-ac3a-bf48bd1c4e40";
 
 	public static final File ROLE_CREW_OF_GUYBRUSH_FILE = new File(TEST_DIR, "role-crew-of-guybrush.xml");
 	public static final String ROLE_CREW_OF_GUYBRUSH_OID = "93d3e436-3c6c-11e7-8168-23796882a64e";
@@ -132,6 +135,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(ROLE_MAPMAKER_FILE);
         importObjectFromFile(ROLE_CREW_OF_GUYBRUSH_FILE);
         importObjectFromFile(ROLE_ORG_GROUPING_FILE);
+        importObjectFromFile(ROLE_ORG_GROUPING_REPO_FILE);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
@@ -1503,6 +1507,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 	
+	/**
+	 * Guybrush is assigned to a group that induces an association to a dummy group that
+	 * does not exists yet.
+	 * All the associations to groups that exist should be provisioned. The non-existed group
+	 * cannot be provisionined yet. But there should be no error.
+	 */
 	@Test
 	public void test750PrepareGuybrushFuturePerfect() throws Exception {
 		final String TEST_NAME = "test750PrepareGuybrushFuturePerfect";
@@ -1542,6 +1552,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		return ORG_GROUP_PREFIX + ou;
 	}
 	
+	/**
+	 * Create the missing group. Reconcile guybrush. Then guybrush should be associated
+	 * with the group.
+	 */
 	@Test
 	public void test752GuybrushFuturePerfect() throws Exception {
 		final String TEST_NAME = "test752GuybrushFuturePerfect";
@@ -1592,6 +1606,92 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 
+	/**
+	 * MID-4509
+	 */
+	@Test
+	public void test760GuybrushOrgGroupsRepo() throws Exception {
+		final String TEST_NAME = "test760GuybrushOrgGroupsRepo";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
+		assertAssignments(userBefore, 0);
+		assertLinks(userBefore, 0);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_REPO_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 1);
+		
+		assertGroupMember(orgGroupName(OU_CLUB_SPITTERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+		assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+		assertGroupMember(orgGroupName(OU_CLUB_SCI_FI), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+	}
+	
+	@Test
+	public void test765ReconcileGuybrush() throws Exception {
+		final String TEST_NAME = "test765ReconcileGuybrush";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyAuditService.clear();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_GUYBRUSH_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 1);
+		
+		assertGroupMember(orgGroupName(OU_CLUB_SPITTERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+		assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+		assertGroupMember(orgGroupName(OU_CLUB_SCI_FI), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+		
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+	public void test769CleanupGuybrush() throws Exception {
+		final String TEST_NAME = "test769CleanupGuybrush";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dumpUserAndAccounts(USER_GUYBRUSH_OID);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_REPO_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
+		assertAssignments(userAfter, 0);
+		assertLinks(userAfter, 0);
+		
+		assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
 	/**
 	 * MID-4021
 	 */
