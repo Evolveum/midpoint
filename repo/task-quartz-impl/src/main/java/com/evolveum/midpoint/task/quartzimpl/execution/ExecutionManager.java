@@ -580,19 +580,47 @@ public class ExecutionManager {
             unscheduleTask(task, result);
             ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
             synchronizeTask((TaskQuartzImpl) task, result);
-            result.computeStatus();
+        } else {
+            // otherwise, we simply add another trigger to this task
+            addTriggerNowForTask(task, result);
+        }
+	    result.recordSuccessIfUnknown();
+    }
+
+    // experimental
+    public void scheduleWaitingTaskNow(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleWaitingTaskNow");
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+            String message = "Task " + task + " cannot be scheduled as waiting task, because it is not in WAITING state.";
+            result.recordFatalError(message);
+            LOGGER.error(message);
             return;
         }
 
-        // otherwise, we simply add another trigger to this task
+        try {
+            if (!quartzScheduler.checkExists(TaskQuartzImplUtil.createJobKeyForTask(task))) {
+                quartzScheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
+            }
+	        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, parentResult);
+        } catch (SchedulerException | ObjectNotFoundException | SchemaException e) {
+            String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
+            result.recordFatalError(message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            return;
+        }
+	    addTriggerNowForTask(task, result);
+        result.recordSuccessIfUnknown();
+    }
+
+    private void addTriggerNowForTask(Task task, OperationResult result) {
         Trigger now = TaskQuartzImplUtil.createTriggerNowForTask(task);
         try {
             quartzScheduler.scheduleJob(now);
-            result.recordSuccess();
         } catch (SchedulerException e) {
             String message = "Task " + task + " cannot be scheduled: " + e.getMessage();
             result.recordFatalError(message, e);
-            LOGGER.error(message);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
         }
     }
 

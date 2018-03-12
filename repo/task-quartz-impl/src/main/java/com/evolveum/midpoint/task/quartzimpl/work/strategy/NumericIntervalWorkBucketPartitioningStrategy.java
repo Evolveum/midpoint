@@ -90,7 +90,7 @@ public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucke
 		} else {
 			newContent = new NumericIntervalWorkBucketContentType()
 					.from(from)
-					.to(bucketSize);
+					.to(from.add(bucketSize));
 		}
 		return singletonList(newContent);
 	}

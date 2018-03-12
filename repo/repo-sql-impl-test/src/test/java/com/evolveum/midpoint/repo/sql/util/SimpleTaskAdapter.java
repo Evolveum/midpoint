@@ -613,6 +613,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public void pushWaitForTasksHandlerUri() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
@@ -882,6 +887,16 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public TaskWorkStateType getWorkState() {
+        return null;
+    }
+
+    @Override
+    public TaskUnpauseActionType getUnpauseAction() {
+        return null;
+    }
+
+    @Override
+    public TaskExecutionStatusType getStateBeforeSuspend() {
         return null;
     }
 }

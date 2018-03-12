@@ -458,7 +458,18 @@ public interface TaskManager {
      */
     void resumeTasks(Collection<String> taskOids, OperationResult parentResult);
 
-    /**
+	boolean suspendTaskTree(String coordinatorOid, long waitTime, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException;
+
+	void resumeTaskTree(String coordinatorOid, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException;
+
+	/**
+	 * TODO is this method really necessary?
+	 */
+	void scheduleCoordinatorAndWorkersNow(String coordinatorOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+
+	/**
      * Puts a runnable/running task into WAITING state.
      *
      * @param task a runnable/running task

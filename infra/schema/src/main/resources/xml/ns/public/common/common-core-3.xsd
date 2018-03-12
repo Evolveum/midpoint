@@ -1992,6 +1992,30 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="unpauseAction" type="tns:TaskUnpauseActionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What to do after task is unpaused (i.e. stopped waiting)?
+								The default for single-run tasks is executeImmediately (mainly for backwards compatibility
+								reasons); the default for recurring tasks is reschedule. It is expected that this item is
+								set by the code that puts the task into waiting state.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.8</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stateBeforeSuspend" type="tns:TaskExecutionStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What was the task state before it was suspended? It could be either runnable or waiting.
+								This is important because we want to restore the correct state on resume.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.8</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="node" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2572,8 +2596,11 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The task is waiting for a workflow process (that it monitors/shadows) to be finished.
+						DEPRECATED. DO NOT USE.
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.8</a:deprecatedSince>
                         <jaxb:typesafeEnumMember name="WORKFLOW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2585,6 +2612,51 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OTHER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TaskUnpauseActionType">
+        <xsd:annotation>
+			<xsd:documentation>
+				What to do after task is unpaused (i.e. stopped waiting)?
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="executeImmediately">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execute current handler immediately (if there is any). This is the default for single-run tasks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE_IMMEDIATELY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reschedule">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Execute current handler (if there is any) on next scheduled time. This is the default for recurring tasks.
+						For single-run tasks this means the task is closed, as there is no next scheduled time.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESCHEDULE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="close">
+                <xsd:annotation>
+                    <xsd:documentation>
+						The task will be closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

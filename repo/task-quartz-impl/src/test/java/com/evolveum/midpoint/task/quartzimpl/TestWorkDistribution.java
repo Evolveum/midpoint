@@ -168,10 +168,6 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 	    suspendAndDeleteTasks(standalone.getOid());
     }
 
-	private void suspendAndDeleteTasks(String... oids) {
-		taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
-	}
-
 	@Test
     public void test110AllocateTwoBucketsStandalone() throws Exception {
         final String TEST_NAME = "test110AllocateTwoBucketsStandalone";
@@ -794,51 +790,6 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 			return total;
 		} catch (Throwable t) {
 			throw new AssertionError("Unexpected exception", t);
-		}
-	}
-
-	private void sleepChecked(long delay) {
-		try {
-			Thread.sleep(delay);
-		} catch (InterruptedException e) {
-			// nothing to do here
-		}
-	}
-
-	private void assertTotalSuccessCount(int expectedCount, Collection<? extends Task> workers) {
-		int total = 0;
-		for (Task worker : workers) {
-			total += worker.getStoredOperationStats().getIterativeTaskInformation().getTotalSuccessCount();
-		}
-		assertEquals("Wrong total success count", expectedCount, total);
-	}
-
-	protected void assertNoWorkBuckets(TaskWorkStateType ws) {
-		assertTrue(ws == null || ws.getBucket().isEmpty());
-	}
-
-	private void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, int start, int end) {
-		AbstractWorkBucketContentType content = bucket.getContent();
-		assertEquals("Wrong bucket content class", NumericIntervalWorkBucketContentType.class, content.getClass());
-		NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
-		if (state != null) {
-			assertEquals("Wrong bucket state", state, bucket.getState());
-		}
-		assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
-		assertEquals("Wrong bucket start", BigInteger.valueOf(start), numContent.getFrom());
-		assertEquals("Wrong bucket end", BigInteger.valueOf(end), numContent.getTo());
-	}
-
-	private void assertOptimizedCompletedBuckets(TaskQuartzImpl task) {
-		if (task.getWorkState() == null) {
-			return;
-		}
-		long completed = task.getWorkState().getBucket().stream()
-				.filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
-				.count();
-		if (completed > 1) {
-			display("Task with more than one completed bucket", task);
-			fail("More than one completed bucket found in task: " + completed + " in " + task);
 		}
 	}
 }

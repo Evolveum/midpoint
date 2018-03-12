@@ -34,6 +34,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -127,8 +128,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private static final String DOT_INTERFACE = TaskManager.class.getName() + ".";
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
-    private static final String OPERATION_SUSPEND_TASKS = DOT_INTERFACE + "suspendTasks";
-    private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_INTERFACE + "deactivateServiceThreads";
     private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
 
     // instances of all the helper classes (see their definitions for their description)
@@ -369,7 +368,96 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return suspendTasksResolved(resolveTaskOids(taskOids, parentResult), waitForStop, parentResult);
     }
 
-    public boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, OperationResult parentResult) {
+    @Override
+    public boolean suspendTaskTree(String rootTaskOid, long waitTime, OperationResult parentResult)
+		    throws SchemaException, ObjectNotFoundException {
+	    OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTaskTree");
+	    result.addParam("rootTaskOid", rootTaskOid);
+	    result.addParam("waitTime", waitTime);
+
+	    try {
+		    TaskQuartzImpl root = getTask(rootTaskOid, result);
+		    List<Task> subtasks = root.listSubtasksDeeply(parentResult);
+		    List<String> oidsToSuspend = new ArrayList<>(subtasks.size() + 1);
+		    oidsToSuspend.add(rootTaskOid);
+		    for (Task subtask : subtasks) {
+			    oidsToSuspend.add(subtask.getOid());
+		    }
+		    return suspendTasks(oidsToSuspend, waitTime, result);
+	    } catch (Throwable t) {
+	    	result.recordFatalError("Couldn't suspend task tree", t);
+	    	throw t;
+	    } finally {
+	    	result.computeStatusIfUnknown();
+	    }
+    }
+
+    @Override
+    public void resumeTaskTree(String rootTaskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	    OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTaskTree");
+	    result.addParam("rootTaskOid", rootTaskOid);
+
+	    try {
+		    TaskQuartzImpl root = getTask(rootTaskOid, result);
+		    List<Task> subtasks = root.listSubtasks(parentResult);
+		    List<String> oidsToResume = new ArrayList<>(subtasks.size() + 1);
+		    if (root.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+			    oidsToResume.add(rootTaskOid);
+		    }
+		    for (Task subtask : subtasks) {
+			    if (subtask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+				    oidsToResume.add(subtask.getOid());
+			    }
+		    }
+		    resumeTasks(oidsToResume, result);
+	    } catch (Throwable t) {
+	    	result.recordFatalError("Couldn't resume task tree", t);
+	    	throw t;
+	    } finally {
+	    	result.computeStatusIfUnknown();
+	    }
+    }
+
+	@Override
+	public void scheduleCoordinatorAndWorkersNow(String coordinatorOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "scheduleCoordinatorAndWorkersNow");
+		result.addParam("coordinatorOid", coordinatorOid);
+		try {
+			TaskQuartzImpl coordinatorTask = getTask(coordinatorOid, result);
+			TaskExecutionStatus status = coordinatorTask.getExecutionStatus();
+			switch (status) {
+				case CLOSED:
+				case RUNNABLE:
+					// hoping that the task handler will do what is needed (i.e. recreate or restart workers)
+					scheduleTaskNow(coordinatorTask, result);
+					break;
+				case WAITING:
+					// this means that workers are either busy (runnable) or are suspended; administrator should do something with that
+					String msg1 =
+							"Coordinator " + coordinatorTask + " cannot be run now, because it is in WAITING state. " +
+									"Please check and resolve state of its worker tasks.";
+					LOGGER.error(msg1);
+					result.recordFatalError(msg1);
+					break;
+				case SUSPENDED:
+					String msg2 =
+							"Coordinator " + coordinatorTask + " cannot be run now, because it is in SUSPENDED state. " +
+									"Please use appropriate method to schedule its execution.";
+					LOGGER.error(msg2);
+					result.recordFatalError(msg2);
+					break;
+				default:
+					throw new IllegalStateException("Coordinator " + coordinatorTask + " is in unsupported state: " + status);
+			}
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't resume coordinator and its workers", t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	public boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTasks");
         result.addArbitraryObjectCollectionAsParam("tasks", tasks);
@@ -383,15 +471,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 // this should not occur; so we can treat it in such a brutal way
                 throw new IllegalArgumentException("Only persistent tasks can be suspended (for now); task " + task + " is transient.");
             } else {
-                try {
-                    ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.SUSPENDED, result);
-                } catch (ObjectNotFoundException e) {
-                    String message = "Cannot suspend task because it does not exist; task = " + task;
-                    LoggingUtils.logException(LOGGER, message, e);
-                } catch (SchemaException e) {
-                    String message = "Cannot suspend task because of schema exception; task = " + task;
-                    LoggingUtils.logUnexpectedException(LOGGER, message, e);
-                }
+            	if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+		            try {
+			            List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+					            .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
+					            .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionStatus().toTaskType())
+					            .asItemDeltas();
+			            ((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
+		            } catch (ObjectNotFoundException e) {
+			            String message = "Cannot suspend task because it does not exist; task = " + task;
+			            LoggingUtils.logException(LOGGER, message, e);
+		            } catch (SchemaException | ObjectAlreadyExistsException e) {
+			            String message = "Cannot suspend task because of an unexpected exception; task = " + task;
+			            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+		            }
+	            }
 
                 executionManager.pauseTaskJob(task, result);
                 // even if this will not succeed, by setting the execution status to SUSPENDED we hope the task
@@ -468,10 +562,50 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             result.recordFatalError(message);
             return;
         }
-        resumeOrUnpauseTask(task, result);
+        if (task.getHandlerUri() == null) {
+		    LOGGER.trace("No handler in task being unpaused - closing it: {}", task);
+		    closeTask(task, result);
+	        result.computeStatusIfUnknown();
+	        return;
+	    }
+
+	    TaskUnpauseActionType action = getUnpauseAction(task);
+        switch (action) {
+        	case EXECUTE_IMMEDIATELY:
+		        LOGGER.trace("Unpausing task using 'executeImmediately' action (scheduling it now): {}", task);
+		        scheduleTaskNow(task, result);
+		        break;
+	        case RESCHEDULE:
+		        if (task.isCycle()) {
+			        LOGGER.trace("Unpausing recurring task using 'reschedule' action (making it runnable): {}", task);
+			        makeTaskRunnable(task, result);
+		        } else {
+			        LOGGER.trace("Unpausing task using 'reschedule' action (closing it, because the task is single-run): {}", task);
+			        closeTask(task, result);
+		        }
+		        break;
+	        case CLOSE:
+		        LOGGER.trace("Unpausing task using 'close' action: {}", task);
+		        closeTask(task, result);
+		        break;
+	        default:
+		        throw new IllegalStateException("Unsupported unpause action: " + action);
+        }
+	    result.computeStatusIfUnknown();
     }
 
-    @Override
+    @NotNull
+	private TaskUnpauseActionType getUnpauseAction(Task task) {
+		if (task.getUnpauseAction() != null) {
+			return task.getUnpauseAction();
+		} else if (task.isSingle()) {
+			return TaskUnpauseActionType.EXECUTE_IMMEDIATELY;
+		} else {
+			return TaskUnpauseActionType.RESCHEDULE;
+		}
+	}
+
+	@Override
     public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTasks");
         for (String oid : taskOids) {
@@ -487,43 +621,63 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException {
+    public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTask");
         result.addArbitraryObjectAsParam("task", task);
+        try {
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED &&
-                !(task.getExecutionStatus() == TaskExecutionStatus.CLOSED && task.isCycle())) {
-            String message = "Attempted to resume a task that is not in the SUSPENDED state (or CLOSED for recurring tasks) (task = " + task + ", state = " + task.getExecutionStatus();
-            LOGGER.error(message);
-            result.recordFatalError(message);
-            return;
+	        if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED &&
+			        !(task.getExecutionStatus() == TaskExecutionStatus.CLOSED && task.isCycle())) {
+		        String message =
+				        "Attempted to resume a task that is not in the SUSPENDED state (or CLOSED for recurring tasks) (task = "
+						        + task + ", state = " + task.getExecutionStatus();
+		        LOGGER.error(message);
+		        result.recordFatalError(message);
+		        return;
+	        }
+	        clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
+	        if (task.getStateBeforeSuspend() == TaskExecutionStatusType.WAITING) {
+		        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.WAITING)
+				        .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
+				        .asItemDeltas();
+		        ((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
+	        } else {
+		        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.RUNNABLE)
+				        .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
+				        .asItemDeltas();
+		        ((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
+		        executionManager.synchronizeTask((TaskQuartzImpl) task, result);
+	        }
+        } catch (ObjectAlreadyExistsException t) {
+        	result.recordFatalError("Couldn't resume task: " + t.getMessage(), t);
+        	throw new IllegalStateException("Unexpected exception while resuming task " + task + ": " + t.getMessage(), t);
+        } catch (Throwable t) {
+        	result.recordFatalError("Couldn't resume task: " + t.getMessage(), t);
+        	throw t;
+        } finally {
+        	result.computeStatusIfUnknown();
         }
-        clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
-        resumeOrUnpauseTask(task, result);
     }
 
-    private void resumeOrUnpauseTask(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void makeTaskRunnable(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 
         try {
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);
         } catch (ObjectNotFoundException e) {
-            String message = "A task cannot be resumed/unpaused, because it does not exist; task = " + task;
+            String message = "A task cannot be made runnable, because it does not exist; task = " + task;
             LoggingUtils.logException(LOGGER, message, e);
             throw e;
         } catch (SchemaException e) {
-            String message = "A task cannot be resumed/unpaused due to schema exception; task = " + task;
+            String message = "A task cannot be made runnable due to schema exception; task = " + task;
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             throw e;
         }
 
         // make the trigger as it should be
         executionManager.synchronizeTask((TaskQuartzImpl) task, result);
-
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
     }
     //endregion
 
@@ -711,7 +865,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "modifyTask");
         try {
 		    repositoryService.modifyObject(TaskType.class, oid, modifications, result);
-            TaskQuartzImpl task = (TaskQuartzImpl) getTask(oid, result);
+            TaskQuartzImpl task = getTask(oid, result);
             task.setRecreateQuartzTrigger(true);
             synchronizeTaskWithQuartz(task, result);
         } finally {
@@ -940,12 +1094,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             if (TaskType.class.isAssignableFrom(type)) {
                 GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
                 if (GetOperationOptions.isRaw(rootOptions)) {
-                    return (PrismObject<T>) repositoryService.getObject(TaskType.class, oid, options, result);
+	                //noinspection unchecked
+	                return (PrismObject<T>) repositoryService.getObject(TaskType.class, oid, options, result);
                 } else {
-                    return (PrismObject<T>) getTaskAsObject(oid, options, result);
+	                //noinspection unchecked
+	                return (PrismObject<T>) getTaskAsObject(oid, options, result);
                 }
             } else if (NodeType.class.isAssignableFrom(type)) {
-                return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);      // TODO add transient attributes just like in searchObject
+	            //noinspection unchecked
+	            return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);      // TODO add transient attributes just like in searchObject
             } else {
                 throw new IllegalArgumentException("Unsupported object type: " + type);
             }
@@ -973,7 +1130,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return task.getTaskPrismObject();
     }
 
-    private void fillOperationExecutionState(Task task0) throws SchemaException {
+    private void fillOperationExecutionState(Task task0) {
         TaskQuartzImpl task = (TaskQuartzImpl) task0;
 
         if (task.getTaskIdentifier() == null) {
@@ -1089,9 +1246,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         if (TaskType.class.isAssignableFrom(type)) {
-            return (SearchResultList<PrismObject<T>>) (SearchResultList) searchTasks(query, options, result);       // todo replace cast to <List> after change to java7
+	        //noinspection unchecked
+	        return (SearchResultList<PrismObject<T>>) (SearchResultList) searchTasks(query, options, result);
         } else if (NodeType.class.isAssignableFrom(type)) {
-            return (SearchResultList<PrismObject<T>>) (SearchResultList) searchNodes(query, options, result);
+	        //noinspection unchecked
+	        return (SearchResultList<PrismObject<T>>) (SearchResultList) searchNodes(query, options, result);
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
@@ -1109,9 +1268,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         SearchResultList<PrismObject<T>> objects;
         if (TaskType.class.isAssignableFrom(type)) {
-        	objects = (SearchResultList<PrismObject<T>>) (SearchResultList) searchTasks(query, options, result);       // todo replace cast to <List> after change to java7
+	        //noinspection unchecked
+	        objects = (SearchResultList<PrismObject<T>>) (SearchResultList) searchTasks(query, options, result);
         } else if (NodeType.class.isAssignableFrom(type)) {
-        	objects = (SearchResultList<PrismObject<T>>) (SearchResultList) searchNodes(query, options, result);
+	        //noinspection unchecked
+	        objects = (SearchResultList<PrismObject<T>>) (SearchResultList) searchNodes(query, options, result);
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
@@ -1355,7 +1516,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         TaskQuartzImpl task;
         try {
-            task = (TaskQuartzImpl) getTask(oid, result);
+            task = getTask(oid, result);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Quartz shadow job cannot be created, because task in repository was not found; oid = {}", e, oid);
             result.computeStatus();
@@ -1535,7 +1696,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException {
+    public Set<Task> getLocallyRunningTasks(OperationResult parentResult) {
         return executionManager.getLocallyRunningTasks(parentResult);
     }
 
@@ -1574,42 +1735,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.computeStatus();
     }
 
-//    @Override
-//    public boolean stopSchedulerAndTasks(String nodeIdentifier, long timeToWait) {
-//        return executionManager.stopSchedulerAndTasks(nodeIdentifier, timeToWait);
-//    }
-
     @Override
     public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long timeToWait, OperationResult result) {
         return executionManager.stopSchedulersAndTasks(nodeIdentifiers, timeToWait, result);
     }
-
-//    @Override
-//    public boolean isTaskThreadActiveClusterwide(String oid, OperationResult parentResult) {
-//        return executionManager.isTaskThreadActiveClusterwide(oid);
-//    }
-
-    private long lastRunningTasksClusterwideQuery = 0;
-    private ClusterStatusInformation lastClusterStatusInformation = null;
-
-//    public ClusterStatusInformation getRunningTasksClusterwide(OperationResult parentResult) {
-//        lastClusterStatusInformation = executionManager.getClusterStatusInformation(true, parentResult);
-//        lastRunningTasksClusterwideQuery = System.currentTimeMillis();
-//        return lastClusterStatusInformation;
-//    }
-
-//    public ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult) {
-//        long age = System.currentTimeMillis() - lastRunningTasksClusterwideQuery;
-//        if (lastClusterStatusInformation != null && age < allowedAge) {
-//            LOGGER.trace("Using cached ClusterStatusInformation, age = " + age);
-//            parentResult.recordSuccess();
-//            return lastClusterStatusInformation;
-//        } else {
-//            LOGGER.trace("Cached ClusterStatusInformation too old, age = " + age);
-//            return getRunningTasksClusterwide(parentResult);
-//        }
-//
-//    }
 
     @Override
     public boolean isCurrentNode(PrismObject<NodeType> node) {
@@ -1634,6 +1763,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
             clearTaskOperationResult(task, parentResult);
             scheduleRunnableTaskNow(task, parentResult);
+        } else if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+	        clearTaskOperationResult(task, parentResult);
+	        scheduleWaitingTaskNow(task, parentResult);
         } else {
             String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state. State is " + task.getExecutionStatus();
             parentResult.createSubresult(DOT_INTERFACE + "scheduleTaskNow").recordFatalError(message);
@@ -1649,6 +1781,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
         executionManager.scheduleRunnableTaskNow(task, parentResult);
+    }
+
+    public void scheduleWaitingTaskNow(Task task, OperationResult parentResult) {
+        executionManager.scheduleWaitingTaskNow(task, parentResult);
     }
 
     @Override

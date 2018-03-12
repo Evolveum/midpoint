@@ -33,8 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
@@ -43,8 +42,13 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collection;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -161,7 +165,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		}
 	}
 
-	protected void waitForTaskClose(String taskOid, OperationResult result, int timeoutInterval, int sleepInterval) throws
+	protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
 			CommonException {
 	    waitFor("Waiting for task manager to execute the task", () -> {
 	        Task task = taskManager.getTask(taskOid, result);
@@ -170,7 +174,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	    }, timeoutInterval, sleepInterval);
 	}
 
-	protected void waitForTaskStart(String oid, OperationResult result, int timeoutInterval, int sleepInterval) throws CommonException {
+	protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
 			waitFor("Waiting for task manager to start the task", () -> {
 				Task task = taskManager.getTask(oid, result);
 				IntegrationTestTools.display("Task while waiting for task manager to start the task", task);
@@ -178,12 +182,72 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 			}, timeoutInterval, sleepInterval);
 		}
 
-	protected void waitForTaskProgress(String taskOid, OperationResult result, int timeoutInterval, int sleepInterval,
+	protected void waitForTaskProgress(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
 	        int threshold) throws CommonException {
 	    waitFor("Waiting for task manager to execute the task", () -> {
 	        Task task = taskManager.getTask(taskOid, result);
 	        IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
 	        return task.getProgress() >= threshold;
 	    }, timeoutInterval, sleepInterval);
+	}
+
+	protected void waitForTaskNextRun(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws Exception {
+		TaskQuartzImpl taskBefore = taskManager.getTask(taskOid, result);
+		waitFor("Waiting for task manager to execute the task", () -> {
+			Task task = taskManager.getTask(taskOid, result);
+			IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+			return task.getLastRunStartTimestamp() != null &&
+					(taskBefore.getLastRunStartTimestamp() == null || task.getLastRunStartTimestamp() > taskBefore.getLastRunStartTimestamp());
+		}, timeoutInterval, sleepInterval);
+	}
+
+
+	protected void suspendAndDeleteTasks(String... oids) {
+		taskManager.suspendAndDeleteTasks(Arrays.asList(oids), 20000L, true, new OperationResult("dummy"));
+	}
+
+	protected void sleepChecked(long delay) {
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+			// nothing to do here
+		}
+	}
+
+	protected void assertTotalSuccessCount(int expectedCount, Collection<? extends Task> workers) {
+		int total = 0;
+		for (Task worker : workers) {
+			total += worker.getStoredOperationStats().getIterativeTaskInformation().getTotalSuccessCount();
+		}
+		assertEquals("Wrong total success count", expectedCount, total);
+	}
+
+	protected void assertNoWorkBuckets(TaskWorkStateType ws) {
+		assertTrue(ws == null || ws.getBucket().isEmpty());
+	}
+
+	protected void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, int start, int end) {
+		AbstractWorkBucketContentType content = bucket.getContent();
+		assertEquals("Wrong bucket content class", NumericIntervalWorkBucketContentType.class, content.getClass());
+		NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
+		if (state != null) {
+			assertEquals("Wrong bucket state", state, bucket.getState());
+		}
+		assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
+		assertEquals("Wrong bucket start", BigInteger.valueOf(start), numContent.getFrom());
+		assertEquals("Wrong bucket end", BigInteger.valueOf(end), numContent.getTo());
+	}
+
+	protected void assertOptimizedCompletedBuckets(TaskQuartzImpl task) {
+		if (task.getWorkState() == null) {
+			return;
+		}
+		long completed = task.getWorkState().getBucket().stream()
+				.filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
+				.count();
+		if (completed > 1) {
+			display("Task with more than one completed bucket", task);
+			fail("More than one completed bucket found in task: " + completed + " in " + task);
+		}
 	}
 }

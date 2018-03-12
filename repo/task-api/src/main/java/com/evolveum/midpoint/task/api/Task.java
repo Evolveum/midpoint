@@ -170,6 +170,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void makeWaiting(TaskWaitingReason reason);
 
+    void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction);
+
     /**
      * Status-changing method. It changes task's execution status to RUNNABLE.
      * Currently use ONLY on transient tasks.
@@ -1032,4 +1034,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	TaskWorkStateConfigurationType getWorkStateConfiguration();
 
 	TaskWorkStateType getWorkState();
+
+	TaskUnpauseActionType getUnpauseAction();
+
+	TaskExecutionStatusType getStateBeforeSuspend();
 }

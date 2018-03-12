@@ -77,6 +77,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		
 		OperationResult opResult = new OperationResult(WorkersCreationTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
+		runResult.setProgress(task.getProgress());
 		runResult.setOperationResult(opResult);
 
 		try {
@@ -95,10 +96,10 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 			if (deleteWorkersAndBuckets(workers, task, opResult, runResult)) {
 				return runResult;
 			}
-			if (createWorkers(task, opResult, runResult)) {
+			if (createWorkers(task, opResult)) {
 				return runResult;
 			}
-			task.makeWaiting(TaskWaitingReason.OTHER_TASKS);
+			task.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
 			task.savePendingModifications(opResult);
 			LOGGER.info("Worker tasks were successfully created for coordinator {}", task);
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
@@ -107,14 +108,14 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
 		}
-
+		runResult.setProgress(runResult.getProgress() + 1);
 		opResult.computeStatusIfUnknown();
 		runResult.setRunResultStatus(TaskRunResultStatus.IS_WAITING);
 		return runResult;
 	}
 
 	// returns true if there's a problem
-	private boolean createWorkers(Task task, OperationResult opResult, TaskRunResult runResult)
+	private boolean createWorkers(Task task, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException {
 		TaskWorkStateConfigurationType wsCfg = task.getWorkStateConfiguration();
 		if (wsCfg == null || wsCfg.getTaskKind() != WorkStateManagementTaskKindType.COORDINATOR) {
@@ -128,7 +129,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 			for (String nodeIdentifier : getNodeIdentifiers(perNodeConfig, opResult)) {
 				int count = defaultIfNull(perNodeConfig.getCount(), 1);
 				for (int index = 1; index <= count; index++) {
-					createWorker(nodeIdentifier, index, perNodeConfig, workersCfg, task, opResult, runResult);
+					createWorker(nodeIdentifier, index, perNodeConfig, workersCfg, task, opResult);
 				}
 			}
 		}
@@ -136,7 +137,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	private void createWorker(String nodeIdentifier, int index, WorkerTasksPerNodeConfigurationType perNodeConfig,
-			WorkerTasksConfigurationType workersCfg, Task coordinatorTask, OperationResult opResult, TaskRunResult runResult)
+			WorkerTasksConfigurationType workersCfg, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException {
 		Map<String, String> replacements = new HashMap<>();
 		replacements.put("node", nodeIdentifier);
@@ -212,7 +213,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		for (Task worker : workers) {
 			try {
 				List<Task> workerSubtasks = worker.listSubtasks(opResult);
-				if (workerSubtasks.isEmpty()) {
+				if (!workerSubtasks.isEmpty()) {
 					LOGGER.warn("Couldn't recreate worker task {} because it has its own subtasks: {}", worker, workerSubtasks);
 					opResult.recordFatalError("Couldn't recreate worker task " + worker + " because it has its own subtasks: " + workerSubtasks);
 					runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);

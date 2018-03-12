@@ -27,7 +27,7 @@
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30017</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>waiting</executionStatus>
-    <waitingReason>workflow</waitingReason>
+    <waitingReason>other</waitingReason>
 
 	<recurrence>single</recurrence>
 

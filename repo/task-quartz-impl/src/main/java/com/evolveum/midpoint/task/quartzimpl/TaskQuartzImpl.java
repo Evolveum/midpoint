@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -922,19 +923,8 @@ public class TaskQuartzImpl implements Task {
 				return;
 			}
 		}
-
-		// this could be a bit tricky, taking MID-1683 into account:
-		// when a task finishes its execution, we now leave the last handler set
-		// however, this applies to executable tasks; for WAITING tasks we can safely expect that if there is a handler
-		// on the stack, we can run it (by unpausing the task)
-		if (getHandlerUri() != null) {
-			LOGGER.trace("All dependencies of {} are closed, unpausing the task (it has a handler defined)", this);
-			taskManager.unpauseTask(this, result);
-		} else {
-			LOGGER.trace("All dependencies of {} are closed, closing the task (it has no handler defined).", this);
-			taskManager.closeTask(this, result);
-		}
-
+		LOGGER.trace("All dependencies of {} are closed, unpausing the task", this);
+		taskManager.unpauseTask(this, result);
 	}
 
 	public int getHandlersCount() {
@@ -1087,6 +1077,12 @@ public class TaskQuartzImpl implements Task {
 		setWaitingReason(reason);
 	}
 
+	@Override
+	public void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction) {
+		makeWaiting(reason);
+		setUnpauseAction(unpauseAction);
+	}
+
 	public boolean isClosed() {
 		return getExecutionStatus() == TaskExecutionStatus.CLOSED;
 	}
@@ -1105,12 +1101,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	public void setWaitingReasonTransient(TaskWaitingReason value) {
-		try {
-			taskPrism.setPropertyRealValue(TaskType.F_WAITING_REASON, value.toTaskType());
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new IllegalStateException("Internal schema error: " + e.getMessage(), e);
-		}
+		taskPrism.asObjectable().setWaitingReason(value != null ? value.toTaskType() : null);
 	}
 
 	public void setWaitingReason(TaskWaitingReason value) {
@@ -1130,6 +1121,20 @@ public class TaskQuartzImpl implements Task {
 		setWaitingReasonTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_WAITING_REASON, value.toTaskType()) : null;
+	}
+
+	public void setUnpauseActionTransient(TaskUnpauseActionType value) {
+		taskPrism.asObjectable().setUnpauseAction(value);
+	}
+
+	public void setUnpauseAction(TaskUnpauseActionType value) {
+		processModificationBatched(setUnpauseActionAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setUnpauseActionAndPrepareDelta(TaskUnpauseActionType value) {
+		setUnpauseActionTransient(value);
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+				taskManager.getTaskObjectDefinition(), TaskType.F_UNPAUSE_ACTION, value) : null;
 	}
 
 	// "safe" method
@@ -3178,5 +3183,24 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public TaskWorkStateType getWorkState() {
 		return taskPrism.asObjectable().getWorkState();
+	}
+
+	@Override
+	public TaskUnpauseActionType getUnpauseAction() {
+		return taskPrism.asObjectable().getUnpauseAction();
+	}
+
+	@Override
+	public TaskExecutionStatusType getStateBeforeSuspend() {
+		return taskPrism.asObjectable().getStateBeforeSuspend();
+	}
+
+	public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		if (isPersistent()) {
+			repositoryService.modifyObject(TaskType.class, getOid(), CloneUtil.cloneCollectionMembers(itemDeltas), result);
+		}
+		ItemDelta.applyTo(itemDeltas, taskPrism);
+		synchronizeWithQuartzIfNeeded(pendingModifications, result);
 	}
 }

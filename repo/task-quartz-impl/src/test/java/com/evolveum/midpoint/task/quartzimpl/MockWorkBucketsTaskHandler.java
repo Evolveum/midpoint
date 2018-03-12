@@ -58,6 +58,8 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 	private boolean hasRun = false;
 
+	private int itemsProcessed;
+
 	private ObjectQuery defaultQuery;
 
 	private List<ObjectQuery> queriesExecuted = new ArrayList<>();
@@ -98,6 +100,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 			long start = System.currentTimeMillis();
 			task.recordIterativeOperationStart(objectName, null, ObjectType.COMPLEX_TYPE, objectOid);
 			LOGGER.info("Processing item #{}; task = {}", i, task);
+			itemsProcessed++;
 			if (processor != null) {
 				processor.process(task, workBucket, i);
 			}
@@ -182,5 +185,10 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 		defaultQuery = null;
 		queriesExecuted.clear();
 		processor = null;
+		itemsProcessed = 0;
+	}
+
+	public int getItemsProcessed() {
+		return itemsProcessed;
 	}
 }
