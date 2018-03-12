@@ -341,7 +341,7 @@ public class PrettyPrinter {
 			return out;
 		}
 		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
-		sb.append(prettyPrint(out));
+		sb.append(prettyPrint(value));
 		return sb.toString();
 	}
 	
@@ -376,6 +376,58 @@ public class PrettyPrinter {
 			}
 		}
 		return null;
+	}
+	
+	public static void shortDump(StringBuilder sb, Object value) {
+		if (value == null) {
+			sb.append("null");
+			return;
+		}
+		if (value instanceof ShortDumpable) {
+			((ShortDumpable)value).shortDump(sb);
+			return;
+		}
+		if (value instanceof Collection) {
+			DebugUtil.shortDump(sb, (Collection)value);
+			return;
+		}
+		if (tryShortDumpMethod(sb, value)) {
+			return;
+		}
+		sb.append(prettyPrint(value));
+	}
+	
+	private static boolean tryShortDumpMethod(StringBuilder sb, Object value) {
+		for (Class<?> prettyPrinterClass: prettyPrinters) {
+			if (tryShortDumpMethod(sb, value, prettyPrinterClass)) {
+				return true;
+			}
+		}
+		// Fallback to this class
+		return tryShortDumpMethod(sb, value, PrettyPrinter.class);
+	}
+
+	private static boolean tryShortDumpMethod(StringBuilder sb, Object value, Class<?> prettyPrinterClass) {
+		for (Method method : prettyPrinterClass.getMethods()) {
+			if (method.getName().equals("shortDump")) {
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (parameterTypes.length == 2 && parameterTypes[0].equals(StringBuilder.class) && parameterTypes[1].equals(value.getClass())) {
+					try {
+						method.invoke(null, sb, value);
+						return true;
+					} catch (IllegalArgumentException e) {
+						sb.append("###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; shortDump method for value "+value);
+					} catch (IllegalAccessException e) {
+						sb.append("###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; shortDump method for value "+value);
+					} catch (InvocationTargetException e) {
+						sb.append("###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; shortDump method for value "+value);
+					} catch (Throwable e) {
+						sb.append("###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; shortDump method for value "+value);
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	public static void registerPrettyPrinter(Class<?> printerClass) {

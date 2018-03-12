@@ -1072,8 +1072,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	 * Executes unassign delta by removing each assignment individually by id.
 	 */
 	protected <F extends FocusType> void unassignAll(PrismObject<F> focusBefore, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<F> focusDelta = createUnassignAllDelta(focusBefore);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
+		executeChanges(createUnassignAllDelta(focusBefore), null, task, result);
 	}
 
 	/**
@@ -1393,6 +1392,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		display("Executing delta", objectDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		return modelService.executeChanges(deltas, options, task, result);
 	}

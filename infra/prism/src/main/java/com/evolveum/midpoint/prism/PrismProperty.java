@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -512,22 +513,26 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         List<PrismPropertyValue<T>> values = getValues();
 		if (values.isEmpty()) {
 			sb.append("[]");
+			
 		} else {
 			String dump = null;
 			boolean multiline = false;
 			PrismPropertyValue<T> firstVal = values.iterator().next();
+			
 			if (firstVal != null && !firstVal.isRaw() && firstVal.getValue() != null) {
 				if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
 					multiline = true;
-				} else {
+				} else if ((firstVal.getValue() instanceof ShortDumpable)) {
+					multiline = false;
+				} else if (firstVal.getValue() instanceof DebugDumpable) {
 					dump = PrettyPrinter.debugDump(firstVal.getValue(), indent + 1);
 					if (dump.length() > MAX_SINGLELINE_LEN || dump.contains("\n")) {
 						multiline = true;
 					}
 				}
 			}
+			
 			if (multiline) {
-
 				for (PrismPropertyValue<T> value: getValues()) {
 					sb.append("\n");
 					if (value.isRaw()) {
@@ -538,20 +543,25 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 					} else {
 						if (dump != null) {
 							sb.append(dump);
+							dump = null;
 						} else {
 							T realValue = value.getValue();
-							if (realValue instanceof DebugDumpable) {
+							if (realValue instanceof ShortDumpable) {
+								((ShortDumpable)realValue).shortDump(sb);
+							} else if (realValue instanceof DebugDumpable) {
 								sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
 							} else {
 								if (DebugUtil.isDetailedDebugDump()) {
 									PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
 								} else {
-									sb.append(PrettyPrinter.debugDump(value, indent + 1));								
+									sb.append("SS{"+realValue+"}");
+									PrettyPrinter.shortDump(sb, realValue);
 								}
 							}
 						}
 					}
 				}
+				
 			} else {
 				if (isMultivalue) {
 					sb.append("[ ");
@@ -565,10 +575,11 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 					} else if (value.getExpression() != null) {
 						sb.append(" (expression)");
 					} else {
+						T realValue = value.getValue();						
 						if (DebugUtil.isDetailedDebugDump()) {
-							sb.append(PrettyPrinter.prettyPrint(value));
+							PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
 						} else {
-							PrismPrettyPrinter.debugDumpValue(sb, indent + 1, value.getValue(), prismContext, getElementName(), null);
+							PrettyPrinter.shortDump(sb, realValue);
 						}
 					}
 					if (iterator.hasNext()) {
