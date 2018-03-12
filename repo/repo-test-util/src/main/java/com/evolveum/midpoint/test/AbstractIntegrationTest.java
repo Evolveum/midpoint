@@ -1744,6 +1744,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
+		display("Operation result status", result.getStatus());
 		TestUtil.assertSuccess(result);
 	}
 
@@ -2315,5 +2316,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, GetOperationOptions.createRawCollection(), result);
 		assertSuccess(result);
 		return shadow;
+	}
+	
+	protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
+		return (Collection)MiscUtil.createCollection(deltas);
 	}
 }
