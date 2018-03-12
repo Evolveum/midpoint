@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -42,6 +43,7 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTe
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -50,6 +52,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
@@ -442,6 +445,15 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 			if (ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())) {
 				return new LockoutStatusPanel(id, getModel().getObject(),
 						new PropertyModel<LockoutStatusType>(getModel(), baseExpression));
+			}
+			if (AssignmentType.F_FOCUS_TYPE.equals(definition.getName())){
+				List<QName> typesList = WebComponentUtil.createAbstractRoleTypeList();
+				typesList.remove(AbstractRoleType.COMPLEX_TYPE);
+				DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
+						Model.ofList(typesList), new QNameObjectTypeChoiceRenderer());
+				typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+				typePanel.setOutputMarkupId(true);
+				return typePanel;
 			}
 			if (ExpressionType.COMPLEX_TYPE.equals(valueType)) {
 				//it is expected that ExpressionType property is in the
