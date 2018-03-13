@@ -444,8 +444,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
                     new PropertyModel<>(getModel(), baseExpression));
 			}
 			if (AssignmentType.F_FOCUS_TYPE.equals(definition.getName())){
-				List<QName> typesList = WebComponentUtil.createAbstractRoleTypeList();
-				typesList.remove(AbstractRoleType.COMPLEX_TYPE);
+				List<QName> typesList = WebComponentUtil.createFocusTypeList();
 				DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
 						Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
 				typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
