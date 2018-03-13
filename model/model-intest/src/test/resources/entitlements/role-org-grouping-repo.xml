@@ -27,7 +27,8 @@
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
             <association>
-            	<ref>ri:group</ref>
+            	<!-- No namespace prefix here. MID-4509 -->
+            	<ref>group</ref>
             	<outbound>
             		<strength>strong</strength>
                     <source>
