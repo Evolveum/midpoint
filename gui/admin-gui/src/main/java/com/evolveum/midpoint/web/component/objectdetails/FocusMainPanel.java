@@ -199,15 +199,15 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
+		return new FocusDetailsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
 
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusProjectionsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
+		return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
 
 	protected WebMarkupContainer createFocusAssignmentsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		assignmentsTabPanel = new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
+		assignmentsTabPanel = new FocusAssignmentsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
         return assignmentsTabPanel;
 	}
 	
@@ -280,7 +280,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusPersonasTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
+                        return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 					}
 
 				});
@@ -350,7 +350,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage);
+						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage);
 					}
 
 					@Override

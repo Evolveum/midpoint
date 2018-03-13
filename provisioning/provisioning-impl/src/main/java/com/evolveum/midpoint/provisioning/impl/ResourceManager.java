@@ -526,7 +526,7 @@ public class ResourceManager {
 
 		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(
 				ResourceType.F_SCHEMA, ResourceType.class, prismContext);
-		PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<XmlSchemaType>(prismContext);
+		PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<>(prismContext);
 		schemaContainerDelta.setValueToReplace(cval);
 		PrismProperty<CachingMetadataType> cachingMetadataProperty = cval
 				.createProperty(XmlSchemaType.F_CACHING_METADATA);
@@ -1158,7 +1158,8 @@ public class ResourceManager {
             // Probably a malformed connector. To be kind of robust, lets allow the import.
             // Mark the error ... there is nothing more to do
             objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
-            LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+            LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}-{}",
+				new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
             return;
         }
         

@@ -71,7 +71,7 @@ public class DummyTransport implements Transport, DebugDumpable {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
 
         if (!messages.containsKey(name)) {
-            messages.put(name, new ArrayList<Message>());
+            messages.put(name, new ArrayList<>());
         }
         messages.get(name).add(message);
 

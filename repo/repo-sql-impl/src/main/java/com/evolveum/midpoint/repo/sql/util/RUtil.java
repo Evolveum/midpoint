@@ -62,9 +62,11 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipException;
 
 /**
  * @author lazyman
@@ -443,13 +445,13 @@ public final class RUtil {
             if (compress) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 gzip = new GZIPOutputStream(out);
-                gzip.write(xml.getBytes("utf-8"));
+                gzip.write(xml.getBytes(StandardCharsets.UTF_8.name()));
                 gzip.close();
                 out.close();
 
                 array = out.toByteArray();
             } else {
-                array = xml.getBytes("utf-8");
+                array = xml.getBytes(StandardCharsets.UTF_8.name());
             }
         } catch (Exception ex) {
             throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
@@ -470,12 +472,18 @@ public final class RUtil {
         GZIPInputStream gzip = null;
         try {
             if (compressed) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                gzip = new GZIPInputStream(new ByteArrayInputStream(array));
-                IOUtils.copy(gzip, out);
-                xml = new String(out.toByteArray(), "utf-8");
+                try {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    gzip = new GZIPInputStream(new ByteArrayInputStream(array));
+                    IOUtils.copy(gzip, out);
+                    xml = new String(out.toByteArray(), StandardCharsets.UTF_8.name());
+                } catch (ZipException ex) {
+                    LOGGER.warn("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
+
+                    xml = new String(array, StandardCharsets.UTF_8.name());
+                }
             } else {
-                xml = new String(array, "utf-8");
+                xml = new String(array, StandardCharsets.UTF_8.name());
             }
         } catch (Exception ex) {
             throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);

@@ -81,7 +81,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         try {
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), emptyMap(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
-            LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
+            LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
             result.computeStatus();
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
         } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {

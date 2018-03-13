@@ -133,8 +133,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
 				final FocusSubwrapperDto<ShadowType> dto = item.getModelObject();
-				final PropertyModel<ObjectWrapper<ShadowType>> objectWrapperModel = new PropertyModel<ObjectWrapper<ShadowType>>(
-						item.getModel(), "object");
+				final PropertyModel<ObjectWrapper<ShadowType>> objectWrapperModel = new PropertyModel<>(
+                    item.getModel(), "object");
 
 				final Panel shadowPanel;
 
@@ -299,7 +299,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 
 	private List<InlineMenuItem> createShadowMenu() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> items = new ArrayList<>();
 
 		PrismObjectDefinition<F> def = getObjectWrapper().getObject().getDefinition();
 		PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);

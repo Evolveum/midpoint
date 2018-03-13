@@ -54,11 +54,11 @@ public class UserReportConfigPanel extends BasePanel<UserReportDto>{
 
     private void initLayout(final Component component){
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), UserReportDto.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<>(getModel(), UserReportDto.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
-        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), UserReportDto.F_DESCRIPTION),
+        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<>(getModel(), UserReportDto.F_DESCRIPTION),
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
@@ -69,11 +69,11 @@ public class UserReportConfigPanel extends BasePanel<UserReportDto>{
                 createStringResource("UserReportConfigPanel.exportFileType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(exportType);
 
-        DateFormGroup dateFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<XMLGregorianCalendar>(getModel(), UserReportDto.F_FROM_GREG),
+        DateFormGroup dateFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<>(getModel(), UserReportDto.F_FROM_GREG),
                 createStringResource("UserReportConfigPanel.dateFrom"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(dateFrom);
 
-        DateFormGroup dateTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<XMLGregorianCalendar>(getModel(), UserReportDto.F_TO_GREG),
+        DateFormGroup dateTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<>(getModel(), UserReportDto.F_TO_GREG),
                 createStringResource("UserReportConfigPanel.dateTo"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(dateTo);
     }

@@ -54,7 +54,7 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
     @Override
     protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
-        repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), new ArrayList<ItemDelta>(),
+        repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), new ArrayList<>(),
                 RepoModifyOptions.createExecuteIfNoChanges(), result);
         result.computeStatusIfUnknown();
         return true;

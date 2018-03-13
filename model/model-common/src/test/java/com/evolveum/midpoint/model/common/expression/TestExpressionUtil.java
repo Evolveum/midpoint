@@ -223,7 +223,7 @@ public class TestExpressionUtil {
 		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class,
 				userOld.getOid(), UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(),
 				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
-		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<UserType>(userOld, delta, null);
+		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null);
 		odo.recompute();
 		variables.addVariableDefinition(ExpressionConstants.VAR_USER, odo);
 		return variables;

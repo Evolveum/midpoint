@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -227,7 +226,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         labelContainer.add(hasPendingModification);
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
-                new PropertyModel<List<ValueWrapper>>(model, "values")) {
+            new PropertyModel<>(model, "values")) {
         	private static final long serialVersionUID = 1L;
 
             @Override

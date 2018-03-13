@@ -311,9 +311,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        BoxedTablePanel<NodeDto> nodeTable = new BoxedTablePanel<NodeDto>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
+        BoxedTablePanel<NodeDto> nodeTable = new BoxedTablePanel<>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
+
             @Override
             public NodeDto createNodeDto(PrismObject<NodeType> node) {
                 NodeDto dto = super.createNodeDto(node);
@@ -322,8 +323,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 return dto;
             }
         }, nodeColumns,
-                UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL,
-                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL));
+            UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL,
+            (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL));
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
@@ -403,8 +404,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private List<InlineMenuItem> createNodesInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"),
-                new Model<Boolean>(false),
-                new Model<Boolean>(false),
+            new Model<>(false),
+            new Model<>(false),
                 false,
                 new ColumnMenuAction<NodeDto>() {
 
@@ -461,8 +462,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"),
-                new Model<Boolean>(false),
-                new Model<Boolean>(false),
+            new Model<>(false),
+            new Model<>(false),
                 false,
                 new ColumnMenuAction<NodeDto>() {
 
@@ -524,7 +525,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private List<IColumn<TaskDto, String>> initTaskColumns() {
-        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
+        List<IColumn<TaskDto, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskDto>()
         {
@@ -604,7 +605,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         });
         columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
-        columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
+        columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
         columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.progress")) {
 
             @Override
@@ -733,8 +734,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"),
-                new Model<Boolean>(false),
-                new Model<Boolean>(false),
+            new Model<>(false),
+            new Model<>(false),
                 false,
                 new ColumnMenuAction<TaskDto>() {
 
@@ -765,8 +766,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         });
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeTask"),
-                new Model<Boolean>(false),
-                new Model<Boolean>(false),
+            new Model<>(false),
+            new Model<>(false),
                 false,
                 new ColumnMenuAction<TaskDto>() {
 
@@ -912,12 +913,12 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
                                      final IModel<TaskDto> rowModel) {
-                item.add(new Label(componentId, WebComponentUtil.createCategoryNameModel(component, new PropertyModel<String>(rowModel, TaskDto.F_CATEGORY))));
+                item.add(new Label(componentId, WebComponentUtil.createCategoryNameModel(component, new PropertyModel<>(rowModel, TaskDto.F_CATEGORY))));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
-                return WebComponentUtil.createCategoryNameModel(component, new PropertyModel<String>(rowModel, TaskDto.F_CATEGORY));
+                return WebComponentUtil.createCategoryNameModel(component, new PropertyModel<>(rowModel, TaskDto.F_CATEGORY));
             }
         };
     }
@@ -1698,7 +1699,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
 
         private List<String> createCategoryList() {
-            List<String> categories = new ArrayList<String>();
+            List<String> categories = new ArrayList<>();
             categories.add(ALL_CATEGORIES);
 
             PageTasks page = (PageTasks) getPage();

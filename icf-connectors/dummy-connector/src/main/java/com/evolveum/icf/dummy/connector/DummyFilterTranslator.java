@@ -35,7 +35,7 @@ public class DummyFilterTranslator implements FilterTranslator<Filter> {
 	 */
 	public List<Filter> translate(Filter filter) {
 		log.info("translate");
-		ArrayList<Filter> filters = new ArrayList<Filter>();
+		ArrayList<Filter> filters = new ArrayList<>();
 		filters.add(filter);
 		return filters;
 	}

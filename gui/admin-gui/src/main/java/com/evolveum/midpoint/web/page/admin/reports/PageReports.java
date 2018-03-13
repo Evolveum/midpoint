@@ -130,7 +130,7 @@ public class PageReports extends PageAdminReports {
     }
 
     private List<IColumn<SelectableBean<ReportType>, String>> initColumns() {
-        List<IColumn<SelectableBean<ReportType>, String>> columns = new ArrayList<IColumn<SelectableBean<ReportType>, String>>();
+        List<IColumn<SelectableBean<ReportType>, String>> columns = new ArrayList<>();
 
         IColumn column = new PropertyColumn(createStringResource("PageReports.table.description"), "value.description");
         columns.add(column);
@@ -161,7 +161,7 @@ public class PageReports extends PageAdminReports {
     private List<InlineMenuItem> createInlineMenu(){
         List<InlineMenuItem> menu = new ArrayList<>();
         menu.add(new InlineMenuItem(createStringResource("PageReports.button.run"),
-                new Model<Boolean>(true), new Model<Boolean>(true), false,
+            new Model<>(true), new Model<>(true), false,
                 new ColumnMenuAction<SelectableBean<ReportType>>() {
 
                     @Override
@@ -174,7 +174,7 @@ public class PageReports extends PageAdminReports {
                 DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
         menu.add(new InlineMenuItem(createStringResource("PageReports.button.configure"),
-                new Model<Boolean>(true), new Model<Boolean>(true),
+            new Model<>(true), new Model<>(true),
                 false,
                 new ColumnMenuAction<SelectableBean<ReportType>>() {
 

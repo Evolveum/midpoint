@@ -120,7 +120,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
 		super.assertUserOrg(user, orgOids);
 		List<PolyStringType> userOrganizations = user.asObjectable().getOrganization();
-		List<PolyStringType> expextedOrgs = new ArrayList<PolyStringType>();
+		List<PolyStringType> expextedOrgs = new ArrayList<>();
 		for (String orgOid: orgOids) {
 			PrismObject<OrgType> org = getObject(OrgType.class, orgOid);
 			List<String> orgType = org.asObjectable().getOrgType();

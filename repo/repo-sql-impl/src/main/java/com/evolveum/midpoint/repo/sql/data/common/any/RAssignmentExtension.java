@@ -293,7 +293,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
-        Set<RAnyValue> values = new HashSet<RAnyValue>();
+        Set<RAnyValue> values = new HashSet<>();
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {

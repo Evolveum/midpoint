@@ -86,6 +86,7 @@ public class LocalNodeManager {
             if (configuration.getDataSource() != null) {
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".jndiURL", configuration.getDataSource());
             } else {
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".provider", "hikaricp");
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".driver", configuration.getJdbcDriver());
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".URL", configuration.getJdbcUrl());
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".user", configuration.getJdbcUser());
@@ -451,7 +452,7 @@ public class LocalNodeManager {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<Task>();
+        Set<Task> retval = new HashSet<>();
 
         List<JobExecutionContext> jecs;
         try {

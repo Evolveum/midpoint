@@ -105,15 +105,15 @@ public class XsdTypeConverterTest {
 
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("foo");
-		JAXBElement<ProtectedStringType> pse = new JAXBElement<ProtectedStringType>(FOO_QNAME,ProtectedStringType.class,ps);
+		JAXBElement<ProtectedStringType> pse = new JAXBElement<>(FOO_QNAME, ProtectedStringType.class, ps);
 		shadow.getAttributes().getAny().add(pse);
 
 		shadow.getAttributes().getAny().add(XmlTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
 
 		Document doc = DOMUtil.getDocument();
 		JAXBElement<ShadowType> accountElement =
-				new JAXBElement<ShadowType>(ObjectTypes.SHADOW.getQName(),
-						ShadowType.class,shadow);
+            new JAXBElement<>(ObjectTypes.SHADOW.getQName(),
+                ShadowType.class, shadow);
 		JaxbTestUtil.getInstance().marshalElementToDom(accountElement, doc);
 
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));

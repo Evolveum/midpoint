@@ -84,7 +84,7 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
     }
 
     private Map<String, String> createDefaultOptions() {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put(PROP_BUTTON_CLASS, "btn btn-default btn-sm");
 
         return map;

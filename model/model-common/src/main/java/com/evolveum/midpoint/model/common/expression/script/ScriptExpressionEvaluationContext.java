@@ -25,7 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public class ScriptExpressionEvaluationContext {
 
-	private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<ScriptExpressionEvaluationContext>();
+	private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<>();
 
 	private final ExpressionVariables variables;
 	private final String contextDescription;

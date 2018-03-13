@@ -152,15 +152,10 @@
             <groupId>org.hibernate.javax.persistence</groupId>
             <artifactId>hibernate-jpa-2.1-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-c3p0</artifactId>
-            <scope>runtime</scope>
-        </dependency>
 
         <dependency>
-            <groupId>com.mchange</groupId>
-            <artifactId>c3p0</artifactId>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
         </dependency>
 
         <!-- H2 -->

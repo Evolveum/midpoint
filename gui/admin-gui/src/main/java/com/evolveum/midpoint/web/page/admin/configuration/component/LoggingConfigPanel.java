@@ -157,13 +157,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private void initRoot() {
         DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<>(ID_ROOT_LEVEL,
-                new PropertyModel<LoggingLevelType>(getModel(), LoggingDto.F_ROOT_LEVEL),
+            new PropertyModel<>(getModel(), LoggingDto.F_ROOT_LEVEL),
                 WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
         rootLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(rootLevel);
 
         DropDownChoice<String> rootAppender = new DropDownChoice<>(ID_ROOT_APPENDER,
-                new PropertyModel<String>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
+            new PropertyModel<>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
         rootAppender.setNullValid(true);
         rootAppender.add(new OnChangeAjaxBehavior() {
 
@@ -177,14 +177,14 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private void initAudit(){
-        CheckBox auditLog = WebComponentUtil.createAjaxCheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
+        CheckBox auditLog = WebComponentUtil.createAjaxCheckBox("auditLog", new PropertyModel<>(getModel(), "auditLog"));
         add(auditLog);
 
-        CheckBox auditDetails = WebComponentUtil.createAjaxCheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
+        CheckBox auditDetails = WebComponentUtil.createAjaxCheckBox("auditDetails", new PropertyModel<>(getModel(), "auditDetails"));
         add(auditDetails);
 
-        DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<String>(
-                getModel(), "auditAppender"), createAppendersListModel());
+        DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<>(
+            getModel(), "auditAppender"), createAppendersListModel());
         auditAppender.setNullValid(true);
         auditAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(auditAppender);
@@ -261,7 +261,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                             new EnumChoiceRenderer<StandardLoggerType>());
 
                     FormComponent<StandardLoggerType> input = dropDownChoicePanel.getBaseFormComponent();
-                    input.add(new NotNullValidator<StandardLoggerType>("logger.emptyLogger"));
+                    input.add(new NotNullValidator<>("logger.emptyLogger"));
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     addAjaxFormComponentUpdatingBehavior(input);
@@ -274,7 +274,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                             new EnumChoiceRenderer<LoggingComponentType>());
 
                     FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
-                    input.add(new NotNullValidator<LoggingComponentType>("logger.emptyLogger"));
+                    input.add(new NotNullValidator<>("logger.emptyLogger"));
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     addAjaxFormComponentUpdatingBehavior(input);
@@ -307,7 +307,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                         WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
                 FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
                 input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                input.add(new NotNullValidator<LoggingLevelType>("message.emptyLevel"));
+                input.add(new NotNullValidator<>("message.emptyLevel"));
                 addAjaxFormComponentUpdatingBehavior(input);
                 return dropDownChoicePanel;
             }
@@ -356,11 +356,11 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             @Override
             protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 IModel<Map<String, String>> options = new Model(null);
-                Map<String, String> optionsMap = new HashMap<String, String>();
+                Map<String, String> optionsMap = new HashMap<>();
                 optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
                 options.setObject(optionsMap);
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
-                        new PropertyModel<List<String>>(model, getPropertyExpression()),
+                    new PropertyModel<>(model, getPropertyExpression()),
                         createNewLoggerAppendersListModel(), StringChoiceRenderer.simple(), options);
 
                 FormComponent<AppenderConfigurationType> input = panel.getBaseFormComponent();
@@ -485,7 +485,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             protected Component createInputPanel(String componentId, IModel<AppenderConfiguration> model){
                 TextPanel<String> panel = new TextPanel<String>(componentId, new PropertyModel(model, getPropertyExpression()));
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                panel.getBaseFormComponent().add(new NotNullValidator<String>("message.emptyString"));
+                panel.getBaseFormComponent().add(new NotNullValidator<>("message.emptyString"));
                 addAjaxFormComponentUpdatingBehavior(panel.getBaseFormComponent());
                 return panel;
             }

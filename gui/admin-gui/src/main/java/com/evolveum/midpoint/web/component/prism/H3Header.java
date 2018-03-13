@@ -127,6 +127,6 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
     }
 
     protected List<InlineMenuItem> createMenuItems() {
-        return new ArrayList<InlineMenuItem>();
+        return new ArrayList<>();
     }
 }

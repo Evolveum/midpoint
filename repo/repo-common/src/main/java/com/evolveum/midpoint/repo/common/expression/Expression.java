@@ -250,7 +250,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	}
 
 	private void traceFailure(ExpressionEvaluationContext context, ExpressionVariables processedVariables, Throwable e) {
-		LOGGER.error("Error evaluating expression in {}: {}", new Object[]{context.getContextDescription(), e.getMessage(), e});
+		LOGGER.error("Error evaluating expression in {}: {}-{}", new Object[]{context.getContextDescription(), e.getMessage(), e});
 		if (!isTrace()) {
 			return;
 		}

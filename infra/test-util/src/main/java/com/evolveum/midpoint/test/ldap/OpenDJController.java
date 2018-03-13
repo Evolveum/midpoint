@@ -460,7 +460,7 @@ public class OpenDJController extends AbstractResourceController {
 		// TODO: improve that later
 
 		// Attribute attr = attributes.get(0);
-		Set<String> result = new HashSet<String>();
+		Set<String> result = new HashSet<>();
 
 		// TODO find newer OpenDS jar
 		// Iterator<AttributeValue> iterator = attr.iterator();
@@ -536,7 +536,7 @@ public class OpenDJController extends AbstractResourceController {
 	}
 
 	private LinkedHashSet<String> getSearchAttributes() {
-		LinkedHashSet<String> attrs = new LinkedHashSet<String>();
+		LinkedHashSet<String> attrs = new LinkedHashSet<>();
 		attrs.add("*");
 		attrs.add("ds-pwp-account-disabled");
 		attrs.add("createTimestamp");
@@ -587,7 +587,7 @@ public class OpenDJController extends AbstractResourceController {
 		assertEquals("Too many attributes for name "+name+": ",
 				1, attrs.size());
 		Attribute attribute = attrs.get(0);
-		Collection<String> values = new ArrayList<String>(attribute.size());
+		Collection<String> values = new ArrayList<>(attribute.size());
 		Iterator<AttributeValue> iterator = attribute.iterator();
 		while (iterator.hasNext()) {
 			AttributeValue attributeValue = iterator.next();
@@ -679,7 +679,7 @@ public class OpenDJController extends AbstractResourceController {
 		for (String value: values) {
 			boolean found = false;
 			Iterator<AttributeValue> iterator = attribute.iterator();
-			List<String> attrVals = new ArrayList<String>();
+			List<String> attrVals = new ArrayList<>();
 			while (iterator.hasNext()) {
 				AttributeValue attributeValue = iterator.next();
 				String attrVal = attributeValue.toString();

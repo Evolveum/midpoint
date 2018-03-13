@@ -54,7 +54,7 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
 			protected void populateItem(ListItem<InternalOperationClasses> item) {
 				InternalOperationClasses operationClass = item.getModelObject();
 				CheckFormGroup checkFormGroup = new CheckFormGroup(ID_TRACE_TOGGLE,
-		                new PropertyModel<Boolean>(tracesMap, operationClass.getKey()),
+                    new PropertyModel<>(tracesMap, operationClass.getKey()),
 		                createStringResource("InternalOperationClasses."+operationClass.getKey()), LABEL_SIZE, INPUT_SIZE);
 				item.add(checkFormGroup);
 			}

@@ -563,7 +563,7 @@ public class InboundProcessor {
 	}
 	
 	private void resolveEntitlement(PrismContainerValue<ShadowAssociationType> value, LensProjectionContext projContext, ExpressionVariables variables) {
-		LOGGER.trace("Producing value {} " + value);
+		LOGGER.trace("Producing value {} ", value);
 		PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
 		LOGGER.trace("Resolved entitlement {}", entitlement);
 		if (variables.containsKey(ExpressionConstants.VAR_ENTITLEMENT)) {
@@ -821,7 +821,7 @@ public class InboundProcessor {
 			
 			List<MappingImpl<V, D>> mappings = mappingEntry.getValue();
 			Iterator<MappingImpl<V, D>> mappingIterator = mappings.iterator();
-			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = new DeltaSetTriple<ItemValueWithOrigin<V, D>>();
+			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = new DeltaSetTriple<>();
 			while (mappingIterator.hasNext()) {
 				MappingImpl<V, D> mapping = mappingIterator.next();
 				mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, task, result);
@@ -1048,7 +1048,7 @@ public class InboundProcessor {
 					// attribute
 					if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue()
 							&& !targetFocusItem.isEmpty()) {
-						Collection<V> replace = new ArrayList<V>();
+						Collection<V> replace = new ArrayList<>();
 						replace.add(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingType()));
 						outputFocusItemDelta.setValuesToReplace(replace);
 

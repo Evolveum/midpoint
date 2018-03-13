@@ -56,7 +56,7 @@ public class ContainerItemDto implements Serializable, Comparable {
 
     public static Collection<? extends ContainerItemDto> createContainerValueDtoList(Item item) {
 
-        List<ContainerItemDto> retval = new ArrayList<ContainerItemDto>();
+        List<ContainerItemDto> retval = new ArrayList<>();
 
         String attribute = getItemName(item);
 

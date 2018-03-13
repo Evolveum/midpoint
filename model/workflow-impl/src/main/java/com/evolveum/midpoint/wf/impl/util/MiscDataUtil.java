@@ -389,7 +389,7 @@ public class MiscDataUtil {
     // todo move to something activiti-related
 
     public static Map<String,FormProperty> formPropertiesAsMap(List<FormProperty> properties) {
-        Map<String,FormProperty> retval = new HashMap<String,FormProperty>();
+        Map<String,FormProperty> retval = new HashMap<>();
         for (FormProperty property : properties) {
             retval.put(property.getId(), property);
         }

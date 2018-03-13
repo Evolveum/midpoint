@@ -79,7 +79,7 @@ public class LiveSyncHandlerPanel extends ResourceRelatedHandlerPanel<LiveSyncHa
 		add(retryContainer);
 		WebMarkupContainer retryCheckboxContainer = new WebMarkupContainer(ID_TOKEN_RETRY_CHECKBOX_CONTAINER);
 		retryContainer.add(retryCheckboxContainer);
-		CheckBox retryCheckbox = new CheckBox(ID_TOKEN_RETRY_CHECKBOX, new PropertyModel<Boolean>(getModel(), ResourceRelatedHandlerDto.F_TOKEN_RETRY_UNHANDLED_ERR));
+		CheckBox retryCheckbox = new CheckBox(ID_TOKEN_RETRY_CHECKBOX, new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_TOKEN_RETRY_UNHANDLED_ERR));
 		retryCheckbox.add(enabledIfEdit);
 		retryCheckboxContainer.add(retryCheckbox);
 	}

@@ -87,7 +87,7 @@ public class TestScriptCaching {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
     	Protector protector = new ProtectorImpl();
-        Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
+        Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
 		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
 		scriptExpressionfactory.setObjectResolver(resolver);

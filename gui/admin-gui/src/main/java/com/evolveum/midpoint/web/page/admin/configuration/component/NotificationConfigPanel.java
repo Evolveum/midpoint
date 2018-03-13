@@ -94,18 +94,18 @@ public class NotificationConfigPanel extends BasePanel<NotificationConfiguration
 		TextField<String> defaultFromField = WebComponentUtil.createAjaxTextField(ID_DEFAULT_FROM,
 				new PropertyModel<String>(getModel(), "defaultFrom"));
 
-		CheckBox debugCheck = WebComponentUtil.createAjaxCheckBox(ID_DEBUG, new PropertyModel<Boolean>(getModel(), "debug"));
+		CheckBox debugCheck = WebComponentUtil.createAjaxCheckBox(ID_DEBUG, new PropertyModel<>(getModel(), "debug"));
 
 		DropDownChoice mailServerConfigChooser = new DropDownChoice<>(ID_MAIL_SERVER,
-				new PropertyModel<MailServerConfigurationTypeDto>(getModel(),
-						NotificationConfigurationDto.F_SELECTED_SERVER),
+            new PropertyModel<>(getModel(),
+                NotificationConfigurationDto.F_SELECTED_SERVER),
 				new AbstractReadOnlyModel<List<MailServerConfigurationTypeDto>>() {
 
 					@Override
 					public List<MailServerConfigurationTypeDto> getObject() {
 						return getModel().getObject().getServers();
 					}
-				}, new ChoiceableChoiceRenderer<MailServerConfigurationTypeDto>());
+				}, new ChoiceableChoiceRenderer<>());
 		mailServerConfigChooser.setNullValid(true);
 
 		if (getModelObject() != null) {
@@ -195,7 +195,7 @@ public class NotificationConfigPanel extends BasePanel<NotificationConfiguration
 		TextField<String> userNameField = WebComponentUtil.createAjaxTextField(ID_USERNAME,
 				new PropertyModel<String>(getModel(), "selectedServer.username"));
 		PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD,
-				new PropertyModel<String>(getModel(), "selectedServer.password"));
+            new PropertyModel<>(getModel(), "selectedServer.password"));
 		passwordField.setRequired(false);
 		passwordField.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
@@ -203,9 +203,9 @@ public class NotificationConfigPanel extends BasePanel<NotificationConfiguration
 				new PropertyModel<String>(getModel(), "redirectToFile"));
 
 		DropDownFormGroup transportSecurity = new DropDownFormGroup<>(ID_TRANSPORT_SECURITY,
-				new PropertyModel<MailTransportSecurityType>(getModel(), "selectedServer.mailTransportSecurityType"),
+            new PropertyModel<>(getModel(), "selectedServer.mailTransportSecurityType"),
 				WebComponentUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class),
-				new EnumChoiceRenderer<MailTransportSecurityType>(this),
+            new EnumChoiceRenderer<>(this),
 				createStringResource("SystemConfigPanel.mail.transportSecurity"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		// transportSecurity.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 

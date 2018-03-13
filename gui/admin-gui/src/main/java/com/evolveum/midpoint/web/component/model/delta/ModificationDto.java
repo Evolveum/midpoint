@@ -69,7 +69,7 @@ public class ModificationDto implements Serializable {
 
         String attribute = getItemName(delta);
 
-        List<ModificationDto> retval = new ArrayList<ModificationDto>();
+        List<ModificationDto> retval = new ArrayList<>();
         if (delta.getValuesToAdd() != null) {
             for (Object valueToAdd : delta.getValuesToAdd()) {
                 retval.add(new ModificationDto(attribute, ADD, ValueDisplayUtil.toStringValue((PrismPropertyValue) valueToAdd)));
@@ -119,7 +119,7 @@ public class ModificationDto implements Serializable {
 
         String attribute = getItemName(delta);
 
-        List<ModificationDto> retval = new ArrayList<ModificationDto>();
+        List<ModificationDto> retval = new ArrayList<>();
         if (delta.getValuesToAdd() != null) {
             for (Object valueToAdd : delta.getValuesToAdd()) {
                 retval.add(new ModificationDto(attribute, ADD, ValueDisplayUtil.toStringValue((PrismReferenceValue) valueToAdd)));
@@ -142,7 +142,7 @@ public class ModificationDto implements Serializable {
 
         String attribute = getItemName(delta);
 
-        List<ModificationDto> retval = new ArrayList<ModificationDto>();
+        List<ModificationDto> retval = new ArrayList<>();
         if (delta.getValuesToAdd() != null) {
             for (Object valueToAdd : delta.getValuesToAdd()) {
                 retval.add(new ModificationDto(attribute, ADD, new ContainerValueDto((PrismContainerValue) valueToAdd)));

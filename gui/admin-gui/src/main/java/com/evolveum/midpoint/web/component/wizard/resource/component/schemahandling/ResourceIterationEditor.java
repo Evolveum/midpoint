@@ -198,8 +198,8 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
         add(description);
 
         MultiValueTextEditPanel variableList = new MultiValueTextEditPanel<ExpressionVariableDefinitionType>(variableId,
-                new PropertyModel<List<ExpressionVariableDefinitionType>>(model,
-                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), null, false, true, parentPage.getReadOnlyModel()) {
+            new PropertyModel<>(model,
+                IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ExpressionVariableDefinitionType> model) {
@@ -231,10 +231,10 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
         add(variableList);
 
         DropDownChoice returnMultiplicity = new DropDownChoice<>(returnMultiplicityId,
-                new PropertyModel<ExpressionReturnMultiplicityType>(model,
-                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".returnMultiplicity"),
+            new PropertyModel<>(model,
+                IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".returnMultiplicity"),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionReturnMultiplicityType.class),
-                new EnumChoiceRenderer<ExpressionReturnMultiplicityType>(this));
+            new EnumChoiceRenderer<>(this));
 		parentPage.addEditingEnabledBehavior(returnMultiplicity);
         add(returnMultiplicity);
 

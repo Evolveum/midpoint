@@ -213,7 +213,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new AbstractRoleInducementPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
 
 			@Override
@@ -230,7 +230,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new InducedEntitlementsTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
 
 			@Override
@@ -287,7 +287,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
 
 	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
-		return new FocusPolicyRulesTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 	}
 
 	private String getInducementsCount(){

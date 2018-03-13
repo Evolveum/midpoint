@@ -176,7 +176,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
      */
     @Override
     protected IModel<?> initModel() {
-        return new Model<Integer>(-1);
+        return new Model<>(-1);
     }
 
     /**

@@ -64,7 +64,7 @@ public class OperationLogger {
 		if (!LOGGER_OP.isDebugEnabled()) {
 			return;
 		}
-		LOGGER_OP.debug("{} delete {}: {}", PREFIX, type.getSimpleName(), oid, getStatus(subResult));
+		LOGGER_OP.debug("{}-{} delete {}: {}", PREFIX, type.getSimpleName(), oid, getStatus(subResult));
 	}
 	
 	public static <O extends ObjectType> void logGetObject(Class<O> type, String oid,

@@ -53,7 +53,7 @@ public class CaptchaPanel extends BasePanel<Void> {
 		add(changeCaptchaLink);
 
 		add(new RequiredTextField<String>("text",
-				new PropertyModel<String>(CaptchaPanel.this, "captchaText"), String.class) {
+            new PropertyModel<>(CaptchaPanel.this, "captchaText"), String.class) {
 								private static final long serialVersionUID = 1L;
 
 			@Override

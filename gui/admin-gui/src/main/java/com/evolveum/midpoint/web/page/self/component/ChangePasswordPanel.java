@@ -103,7 +103,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         add(passwordLabel);
 
         PasswordTextField oldPasswordField =
-                new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<String>(model, MyPasswordsDto.F_OLD_PASSWORD));
+                new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(model, MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
         oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
@@ -116,15 +116,15 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         	};
         });
 
-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<ProtectedStringType>(model, MyPasswordsDto.F_PASSWORD));
+        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(model, MyPasswordsDto.F_PASSWORD));
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
         WebMarkupContainer accountContainer = new WebMarkupContainer(ID_ACCOUNTS_CONTAINER);
 
         List<IColumn<PasswordAccountDto, String>> columns = initColumns();
-        ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<PasswordAccountDto>(this,
-                new PropertyModel<List<PasswordAccountDto>>(model, MyPasswordsDto.F_ACCOUNTS));
+        ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<>(this,
+            new PropertyModel<>(model, MyPasswordsDto.F_ACCOUNTS));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS_TABLE, provider, columns);
         accounts.setItemsPerPage(30);
         accounts.setShowPaging(false);
@@ -148,9 +148,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     }
 
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
-        List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<IColumn<PasswordAccountDto, String>>();
+        List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
 
-        IColumn column = new IconColumn<PasswordAccountDto>(new Model<String>()) {
+        IColumn column = new IconColumn<PasswordAccountDto>(new Model<>()) {
         	private static final long serialVersionUID = 1L;
 
             @Override

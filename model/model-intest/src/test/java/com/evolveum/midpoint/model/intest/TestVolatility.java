@@ -261,7 +261,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         TestUtil.displayWhen(TEST_NAME);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_VOLATILE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 

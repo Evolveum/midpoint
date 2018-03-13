@@ -120,7 +120,7 @@ public class EventOperationFilterType
      */
     public List<String> getOperation() {
         if (operation == null) {
-            operation = new ArrayList<String>();
+            operation = new ArrayList<>();
         }
         return this.operation;
     }

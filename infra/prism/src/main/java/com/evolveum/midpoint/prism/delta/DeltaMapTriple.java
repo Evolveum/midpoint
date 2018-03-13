@@ -202,7 +202,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
     }
 
 	public DeltaMapTriple<K,V> clone(Cloner<Entry<K, V>> cloner) {
-		DeltaMapTriple<K,V> clone = new DeltaMapTriple<K,V>();
+		DeltaMapTriple<K,V> clone = new DeltaMapTriple<>();
 		copyValues(clone, cloner);
 		return clone;
 	}

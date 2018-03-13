@@ -127,7 +127,7 @@ public class NodeDto extends Selectable implements InlineMenuable {
     }
 
     public static List<String> getNodeIdentifiers(List<NodeDto> nodeDtoList) {
-        List<String> nodeList = new ArrayList<String>();
+        List<String> nodeList = new ArrayList<>();
         for (NodeDto nodeDto : nodeDtoList) {
             nodeList.add(nodeDto.getNodeIdentifier());
         }

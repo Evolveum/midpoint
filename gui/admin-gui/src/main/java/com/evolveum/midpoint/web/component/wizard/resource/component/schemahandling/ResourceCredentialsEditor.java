@@ -101,9 +101,9 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
     protected void initLayout(final PageResourceWizard parentPage) {
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
-                new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
+            new PropertyModel<>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
-                new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+            new EnumChoiceRenderer<>(this));
 		parentPage.addEditingEnabledBehavior(fetchStrategy);
         add(fetchStrategy);
 
@@ -153,7 +153,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
+            new PropertyModel<>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -181,7 +181,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         add(inbound);
 
         DropDownChoice passwordPolicy = new DropDownChoice<>(ID_PASS_POLICY,
-                new PropertyModel<ObjectReferenceType>(getModel(), "password.passwordPolicyRef"),
+            new PropertyModel<>(getModel(), "password.passwordPolicyRef"),
                 new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
                     @Override

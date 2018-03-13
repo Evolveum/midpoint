@@ -86,7 +86,7 @@ public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 		panel.add(table);
 
 		ListView<WizardIssuesDto.Issue> issues = new ListView<WizardIssuesDto.Issue>(ID_ROW,
-				new PropertyModel<List<WizardIssuesDto.Issue>>(getModel(), WizardIssuesDto.F_ISSUES)) {
+            new PropertyModel<>(getModel(), WizardIssuesDto.F_ISSUES)) {
 			@Override
 			protected void populateItem(ListItem<WizardIssuesDto.Issue> item) {
 				WizardIssuesDto.Issue issue = item.getModelObject();

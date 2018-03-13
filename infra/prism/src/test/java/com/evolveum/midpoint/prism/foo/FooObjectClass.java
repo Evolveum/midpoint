@@ -127,7 +127,7 @@ public class FooObjectClass
      */
     public List<String> getFoo() {
         if (foo == null) {
-            foo = new ArrayList<String>();
+            foo = new ArrayList<>();
         }
         return this.foo;
     }

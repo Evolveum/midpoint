@@ -475,7 +475,7 @@ public abstract class ResourceContentPanel extends Panel {
 						.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
 				
 				if (taskObjectClass == null) {
-					LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent");
+					LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());
 					continue;
 				}
 				
@@ -680,7 +680,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 				OperationResultPanel body = new OperationResultPanel(
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),
-						new Model<OpResult>(OpResult.getOpResult(pageBase, result)), getPage());
+                    new Model<>(OpResult.getOpResult(pageBase, result)), getPage());
 				body.setOutputMarkupId(true);
 				ResourceContentPanel.this.getPageBase().showMainPopup(body, target);
 
@@ -788,7 +788,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private List<InlineMenuItem> createHeaderMenuItems() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> items = new ArrayList<>();
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccounts"), true,
 				new HeaderMenuAction(this) {
@@ -850,7 +850,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	@SuppressWarnings("serial")
 	private List<InlineMenuItem> createRowMenuItems() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> items = new ArrayList<>();
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
 				new ColumnMenuAction<SelectableBean<ShadowType>>() {

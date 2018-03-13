@@ -112,7 +112,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         approverRef.setOid(SystemObjectsType.USER_ADMINISTRATOR.value());
         approverRef.setType(UserType.COMPLEX_TYPE);
 
-        List<ObjectReferenceType> approvers = new ArrayList<ObjectReferenceType>();
+        List<ObjectReferenceType> approvers = new ArrayList<>();
         approvers.add(approverRef);
 
         ApprovalRequest<String> request = new ApprovalRequestImpl<>("Password change", null, null, approvers,

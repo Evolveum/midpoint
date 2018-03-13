@@ -64,7 +64,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     public ChooseTypePanel(String id, ObjectReferenceType ref){
-    	super(id, Model.of(new ObjectViewDto<T>(ref != null ? ref.getOid() : null, ref !=null ?  WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
+    	super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
         initLayout();
     }
 
@@ -74,7 +74,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         inputContainer.add(getInputStyleClass());
         add(inputContainer);
 
-        final TextField<String> name = new TextField<String>(ID_OBJECT_NAME, new PropertyModel<String>(getModel(), ObjectViewDto.F_NAME));
+        final TextField<String> name = new TextField<>(ID_OBJECT_NAME, new PropertyModel<>(getModel(), ObjectViewDto.F_NAME));
 
 
 //        		new Model<String>(){
@@ -180,7 +180,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     private void setToDefault(AjaxRequestTarget target){
-        ObjectViewDto<T> dto = new ObjectViewDto<T>();
+        ObjectViewDto<T> dto = new ObjectViewDto<>();
         dto.setType(getObjectTypeClass());
         getModel().setObject(dto);
         executeCustomRemoveAction(target);

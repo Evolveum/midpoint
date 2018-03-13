@@ -56,7 +56,7 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     protected void initLayout(final WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
 		parentPage.addEditingEnabledBehavior(this);
 
-        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
+        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<>(getModel(), "capability.enabled"));
 		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {

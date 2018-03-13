@@ -498,7 +498,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// TODO: what else do to with objResult??
 
 			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-				LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+				LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
 						repoObject, e.getMessage(), e });
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -514,7 +514,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// ICF exceptions are still translated to system exceptions.
 				// So this provides
 				// a better robustness now.
-				LOGGER.error("System error while completing {}: {}. Using non-complete object.", new Object[] {
+				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", new Object[] {
 						repoObject, e.getMessage(), e });
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -831,7 +831,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, objectClass, prismContext);
 
-		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<PrismObject<? extends ShadowType>>();
+		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<>();
 		final ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
@@ -890,7 +890,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus();
 		result.cleanupResult();
 
-		LOGGER.debug("Finished refreshing shadow {}: ", shadow, result);
+		LOGGER.debug("Finished refreshing shadow {}: {}", shadow, result);
 	}
 
 	private  void refreshShadowLegacy(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult result)
@@ -904,7 +904,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
 		} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
-			getShadowCache(Mode.RECON).modifyShadow(shadow, new ArrayList<ItemDelta>(), null, options, task, result);
+			getShadowCache(Mode.RECON).modifyShadow(shadow, new ArrayList<>(), null, options, task, result);
 		} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, task, result);
 		} else {
@@ -925,7 +925,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			completeObject = completeObject(type, object, options, task, objResult);
 
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-			LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+			LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
 					object, e.getMessage(), e });
 			objResult.recordFatalError(e);
 			object.asObjectable().setFetchResult(objResult.createOperationResultType());

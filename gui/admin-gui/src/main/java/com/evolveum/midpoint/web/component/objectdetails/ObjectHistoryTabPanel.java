@@ -17,9 +17,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import static java.util.Arrays.asList;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import org.apache.wicket.ajax.AjaxRequestTarget;

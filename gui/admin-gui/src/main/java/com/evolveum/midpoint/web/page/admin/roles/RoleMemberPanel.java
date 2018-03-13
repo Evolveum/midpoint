@@ -104,15 +104,15 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 		private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
 			IChoiceRenderer<V> renderer) {
-		DropDownChoice<V> listSelect = new DropDownChoice<V>(id, defaultModel,
-				new AbstractReadOnlyModel<List<V>>() {
-					private static final long serialVersionUID = 1L;
+		DropDownChoice<V> listSelect = new DropDownChoice<>(id, defaultModel,
+            new AbstractReadOnlyModel<List<V>>() {
+                private static final long serialVersionUID = 1L;
 
-					@Override
-					public List<V> getObject() {
-						return values;
-					}
-				}, renderer);
+                @Override
+                public List<V> getObject() {
+                    return values;
+                }
+            }, renderer);
 
 		listSelect.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -253,7 +253,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		indirectMembersContainer.add(new VisibleBehaviour(this::indirectMembersContainerVisibility));
 		add(indirectMembersContainer);
 
-		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
+		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<>(false)) {
 			private static final long serialVersionUID = 1L;
 
 			public void onUpdate(AjaxRequestTarget target) {

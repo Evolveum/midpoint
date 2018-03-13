@@ -156,8 +156,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parametersPanel.setOutputMarkupId(true);
         mainForm.add(parametersPanel);
 
-        DatePanel from = new DatePanel(ID_FROM, new PropertyModel<XMLGregorianCalendar>(
-                getModel(), AuditSearchDto.F_FROM));
+        DatePanel from = new DatePanel(ID_FROM, new PropertyModel<>(
+            getModel(), AuditSearchDto.F_FROM));
         DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm,
                 new ItemPath(AuditSearchDto.F_FROM));
         dateFromValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
@@ -169,8 +169,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         from.setOutputMarkupId(true);
         parametersPanel.add(from);
 
-        DatePanel to = new DatePanel(ID_TO, new PropertyModel<XMLGregorianCalendar>(getModel(),
-                AuditSearchDto.F_TO));
+        DatePanel to = new DatePanel(ID_TO, new PropertyModel<>(getModel(),
+            AuditSearchDto.F_TO));
         DateValidator dateToValidator = WebComponentUtil.getRangeValidator(mainForm,
                 new ItemPath(AuditSearchDto.F_FROM));
         dateToValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
@@ -182,8 +182,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
 
-        ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<ItemPathDto>(getModel(),
-                AuditSearchDto.F_CHANGED_ITEM), getPageBase());
+        ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<>(getModel(),
+            AuditSearchDto.F_CHANGED_ITEM), getPageBase());
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
 
@@ -194,11 +194,11 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         hostIdentifier.setOutputMarkupId(true);
         parametersPanel.add(hostIdentifier);
 
-        DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<AuditEventTypeType>(
-                ID_EVENT_TYPE, new PropertyModel<AuditEventTypeType>(
-                        getModel(), AuditSearchDto.F_EVENT_TYPE), new ListModel<AuditEventTypeType>(
-                        Arrays.asList(AuditEventTypeType.values())),
-                new EnumChoiceRenderer<AuditEventTypeType>(), true);
+        DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<>(
+            ID_EVENT_TYPE, new PropertyModel<>(
+            getModel(), AuditSearchDto.F_EVENT_TYPE), new ListModel<>(
+            Arrays.asList(AuditEventTypeType.values())),
+            new EnumChoiceRenderer<>(), true);
         eventType.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         eventType.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         eventType.setOutputMarkupId(true);
@@ -218,13 +218,13 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         
         parametersPanel.add(eventStage);
 
-        ListModel<AuditEventStageType> eventStageListModel = new ListModel<AuditEventStageType>(
-                Arrays.asList(AuditEventStageType.values()));
-        PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<AuditEventStageType>(
-                getModel(), AuditSearchDto.F_EVENT_STAGE);
-        DropDownChoicePanel<AuditEventStageType> eventStageField = new DropDownChoicePanel<AuditEventStageType>(
-                ID_EVENT_STAGE_FIELD, eventStageModel, eventStageListModel,
-                new EnumChoiceRenderer<AuditEventStageType>(), true);
+        ListModel<AuditEventStageType> eventStageListModel = new ListModel<>(
+            Arrays.asList(AuditEventStageType.values()));
+        PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<>(
+            getModel(), AuditSearchDto.F_EVENT_STAGE);
+        DropDownChoicePanel<AuditEventStageType> eventStageField = new DropDownChoicePanel<>(
+            ID_EVENT_STAGE_FIELD, eventStageModel, eventStageListModel,
+            new EnumChoiceRenderer<>(), true);
         eventStageField.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         eventStageField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         eventStageField.setOutputMarkupId(true);
@@ -240,7 +240,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parametersPanel.add(outcome);
 
         List<String> channelList = WebComponentUtil.getChannelList();
-        List<QName> channelQnameList = new ArrayList<QName>();
+        List<QName> channelQnameList = new ArrayList<>();
         for (int i = 0; i < channelList.size(); i++) {
             String channel = channelList.get(i);
             if (channel != null) {
@@ -248,11 +248,11 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 channelQnameList.add(channelQName);
             }
         }
-        ListModel<QName> channelListModel = new ListModel<QName>(channelQnameList);
-        PropertyModel<QName> channelModel = new PropertyModel<QName>(getModel(),
-                AuditSearchDto.F_CHANNEL);
-        DropDownChoicePanel<QName> channel = new DropDownChoicePanel<QName>(ID_CHANNEL, channelModel,
-                channelListModel, new QNameChoiceRenderer(), true);
+        ListModel<QName> channelListModel = new ListModel<>(channelQnameList);
+        PropertyModel<QName> channelModel = new PropertyModel<>(getModel(),
+            AuditSearchDto.F_CHANNEL);
+        DropDownChoicePanel<QName> channel = new DropDownChoicePanel<>(ID_CHANNEL, channelModel,
+            channelListModel, new QNameChoiceRenderer(), true);
         channel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         channel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         channel.setOutputMarkupId(true);
@@ -297,10 +297,10 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         List<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
 
-        MultiValueChoosePanel<ObjectType> chooseTargetPanel = new MultiValueChoosePanel<ObjectType>(
-        		ID_TARGET_NAME_FIELD,
-        		new PropertyModel<List<ObjectType>>(getModel(), AuditSearchDto.F_TARGET_NAMES_OBJECTS),
-        		allowedClassesAll);
+        MultiValueChoosePanel<ObjectType> chooseTargetPanel = new MultiValueChoosePanel<>(
+            ID_TARGET_NAME_FIELD,
+            new PropertyModel<>(getModel(), AuditSearchDto.F_TARGET_NAMES_OBJECTS),
+            allowedClassesAll);
         chooseTargetPanel.setOutputMarkupId(true);
         targetName.add(chooseTargetPanel);
 
@@ -351,10 +351,10 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         });
         parametersPanel.add(valueRefTargetNameContainer);
 
-        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new MultiValueChoosePanel<ObjectType>(
-        		ID_VALUE_REF_TARGET_NAMES_FIELD,
-        		new PropertyModel<List<ObjectType>>(getModel(), AuditSearchDto.F_VALUE_REF_TARGET_NAME),
-        		allowedClassesAll);
+        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new MultiValueChoosePanel<>(
+            ID_VALUE_REF_TARGET_NAMES_FIELD,
+            new PropertyModel<>(getModel(), AuditSearchDto.F_VALUE_REF_TARGET_NAME),
+            allowedClassesAll);
         chooseValueRefTargetNamePanel.setOutputMarkupId(true);
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
 
@@ -375,7 +375,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             private static final long serialVersionUID = 1L;
 
             public Map<String, Object> getParameters() {
-                Map<String, Object> parameters = new HashMap<String, Object>();
+                Map<String, Object> parameters = new HashMap<>();
 
                 AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
                 parameters.put(AuditEventRecordProvider.PARAMETER_FROM, search.getFrom());
@@ -489,7 +489,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {
-        List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<IColumn<AuditEventRecordType, String>>();
+        List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
                 createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
             private static final long serialVersionUID = 1L;
@@ -534,12 +534,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(initiatorRefColumn);
 
         if (!isHistory) {
-            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
-                    createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
+            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<>(
+                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
             columns.add(eventStageColumn);
         }
-        IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
+        IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<>(
+            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
         columns.add(eventTypeColumn);
 
         if (!isHistory) {
@@ -587,13 +587,13 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 } else {
                     item.add(new Label(componentId, ""));
                 }
-                item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
+                item.add(new AttributeModifier("style", new Model<>("width: 10%;")));
             }
         };
         columns.add(channelColumn);
 
-        IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome");
+        IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<>(
+            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome");
         columns.add(outcomeColumn);
 
         return columns;
@@ -604,7 +604,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 getPageBase().createSimpleTask(OPERATION_RESOLVE_REFENRENCE_NAME),
                 new OperationResult(OPERATION_RESOLVE_REFENRENCE_NAME));
         item.add(new Label(componentId, name));
-        item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
+        item.add(new AttributeModifier("style", new Model<>("width: 10%;")));
     }
 
     private void searchUpdatePerformed(AjaxRequestTarget target){

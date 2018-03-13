@@ -180,7 +180,7 @@ public class ModelCrudService {
 				delta.getModifications().addAll(modifications);
 			}
 		}
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(delta);
 		Utils.encrypt(deltas, protector, null, parentResult);
 		eventDescription.setDelta(delta);

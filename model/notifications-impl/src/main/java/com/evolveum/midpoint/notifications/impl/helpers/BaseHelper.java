@@ -165,7 +165,7 @@ public abstract class BaseHelper {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult;
 		exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
             retval.add(item.getValue());
         }
@@ -175,7 +175,7 @@ public abstract class BaseHelper {
     protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
 
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+        Map<QName, Object> variables = new HashMap<>();
 		event.createExpressionVariables(variables, result);
 		expressionVariables.addVariableDefinitions(variables);
         return expressionVariables;

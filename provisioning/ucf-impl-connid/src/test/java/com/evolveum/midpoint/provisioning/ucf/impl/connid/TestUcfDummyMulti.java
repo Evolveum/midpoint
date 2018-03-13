@@ -145,7 +145,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
-		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
 		ShadowResultHandler handler = new ShadowResultHandler() {
 
@@ -183,7 +183,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
-		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
 		final ShadowResultHandler handler = new ShadowResultHandler() {
 
@@ -252,7 +252,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		// Determine object class from the schema
 
 		final OperationResult result1 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
-		final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
 		final ShadowResultHandler handler1 = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
@@ -263,7 +263,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		};
 
 		final OperationResult result2 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
-		final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
 		final ShadowResultHandler handler2 = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {

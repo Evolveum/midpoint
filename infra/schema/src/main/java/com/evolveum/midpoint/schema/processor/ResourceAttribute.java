@@ -88,7 +88,7 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
     
     @Override
 	public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
-    	ResourceAttribute<T> clone = new ResourceAttribute<T>(getElementName(), getDefinition(), getPrismContext());
+    	ResourceAttribute<T> clone = new ResourceAttribute<>(getElementName(), getDefinition(), getPrismContext());
     	copyValues(strategy, clone);
     	return clone;
 	}

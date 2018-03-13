@@ -124,7 +124,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 
@@ -234,7 +234,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
 

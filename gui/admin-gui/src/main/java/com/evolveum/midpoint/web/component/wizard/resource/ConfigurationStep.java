@@ -174,7 +174,7 @@ public class ConfigurationStep extends WizardStep {
         form.setOutputMarkupId(true);
         add(form);
 
-		form.add(WebComponentUtil.createTabPanel(ID_CONFIGURATION, parentPage, new ArrayList<ITab>(), null));
+		form.add(WebComponentUtil.createTabPanel(ID_CONFIGURATION, parentPage, new ArrayList<>(), null));
 
 		AjaxSubmitButton testConnection = new AjaxSubmitButton(ID_TEST_CONNECTION,
                 createStringResource("ConfigurationStep.button.testConnection")) {

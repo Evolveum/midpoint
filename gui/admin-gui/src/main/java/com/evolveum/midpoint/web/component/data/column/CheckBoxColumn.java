@@ -34,7 +34,7 @@ import java.io.Serializable;
 public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
     private String propertyExpression;
-    private IModel<Boolean> enabled = new Model<Boolean>(true);
+    private IModel<Boolean> enabled = new Model<>(true);
 
     public CheckBoxColumn(IModel<String> displayModel) {
         this(displayModel, Selectable.F_SELECTED);
@@ -67,7 +67,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
     }
 
     protected IModel<Boolean> getCheckBoxValueModel(IModel<T> rowModel){
-        return new PropertyModel<Boolean>(rowModel, propertyExpression);
+        return new PropertyModel<>(rowModel, propertyExpression);
     }
 
     @Override
