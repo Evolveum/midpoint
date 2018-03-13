@@ -5328,6 +5328,9 @@
     			Shadow discriminator uniquely identifies a projection among other projections linked to the
     			same focus.
     		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:container/>
+    		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
 			<xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -5352,6 +5355,11 @@
     </xsd:complexType>
     
    <xsd:complexType name="ResourceObjectTypeDependencyType">
+   		<xsd:annotation>
+   			<xsd:appinfo>
+    			<a:container/>
+    		</xsd:appinfo>
+   		</xsd:annotation>
    		<xsd:complexContent>
    			<xsd:extension base="tns:ShadowDiscriminatorType">
    				<xsd:sequence>

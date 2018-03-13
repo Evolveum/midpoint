@@ -147,11 +147,10 @@
             </outbound>
          </attribute>
          <association>
-            <ref>ri:groups</ref>
+            <ref>ri:group</ref>
             <tolerant>true</tolerant>
             <kind>entitlement</kind>
-            <intent>math</intent>
-            <intent>stats</intent>
+            <intent>group</intent>
             <direction>objectToSubject</direction>
             <associationAttribute>ri:uniqueMember</associationAttribute>
             <valueAttribute>ri:dn</valueAttribute>
@@ -204,16 +203,9 @@
       </objectType>
       <objectType>
          <kind>entitlement</kind>
-         <intent>math</intent>
-         <displayName>Science groups</displayName>
+         <intent>group</intent>
+         <displayName>LDAP groups</displayName>
          <default>true</default>
-         <objectClass>ri:groupOfUniqueNames</objectClass>
-      </objectType>
-      <objectType>
-         <kind>entitlement</kind>
-         <intent>stats</intent>
-         <displayName>Science groups</displayName>
-         <default>false</default>
          <objectClass>ri:groupOfUniqueNames</objectClass>
       </objectType>
    </schemaHandling>
