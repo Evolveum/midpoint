@@ -41,7 +41,6 @@ import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil.sortBucketsBySequentialNumber;
@@ -513,7 +512,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		TaskQuartzImpl worker2 = taskManager.getTask(taskOid(TEST_NAME, "2"), result);
 		TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
 
-		workBucketsTaskHandler1.setDelayProcessor(50);
+		workBucketsTaskHandler.setDelayProcessor(50);
 
 		// WHEN
 		taskManager.resumeTask(worker1, result);
@@ -562,7 +561,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
 
 		Holder<Task> suspensionVictim = new Holder<>();
-		workBucketsTaskHandler1.setProcessor((task, bucket, index) -> {
+		workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
 			if (index == 44) {
 				task.storeOperationStats();         // to store operational stats for this task
 				display("Going to suspend " + task);
@@ -609,7 +608,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 
-		workBucketsTaskHandler1.setDelayProcessor(50);
+		workBucketsTaskHandler.setDelayProcessor(50);
 
 		String oidToDelete = suspensionVictim.getValue().getOid();
 		display("Deleting task " + oidToDelete);
@@ -646,7 +645,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		TaskQuartzImpl worker3 = taskManager.getTask(taskOid(TEST_NAME, "3"), result);
 
 		Holder<Task> exceptionVictim = new Holder<>();
-		workBucketsTaskHandler1.setProcessor((task, bucket, index) -> {
+		workBucketsTaskHandler.setProcessor((task, bucket, index) -> {
 			if (index == 44) {
 				task.storeOperationStats();         // to store operational stats for this task
 				display("Going to explode in " + task);
@@ -689,7 +688,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 
-		workBucketsTaskHandler1.setDelayProcessor(50);
+		workBucketsTaskHandler.setDelayProcessor(50);
 
 		String oidToClose = exceptionVictim.getValue().getOid();
 		display("Closing task " + oidToClose);
@@ -727,8 +726,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
 		addObjectFromFile(workerTaskFilename(TEST_NAME));
 
-		workBucketsTaskHandler1.resetBeforeTest();
-		workBucketsTaskHandler1.setDefaultQuery(new ObjectQuery());
+		workBucketsTaskHandler.resetBeforeTest();
+		workBucketsTaskHandler.setDefaultQuery(new ObjectQuery());
 
 		TaskQuartzImpl worker = taskManager.getTask(workerTaskOid(TEST_NAME), result);
 
@@ -746,7 +745,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
 		assertTotalSuccessCount(30, singleton(workerAfter));
 
-		List<ObjectQuery> qe = workBucketsTaskHandler1.getQueriesExecuted();
+		List<ObjectQuery> qe = workBucketsTaskHandler.getQueriesExecuted();
 		display("Queries executed", qe);
 		assertEquals("Wrong # of queries", 3, qe.size());
 		ObjectQuery q1 = QueryBuilder.queryFor(UserType.class, prismContext)
@@ -767,29 +766,4 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		suspendAndDeleteTasks(coordinatorAfter.getOid());
 	}
 
-
-	private int getTotalItemsProcessed(String coordinatorTaskOid) {
-		OperationResult result = new OperationResult("getTotalItemsProcessed");
-		try {
-			Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
-			List<Task> tasks = coordinatorTask.listSubtasks(result);
-			int total = 0;
-			for (Task task : tasks) {
-				OperationStatsType opStat = task.getStoredOperationStats();
-				if (opStat == null) {
-					continue;
-				}
-				IterativeTaskInformationType iti = opStat.getIterativeTaskInformation();
-				if (iti == null) {
-					continue;
-				}
-				int count = iti.getTotalSuccessCount();
-				display("Task " + task + ": " + count + " items processed");
-				total += count;
-			}
-			return total;
-		} catch (Throwable t) {
-			throw new AssertionError("Unexpected exception", t);
-		}
-	}
 }

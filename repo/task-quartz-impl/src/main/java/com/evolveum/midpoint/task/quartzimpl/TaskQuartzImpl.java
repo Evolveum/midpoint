@@ -400,8 +400,10 @@ public class TaskQuartzImpl implements Task {
 
 	private void processModificationsNow(Collection<ItemDelta<?, ?>> deltas, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
-		synchronizeWithQuartzIfNeeded(deltas, parentResult);
+		if (isPersistent()) {
+			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+			synchronizeWithQuartzIfNeeded(deltas, parentResult);
+		}
 	}
 
 	private void processModificationBatched(ItemDelta<?, ?> delta) {
@@ -874,8 +876,7 @@ public class TaskQuartzImpl implements Task {
 			this.setRecreateQuartzTrigger(true);
 		} else {
 			//setHandlerUri(null);                                                  // we want the last handler to remain set so the task can be revived
-			taskManager.closeTaskWithoutSavingState(this,
-					parentResult);            // as there are no more handlers, let us close this task
+			taskManager.closeTaskWithoutSavingState(this, parentResult);            // as there are no more handlers, let us close this task
 		}
 		try {
 			savePendingModifications(parentResult);
@@ -890,6 +891,7 @@ public class TaskQuartzImpl implements Task {
 
 	void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
+		//System.out.println("checkDependentTasksOnClose (state=" + getExecutionStatus()+"): " + this);
 		if (getExecutionStatus() != TaskExecutionStatus.CLOSED) {
 			return;
 		}
@@ -906,6 +908,7 @@ public class TaskQuartzImpl implements Task {
 	public void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		if (getExecutionStatus() != TaskExecutionStatus.WAITING || getWaitingReason() != TaskWaitingReason.OTHER_TASKS) {
+			//System.out.println("### WRONG STATE for checkDependencies for " + this);
 			return;
 		}
 
@@ -916,10 +919,7 @@ public class TaskQuartzImpl implements Task {
 
 		for (Task dependency : dependencies) {
 			if (!dependency.isClosed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Dependency {} of {} is not closed (status = {})",
-							dependency, this, dependency.getExecutionStatus());
-				}
+				LOGGER.trace("Dependency {} of {} is not closed (status = {})", dependency, this, dependency.getExecutionStatus());
 				return;
 			}
 		}

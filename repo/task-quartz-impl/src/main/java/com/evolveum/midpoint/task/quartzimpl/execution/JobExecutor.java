@@ -361,7 +361,7 @@ public class JobExecutor implements InterruptableJob {
             if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
                 if (((TaskQuartzImpl) subtask).getLightweightHandlerFuture() == null) {
                     LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
-                    closeTask(task, result);
+                    closeTask((TaskQuartzImpl) subtask, result);
                 }
             }
         }

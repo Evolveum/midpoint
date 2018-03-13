@@ -2881,7 +2881,7 @@
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="handlerUri" type="xsd:anyURI">
+            <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Worker tasks handler URI.

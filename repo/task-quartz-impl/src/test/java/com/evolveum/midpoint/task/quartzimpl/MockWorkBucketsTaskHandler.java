@@ -64,6 +64,12 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 
 	private List<ObjectQuery> queriesExecuted = new ArrayList<>();
 
+	private Task runningTask;
+
+	private boolean ensureSingleRunner;
+
+	private Throwable failure;
+
 	@NotNull
 	@Override
 	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
@@ -74,6 +80,16 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
 			TaskWorkBucketProcessingResult previousRunResult) {
 		LOGGER.info("Run starting (id = {}); task = {}", id, task);
+
+		if (ensureSingleRunner) {
+			if (runningTask != null) {
+				String message = "Detected concurrent running tasks: existing = " + runningTask + ", new = " + task;
+				System.err.println("*** " + message);
+				failure = new AssertionError(message);
+				throw (AssertionError) failure;
+			}
+			runningTask = task;
+		}
 
 		OperationResult opResult = new OperationResult(MockWorkBucketsTaskHandler.class.getName()+".run");
 		opResult.recordSuccess();
@@ -89,24 +105,32 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 			LOGGER.info("Using narrowed query in task {}:\n{}", task, narrowedQuery.debugDump());
 		}
 
-		// TODO what about single-bucket cases?
 		NumericIntervalWorkBucketContentType content = (NumericIntervalWorkBucketContentType) workBucket.getContent();
-		int from = content.getFrom().intValue();
-		int to = content.getTo().intValue();         // beware of nullability
-		LOGGER.info("Processing bucket {}; task = {}", content, task);
-		for (int i = from; i < to; i++) {
-			String objectName = "item " + i;
-			String objectOid = String.valueOf(i);
-			long start = System.currentTimeMillis();
-			task.recordIterativeOperationStart(objectName, null, ObjectType.COMPLEX_TYPE, objectOid);
-			LOGGER.info("Processing item #{}; task = {}", i, task);
+		if (content == null || content.getFrom() == null) {
+			LOGGER.info("Processing bucket {}; task = {}", content, task);
 			itemsProcessed++;
 			if (processor != null) {
-				processor.process(task, workBucket, i);
+				processor.process(task, workBucket, 0);
 			}
-			task.recordIterativeOperationEnd(objectName, null, ObjectType.COMPLEX_TYPE, objectOid,
-					System.currentTimeMillis() - start, null);
 			task.incrementProgressAndStoreStatsIfNeeded();
+		} else {
+			int from = content.getFrom().intValue();
+			int to = content.getTo().intValue();         // beware of nullability
+			LOGGER.info("Processing bucket {}; task = {}", content, task);
+			for (int i = from; i < to; i++) {
+				String objectName = "item " + i;
+				String objectOid = String.valueOf(i);
+				long start = System.currentTimeMillis();
+				task.recordIterativeOperationStart(objectName, null, ObjectType.COMPLEX_TYPE, objectOid);
+				LOGGER.info("Processing item #{}; task = {}", i, task);
+				itemsProcessed++;
+				if (processor != null) {
+					processor.process(task, workBucket, i);
+				}
+				task.recordIterativeOperationEnd(objectName, null, ObjectType.COMPLEX_TYPE, objectOid,
+						System.currentTimeMillis() - start, null);
+				task.incrementProgressAndStoreStatsIfNeeded();
+			}
 		}
 
 		TaskWorkBucketProcessingResult runResult = previousRunResult != null ? previousRunResult : new TaskWorkBucketProcessingResult();
@@ -116,6 +140,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setShouldContinue(true);
 
 		hasRun = true;
+		runningTask = null;
 
 		LOGGER.info("Run stopping; task = {}", task);
 		task.storeOperationStats();
@@ -186,9 +211,24 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 		queriesExecuted.clear();
 		processor = null;
 		itemsProcessed = 0;
+		ensureSingleRunner = false;
+		runningTask = null;
+		failure = null;
 	}
 
 	public int getItemsProcessed() {
 		return itemsProcessed;
+	}
+
+	public boolean isEnsureSingleRunner() {
+		return ensureSingleRunner;
+	}
+
+	public void setEnsureSingleRunner(boolean ensureSingleRunner) {
+		this.ensureSingleRunner = ensureSingleRunner;
+	}
+
+	public Throwable getFailure() {
+		return failure;
 	}
 }

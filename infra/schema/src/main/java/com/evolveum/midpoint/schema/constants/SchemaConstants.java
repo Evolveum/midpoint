@@ -371,6 +371,11 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = new QName(
 			NS_MODEL_EXTENSION, "checkDuplicatesOnPrimaryIdentifiersOnly");
 
+	public static final QName MODEL_EXTENSION_RESOURCE_RECONCILIATION_WORK_STATE_CONFIGURATION = new QName(
+			NS_MODEL_EXTENSION, "resourceReconciliationWorkStateConfiguration");
+	public static final QName MODEL_EXTENSION_SHADOW_RECONCILIATION_WORK_STATE_CONFIGURATION = new QName(
+			NS_MODEL_EXTENSION, "shadowReconciliationWorkStateConfiguration");
+
 	public static final QName MODEL_EXTENSION_CLEANUP_POLICIES = new QName(NS_MODEL_EXTENSION,
 			"cleanupPolicies");
 

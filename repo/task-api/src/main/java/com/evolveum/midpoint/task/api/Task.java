@@ -159,7 +159,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Status-changing method. It changes task's execution status to WAITING.
-     * Currently use only on transient tasks or from within task handler.
+     * Currently use only on transient tasks, on suspended tasks or from within task handler.
      */
     void makeWaiting();
 

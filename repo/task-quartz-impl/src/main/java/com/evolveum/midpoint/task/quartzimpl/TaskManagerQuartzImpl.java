@@ -35,6 +35,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -73,21 +75,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskDeletionListener;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskListener;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
@@ -565,6 +552,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         if (task.getHandlerUri() == null) {
 		    LOGGER.trace("No handler in task being unpaused - closing it: {}", task);
 		    closeTask(task, result);
+	        ((TaskQuartzImpl) task).checkDependentTasksOnClose(parentResult);       // TODO
 	        result.computeStatusIfUnknown();
 	        return;
 	    }
@@ -582,11 +570,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		        } else {
 			        LOGGER.trace("Unpausing task using 'reschedule' action (closing it, because the task is single-run): {}", task);
 			        closeTask(task, result);
+			        ((TaskQuartzImpl) task).checkDependentTasksOnClose(parentResult);       // TODO
 		        }
 		        break;
 	        case CLOSE:
 		        LOGGER.trace("Unpausing task using 'close' action: {}", task);
 		        closeTask(task, result);
+		        ((TaskQuartzImpl) task).checkDependentTasksOnClose(parentResult);       // TODO
 		        break;
 	        default:
 		        throw new IllegalStateException("Unsupported unpause action: " + action);
@@ -2131,5 +2121,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			WorkBucketType workBucket, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException {
     	return workStateManager.narrowQueryForWorkBucket(workerTask, query, type, itemDefinitionProvider, workBucket, opResult);
+	}
+
+	@Override
+	public TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, TaskPartitioningStrategy partitioningStrategy) {
+		PartitioningTaskHandler handler = new PartitioningTaskHandler(this, partitioningStrategy);
+		registerHandler(handlerUri, handler);
+		return handler;
+	}
+
+	@Override
+	public void setFreeBucketWaitInterval(long value) {
+		workStateManager.setFreeBucketWaitInterval(value);
 	}
 }

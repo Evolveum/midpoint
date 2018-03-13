@@ -207,6 +207,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 							if (toWait <= 0) {
 								return null;
 							}
+							//System.out.println("*** No free work bucket -- waiting ***");
 							dynamicSleep(Math.min(toWait, freeBucketWaitInterval), ctx);
 							ctx.reloadCoordinatorTask(result);
 							ctx.reloadWorkerTask(result);

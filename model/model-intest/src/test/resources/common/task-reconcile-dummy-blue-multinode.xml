@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--Reconciliation task definition for dummy resource -->
+
+<task oid="10000000-0000-0000-565M-565600000204"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+								  
+	<!-- Resource printable name -->
+	<name>Reconciliation: Dummy Blue</name>
+	
+	<extension>
+		<syncext:freshnessInterval>1000</syncext:freshnessInterval>
+		<syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
+		<syncext:resourceReconciliationWorkStateConfiguration>
+			<taskKind>coordinator</taskKind>
+			<workers>
+				<workersPerNode>
+					<count>4</count>
+				</workersPerNode>
+			</workers>
+		</syncext:resourceReconciliationWorkStateConfiguration>
+	</extension>
+	
+	<taskIdentifier>10000000-0000-0000-565M-565600000204</taskIdentifier>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</handlerUri>
+	<objectRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
+	<recurrence>recurring</recurrence>
+	<binding>loose</binding>
+	<schedule>
+		<interval>5</interval>
+	</schedule>
+
+</task>

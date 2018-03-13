@@ -392,6 +392,36 @@
 		</xsd:annotation>
 	</xsd:element>
 
+	<xsd:element name="resourceReconciliationWorkStateConfiguration" type="c:TaskWorkStateConfigurationType">
+		<xsd:annotation>
+            <xsd:documentation>
+                Work state configuration to be applied to resource reconciliation (i.e. 2nd) stage of the partitioned
+                reconciliation task. If not present, work state configuration from the master task is used, if there's any.
+                Note that the worker handler URI is automatically filled in, if not specified.
+            </xsd:documentation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="shadowReconciliationWorkStateConfiguration" type="c:TaskWorkStateConfigurationType">
+		<xsd:annotation>
+            <xsd:documentation>
+                Work state configuration to be applied to shadow reconciliation (i.e. 3rd) stage of the partitioned
+                reconciliation task. If not present, work state configuration from the master task is used, if there's any.
+                Note that the worker handler URI is automatically filled in, if not specified.
+            </xsd:documentation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
 </xsd:schema>
 
 

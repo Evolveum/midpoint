@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
@@ -61,6 +63,10 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	protected static final String SINGLE_TASK_HANDLER_2_URI = "http://midpoint.evolveum.com/test/single-task-handler-2";
 	protected static final String SINGLE_TASK_HANDLER_3_URI = "http://midpoint.evolveum.com/test/single-task-handler-3";
 	protected static final String SINGLE_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-wb-task-handler";
+	protected static final String PARTITIONED_WB_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/partitioned-wb-task-handler";
+	protected static final String PARTITIONED_WB_TASK_HANDLER_URI_1 = PARTITIONED_WB_TASK_HANDLER_URI + "#1";
+	protected static final String PARTITIONED_WB_TASK_HANDLER_URI_2 = PARTITIONED_WB_TASK_HANDLER_URI + "#2";
+	protected static final String PARTITIONED_WB_TASK_HANDLER_URI_3 = PARTITIONED_WB_TASK_HANDLER_URI + "#3";
 	protected static final String L1_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l1-task-handler";
 	protected static final String L2_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l2-task-handler";
 	protected static final String L3_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/l3-task-handler";
@@ -75,7 +81,8 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	@Autowired protected PrismContext prismContext;
 
 	protected MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
-	protected MockWorkBucketsTaskHandler workBucketsTaskHandler1;
+	protected MockWorkBucketsTaskHandler workBucketsTaskHandler;
+	protected MockWorkBucketsTaskHandler partitionedWorkBucketsTaskHandler;
 	protected MockSingleTaskHandler l1Handler, l2Handler, l3Handler;
 	protected MockSingleTaskHandler waitForSubtasksTaskHandler;
 	protected MockCycleTaskHandler cycleFinishingHandler;
@@ -100,8 +107,15 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		singleHandler3 = new MockSingleTaskHandler("3", taskManager);
 		taskManager.registerHandler(SINGLE_TASK_HANDLER_3_URI, singleHandler3);
 
-		workBucketsTaskHandler1 = new MockWorkBucketsTaskHandler("1", taskManager);
-		taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler1);
+		workBucketsTaskHandler = new MockWorkBucketsTaskHandler(null, taskManager);
+		taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler);
+
+		new PartitionedMockWorkBucketsTaskHandlerCreator(taskManager).initializeAndRegister(PARTITIONED_WB_TASK_HANDLER_URI);
+
+		partitionedWorkBucketsTaskHandler = new MockWorkBucketsTaskHandler("p", taskManager);
+		taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_1, partitionedWorkBucketsTaskHandler);
+		taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_2, partitionedWorkBucketsTaskHandler);
+		taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_3, partitionedWorkBucketsTaskHandler);
 
 		l1Handler = new MockSingleTaskHandler("L1", taskManager);
 		l2Handler = new MockSingleTaskHandler("L2", taskManager);
@@ -171,6 +185,26 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	        Task task = taskManager.getTask(taskOid, result);
 	        IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
 	        return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+	    }, timeoutInterval, sleepInterval);
+	}
+
+	protected void waitForTaskCloseCheckingSubtasks(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+			CommonException {
+	    waitFor("Waiting for task manager to execute the task", () -> {
+	        Task task = taskManager.getTask(taskOid, result);
+		    display("Task tree while waiting", TaskDebugUtil.dumpTaskTree(task, result));
+	        if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+	        	display("Task is closed, finishing waiting: " + task);
+	        	return true;
+	        }
+		    List<Task> subtasks = task.listSubtasksDeeply(result);
+		    for (Task subtask : subtasks) {
+			    if (subtask.getResult().isError()) {
+			    	display("Error detected in subtask, finishing waiting: " + subtask);
+			    	return true;
+			    }
+		    }
+		    return false;
 	    }, timeoutInterval, sleepInterval);
 	}
 
@@ -248,6 +282,31 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		if (completed > 1) {
 			display("Task with more than one completed bucket", task);
 			fail("More than one completed bucket found in task: " + completed + " in " + task);
+		}
+	}
+
+	protected int getTotalItemsProcessed(String coordinatorTaskOid) {
+		OperationResult result = new OperationResult("getTotalItemsProcessed");
+		try {
+			Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
+			List<Task> tasks = coordinatorTask.listSubtasks(result);
+			int total = 0;
+			for (Task task : tasks) {
+				OperationStatsType opStat = task.getStoredOperationStats();
+				if (opStat == null) {
+					continue;
+				}
+				IterativeTaskInformationType iti = opStat.getIterativeTaskInformation();
+				if (iti == null) {
+					continue;
+				}
+				int count = iti.getTotalSuccessCount();
+				display("Task " + task + ": " + count + " items processed");
+				total += count;
+			}
+			return total;
+		} catch (Throwable t) {
+			throw new AssertionError("Unexpected exception", t);
 		}
 	}
 }

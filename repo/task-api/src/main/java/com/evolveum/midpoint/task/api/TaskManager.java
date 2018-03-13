@@ -711,4 +711,7 @@ public interface TaskManager {
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
 			WorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
 
+	TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, TaskPartitioningStrategy partitioningStrategy);
+
+	void setFreeBucketWaitInterval(long value);
 }
