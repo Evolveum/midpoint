@@ -450,7 +450,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				List<QName> typesList = WebComponentUtil.createAbstractRoleTypeList();
 				typesList.remove(AbstractRoleType.COMPLEX_TYPE);
 				DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
-						Model.ofList(typesList), new QNameObjectTypeChoiceRenderer());
+						Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
 				typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 				typePanel.setOutputMarkupId(true);
 				return typePanel;
