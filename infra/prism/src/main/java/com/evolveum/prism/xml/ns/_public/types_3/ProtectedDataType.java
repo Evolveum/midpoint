@@ -179,11 +179,11 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	}
 
     private JAXBElement<EncryptedDataType> toJaxbElement(EncryptedDataType encryptedDataType) {
-    	return new JAXBElement<EncryptedDataType>(F_ENCRYPTED_DATA, EncryptedDataType.class, encryptedDataType);
+    	return new JAXBElement<>(F_ENCRYPTED_DATA, EncryptedDataType.class, encryptedDataType);
     }
 
     private JAXBElement<HashedDataType> toJaxbElement(HashedDataType hashedDataType) {
-    	return new JAXBElement<HashedDataType>(F_ENCRYPTED_DATA, HashedDataType.class, hashedDataType);
+    	return new JAXBElement<>(F_ENCRYPTED_DATA, HashedDataType.class, hashedDataType);
     }
 
     private void clearContent() {

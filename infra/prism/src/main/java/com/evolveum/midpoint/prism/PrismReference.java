@@ -192,7 +192,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)this, null);
+			return new PartiallyResolvedItem<>((Item<IV, ID>) this, null);
 		}
 		if (!isSingleValue()) {
     		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());

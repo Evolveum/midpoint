@@ -87,29 +87,29 @@ public class ProfilingConfigPanel extends BasePanel<ProfilingDto> {
 
         //Entry-Exit profiling init
         DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<>("profilingLevel",
-                new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
+            new PropertyModel<>(getModel(), "profilingLevel"),
                 WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
-                new EnumChoiceRenderer<ProfilingLevel>(this));
+            new EnumChoiceRenderer<>(this));
         profilingLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(profilingLevel);
 
         DropDownChoice<String> profilingAppender = new DropDownChoice<>("profilingAppender",
-                new PropertyModel<String>(getModel(), "profilingAppender"), createAppendersListModel());
+            new PropertyModel<>(getModel(), "profilingAppender"), createAppendersListModel());
         profilingAppender.setNullValid(true);
         profilingAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(profilingAppender);
 
         //Subsystem and general profiling init
-        CheckBox requestFilter = WebComponentUtil.createAjaxCheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
+        CheckBox requestFilter = WebComponentUtil.createAjaxCheckBox("requestFilter", new PropertyModel<>(getModel(), "requestFilter"));
 
-        CheckBox performanceStatistics = WebComponentUtil.createAjaxCheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
-        CheckBox subsystemModel = WebComponentUtil.createAjaxCheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
-        CheckBox subsystemRepository = WebComponentUtil.createAjaxCheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
-        CheckBox subsystemProvisioning = WebComponentUtil.createAjaxCheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
+        CheckBox performanceStatistics = WebComponentUtil.createAjaxCheckBox("performanceStatistics", new PropertyModel<>(getModel(), "performanceStatistics"));
+        CheckBox subsystemModel = WebComponentUtil.createAjaxCheckBox("subsystemModel", new PropertyModel<>(getModel(), "subsystemModel"));
+        CheckBox subsystemRepository = WebComponentUtil.createAjaxCheckBox("subsystemRepository", new PropertyModel<>(getModel(), "subsystemRepository"));
+        CheckBox subsystemProvisioning = WebComponentUtil.createAjaxCheckBox("subsystemProvisioning", new PropertyModel<>(getModel(), "subsystemProvisioning"));
         //CheckBox subsystemUcf = WebComponentUtil.createAjaxCheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
-        CheckBox subsystemResourceObjectChangeListener = WebComponentUtil.createAjaxCheckBox("subsystemSynchronizationService", new PropertyModel<Boolean>(getModel(), "subsystemSynchronizationService"));
-        CheckBox subsystemTaskManager = WebComponentUtil.createAjaxCheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
-        CheckBox subsystemWorkflow = WebComponentUtil.createAjaxCheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
+        CheckBox subsystemResourceObjectChangeListener = WebComponentUtil.createAjaxCheckBox("subsystemSynchronizationService", new PropertyModel<>(getModel(), "subsystemSynchronizationService"));
+        CheckBox subsystemTaskManager = WebComponentUtil.createAjaxCheckBox("subsystemTaskManager", new PropertyModel<>(getModel(), "subsystemTaskManager"));
+        CheckBox subsystemWorkflow = WebComponentUtil.createAjaxCheckBox("subsystemWorkflow", new PropertyModel<>(getModel(), "subsystemWorkflow"));
         add(requestFilter);
         add(performanceStatistics);
         add(subsystemModel);

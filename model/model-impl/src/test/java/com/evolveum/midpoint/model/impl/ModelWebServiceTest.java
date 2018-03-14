@@ -129,8 +129,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void testGetNullOid() throws FaultMessage {
         try {
             modelService.getObject(UserType.COMPLEX_TYPE, null, new SelectorQualifiedGetOptionsType(),
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -141,8 +141,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void testGetEmptyOid() throws FaultMessage {
         try {
             modelService.getObject(UserType.COMPLEX_TYPE, "", new SelectorQualifiedGetOptionsType(),
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -153,8 +153,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void testGetNullOidAndPropertyRef() throws FaultMessage {
         try {
             modelService.getObject(UserType.COMPLEX_TYPE, null, null,
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -168,8 +168,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         setSecurityContext(expectedUser);
     	try {
             modelService.getObject(UserType.COMPLEX_TYPE, "001", null,
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }  finally {
@@ -190,8 +190,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
             modelService.getObject(UserType.COMPLEX_TYPE, oid, new SelectorQualifiedGetOptionsType(),
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertObjectNotFoundFault(ex);
         } finally {
@@ -250,8 +250,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml")).asObjectable();
             setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
-                    new Holder<ObjectListType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
             Assert.fail("Illegal argument exception was not thrown.");
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
@@ -268,8 +268,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml")).asObjectable();
             setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
-                    new Holder<ObjectListType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
             Assert.fail("Illegal argument exception was not thrown.");
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
@@ -291,8 +291,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         	QueryType queryType = new QueryType();
         	queryType.setPaging(paging);
             modelService.searchObjects(UserType.COMPLEX_TYPE, queryType, null,
-                    new Holder<ObjectListType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         } finally {
@@ -349,8 +349,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullAccountOidListAccountShadowOwner() throws FaultMessage {
         try {
-            modelService.findShadowOwner(null, new Holder<UserType>(),
-                    new Holder<OperationResultType>());
+            modelService.findShadowOwner(null, new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -360,8 +360,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void emptyAccountOidListAccountShadowOwner() throws FaultMessage {
         try {
-            modelService.findShadowOwner("", new Holder<UserType>(),
-                    new Holder<OperationResultType>());
+            modelService.findShadowOwner("", new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }

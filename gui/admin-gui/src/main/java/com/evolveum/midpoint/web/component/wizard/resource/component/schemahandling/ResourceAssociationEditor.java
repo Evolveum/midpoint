@@ -130,9 +130,9 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(label);
 
         DropDownChoice kind = new DropDownChoice<>(ID_KIND,
-                new PropertyModel<ShadowKindType>(getModel(), "kind"),
+            new PropertyModel<>(getModel(), "kind"),
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
-                new EnumChoiceRenderer<ShadowKindType>(this));
+            new EnumChoiceRenderer<>(this));
         kind.setNullValid(false);
 		kind.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(kind);
@@ -143,15 +143,15 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(intent);
 
         DropDownChoice direction = new DropDownChoice<>(ID_DIRECTION,
-                new PropertyModel<ResourceObjectAssociationDirectionType>(getModel(), "direction"),
+            new PropertyModel<>(getModel(), "direction"),
                 WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectAssociationDirectionType.class),
-                new EnumChoiceRenderer<ResourceObjectAssociationDirectionType>(this));
+            new EnumChoiceRenderer<>(this));
         direction.setNullValid(true);
 		direction.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(direction);
 
         DropDownChoice associationAttribute = new DropDownChoice<>(ID_ASSOCIATION_ATTRIBUTE,
-                new PropertyModel<QName>(getModel(), "associationAttribute"),
+            new PropertyModel<>(getModel(), "associationAttribute"),
                 new AbstractReadOnlyModel<List<QName>>() {
 
                     @Override
@@ -164,7 +164,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(associationAttribute);
 
         DropDownChoice valueAttribute = new DropDownChoice<>(ID_VALUE_ATTRIBUTE,
-                new PropertyModel<QName>(getModel(), "valueAttribute"),
+            new PropertyModel<>(getModel(), "valueAttribute"),
                 new AbstractReadOnlyModel<List<QName>>() {
 
                     @Override
@@ -177,11 +177,11 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(valueAttribute);
 
         CheckBox explicitRefIntegrity = new CheckBox(ID_EXPLICIT_REF_INTEGRITY,
-                new PropertyModel<Boolean>(getModel(), "explicitReferentialIntegrity"));
+            new PropertyModel<>(getModel(), "explicitReferentialIntegrity"));
 		explicitRefIntegrity.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(explicitRefIntegrity);
 
-        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
+        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<>(getModel(), "ref"),
                 "SchemaHandlingStep.association.tooltip.associationLocalPart", "SchemaHandlingStep.association.tooltip.associationNamespace",
                 true, true)  {
 			@Override
@@ -218,11 +218,11 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         };
         add(limitations);
 
-        CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<Boolean>(getModel(), "exclusiveStrong"));
+        CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<>(getModel(), "exclusiveStrong"));
 		exclusiveStrong.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(exclusiveStrong);
 
-        CheckBox tolerant = new CheckBox(ID_TOLERANT, new PropertyModel<Boolean>(getModel(), "tolerant"));
+        CheckBox tolerant = new CheckBox(ID_TOLERANT, new PropertyModel<>(getModel(), "tolerant"));
 		tolerant.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerant);
 
@@ -237,9 +237,9 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(intolerantVP);
 
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
-                new PropertyModel<AttributeFetchStrategyType>(getModel(), "fetchStrategy"),
+            new PropertyModel<>(getModel(), "fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
-                new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+            new EnumChoiceRenderer<>(this));
         fetchStrategy.setNullValid(true);
 		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
@@ -299,7 +299,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 		add(deleteOutbound);
 
 		MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true, readOnlyModel) {
+            new PropertyModel<>(getModel(), "inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -405,7 +405,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
     private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
-                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"), readOnlyModel);
+            new PropertyModel<>(getModel(), "limitations"), readOnlyModel);
         add(limitationsEditor);
 
         ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
@@ -505,7 +505,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
 	private void outboundEditPerformed(AjaxRequestTarget target){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
-        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"), false);
+        window.updateModel(target, new PropertyModel<>(getModel(), "outbound"), false);
         window.show(target);
     }
 

@@ -100,7 +100,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 
 	@Override
 	public AbstractRoleMemberPanel<RoleType> createMemberPanel(String panelId) {
-		return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()));
+		return new RoleMemberPanel(panelId, new Model<>(getObject().asObjectable()));
 	}
 
 	public AbstractRoleMemberPanel<RoleType> createGovernancePanel(String panelId) {
@@ -109,7 +109,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		relationsList.add(RelationTypes.OWNER);
 		relationsList.add(RelationTypes.MANAGER);
 
-		return new RoleGovernanceRelationsPanel(panelId, new Model<RoleType>(getObject().asObjectable()), relationsList);
+		return new RoleGovernanceRelationsPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
 	}
 
 

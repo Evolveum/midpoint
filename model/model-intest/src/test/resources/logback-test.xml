@@ -59,7 +59,6 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor" level="DEBUG" />
@@ -69,6 +68,7 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.IvwoConsolidator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
@@ -88,7 +88,7 @@
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression.Expression" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.common.mapping" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />

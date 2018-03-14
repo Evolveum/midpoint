@@ -557,8 +557,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		assertNoRepoCache();
 
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
+		Holder<ObjectType> objectHolder = new Holder<>();
 
 		// WHEN
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
@@ -1233,12 +1233,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		assertUserOneAccountRef(USER_JACK2_OID);
 		
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> modifications = new ArrayList<>();
 		
 		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
-		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
 		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
@@ -1260,7 +1260,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("shadow after communication problem", shadow);
 		
 		
-		Collection<PropertyDelta> newModifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> newModifications = new ArrayList<>();
 		PropertyDelta fullNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(fullNameDeltaNew);
 		
@@ -1268,7 +1268,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
-		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
 		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
@@ -2587,7 +2587,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
 				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
 				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), status);
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(resourceStatusDelta);
 		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
 	}

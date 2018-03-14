@@ -70,7 +70,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 	}
 
 	protected W createObjectWrapper(T object) {
-		return (W) new SelectableBean<T>(object);
+		return (W) new SelectableBean<>(object);
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 	}
 
 	public List<W> getSelectedObjects() {
-		List<W> allSelected = new ArrayList<W>();
+		List<W> allSelected = new ArrayList<>();
 		for (Serializable s : super.getAvailableData()) {
 			if (s instanceof Selectable) {
 				Selectable<W> selectable = (Selectable<W>) s;

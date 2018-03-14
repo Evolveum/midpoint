@@ -62,7 +62,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -239,7 +238,7 @@ public class LensUtil {
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta
 				= timestampDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, timestampPropertyName));
-		timestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now, origin, null));
+		timestampDelta.setValueToReplace(new PrismPropertyValue<>(now, origin, null));
 		return timestampDelta;
     }
 
@@ -274,7 +273,7 @@ public class LensUtil {
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
-		propDelta.setValueToReplace(new PrismPropertyValue<Integer>(accCtx.getIteration()));
+		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIteration()));
 		PrismProperty<Integer> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIteration());
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -295,7 +294,7 @@ public class LensUtil {
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
-		propDelta.setValueToReplace(new PrismPropertyValue<String>(accCtx.getIterationToken()));
+		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIterationToken()));
 		PrismProperty<String> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -351,7 +350,7 @@ public class LensUtil {
 	 */
 	public static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
 			LensContext<F> context, LensProjectionContext refProjCtx) {
-		List<LensProjectionContext> projCtxs = new ArrayList<LensProjectionContext>();
+		List<LensProjectionContext> projCtxs = new ArrayList<>();
 		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
 		if (refDiscr == null) {
 			return projCtxs;
@@ -479,7 +478,7 @@ public class LensUtil {
 				DOMUtil.XSD_INT, context.getPrismContext());
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
-		input.add(new PrismPropertyValue<Integer>(iteration));
+		input.add(new PrismPropertyValue<>(iteration));
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
 		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION);
 		sources.add(iterationSource);
@@ -850,7 +849,7 @@ public class LensUtil {
 																								LensElementContext<T> objectContext,
 																								LensProjectionContext projCtx,
 																								ResourceType resource) {
-		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
+		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta.clone());
 		objectDeltaOp.setExecutionResult(result);
 		PrismObject<T> object = objectContext.getObjectAny();
 		if (object != null) {

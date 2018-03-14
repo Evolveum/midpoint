@@ -123,9 +123,9 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		minusButton.setOutputMarkupId(true);
 		add(minusButton);
 
-		DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<QName>(ID_NAMESPACE,
-				new PropertyModel<QName>(getModel(), "objectType"),
-				new ListModel<QName>(WebComponentUtil.createObjectTypeList()), new QNameChoiceRenderer());
+		DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
+            new PropertyModel<>(getModel(), "objectType"),
+            new ListModel<>(WebComponentUtil.createObjectTypeList()), new QNameChoiceRenderer());
 		namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			private static final long serialVersionUID = 1L;

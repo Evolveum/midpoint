@@ -73,7 +73,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
 	protected Map<QName, Object> getParameters(){
 		JRParameter[] params = dataset.getParameters();
-		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
+		Map<QName, Object> expressionParameters = new HashMap<>();
 		for (JRParameter param : params){
 			if (param.isSystemDefined()){
 				continue;
@@ -93,7 +93,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
 	protected Map<QName, Object> getPromptingParameters(){
 		JRParameter[] params = dataset.getParameters();
-		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
+		Map<QName, Object> expressionParameters = new HashMap<>();
 		for (JRParameter param : params){
 			if (param.isSystemDefined()){
 				continue;

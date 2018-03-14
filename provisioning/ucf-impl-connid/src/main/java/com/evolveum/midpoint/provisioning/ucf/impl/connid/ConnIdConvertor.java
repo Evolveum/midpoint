@@ -308,7 +308,7 @@ public class ConnIdConvertor {
 		}
 		if (attributesContainer.getValue().findItem(uidDefinition.getName()) == null) {
 			ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
-			uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
+			uidRoa.setValue(new PrismPropertyValue<>(uid.getUidValue()));
 			attributesContainer.getValue().add(uidRoa);
 		}
 
@@ -324,7 +324,7 @@ public class ConnIdConvertor {
 	Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute<?>> resourceAttributes,
 			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 
-		Set<Attribute> attributes = new HashSet<Attribute>();
+		Set<Attribute> attributes = new HashSet<>();
 		if (resourceAttributes == null) {
 			// returning empty set
 			return attributes;
@@ -344,7 +344,7 @@ public class ConnIdConvertor {
 
 		String connIdAttrName = icfNameMapper.convertAttributeNameToIcf(mpAttribute, ocDef);
 
-		Set<Object> connIdAttributeValues = new HashSet<Object>();
+		Set<Object> connIdAttributeValues = new HashSet<>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
 			connIdAttributeValues.add(ConnIdUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
 		}

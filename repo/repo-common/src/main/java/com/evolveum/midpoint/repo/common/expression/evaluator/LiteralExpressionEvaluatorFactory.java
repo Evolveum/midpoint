@@ -77,7 +77,7 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
 
 		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDelta.toDeltaSetTriple(output, null);
 
-		return new LiteralExpressionEvaluator<V,D>(deltaSetTriple);
+		return new LiteralExpressionEvaluator<>(deltaSetTriple);
 	}
 
 }

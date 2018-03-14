@@ -604,7 +604,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public Collection<Package> getCompileTimePackages() {
-		Collection<Package> compileTimePackages = new ArrayList<Package>(schemaDescriptions.size());
+		Collection<Package> compileTimePackages = new ArrayList<>(schemaDescriptions.size());
 		for (SchemaDescription desc : schemaDescriptions) {
 			if (desc.getCompileTimeClassesPackage() != null) {
 				compileTimePackages.add(desc.getCompileTimeClassesPackage());
@@ -614,7 +614,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	private Map<QName, Class<?>> createXsdTypeMap(Package pkg) {
-		Map<QName, Class<?>> map = new HashMap<QName, Class<?>>();
+		Map<QName, Class<?>> map = new HashMap<>();
 		for (Class clazz: ClassPathUtil.listClasses(pkg)) {
 			QName typeName = JAXBUtil.getTypeQName(clazz);
 			if (typeName != null) {
@@ -1197,7 +1197,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@NotNull
 	private <ID extends ItemDefinition> List<ID> resolveGlobalItemDefinitionsWithoutNamespace(String localPart, Class<ID> definitionClass, @Nullable List<String> ignoredNamespaces) {
-		List<ID> found = new ArrayList<ID>();
+		List<ID> found = new ArrayList<>();
 		for (SchemaDescription schemaDescription : parsedSchemas.values()) {
 			PrismSchema schema = schemaDescription.getSchema();
 			if (schema == null) {       // is this possible?

@@ -43,7 +43,7 @@ public abstract class DummyObject implements DebugDumpable {
 	private String id;
 //	private int internalId = -1;
 	private String name;
-	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
+	private Map<String,Set<Object>> attributes = new HashMap<>();
 	private Boolean enabled = true;
 	private Date validFrom = null;
 	private Date validTo = null;
@@ -150,7 +150,7 @@ public abstract class DummyObject implements DebugDumpable {
 	}
 
 	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		Collection<Object> values = new ArrayList<Object>(1);
+		Collection<Object> values = new ArrayList<>(1);
 		values.add(value);
 		replaceAttributeValues(name, values);
 	}
@@ -160,7 +160,7 @@ public abstract class DummyObject implements DebugDumpable {
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		} else {
 			currentValues.clear();
@@ -175,7 +175,7 @@ public abstract class DummyObject implements DebugDumpable {
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		} else {
 			currentValues.clear();
@@ -190,7 +190,7 @@ public abstract class DummyObject implements DebugDumpable {
 	}
 
 	public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		Collection<Object> values = new ArrayList<Object>(1);
+		Collection<Object> values = new ArrayList<>(1);
 		values.add(value);
 		addAttributeValues(name, values);
 	}
@@ -200,7 +200,7 @@ public abstract class DummyObject implements DebugDumpable {
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
 		for(Object valueToAdd: valuesToAdd) {
@@ -214,7 +214,7 @@ public abstract class DummyObject implements DebugDumpable {
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
 		for (Object valueToAdd: valuesToAdd) {
@@ -248,7 +248,7 @@ public abstract class DummyObject implements DebugDumpable {
 			}
 		}
 
-		Set<Object> valuesToCheck = new HashSet<Object>();
+		Set<Object> valuesToCheck = new HashSet<>();
 		valuesToCheck.addAll(currentValues);
 		valuesToCheck.add(valueToAdd);
 		checkSchema(attrName, valuesToCheck, "add");
@@ -257,7 +257,7 @@ public abstract class DummyObject implements DebugDumpable {
 	}
 
 	public void removeAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		Collection<Object> values = new ArrayList<Object>();
+		Collection<Object> values = new ArrayList<>();
 		values.add(value);
 		removeAttributeValues(name, values);
 	}
@@ -267,11 +267,11 @@ public abstract class DummyObject implements DebugDumpable {
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
 
-		Set<Object> valuesToCheck = new HashSet<Object>();
+		Set<Object> valuesToCheck = new HashSet<>();
 		valuesToCheck.addAll(currentValues);
 		valuesToCheck.removeAll(values);
 		checkSchema(name, valuesToCheck, "remove");

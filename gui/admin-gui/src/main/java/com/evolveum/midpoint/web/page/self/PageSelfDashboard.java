@@ -119,7 +119,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
 
-    private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+    private final Model<PrismObject<UserType>> principalModel = new Model<>();
     private AdminGuiConfigurationType adminGuiConfig;
 
     public PageSelfDashboard() {
@@ -316,7 +316,7 @@ public class PageSelfDashboard extends PageSelf {
         LOGGER.debug("Loading requests.");
 
         AccountCallableResult<List<ProcessInstanceDto>> callableResult = new AccountCallableResult<>();
-        List<ProcessInstanceDto> list = new ArrayList<ProcessInstanceDto>();
+        List<ProcessInstanceDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
         if (!getWorkflowManager().isEnabled()) {
@@ -389,7 +389,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
                         return new MyAccountsPanel(markupId,
-                                new PropertyModel<List<SimpleAccountDto>>(getModel(), CallableResult.F_VALUE));
+                            new PropertyModel<>(getModel(), CallableResult.F_VALUE));
                     }
 
                     @Override
@@ -432,7 +432,7 @@ public class PageSelfDashboard extends PageSelf {
         LOGGER.debug("Loading accounts.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
-        List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
+        List<SimpleAccountDto> list = new ArrayList<>();
         callableResult.setValue(list);
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
@@ -505,7 +505,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
                         return new MyAssignmentsPanel(markupId,
-                                new PropertyModel<List<AssignmentItemDto>>(getModel(), CallableResult.F_VALUE));
+                            new PropertyModel<>(getModel(), CallableResult.F_VALUE));
                     }
                 };
         assignedOrgUnits.add(new VisibleEnableBehaviour(){
@@ -524,7 +524,7 @@ public class PageSelfDashboard extends PageSelf {
     private CallableResult<List<AssignmentItemDto>> loadAssignments() throws Exception {
         LOGGER.debug("Loading assignments.");
         CallableResult callableResult = new CallableResult();
-        List<AssignmentItemDto> list = new ArrayList<AssignmentItemDto>();
+        List<AssignmentItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
         PrismObject<UserType> user = principalModel.getObject();

@@ -79,8 +79,7 @@ public class ExtItemDictionary {
 		query.select(query.from(RExtItem.class));
 		List<RExtItem> items = session.createQuery(query).getResultList();
 		LOGGER.debug("Fetched {} item definitions", items.size());
-		System.out.println("*** Fetched " + items.size() + " item definitions:\n" + items);
-
+		
 		itemsById = new HashMap<>(items.size());
 		itemsByKey = new HashMap<>(items.size());
 		for (RExtItem item : items) {

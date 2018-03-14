@@ -38,7 +38,7 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	// empty (can be filled-in later)
 	@NotNull
 	public static <T> LessFilter<T> createLess(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition, boolean equals) {
-		return new LessFilter<T>(itemPath, definition, null, null, null, null, equals);
+		return new LessFilter<>(itemPath, definition, null, null, null, null, equals);
 	}
 
 	// value
@@ -46,7 +46,7 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	public static <T> LessFilter<T> createLess(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
 			@NotNull PrismContext prismContext, Object anyValue, boolean equals) {
 		PrismPropertyValue<T> propertyValue = anyValueToPropertyValue(prismContext, anyValue);
-		return new LessFilter<T>(itemPath, definition, propertyValue, null, null, null, equals);
+		return new LessFilter<>(itemPath, definition, propertyValue, null, null, null, equals);
 	}
 
 	// expression-related
@@ -66,8 +66,8 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public LessFilter<T> clone() {
-		return new LessFilter<T>(getFullPath(), getDefinition(), getClonedValue(), getExpression(),
-				getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
+		return new LessFilter<>(getFullPath(), getDefinition(), getClonedValue(), getExpression(),
+            getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
 	}
 
 	@Override

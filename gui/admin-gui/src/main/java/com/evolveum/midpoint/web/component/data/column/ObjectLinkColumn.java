@@ -50,7 +50,7 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
 
     	IModel<ObjectType> superModel = createLinkModel(rowModel);
     	final ObjectType targetObjectType = superModel.getObject();
-    	IModel<String> nameModel = new PropertyModel<String>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
+    	IModel<String> nameModel = new PropertyModel<>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
         cellItem.add(new LinkPanel(componentId, nameModel) {
         	private static final long serialVersionUID = 1L;
 
@@ -79,7 +79,7 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
     @Override
     public IModel<String> getDataModel(IModel<T> rowModel) {
         IModel<ObjectType> superModel = createLinkModel(rowModel);
-        return new PropertyModel<String>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
+        return new PropertyModel<>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
     }
 
 }

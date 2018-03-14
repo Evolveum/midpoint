@@ -214,7 +214,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     private List<IColumn<AssignmentEditorDto, String>> initColumns() {
         List<IColumn<AssignmentEditorDto, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn<AssignmentEditorDto>());
+        columns.add(new CheckBoxHeaderColumn<>());
 
         columns.add(new IconColumn<AssignmentEditorDto>(Model.of("")){
             private static final long serialVersionUID = 1L;
@@ -347,7 +347,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         });
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-            columns.add(new InlineMenuButtonColumn<AssignmentEditorDto>(getAssignmentMenuActions(), 1, getPageBase()));
+            columns.add(new InlineMenuButtonColumn<>(getAssignmentMenuActions(), 1, getPageBase()));
         }
         return columns;
     }
@@ -355,7 +355,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     private List<InlineMenuItem> getAssignmentMenuActions(){
         List<InlineMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
-                new Model<Boolean>(true), new Model<Boolean>(true), false,
+            new Model<>(true), new Model<>(true), false,
                 new ColumnMenuAction<SelectableBean<ResourceType>>() {
                     private static final long serialVersionUID = 1L;
 

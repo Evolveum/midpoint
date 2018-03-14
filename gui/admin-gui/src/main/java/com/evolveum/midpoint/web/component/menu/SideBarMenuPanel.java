@@ -110,7 +110,7 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
                 item.add(icon);
 
                 ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS,
-                        new PropertyModel<List<MainMenuItem>>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
+                    new PropertyModel<>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
 
                     @Override
                     protected void populateItem(final ListItem<MainMenuItem> listItem) {

@@ -135,7 +135,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		super.initSystem(initTask, initResult);
 
 		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
-		importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
 		importObjectFromFile(SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE);
 		importObjectFromFile(SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE);
 
@@ -144,6 +143,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		initDummyResourcePirate(RESOURCE_DUMMY_UGLY_NAME, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_LIFECYCLE_NAME, RESOURCE_DUMMY_LIFECYCLE_FILE, RESOURCE_DUMMY_LIFECYCLE_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_SOUVENIR_NAME, RESOURCE_DUMMY_SOUVENIR_FILE, RESOURCE_DUMMY_SOUVENIR_OID, initTask, initResult);
+
+		importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
 		initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
 
 		login(USER_ADMINISTRATOR_USERNAME);
@@ -2818,6 +2819,71 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userAfter, 4);		
 	}
 	
+	/**
+	 * MID-4507
+	 */
+	@Test
+	public void test550JackManyPassowrdChangesClear() throws Exception {
+		testJackManyPassowrdChanges("test550JackManyPassowrdChangesClear", "TesT550x", null);
+	}
+
+	/**
+	 * MID-4507
+	 */
+	@Test
+	public void test552JackManyPassowrdChangesEncrypted() throws Exception {
+		testJackManyPassowrdChanges("test552JackManyPassowrdChangesEncrypted", "TesT552x", CredentialsStorageTypeType.ENCRYPTION);
+	}
+
+	/**
+	 * MID-4507
+	 */
+	public void testJackManyPassowrdChanges(final String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType) throws Exception {
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		prepareTest();
+		
+		// preconditions
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertAssignments(userBefore, 4);
+		assertLinks(userBefore, 4);
+
+		for (int i = 1; i < 10; i++) {
+			testJackManyPassowrdChangesAttempt(TEST_NAME, passwordPrefix, storageType, i);
+		}
+		
+	}
+	
+	private void testJackManyPassowrdChangesAttempt(String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType, int i) throws Exception {		
+		Task task = createTask(TEST_NAME + "-" + i);
+		OperationResult result = task.getResult();
+
+		String newPassword = passwordPrefix + i;
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(newPassword);
+        if (storageType == CredentialsStorageTypeType.ENCRYPTION) {
+        	protector.encrypt(userPasswordPs);
+        }
+		
+		// WHEN
+		displayWhen(TEST_NAME + "-" + i);
+        modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+
+		// THEN
+		displayThen(TEST_NAME + "-" + i);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserPassword(userAfter, newPassword);
+		assertAssignments(userAfter, 4);
+		assertLinks(userAfter, 4);
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, newPassword);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, newPassword);
+	}
+
 	protected ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
 		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
 		ProtectedStringType passwordPs = new ProtectedStringType();

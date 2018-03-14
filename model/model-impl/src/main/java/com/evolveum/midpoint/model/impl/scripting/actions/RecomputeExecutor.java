@@ -76,7 +76,7 @@ public class RecomputeExecutor extends BaseActionExecutor {
                 Throwable exception = null;
                 try {
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Recomputing object {} with dryRun={}: context:\n{}", focalPrismObject, dryRun);
+                        LOGGER.trace("Recomputing object {} with dryRun={}", focalPrismObject, dryRun);
                     }
                     ObjectDelta<? extends FocusType> emptyDelta = ObjectDelta.createEmptyDelta(focusType.getClass(), focusType.getOid(), prismContext, ChangeType.MODIFY);
                     operationsHelper.applyDelta(emptyDelta, ModelExecuteOptions.createReconcile(), dryRun, context, result);

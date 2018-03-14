@@ -134,7 +134,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
     }
 
 	protected Panel getPanel(){
-		return (Panel) get(ID_TABS).get("panel");
+        if (get(ID_TABS).get("panel") instanceof Panel) {
+            return (Panel) get(ID_TABS).get("panel");
+        }
+        return null;
 	}
 
 	public AjaxTabbedPanel<ITab> getTabbedPanel(){
@@ -194,7 +197,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
     protected void changeTabPerformed(int index){
         if (roots != null && index >= 0 && index <= roots.size()){
             SessionStorage storage = getPageBase().getSessionStorage();
-            SelectableBean<OrgType> selected = new SelectableBean<OrgType>();
+            SelectableBean<OrgType> selected = new SelectableBean<>();
             selected.setValue(roots.get(index).asObjectable());
             storage.getUsers().setSelectedItem(selected);
             storage.getUsers().setSelectedTabId(index);

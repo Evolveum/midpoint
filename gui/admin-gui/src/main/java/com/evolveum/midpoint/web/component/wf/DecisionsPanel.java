@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.web.component.wf;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -30,16 +26,22 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 /**
  * @author lazyman
  * @author mederly
  */
 public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
+	private static final long serialVersionUID = 1L;
 
-    private static final String ID_DECISIONS_TABLE = "decisionsTable";
+	private static final String ID_DECISIONS_TABLE = "decisionsTable";
 
     // todo options to select which columns will be shown
     public DecisionsPanel(String id, IModel<List<DecisionDto>> model, UserProfileStorage.TableId tableId, int pageSize) {
@@ -54,7 +56,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalActor"), DecisionDto.F_ORIGINAL_ACTOR));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.stage"), DecisionDto.F_STAGE));
 		columns.add(createOutcomeColumn());
-        columns.add(new PropertyColumn<DecisionDto, String>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.escalation"), DecisionDto.F_ESCALATION_LEVEL_NUMBER));
 
@@ -66,19 +68,30 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 	@NotNull
 	private IconColumn<DecisionDto> createOutcomeColumn() {
 		return new IconColumn<DecisionDto>(createStringResource("DecisionsPanel.result")) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected IModel<String> createIconModel(final IModel<DecisionDto> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public String getObject() {
 						return choose(rowModel, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
 					}
 				};
 			}
+			
+			@Override
+		    public String getCssClass() {
+		        return "shrink";
+		    }
 
 			@Override
 			protected IModel<String> createTitleModel(final IModel<DecisionDto> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public String getObject() {
 						return choose(rowModel,

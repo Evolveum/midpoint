@@ -62,7 +62,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
     @Override
     public IModel<List<T>> getModel(){
         if(super.getModel().getObject() == null){
-            super.getModel().setObject(new ArrayList<T>());
+            super.getModel().setObject(new ArrayList<>());
         }
 
         return super.getModel();

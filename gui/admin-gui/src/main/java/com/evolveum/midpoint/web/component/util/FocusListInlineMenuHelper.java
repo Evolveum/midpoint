@@ -81,7 +81,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 	public List<InlineMenuItem> createRowActions(boolean isHeader) {
 		List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
@@ -114,8 +114,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 		});
 
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable"),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
@@ -147,7 +147,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			}
 		});
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override

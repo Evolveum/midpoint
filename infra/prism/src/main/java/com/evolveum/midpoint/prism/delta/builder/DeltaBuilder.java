@@ -74,7 +74,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     public static <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass, PrismContext prismContext) throws SchemaException {
-        return new DeltaBuilder<C>(objectClass, prismContext);
+        return new DeltaBuilder<>(objectClass, prismContext);
     }
 
     @Override

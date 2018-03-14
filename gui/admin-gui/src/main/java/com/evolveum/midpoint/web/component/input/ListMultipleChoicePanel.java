@@ -33,7 +33,7 @@ public class ListMultipleChoicePanel<T> extends InputPanel {
 
     public ListMultipleChoicePanel(String id, IModel<List<T>> model, IModel<List<T>> choices) {
         super(id);
-        ListMultipleChoice<T> multiple = new ListMultipleChoice<T>("input", model, choices);
+        ListMultipleChoice<T> multiple = new ListMultipleChoice<>("input", model, choices);
         add(multiple);
     }
 

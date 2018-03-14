@@ -347,7 +347,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Flying Dutchman");
@@ -393,7 +393,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
@@ -435,7 +435,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "HMS Dauntless");
@@ -481,7 +481,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "HMS Dauntless");
@@ -927,7 +927,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, false);
         userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
@@ -1403,7 +1403,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_RED_OID, null, true);
         deltas.add(userDelta);
@@ -1527,7 +1527,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Flying Dutchman");
@@ -1580,7 +1580,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
@@ -1622,7 +1622,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Black Pearl");
@@ -1709,7 +1709,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
 
@@ -1771,7 +1771,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String acccountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, acccountRedOid, prismContext);
         deltas.add(shadowDelta);
 
@@ -1814,7 +1814,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_OID, null, true);
         userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
@@ -1941,7 +1941,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext, "Davie Jones Locker");
@@ -1994,7 +1994,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext);
@@ -2036,7 +2036,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext, "Fountain of Youth");
@@ -2116,7 +2116,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
 

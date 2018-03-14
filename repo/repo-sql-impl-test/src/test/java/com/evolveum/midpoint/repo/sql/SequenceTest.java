@@ -116,7 +116,7 @@ public class SequenceTest extends BaseSQLRepoTest {
         assertEquals(5L, repositoryService.advanceSequence(oid, result));
         assertEquals(6L, repositoryService.advanceSequence(oid, result));
         repositoryService.returnUnusedValuesToSequence(oid, null, result);
-        repositoryService.returnUnusedValuesToSequence(oid, new ArrayList<Long>(), result);
+        repositoryService.returnUnusedValuesToSequence(oid, new ArrayList<>(), result);
         repositoryService.returnUnusedValuesToSequence(oid, Arrays.asList(6L), result);
         assertEquals(6L, repositoryService.advanceSequence(oid, result));
         repositoryService.returnUnusedValuesToSequence(oid, Arrays.asList(0L, 1L, 2L, 3L, 4L, 5L, 6L), result);     // only 0-4 will be returned

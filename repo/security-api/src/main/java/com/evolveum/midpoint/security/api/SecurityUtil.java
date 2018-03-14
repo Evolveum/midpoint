@@ -50,7 +50,7 @@ public class SecurityUtil {
 	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
 
 	public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
-		Collection<String> actions = new ArrayList<String>(configAttributes.size());
+		Collection<String> actions = new ArrayList<>(configAttributes.size());
 		for (ConfigAttribute attr: configAttributes) {
 			actions.add(attr.getAttribute());
 		}

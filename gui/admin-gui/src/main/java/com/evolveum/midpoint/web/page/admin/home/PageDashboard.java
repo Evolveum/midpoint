@@ -78,7 +78,7 @@ public class PageDashboard extends PageAdminHome {
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_SYSTEM_INFO = "systemInfo";
 
-    private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+    private final Model<PrismObject<UserType>> principalModel = new Model<>();
 
     public PageDashboard() {
         principalModel.setObject(loadUserSelf());
@@ -174,7 +174,7 @@ public class PageDashboard extends PageAdminHome {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
 
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
 		return new InfoBoxPanel(id, boxModel, linkPage);
     }
@@ -211,7 +211,7 @@ public class PageDashboard extends PageAdminHome {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
 
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
 		return new InfoBoxPanel(ID_INFO_BOX_RESOURCES, boxModel, PageResources.class);
 	}
@@ -247,7 +247,7 @@ public class PageDashboard extends PageAdminHome {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
 
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+		Model<InfoBoxType> boxModel = new Model<>(infoBoxType);
 
 		return new InfoBoxPanel(ID_INFO_BOX_TASKS, boxModel, PageTasks.class);
 	}

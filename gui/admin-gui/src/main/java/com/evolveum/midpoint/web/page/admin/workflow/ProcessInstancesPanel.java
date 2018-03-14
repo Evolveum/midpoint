@@ -118,7 +118,7 @@ public class ProcessInstancesPanel extends BasePanel {
 			columns.add(createTargetNameColumn("pageProcessInstances.item.target"));
 			columns.add(createStageColumn());
 			//columns.add(createStateColumn());
-			columns.add(new PropertyColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
+			columns.add(new PropertyColumn<>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
 			columns.add(createOutcomeColumn());
 			columns.add(createFinishedColumn());
 		} else {

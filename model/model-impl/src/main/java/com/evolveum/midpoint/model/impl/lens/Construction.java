@@ -215,7 +215,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	public Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
 		if (associationMappings == null) {
-			associationMappings = new ArrayList<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>();
+			associationMappings = new ArrayList<>();
 		}
 		return associationMappings;
 	}
@@ -511,6 +511,15 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		if (assocName == null) {
 			throw new SchemaException("Missing 'ref' in association in construction in " + getSource());
 		}
+		
+		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociationDefinition(assocName);
+		if (rAssocDef == null) {
+			throw new SchemaException("No association " + assocName + " in object class "
+					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + getSource());
+		}
+		// Make sure that assocName is complete with the namespace and all.
+		assocName = rAssocDef.getName();
+		
 		MappingType outboundMappingType = associationDefinitionType.getOutbound();
 		if (outboundMappingType == null) {
 			throw new SchemaException("No outbound section in definition of association " + assocName
@@ -524,12 +533,6 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 						.contextDescription("for association " + PrettyPrinter.prettyPrint(assocName) + " in " + getSource())
 						.originType(OriginType.ASSIGNMENTS)
 						.originObject(getSource());
-
-		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociationDefinition(assocName);
-		if (rAssocDef == null) {
-			throw new SchemaException("No association " + assocName + " in object class "
-					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + getSource());
-		}
 
 		MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
 				mappingBuilder, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);

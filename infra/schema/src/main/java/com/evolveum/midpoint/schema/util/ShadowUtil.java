@@ -290,7 +290,7 @@ public class ShadowUtil {
 		if (attr == null) {
 			return null;
 		}
-		List<T> values = new ArrayList<T>();
+		List<T> values = new ArrayList<>();
 		for (PrismPropertyValue<T> pval : attr.getValues()) {
 			values.add(pval.getValue());
 		}

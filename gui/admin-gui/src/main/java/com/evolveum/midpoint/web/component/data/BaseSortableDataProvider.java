@@ -67,7 +67,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     // after this amount of time cached size will be removed
     // from cache and replaced by new value, time in seconds
-    private Map<Serializable, CachedSize> cache = new HashMap<Serializable, CachedSize>();
+    private Map<Serializable, CachedSize> cache = new HashMap<>();
     private int cacheCleanupThreshold = 60;
     private boolean useCache;
     private boolean exportSize = false;
@@ -139,14 +139,14 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     public List<T> getAvailableData() {
         if (availableData == null) {
-            availableData = new ArrayList<T>();
+            availableData = new ArrayList<>();
         }
         return availableData;
     }
 
     @Override
     public IModel<T> model(T object) {
-        return new Model<T>(object);
+        return new Model<>(object);
     }
 
     protected PageBase getPage() {

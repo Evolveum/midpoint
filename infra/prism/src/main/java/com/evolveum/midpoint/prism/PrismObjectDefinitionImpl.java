@@ -55,7 +55,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-		return new PrismObject<O>(getName(), this, prismContext);
+		return new PrismObject<>(getName(), this, prismContext);
 	}
 
 	@NotNull

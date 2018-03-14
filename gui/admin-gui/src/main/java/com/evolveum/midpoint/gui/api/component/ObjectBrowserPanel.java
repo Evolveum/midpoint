@@ -58,7 +58,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
 	private PageBase parentPage;
 	private ObjectFilter queryFilter;
-	private List<O> selectedObjectsList = new ArrayList<O>();
+	private List<O> selectedObjectsList = new ArrayList<>();
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default
@@ -73,7 +73,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	 */
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
 							  PageBase parentPage, ObjectFilter queryFilter) {
-		this(id, defaultType, supportedTypes, multiselect, parentPage, queryFilter, new ArrayList<O>());
+		this(id, defaultType, supportedTypes, multiselect, parentPage, queryFilter, new ArrayList<>());
 	}
 
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
@@ -118,8 +118,8 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 		});
 		add(typePanel);
 
-		DropDownChoice<ObjectTypes> typeSelect = new DropDownChoice<ObjectTypes>(ID_TYPE, typeModel,
-				new ListModel<>(supported), new EnumChoiceRenderer<>(this));
+		DropDownChoice<ObjectTypes> typeSelect = new DropDownChoice<>(ID_TYPE, typeModel,
+            new ListModel<>(supported), new EnumChoiceRenderer<>(this));
 		typeSelect.add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;

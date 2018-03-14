@@ -213,7 +213,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-    	SelectableBean<O> selectable = new SelectableBean<O>(obj);
+    	SelectableBean<O> selectable = new SelectableBean<>(obj);
     	if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
     		try {
 				selectable.setResult(obj.getFetchResult());

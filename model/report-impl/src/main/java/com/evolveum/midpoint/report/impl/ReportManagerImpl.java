@@ -271,7 +271,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
 
-        List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
+        List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<>();
         try {
             ObjectQuery obsoleteReportOutputsQuery = QueryBuilder.queryFor(ReportOutputType.class, prismContext)
 					.item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)

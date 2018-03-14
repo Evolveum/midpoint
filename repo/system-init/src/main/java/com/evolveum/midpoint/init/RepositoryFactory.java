@@ -142,7 +142,11 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
 
             RepositoryService repositoryService = applicationContext.getBean("repositoryService", RepositoryService.class);
 
-            repositoryCache.setRepository(repositoryService, prismContext);
+            repositoryCache.setRepository(repositoryService);
+            repositoryCache.setPrismContext(prismContext);
+            repositoryCache.setMidpointConfiguration(midpointConfiguration);
+
+            repositoryCache.initialize();
 
             cacheRepositoryService = repositoryCache;
         } catch (Exception ex) {

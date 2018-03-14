@@ -144,7 +144,7 @@ public class DummyResource implements DebugDumpable {
 	private String uselessString;
 	private String uselessGuardedString;
 
-	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
+	private static Map<String, DummyResource> instances = new HashMap<>();
 
 	DummyResource() {
 		allObjects = Collections.synchronizedMap(new LinkedHashMap<String,DummyObject>());
@@ -152,7 +152,7 @@ public class DummyResource implements DebugDumpable {
 		groups = Collections.synchronizedMap(new LinkedHashMap<String, DummyGroup>());
 		privileges = Collections.synchronizedMap(new LinkedHashMap<String, DummyPrivilege>());
 		orgs = Collections.synchronizedMap(new LinkedHashMap<String, DummyOrg>());
-		scriptHistory = new ArrayList<ScriptHistoryEntry>();
+		scriptHistory = new ArrayList<>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
 		privilegeObjectClass = new DummyObjectClass();
@@ -882,7 +882,7 @@ public class DummyResource implements DebugDumpable {
 
 
 	public List<DummyDelta> getDeltasSince(int syncToken) {
-		List<DummyDelta> result = new ArrayList<DummyDelta>();
+		List<DummyDelta> result = new ArrayList<>();
 		for (DummyDelta delta: deltas) {
 			if (delta.getSyncToken() > syncToken) {
 				result.add(delta);

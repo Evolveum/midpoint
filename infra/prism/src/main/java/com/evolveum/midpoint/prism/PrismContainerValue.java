@@ -192,7 +192,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * @return set of properties that the property container contains.
      */
     public Set<PrismProperty<?>> getProperties() {
-        Set<PrismProperty<?>> properties = new HashSet<PrismProperty<?>>();
+        Set<PrismProperty<?>> properties = new HashSet<>();
         if (items != null) {
             for (Item<?,?> item : getItems()) {
                 if (item instanceof PrismProperty) {
@@ -856,7 +856,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         PrismProperty<X> property;
         if (propertyDefinition == null) {
-        	property = new PrismProperty<X>(propertyName, prismContext);		// Definitionless
+        	property = new PrismProperty<>(propertyName, prismContext);		// Definitionless
         } else {
         	property = propertyDefinition.instantiate();
         }
@@ -1431,7 +1431,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	boolean equalsItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
 			boolean ignoreMetadata, boolean isLiteral) {
-		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<ItemDelta<?,?>>();
+		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
 		diffItems(thisValue, other, deltas, ignoreMetadata, isLiteral);

@@ -51,7 +51,7 @@ public class DeltaDto implements Serializable {
 
         add = delta.isAdd();
 
-        modifications = new ArrayList<ModificationDto>();
+        modifications = new ArrayList<>();
         for (Object itemDelta : delta.getModifications()) {
             if (itemDelta instanceof PropertyDelta) {
                 modifications.addAll(ModificationDto.createModificationDtoList((PropertyDelta) itemDelta));

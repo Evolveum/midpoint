@@ -339,8 +339,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					}
 					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 
-					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
-							userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
+					return new DynamicFormPanel<>(ID_DYNAMIC_FORM_PANEL,
+                        userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
 				});
 
 		if (dynamicForm != null) {
@@ -352,7 +352,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
 		// ProtectedStringType initialPassword = null;
 		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-				new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true);
+            new PropertyModel<>(userModel, "credentials.password.value"), false, true);
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		password.getBaseFormComponent().setRequired(true);
 		staticRegistrationForm.add(password);

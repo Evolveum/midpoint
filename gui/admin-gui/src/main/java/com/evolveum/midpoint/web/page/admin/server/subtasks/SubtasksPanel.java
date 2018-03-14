@@ -42,7 +42,7 @@ public class SubtasksPanel extends BasePanel<List<TaskDto>> {
     }
 
     private void initLayout(boolean workflowsEnabled) {
-        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
+        List<IColumn<TaskDto, String>> columns = new ArrayList<>();
         columns.add(PageTasks.createTaskNameColumn(this, "SubtasksPanel.label.name"));
         columns.add(PageTasks.createTaskCategoryColumn(this, "SubtasksPanel.label.category"));
         columns.add(PageTasks.createTaskExecutionStatusColumn(this, "SubtasksPanel.label.executionState"));
@@ -50,7 +50,7 @@ public class SubtasksPanel extends BasePanel<List<TaskDto>> {
         //columns.add(PageTasks.createTaskDetailColumn(this, "SubtasksPanel.label.detail", workflowsEnabled));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        add(new TablePanel<TaskDto>(ID_SUBTASKS_TABLE, provider, columns));
+        add(new TablePanel<>(ID_SUBTASKS_TABLE, provider, columns));
 
     }
 }

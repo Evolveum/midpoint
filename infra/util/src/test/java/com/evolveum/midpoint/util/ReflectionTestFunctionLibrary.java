@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 public class ReflectionTestFunctionLibrary {
 
-	Collection<String> calledIds = new ArrayList<String>();
+	Collection<String> calledIds = new ArrayList<>();
 
 	// Test functions
 

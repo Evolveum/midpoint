@@ -18,8 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanelChainedModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import org.apache.wicket.markup.html.form.Form;
@@ -36,8 +35,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -127,15 +124,16 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
 			    //todo simplified construction panel will be in the gui starting from 3.8
-//                if (model.getObject().getName().equals(AssignmentType.F_CONSTRUCTION)){
-//                    ConstructionDetailsPanel panel = new ConstructionDetailsPanel("value", item.getModel());
-//                    panel.setOutputMarkupId(true);
-//                    item.add(panel);
-//                } else {
+                if (model.getObject().getName().equals(AssignmentType.F_CONSTRUCTION)){
+                    ConstructionDetailsPanelChainedModel panel = new ConstructionDetailsPanelChainedModel("value",
+                            Model.of((ConstructionType)item.getModelObject().getContainerValue().asContainerable()));
+                    panel.setOutputMarkupId(true);
+                    item.add(panel);
+                } else {
                     ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
                     containerPanel.setOutputMarkupId(true);
                     item.add(containerPanel);
-//                }
+                }
 				
 			}
 			

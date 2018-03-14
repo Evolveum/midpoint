@@ -248,7 +248,7 @@ public class ExpressionUtil {
 		} else if (object instanceof ItemDeltaItem) {
 			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
 			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
-			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
+			return triple != null ? triple.getNonNegativeValues() : new ArrayList<>();
 		} else {
 			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
 		}
@@ -423,9 +423,9 @@ public class ExpressionUtil {
 			return (ItemDeltaItem<IV, ID>) new ObjectDeltaObject((PrismObject<?>) object, null,
 					(PrismObject<?>) object);
 		} else if (object instanceof Item<?, ?>) {
-			return new ItemDeltaItem<IV, ID>((Item<IV, ID>) object, null, (Item<IV, ID>) object);
+			return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object);
 		} else if (object instanceof ItemDelta<?, ?>) {
-			return new ItemDeltaItem<IV, ID>(null, (ItemDelta<IV, ID>) object, null);
+			return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null);
 		} else {
 			throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
 		}
@@ -801,7 +801,7 @@ public class ExpressionUtil {
 	}
 
 	public static Map<QName, Object> compileVariablesAndSources(ExpressionEvaluationContext params) {
-		Map<QName, Object> variablesAndSources = new HashMap<QName, Object>();
+		Map<QName, Object> variablesAndSources = new HashMap<>();
 
 		if (params.getVariables() != null) {
 			for (Entry<QName, Object> entry : params.getVariables().entrySet()) {

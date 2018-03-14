@@ -58,7 +58,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
 	private static final int MAX_SEQUENCE_ITERATIONS = 15;
 	private static final int MAX_RANDOM_SEQUENCE_ITERATIONS = 30;
 
-	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<CarefulAnt<ResourceType>>();
+	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<>();
 	private static CarefulAnt<ResourceType> descriptionAnt;
     private static String lastVersion;
     private static Random rnd = new Random();

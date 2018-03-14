@@ -355,7 +355,7 @@ public class ConnectorManager {
 			throw new SystemException("Discovery attempt with non-persistent " + hostType);
 		}
 
-		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
+		Set<ConnectorType> discoveredConnectors = new HashSet<>();
 
 		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
 

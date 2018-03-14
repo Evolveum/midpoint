@@ -173,7 +173,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 	@NotNull
 	public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
 		if (strengthSelector.isNone()) {
-			LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'");
+			LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'", itemPath);
 			return null;
 		}
 		
@@ -187,10 +187,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidating {} IVwO triple:\n{}\nApriori Delta:\n{}\nExisting item:\n{}",
+			LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}",
 					itemPath, ivwoTriple.debugDump(1),
-					DebugUtil.debugDump(aprioriItemDelta, 1),
-					DebugUtil.debugDump(itemExisting, 1));
+					DebugUtil.debugDump(aprioriItemDelta, 2),
+					DebugUtil.debugDump(itemExisting, 2));
 		}
 
         Collection<V> allValues = collectAllValues();
@@ -350,7 +350,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
                 if (weakOnly && !strengthSelector.isWeak() && (itemExisting == null || itemExisting.isEmpty())){
                 	 // There is a weak mapping on a property, but we do not have full account available, so skipping deletion of the value is better way
-                    LOGGER.trace("Value {} mapping is weak and the full account could not be fetched, skipping deletion in {}",
+                    LOGGER.trace("Value {} mapping is weak and the full account could not be fetched, skipping deletion in {} with context {}",
 							value, itemPath, contextDescription);
                     continue;
                 }
