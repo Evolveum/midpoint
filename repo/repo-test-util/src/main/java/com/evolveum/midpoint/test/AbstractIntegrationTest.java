@@ -1389,6 +1389,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				assertTrue(message+": unenctypted value: "+actualValue, actualValue.isEncrypted());
 				String actualClearPassword = protector.decryptString(actualValue);
 				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
+				assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
+				assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
 				break;
 
 			case HASHING:
@@ -1398,6 +1400,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				expectedPs.setClearValue(expectedClearValue);
 				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue,
 						protector.compare(actualValue, expectedPs));
+				assertFalse(message+": unexpected encrypted value: "+actualValue, actualValue.isEncrypted());
+				assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
 				break;
 
 			default:
