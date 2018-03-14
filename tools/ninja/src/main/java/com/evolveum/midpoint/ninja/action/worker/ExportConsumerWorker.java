@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 
@@ -26,40 +26,15 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProgressReporterWorker extends BaseWorker<Object, PrismObject> {
+public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject> {
 
-    public ProgressReporterWorker(NinjaContext context, Object options, BlockingQueue<PrismObject> queue,
-                                  OperationStatus operation) {
+    public ExportConsumerWorker(NinjaContext context, ExportOptions options, BlockingQueue<PrismObject> queue,
+                                OperationStatus operation) {
         super(context, options, queue, operation);
     }
 
     @Override
     public void run() {
-        while (!shouldStop()) {
-            if (operation.isStarted() || operation.isProducerFinished()) {
-                operation.print(context.getLog());
-            }
 
-            try {
-                Thread.sleep(NinjaUtils.COUNT_STATUS_LOG_INTERVAL);
-            } catch (InterruptedException ex) {
-            }
-        }
-    }
-
-    private boolean shouldStop() {
-        if (operation.isFinished()) {
-            return true;
-        }
-
-        if (operation.isStarted()) {
-            return false;
-        }
-
-        if (operation.isProducerFinished() && !queue.isEmpty()) {
-            return false;
-        }
-
-        return true;
     }
 }

@@ -161,10 +161,10 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
 
         Validator validator = new Validator(prismContext, handler);
 
+        OperationResult result = operation.getResult();
+
         Charset charset = context.getCharset();
-        try (Reader reader = new InputStreamReader(input, charset)) {
-            OperationResult result = operation.getResult();
-            validator.validate(new ReaderInputStream(reader, context.getCharset()), result, result.getOperation());
-        }
+        Reader reader = new InputStreamReader(input, charset);
+        validator.validate(new ReaderInputStream(reader, charset), result, result.getOperation());
     }
 }

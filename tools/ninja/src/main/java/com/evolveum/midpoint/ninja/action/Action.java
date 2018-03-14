@@ -57,9 +57,10 @@ public abstract class Action<T> {
         result.recomputeStatus();
 
         if (result.isAcceptable()) {
-            log.info("{}. {}", finishMessage, operation.print());
+            log.info("{} in {}s. {}", finishMessage, operation.getTotalTime(), operation.print());
         } else {
-            log.error("{} with some problems, reason: {}. {}", finishMessage, result.getMessage(), operation.print());
+            log.error("{} in {}s with some problems, reason: {}. {}", finishMessage, operation.getTotalTime(),
+                    result.getMessage(), operation.print());
 
             if (context.isVerbose()) {
                 log.error("Full result\n{}", result.debugDumpLazily());

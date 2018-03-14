@@ -107,14 +107,8 @@ public class OperationStatus {
         totalCount.incrementAndGet();
     }
 
-    public double getAvgRequestTime() {
-        if (totalCount.get() == 0) {
-            return 0d;
-        }
-
-        long span = System.currentTimeMillis() - startTime;
-
-        return ((double) span) / totalCount.get();
+    public double getTotalTime() {
+        return ((double) (finishTime - startTime)) / 1000;
     }
 
     public double getAvgRequestPerSecond() {
@@ -122,7 +116,7 @@ public class OperationStatus {
             return 0d;
         }
 
-        long span = System.currentTimeMillis() - startTime / 1000;
+        long span = (System.currentTimeMillis() - startTime) / 1000;
 
         return ((double) totalCount.get()) / span;
     }
@@ -136,8 +130,6 @@ public class OperationStatus {
         sb.append(", skipped: ");
         sb.append(skippedCount.get());
         sb.append(", avg: ");
-        sb.append(NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestTime()));
-        sb.append("ms/req, avg: ");
         sb.append(NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestPerSecond()));
         sb.append("req/s");
 
