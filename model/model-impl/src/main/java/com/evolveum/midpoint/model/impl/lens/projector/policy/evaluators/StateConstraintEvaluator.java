@@ -109,10 +109,11 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		int count =
 				(constraint.getFilter() != null ? 1 : 0)
 				+ (constraint.getExpression() != null ? 1 : 0)
+				+ (constraint.getMessageExpression() != null ? 1 : 0)
 				+ (constraint.getExecuteScript() != null ? 1 : 0);
 
 		if (count != 1) {
-			throw new SchemaException("Exactly one of filter, expression, executeScript element must be present.");
+			throw new SchemaException("Exactly one of filter, expression, messageExpression, executeScript element must be present.");
 		}
 
 		PrismObject<F> object = ctx.getObject();
