@@ -89,7 +89,10 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
         } catch (IOException ex) {
             log.error("Unexpected error occurred, reason: {}", ex, ex.getMessage());
         } finally {
-            operation.producerFinish();
+            markDone();
+            if (isWorkersDone()) {
+                operation.producerFinish();
+            }
         }
     }
 

@@ -186,7 +186,7 @@ public class NinjaUtils {
         if (selected != null) {
             types.add(selected);
         } else {
-            for (ObjectTypes type : types) {
+            for (ObjectTypes type : ObjectTypes.values()) {
                 Class<? extends ObjectType> clazz = type.getClassDefinition();
                 if (Modifier.isAbstract(clazz.getModifiers())) {
                     continue;

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -43,8 +44,9 @@ public class ExportProducerWorker extends BaseWorker<ExportOptions, PrismObject>
     private ObjectQuery query;
 
     public ExportProducerWorker(NinjaContext context, ExportOptions options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation, ObjectTypes type, ObjectQuery query) {
-        super(context, options, queue, operation);
+                                OperationStatus operation, List<ExportProducerWorker> producers,
+                                ObjectTypes type, ObjectQuery query) {
+        super(context, options, queue, operation, producers);
 
         this.type = type;
         this.query = query;
@@ -76,7 +78,11 @@ public class ExportProducerWorker extends BaseWorker<ExportOptions, PrismObject>
         } catch (SchemaException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
         } finally {
-            operation.producerFinish();
+            markDone();
+
+            if (isWorkersDone()) {
+                operation.producerFinish();
+            }
         }
     }
 }

@@ -37,8 +37,6 @@ public abstract class Action<T> {
     }
 
     protected void handleResultOnFinish(OperationStatus operation, String finishMessage) {
-        operation.finish();
-
         OperationResult result = operation.getResult();
         result.recomputeStatus();
 

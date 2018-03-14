@@ -93,7 +93,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
             InOidFilter filter = InOidFilter.createInOid(options.getOid());
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-            producers.add(new ExportProducerWorker(context, options, queue, operation, type, query));
+            producers.add(new ExportProducerWorker(context, options, queue, operation, producers, type, query));
             return producers;
         }
 
@@ -102,7 +102,8 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
         for (ObjectTypes type : types) {
-            producers.add(new ExportProducerWorker(context, options, queue, operation, type, query));
+            // todo split shadows by resources
+            producers.add(new ExportProducerWorker(context, options, queue, operation, producers, type, query));
         }
 
         return producers;

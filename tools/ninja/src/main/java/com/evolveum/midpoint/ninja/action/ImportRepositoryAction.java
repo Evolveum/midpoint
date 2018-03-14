@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -51,10 +53,8 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
         executor.execute(new ProgressReporterWorker(context, options, queue, progress));
 
-        for (int i = 0; i < options.getMultiThread(); i++) {
-            ImportConsumerWorker worker = new ImportConsumerWorker(context, options, queue, progress);
-            executor.execute(worker);
-        }
+        List<ImportConsumerWorker> consumers = createConsumers(queue, progress);
+        consumers.stream().forEach(c -> executor.execute(c));
 
         executor.shutdown();
         executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
@@ -74,5 +74,15 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     private ImportProducerWorker importByFilter(ObjectFilter filter, boolean stopAfterFound,
                                                 BlockingQueue<PrismObject> queue, OperationStatus status) {
         return new ImportProducerWorker(context, options, queue, status, filter, stopAfterFound);
+    }
+
+    private List<ImportConsumerWorker> createConsumers(BlockingQueue<PrismObject> queue, OperationStatus operation) {
+        List<ImportConsumerWorker> consumers = new ArrayList<>();
+
+        for (int i = 0; i < options.getMultiThread(); i++) {
+            consumers.add(new ImportConsumerWorker(context, options, queue, operation, consumers));
+        }
+
+        return consumers;
     }
 }

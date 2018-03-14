@@ -131,7 +131,7 @@ public class OperationStatus {
         sb.append(skippedCount.get());
         sb.append(", avg: ");
         sb.append(NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestPerSecond()));
-        sb.append("req/s");
+        sb.append("obj/s");
 
         return sb.toString();
     }

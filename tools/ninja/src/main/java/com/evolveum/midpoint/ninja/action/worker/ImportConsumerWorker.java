@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -33,31 +34,41 @@ import java.util.concurrent.TimeUnit;
 public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject> {
 
     public ImportConsumerWorker(NinjaContext context, ImportOptions options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation) {
-        super(context, options, queue, operation);
+                                OperationStatus operation, List<ImportConsumerWorker> consumers) {
+        super(context, options, queue, operation, consumers);
     }
 
     @Override
     public void run() {
-        while (!shouldConsumerStop()) {
-            PrismObject object = null;
-            try {
-                object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
-                if (object == null) {
-                    continue;
+        try {
+            while (!shouldConsumerStop()) {
+                PrismObject object = null;
+                try {
+                    object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
+                    if (object == null) {
+                        continue;
+                    }
+
+                    RepositoryService repository = context.getRepository();
+                    RepoAddOptions opts = createRepoAddOptions(options);
+
+                    repository.addObject(object, opts, new OperationResult("Import object"));
+
+                    operation.incrementTotal();
+                } catch (Exception ex) {
+                    context.getLog().error("Couldn't add object {}, reason: {}", ex, object, ex.getMessage());
+                    operation.incrementError();
                 }
+            }
+        } finally {
+            markDone();
 
-                RepositoryService repository = context.getRepository();
-                RepoAddOptions opts = createRepoAddOptions(options);
-
-                repository.addObject(object, opts, new OperationResult("Import object"));
-
-                operation.incrementTotal();
-            } catch (Exception ex) {
-                context.getLog().error("Couldn't add object {}, reason: {}", ex, object, ex.getMessage());
-                operation.incrementError();
+            if (isWorkersDone()) {
+                operation.finish();
             }
         }
+
+        // todo handle encryption
     }
 
     private RepoAddOptions createRepoAddOptions(ImportOptions options) {

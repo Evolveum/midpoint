@@ -42,6 +42,11 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
     @Override
     public void run() {
         Log log = context.getLog();
+
+        // todo handle split option
+
+        PrismSerializer<String> serializer = context.getPrismContext().xmlSerializer();
+
         try (Writer writer = createWriter()) {
             while (!shouldConsumerStop()) {
                 PrismObject object = null;
@@ -51,9 +56,9 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
                         continue;
                     }
 
-                    PrismSerializer<String> serializer = context.getPrismContext().xmlSerializer();
                     String xml = serializer.serialize(object);
                     writer.write(xml);
+                    writer.flush();
 
                     operation.incrementTotal();
                 } catch (Exception ex) {
@@ -65,6 +70,12 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
             finalizeWriter(writer);
         } catch (IOException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
+        } finally {
+            markDone();
+
+            if (isWorkersDone()) {
+                operation.finish();
+            }
         }
     }
 
@@ -81,5 +92,6 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
         }
 
         writer.write(NinjaUtils.XML_OBJECTS_SUFFIX);
+        writer.flush();
     }
 }
