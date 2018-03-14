@@ -40,7 +40,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
@@ -566,13 +566,13 @@ public class AssignmentProcessor {
                 }
             	iterator.remove();
             	if (!ModelExecuteOptions.isForce(context.getOptions())){
-            		ModelUtils.recordFatalError(result, ex);
+            		ModelImplUtils.recordFatalError(result, ex);
             	}
             } catch (SchemaException ex){
             	if (LOGGER.isTraceEnabled()) {
                 	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
                 }
-            	ModelUtils.recordFatalError(result, ex);
+            	ModelImplUtils.recordFatalError(result, ex);
             	String resourceOid = FocusTypeUtil.determineConstructionResource(evaluatedAssignment.getAssignmentType());
             	if (resourceOid == null) {
             		// This is a role assignment or something like that. Just throw the original exception for now.

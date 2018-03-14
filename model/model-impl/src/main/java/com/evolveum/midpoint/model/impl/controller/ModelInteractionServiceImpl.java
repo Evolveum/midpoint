@@ -295,11 +295,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
 				ExpressionEvaluationException e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			throw e;
 			
 		} catch (PreconditionViolationException e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			// TODO: Temporary fix for 3.6.1
 			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
 			// ... and we do not really need that in 3.6.1
