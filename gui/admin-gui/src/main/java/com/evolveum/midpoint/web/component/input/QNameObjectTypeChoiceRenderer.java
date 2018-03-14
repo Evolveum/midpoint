@@ -43,7 +43,7 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
     @Override
     public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-        if (id == null) {
+        if (id == null || id.trim().equals("")) {
             return null;
         }
 

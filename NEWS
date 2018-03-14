@@ -1,20 +1,19 @@
-midPoint 3.7 "Darwin"
+midPoint 3.7.1 "Darwin" Update 1
 ----------------------------------
 
-Release 3.7 is a twenty third midPoint release code-named Darwin.
-The 3.7 release brings new deployment model and numerous gradual improvements.
-There are improvements of identity governance features, improvements of user
-interface and internal improvements.
+Release 3.7.1 is a twenty fourth midPoint release. It is the fist maintenance
+update for 3.7.x version family code-named Darwin. The 3.7.1 release brings
+stability improvements and several minor features.
 
-Release date: 18th December 2017
+Release date: 8th March 2018
 
-Changes with respect to version 3.6.1:
-    Stand-alone deployment based on Spring Boot
-    User interface improvements
-    Governance improvements
-    Expression, mapping and bulk action improvements
-    Security improvements
-    Task improvements
+Changes with respect to version 3.7:
+    Provisioning Propagation
+    Password Policy: prohibited projection values
+    Negative item enumeration in authorizations (exceptItem)
+    Ad-hoc provisioning script execution
+    Improved handling of function libraries
+    Improved SMS gateway support (HTTP POST method)
     Miscellaneous improvements
 
 Java 7 environment is no longer supported.

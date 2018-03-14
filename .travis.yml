@@ -15,7 +15,7 @@ before_install:
   - unzip -qq apache-maven-3.5.0-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.5.0
   - export PATH=$M2_HOME/bin:$PATH
-  - export MAVEN_OPTS='-Xmx4g'
+  - export MAVEN_OPTS='-Xmx6g'
 
 # custom script is used so build and tests are done in one mvn command, separating it (as Travis does by default) leads to problem with ConnId (notably DummyResource)
 script: mvn clean install
@@ -25,6 +25,10 @@ addons:
   #apt:
     #packages:
       #- oracle-java8-installer # install newest JDK8
+
+env:
+  global:
+    - MALLOC_ARENA_MAX=2
 
 jdk:
   #- openjdk7
