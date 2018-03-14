@@ -43,6 +43,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
+ * Tests task handlers for workers creation and for task partitioning.
+ *
  * @author mederly
  */
 

@@ -260,16 +260,24 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		assertTrue(ws == null || ws.getBucket().isEmpty());
 	}
 
-	protected void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, int start, int end) {
+	protected void assertNumericBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber, Integer start, Integer end) {
+		assertBucket(bucket, state, seqNumber);
 		AbstractWorkBucketContentType content = bucket.getContent();
 		assertEquals("Wrong bucket content class", NumericIntervalWorkBucketContentType.class, content.getClass());
 		NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
+		assertEquals("Wrong bucket start", toBig(start), numContent.getFrom());
+		assertEquals("Wrong bucket end", toBig(end), numContent.getTo());
+	}
+
+	protected void assertBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber) {
 		if (state != null) {
 			assertEquals("Wrong bucket state", state, bucket.getState());
 		}
 		assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
-		assertEquals("Wrong bucket start", BigInteger.valueOf(start), numContent.getFrom());
-		assertEquals("Wrong bucket end", BigInteger.valueOf(end), numContent.getTo());
+	}
+
+	protected BigInteger toBig(Integer integer) {
+		return integer != null ? BigInteger.valueOf(integer) : null;
 	}
 
 	protected void assertOptimizedCompletedBuckets(TaskQuartzImpl task) {

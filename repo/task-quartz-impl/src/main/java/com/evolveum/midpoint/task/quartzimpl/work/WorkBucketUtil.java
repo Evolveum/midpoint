@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkBucketsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import java.util.Comparator;
@@ -47,4 +49,17 @@ public class WorkBucketUtil {
 		return null;
 	}
 
+	public static AbstractTaskWorkBucketsConfigurationType getWorkBucketsConfiguration(TaskWorkStateConfigurationType cfg) {
+		if (cfg == null) {
+			return null;
+		} else if (cfg.getNumericIntervalBuckets() != null) {
+			return cfg.getNumericIntervalBuckets();
+		} else if (cfg.getStringBuckets() != null) {
+			return cfg.getStringBuckets();
+		} else if (cfg.getEnumeratedBuckets() != null) {
+			return cfg.getEnumeratedBuckets();
+		} else {
+			return cfg.getBuckets();
+		}
+	}
 }

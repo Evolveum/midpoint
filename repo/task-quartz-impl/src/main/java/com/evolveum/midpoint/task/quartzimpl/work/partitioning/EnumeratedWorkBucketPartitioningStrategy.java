@@ -14,52 +14,47 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.strategy;
+package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
- * Implements work state management strategy based on numeric identifier intervals.
+ * TODO
  *
  * @author mederly
  */
-public class SingleWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
+public class EnumeratedWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
 
-	private final TaskWorkStateConfigurationType configuration;
+	@NotNull private final TaskWorkStateConfigurationType configuration;
+	@NotNull private final EnumeratedWorkBucketsConfigurationType bucketsConfiguration;
 
-	public SingleWorkBucketPartitioningStrategy(TaskWorkStateConfigurationType configuration,
+	public EnumeratedWorkBucketPartitioningStrategy(@NotNull TaskWorkStateConfigurationType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 		this.configuration = configuration;
+		this.bucketsConfiguration = (EnumeratedWorkBucketsConfigurationType)
+				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
 	}
 
 	@NotNull
 	@Override
 	protected List<AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
-		if (workState.getBucket().isEmpty()) {
-			return singletonList(null);
-		} else {
+		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
+		int nextSequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
+		if (nextSequentialNumber > bucketsConfiguration.getBucket().size()) {
 			return emptyList();
+		} else {
+			return singletonList(bucketsConfiguration.getBucket().get(nextSequentialNumber-1));
 		}
-	}
-
-	// experimental implementation TODO
-	@Override
-	public List<ObjectFilter> createSpecificFilters(WorkBucketType bucket, Class<? extends ObjectType> type,
-			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
-		return new ArrayList<>();
 	}
 }

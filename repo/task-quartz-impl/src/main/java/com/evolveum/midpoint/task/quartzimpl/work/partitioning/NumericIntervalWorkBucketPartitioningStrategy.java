@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.strategy;
+package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -49,19 +44,9 @@ public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucke
 			PrismContext prismContext) {
 		super(prismContext);
 		this.configuration = configuration;
-		this.bucketsConfiguration = getBucketsConfiguration();
+		this.bucketsConfiguration = (NumericIntervalWorkBucketsConfigurationType)
+				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
 	}
-
-//	private void checkConsistency() {
-//		BigInteger bucketSize = getOrComputeBucketSize();
-//		BigInteger to = getOrComputeTo();
-//
-//		if (bucketSize != null && to == null) {
-//			throw new IllegalStateException("Inconsistent configuration: bucket size is known but upper bound is not: " + configuration);
-//		} else if (bucketSize == null && to != null) {
-//			throw new IllegalStateException("Inconsistent configuration: upper bound is known but bucket size is not: " + configuration);
-//		}
-//	}
 
 	@NotNull
 	@Override
@@ -93,15 +78,6 @@ public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucke
 					.to(from.add(bucketSize));
 		}
 		return singletonList(newContent);
-	}
-
-	@NotNull
-	private NumericIntervalWorkBucketsConfigurationType getBucketsConfiguration() {
-		if (configuration.getNumericIntervalBuckets() == null) {
-			throw new IllegalStateException("No buckets content configuration");
-		} else {
-			return configuration.getNumericIntervalBuckets();       // TODO use generic configuration if there is any
-		}
 	}
 
 	@NotNull
@@ -153,55 +129,4 @@ public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucke
 //		}
 //	}
 
-	// experimental implementation TODO
-	@Override
-	public List<ObjectFilter> createSpecificFilters(WorkBucketType bucket, Class<? extends ObjectType> type,
-			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
-		NumericIntervalWorkBucketsConfigurationType bucketsConfig = getBucketsConfiguration();
-		NumericIntervalWorkBucketContentType bucketContent = (NumericIntervalWorkBucketContentType) bucket.getContent();
-
-		if (hasNoBoundaries(bucketContent)) {
-			return new ArrayList<>();
-		}
-		if (bucketsConfig == null) {
-			throw new IllegalStateException("No buckets configuration but having defined bucket content: " + bucket);
-		}
-		if (bucketsConfig.getDiscriminator() == null) {
-			throw new IllegalStateException("No buckets discriminator defined; bucket = " + bucket);
-		}
-		ItemPath identifier = bucketsConfig.getDiscriminator().getItemPath();
-		ItemDefinition<?> identifierDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(identifier) : null;
-		List<ObjectFilter> filters = new ArrayList<>();
-		if (bucketContent.getFrom() != null) {
-			if (identifierDefinition != null) {
-				filters.add(QueryBuilder.queryFor(type, prismContext)
-						.item(identifier, identifierDefinition).ge(bucketContent.getFrom())
-						.buildFilter());
-			} else {
-				filters.add(QueryBuilder.queryFor(type, prismContext)
-						.item(identifier).ge(bucketContent.getFrom())
-						.buildFilter());
-			}
-		}
-		if (bucketContent.getTo() != null) {
-			if (identifierDefinition != null) {
-				filters.add(QueryBuilder.queryFor(type, prismContext)
-						.item(identifier, identifierDefinition).lt(bucketContent.getTo())
-						.buildFilter());
-			} else {
-				filters.add(QueryBuilder.queryFor(type, prismContext)
-						.item(identifier).lt(bucketContent.getTo())
-						.buildFilter());
-			}
-		}
-		return filters;
-	}
-
-	private boolean hasNoBoundaries(NumericIntervalWorkBucketContentType bucketContent) {
-		return bucketContent == null || isNullOrZero(bucketContent.getFrom()) && bucketContent.getTo() == null;
-	}
-
-	private boolean isNullOrZero(BigInteger i) {
-		return i == null || BigInteger.ZERO.equals(i);
-	}
 }

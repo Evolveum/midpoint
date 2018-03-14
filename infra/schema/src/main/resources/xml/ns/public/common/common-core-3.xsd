@@ -1204,6 +1204,27 @@
 			<xsd:element name="numericIntervalBuckets" type="tns:NumericIntervalWorkBucketsConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
+						How to partition the work into numeric interval based buckets and manage them.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stringBuckets" type="tns:StringWorkBucketsConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to partition the work into string value based buckets and manage them.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="enumeratedBuckets" type="tns:EnumeratedWorkBucketsConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to partition the work into filter based buckets and manage them.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="buckets" type="tns:AbstractTaskWorkBucketsConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
 						How to partition the work into buckets and manage them.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -1244,6 +1265,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="matchingRule" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Matching rule to be applied when creating filters - if applicable.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -1280,6 +1308,95 @@
 							<xsd:documentation>
 								Size of one bucket. If not present it is computed as the total processing space divided by
 								number of buckets (i.e. 'to' and 'numberOfBuckets' must be present).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="StringWorkBucketsConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that divides the processing space (represented by a set of string
+				values) into a number of work buckets; either based on intervals or prefixes.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractTaskWorkBucketsConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Characters that make up the prefix (or interval). TODO Must be sorted!
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="comparisonMethod" type="tns:StringWorkBucketsBoundaryMarkingType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Whether to use intervals or prefixes. Former is the default.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:simpleType name="StringWorkBucketsBoundaryMarkingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="interval">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="INTERVAL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="prefix">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PREFIX"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="EnumeratedWorkBucketsConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that explicitly enumerates the buckets.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractTaskWorkBucketsConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="bucket" type="tns:AbstractWorkBucketContentType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Work buckets content.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1388,6 +1505,88 @@
 							<xsd:documentation>
 								End of the processing space belonging to this bucket (exclusive). If not present, it is assumed
 								that this is the last bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="StringPrefixWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined using string value prefix.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Prefix(es) that are part of this bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="StringIntervalWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined as interval of string values.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Start of the processing space belonging to this bucket (inclusive). If not present, empty string is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="to" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								End of the processing space belonging to this bucket (exclusive). If not present, it is assumed
+								that this is the last bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="FilterWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined explicitly by a filter.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element ref="q:filter" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Filter(s) to be used to define the bucket.
+								If they contain no item path and/or matching rule, the one defined
+								in work buckets configuration are applied (if present).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>

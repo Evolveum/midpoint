@@ -18,8 +18,8 @@ package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;

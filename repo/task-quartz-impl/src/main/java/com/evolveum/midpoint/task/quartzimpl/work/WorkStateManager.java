@@ -33,12 +33,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.FoundExisting;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
-import com.evolveum.midpoint.task.quartzimpl.work.strategy.WorkStateManagementStrategyFactory;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.content.WorkBucketContentHandler;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.content.WorkBucketContentHandlerRegistry;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.FoundExisting;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
+import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkStateManagementStrategyFactory;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -76,6 +78,7 @@ public class WorkStateManager {
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkStateManagementStrategyFactory strategyFactory;
+	@Autowired private WorkBucketContentHandlerRegistry handlerFactory;
 
 	private static final int MAX_ATTEMPTS = 40;                              // temporary
 	private static final long DELAY_INTERVAL = 5000L;                        // temporary
@@ -539,17 +542,25 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		Context ctx = createContext(workerTask.getOid(), () -> true, result);
 
 		TaskWorkStateConfigurationType config = ctx.getWorkStateConfiguration();
-		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(config);
-		List<ObjectFilter> conjunctionMembers = workStateStrategy.createSpecificFilters(workBucket, type, itemDefinitionProvider);
+		AbstractTaskWorkBucketsConfigurationType bucketsConfig = WorkBucketUtil.getWorkBucketsConfiguration(config);
+		WorkBucketContentHandler handler = handlerFactory.getHandler(workBucket.getContent());
+		List<ObjectFilter> conjunctionMembers = new ArrayList<>(
+				handler.createSpecificFilters(workBucket, bucketsConfig, type, itemDefinitionProvider));
 		if (conjunctionMembers.isEmpty()) {
-			LOGGER.warn("Object query cannot be narrowed (TODO) for task", workerTask);
 			return query;
 		}
 		ObjectFilter existingFilter = query.getFilter();
 		if (existingFilter != null) {
 			conjunctionMembers.add(existingFilter);
 		}
-		ObjectFilter updatedFilter = AndFilter.createAnd(conjunctionMembers);
+		ObjectFilter updatedFilter;
+		if (conjunctionMembers.isEmpty()) {
+			updatedFilter = null;
+		} else if (conjunctionMembers.size() == 1) {
+			updatedFilter = conjunctionMembers.get(0);
+		} else {
+			updatedFilter = AndFilter.createAnd(conjunctionMembers);
+		}
 
 		ObjectQuery updatedQuery = query.clone();
 		updatedQuery.setFilter(updatedFilter);

@@ -21,6 +21,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
@@ -31,6 +32,10 @@
 		<syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
 		<syncext:resourceReconciliationWorkStateConfiguration>
 			<taskKind>coordinator</taskKind>
+			<stringBuckets>
+				<discriminator>icfs:name</discriminator>
+				<boundaryCharacters>abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
+			</stringBuckets>
 		</syncext:resourceReconciliationWorkStateConfiguration>
 	</extension>
 	

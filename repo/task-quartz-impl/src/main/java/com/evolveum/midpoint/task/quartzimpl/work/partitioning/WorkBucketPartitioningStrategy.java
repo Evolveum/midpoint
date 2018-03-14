@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.strategy;
+package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,10 +40,6 @@ public interface WorkBucketPartitioningStrategy {
 	 */
 	@NotNull
 	GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException;
-
-	// TODO experimental
-	List<ObjectFilter> createSpecificFilters(WorkBucketType bucket, Class<? extends ObjectType> type,
-			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider);
 
 	class GetBucketResult {
 		public static class NothingFound extends GetBucketResult {

@@ -276,14 +276,14 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:choice>
-                        <xsd:element name="value" type="xsd:anyType" maxOccurs="unbounded">
+                        <xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     The elements and values of queried properties.
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element name="rightHandSidePath" type="t:ItemPathType">
+                        <xsd:element name="rightHandSidePath" type="t:ItemPathType" minOccurs="0">
                             <xsd:annotation>
                                 <xsd:documentation>
                                     An item that is to be related to the left-hand-side one.

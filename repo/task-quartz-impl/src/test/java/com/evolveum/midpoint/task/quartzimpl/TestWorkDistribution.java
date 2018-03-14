@@ -50,6 +50,14 @@ import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
+ * Tests basic features of work state management:
+ * - basic creation of work buckets
+ * - allocation, completion, release of buckets
+ * - allocation of buckets when some workers are suspended
+ * - basic propagation of buckets into bucket-aware task handler
+ *
+ * Both in coordinator-worker and standalone tasks.
+ *
  * @author mederly
  */
 
