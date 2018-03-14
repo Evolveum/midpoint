@@ -18,12 +18,16 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanelChainedModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -113,22 +117,23 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
     private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
     	
     	
-    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<>(model, "values")) {
+    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
 			
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
 			    //todo simplified construction panel will be in the gui starting from 3.8
-//                if (model.getObject().getName().equals(AssignmentType.F_CONSTRUCTION)){
-//                    ConstructionDetailsPanel panel = new ConstructionDetailsPanel("value", item.getModel());
-//                    panel.setOutputMarkupId(true);
-//                    item.add(panel);
-//                } else {
-                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<>("value", item.getModel(), true, form, isPanelVisible, pageBase);
+                if (model.getObject().getName().equals(AssignmentType.F_CONSTRUCTION)){
+                    ConstructionDetailsPanelChainedModel panel = new ConstructionDetailsPanelChainedModel("value",
+                            Model.of((ConstructionType)item.getModelObject().getContainerValue().asContainerable()));
+                    panel.setOutputMarkupId(true);
+                    item.add(panel);
+                } else {
+                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
                     containerPanel.setOutputMarkupId(true);
                     item.add(containerPanel);
-//                }
+                }
 				
 			}
 			
