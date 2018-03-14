@@ -40,11 +40,12 @@ public class ProgressReporterWorker implements Runnable {
 
     @Override
     public void run() {
-        while (!stop()) {
+        while (!shouldStop()) {
             if (operation.isStarted() || operation.isProducerFinished()) {
                 log.info("Processed: {}, skipped: {}, avg: {}ms/req, avg: {}req/s",
                         operation.getCount(), operation.getSkipped(),
-                        NinjaUtils.DECIMAL_FORMAT.format(operation.getAvg()),NinjaUtils.DECIMAL_FORMAT.format(operation.getAvgReqSpeed()));
+                        NinjaUtils.DECIMAL_FORMAT.format(operation.getAvg()),
+                        NinjaUtils.DECIMAL_FORMAT.format(operation.getAvgReqSpeed()));
 
                 operation.lastPrintoutNow();
             }
@@ -56,7 +57,7 @@ public class ProgressReporterWorker implements Runnable {
         }
     }
 
-    private boolean stop() {
+    private boolean shouldStop() {
         if (operation.isFinished()) {
             return true;
         }

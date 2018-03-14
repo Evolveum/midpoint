@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ImportOptions;
+import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -32,44 +33,39 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import java.io.Reader;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.concurrent.BlockingQueue;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportProducerWorker implements Runnable {
+public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject> {
 
     private static final String DOT_CLASS = ImportProducerWorker.class.getName() + ".";
 
     private static final String OPERATION_IMPORT = DOT_CLASS + "import";
 
-    private NinjaContext context;
-    private ImportOptions options;
-
-    private BlockingQueue<PrismObject> queue;
-
     private ObjectFilter filter;
     private boolean stopAfterFound;
-    private Reader reader;
 
     private OperationStatus operation;
 
     private OperationResult result;
 
     public ImportProducerWorker(NinjaContext context, ImportOptions options, BlockingQueue queue,
-                                ObjectFilter filter, boolean stopAfterFound, Reader reader) {
-        this.context = context;
-        this.options = options;
-        this.queue = queue;
+                                ObjectFilter filter, boolean stopAfterFound) {
+        super(context, options, queue);
 
         this.filter = filter;
         this.stopAfterFound = stopAfterFound;
-        this.reader = reader;
     }
 
     public OperationResult getResult() {
@@ -82,6 +78,55 @@ public class ImportProducerWorker implements Runnable {
 
     @Override
     public void run() {
+        Log log = context.getLog();
+
+        try (InputStream input = openInputStream()) {
+            log.info("Starting import");
+            operation.start();
+
+            if (!options.isZip()) {
+                processStream(input);
+            } else {
+                ZipInputStream zis = new ZipInputStream(input);
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+
+                    if (!StringUtils.endsWith(entry.getName().toLowerCase(), ".xml")) {
+                        continue;
+                    }
+
+                    log.info("Processing file {}", entry.getName());
+                    processStream(zis);
+                }
+            }
+        } catch (IOException ex) {
+            log.error("Unexpected error occurred, reason: {}", ex, ex.getMessage());
+        } finally {
+            operation.producerFinish();
+        }
+    }
+
+    private InputStream openInputStream() throws IOException {
+        File input = options.getInput();
+
+        InputStream is;
+        if (input != null) {
+            if (!input.exists()) {
+                throw new NinjaException("Import file '" + input.getPath() + "' doesn't exist");
+            }
+
+            is = new FileInputStream(input);
+        } else {
+            is = System.in;
+        }
+
+        return is;
+    }
+
+    private void processStream(InputStream input) throws IOException {
         ApplicationContext appContext = context.getApplicationContext();
         PrismContext prismContext = appContext.getBean(PrismContext.class);
         MatchingRuleRegistry matchingRuleRegistry = appContext.getBean(MatchingRuleRegistry.class);
@@ -132,12 +177,11 @@ public class ImportProducerWorker implements Runnable {
             }
         };
 
-        context.getLog().info("Starting import");
-        operation.start();
-
         Validator validator = new Validator(prismContext, handler);
-        validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
 
-        operation.producerFinish();
+        Charset charset = context.getCharset();
+        try (Reader reader = new InputStreamReader(input, charset)) {
+            validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
+        }
     }
 }

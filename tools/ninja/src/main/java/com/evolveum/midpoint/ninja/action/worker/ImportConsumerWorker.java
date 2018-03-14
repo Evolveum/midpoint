@@ -30,27 +30,23 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ImportConsumerWorker implements Runnable {
-
-    private BlockingQueue<PrismObject> queue;
-    private NinjaContext context;
-    private ImportOptions options;
+public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject> {
 
     private OperationStatus operation;
 
-    public ImportConsumerWorker(NinjaContext context, ImportOptions options, BlockingQueue<PrismObject> queue, OperationStatus operation) {
-        this.context = context;
-        this.options = options;
+    public ImportConsumerWorker(NinjaContext context, ImportOptions options, BlockingQueue<PrismObject> queue,
+                                OperationStatus operation) {
+        super(context, options, queue);
 
-        this.queue = queue;
         this.operation = operation;
     }
 
     @Override
     public void run() {
-        while (!stop()) {
+        while (!shouldStop()) {
+            PrismObject object = null;
             try {
-                PrismObject object = queue.poll(2, TimeUnit.SECONDS);
+                object = queue.poll(2, TimeUnit.SECONDS);
                 if (object == null) {
                     continue;
                 }
@@ -62,13 +58,12 @@ public class ImportConsumerWorker implements Runnable {
 
                 operation.incrementCount();
             } catch (Exception ex) {
-                // todo handle error
-                ex.printStackTrace();
+                context.getLog().error("Couldn't add object {}, reason: {}", ex, object.toString(), ex.getMessage());
             }
         }
     }
 
-    private boolean stop() {
+    private boolean shouldStop() {
         if (operation.isFinished()) {
             return true;
         }
