@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.ninja.opts;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.FileReferenceConverter;
 import com.evolveum.midpoint.ninja.util.ObjectTypesConverter;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "count")
 public class CountOptions {
 
     public static final String P_TYPE = "-t";
@@ -33,11 +35,11 @@ public class CountOptions {
     public static final String P_FILTER = "-f";
     public static final String P_FILTER_LONG = "--filter";
 
-    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "countOptions.type",
+    @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "count.type",
             validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
     private ObjectTypes type;
 
-    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "countOptions.filter",
+    @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "count.filter",
             converter = FileReferenceConverter.class, validateWith = FileReferenceConverter.class)
     private FileReference filter;
 
