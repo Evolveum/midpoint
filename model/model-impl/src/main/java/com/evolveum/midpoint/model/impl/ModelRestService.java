@@ -912,7 +912,7 @@ public class ModelRestService {
 	@POST
 	@Path("/rpc/executeScript")
 	//	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml" })
+	@Consumes({"application/xml", MediaType.APPLICATION_JSON, "application/yaml" })
 	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
 			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 

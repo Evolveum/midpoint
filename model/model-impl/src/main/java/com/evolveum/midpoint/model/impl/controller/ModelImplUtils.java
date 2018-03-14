@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,9 @@ import java.util.List;
  * @author lazyman
  *
  */
-public class ModelUtils {
+public class ModelImplUtils {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelUtils.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ModelImplUtils.class);
 
 	public static void validatePaging(ObjectPaging paging) {
 		if (paging == null) {
@@ -229,7 +229,7 @@ public class ModelUtils {
 		List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
 		List<ObjectPolicyConfigurationType> relevantPolicies;
 		try {
-			relevantPolicies = ModelUtils.getApplicablePolicies(context.getFocusContext().getObjectTypeClass(), subTypes,
+			relevantPolicies = ModelImplUtils.getApplicablePolicies(context.getFocusContext().getObjectTypeClass(), subTypes,
 					config.asObjectable());
 		} catch (ConfigurationException e) {
 			throw new SystemException("Couldn't get relevant object policies", e);
@@ -239,7 +239,7 @@ public class ModelUtils {
 	}
 
 	public static <F extends ObjectType> ConflictResolutionType getConflictResolution(LensContext<F> context) {
-		for (ObjectPolicyConfigurationType p : ModelUtils.getApplicablePolicies(context)) {
+		for (ObjectPolicyConfigurationType p : ModelImplUtils.getApplicablePolicies(context)) {
 			if (p.getConflictResolution() != null) {
 				return p.getConflictResolution();
 			}

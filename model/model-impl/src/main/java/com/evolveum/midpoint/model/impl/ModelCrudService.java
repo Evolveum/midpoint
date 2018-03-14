@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -288,7 +288,7 @@ public class ModelCrudService {
 			result.cleanupResult();
 
 		} catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
@@ -346,10 +346,10 @@ public class ModelCrudService {
 			result.recordSuccess();
 
 		} catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (ObjectAlreadyExistsException | ExpressionEvaluationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			RepositoryCache.exit();
@@ -440,16 +440,16 @@ public class ModelCrudService {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (SchemaException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (ConfigurationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
