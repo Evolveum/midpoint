@@ -175,8 +175,11 @@ public class FocusTypeUtil {
 		if (object == null) {
 			return null;
 		}
-
-		// TODO: get subType (from ObjectType)
+		
+		List<String> subtypes = object.asObjectable().getSubType();
+		if (!subtypes.isEmpty()) {
+			return subtypes;
+		}
 
 		if (object.canRepresent(UserType.class)) {
 			return (((UserType)object.asObjectable()).getEmployeeType());
@@ -205,34 +208,12 @@ public class FocusTypeUtil {
 
 	public static <O extends ObjectType>  void setSubtype(PrismObject<O> object, List<String> subtypes) {
 
-		// TODO: set subType (from ObjectType)
-
-		List<String> objSubtypes = null;
-		if (object.canRepresent(UserType.class)) {
-			objSubtypes = (((UserType)object.asObjectable()).getEmployeeType());
+		List<String> objSubtypes = object.asObjectable().getSubType();
+		if (!objSubtypes.isEmpty()) {
+			objSubtypes.clear();
 		}
-		if (object.canRepresent(OrgType.class)) {
-			objSubtypes =  (((OrgType)object.asObjectable()).getOrgType());
+		if (subtypes != null) {
+			objSubtypes.addAll(subtypes);
 		}
-		if (object.canRepresent(RoleType.class)) {
-			if (subtypes == null || subtypes.isEmpty()) {
-				((RoleType)object.asObjectable()).setRoleType(null);
-			} else {
-				((RoleType)object.asObjectable()).setRoleType(subtypes.get(0));
-			}
-			return;
-		}
-		if (object.canRepresent(ServiceType.class)) {
-			objSubtypes =  (((ServiceType)object.asObjectable()).getServiceType());
-		}
-		if (objSubtypes != null) {
-			if (!objSubtypes.isEmpty()) {
-				objSubtypes.clear();
-			}
-			if (subtypes != null) {
-				objSubtypes.addAll(subtypes);
-			}
-		}
-
 	}
 }
