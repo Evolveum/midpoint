@@ -534,12 +534,6 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 						.originType(OriginType.ASSIGNMENTS)
 						.originObject(getSource());
 
-		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociationDefinition(assocName);
-		if (rAssocDef == null) {
-			throw new SchemaException("No association " + assocName + " in object class "
-					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + getSource());
-		}
-
 		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
 				mappingBuilder, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
 
