@@ -16,32 +16,46 @@
 
 package com.evolveum.midpoint.ninja.util;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class CountStatus {
 
-    private int count;
-    private int skipped;
+    private AtomicInteger count = new AtomicInteger(0);
+    private AtomicInteger skipped = new AtomicInteger(0);
 
     private long start;
+
+    private int lastCount;
     private long lastPrintout;
 
     public CountStatus() {
     }
 
     public int getCount() {
-        return count;
+        return count.get();
     }
 
     public double getAvg() {
-        if (count == 0) {
+        if (count.get() == 0) {
             return 0d;
         }
 
         long span = System.currentTimeMillis() - start;
 
-        return span / count;
+        return  ((double) span) / count.get();
+    }
+
+    public double getAvgReqSpeed() {
+        if (lastCount == 0) {
+            return 0d;
+        }
+
+        long span = (System.currentTimeMillis() - lastPrintout) / 1000;
+
+        return  ((double) span) / lastCount;
     }
 
     public long getStart() {
@@ -53,15 +67,15 @@ public class CountStatus {
     }
 
     public int getSkipped() {
-        return skipped;
+        return skipped.get();
     }
 
     public void incrementSkipped() {
-        this.skipped++;
+        skipped.incrementAndGet();
     }
 
     public void incrementCount() {
-        this.count++;
+        count.incrementAndGet();
     }
 
     public void start() {
@@ -70,5 +84,6 @@ public class CountStatus {
 
     public void lastPrintoutNow() {
         this.lastPrintout = System.currentTimeMillis();
+        this.lastCount = count.get() - lastCount;
     }
 }

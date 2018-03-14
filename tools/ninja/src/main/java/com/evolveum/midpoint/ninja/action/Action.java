@@ -53,19 +53,23 @@ public abstract class Action<T> {
     protected void handleResultOnFinish(OperationResult result, CountStatus status, String finishMessage) {
         result.recomputeStatus();
 
+        double totalTime = ((double) (System.currentTimeMillis() - status.getStart())) / 1000;
+
         if (result.isAcceptable()) {
             if (status == null) {
                 log.info("{}", finishMessage);
             } else {
-                log.info("{}. Processed: {} objects, avg. {}ms",
-                        finishMessage, status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+                log.info("{}. Processed: {} objects, time {}s, avg. {}ms",
+                        finishMessage, status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(totalTime),
+                        NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
             }
         } else {
             if (status == null) {
                 log.error("{}", finishMessage);
             } else {
-                log.error("{} with some problems, reason: {}. Processed: {}, avg. {}ms", finishMessage,
-                        result.getMessage(), status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
+                log.error("{} with some problems, reason: {}. Processed: {}, time{}s, avg. {}ms", finishMessage,
+                        result.getMessage(), status.getCount(), NinjaUtils.DECIMAL_FORMAT.format(totalTime),
+                        NinjaUtils.DECIMAL_FORMAT.format(status.getAvg()));
             }
 
             if (context.isVerbose()) {
@@ -89,7 +93,7 @@ public abstract class Action<T> {
 
     // deduplicate with WebModelServiceUtils.addIncludeOptionsForExportOrView
     protected static void addIncludeOptionsForExport(Collection<SelectorOptions<GetOperationOptions>> options,
-            Class<? extends ObjectType> type) {
+                                                     Class<? extends ObjectType> type) {
         // todo fix this brutal hack (related to checking whether to include particular options)
         boolean all = type == null
                 || Objectable.class.equals(type)
