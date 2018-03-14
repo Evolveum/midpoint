@@ -186,7 +186,8 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     	return new JAXBElement<>(F_ENCRYPTED_DATA, HashedDataType.class, hashedDataType);
     }
 
-    private void clearContent() {
+    public void clear() {
+    	clearValue = null;
     	encryptedDataType = null;
     	hashedDataType = null;
     }
@@ -463,7 +464,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		@Override
 		public void clear() {
 			// We would normally throw an exception here. but JAXB is actually using it.
-			clearContent();
+			ProtectedDataType.this.clear();
 		}
 
 		@Override
