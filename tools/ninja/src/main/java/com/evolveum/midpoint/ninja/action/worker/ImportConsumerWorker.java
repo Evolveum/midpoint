@@ -39,10 +39,10 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
 
     @Override
     public void run() {
-        while (!shouldStop()) {
+        while (!shouldConsumerStop()) {
             PrismObject object = null;
             try {
-                object = queue.poll(2, TimeUnit.SECONDS);
+                object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
                 if (object == null) {
                     continue;
                 }
@@ -58,22 +58,6 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
                 operation.incrementError();
             }
         }
-    }
-
-    private boolean shouldStop() {
-        if (operation.isFinished()) {
-            return true;
-        }
-
-        if (operation.isStarted()) {
-            return false;
-        }
-
-        if (operation.isProducerFinished() && !queue.isEmpty()) {
-            return false;
-        }
-
-        return true;
     }
 
     private RepoAddOptions createRepoAddOptions(ImportOptions options) {

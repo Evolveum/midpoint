@@ -35,7 +35,7 @@ public class ProgressReporterWorker extends BaseWorker<Object, PrismObject> {
 
     @Override
     public void run() {
-        while (!shouldStop()) {
+        while (!shouldConsumerStop()) {
             if (operation.isStarted() || operation.isProducerFinished()) {
                 operation.print(context.getLog());
             }
@@ -45,21 +45,5 @@ public class ProgressReporterWorker extends BaseWorker<Object, PrismObject> {
             } catch (InterruptedException ex) {
             }
         }
-    }
-
-    private boolean shouldStop() {
-        if (operation.isFinished()) {
-            return true;
-        }
-
-        if (operation.isStarted()) {
-            return false;
-        }
-
-        if (operation.isProducerFinished() && !queue.isEmpty()) {
-            return false;
-        }
-
-        return true;
     }
 }

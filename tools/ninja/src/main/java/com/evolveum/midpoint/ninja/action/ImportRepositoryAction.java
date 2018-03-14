@@ -26,27 +26,23 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
-    private BlockingQueue<PrismObject> queue;
-
-    private ExecutorService executor;
-
     @Override
     public void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_IMPORT);
         OperationStatus progress = new OperationStatus(result);
 
-        queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
+        BlockingQueue<PrismObject> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
-        // + 2 means producer and progress reporter
-        executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
+        // "+ 2" will be used for producer and progress reporter
+        ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
 
         ImportProducerWorker producer;
         if (options.getOid() != null) {
             InOidFilter filter = InOidFilter.createInOid(options.getOid());
-            producer = importByFilter(filter, true, progress);
+            producer = importByFilter(filter, true, queue, progress);
         } else {
             ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
-            producer = importByFilter(filter, false, progress);
+            producer = importByFilter(filter, false, queue, progress);
         }
 
         executor.execute(producer);
@@ -61,7 +57,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         }
 
         executor.shutdown();
-        executor.awaitTermination(365, TimeUnit.DAYS);
+        executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
 
         handleResultOnFinish(progress, "Import finished");
     }
@@ -75,7 +71,8 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         return LogTarget.SYSTEM_ERR;
     }
 
-    private ImportProducerWorker importByFilter(ObjectFilter filter, boolean stopAfterFound, OperationStatus status) {
+    private ImportProducerWorker importByFilter(ObjectFilter filter, boolean stopAfterFound,
+                                                BlockingQueue<PrismObject> queue, OperationStatus status) {
         return new ImportProducerWorker(context, options, queue, status, filter, stopAfterFound);
     }
 }

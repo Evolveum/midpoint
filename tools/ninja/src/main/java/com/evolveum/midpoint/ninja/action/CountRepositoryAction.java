@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,17 +51,12 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
 
         ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context);
 
-        List<ObjectTypes> types = getTypes();
+        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
 
         int total = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT);
         for (ObjectTypes type : types) {
-            Class<? extends ObjectType> clazz = type.getClassDefinition();
-            if (Modifier.isAbstract(clazz.getModifiers())) {
-                continue;
-            }
-
-            int count = repository.countObjects(clazz, query, new ArrayList<>(), result);
+            int count = repository.countObjects(type.getClassDefinition(), query, new ArrayList<>(), result);
             if (count == 0 && options.getType() == null) {
                 continue;
             }
@@ -72,20 +66,5 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
         }
 
         log.info("===\nTotal:\t{}", total);
-    }
-
-    private List<ObjectTypes> getTypes() {
-        List<ObjectTypes> types = new ArrayList<>();
-
-        ObjectTypes type = options.getType();
-        if (type != null) {
-            types.add(type);
-        } else {
-            types.addAll(Arrays.asList(ObjectTypes.values()));
-        }
-
-        Collections.sort(types);
-
-        return types;
     }
 }

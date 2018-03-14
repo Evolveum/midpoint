@@ -26,6 +26,8 @@ import java.util.concurrent.BlockingQueue;
  */
 public abstract class BaseWorker<O extends Object, T extends Object> implements Runnable {
 
+    public static final int CONSUMER_POLL_TIMEOUT = 2;
+
     protected BlockingQueue<T> queue;
     protected NinjaContext context;
     protected O options;
@@ -37,5 +39,21 @@ public abstract class BaseWorker<O extends Object, T extends Object> implements 
         this.context = context;
         this.options = options;
         this.operation = operation;
+    }
+
+    protected boolean shouldConsumerStop() {
+        if (operation.isFinished()) {
+            return true;
+        }
+
+        if (operation.isStarted()) {
+            return false;
+        }
+
+        if (operation.isProducerFinished() && !queue.isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 }

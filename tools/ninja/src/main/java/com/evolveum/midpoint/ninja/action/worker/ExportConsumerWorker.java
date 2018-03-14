@@ -18,10 +18,16 @@ package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
+import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismSerializer;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -35,6 +41,45 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
 
     @Override
     public void run() {
+        Log log = context.getLog();
+        try (Writer writer = createWriter()) {
+            while (!shouldConsumerStop()) {
+                PrismObject object = null;
+                try {
+                    object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
+                    if (object == null) {
+                        continue;
+                    }
 
+                    PrismSerializer<String> serializer = context.getPrismContext().xmlSerializer();
+                    String xml = serializer.serialize(object);
+                    writer.write(xml);
+
+                    operation.incrementTotal();
+                } catch (Exception ex) {
+                    log.error("Couldn't store object {}, reason: {}", ex, object, ex.getMessage());
+                    operation.incrementError();
+                }
+            }
+
+            finalizeWriter(writer);
+        } catch (IOException ex) {
+            log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
+        }
+    }
+
+    private Writer createWriter() throws IOException {
+        Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip());
+        writer.write(NinjaUtils.XML_OBJECTS_PREFIX);
+
+        return writer;
+    }
+
+    private void finalizeWriter(Writer writer) throws IOException {
+        if (writer == null) {
+            return;
+        }
+
+        writer.write(NinjaUtils.XML_OBJECTS_SUFFIX);
     }
 }
