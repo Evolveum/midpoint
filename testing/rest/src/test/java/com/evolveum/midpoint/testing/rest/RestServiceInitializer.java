@@ -89,6 +89,10 @@ public abstract class RestServiceInitializer {
 	public static final String USER_SOMEBODY_USERNAME = "somebody";
 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
 
+	// other
+	public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
+	public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
+
 	public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
 	public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
 	public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
@@ -166,6 +170,7 @@ public abstract class RestServiceInitializer {
 		addObject(USER_NOBODY_FILE, result);
 		addObject(USER_CYCLOPS_FILE, result);
 		addObject(USER_SOMEBODY_FILE, result);
+		addObject(USER_JACK_FILE, result);
 		addObject(VALUE_POLICY_GENERAL, result);
 		addObject(VALUE_POLICY_NUMERIC, result);
 		addObject(VALUE_POLICY_SIMPLE, result);
