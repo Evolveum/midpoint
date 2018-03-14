@@ -3,8 +3,8 @@ package com.evolveum.midpoint.ninja.action;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
-import com.evolveum.midpoint.ninja.util.CountStatus;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismSerializer;
@@ -79,6 +79,8 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
 
+        OperationStatus operation = new OperationStatus(result);
+        operation.start();
         log.info("Starting export");
 
         PrismObject object = repository.getObject(type.getClassDefinition(), options.getOid(), opts, result);
@@ -87,34 +89,34 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         String xml = serializer.serialize(object);
         writer.write(xml);
 
-        handleResultOnFinish(result, null, "Export finished");
+        handleResultOnFinish(operation, "Export finished");
     }
 
     private void exportByFilter(final Writer writer) throws SchemaException, IOException {
         OperationResult result = new OperationResult(OPERATION_EXPORT);
 
-        CountStatus status = new CountStatus();
-        status.start();
+        OperationStatus operation = new OperationStatus(result);
+        operation.start();
 
         log.info("Starting export");
 
         ObjectTypes type = options.getType();
         if (type != null) {
-            exportByType(type, writer, status, result);
+            exportByType(type, writer, operation, result);
         } else {
             for (ObjectTypes t : ObjectTypes.values()) {
                 if (Modifier.isAbstract(t.getClassDefinition().getModifiers())) {
                     continue;
                 }
 
-                exportByType(t, writer, status, result);
+                exportByType(t, writer, operation, result);
             }
         }
 
-        handleResultOnFinish(result, status, "Export finished");
+        handleResultOnFinish(operation, "Export finished");
     }
 
-    private void exportByType(ObjectTypes type, Writer writer, CountStatus status, OperationResult result)
+    private void exportByType(ObjectTypes type, Writer writer, OperationStatus operation, OperationResult result)
             throws SchemaException, IOException {
 
         RepositoryService repository = context.getRepository();
@@ -137,9 +139,10 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
                 String xml = serializer.serialize(object);
                 writer.write(xml);
 
-                status.incrementCount();
+                operation.incrementTotal();
 
-                logCountProgress(status);
+                // todo log count progress
+//                logCountProgress(status);
             } catch (Exception ex) {
                 return false;
             }

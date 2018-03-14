@@ -1,9 +1,8 @@
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.DeleteOptions;
-import com.evolveum.midpoint.ninja.util.CountStatus;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -61,28 +60,28 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     private void deleteByFilter(ObjectQuery query) throws SchemaException, IOException {
         OperationResult result = new OperationResult(OPERATION_DELETE);
 
-        CountStatus status = new CountStatus();
-        status.start();
+        OperationStatus operation = new OperationStatus(result);
+        operation.start();
 
         log.info("Starting delete");
 
         ObjectTypes type = options.getType();
         if (type != null) {
-            deleteByFilter(type, query, status, result);
+            deleteByFilter(type, query, operation, result);
         } else {
             for (ObjectTypes t : ObjectTypes.values()) {
                 if (Modifier.isAbstract(t.getClassDefinition().getModifiers())) {
                     continue;
                 }
 
-                deleteByFilter(t, query, status, result);
+                deleteByFilter(t, query, operation, result);
             }
         }
 
-        handleResultOnFinish(result, status, "Delete finished");
+        handleResultOnFinish(operation, "Delete finished");
     }
 
-    private void deleteByFilter(ObjectTypes type, ObjectQuery query, CountStatus status, OperationResult result)
+    private void deleteByFilter(ObjectTypes type, ObjectQuery query, OperationStatus operation, OperationResult result)
             throws SchemaException, IOException {
 
         ResultHandler handler = (prismObject, operationResult) -> {
@@ -92,7 +91,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
 
                 switch (state) {
                     case SKIP:
-                        status.incrementSkipped();
+                        operation.incrementSkipped();
                         return true;
                     case STOP:
                         return false;
@@ -103,11 +102,12 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
                 RepositoryService repository = context.getRepository();
                 repository.deleteObject(prismObject.getCompileTimeClass(), prismObject.getOid(), operationResult);
 
-                status.incrementCount();
+                operation.incrementTotal();
             } catch (ObjectNotFoundException ex) {
                 // object was already gone
             } catch (IOException ex) {
-                throw new NinjaException("Couldn't delete object '" + prismObject.toDebugName() + "'", ex);
+                context.getLog().error("Couldn't delete object {}, reason: {}", ex, prismObject, ex.getMessage());
+                operation.incrementError();
             }
 
             return true;

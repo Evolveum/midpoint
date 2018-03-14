@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.ninja.action.worker;
 
-import com.evolveum.midpoint.ninja.util.Log;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,28 +27,18 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProgressReporterWorker implements Runnable {
+public class ProgressReporterWorker extends BaseWorker<ImportOptions, PrismObject> {
 
-    private BlockingQueue<PrismObject> queue;
-    private OperationStatus operation;
-    private Log log;
-
-    public ProgressReporterWorker(BlockingQueue<PrismObject> queue, OperationStatus operation, Log log) {
-        this.queue = queue;
-        this.operation = operation;
-        this.log = log;
+    public ProgressReporterWorker(NinjaContext context, ImportOptions options, BlockingQueue<PrismObject> queue,
+                                  OperationStatus operation) {
+        super(context, options, queue, operation);
     }
 
     @Override
     public void run() {
         while (!shouldStop()) {
             if (operation.isStarted() || operation.isProducerFinished()) {
-                log.info("Processed: {}, skipped: {}, avg: {}ms/req, avg: {}req/s",
-                        operation.getCount(), operation.getSkipped(),
-                        NinjaUtils.DECIMAL_FORMAT.format(operation.getAvg()),
-                        NinjaUtils.DECIMAL_FORMAT.format(operation.getAvgReqSpeed()));
-
-                operation.lastPrintoutNow();
+                operation.print(context.getLog());
             }
 
             try {

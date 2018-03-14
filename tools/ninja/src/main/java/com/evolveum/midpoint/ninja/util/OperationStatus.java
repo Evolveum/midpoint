@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.ninja.util;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class OperationStatus extends CountStatus {
+public class OperationStatus {
 
     public enum State {
         NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED;
@@ -27,18 +31,39 @@ public class OperationStatus extends CountStatus {
 
     private State state = State.NOT_STARTED;
 
+    private AtomicInteger totalCount = new AtomicInteger(0);
+    private AtomicInteger errorCount = new AtomicInteger(0);
+    private AtomicInteger skippedCount = new AtomicInteger(0);
+
+    private long startTime;
+    private long finishTime;
+
+    private long lastPrintoutTime;
+    private int lastPrintoutCount;
+
+    private OperationResult result;
+
+    public OperationStatus(OperationResult result) {
+        this.result = result;
+    }
+
+    public OperationResult getResult() {
+        return result;
+    }
+
     public State getState() {
         return state;
     }
 
-    @Override
     public void start() {
-        super.start();
+        startTime = System.currentTimeMillis();
 
         state = State.STARTED;
     }
 
     public void finish() {
+        finishTime = System.currentTimeMillis();
+
         state = State.FINISHED;
     }
 
@@ -56,5 +81,77 @@ public class OperationStatus extends CountStatus {
 
     public boolean isProducerFinished() {
         return State.PRODUCER_FINISHED == state;
+    }
+
+    public int getTotalCount() {
+        return totalCount.get();
+    }
+
+    public int getErrorCount() {
+        return errorCount.get();
+    }
+
+    public int getSkippedCount() {
+        return skippedCount.get();
+    }
+
+    public void incrementTotal() {
+        totalCount.incrementAndGet();
+    }
+
+    public void incrementError() {
+        totalCount.incrementAndGet();
+    }
+
+    public void incrementSkipped() {
+        totalCount.incrementAndGet();
+    }
+
+    public double getAvgRequestTime() {
+        if (totalCount.get() == 0) {
+            return 0d;
+        }
+
+        long span = System.currentTimeMillis() - startTime;
+
+        return ((double) span) / totalCount.get();
+    }
+
+    public double getAvgRequestPerSecond() {
+        if (totalCount.get() == 0) {
+            return 0d;
+        }
+
+        long span = System.currentTimeMillis() - startTime / 1000;
+
+        return ((double) totalCount.get()) / span;
+    }
+
+    public String print() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Processed: ");
+        sb.append(totalCount.get());
+        sb.append(", error: ");
+        sb.append(errorCount.get());
+        sb.append(", skipped: ");
+        sb.append(skippedCount.get());
+        sb.append(", avg: ");
+        sb.append(NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestTime()));
+        sb.append("ms/req, avg: ");
+        sb.append(NinjaUtils.DECIMAL_FORMAT.format(getAvgRequestPerSecond()));
+        sb.append("req/s");
+
+        return sb.toString();
+    }
+
+    public void print(Log log) {
+        log.info(print());
+
+        lastPrintoutNow();
+    }
+
+    public void lastPrintoutNow() {
+        this.lastPrintoutTime = System.currentTimeMillis();
+        this.lastPrintoutCount = totalCount.get() - lastPrintoutCount;
     }
 }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -29,9 +30,12 @@ public abstract class BaseWorker<O extends Object, T extends Object> implements 
     protected NinjaContext context;
     protected O options;
 
-    public BaseWorker(NinjaContext context, O options, BlockingQueue<T> queue) {
+    protected OperationStatus operation;
+
+    public BaseWorker(NinjaContext context, O options, BlockingQueue<T> queue, OperationStatus operation) {
         this.queue = queue;
         this.context = context;
         this.options = options;
+        this.operation = operation;
     }
 }

@@ -49,31 +49,15 @@ import java.util.zip.ZipInputStream;
  */
 public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject> {
 
-    private static final String DOT_CLASS = ImportProducerWorker.class.getName() + ".";
-
-    private static final String OPERATION_IMPORT = DOT_CLASS + "import";
-
     private ObjectFilter filter;
     private boolean stopAfterFound;
 
-    private OperationStatus operation;
-
-    private OperationResult result;
-
-    public ImportProducerWorker(NinjaContext context, ImportOptions options, BlockingQueue queue,
+    public ImportProducerWorker(NinjaContext context, ImportOptions options, BlockingQueue queue, OperationStatus operation,
                                 ObjectFilter filter, boolean stopAfterFound) {
-        super(context, options, queue);
+        super(context, options, queue, operation);
 
         this.filter = filter;
         this.stopAfterFound = stopAfterFound;
-    }
-
-    public OperationResult getResult() {
-        return result;
-    }
-
-    public void setOperation(OperationStatus operation) {
-        this.operation = operation;
     }
 
     @Override
@@ -131,8 +115,6 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
         PrismContext prismContext = appContext.getBean(PrismContext.class);
         MatchingRuleRegistry matchingRuleRegistry = appContext.getBean(MatchingRuleRegistry.class);
 
-        result = new OperationResult(OPERATION_IMPORT);
-
         EventHandler handler = new EventHandler() {
 
             @Override
@@ -181,7 +163,8 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
 
         Charset charset = context.getCharset();
         try (Reader reader = new InputStreamReader(input, charset)) {
-            validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
+            OperationResult result = operation.getResult();
+            validator.validate(new ReaderInputStream(reader, context.getCharset()), result, result.getOperation());
         }
     }
 }

@@ -19,6 +19,10 @@ import java.util.concurrent.*;
  */
 public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
+    private static final String DOT_CLASS = ImportProducerWorker.class.getName() + ".";
+
+    private static final String OPERATION_IMPORT = DOT_CLASS + "import";
+
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
 
@@ -28,7 +32,8 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
     @Override
     public void execute() throws Exception {
-        OperationStatus progress = new OperationStatus();
+        OperationResult result = new OperationResult(OPERATION_IMPORT);
+        OperationStatus progress = new OperationStatus(result);
 
         queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
@@ -48,7 +53,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
         Thread.sleep(CONSUMERS_WAIT_FOR_START);
 
-        executor.execute(new ProgressReporterWorker(queue, progress, log));
+        executor.execute(new ProgressReporterWorker(context, options, queue, progress));
 
         for (int i = 0; i < options.getMultiThread(); i++) {
             ImportConsumerWorker worker = new ImportConsumerWorker(context, options, queue, progress);
@@ -58,9 +63,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         executor.shutdown();
         executor.awaitTermination(365, TimeUnit.DAYS);
 
-        OperationResult result = producer.getResult();
-
-        handleResultOnFinish(result, progress, "Import finished");
+        handleResultOnFinish(progress, "Import finished");
     }
 
     @Override
@@ -73,9 +76,6 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     }
 
     private ImportProducerWorker importByFilter(ObjectFilter filter, boolean stopAfterFound, OperationStatus status) {
-        ImportProducerWorker producer = new ImportProducerWorker(context, options, queue, filter, stopAfterFound);
-        producer.setOperation(status);
-
-        return producer;
+        return new ImportProducerWorker(context, options, queue, status, filter, stopAfterFound);
     }
 }

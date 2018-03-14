@@ -32,13 +32,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject> {
 
-    private OperationStatus operation;
-
     public ImportConsumerWorker(NinjaContext context, ImportOptions options, BlockingQueue<PrismObject> queue,
                                 OperationStatus operation) {
-        super(context, options, queue);
-
-        this.operation = operation;
+        super(context, options, queue, operation);
     }
 
     @Override
@@ -56,9 +52,10 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
 
                 repository.addObject(object, opts, new OperationResult("Import object"));
 
-                operation.incrementCount();
+                operation.incrementTotal();
             } catch (Exception ex) {
-                context.getLog().error("Couldn't add object {}, reason: {}", ex, object.toString(), ex.getMessage());
+                context.getLog().error("Couldn't add object {}, reason: {}", ex, object, ex.getMessage());
+                operation.incrementError();
             }
         }
     }
