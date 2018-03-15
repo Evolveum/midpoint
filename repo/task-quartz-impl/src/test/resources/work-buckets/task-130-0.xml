@@ -28,7 +28,8 @@
 	<recurrence>single</recurrence>
 	<workStateConfiguration>
 		<stringBuckets>
-			<discriminator>#</discriminator>
+			<discriminator>name</discriminator>
+			<matchingRule>polyStringNorm</matchingRule>
 			<boundaryCharacters>05am</boundaryCharacters>
 			<boundaryCharacters>0am</boundaryCharacters>
 			<comparisonMethod>interval</comparisonMethod>

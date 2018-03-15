@@ -288,7 +288,15 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 		// WHEN+THEN
 		// a, 01abc, 01abc
-		assumeNextPrefix(partitioningStrategy, workState, "a00", 1);
+		WorkBucketType bucket = assumeNextPrefix(partitioningStrategy, workState, "a00", 1);
+		ObjectQuery narrowedQuery = workStateManager
+				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+		display("narrowed query (1)", narrowedQuery);
+		ObjectQuery expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_NAME).startsWith("a00").matchingNorm()
+				.build();
+		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
+
 		assumeNextPrefix(partitioningStrategy, workState, "a01", 2);
 		assumeNextPrefix(partitioningStrategy, workState, "a0a", 3);
 		assumeNextPrefix(partitioningStrategy, workState, "a0b", 4);
@@ -332,8 +340,26 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 		// WHEN+THEN
 		// 05am, 0am
-		assumeNextInterval(partitioningStrategy, workState, null, "00", 1);
-		assumeNextInterval(partitioningStrategy, workState, "00", "0a", 2);
+
+		WorkBucketType bucket = assumeNextInterval(partitioningStrategy, workState, null, "00", 1);
+		ObjectQuery narrowedQuery = workStateManager
+				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+		display("narrowed query (1)", narrowedQuery);
+		ObjectQuery expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_NAME).lt("00").matchingNorm()
+				.build();
+		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
+
+		bucket = assumeNextInterval(partitioningStrategy, workState, "00", "0a", 2);
+		narrowedQuery = workStateManager
+				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+		display("narrowed query (2)", narrowedQuery);
+		expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_NAME).ge("00").matchingNorm()
+				.and().item(UserType.F_NAME).lt("0a").matchingNorm()
+				.build();
+		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (2)", expectedQuery, narrowedQuery);
+
 		assumeNextInterval(partitioningStrategy, workState, "0a", "0m", 3);
 		assumeNextInterval(partitioningStrategy, workState, "0m", "50", 4);
 		assumeNextInterval(partitioningStrategy, workState, "50", "5a", 5);
@@ -350,7 +376,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		suspendAndDeleteTasks(task.getOid());
 	}
 
-	private void assumeNextPrefix(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
+	private WorkBucketType assumeNextPrefix(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
 			String expectedNextPrefix, int expectedSequentialNumber) throws SchemaException {
 		WorkBucketType newBucket = getNextBucket(partitioningStrategy, workState, expectedSequentialNumber);
 		AbstractWorkBucketContentType content = newBucket.getContent();
@@ -360,9 +386,10 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		assertEquals("Wrong next prefix", expectedNextPrefix, prefixContent.getValue().get(0));
 
 		workState.getBucket().add(newBucket.clone().state(WorkBucketStateType.COMPLETE));
+		return newBucket;
 	}
 
-	private void assumeNextInterval(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
+	private WorkBucketType assumeNextInterval(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
 			String expectedNextFrom, String expectedNextTo, int expectedSequentialNumber) throws SchemaException {
 		WorkBucketType newBucket = getNextBucket(partitioningStrategy, workState,
 				expectedSequentialNumber);
@@ -373,6 +400,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		assertEquals("Wrong next 'to'", expectedNextTo, intervalContent.getTo());
 
 		workState.getBucket().add(newBucket.clone().state(WorkBucketStateType.COMPLETE));
+		return newBucket;
 	}
 
 	@NotNull

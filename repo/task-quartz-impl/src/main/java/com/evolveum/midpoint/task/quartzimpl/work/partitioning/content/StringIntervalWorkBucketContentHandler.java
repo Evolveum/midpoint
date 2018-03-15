@@ -17,40 +17,35 @@
 package com.evolveum.midpoint.task.quartzimpl.work.partitioning.content;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringIntervalWorkBucketContentType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.math.BigInteger;
 
 /**
  * @author mederly
  */
 @Component
-public class NumericIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
+public class StringIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
 
 	@PostConstruct
 	public void register() {
-		registry.registerHandler(NumericIntervalWorkBucketContentType.class, this);
+		registry.registerHandler(StringIntervalWorkBucketContentType.class, this);
 	}
 
 	@Override
 	protected boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent) {
-		NumericIntervalWorkBucketContentType cnt = (NumericIntervalWorkBucketContentType) bucketContent;
-		return cnt == null || isNullOrZero(cnt.getFrom()) && cnt.getTo() == null;
-	}
-
-	private boolean isNullOrZero(BigInteger i) {
-		return i == null || BigInteger.ZERO.equals(i);
+		StringIntervalWorkBucketContentType cnt = (StringIntervalWorkBucketContentType) bucketContent;
+		return cnt == null || cnt.getFrom() == null && cnt.getTo() == null;
 	}
 
 	@Override
 	protected Object getFrom(AbstractWorkBucketContentType content) {
-		return ((NumericIntervalWorkBucketContentType) content).getFrom();
+		return ((StringIntervalWorkBucketContentType) content).getFrom();
 	}
 
 	@Override
 	protected Object getTo(AbstractWorkBucketContentType content) {
-		return ((NumericIntervalWorkBucketContentType) content).getTo();
+		return ((StringIntervalWorkBucketContentType) content).getTo();
 	}
 }

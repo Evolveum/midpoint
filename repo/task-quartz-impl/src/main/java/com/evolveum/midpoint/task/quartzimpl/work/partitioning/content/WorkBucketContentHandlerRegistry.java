@@ -16,15 +16,10 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work.partitioning.content;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
