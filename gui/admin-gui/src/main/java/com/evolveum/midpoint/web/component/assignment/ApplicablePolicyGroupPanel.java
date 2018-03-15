@@ -19,22 +19,21 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -99,7 +98,15 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
             @Override
             protected void populateItem(ListItem<PrismObject<AbstractRoleType>> listItem) {
                 CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
-                        ApplicablePolicyGroupPanel.this.isRoleAssignedModel(listItem.getModelObject().getOid()));
+                        Model.of(isAssignmentAlreadyInList(listItem.getModelObject().getOid()) &&
+                                !ValueStatus.DELETED.equals(getExistingAssignmentStatus(listItem.getModelObject().getOid())))){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onUpdate(AjaxRequestTarget target) {
+                        onPolicyAddedOrRemoved(listItem.getModelObject(), getValue());
+                    }
+                };
                 policyCheckBox.setOutputMarkupId(true);
                 listItem.add(policyCheckBox);
 
@@ -113,13 +120,54 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
 
-    private IModel<Boolean> isRoleAssignedModel(String policyRoleOid){
+    private boolean isAssignmentAlreadyInList(String policyRoleOid){
         for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
             ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
             if (targetRef != null && targetRef.getOid().equals(policyRoleOid)){
-                return Model.of(true);
+                return true;
             }
         }
-        return Model.of(false);
+        return false;
+    }
+
+    private ValueStatus getExistingAssignmentStatus(String policyRoleOid){
+        for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+            ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+            if (targetRef != null && targetRef.getOid().equals(policyRoleOid)){
+                return assignment.getStatus();
+            }
+        }
+        return null;
+    }
+
+    private void onPolicyAddedOrRemoved(PrismObject<AbstractRoleType> assignmentTargetObject, boolean added){
+        if (isAssignmentAlreadyInList(assignmentTargetObject.getOid())){
+            ContainerValueWrapper<AssignmentType> assignmentToRemove = null;
+            for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+                ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+                if (targetRef != null && targetRef.getOid().equals(assignmentTargetObject.getOid())){
+                    if (added && assignment.getStatus() == ValueStatus.DELETED){
+                        assignment.setStatus(ValueStatus.NOT_CHANGED);
+                    } else if (!added && assignment.getStatus() == ValueStatus.ADDED){
+                        assignmentToRemove = assignment;
+                    } else if (!added){
+                        assignment.setStatus(ValueStatus.DELETED);
+                    }
+                }
+            }
+            assignmentsModel.getObject().getValues().remove(assignmentToRemove);
+        } else {
+            if (added){
+                PrismContainerValue<AssignmentType> newAssignment = assignmentsModel.getObject().getItem().createNewValue();
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(assignmentTargetObject);
+                AssignmentType assignmentType = newAssignment.asContainerable();
+                assignmentType.setTargetRef(ref);
+                ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+                ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(assignmentsModel.getObject(), newAssignment,
+                        assignmentsModel.getObject().getObjectStatus(), ValueStatus.ADDED, assignmentsModel.getObject().getPath());
+                valueWrapper.setShowEmpty(true, false);
+                assignmentsModel.getObject().getValues().add(valueWrapper);
+            }
+        }
     }
 }
