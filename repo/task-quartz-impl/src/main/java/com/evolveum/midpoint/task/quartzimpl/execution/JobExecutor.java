@@ -490,6 +490,7 @@ public class JobExecutor implements InterruptableJob {
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
                 // PERMANENT ERROR means we do not continue executing other handlers, we just close this task
                 taskManagerImpl.closeTask(task, executionResult);
+	            task.checkDependentTasksOnClose(executionResult);       // TODO
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED || runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
                 // FINISHED/FINISHED_HANDLER means we continue with other handlers, if there are any
                 task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers

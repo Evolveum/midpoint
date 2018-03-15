@@ -889,7 +889,7 @@ public class TaskQuartzImpl implements Task {
 				getHandlersCount());
 	}
 
-	void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		//System.out.println("checkDependentTasksOnClose (state=" + getExecutionStatus()+"): " + this);
 		if (getExecutionStatus() != TaskExecutionStatus.CLOSED) {
