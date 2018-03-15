@@ -293,16 +293,14 @@ public class QueryConvertor {
 				if (isEq) {
 					List<PrismPropertyValue<T>> values = item.getValues();
 					PrismValue.clearParent(values);
-					return EqualFilter.createEqual(itemPath,
-							(PrismPropertyDefinition<T>)itemDefinition, matchingRule, prismContext, values);
+					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>)itemDefinition, matchingRule, prismContext, values);
 				}
 				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getValue(0);
 				propertyValue.clearParent();
 				if (isGt || isGtEq) {
-					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition, isGtEq, prismContext, propertyValue);
+					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, propertyValue, isGtEq, prismContext);
 				} else {
-					return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, prismContext,
-							propertyValue, isLtEq);
+					return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, propertyValue, isLtEq, prismContext);
 				}
             }
 		} else if (rightSidePath != null) {
@@ -313,11 +311,9 @@ public class QueryConvertor {
 				if (isEq) {
 					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, rightSidePath, rightSideDefinition);
 				} else if (isGt || isGtEq) {
-					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition) itemDefinition, rightSidePath,
-							rightSideDefinition, isGtEq);
+					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, rightSidePath, rightSideDefinition, isGtEq);
 				} else {
-					return LessFilter.createLess(itemPath, (PrismPropertyDefinition) itemDefinition, rightSidePath,
-							rightSideDefinition, isLtEq);
+					return LessFilter.createLess(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, rightSidePath, rightSideDefinition, isLtEq);
 				}
 			}
 		} else {
@@ -333,11 +329,9 @@ public class QueryConvertor {
 					if (isEq) {
 						return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper);
 					} else if (isGt || isGtEq) {
-						return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition,
-								expressionWrapper, isGtEq);
+						return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper, isGtEq);
 					} else {
-						return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, expressionWrapper,
-								isLtEq);
+						return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper, isLtEq);
 					}
                 }
 			} else {

@@ -27,16 +27,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
 public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<T> {
 
 	private boolean equals;
 
 	ComparativeFilter(@NotNull ItemPath path,
 			@Nullable PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule,
 			@Nullable PrismPropertyValue<T> value,
 			@Nullable ExpressionWrapper expression, @Nullable ItemPath rightHandSidePath,
 			@Nullable ItemDefinition rightHandSideDefinition, boolean equals) {
-		super(path, definition, null,
+		super(path, definition, matchingRule,
 				value != null ? Collections.singletonList(value) : null,
 				expression, rightHandSidePath, rightHandSideDefinition);
 		this.equals = equals;

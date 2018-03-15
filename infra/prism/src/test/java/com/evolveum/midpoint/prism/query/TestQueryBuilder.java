@@ -508,13 +508,8 @@ public class TestQueryBuilder {
                         .item(new ItemPath(UserType.F_NAME), nameDef)
                 .build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(
-                LessFilter.createLess(
-                        new ItemPath(UserType.F_LOCALITY),
-                        localityDef,
-                        new ItemPath(UserType.F_NAME),
-                        nameDef,
-                        true
-                )
+                LessFilter.createLess(new ItemPath(UserType.F_LOCALITY), localityDef, null,
+		                new ItemPath(UserType.F_NAME), nameDef, true)
         );
         compare(actual, expected);
     }
