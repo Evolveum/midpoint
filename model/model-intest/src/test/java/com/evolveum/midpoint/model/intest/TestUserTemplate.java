@@ -89,8 +89,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_STAN_USERNAME = "stan";
 	private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 
-	private static final String EMPLOYEE_TYPE_MAROONED = "marooned";
-	private static final String EMPLOYEE_TYPE_USELESS = "useless";
+	private static final String SUBTYPE_MAROONED = "marooned";
+	private static final String SUBTYPE_USELESS = "useless";
 
 	private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
@@ -110,8 +110,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
 	}
 
 	protected int getNumberOfRoles() {
@@ -141,8 +141,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No object policy", defaultObjectPolicyConfiguration);
         assertEquals("Wrong object policy size", 5, defaultObjectPolicyConfiguration.size());       // last two are conflict resolution rules
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
-        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
-        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_USELESS, USER_TEMPLATE_USELESS_OID);
+        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
+        assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID);
 
         assertRoles(getNumberOfRoles());
 	}
@@ -1209,6 +1209,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 	/**
 	 * Setting employee type to marooned. This should cause switch to different user template.
+	 * Almost same as test185ModifyUserGuybrushSubtypeMarooned.
+	 * employeeType is deprecated, but it should still work for compatibility.
 	 */
 	@Test
     public void test180ModifyUserGuybrushEmployeeTypeMarooned() throws Exception {
@@ -1221,11 +1223,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
+        assertEquals("Wrong costCenter", "G001", userBefore.asObjectable().getCostCenter());
         assertAssignedNoRole(userBefore);
 
 		// WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, EMPLOYEE_TYPE_MAROONED);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, SUBTYPE_MAROONED);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1239,9 +1242,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignedNoRole(userAfter);
 	}
 
+	/**
+	 * employeeType is deprecated, but it should still work for compatibility.
+	 */
 	@Test
-    public void test189ModifyUserGuybrushEmployeeTypeNone() throws Exception {
-		final String TEST_NAME = "test189ModifyUserGuybrushEmployeeTypeNone";
+    public void test184ModifyUserGuybrushEmployeeTypeNone() throws Exception {
+		final String TEST_NAME = "test184ModifyUserGuybrushEmployeeTypeNone";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1260,6 +1266,41 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
+		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
+		
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+
+		assertEquals("Wrong costCenter", "S321", userAfter.asObjectable().getCostCenter());
+
+
+		assertAssignedNoRole(userAfter);
+	}
+	
+	/**
+	 * Setting subtype to marooned. This should cause switch to different user template.
+	 */
+	@Test
+    public void test185ModifyUserGuybrushSubtypeMarooned() throws Exception {
+		final String TEST_NAME = "test185ModifyUserGuybrushSubtypeMarooned";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUB_TYPE, task, result, SUBTYPE_MAROONED);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
 		display("User after", userAfter);
 
@@ -1267,6 +1308,39 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		assertAssignedNoRole(userAfter);
 	}
+	
+	@Test
+    public void test189ModifyUserGuybrushSubtypeNone() throws Exception {
+		final String TEST_NAME = "test189ModifyUserGuybrushSubtypeNone";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUB_TYPE, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
+		
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+
+		assertEquals("Wrong costCenter", "S321", userAfter.asObjectable().getCostCenter());
+
+		assertAssignedNoRole(userAfter);
+	}
+	
+
 
 	/**
 	 * Assignment mapping with domain. Control: nothing should happen.
@@ -2705,7 +2779,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 
 	/**
-	 * Setting employee type to marooned. This should cause switch to different user template.
+	 * Setting employee type to useless. This should cause switch to different user template.
 	 */
 	@Test
 	public void test970ModifyUserGuybrushEmployeeTypeUseless() throws Exception {
@@ -2722,7 +2796,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, EMPLOYEE_TYPE_USELESS);
+		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, SUBTYPE_USELESS);
 
 		// THEN
 		displayThen(TEST_NAME);

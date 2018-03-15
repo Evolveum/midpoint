@@ -392,7 +392,10 @@ public class ContextLoader {
             if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
 				ObjectPolicyConfigurationType policyConfigurationType =
                         ModelUtils.determineObjectPolicyConfiguration(object, systemConfigurationType);
-				LOGGER.trace("Selected policy configuration: {}", policyConfigurationType);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
+							FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+				}
                 context.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
             }
         }
