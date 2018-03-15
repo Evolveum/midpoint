@@ -382,8 +382,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		}
 
 		try {
-			query = taskManager.narrowQueryForWorkBucket(localCoordinatorTask, query, type,
-					getIdentifierDefinitionProvider(localCoordinatorTask, opResult), workBucket, opResult);
+			query = taskManager.narrowQueryForWorkBucket(query, type,
+					getIdentifierDefinitionProvider(localCoordinatorTask, opResult), localCoordinatorTask,
+					workBucket, opResult);
 		} catch (SchemaException | ObjectNotFoundException e) {
 			throw new ExitHandlerException(
 					logErrorAndSetResult(runResult, resultHandler, "Exception while narrowing a search query", e,

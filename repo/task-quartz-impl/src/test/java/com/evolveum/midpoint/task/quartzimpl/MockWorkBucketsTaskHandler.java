@@ -97,7 +97,7 @@ public class MockWorkBucketsTaskHandler implements WorkBucketAwareTaskHandler {
 		if (defaultQuery != null) {
 			ObjectQuery narrowedQuery;
 			try {
-				narrowedQuery = taskManager.narrowQueryForWorkBucket(task, defaultQuery, UserType.class, null, workBucket, opResult);
+				narrowedQuery = taskManager.narrowQueryForWorkBucket(defaultQuery, UserType.class, null, task, workBucket, opResult);
 			} catch (SchemaException | ObjectNotFoundException e) {
 				throw new SystemException("Couldn't narrow query for work bucket", e);
 			}

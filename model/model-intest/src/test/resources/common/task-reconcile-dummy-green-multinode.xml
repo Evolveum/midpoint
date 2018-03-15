@@ -34,7 +34,7 @@
 		<syncext:resourceReconciliationWorkStateConfiguration>
 			<taskKind>coordinator</taskKind>
 			<stringBuckets>
-				<discriminator>icfs:name</discriminator>
+				<discriminator>attributes/icfs:name</discriminator>
 				<boundaryCharacters>agmt</boundaryCharacters>
 			</stringBuckets>
 			<workers>

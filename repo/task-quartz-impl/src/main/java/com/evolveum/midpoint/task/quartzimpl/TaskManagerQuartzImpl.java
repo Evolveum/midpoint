@@ -2116,8 +2116,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public ObjectQuery narrowQueryForWorkBucket(Task workerTask, ObjectQuery query,
-			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider,
+	public ObjectQuery narrowQueryForWorkBucket(ObjectQuery query, Class<? extends ObjectType> type,
+			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider, Task workerTask,
 			WorkBucketType workBucket, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException {
     	return workStateManager.narrowQueryForWorkBucket(workerTask, query, type, itemDefinitionProvider, workBucket, opResult);
