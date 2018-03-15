@@ -7,16 +7,27 @@ import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -28,6 +39,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
     private static final String DOT_CLASS = ExportRepositoryAction.class.getName() + ".";
 
     private static final String OPERATION_EXPORT = DOT_CLASS + "export";
+    private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
@@ -102,10 +114,76 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
         for (ObjectTypes type : types) {
-            // todo split shadows by resources
+            if (ObjectTypes.SHADOW.equals(type)) {
+                List<ExportProducerWorker> shadowProducers = createProducersForShadows(queue, operation, producers, filter);
+                producers.addAll(shadowProducers);
+
+                continue;
+            }
+
             producers.add(new ExportProducerWorker(context, options, queue, operation, producers, type, query));
         }
 
         return producers;
+    }
+
+    private List<ExportProducerWorker> createProducersForShadows(BlockingQueue<PrismObject> queue,
+                                                                 OperationStatus operation,
+                                                                 List<ExportProducerWorker> producers,
+                                                                 ObjectFilter filter) {
+
+        List<ExportProducerWorker> shadowProducers = new ArrayList<>();
+
+        try {
+            RepositoryService repository = context.getRepository();
+
+            Collection<SelectorOptions<GetOperationOptions>> opts =
+                    SelectorOptions.createCollection(GetOperationOptions.createRaw());
+
+            OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
+
+            SearchResultList resultList = repository.searchObjects(ResourceType.class,
+                    ObjectQuery.createObjectQuery((ObjectFilter) null), opts, result);
+
+            List<PrismObject> list = resultList.getList();
+            if (list == null || list.isEmpty()) {
+                shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, filter));
+                return shadowProducers;
+            }
+
+            for (PrismObject obj : list) {
+                RefFilter resourceRefFilter = createResourceRefFilter(obj.getOid());
+
+                ObjectFilter fullFilter = resourceRefFilter;
+                if (filter != null) {
+                    fullFilter = AndFilter.createAnd(fullFilter, filter);
+                }
+
+                shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, fullFilter));
+            }
+        } catch (Exception ex) {
+            shadowProducers.clear();
+
+            shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, filter));
+        }
+
+        return shadowProducers;
+    }
+
+    private RefFilter createResourceRefFilter(String oid) throws SchemaException {
+        PrismReferenceValue val = new PrismReferenceValue(oid, ResourceType.COMPLEX_TYPE);
+
+        PrismContext prismContext = context.getPrismContext();
+        SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismReferenceDefinition def = registry.findItemDefinitionByFullPath(ShadowType.class,
+                PrismReferenceDefinition.class, ShadowType.F_RESOURCE_REF);
+
+        return RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), def, Arrays.asList(val));
+    }
+
+    private ExportProducerWorker createProducer(BlockingQueue<PrismObject> queue, OperationStatus operation,
+                                                List<ExportProducerWorker> producers, ObjectTypes type, ObjectFilter filter) {
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        return new ExportProducerWorker(context, options, queue, operation, producers, type, query);
     }
 }

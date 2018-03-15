@@ -16,13 +16,16 @@
 
 package com.evolveum.midpoint.ninja.action.worker;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ImportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -40,6 +43,9 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
 
     @Override
     public void run() {
+        ApplicationContext ctx = context.getApplicationContext();
+        Protector protector = ctx.getBean(Protector.class);
+
         try {
             while (!shouldConsumerStop()) {
                 PrismObject object = null;
@@ -48,6 +54,8 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
                     if (object == null) {
                         continue;
                     }
+
+                    CryptoUtil.encryptValues(protector, object);
 
                     RepositoryService repository = context.getRepository();
                     RepoAddOptions opts = createRepoAddOptions(options);
@@ -67,8 +75,6 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
                 operation.finish();
             }
         }
-
-        // todo handle encryption
     }
 
     private RepoAddOptions createRepoAddOptions(ImportOptions options) {
