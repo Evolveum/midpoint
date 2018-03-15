@@ -13322,7 +13322,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="policyGroupRef" type="tns:ObjectReferenceType">
+			<xsd:element name="policyGroupRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Reference to org that acts as a policy group.

@@ -936,6 +936,22 @@ public final class WebComponentUtil {
 		return name;
 	}
 
+	public static <O extends ObjectType> String getDisplayNameOrName(ObjectReferenceType ref, PageBase pageBase, String operation) {
+		String name = getName(ref);
+		if (StringUtils.isEmpty(name) || name.equals(ref.getOid())) {
+			String oid = ref.getOid();
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
+					.createCollection(GetOperationOptions.createNoFetch());
+			Class<O> type = (Class<O>) ObjectType.class;
+			PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
+					pageBase.createSimpleTask(operation), new OperationResult(operation));
+			if (object != null) {
+				name = getDisplayNameOrName(object);
+			}
+		}
+		return name;
+	}
+
 	public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName, PageBase pageBase, String operation) {
 		PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
 				pageBase.createSimpleTask(operation), new OperationResult(operation));
