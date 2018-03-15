@@ -18,13 +18,18 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -38,7 +43,10 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicablePolicyConfigPanel.class);
     private static final String DOT_CLASS = ApplicablePolicyConfigPanel.class.getName() + ".";
-    private final static String OPERATION_LOAD_SYS_CONFIG = DOT_CLASS + "loadSystemConfiguration";
+    private static final String OPERATION_LOAD_SYS_CONFIG = DOT_CLASS + "loadSystemConfiguration";
+
+    private static final String ID_POLICY_GROUPS = "policiesGroups";
+    private static final String ID_POLICY_GROUP_PANEL = "policyGroupPanel";
 
     private LoadableModel<List<ObjectReferenceType>> policyGroupsListModel;
 
@@ -48,8 +56,9 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
 
     @Override
     protected void onInitialize(){
+        super.onInitialize();
         initModels();
-//        initLayout();
+        initLayout();
     }
 
     private void initModels(){
@@ -65,15 +74,10 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
                     if (sysConfig == null){
                         return policyGroupsList;
                     } else {
-                        List<ObjectPolicyConfigurationType> policiesConfig = sysConfig.getDefaultObjectPolicyConfiguration();
-                        if (policiesConfig == null){
-                            return policyGroupsList;
+                        ObjectPolicyConfigurationType policyConfig = ModelUtils.determineObjectPolicyConfiguration(getMainPanelFocusObject(), sysConfig);
+                        if (policyConfig != null && policyConfig.getApplicablePolicies() != null){
+                            return policyConfig.getApplicablePolicies().getPolicyGroupRef();
                         }
-                        policiesConfig.forEach(policyConfig -> {
-                            if (policyConfig.getType() != null && policyConfig.getType().equals(RoleType.COMPLEX_TYPE)){
-//                                policyGroupsList = policyConfig.getApplicablePolicies();
-                            }
-                        });
                     }
                 } catch (Exception ex){
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve system configuration", ex);
@@ -81,6 +85,28 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
                 return policyGroupsList;
             }
         };
+    }
+
+    private void initLayout(){
+        ListView<ObjectReferenceType> policyGroupsPanel = new ListView<ObjectReferenceType>(ID_POLICY_GROUPS, policyGroupsListModel) {
+            @Override
+            protected void populateItem(ListItem<ObjectReferenceType> listItem) {
+                ApplicablePolicyGroupPanel groupPanel = new ApplicablePolicyGroupPanel(ID_POLICY_GROUP_PANEL, listItem.getModel(),
+                        ApplicablePolicyConfigPanel.this.getModel());
+                groupPanel.setOutputMarkupId(true);
+                listItem.add(groupPanel);
+            }
+        };
+        policyGroupsPanel.setOutputMarkupId(true);
+        add(policyGroupsPanel);
+    }
+
+    private PrismObject<FocusType> getMainPanelFocusObject(){
+        AbstractObjectMainPanel mainPanel = ApplicablePolicyConfigPanel.this.findParent(AbstractObjectMainPanel.class);
+        if (mainPanel != null){
+            return mainPanel.getObject();
+        }
+        return null;
     }
 
 }

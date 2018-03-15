@@ -205,6 +205,18 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL);
+		tabs.add(
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"), authorization) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public WebMarkupContainer createPanel(String panelId) {
+						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+					}
+				});
+
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL);
 		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {

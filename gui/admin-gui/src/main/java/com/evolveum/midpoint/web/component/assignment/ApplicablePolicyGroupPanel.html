@@ -16,7 +16,21 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-            <div wicket:id="policiesGroups">
-                    <div wicket:id="policyGroupPanel"/>
+    <div>
+        <div class="box-header with-border">
+            <h3 class="box-title">
+                <div wicket:id="policyGroupName"/>
+            </h3>
+        </div>
+        <div class="box-body">
+            <div wicket:id="policiesContainer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pull-left" wicket:id="policyCheckBox"/>
+                        <div class="col-md-4" wicket:id="policyLabel"/>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
 </wicket:panel>
