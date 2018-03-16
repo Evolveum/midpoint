@@ -37,7 +37,7 @@ import com.evolveum.midpoint.model.common.expression.evaluator.caching.Associati
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
@@ -238,7 +238,7 @@ public class Clockwork {
 	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
 			CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-		ConflictResolutionType resolutionPolicy = ModelUtils.getConflictResolution(context);
+		ConflictResolutionType resolutionPolicy = ModelImplUtils.getConflictResolution(context);
 		if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
 			return HookOperationMode.FOREGROUND;
 		}
@@ -1350,7 +1350,7 @@ public class Clockwork {
 				// the same account in one operation
 				object = elementContext.getObjectNew();
 			}
-			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
+			String operationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDelta);
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
 			if (securityConstraints == null) {
 				throw new AuthorizationException("Access denied");

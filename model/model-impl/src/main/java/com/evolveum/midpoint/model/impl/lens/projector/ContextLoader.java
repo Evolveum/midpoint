@@ -34,8 +34,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -389,11 +390,12 @@ public class ContextLoader {
         if (context.getFocusContext() != null) {
         	PrismObject<F> object = context.getFocusContext().getObjectAny();
             if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
-                List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
 				ObjectPolicyConfigurationType policyConfigurationType =
-                        ModelUtils.determineObjectPolicyConfiguration(context.getFocusContext().getObjectTypeClass(), subTypes,
-                        		systemConfigurationType);
-				LOGGER.trace("Selected policy configuration: {}", policyConfigurationType);
+                        ModelUtils.determineObjectPolicyConfiguration(object, systemConfigurationType);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
+							FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+				}
                 context.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
             }
         }

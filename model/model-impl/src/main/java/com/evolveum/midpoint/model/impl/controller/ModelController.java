@@ -221,13 +221,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			executeResolveOptions(object.asObjectable(), options, task, result);
 
 		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
 			if (GetOperationOptions.isAllowNotFound(rootOptions)){
 				result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
 			} else {
-				ModelUtils.recordFatalError(result, e);
+				ModelImplUtils.recordFatalError(result, e);
 			}
 			throw e;
 		} finally {
@@ -494,7 +494,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
 							}
 						} catch (ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ConfigurationException | CommunicationException | SecurityViolationException | RuntimeException e) {
-							ModelUtils.recordFatalError(result1, e);
+							ModelImplUtils.recordFatalError(result1, e);
 							throw e;
 						} finally {		// to have a record with the failed delta as well
 							result1.computeStatus();
@@ -565,11 +565,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 				} catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|
 						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
-					ModelUtils.recordFatalError(result, e);
+					ModelImplUtils.recordFatalError(result, e);
 					throw e;
 					
 				} catch (PreconditionViolationException e) {
-					ModelUtils.recordFatalError(result, e);
+					ModelImplUtils.recordFatalError(result, e);
 					// TODO: Temporary fix for 3.6.1
 					// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
 					// ... and we do not really need that in 3.6.1
@@ -584,7 +584,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			invalidateCaches(executedDeltas);
 
 		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
 			exitModelMethod();
@@ -700,11 +700,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException | 
 				ObjectAlreadyExistsException | CommunicationException | ConfigurationException | SecurityViolationException |
 				RuntimeException | Error e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			throw e;
 			
 		} catch (PreconditionViolationException e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			// TODO: Temporary fix for 3.6.1
 			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
 			// ... and we do not really need that in 3.6.1
@@ -728,10 +728,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					provisioning.applyDefinition(delta, task, result);
 				} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					if (ModelExecuteOptions.isRaw(options)) {
-						ModelUtils.recordPartialError(result, e);
+						ModelImplUtils.recordPartialError(result, e);
 						// just go on, this is raw, we need to continue even without complete schema
 					} else {
-						ModelUtils.recordFatalError(result, e);
+						ModelImplUtils.recordFatalError(result, e);
 						throw e;
 					}
 				}
@@ -753,7 +753,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		if (query != null) {
-			ModelUtils.validatePaging(query.getPaging());
+			ModelImplUtils.validatePaging(query.getPaging());
 		}
 
 		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
@@ -881,7 +881,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 		if (query != null) {
-			ModelUtils.validatePaging(query.getPaging());
+			ModelImplUtils.validatePaging(query.getPaging());
 		}
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
@@ -1064,7 +1064,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 		if (query != null) {
-			ModelUtils.validatePaging(query.getPaging());
+			ModelImplUtils.validatePaging(query.getPaging());
 		}
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
@@ -1180,7 +1180,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
 		} catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
 			exitModelMethod();
@@ -1306,7 +1306,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
-		ModelUtils.validatePaging(paging);
+		ModelImplUtils.validatePaging(paging);
 
 		enterModelMethod();
 
@@ -1327,7 +1327,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, task, result);
 
 			} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
-				ModelUtils.recordFatalError(result, ex);
+				ModelImplUtils.recordFatalError(result, ex);
 				throw ex;
 			}
 			result.recordSuccess();
@@ -1434,7 +1434,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			result.cleanupResult();
 
 		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			exitModelMethod();
@@ -1470,7 +1470,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			result.cleanupResult();
 
 		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException| RuntimeException | Error ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			exitModelMethod();
@@ -2086,7 +2086,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return deltas;
 
 		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException | RuntimeException | Error e) {
-			ModelUtils.recordFatalError(result, e);
+			ModelImplUtils.recordFatalError(result, e);
 			throw e;
         } finally {
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
