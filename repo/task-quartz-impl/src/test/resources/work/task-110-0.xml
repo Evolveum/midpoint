@@ -24,11 +24,13 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+	<workManagement>
+		<buckets>
+			<numericSegmentation>
+				<numberOfBuckets>1000</numberOfBuckets>
+				<bucketSize>100</bucketSize>
+			</numericSegmentation>
+		</buckets>
+	</workManagement>
 	<recurrence>single</recurrence>
-	<workStateConfiguration>
-		<numericIntervalBuckets>
-			<numberOfBuckets>1000</numberOfBuckets>
-			<bucketSize>100</bucketSize>
-		</numericIntervalBuckets>
-	</workStateConfiguration>
 </task>

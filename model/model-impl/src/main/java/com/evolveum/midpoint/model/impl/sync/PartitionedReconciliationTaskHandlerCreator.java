@@ -16,12 +16,13 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.api.StaticTaskPartitioningStrategy.StaticTaskPartition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateConfigurationType;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.task.api.StaticTaskPartitioningDefinition;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskPartitioningDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitioningDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,76 +49,21 @@ public class PartitionedReconciliationTaskHandlerCreator {
 	public static final String HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI;
 
 	@Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
 
 	@PostConstruct
 	private void initialize() {
-		StaticTaskPartition first = new StaticTaskPartition();
-		//first.setTaskNameTemplate("{masterTaskName} (1 - finishing operations)");
-		first.addDependent(2);
-		StaticTaskPartition second = new StaticTaskPartition() {
-			@Override
-			public String getHandlerUriTemplate(Task masterTask) {
-				if (hasWorkStateConfig2(masterTask)) {
-					return TaskConstants.WORKERS_CREATION_TASK_HANDLER_URI;
-				} else {
-					return null;        // the default one
-				}
-			}
-
-			@Override
-			public TaskWorkStateConfigurationType getWorkStateConfiguration(Task masterTask) {
-				return getWorkStateConfig2(masterTask);
-			}
-		};
-		//second.setTaskNameTemplate("{masterTaskName} (2 - resource reconciliation)");
-		second.addDependent(3);
-		StaticTaskPartition third = new StaticTaskPartition() {
-			@Override
-			public String getHandlerUriTemplate(Task masterTask) {
-				if (hasWorkStateConfig3(masterTask)) {
-					return TaskConstants.WORKERS_CREATION_TASK_HANDLER_URI;
-				} else {
-					return null;        // the default one
-				}
-			}
-
-			@Override
-			public TaskWorkStateConfigurationType getWorkStateConfiguration(Task masterTask) {
-				return getWorkStateConfig3(masterTask);
-			}
-		};
-		//third.setTaskNameTemplate("{masterTaskName} (3 - shadow reconciliation)");
-		StaticTaskPartitioningStrategy partitioningStrategy = new StaticTaskPartitioningStrategy();
-		partitioningStrategy.setCopyMasterExtension(true);
-		partitioningStrategy.setTaskPartitions(first, second, third);
-
-		taskManager.createAndRegisterPartitioningTaskHandler(HANDLER_URI, partitioningStrategy);
+		taskManager.createAndRegisterPartitioningTaskHandler(HANDLER_URI, this::createPartitioningDefinition);
 	}
 
-	@Nullable
-	private TaskWorkStateConfigurationType getWorkStateConfig2(Task masterTask) {
-		PrismProperty<TaskWorkStateConfigurationType> cfg = masterTask.getExtensionProperty(
-				SchemaConstants.MODEL_EXTENSION_RESOURCE_RECONCILIATION_WORK_STATE_CONFIGURATION);
-		return TaskUtil.adaptHandlerUri(cfg, ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2);
+	private TaskPartitioningDefinition createPartitioningDefinition(Task masterTask) {
+		TaskPartitioningDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
+				masterTask.getWorkManagement().getPartitioning() : null;
+		TaskPartitioningDefinitionType  partitioningDefinition = definitionInTask != null ?
+				definitionInTask.clone() : new TaskPartitioningDefinitionType();
+		partitioningDefinition.setPartitionCount(3);
+		partitioningDefinition.setCopyMasterExtension(true);
+		return new StaticTaskPartitioningDefinition(partitioningDefinition,
+				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
 	}
-
-	private boolean hasWorkStateConfig2(Task masterTask) {
-		PrismProperty<TaskWorkStateConfigurationType> cfg = masterTask.getExtensionProperty(
-				SchemaConstants.MODEL_EXTENSION_RESOURCE_RECONCILIATION_WORK_STATE_CONFIGURATION);
-		return cfg != null && cfg.getRealValue() != null;
-	}
-
-	@Nullable
-	private TaskWorkStateConfigurationType getWorkStateConfig3(Task masterTask) {
-		PrismProperty<TaskWorkStateConfigurationType> cfg = masterTask.getExtensionProperty(
-				SchemaConstants.MODEL_EXTENSION_SHADOW_RECONCILIATION_WORK_STATE_CONFIGURATION);
-		return TaskUtil.adaptHandlerUri(cfg, ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3);
-	}
-
-	private boolean hasWorkStateConfig3(Task masterTask) {
-		PrismProperty<TaskWorkStateConfigurationType> cfg = masterTask.getExtensionProperty(
-				SchemaConstants.MODEL_EXTENSION_SHADOW_RECONCILIATION_WORK_STATE_CONFIGURATION);
-		return cfg != null && cfg.getRealValue() != null;
-	}
-
 }

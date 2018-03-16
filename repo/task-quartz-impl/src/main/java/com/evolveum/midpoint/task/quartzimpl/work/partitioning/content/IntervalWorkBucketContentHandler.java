@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkBucketsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
@@ -40,7 +40,7 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
 
 	@NotNull
 	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractTaskWorkBucketsConfigurationType configuration,
+	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
 			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
 
 		AbstractWorkBucketContentType content = bucket.getContent();

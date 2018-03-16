@@ -37,13 +37,13 @@ import static java.util.Collections.singletonList;
  */
 public class StringWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
 
-	@NotNull private final StringWorkBucketsConfigurationType bucketsConfiguration;
+	@NotNull private final StringWorkSegmentationType bucketsConfiguration;
 	@NotNull private final StringWorkBucketsBoundaryMarkingType marking;
 
-	public StringWorkBucketPartitioningStrategy(@NotNull TaskWorkStateConfigurationType configuration,
+	public StringWorkBucketPartitioningStrategy(@NotNull TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
-		this.bucketsConfiguration = (StringWorkBucketsConfigurationType)
+		this.bucketsConfiguration = (StringWorkSegmentationType)
 				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
 		this.marking = ObjectUtils.defaultIfNull(bucketsConfiguration.getComparisonMethod(), INTERVAL);
 	}
@@ -90,12 +90,12 @@ public class StringWorkBucketPartitioningStrategy extends BaseWorkBucketPartitio
 				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucket.getContent());
 			}
 			StringPrefixWorkBucketContentType lastContent = (StringPrefixWorkBucketContentType) lastBucket.getContent();
-			if (lastContent.getValue().size() > 1) {
+			if (lastContent.getPrefix().size() > 1) {
 				throw new IllegalStateException("Multiple prefixes are not supported now: " + lastContent);
-			} else if (lastContent.getValue().isEmpty()) {
+			} else if (lastContent.getPrefix().isEmpty()) {
 				return emptyList();
 			} else {
-				lastBoundary = lastContent.getValue().get(0);
+				lastBoundary = lastContent.getPrefix().get(0);
 			}
 		} else {
 			lastBoundary = null;
@@ -104,7 +104,7 @@ public class StringWorkBucketPartitioningStrategy extends BaseWorkBucketPartitio
 		if (nextBoundary != null) {
 			StringPrefixWorkBucketContentType nextBucket =
 					new StringPrefixWorkBucketContentType()
-							.value(nextBoundary);
+							.prefix(nextBoundary);
 			return singletonList(nextBucket);
 		} else {
 			return emptyList();

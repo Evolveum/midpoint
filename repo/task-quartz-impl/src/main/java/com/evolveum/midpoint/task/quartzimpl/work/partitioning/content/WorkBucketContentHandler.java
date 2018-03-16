@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkBucketsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public interface WorkBucketContentHandler {
 
 	// TODO experimental
 	@NotNull
-	List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractTaskWorkBucketsConfigurationType configuration,
+	List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
 			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider)
 			throws SchemaException;
 

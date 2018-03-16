@@ -31,18 +31,6 @@
 	<extension>
 		<syncext:freshnessInterval>1000</syncext:freshnessInterval>
 		<syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
-		<syncext:resourceReconciliationWorkStateConfiguration>
-			<taskKind>coordinator</taskKind>
-			<stringBuckets>
-				<discriminator>attributes/icfs:name</discriminator>
-				<boundaryCharacters>abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
-			</stringBuckets>
-			<workers>
-				<workersPerNode>
-					<count>4</count>
-				</workersPerNode>
-			</workers>
-		</syncext:resourceReconciliationWorkStateConfiguration>
 	</extension>
 	
 	<taskIdentifier>10000000-0000-0000-565M-565600000204</taskIdentifier>
@@ -51,6 +39,27 @@
 
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</handlerUri>
 	<objectRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
+	<workManagement>
+		<partitioning>
+			<partition>
+				<index>2</index>
+				<workManagement>
+					<taskKind>coordinator</taskKind>
+					<buckets>
+						<stringSegmentation>
+							<discriminator>attributes/icfs:name</discriminator>
+							<boundaryCharacters>abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
+						</stringSegmentation>
+					</buckets>
+					<workers>
+						<workersPerNode>
+							<count>4</count>
+						</workersPerNode>
+					</workers>
+				</workManagement>
+			</partition>
+		</partitioning>
+	</workManagement>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>
 	<schedule>

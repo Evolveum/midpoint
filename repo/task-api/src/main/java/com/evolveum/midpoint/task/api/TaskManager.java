@@ -15,29 +15,24 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
+
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -711,7 +706,7 @@ public interface TaskManager {
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider, Task workerTask,
 			WorkBucketType workBucket, OperationResult opResult) throws SchemaException, ObjectNotFoundException;
 
-	TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, TaskPartitioningStrategy partitioningStrategy);
+	TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitioningDefinition> partitioningStrategy);
 
 	void setFreeBucketWaitInterval(long value);
 }

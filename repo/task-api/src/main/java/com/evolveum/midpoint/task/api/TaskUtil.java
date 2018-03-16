@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkerTasksConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkersManagementType;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,16 +32,16 @@ public class TaskUtil {
 		return tasks.stream().map(Task::getOid).collect(Collectors.toList());
 	}
 
-	public static TaskWorkStateConfigurationType adaptHandlerUri(PrismProperty<TaskWorkStateConfigurationType> cfg,
+	public static TaskWorkManagementType adaptHandlerUri(PrismProperty<TaskWorkManagementType> cfg,
 			String handlerUri) {
 		if (cfg == null || cfg.getRealValue() == null) {
 			return null;
 		} else if (cfg.getRealValue().getWorkers() != null && cfg.getRealValue().getWorkers().getHandlerUri() != null) {
 			return cfg.getRealValue();
 		} else {
-			TaskWorkStateConfigurationType clone = cfg.getRealValue().clone();
+			TaskWorkManagementType clone = cfg.getRealValue().clone();
 			if (clone.getWorkers() == null) {
-				clone.setWorkers(new WorkerTasksConfigurationType());
+				clone.setWorkers(new WorkersManagementType());
 			}
 			clone.getWorkers().setHandlerUri(handlerUri);
 			return clone;

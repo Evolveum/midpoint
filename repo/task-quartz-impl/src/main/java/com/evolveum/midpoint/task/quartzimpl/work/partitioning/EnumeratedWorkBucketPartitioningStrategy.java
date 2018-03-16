@@ -35,14 +35,14 @@ import static java.util.Collections.singletonList;
  */
 public class EnumeratedWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
 
-	@NotNull private final TaskWorkStateConfigurationType configuration;
-	@NotNull private final EnumeratedWorkBucketsConfigurationType bucketsConfiguration;
+	@NotNull private final TaskWorkManagementType configuration;
+	@NotNull private final ExplicitWorkSegmentationType bucketsConfiguration;
 
-	public EnumeratedWorkBucketPartitioningStrategy(@NotNull TaskWorkStateConfigurationType configuration,
+	public EnumeratedWorkBucketPartitioningStrategy(@NotNull TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 		this.configuration = configuration;
-		this.bucketsConfiguration = (EnumeratedWorkBucketsConfigurationType)
+		this.bucketsConfiguration = (ExplicitWorkSegmentationType)
 				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
 	}
 
@@ -51,10 +51,10 @@ public class EnumeratedWorkBucketPartitioningStrategy extends BaseWorkBucketPart
 	protected List<AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
 		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
 		int nextSequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
-		if (nextSequentialNumber > bucketsConfiguration.getBucket().size()) {
+		if (nextSequentialNumber > bucketsConfiguration.getContent().size()) {
 			return emptyList();
 		} else {
-			return singletonList(bucketsConfiguration.getBucket().get(nextSequentialNumber-1));
+			return singletonList(bucketsConfiguration.getContent().get(nextSequentialNumber-1));
 		}
 	}
 }

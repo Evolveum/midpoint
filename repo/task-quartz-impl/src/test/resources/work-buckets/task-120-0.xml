@@ -25,15 +25,17 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+	<workManagement>
+		<buckets>
+			<stringSegmentation>
+				<discriminator>name</discriminator>
+				<matchingRule>polyStringNorm</matchingRule>
+				<boundaryCharacters>a</boundaryCharacters>
+				<boundaryCharacters>01abc</boundaryCharacters>
+				<boundaryCharacters>01abc</boundaryCharacters>
+				<comparisonMethod>prefix</comparisonMethod>
+			</stringSegmentation>
+		</buckets>
+	</workManagement>
 	<recurrence>single</recurrence>
-	<workStateConfiguration>
-		<stringBuckets>
-			<discriminator>name</discriminator>
-			<matchingRule>polyStringNorm</matchingRule>
-			<boundaryCharacters>a</boundaryCharacters>
-			<boundaryCharacters>01abc</boundaryCharacters>
-			<boundaryCharacters>01abc</boundaryCharacters>
-			<comparisonMethod>prefix</comparisonMethod>
-		</stringBuckets>
-	</workStateConfiguration>
 </task>

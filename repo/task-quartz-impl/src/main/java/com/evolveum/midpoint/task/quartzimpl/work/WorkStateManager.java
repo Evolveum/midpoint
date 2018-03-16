@@ -97,11 +97,11 @@ public class WorkStateManager {
 		}
 
 		public boolean isStandalone() {
-			if (workerTask.getWorkStateConfiguration() == null) {
+			if (workerTask.getWorkManagement() == null) {
 				return true;
 			}
-			WorkStateManagementTaskKindType kind = workerTask.getWorkStateConfiguration().getTaskKind();
-			return kind == null || kind == WorkStateManagementTaskKindType.STANDALONE;
+			TaskKindType kind = workerTask.getWorkManagement().getTaskKind();
+			return kind == null || kind == TaskKindType.STANDALONE;
 		}
 
 		public void reloadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -116,8 +116,8 @@ public class WorkStateManager {
 			return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
 		}
 
-		public TaskWorkStateConfigurationType getWorkStateConfiguration() {
-			return isStandalone() ? workerTask.getWorkStateConfiguration() : coordinatorTask.getWorkStateConfiguration();
+		public TaskWorkManagementType getWorkStateConfiguration() {
+			return isStandalone() ? workerTask.getWorkManagement() : coordinatorTask.getWorkManagement();
 		}
 	}
 
@@ -166,7 +166,7 @@ public class WorkStateManager {
 	private WorkBucketType getWorkBucketMultiNode(Context ctx, long freeBucketWaitTime, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
-		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkStateConfiguration());
+		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkManagement());
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
@@ -284,7 +284,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	private WorkBucketType getWorkBucketStandalone(Context ctx, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkStateConfiguration());
+		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkManagement());
 		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask.getTaskPrismObject());
 		GetBucketResult response = workStateStrategy.getBucket(workState);
 		LOGGER.trace("getWorkBucketStandalone: workStateStrategy returned {} for standalone task {}", response, ctx.workerTask);
@@ -309,12 +309,12 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Context ctx = new Context(canRun);
 		ctx.workerTask = taskManager.getTask(workerTaskOid, result);
-		TaskWorkStateConfigurationType wsConfig = ctx.workerTask.getWorkStateConfiguration();
-		if (wsConfig != null && wsConfig.getTaskKind() != null && wsConfig.getTaskKind() != WorkStateManagementTaskKindType.WORKER &&
-				wsConfig.getTaskKind() != WorkStateManagementTaskKindType.STANDALONE) {
+		TaskWorkManagementType wsConfig = ctx.workerTask.getWorkManagement();
+		if (wsConfig != null && wsConfig.getTaskKind() != null && wsConfig.getTaskKind() != TaskKindType.WORKER &&
+				wsConfig.getTaskKind() != TaskKindType.STANDALONE) {
 			throw new IllegalStateException("Wrong task kind for worker task " + ctx.workerTask + ": " + wsConfig.getTaskKind());
 		}
-		if (wsConfig != null && wsConfig.getTaskKind() == WorkStateManagementTaskKindType.WORKER) {
+		if (wsConfig != null && wsConfig.getTaskKind() == TaskKindType.WORKER) {
 			ctx.coordinatorTask = getCoordinatorTask(ctx.workerTask, result);
 		}
 		return ctx;
@@ -325,8 +325,8 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		if (parent == null) {
 			throw new IllegalStateException("No coordinator task for worker task " + workerTask);
 		}
-		TaskWorkStateConfigurationType wsConfig = parent.getWorkStateConfiguration();
-		if (wsConfig == null || wsConfig.getTaskKind() != WorkStateManagementTaskKindType.COORDINATOR) {
+		TaskWorkManagementType wsConfig = parent.getWorkManagement();
+		if (wsConfig == null || wsConfig.getTaskKind() != TaskKindType.COORDINATOR) {
 			throw new IllegalStateException("Coordinator task for worker task " + workerTask + " is not marked as such: " + parent);
 		}
 		return parent;
@@ -541,8 +541,8 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			WorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Context ctx = createContext(workerTask.getOid(), () -> true, result);
 
-		TaskWorkStateConfigurationType config = ctx.getWorkStateConfiguration();
-		AbstractTaskWorkBucketsConfigurationType bucketsConfig = WorkBucketUtil.getWorkBucketsConfiguration(config);
+		TaskWorkManagementType config = ctx.getWorkStateConfiguration();
+		AbstractWorkSegmentationType bucketsConfig = WorkBucketUtil.getWorkBucketsConfiguration(config);
 		WorkBucketContentHandler handler = handlerFactory.getHandler(workBucket.getContent());
 		List<ObjectFilter> conjunctionMembers = new ArrayList<>(
 				handler.createSpecificFilters(workBucket, bucketsConfig, type, itemDefinitionProvider));

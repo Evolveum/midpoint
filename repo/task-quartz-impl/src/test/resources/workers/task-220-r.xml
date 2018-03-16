@@ -22,38 +22,52 @@
 	<name>task-220-root</name>
 	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
 		<mext:kind>account</mext:kind>
-		<mext:resourceReconciliationWorkStateConfiguration>
-			<taskKind>coordinator</taskKind>
-			<numericIntervalBuckets>
-				<numberOfBuckets>32</numberOfBuckets>
-				<from>1</from>
-				<bucketSize>1</bucketSize>
-			</numericIntervalBuckets>
-			<workers>
-				<workersPerNode>
-					<count>3</count>
-				</workersPerNode>
-			</workers>
-		</mext:resourceReconciliationWorkStateConfiguration>
-		<mext:shadowReconciliationWorkStateConfiguration>
-			<taskKind>coordinator</taskKind>
-			<numericIntervalBuckets>
-				<numberOfBuckets>8</numberOfBuckets>
-				<from>100</from>
-				<bucketSize>1</bucketSize>
-			</numericIntervalBuckets>
-			<workers>
-				<workersPerNode>
-					<count>2</count>
-				</workersPerNode>
-			</workers>
-		</mext:shadowReconciliationWorkStateConfiguration>
 	</extension>
 	<taskIdentifier>44444444-2222-2222-2223-220r00000000</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />
 	<executionStatus>runnable</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/partitioned-wb-task-handler</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType" />
+	<workManagement>
+		<partitioning>
+			<partition>
+				<index>2</index>
+				<workManagement>
+					<taskKind>coordinator</taskKind>
+					<buckets>
+						<numericSegmentation>
+							<numberOfBuckets>32</numberOfBuckets>
+							<from>1</from>
+							<bucketSize>1</bucketSize>
+						</numericSegmentation>
+					</buckets>
+					<workers>
+						<workersPerNode>
+							<count>3</count>
+						</workersPerNode>
+					</workers>
+				</workManagement>
+			</partition>
+			<partition>
+				<index>3</index>
+				<workManagement>
+					<taskKind>coordinator</taskKind>
+					<buckets>
+						<numericSegmentation>
+							<numberOfBuckets>8</numberOfBuckets>
+							<from>100</from>
+							<bucketSize>1</bucketSize>
+						</numericSegmentation>
+					</buckets>
+					<workers>
+						<workersPerNode>
+							<count>2</count>
+						</workersPerNode>
+					</workers>
+				</workManagement>
+			</partition>
+		</partitioning>
+	</workManagement>
 	<recurrence>single</recurrence>
 	<binding>loose</binding>
 </task>

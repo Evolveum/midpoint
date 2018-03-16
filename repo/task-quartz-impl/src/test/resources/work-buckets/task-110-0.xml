@@ -25,39 +25,41 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+	<workManagement>
+		<buckets>
+			<explicitSegmentation>
+				<content xsi:type="FilterWorkBucketContentType">
+					<q:filter>
+						<q:less>
+							<q:path>name</q:path>
+							<q:value>a</q:value>
+						</q:less>
+					</q:filter>
+				</content>
+				<content xsi:type="FilterWorkBucketContentType">
+					<q:filter>
+						<q:greaterOrEqual>
+							<q:path>name</q:path>
+							<q:value>a</q:value>
+						</q:greaterOrEqual>
+					</q:filter>
+					<q:filter>
+						<q:less>
+							<q:path>name</q:path>
+							<q:value>m</q:value>
+						</q:less>
+					</q:filter>
+				</content>
+				<content xsi:type="FilterWorkBucketContentType">
+					<q:filter>
+						<q:greaterOrEqual>
+							<q:path>name</q:path>
+							<q:value>m</q:value>
+						</q:greaterOrEqual>
+					</q:filter>
+				</content>
+			</explicitSegmentation>
+		</buckets>
+	</workManagement>
 	<recurrence>single</recurrence>
-	<workStateConfiguration>
-		<enumeratedBuckets>
-			<bucket xsi:type="FilterWorkBucketContentType">
-				<q:filter>
-					<q:less>
-						<q:path>name</q:path>
-						<q:value>a</q:value>
-					</q:less>
-				</q:filter>
-			</bucket>
-			<bucket xsi:type="FilterWorkBucketContentType">
-				<q:filter>
-					<q:greaterOrEqual>
-						<q:path>name</q:path>
-						<q:value>a</q:value>
-					</q:greaterOrEqual>
-				</q:filter>
-				<q:filter>
-					<q:less>
-						<q:path>name</q:path>
-						<q:value>m</q:value>
-					</q:less>
-				</q:filter>
-			</bucket>
-			<bucket xsi:type="FilterWorkBucketContentType">
-				<q:filter>
-					<q:greaterOrEqual>
-						<q:path>name</q:path>
-						<q:value>m</q:value>
-					</q:greaterOrEqual>
-				</q:filter>
-			</bucket>
-		</enumeratedBuckets>
-	</workStateConfiguration>
 </task>

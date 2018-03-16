@@ -28,8 +28,10 @@ public class TemplateUtil {
 
 	// very primitive implementation, for now
 	// TODO implement some escaping of control characters
-	@NotNull
-	public static String replace(@NotNull String template, @NotNull Map<String, String> replacements) {
+	public static String replace(String template, @NotNull Map<String, String> replacements) {
+		if (template == null) {
+			return null;
+		}
 		String rv = template;
 		for (Entry<String, String> entry : replacements.entrySet()) {
 			rv = rv.replace("{" + entry.getKey() + "}", entry.getValue());

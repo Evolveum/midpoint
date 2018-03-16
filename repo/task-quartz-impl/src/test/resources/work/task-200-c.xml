@@ -25,12 +25,14 @@
 	<executionStatus>waiting</executionStatus>
 	<waitingReason>otherTasks</waitingReason>
 	<!--<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>-->
-	<recurrence>single</recurrence>
-	<workStateConfiguration>
+	<workManagement>
 		<taskKind>coordinator</taskKind>
-		<numericIntervalBuckets>
-			<numberOfBuckets>3</numberOfBuckets>
-			<bucketSize>10</bucketSize>
-		</numericIntervalBuckets>
-	</workStateConfiguration>
+		<buckets>
+			<numericSegmentation>
+				<numberOfBuckets>3</numberOfBuckets>
+				<bucketSize>10</bucketSize>
+			</numericSegmentation>
+		</buckets>
+	</workManagement>
+	<recurrence>single</recurrence>
 </task>

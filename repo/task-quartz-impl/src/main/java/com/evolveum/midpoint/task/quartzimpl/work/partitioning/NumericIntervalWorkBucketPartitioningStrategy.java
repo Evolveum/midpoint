@@ -37,14 +37,14 @@ import static java.util.Collections.singletonList;
 //<NumericIntervalWorkBucketContentType, NumericIntervalWorkBucketsConfigurationType>
 public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
 
-	@NotNull private final TaskWorkStateConfigurationType configuration;
-	@NotNull private final NumericIntervalWorkBucketsConfigurationType bucketsConfiguration;
+	@NotNull private final TaskWorkManagementType configuration;
+	@NotNull private final NumericWorkSegmentationType bucketsConfiguration;
 
-	public NumericIntervalWorkBucketPartitioningStrategy(@NotNull TaskWorkStateConfigurationType configuration,
+	public NumericIntervalWorkBucketPartitioningStrategy(@NotNull TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 		this.configuration = configuration;
-		this.bucketsConfiguration = (NumericIntervalWorkBucketsConfigurationType)
+		this.bucketsConfiguration = (NumericWorkSegmentationType)
 				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
 	}
 

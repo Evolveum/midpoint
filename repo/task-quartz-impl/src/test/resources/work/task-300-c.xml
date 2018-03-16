@@ -24,13 +24,15 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>waiting</executionStatus>
 	<waitingReason>otherTasks</waitingReason>
-	<recurrence>single</recurrence>
-	<workStateConfiguration>
+	<workManagement>
 		<taskKind>coordinator</taskKind>
-		<numericIntervalBuckets>
-			<numberOfBuckets>3</numberOfBuckets>
-			<bucketSize>10</bucketSize>
-			<discriminator>iteration</discriminator>
-		</numericIntervalBuckets>
-	</workStateConfiguration>
+		<buckets>
+			<numericSegmentation>
+				<discriminator>iteration</discriminator>
+				<numberOfBuckets>3</numberOfBuckets>
+				<bucketSize>10</bucketSize>
+			</numericSegmentation>
+		</buckets>
+	</workManagement>
+	<recurrence>single</recurrence>
 </task>

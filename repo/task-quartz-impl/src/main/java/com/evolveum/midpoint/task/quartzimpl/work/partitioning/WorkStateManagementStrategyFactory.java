@@ -39,21 +39,21 @@ public class WorkStateManagementStrategyFactory {
 
 	@Autowired private PrismContext prismContext;
 
-	private final Map<Class<? extends AbstractTaskWorkBucketsConfigurationType>, Class<? extends WorkBucketPartitioningStrategy>> strategyClassMap = new HashMap<>();
+	private final Map<Class<? extends AbstractWorkSegmentationType>, Class<? extends WorkBucketPartitioningStrategy>> strategyClassMap = new HashMap<>();
 
 	{
-		registerStrategyClass(NumericIntervalWorkBucketsConfigurationType.class, NumericIntervalWorkBucketPartitioningStrategy.class);
-		registerStrategyClass(StringWorkBucketsConfigurationType.class, StringWorkBucketPartitioningStrategy.class);
-		registerStrategyClass(EnumeratedWorkBucketsConfigurationType.class, EnumeratedWorkBucketPartitioningStrategy.class);
+		registerStrategyClass(NumericWorkSegmentationType.class, NumericIntervalWorkBucketPartitioningStrategy.class);
+		registerStrategyClass(StringWorkSegmentationType.class, StringWorkBucketPartitioningStrategy.class);
+		registerStrategyClass(ExplicitWorkSegmentationType.class, EnumeratedWorkBucketPartitioningStrategy.class);
 	}
 
 	/**
 	 * Creates work state management strategy based on provided configuration.
 	 */
 	@NotNull
-	public WorkBucketPartitioningStrategy createStrategy(TaskWorkStateConfigurationType configuration) {
+	public WorkBucketPartitioningStrategy createStrategy(TaskWorkManagementType configuration) {
 
-		AbstractTaskWorkBucketsConfigurationType cfg = WorkBucketUtil.getWorkBucketsConfiguration(configuration);
+		AbstractWorkSegmentationType cfg = WorkBucketUtil.getWorkBucketsConfiguration(configuration);
 
 		if (cfg == null) {
 			return new SingleNullWorkBucketPartitioningStrategy(configuration, prismContext);
@@ -72,7 +72,7 @@ public class WorkStateManagementStrategyFactory {
 		}
 	}
 
-	public void registerStrategyClass(Class<? extends AbstractTaskWorkBucketsConfigurationType> configurationClass,
+	public void registerStrategyClass(Class<? extends AbstractWorkSegmentationType> configurationClass,
 			Class<? extends WorkBucketPartitioningStrategy> strategyClass) {
 		strategyClassMap.put(configurationClass, strategyClass);
 	}

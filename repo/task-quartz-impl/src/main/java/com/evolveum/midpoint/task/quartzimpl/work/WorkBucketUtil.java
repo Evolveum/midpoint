@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkBucketsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateConfigurationType;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketsManagementType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -49,17 +51,16 @@ public class WorkBucketUtil {
 		return null;
 	}
 
-	public static AbstractTaskWorkBucketsConfigurationType getWorkBucketsConfiguration(TaskWorkStateConfigurationType cfg) {
-		if (cfg == null) {
-			return null;
-		} else if (cfg.getNumericIntervalBuckets() != null) {
-			return cfg.getNumericIntervalBuckets();
-		} else if (cfg.getStringBuckets() != null) {
-			return cfg.getStringBuckets();
-		} else if (cfg.getEnumeratedBuckets() != null) {
-			return cfg.getEnumeratedBuckets();
+	public static AbstractWorkSegmentationType getWorkBucketsConfiguration(TaskWorkManagementType cfg) {
+		if (cfg != null && cfg.getBuckets() != null) {
+			WorkBucketsManagementType buckets = cfg.getBuckets();
+			return MiscUtil.getFirstNonNull(
+					buckets.getNumericSegmentation(),
+					buckets.getStringSegmentation(),
+					buckets.getExplicitSegmentation(),
+					buckets.getSegmentation());
 		} else {
-			return cfg.getBuckets();
+			return null;
 		}
 	}
 }

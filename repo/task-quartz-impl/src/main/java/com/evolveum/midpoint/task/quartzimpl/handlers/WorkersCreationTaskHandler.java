@@ -117,11 +117,11 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	// returns true if there's a problem
 	private boolean createWorkers(Task task, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException {
-		TaskWorkStateConfigurationType wsCfg = task.getWorkStateConfiguration();
-		if (wsCfg == null || wsCfg.getTaskKind() != WorkStateManagementTaskKindType.COORDINATOR) {
+		TaskWorkManagementType wsCfg = task.getWorkManagement();
+		if (wsCfg == null || wsCfg.getTaskKind() != TaskKindType.COORDINATOR) {
 			throw new IllegalStateException("Work state configuration missing or task kind is not 'coordinator': " + task);
 		}
-		WorkerTasksConfigurationType workersCfg = wsCfg.getWorkers();
+		WorkersManagementType workersCfg = wsCfg.getWorkers();
 		if (workersCfg == null) {
 			throw new IllegalStateException("Workers configuration is missing: " + task);
 		}
@@ -137,7 +137,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	private void createWorker(String nodeIdentifier, int index, WorkerTasksPerNodeConfigurationType perNodeConfig,
-			WorkerTasksConfigurationType workersCfg, Task coordinatorTask, OperationResult opResult)
+			WorkersManagementType workersCfg, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException {
 		Map<String, String> replacements = new HashMap<>();
 		replacements.put("node", nodeIdentifier);
@@ -175,7 +175,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		worker.setObjectRef(CloneUtil.clone(coordinatorTaskBean.getObjectRef()));
 		worker.setRecurrence(TaskRecurrenceType.SINGLE);
 		worker.setParent(coordinatorTask.getTaskIdentifier());
-		worker.beginWorkStateConfiguration().taskKind(WorkStateManagementTaskKindType.WORKER);
+		worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
 		PrismContainer<Containerable> coordinatorExtension = coordinatorTaskBean.asPrismObject().findContainer(TaskType.F_EXTENSION);
 		if (coordinatorTaskBean.getExtension() != null) {
 			worker.asPrismObject().add(coordinatorExtension.clone());
@@ -198,7 +198,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		}
 	}
 
-	private List<WorkerTasksPerNodeConfigurationType> getWorkersPerNode(WorkerTasksConfigurationType workersCfg) {
+	private List<WorkerTasksPerNodeConfigurationType> getWorkersPerNode(WorkersManagementType workersCfg) {
 		if (!workersCfg.getWorkersPerNode().isEmpty()) {
 			return workersCfg.getWorkersPerNode();
 		} else {

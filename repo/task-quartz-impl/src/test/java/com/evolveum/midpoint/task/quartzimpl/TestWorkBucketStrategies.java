@@ -283,7 +283,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
 
 		// WHEN
-		WorkBucketPartitioningStrategy partitioningStrategy = strategyFactory.createStrategy(task.getWorkStateConfiguration());
+		WorkBucketPartitioningStrategy partitioningStrategy = strategyFactory.createStrategy(task.getWorkManagement());
 		TaskWorkStateType workState = new TaskWorkStateType(prismContext);
 
 		// WHEN+THEN
@@ -335,7 +335,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
 
 		// WHEN
-		WorkBucketPartitioningStrategy partitioningStrategy = strategyFactory.createStrategy(task.getWorkStateConfiguration());
+		WorkBucketPartitioningStrategy partitioningStrategy = strategyFactory.createStrategy(task.getWorkManagement());
 		TaskWorkStateType workState = new TaskWorkStateType(prismContext);
 
 		// WHEN+THEN
@@ -382,8 +382,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		AbstractWorkBucketContentType content = newBucket.getContent();
 		assertEquals("Wrong content class", StringPrefixWorkBucketContentType.class, content.getClass());
 		StringPrefixWorkBucketContentType prefixContent = (StringPrefixWorkBucketContentType) content;
-		assertEquals("Wrong # of prefixes generated", 1, prefixContent.getValue().size());
-		assertEquals("Wrong next prefix", expectedNextPrefix, prefixContent.getValue().get(0));
+		assertEquals("Wrong # of prefixes generated", 1, prefixContent.getPrefix().size());
+		assertEquals("Wrong next prefix", expectedNextPrefix, prefixContent.getPrefix().get(0));
 
 		workState.getBucket().add(newBucket.clone().state(WorkBucketStateType.COMPLETE));
 		return newBucket;

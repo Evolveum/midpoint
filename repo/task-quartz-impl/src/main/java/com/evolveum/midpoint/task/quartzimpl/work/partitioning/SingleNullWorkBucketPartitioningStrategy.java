@@ -19,7 +19,7 @@ package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ import static java.util.Collections.singletonList;
 public class SingleNullWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
 
 	@SuppressWarnings("unused")
-	public SingleNullWorkBucketPartitioningStrategy(TaskWorkStateConfigurationType configuration,
+	public SingleNullWorkBucketPartitioningStrategy(TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 	}

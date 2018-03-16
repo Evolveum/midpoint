@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkBucketsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FilterWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
@@ -48,7 +48,7 @@ public class FilterWorkBucketContentHandler extends BaseWorkBucketContentHandler
 	@NotNull
 	@Override
 	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-			AbstractTaskWorkBucketsConfigurationType configuration, Class<? extends ObjectType> type,
+			AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) throws SchemaException {
 
 		FilterWorkBucketContentType content = (FilterWorkBucketContentType) bucket.getContent();

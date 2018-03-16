@@ -24,20 +24,22 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
+	<workManagement>
+		<buckets>
+			<explicitSegmentation>
+				<discriminator>iteration</discriminator>
+				<content xsi:type="NumericIntervalWorkBucketContentType">
+					<to>123</to>
+				</content>
+				<content xsi:type="NumericIntervalWorkBucketContentType">
+					<from>123</from>
+					<to>200</to>
+				</content>
+				<content xsi:type="NumericIntervalWorkBucketContentType">
+					<from>200</from>
+				</content>
+			</explicitSegmentation>
+		</buckets>
+	</workManagement>
 	<recurrence>single</recurrence>
-	<workStateConfiguration>
-		<enumeratedBuckets>
-			<discriminator>iteration</discriminator>
-			<bucket xsi:type="NumericIntervalWorkBucketContentType">
-				<to>123</to>
-			</bucket>
-			<bucket xsi:type="NumericIntervalWorkBucketContentType">
-				<from>123</from>
-				<to>200</to>
-			</bucket>
-			<bucket xsi:type="NumericIntervalWorkBucketContentType">
-				<from>200</from>
-			</bucket>
-		</enumeratedBuckets>
-	</workStateConfiguration>
 </task>

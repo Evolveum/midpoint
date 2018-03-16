@@ -2124,7 +2124,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, TaskPartitioningStrategy partitioningStrategy) {
+	public TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitioningDefinition> partitioningStrategy) {
 		PartitioningTaskHandler handler = new PartitioningTaskHandler(this, partitioningStrategy);
 		registerHandler(handlerUri, handler);
 		return handler;

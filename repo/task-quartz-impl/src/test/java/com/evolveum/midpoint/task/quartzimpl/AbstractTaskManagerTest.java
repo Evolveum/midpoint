@@ -110,7 +110,8 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		workBucketsTaskHandler = new MockWorkBucketsTaskHandler(null, taskManager);
 		taskManager.registerHandler(SINGLE_WB_TASK_HANDLER_URI, workBucketsTaskHandler);
 
-		new PartitionedMockWorkBucketsTaskHandlerCreator(taskManager).initializeAndRegister(PARTITIONED_WB_TASK_HANDLER_URI);
+		new PartitionedMockWorkBucketsTaskHandlerCreator(taskManager, prismContext)
+				.initializeAndRegister(PARTITIONED_WB_TASK_HANDLER_URI);
 
 		partitionedWorkBucketsTaskHandler = new MockWorkBucketsTaskHandler("p", taskManager);
 		taskManager.registerHandler(PARTITIONED_WB_TASK_HANDLER_URI_1, partitionedWorkBucketsTaskHandler);

@@ -19,7 +19,7 @@ package com.evolveum.midpoint.task.quartzimpl.work.partitioning.content;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractTaskWorkBucketsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class NullWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 	@NotNull
 	@Override
 	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-			AbstractTaskWorkBucketsConfigurationType configuration, Class<? extends ObjectType> type,
+			AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
 			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
 		return emptyList();
 	}

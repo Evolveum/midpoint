@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.api.TaskPartitioningStrategy.TaskPartitionInformation;
+import com.evolveum.midpoint.task.api.TaskPartitioningDefinition.TaskPartitionDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.TemplateUtil;
@@ -33,10 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.util.*;
@@ -53,12 +50,14 @@ public class PartitioningTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(PartitioningTaskHandler.class);
 
-	private TaskManager taskManager;
-	private TaskPartitioningStrategy partitioningStrategy;
+	private static final String DEFAULT_HANDLER_URI = "{masterTaskHandlerUri}#{index}";
 
-	public PartitioningTaskHandler(TaskManager taskManager, TaskPartitioningStrategy partitioningStrategy) {
+	private TaskManager taskManager;
+	private Function<Task, TaskPartitioningDefinition> partitioningDefinitionSupplier;
+
+	public PartitioningTaskHandler(TaskManager taskManager, Function<Task, TaskPartitioningDefinition> partitioningDefinitionSupplier) {
 		this.taskManager = taskManager;
-		this.partitioningStrategy = partitioningStrategy;
+		this.partitioningDefinitionSupplier = partitioningDefinitionSupplier;
 	}
 
 	@Override
@@ -117,18 +116,25 @@ public class PartitioningTaskHandler implements TaskHandler {
 	 */
 	private List<Task> createSubtasks(Task masterTask, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		TaskPartitioningDefinition partitioningDefinition = partitioningDefinitionSupplier.apply(masterTask);
 		List<String> subtaskOids = new ArrayList<>();
-		for (int i = 1; i <= partitioningStrategy.getPartitionsCount(masterTask); i++) {
-			subtaskOids.add(createSubtask(i, masterTask, opResult));
+		int partitionCount = partitioningDefinition.getPartitionCount(masterTask);
+		for (int i = 1; i <= partitionCount; i++) {
+			subtaskOids.add(createSubtask(i, partitioningDefinition, masterTask, opResult));
 		}
 		List<Task> subtasks = new ArrayList<>(subtaskOids.size());
 		for (String subtaskOid : subtaskOids) {
 			subtasks.add(taskManager.getTask(subtaskOid, opResult));
 		}
-		for (int i = 1; i <= partitioningStrategy.getPartitionsCount(masterTask); i++) {
+		boolean sequential = partitioningDefinition.isSequentialExecution(masterTask);
+		for (int i = 1; i <= partitionCount; i++) {
 			Task subtask = subtasks.get(i - 1);
-			TaskPartitionInformation partition = partitioningStrategy.getPartition(masterTask, i);
-			for (Integer dependentIndex : partition.getDependents()) {
+			TaskPartitionDefinition partition = partitioningDefinition.getPartition(masterTask, i);
+			Collection<Integer> dependents = new HashSet<>(partition.getDependents());
+			if (sequential && i < partitionCount) {
+				dependents.add(i + 1);
+			}
+			for (Integer dependentIndex : dependents) {
 				Task dependent = subtasks.get(dependentIndex - 1);
 				subtask.addDependent(dependent.getTaskIdentifier());
 				if (dependent.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
@@ -141,30 +147,52 @@ public class PartitioningTaskHandler implements TaskHandler {
 		return subtasks;
 	}
 
-	private String createSubtask(int index, Task masterTask, OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException {
+	private String createSubtask(int index, TaskPartitioningDefinition partitioningDefinition,
+			Task masterTask, OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException {
 		Map<String, String> replacements = new HashMap<>();
 		replacements.put("index", String.valueOf(index));
 		replacements.put("masterTaskName", String.valueOf(masterTask.getName().getOrig()));
 		replacements.put("masterTaskHandlerUri", masterTask.getHandlerUri());
 
-		TaskPartitionInformation partition = partitioningStrategy.getPartition(masterTask, index);
+		TaskPartitionDefinition partition = partitioningDefinition.getPartition(masterTask, index);
 
 		TaskType masterTaskBean = masterTask.getTaskType();
 		TaskType subtask = new TaskType(getPrismContext());
 
 		String nameTemplate = applyDefaults(
-				p -> p.getTaskNameTemplate(masterTask),
-				ps -> ps.getTaskNameTemplate(masterTask),
-				"{masterTaskName} ({index})", partition);
+				p -> p.getName(masterTask),
+				ps -> ps.getName(masterTask),
+				"{masterTaskName} ({index})", partition, partitioningDefinition);
 		String name = TemplateUtil.replace(nameTemplate, replacements);
 		subtask.setName(PolyStringType.fromOrig(name));
 
+		TaskWorkManagementType workManagement = applyDefaults(
+				p -> p.getWorkManagement(masterTask),
+				ps -> ps.getWorkManagement(masterTask),
+				null, partition, partitioningDefinition);
+		// work management is updated and stored into subtask later
+
 		String handlerUriTemplate = applyDefaults(
-				p -> p.getHandlerUriTemplate(masterTask),
-				ps -> ps.getHandlerUriTemplate(masterTask),
-				"{masterTaskHandlerUri}#{index}", partition);
+				p -> p.getHandlerUri(masterTask),
+				ps -> ps.getHandlerUri(masterTask),
+				null,
+				partition, partitioningDefinition);
 		String handlerUri = TemplateUtil.replace(handlerUriTemplate, replacements);
+		if (handlerUri == null) {
+			// The default for coordinator-based partitions is to put default handler into workers configuration
+			// - but only if both partition and workers handler URIs are null. This is to be revisited some day.
+			if (isCoordinator(workManagement)) {
+				handlerUri = TaskConstants.WORKERS_CREATION_TASK_HANDLER_URI;
+				if (workManagement.getWorkers() != null && workManagement.getWorkers().getHandlerUri() == null) {
+					workManagement = workManagement.clone();
+					workManagement.getWorkers().setHandlerUri(TemplateUtil.replace(DEFAULT_HANDLER_URI, replacements));
+				}
+			} else {
+				handlerUri = TemplateUtil.replace(DEFAULT_HANDLER_URI, replacements);
+			}
+		}
 		subtask.setHandlerUri(handlerUri);
+		subtask.setWorkManagement(workManagement);
 
 		subtask.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
 		subtask.setOwnerRef(CloneUtil.clone(masterTaskBean.getOwnerRef()));
@@ -173,39 +201,34 @@ public class PartitioningTaskHandler implements TaskHandler {
 		subtask.setRecurrence(TaskRecurrenceType.SINGLE);
 		subtask.setParent(masterTask.getTaskIdentifier());
 		boolean copyMasterExtension = applyDefaults(
-				p -> p.getCopyMasterExtension(masterTask),
-				ps -> ps.getCopyMasterExtension(masterTask),
-				false, partition);
+				p -> p.isCopyMasterExtension(masterTask),
+				ps -> ps.isCopyMasterExtension(masterTask),
+				false, partition, partitioningDefinition);
 		if (copyMasterExtension) {
 			PrismContainer<Containerable> masterExtension = masterTaskBean.asPrismObject().findContainer(TaskType.F_EXTENSION);
 			if (masterTaskBean.getExtension() != null) {
 				subtask.asPrismObject().add(masterExtension.clone());
 			}
 		}
-		boolean copyWorkStateConfiguration = applyDefaults(
-				p -> p.getCopyWorkStateConfiguration(masterTask),
-				ps -> ps.getCopyWorkStateConfiguration(masterTask),
-				false, partition);
-		if (copyWorkStateConfiguration) {
-			subtask.setWorkStateConfiguration(CloneUtil.clone(masterTask.getWorkStateConfiguration()));
-		} else {
-			subtask.setWorkStateConfiguration(partition.getWorkStateConfiguration(masterTask));
-		}
 
 		applyDeltas(subtask, partition.getOtherDeltas(masterTask));
-		applyDeltas(subtask, partitioningStrategy.getOtherDeltas(masterTask));
+		applyDeltas(subtask, partitioningDefinition.getOtherDeltas(masterTask));
 		LOGGER.debug("Partitioned subtask to be created:\n{}", subtask.asPrismObject().debugDumpLazily());
 
 		return taskManager.addTask(subtask.asPrismObject(), opResult);
 	}
 
-	private <T> T applyDefaults(Function<TaskPartitionInformation, T> localGetter, Function<TaskPartitioningStrategy, T> globalGetter,
-			T defaultValue, TaskPartitionInformation partitionInformation) {
-		T localValue = localGetter.apply(partitionInformation);
+	private boolean isCoordinator(TaskWorkManagementType workManagement) {
+		return workManagement != null && workManagement.getTaskKind() == TaskKindType.COORDINATOR;
+	}
+
+	private <T> T applyDefaults(Function<TaskPartitionDefinition, T> localGetter, Function<TaskPartitioningDefinition, T> globalGetter,
+			T defaultValue, TaskPartitionDefinition localDef, TaskPartitioningDefinition globalDef) {
+		T localValue = localGetter.apply(localDef);
 		if (localValue != null) {
 			return localValue;
 		}
-		T globalValue = globalGetter.apply(partitioningStrategy);
+		T globalValue = globalGetter.apply(globalDef);
 		if (globalValue != null) {
 			return globalValue;
 		}

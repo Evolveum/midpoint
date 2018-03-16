@@ -3176,8 +3176,8 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public TaskWorkStateConfigurationType getWorkStateConfiguration() {
-		return taskPrism.asObjectable().getWorkStateConfiguration();
+	public TaskWorkManagementType getWorkManagement() {
+		return taskPrism.asObjectable().getWorkManagement();
 	}
 
 	@Override

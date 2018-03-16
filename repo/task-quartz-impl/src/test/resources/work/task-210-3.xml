@@ -25,8 +25,8 @@
 	<parent>44444444-2222-2222-2222-210c00000000</parent>
     <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
-	<recurrence>single</recurrence>
-	<workStateConfiguration>
+	<workManagement>
 		<taskKind>worker</taskKind>
-	</workStateConfiguration>
+	</workManagement>
+	<recurrence>single</recurrence>
 </task>

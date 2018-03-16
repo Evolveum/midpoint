@@ -49,12 +49,12 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
 
 	@NotNull
 	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractTaskWorkBucketsConfigurationType configuration,
+	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
 			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
 
 		StringPrefixWorkBucketContentType content = (StringPrefixWorkBucketContentType) bucket.getContent();
 
-		if (content == null || content.getValue().isEmpty()) {
+		if (content == null || content.getPrefix().isEmpty()) {
 			return emptyList();
 		}
 		if (configuration == null) {
@@ -71,7 +71,7 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
 				: null;
 
 		List<ObjectFilter> prefixFilters = new ArrayList<>();
-		for (String prefix : content.getValue()) {
+		for (String prefix : content.getPrefix()) {
 			prefixFilters.add(QueryBuilder.queryFor(type, prismContext)
 					.item(discriminator, discriminatorDefinition).startsWith(prefix).matching(matchingRuleName)
 					.buildFilter());

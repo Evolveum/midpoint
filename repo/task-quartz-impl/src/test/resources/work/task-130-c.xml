@@ -24,12 +24,14 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
-	<recurrence>single</recurrence>
-	<workStateConfiguration>
+	<workManagement>
 		<taskKind>coordinator</taskKind>
-		<numericIntervalBuckets>
-			<numberOfBuckets>5</numberOfBuckets>
-			<bucketSize>1</bucketSize>
-		</numericIntervalBuckets>
-	</workStateConfiguration>
+		<buckets>
+			<numericSegmentation>
+				<numberOfBuckets>5</numberOfBuckets>
+				<bucketSize>1</bucketSize>
+			</numericSegmentation>
+		</buckets>
+	</workManagement>
+	<recurrence>single</recurrence>
 </task>

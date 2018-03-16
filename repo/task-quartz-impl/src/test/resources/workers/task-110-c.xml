@@ -28,21 +28,23 @@
 	<executionStatus>runnable</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType" />
+	<workManagement>
+		<taskKind>coordinator</taskKind>
+		<buckets>
+			<numericSegmentation>
+				<discriminator>attributes/number</discriminator>
+				<numberOfBuckets>4</numberOfBuckets>
+				<from>1</from>
+				<bucketSize>1</bucketSize>
+			</numericSegmentation>
+		</buckets>
+		<workers>
+			<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
+		</workers>
+	</workManagement>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>
 	<schedule>
 		<interval>3</interval>
 	</schedule>
-	<workStateConfiguration>
-		<taskKind>coordinator</taskKind>
-		<numericIntervalBuckets>
-			<numberOfBuckets>4</numberOfBuckets>
-			<discriminator>attributes/number</discriminator>
-			<from>1</from>
-			<bucketSize>1</bucketSize>
-		</numericIntervalBuckets>
-		<workers>
-			<handlerUri>http://midpoint.evolveum.com/test/single-wb-task-handler</handlerUri>
-		</workers>
-	</workStateConfiguration>
 </task>
