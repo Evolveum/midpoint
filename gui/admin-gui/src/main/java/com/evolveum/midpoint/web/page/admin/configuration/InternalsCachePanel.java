@@ -4,6 +4,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 public class InternalsCachePanel extends BasePanel<Void>{
 
@@ -25,7 +26,7 @@ public class InternalsCachePanel extends BasePanel<Void>{
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				getPageBase().getModelInteractionService().clearCaches();
+				getPageBase().getCacheDispatcher().dispatch(FunctionLibraryType.class, "");
 			}
 		};
 		

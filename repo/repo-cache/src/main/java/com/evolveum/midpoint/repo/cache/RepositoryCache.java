@@ -86,6 +86,8 @@ public class RepositoryCache implements RepositoryService {
 	private PrismContext prismContext;
 
 	private MidpointConfiguration midpointConfiguration;
+	
+	private CacheDispatcher cacheDispatcher;
 
 
 	private long cacheMaxTTL;
@@ -108,6 +110,10 @@ public class RepositoryCache implements RepositoryService {
 
 	public void setMidpointConfiguration(MidpointConfiguration midpointConfiguration) {
 		this.midpointConfiguration = midpointConfiguration;
+	}
+	
+	public void setCacheDispatcher(CacheDispatcher cacheDispatcher) {
+		this.cacheDispatcher = cacheDispatcher;
 	}
 
 	public void initialize() {
@@ -443,6 +449,8 @@ public class RepositoryCache implements RepositoryService {
 		}
 
 		globalCache.remove(new CacheKey(type, oid));
+		cacheDispatcher.dispatch(type, oid);
+		
 	}
 
 	@Override

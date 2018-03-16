@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.boot;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.session.RepositoryChangeListener;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,5 +43,10 @@ public class WebConfig {
     @Bean
     public AsyncWebProcessManager asyncWebProcessManager() {
         return new AsyncWebProcessManagerImpl();
+    }
+    
+    @Bean
+    public RepositoryChangeListener repositoryChangeListener() {
+    		return new RepositoryChangeListener();
     }
 }
