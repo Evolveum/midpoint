@@ -101,7 +101,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 		String resourceOid = getDummyOid(name);
 		DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
 		resourceCtl.extendSchemaPirate();
-		PrismObject<ResourceType> resource = importAndGetObjectFromFile(ResourceType.class,
+		// Expected warnings: dependencies
+		PrismObject<ResourceType> resource = importAndGetObjectFromFileIgnoreWarnings(ResourceType.class,
 				getDummFile(name), resourceOid, initTask, initResult);
 		resourceCtl.setResource(resource);
 	}
