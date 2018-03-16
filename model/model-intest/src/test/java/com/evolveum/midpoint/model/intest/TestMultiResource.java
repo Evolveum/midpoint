@@ -192,7 +192,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlDavid = DummyResourceContoller.create(RESOURCE_DUMMY_DAVID_NAME);
 		dummyResourceCtlDavid.extendSchemaPirate();
 		dummyResourceDavid = dummyResourceCtlDavid.getDummyResource();
-		resourceDummyDavid = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
+		// Expected warning: dependencies
+		resourceDummyDavid = importAndGetObjectFromFileIgnoreWarnings(ResourceType.class, RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
 		dummyResourceCtlDavid.setResource(resourceDummyDavid);
 
 		dummyResourceCtlGoliath = DummyResourceContoller.create(RESOURCE_DUMMY_GOLIATH_NAME);

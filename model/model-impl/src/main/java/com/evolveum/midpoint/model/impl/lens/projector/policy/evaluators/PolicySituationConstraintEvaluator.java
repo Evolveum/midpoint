@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,13 +74,13 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 			return null;
 		}
 		return new EvaluatedSituationTrigger(situationConstraint,
-				createMessage(sourceRules, constraint.getValue(), rctx, result),
-				createShortMessage(sourceRules, constraint.getValue(), rctx, result),
+				createMessage(sourceRules, constraint, rctx, result),
+				createShortMessage(sourceRules, constraint, rctx, result),
 				sourceRules);
 	}
 
 	private LocalizableMessage createMessage(Collection<EvaluatedPolicyRule> sourceRules,
-			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			JAXBElement<PolicySituationPolicyConstraintType>  constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		// determine if there's a single message that could be retrieved
 		List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
@@ -95,11 +94,11 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 					.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 					.build();
 		}
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
 	private LocalizableMessage createShortMessage(Collection<EvaluatedPolicyRule> sourceRules,
-			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			JAXBElement<PolicySituationPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		// determine if there's a single message that could be retrieved
 		List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
@@ -113,7 +112,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 					.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
 					.build();
 		}
-		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
 
