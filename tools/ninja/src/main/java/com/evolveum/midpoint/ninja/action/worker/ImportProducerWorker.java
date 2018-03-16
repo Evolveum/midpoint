@@ -153,7 +153,7 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
                     throw new NinjaException("Couldn't import object, reason: " + ex.getMessage(), ex);
                 }
 
-                return stopAfterFound ? EventResult.stop() : EventResult.cont();
+                return stopAfterFound ? EventResult.skipObject() : EventResult.cont();
             }
 
             @Override
@@ -163,6 +163,7 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
         };
 
         Validator validator = new Validator(prismContext, handler);
+        validator.setValidateSchema(false);
 
         OperationResult result = operation.getResult();
 

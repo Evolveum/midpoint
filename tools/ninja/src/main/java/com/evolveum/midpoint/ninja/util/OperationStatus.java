@@ -100,11 +100,11 @@ public class OperationStatus {
     }
 
     public void incrementError() {
-        totalCount.incrementAndGet();
+        errorCount.incrementAndGet();
     }
 
     public void incrementSkipped() {
-        totalCount.incrementAndGet();
+        skippedCount.incrementAndGet();
     }
 
     public double getTotalTime() {
