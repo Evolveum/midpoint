@@ -166,7 +166,8 @@ public class TestTrafo extends AbstractStoryTest {
 		dummyResourceCtlAd = DummyResourceContoller.create(RESOURCE_DUMMY_AD_ID, resourceDummyAd);
 		dummyResourceCtlAd.extendSchemaAd();
 		dummyResourceAd = dummyResourceCtlAd.getDummyResource();
-		resourceDummyAd = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_AD_FILE, RESOURCE_DUMMY_AD_OID, initTask, initResult);
+		// Expected warning: dependency on mail resource
+		resourceDummyAd = importAndGetObjectFromFileIgnoreWarnings(ResourceType.class, RESOURCE_DUMMY_AD_FILE, RESOURCE_DUMMY_AD_OID, initTask, initResult);
 		resourceDummyAdType = resourceDummyAd.asObjectable();
 		dummyResourceCtlAd.setResource(resourceDummyAd);
 

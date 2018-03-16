@@ -133,6 +133,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -432,6 +433,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		importObjectFromFile(file, result);
 		OperationResult importResult = result.getLastSubresult();
 		TestUtil.assertSuccess("Import of "+file+" has failed", importResult);
+		return modelService.getObject(type, oid, null, task, result);
+	}
+	
+	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFileIgnoreWarnings(Class<T> type, File file, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		importObjectFromFile(file, result);
+		OperationResult importResult = result.getLastSubresult();
+		OperationResultStatus status = importResult.getStatus();
+		if (status == OperationResultStatus.FATAL_ERROR || status == OperationResultStatus.PARTIAL_ERROR) {
+			fail("Import of "+file+" has failed: "+importResult.getMessage());
+		}
 		return modelService.getObject(type, oid, null, task, result);
 	}
 
