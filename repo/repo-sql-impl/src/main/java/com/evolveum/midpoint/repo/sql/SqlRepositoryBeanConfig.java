@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
@@ -36,6 +37,11 @@ public class SqlRepositoryBeanConfig {
 
     @Autowired
     private SqlRepositoryFactory sqlRepositoryFactory;
+
+    @Bean
+    public CacheDispatcher cacheDispatcher() {
+        return new CacheDispatcherImpl();
+    }
 
     @Bean
     public DataSourceFactory dataSourceFactory() {
