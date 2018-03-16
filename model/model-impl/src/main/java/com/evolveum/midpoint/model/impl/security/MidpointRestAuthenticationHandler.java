@@ -29,8 +29,23 @@ import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
  * @author Katka Valalikova
@@ -40,12 +55,15 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 
 //	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
 
-	@Autowired(required=true)
-	private MidpointRestPasswordAuthenticator passwordAuthenticator;
+	@Autowired private MidpointRestPasswordAuthenticator passwordAuthenticator;
 
-	@Autowired(required=true)
-	private MidpointRestSecurityQuestionsAuthenticator securityQuestionAuthenticator;
+	@Autowired private MidpointRestSecurityQuestionsAuthenticator securityQuestionAuthenticator;
 
+	@Autowired 
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repository;
+	@Autowired private PrismContext prismContext;
+	@Autowired private SecurityContextManager securityContextManager;
 
 	@Override
 	public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
@@ -79,26 +97,48 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			}
 		}
 
-		if (parts.length != 2 || (!RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType))) {
+		if (parts.length != 2) {
 			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 		}
 		String base64Credentials = (parts.length == 2) ? parts[1] : null;
-		try {
-			String decodedCredentials = new String(Base64Utility.decode(base64Credentials));
-			if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
-
+		
+		if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
+			try {
+				String decodedCredentials = new String(Base64Utility.decode(base64Credentials));
 				policy = new AuthorizationPolicy();
 				policy.setAuthorizationType(RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod());
 				policy.setAuthorization(decodedCredentials);
+				securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
+			} catch (Base64Exception e) {
+				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
+				return;
 			}
-			securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
-		} catch (Base64Exception e) {
-			RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
-			return;
-
 		}
-
+		
+		//TODO: audit login/logout?
+		
+		if (RestAuthenticationMethod.CLUSTER.equals(authenticationType)) {
+			String decodedCredentials;
+			try {
+				decodedCredentials = new String(Base64Utility.decode(base64Credentials));
+				ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).contains(decodedCredentials).build();
+				OperationResult result = new OperationResult("authenticate node");
+				SearchResultList<PrismObject<NodeType>> nodes = repository.searchObjects(NodeType.class, query, null, result);
+				if (nodes.size() != 1) {
+					RestServiceUtil.createAbortMessage(requestCtx);
+					return;
+				}
+				
+				PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(nodes.iterator().next(), null);
+				 SecurityContext securityContext = SecurityContextHolder.getContext();
+			     securityContext.setAuthentication(authentication);
+			} catch (Base64Exception | SchemaException e) {
+				RestServiceUtil.createAbortMessage(requestCtx);
+				return;
+			}
+		}
+		
 	}
 
 

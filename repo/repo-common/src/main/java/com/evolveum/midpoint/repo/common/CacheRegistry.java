@@ -38,5 +38,11 @@ public class CacheRegistry {
 			cacheableService.clearCache();
 		}
 	}
+	
+	public void notifyListeners(Class type, String oid) {
+		for (Cacheable cacheable : cacheableServices) {
+			cacheable.notify();
+		}
+	}
 }
 

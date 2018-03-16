@@ -40,6 +40,8 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -277,6 +279,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean
     private LocalizationService localizationService;
+    
+    @SpringBean
+    private CacheDispatcher cacheDispatcher;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -514,6 +519,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
+    }
+    
+    public CacheDispatcher getCacheDispatcher() {
+    		return cacheDispatcher;
     }
 
     @NotNull
