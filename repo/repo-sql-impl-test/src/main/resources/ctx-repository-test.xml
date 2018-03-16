@@ -27,6 +27,8 @@
 
     <bean id="testInterceptor" class="com.evolveum.midpoint.repo.sql.testing.TestInterceptor"/>
 
+    <bean name="cacheDispatcher" class="com.evolveum.midpoint.repo.sql.CacheDispatcherImpl"/>
+
     <bean id="testSqlRepositoryBeanPostProcessor" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
     <bean id="testSqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory" primary="true"
