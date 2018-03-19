@@ -49,6 +49,11 @@
 							<boundaryCharacters>abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
 						</stringSegmentation>
 					</buckets>
+					<workers>
+						<workersPerNode>
+							<count>1</count>
+						</workersPerNode>
+					</workers>
 				</workManagement>
 			</partition>
 		</partitions>
