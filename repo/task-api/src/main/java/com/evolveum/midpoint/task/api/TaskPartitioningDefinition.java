@@ -38,7 +38,7 @@ public interface TaskPartitioningDefinition {
 	/**
 	 * Number of partitions.
 	 */
-	int getPartitionCount(Task masterTask);
+	int getCount(Task masterTask);
 
 	/**
 	 * Whether the subtasks should be executed sequentially.

@@ -144,10 +144,10 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		replacements.put("index", String.valueOf(index));
 
 		String nameTemplate;
-		if (perNodeConfig.getName() != null) {
-			nameTemplate = perNodeConfig.getName();
-		} else if (workersCfg.getName() != null) {
-			nameTemplate = workersCfg.getName();
+		if (perNodeConfig.getTaskName() != null) {
+			nameTemplate = perNodeConfig.getTaskName();
+		} else if (workersCfg.getTaskName() != null) {
+			nameTemplate = workersCfg.getTaskName();
 		} else {
 			nameTemplate = coordinatorTask.getName().getOrig() + " ({node}:{index})";
 		}

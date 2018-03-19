@@ -39,29 +39,29 @@ import java.util.List;
  */
 public class StaticTaskPartitioningDefinition implements TaskPartitioningDefinition {
 
-	@NotNull private final TaskPartitioningDefinitionType data;
+	@NotNull private final TaskPartitionsDefinitionType data;
 	@NotNull private final List<TaskPartitionDefinition> partitions;
 	@NotNull private final PrismObjectDefinition<TaskType> taskDefinition;
 
-	public StaticTaskPartitioningDefinition(@NotNull TaskPartitioningDefinitionType data,
+	public StaticTaskPartitioningDefinition(@NotNull TaskPartitionsDefinitionType data,
 			@Nullable List<TaskPartitionDefinition> partitionsOverride, @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
 		this.data = data;
 		this.partitions = partitionsOverride != null ? partitionsOverride : createPartitionDefinitions(data);
 		this.taskDefinition = taskDefinition;
 	}
 
-	public StaticTaskPartitioningDefinition(@NotNull TaskPartitioningDefinitionType partitioningDefinition,
+	public StaticTaskPartitioningDefinition(@NotNull TaskPartitionsDefinitionType partitioningDefinition,
 			@NotNull PrismObjectDefinition<TaskType> taskDefinition) {
 		this(partitioningDefinition, null, taskDefinition);
 	}
 
-	private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartitioningDefinitionType data) {
+	private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartitionsDefinitionType data) {
 		int count;
-		if (data.getPartitionCount() != null) {
-			count = data.getPartitionCount();
+		if (data.getCount() != null) {
+			count = data.getCount();
 			if (count < data.getPartition().size()) {
 				throw new SystemException("There are more partitions defined (" + data.getPartition() + ") than declared"
-						+ " by partitionCount item (" + count + ")");
+						+ " by partition count item (" + count + ")");
 			}
 		} else {
 			count = data.getPartition().size();
@@ -93,9 +93,9 @@ public class StaticTaskPartitioningDefinition implements TaskPartitioningDefinit
 	}
 
 	@Override
-	public int getPartitionCount(Task masterTask) {
-		if (data.getPartitionCount() != null) {
-			return data.getPartitionCount();
+	public int getCount(Task masterTask) {
+		if (data.getCount() != null) {
+			return data.getCount();
 		} else {
 			return partitions.size();
 		}
@@ -108,7 +108,7 @@ public class StaticTaskPartitioningDefinition implements TaskPartitioningDefinit
 
 	@Override
 	public String getName(Task masterTask) {
-		return data.getName();
+		return data.getTaskName();
 	}
 
 	@Override
@@ -151,7 +151,7 @@ public class StaticTaskPartitioningDefinition implements TaskPartitioningDefinit
 
 		@Override
 		public String getName(Task masterTask) {
-			return data.getName();
+			return data.getTaskName();
 		}
 
 		@Override

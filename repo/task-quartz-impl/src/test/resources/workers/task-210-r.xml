@@ -29,7 +29,7 @@
 	<handlerUri>http://midpoint.evolveum.com/test/partitioned-wb-task-handler</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType" />
 	<workManagement>
-		<partitioning>
+		<partitions>
 			<partition>
 				<index>2</index>
 				<workManagement>
@@ -52,7 +52,7 @@
 					</workers>
 				</workManagement>
 			</partition>
-		</partitioning>
+		</partitions>
 	</workManagement>
 	<recurrence>single</recurrence>
 	<binding>loose</binding>

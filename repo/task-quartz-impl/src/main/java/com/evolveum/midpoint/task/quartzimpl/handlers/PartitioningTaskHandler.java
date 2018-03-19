@@ -118,8 +118,8 @@ public class PartitioningTaskHandler implements TaskHandler {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskPartitioningDefinition partitioningDefinition = partitioningDefinitionSupplier.apply(masterTask);
 		List<String> subtaskOids = new ArrayList<>();
-		int partitionCount = partitioningDefinition.getPartitionCount(masterTask);
-		for (int i = 1; i <= partitionCount; i++) {
+		int count = partitioningDefinition.getCount(masterTask);
+		for (int i = 1; i <= count; i++) {
 			subtaskOids.add(createSubtask(i, partitioningDefinition, masterTask, opResult));
 		}
 		List<Task> subtasks = new ArrayList<>(subtaskOids.size());
@@ -127,11 +127,11 @@ public class PartitioningTaskHandler implements TaskHandler {
 			subtasks.add(taskManager.getTask(subtaskOid, opResult));
 		}
 		boolean sequential = partitioningDefinition.isSequentialExecution(masterTask);
-		for (int i = 1; i <= partitionCount; i++) {
+		for (int i = 1; i <= count; i++) {
 			Task subtask = subtasks.get(i - 1);
 			TaskPartitionDefinition partition = partitioningDefinition.getPartition(masterTask, i);
 			Collection<Integer> dependents = new HashSet<>(partition.getDependents());
-			if (sequential && i < partitionCount) {
+			if (sequential && i < count) {
 				dependents.add(i + 1);
 			}
 			for (Integer dependentIndex : dependents) {

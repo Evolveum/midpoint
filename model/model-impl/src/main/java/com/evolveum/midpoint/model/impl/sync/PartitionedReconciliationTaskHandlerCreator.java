@@ -21,7 +21,7 @@ import com.evolveum.midpoint.task.api.StaticTaskPartitioningDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPartitioningDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitioningDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -57,11 +57,11 @@ public class PartitionedReconciliationTaskHandlerCreator {
 	}
 
 	private TaskPartitioningDefinition createPartitioningDefinition(Task masterTask) {
-		TaskPartitioningDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
-				masterTask.getWorkManagement().getPartitioning() : null;
-		TaskPartitioningDefinitionType  partitioningDefinition = definitionInTask != null ?
-				definitionInTask.clone() : new TaskPartitioningDefinitionType();
-		partitioningDefinition.setPartitionCount(3);
+		TaskPartitionsDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
+				masterTask.getWorkManagement().getPartitions() : null;
+		TaskPartitionsDefinitionType partitioningDefinition = definitionInTask != null ?
+				definitionInTask.clone() : new TaskPartitionsDefinitionType();
+		partitioningDefinition.setCount(3);
 		partitioningDefinition.setCopyMasterExtension(true);
 		return new StaticTaskPartitioningDefinition(partitioningDefinition,
 				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));

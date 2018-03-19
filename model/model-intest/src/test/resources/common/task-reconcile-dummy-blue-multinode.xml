@@ -40,7 +40,7 @@
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/partitioned-reconciliation/handler-3</handlerUri>
 	<objectRef oid="10000000-0000-0000-0000-000000000204" type="ResourceType"/>
 	<workManagement>
-		<partitioning>
+		<partitions>
 			<partition>
 				<index>2</index>
 				<workManagement>
@@ -58,7 +58,7 @@
 					</workers>
 				</workManagement>
 			</partition>
-		</partitioning>
+		</partitions>
 	</workManagement>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>
