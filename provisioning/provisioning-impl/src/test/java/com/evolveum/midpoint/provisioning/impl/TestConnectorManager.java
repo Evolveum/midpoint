@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-	private static final String CONNID_FRAMEWORK_VERSION = "1.4.4.0";
+	private static final String CONNID_FRAMEWORK_VERSION = "1.4.3.11";
 
 	@Autowired
 	private ProvisioningService provisioningService;
