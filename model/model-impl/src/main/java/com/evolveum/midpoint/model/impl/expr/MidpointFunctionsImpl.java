@@ -879,8 +879,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throw new SchemaException("No definition for type " + type);
 		}
 		return modelService.getObject(
-				objectDefinition.getCompileTimeClass(), reference.getOid(), null, getCurrentTask(), getCurrentResult())
-				.asObjectable();
+				objectDefinition.getCompileTimeClass(), reference.getOid(), 
+				SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase()), getCurrentTask(), getCurrentResult())
+			.asObjectable();
 	}
 
 	@Override
@@ -907,7 +908,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		PrismObject<T> prismObject = modelService.getObject(type, oid, null, getCurrentTask(), getCurrentResult());
+		PrismObject<T> prismObject = modelService.getObject(type, oid, 
+				getDefaultGetOptionCollection(),
+				getCurrentTask(), getCurrentResult());
 		return prismObject.asObjectable();
 	}
 
@@ -1059,7 +1062,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ObjectNotFoundException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return MiscSchemaUtil.toObjectableList(
-				modelService.searchObjects(type, query, null, getCurrentTask(), getCurrentResult()));
+				modelService.searchObjects(type, query, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
 	}
 
 	@Override
@@ -1078,7 +1082,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		modelService.searchObjectsIterative(type, query, handler, null, getCurrentTask(), getCurrentResult());
+		modelService.searchObjectsIterative(type, query, handler, 
+				getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
@@ -1087,7 +1092,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+				.searchObjects(type, nameQuery, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
 		}
@@ -1103,7 +1109,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+				.searchObjects(type, nameQuery, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
 		}
@@ -1119,7 +1126,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+				.searchObjects(type, nameQuery, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
 		}
@@ -1144,7 +1152,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ObjectQuery query) throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, ConfigurationException,
 			CommunicationException, ExpressionEvaluationException {
-		return modelService.countObjects(type, query, null, getCurrentTask(), getCurrentResult());
+		return modelService.countObjects(type, query,
+				getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
@@ -1572,7 +1581,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (principal == null) {
 			throw new SecurityViolationException("No current user");
 		}
-		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid, null, opTask, result).asObjectable();
+		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
+				getDefaultGetOptionCollection(), opTask, result).asObjectable();
 		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
 		newTask.setOid(null);
 		newTask.setTaskIdentifier(null);
@@ -1688,5 +1698,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			}
 		}
 		return rv;
+	}
+	
+	private Collection<SelectorOptions<GetOperationOptions>> getDefaultGetOptionCollection() {
+		return SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
 	}
 }

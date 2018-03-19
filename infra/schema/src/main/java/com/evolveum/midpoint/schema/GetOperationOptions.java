@@ -163,6 +163,17 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * Whether to override default iteration method (in searchObjectsIterative) configured for particular DBMS.
 	 */
 	private IterationMethodType iterationMethod;
+	
+	/**
+	 * Whether this operation is already part of the execution phase. I.e. the request authorization was already
+	 * processed. This means that the operation is in fact operation invoked within another operation,
+	 * e.g. invoked from script or expression evaluator.
+	 * 
+	 * WARNING: THIS OPTION MUST NOT BE AVAILABLE FROM REMOTE INTERFACES.
+	 * This is safe to use from a secure area of JVM, where the components can trick model to circumvent
+	 * authorizations anyway. But it must not be available outside of the secure area.
+	 */
+	private Boolean executionPhase;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -686,13 +697,37 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.attachDiagData;
 	}
-
+	
 	/**
 	 * Whether to attach diagnostics data to the returned object(s).
 	 */
 	public static GetOperationOptions createAttachDiagData() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setAttachDiagData(true);
+		return opts;
+	}
+	
+	public Boolean getExecutionPhase() {
+		return executionPhase;
+	}
+
+	public void setExecutionPhase(Boolean executionPhase) {
+		this.executionPhase = executionPhase;
+	}
+	
+	public static boolean isExecutionPhase(GetOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.executionPhase == null) {
+			return false;
+		}
+		return options.executionPhase;
+	}
+
+	public static GetOperationOptions createExecutionPhase() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setExecutionPhase(true);
 		return opts;
 	}
 
@@ -765,14 +800,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 				Objects.equals(readOnly, that.readOnly) &&
 				Objects.equals(pointInTimeType, that.pointInTimeType) &&
 				Objects.equals(staleness, that.staleness) &&
-				Objects.equals(distinct, that.distinct);
+				Objects.equals(attachDiagData, that.attachDiagData) &&
+				Objects.equals(executionPhase, that.executionPhase);
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects
 				.hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery, relationalValueSearchQuery,
-						allowNotFound, readOnly, staleness, distinct, definitionProcessing);
+						allowNotFound, readOnly, staleness, distinct, definitionProcessing, attachDiagData, executionPhase);
 	}
 
 	public GetOperationOptions clone() {
@@ -788,6 +824,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         clone.pointInTimeType = this.pointInTimeType;
         clone.staleness = this.staleness;
         clone.distinct = this.distinct;
+        clone.attachDiagData = this.attachDiagData;
+        clone.executionPhase = this.executionPhase;
         if (this.relationalValueSearchQuery != null) {
         	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
         }
@@ -818,6 +856,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		appendVal(sb, "distinct", distinct);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
 		appendVal(sb, "definitionProcessing", definitionProcessing);
+		appendFlag(sb, "attachDiagData", attachDiagData);
+		appendFlag(sb, "executionPhase", executionPhase);
 		removeLastComma(sb);
 	}
 
@@ -840,6 +880,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		for (ItemPath excludePath : ItemPath.fromStringList(exclude)) {
 			rv.add(SelectorOptions.create(excludePath, GetOperationOptions.createDontRetrieve()));
 		}
+		// Do NOT set executionPhase here!
 		return rv;
 	}
 
@@ -865,6 +906,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 			if (GetOperationOptionsType.F_RESOLVE_NAMES.getLocalPart().equals(option)) {
 				rv.setResolveNames(true);
 			}
+			
+			// Do NOT set executionPhase here!
 		}
 		
 		rv.setDefinitionProcessing(definitionProcessing);

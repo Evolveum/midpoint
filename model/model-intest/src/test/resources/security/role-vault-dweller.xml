@@ -13,13 +13,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-  <!-- MID-3647 -->
-<role oid="7b4a3880-e167-11e6-b38b-2b6a550a03e7"
+<role oid="8d8471f4-2906-11e8-9078-4f2b205aa01d"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Read some roles</name>
+    <name>Vault Dweller</name>
+    <subType>application</subType>
+    <inducement>
+	    <construction>
+	    		<resourceRef oid="84a420cc-2904-11e8-862b-0fc0d7ab7174" type="c:ResourceType"/> <!-- Vault -->
+	    		<kind>account</kind>
+	    </construction>
+    </inducement>
     <authorization>
     	<name>read-some-roles</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>

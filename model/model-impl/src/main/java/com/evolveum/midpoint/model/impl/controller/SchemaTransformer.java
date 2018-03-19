@@ -205,10 +205,17 @@ public class SchemaTransformer {
 		}
 
     	if (phase == null) {
-    		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.REQUEST, task, result);
+    		if (!GetOperationOptions.isExecutionPhase(rootOptions)) {
+    			applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.REQUEST, task, result);
+    		}
     		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.EXECUTION, task, result);
     	} else {
-    		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, phase, task, result);
+    		if (phase == AuthorizationPhaseType.REQUEST && GetOperationOptions.isExecutionPhase(rootOptions)) {
+    			// Skip application of security constraints for request phase.
+    			// The caller asked to skip evaluation of request authorization, so everything is allowed here.
+    		} else {
+    			applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, phase, task, result);
+    		}
     	}
 
 		ObjectTemplateType objectTemplateType;
