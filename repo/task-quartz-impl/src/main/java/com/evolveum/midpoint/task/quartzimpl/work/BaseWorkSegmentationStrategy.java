@@ -18,8 +18,8 @@ package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +33,11 @@ import java.util.List;
  * @author mederly
  */
 // <CNT extends AbstractWorkBucketContentType, CFG extends AbstractTaskWorkBucketsConfigurationType>
-public abstract class BaseWorkBucketPartitioningStrategy implements WorkBucketPartitioningStrategy {
+public abstract class BaseWorkSegmentationStrategy implements WorkSegmentationStrategy {
 
 	protected final PrismContext prismContext;
 
-	protected BaseWorkBucketPartitioningStrategy(PrismContext prismContext) {
+	protected BaseWorkSegmentationStrategy(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
 

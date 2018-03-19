@@ -14,48 +14,32 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning.content;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation.content;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FilterWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 /**
+ * Handles various aspects of work bucket content e.g. creating filters for work space segmentation.
+ *
  * @author mederly
  */
-@Component
-public class FilterWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
-	@PostConstruct
-	public void register() {
-		registry.registerHandler(FilterWorkBucketContentType.class, this);
-	}
+public interface WorkBucketContentHandler {
 
+	// TODO experimental
 	@NotNull
-	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-			AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
-			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) throws SchemaException {
+	List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
+			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider)
+			throws SchemaException;
 
-		FilterWorkBucketContentType content = (FilterWorkBucketContentType) bucket.getContent();
-		List<ObjectFilter> rv = new ArrayList<>();
-		for (SearchFilterType filter : content.getFilter()) {
-			rv.add(QueryJaxbConvertor.createObjectFilter(type, filter, prismContext));
-		}
-		return rv;
-	}
 }

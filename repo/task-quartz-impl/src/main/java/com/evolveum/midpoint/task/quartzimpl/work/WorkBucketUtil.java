@@ -51,7 +51,7 @@ public class WorkBucketUtil {
 		return null;
 	}
 
-	public static AbstractWorkSegmentationType getWorkBucketsConfiguration(TaskWorkManagementType cfg) {
+	public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(TaskWorkManagementType cfg) {
 		if (cfg != null && cfg.getBuckets() != null) {
 			WorkBucketsManagementType buckets = cfg.getBuckets();
 			return MiscUtil.getFirstNonNull(

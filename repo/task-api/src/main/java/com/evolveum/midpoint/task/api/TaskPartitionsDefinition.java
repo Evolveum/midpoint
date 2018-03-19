@@ -33,7 +33,7 @@ import java.util.Collections;
  *
  * @author mederly
  */
-public interface TaskPartitioningDefinition {
+public interface TaskPartitionsDefinition {
 
 	/**
 	 * Number of partitions.

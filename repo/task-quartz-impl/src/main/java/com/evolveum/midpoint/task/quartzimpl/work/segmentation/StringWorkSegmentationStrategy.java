@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.ObjectUtils;
@@ -35,16 +35,16 @@ import static java.util.Collections.singletonList;
 /**
  * @author mederly
  */
-public class StringWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
+public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
 	@NotNull private final StringWorkSegmentationType bucketsConfiguration;
 	@NotNull private final StringWorkBucketsBoundaryMarkingType marking;
 
-	public StringWorkBucketPartitioningStrategy(@NotNull TaskWorkManagementType configuration,
+	public StringWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 		this.bucketsConfiguration = (StringWorkSegmentationType)
-				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
+				WorkBucketUtil.getWorkSegmentationConfiguration(configuration);
 		this.marking = ObjectUtils.defaultIfNull(bucketsConfiguration.getComparisonMethod(), INTERVAL);
 	}
 

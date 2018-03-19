@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
-import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +35,17 @@ import static java.util.Collections.singletonList;
  * @author mederly
  */
 //<NumericIntervalWorkBucketContentType, NumericIntervalWorkBucketsConfigurationType>
-public class NumericIntervalWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
+public class NumericWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
 	@NotNull private final TaskWorkManagementType configuration;
 	@NotNull private final NumericWorkSegmentationType bucketsConfiguration;
 
-	public NumericIntervalWorkBucketPartitioningStrategy(@NotNull TaskWorkManagementType configuration,
+	public NumericWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 		this.configuration = configuration;
 		this.bucketsConfiguration = (NumericWorkSegmentationType)
-				WorkBucketUtil.getWorkBucketsConfiguration(configuration);
+				WorkBucketUtil.getWorkSegmentationConfiguration(configuration);
 	}
 
 	@NotNull

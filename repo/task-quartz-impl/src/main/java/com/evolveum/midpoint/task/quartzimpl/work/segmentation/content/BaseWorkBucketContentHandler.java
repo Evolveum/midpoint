@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning.content;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation.content;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.factory.annotation.Autowired;

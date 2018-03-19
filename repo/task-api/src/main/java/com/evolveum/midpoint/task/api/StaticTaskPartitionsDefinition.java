@@ -32,27 +32,27 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Task partitioning strategy based on statically configured values. More restricted but easier to use.
+ * Task partitions definition based on statically configured values. More restricted but easier to use.
  * However, it is extensible by subclassing - in that way, some values can be provided statically while others on-demand.
  *
  * @author mederly
  */
-public class StaticTaskPartitioningDefinition implements TaskPartitioningDefinition {
+public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition {
 
 	@NotNull private final TaskPartitionsDefinitionType data;
 	@NotNull private final List<TaskPartitionDefinition> partitions;
 	@NotNull private final PrismObjectDefinition<TaskType> taskDefinition;
 
-	public StaticTaskPartitioningDefinition(@NotNull TaskPartitionsDefinitionType data,
+	public StaticTaskPartitionsDefinition(@NotNull TaskPartitionsDefinitionType data,
 			@Nullable List<TaskPartitionDefinition> partitionsOverride, @NotNull PrismObjectDefinition<TaskType> taskDefinition) {
 		this.data = data;
 		this.partitions = partitionsOverride != null ? partitionsOverride : createPartitionDefinitions(data);
 		this.taskDefinition = taskDefinition;
 	}
 
-	public StaticTaskPartitioningDefinition(@NotNull TaskPartitionsDefinitionType partitioningDefinition,
+	public StaticTaskPartitionsDefinition(@NotNull TaskPartitionsDefinitionType definition,
 			@NotNull PrismObjectDefinition<TaskType> taskDefinition) {
-		this(partitioningDefinition, null, taskDefinition);
+		this(definition, null, taskDefinition);
 	}
 
 	private List<TaskPartitionDefinition> createPartitionDefinitions(TaskPartitionsDefinitionType data) {

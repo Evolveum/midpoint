@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkBucketPartitioningStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
@@ -29,14 +29,14 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
- * Implements work state "partitioning" into single null work bucket.
+ * Implements work state "segmentation" into single null work bucket.
  *
  * @author mederly
  */
-public class SingleNullWorkBucketPartitioningStrategy extends BaseWorkBucketPartitioningStrategy {
+public class SingleNullWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
 	@SuppressWarnings("unused")
-	public SingleNullWorkBucketPartitioningStrategy(TaskWorkManagementType configuration,
+	public SingleNullWorkSegmentationStrategy(TaskWorkManagementType configuration,
 			PrismContext prismContext) {
 		super(prismContext);
 	}

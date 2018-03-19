@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
@@ -30,50 +30,50 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Responsible for creation of configured work state related strategies.
+ * Responsible for creation of configured work segmentation strategies.
  *
  * @author mederly
  */
 @Component
-public class WorkStateManagementStrategyFactory {
+public class WorkSegmentationStrategyFactory {
 
 	@Autowired private PrismContext prismContext;
 
-	private final Map<Class<? extends AbstractWorkSegmentationType>, Class<? extends WorkBucketPartitioningStrategy>> strategyClassMap = new HashMap<>();
+	private final Map<Class<? extends AbstractWorkSegmentationType>, Class<? extends WorkSegmentationStrategy>> strategyClassMap = new HashMap<>();
 
 	{
-		registerStrategyClass(NumericWorkSegmentationType.class, NumericIntervalWorkBucketPartitioningStrategy.class);
-		registerStrategyClass(StringWorkSegmentationType.class, StringWorkBucketPartitioningStrategy.class);
-		registerStrategyClass(ExplicitWorkSegmentationType.class, EnumeratedWorkBucketPartitioningStrategy.class);
+		registerStrategyClass(NumericWorkSegmentationType.class, NumericWorkSegmentationStrategy.class);
+		registerStrategyClass(StringWorkSegmentationType.class, StringWorkSegmentationStrategy.class);
+		registerStrategyClass(ExplicitWorkSegmentationType.class, ExplicitWorkSegmentationStrategy.class);
 	}
 
 	/**
 	 * Creates work state management strategy based on provided configuration.
 	 */
 	@NotNull
-	public WorkBucketPartitioningStrategy createStrategy(TaskWorkManagementType configuration) {
+	public WorkSegmentationStrategy createStrategy(TaskWorkManagementType configuration) {
 
-		AbstractWorkSegmentationType cfg = WorkBucketUtil.getWorkBucketsConfiguration(configuration);
+		AbstractWorkSegmentationType cfg = WorkBucketUtil.getWorkSegmentationConfiguration(configuration);
 
 		if (cfg == null) {
-			return new SingleNullWorkBucketPartitioningStrategy(configuration, prismContext);
+			return new SingleNullWorkSegmentationStrategy(configuration, prismContext);
 		}
 
-		Class<? extends WorkBucketPartitioningStrategy> strategyClass = strategyClassMap.get(cfg.getClass());
+		Class<? extends WorkSegmentationStrategy> strategyClass = strategyClassMap.get(cfg.getClass());
 		if (strategyClass == null) {
 			throw new IllegalStateException("Unknown or unsupported work state management configuration: " + configuration);
 		}
 		try {
-			Constructor<? extends WorkBucketPartitioningStrategy> constructor = strategyClass.getConstructor(configuration.getClass(),
+			Constructor<? extends WorkSegmentationStrategy> constructor = strategyClass.getConstructor(configuration.getClass(),
 					PrismContext.class);
 			return constructor.newInstance(configuration, prismContext);
 		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-			throw new SystemException("Couldn't instantiate work bucket partitioning strategy " + strategyClass + " for " + configuration);
+			throw new SystemException("Couldn't instantiate work bucket segmentation strategy " + strategyClass + " for " + configuration);
 		}
 	}
 
 	public void registerStrategyClass(Class<? extends AbstractWorkSegmentationType> configurationClass,
-			Class<? extends WorkBucketPartitioningStrategy> strategyClass) {
+			Class<? extends WorkSegmentationStrategy> strategyClass) {
 		strategyClassMap.put(configurationClass, strategyClass);
 	}
 }

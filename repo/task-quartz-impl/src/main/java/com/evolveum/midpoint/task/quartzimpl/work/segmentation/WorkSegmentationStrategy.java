@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work.partitioning;
+package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
- * Strategy related to work buckets partitioning. Deals with creation of buckets and with translation of buckets into object queries.
+ * Strategy related to work buckets segmentation. Deals with creation of buckets and with translation of buckets into object queries.
  *
  * @author mederly
  */
-public interface WorkBucketPartitioningStrategy {
+public interface WorkSegmentationStrategy {
 
 	/**
 	 * Finds or creates a free (unallocated and not complete) bucket.

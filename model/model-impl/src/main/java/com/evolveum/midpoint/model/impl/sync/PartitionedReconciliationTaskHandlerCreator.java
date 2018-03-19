@@ -17,10 +17,10 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.task.api.StaticTaskPartitioningDefinition;
+import com.evolveum.midpoint.task.api.StaticTaskPartitionsDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskPartitioningDefinition;
+import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,17 +53,17 @@ public class PartitionedReconciliationTaskHandlerCreator {
 
 	@PostConstruct
 	private void initialize() {
-		taskManager.createAndRegisterPartitioningTaskHandler(HANDLER_URI, this::createPartitioningDefinition);
+		taskManager.createAndRegisterPartitioningTaskHandler(HANDLER_URI, this::createPartitionsDefinition);
 	}
 
-	private TaskPartitioningDefinition createPartitioningDefinition(Task masterTask) {
+	private TaskPartitionsDefinition createPartitionsDefinition(Task masterTask) {
 		TaskPartitionsDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
 				masterTask.getWorkManagement().getPartitions() : null;
-		TaskPartitionsDefinitionType partitioningDefinition = definitionInTask != null ?
+		TaskPartitionsDefinitionType partitionsDefinition = definitionInTask != null ?
 				definitionInTask.clone() : new TaskPartitionsDefinitionType();
-		partitioningDefinition.setCount(3);
-		partitioningDefinition.setCopyMasterExtension(true);
-		return new StaticTaskPartitioningDefinition(partitioningDefinition,
+		partitionsDefinition.setCount(3);
+		partitionsDefinition.setCopyMasterExtension(true);
+		return new StaticTaskPartitionsDefinition(partitionsDefinition,
 				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
 	}
 }

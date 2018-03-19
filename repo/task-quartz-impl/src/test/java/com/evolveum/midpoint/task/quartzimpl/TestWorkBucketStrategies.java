@@ -22,8 +22,8 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkStateManagementStrategyFactory;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,7 +57,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestWorkBucketStrategies.class);
 
 	@Autowired private WorkStateManager workStateManager;
-	@Autowired private WorkStateManagementStrategyFactory strategyFactory;
+	@Autowired private WorkSegmentationStrategyFactory strategyFactory;
 
 	private static String taskFilename(String testName, String subId) {
 		return "src/test/resources/work-buckets/task-" + testNumber(testName) + "-" + subId + ".xml";
@@ -283,12 +283,12 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
 
 		// WHEN
-		WorkBucketPartitioningStrategy partitioningStrategy = strategyFactory.createStrategy(task.getWorkManagement());
+		WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
 		TaskWorkStateType workState = new TaskWorkStateType(prismContext);
 
 		// WHEN+THEN
 		// a, 01abc, 01abc
-		WorkBucketType bucket = assumeNextPrefix(partitioningStrategy, workState, "a00", 1);
+		WorkBucketType bucket = assumeNextPrefix(segmentationStrategy, workState, "a00", 1);
 		ObjectQuery narrowedQuery = workStateManager
 				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
 		display("narrowed query (1)", narrowedQuery);
@@ -297,31 +297,31 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 				.build();
 		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
 
-		assumeNextPrefix(partitioningStrategy, workState, "a01", 2);
-		assumeNextPrefix(partitioningStrategy, workState, "a0a", 3);
-		assumeNextPrefix(partitioningStrategy, workState, "a0b", 4);
-		assumeNextPrefix(partitioningStrategy, workState, "a0c", 5);
-		assumeNextPrefix(partitioningStrategy, workState, "a10", 6);
-		assumeNextPrefix(partitioningStrategy, workState, "a11", 7);
-		assumeNextPrefix(partitioningStrategy, workState, "a1a", 8);
-		assumeNextPrefix(partitioningStrategy, workState, "a1b", 9);
-		assumeNextPrefix(partitioningStrategy, workState, "a1c", 10);
-		assumeNextPrefix(partitioningStrategy, workState, "aa0", 11);
-		assumeNextPrefix(partitioningStrategy, workState, "aa1", 12);
-		assumeNextPrefix(partitioningStrategy, workState, "aaa", 13);
-		assumeNextPrefix(partitioningStrategy, workState, "aab", 14);
-		assumeNextPrefix(partitioningStrategy, workState, "aac", 15);
-		assumeNextPrefix(partitioningStrategy, workState, "ab0", 16);
-		assumeNextPrefix(partitioningStrategy, workState, "ab1", 17);
-		assumeNextPrefix(partitioningStrategy, workState, "aba", 18);
-		assumeNextPrefix(partitioningStrategy, workState, "abb", 19);
-		assumeNextPrefix(partitioningStrategy, workState, "abc", 20);
-		assumeNextPrefix(partitioningStrategy, workState, "ac0", 21);
-		assumeNextPrefix(partitioningStrategy, workState, "ac1", 22);
-		assumeNextPrefix(partitioningStrategy, workState, "aca", 23);
-		assumeNextPrefix(partitioningStrategy, workState, "acb", 24);
-		assumeNextPrefix(partitioningStrategy, workState, "acc", 25);
-		assumeNoNextBucket(partitioningStrategy, workState);
+		assumeNextPrefix(segmentationStrategy, workState, "a01", 2);
+		assumeNextPrefix(segmentationStrategy, workState, "a0a", 3);
+		assumeNextPrefix(segmentationStrategy, workState, "a0b", 4);
+		assumeNextPrefix(segmentationStrategy, workState, "a0c", 5);
+		assumeNextPrefix(segmentationStrategy, workState, "a10", 6);
+		assumeNextPrefix(segmentationStrategy, workState, "a11", 7);
+		assumeNextPrefix(segmentationStrategy, workState, "a1a", 8);
+		assumeNextPrefix(segmentationStrategy, workState, "a1b", 9);
+		assumeNextPrefix(segmentationStrategy, workState, "a1c", 10);
+		assumeNextPrefix(segmentationStrategy, workState, "aa0", 11);
+		assumeNextPrefix(segmentationStrategy, workState, "aa1", 12);
+		assumeNextPrefix(segmentationStrategy, workState, "aaa", 13);
+		assumeNextPrefix(segmentationStrategy, workState, "aab", 14);
+		assumeNextPrefix(segmentationStrategy, workState, "aac", 15);
+		assumeNextPrefix(segmentationStrategy, workState, "ab0", 16);
+		assumeNextPrefix(segmentationStrategy, workState, "ab1", 17);
+		assumeNextPrefix(segmentationStrategy, workState, "aba", 18);
+		assumeNextPrefix(segmentationStrategy, workState, "abb", 19);
+		assumeNextPrefix(segmentationStrategy, workState, "abc", 20);
+		assumeNextPrefix(segmentationStrategy, workState, "ac0", 21);
+		assumeNextPrefix(segmentationStrategy, workState, "ac1", 22);
+		assumeNextPrefix(segmentationStrategy, workState, "aca", 23);
+		assumeNextPrefix(segmentationStrategy, workState, "acb", 24);
+		assumeNextPrefix(segmentationStrategy, workState, "acc", 25);
+		assumeNoNextBucket(segmentationStrategy, workState);
 
 		suspendAndDeleteTasks(task.getOid());
 	}
@@ -335,13 +335,13 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
 
 		// WHEN
-		WorkBucketPartitioningStrategy partitioningStrategy = strategyFactory.createStrategy(task.getWorkManagement());
+		WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
 		TaskWorkStateType workState = new TaskWorkStateType(prismContext);
 
 		// WHEN+THEN
 		// 05am, 0am
 
-		WorkBucketType bucket = assumeNextInterval(partitioningStrategy, workState, null, "00", 1);
+		WorkBucketType bucket = assumeNextInterval(segmentationStrategy, workState, null, "00", 1);
 		ObjectQuery narrowedQuery = workStateManager
 				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
 		display("narrowed query (1)", narrowedQuery);
@@ -350,7 +350,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 				.build();
 		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
 
-		bucket = assumeNextInterval(partitioningStrategy, workState, "00", "0a", 2);
+		bucket = assumeNextInterval(segmentationStrategy, workState, "00", "0a", 2);
 		narrowedQuery = workStateManager
 				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
 		display("narrowed query (2)", narrowedQuery);
@@ -360,25 +360,25 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 				.build();
 		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (2)", expectedQuery, narrowedQuery);
 
-		assumeNextInterval(partitioningStrategy, workState, "0a", "0m", 3);
-		assumeNextInterval(partitioningStrategy, workState, "0m", "50", 4);
-		assumeNextInterval(partitioningStrategy, workState, "50", "5a", 5);
-		assumeNextInterval(partitioningStrategy, workState, "5a", "5m", 6);
-		assumeNextInterval(partitioningStrategy, workState, "5m", "a0", 7);
-		assumeNextInterval(partitioningStrategy, workState, "a0", "aa", 8);
-		assumeNextInterval(partitioningStrategy, workState, "aa", "am", 9);
-		assumeNextInterval(partitioningStrategy, workState, "am", "m0", 10);
-		assumeNextInterval(partitioningStrategy, workState, "m0", "ma", 11);
-		assumeNextInterval(partitioningStrategy, workState, "ma", "mm", 12);
-		assumeNextInterval(partitioningStrategy, workState, "mm", null, 13);
-		assumeNoNextBucket(partitioningStrategy, workState);
+		assumeNextInterval(segmentationStrategy, workState, "0a", "0m", 3);
+		assumeNextInterval(segmentationStrategy, workState, "0m", "50", 4);
+		assumeNextInterval(segmentationStrategy, workState, "50", "5a", 5);
+		assumeNextInterval(segmentationStrategy, workState, "5a", "5m", 6);
+		assumeNextInterval(segmentationStrategy, workState, "5m", "a0", 7);
+		assumeNextInterval(segmentationStrategy, workState, "a0", "aa", 8);
+		assumeNextInterval(segmentationStrategy, workState, "aa", "am", 9);
+		assumeNextInterval(segmentationStrategy, workState, "am", "m0", 10);
+		assumeNextInterval(segmentationStrategy, workState, "m0", "ma", 11);
+		assumeNextInterval(segmentationStrategy, workState, "ma", "mm", 12);
+		assumeNextInterval(segmentationStrategy, workState, "mm", null, 13);
+		assumeNoNextBucket(segmentationStrategy, workState);
 
 		suspendAndDeleteTasks(task.getOid());
 	}
 
-	private WorkBucketType assumeNextPrefix(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
+	private WorkBucketType assumeNextPrefix(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState,
 			String expectedNextPrefix, int expectedSequentialNumber) throws SchemaException {
-		WorkBucketType newBucket = getNextBucket(partitioningStrategy, workState, expectedSequentialNumber);
+		WorkBucketType newBucket = getNextBucket(segmentationStrategy, workState, expectedSequentialNumber);
 		AbstractWorkBucketContentType content = newBucket.getContent();
 		assertEquals("Wrong content class", StringPrefixWorkBucketContentType.class, content.getClass());
 		StringPrefixWorkBucketContentType prefixContent = (StringPrefixWorkBucketContentType) content;
@@ -389,9 +389,9 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		return newBucket;
 	}
 
-	private WorkBucketType assumeNextInterval(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
+	private WorkBucketType assumeNextInterval(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState,
 			String expectedNextFrom, String expectedNextTo, int expectedSequentialNumber) throws SchemaException {
-		WorkBucketType newBucket = getNextBucket(partitioningStrategy, workState,
+		WorkBucketType newBucket = getNextBucket(segmentationStrategy, workState,
 				expectedSequentialNumber);
 		AbstractWorkBucketContentType content = newBucket.getContent();
 		assertEquals("Wrong content class", StringIntervalWorkBucketContentType.class, content.getClass());
@@ -404,12 +404,12 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	}
 
 	@NotNull
-	private WorkBucketType getNextBucket(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState,
+	private WorkBucketType getNextBucket(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState,
 			int expectedSequentialNumber) throws SchemaException {
-		WorkBucketPartitioningStrategy.GetBucketResult gbr = partitioningStrategy.getBucket(workState);
+		WorkSegmentationStrategy.GetBucketResult gbr = segmentationStrategy.getBucket(workState);
 		display("get bucket result", gbr);
-		assertTrue("Wrong answer", gbr instanceof WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets);
-		WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets nbr = (WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets) gbr;
+		assertTrue("Wrong answer", gbr instanceof WorkSegmentationStrategy.GetBucketResult.NewBuckets);
+		WorkSegmentationStrategy.GetBucketResult.NewBuckets nbr = (WorkSegmentationStrategy.GetBucketResult.NewBuckets) gbr;
 		display("new buckets obtained", nbr.newBuckets);
 		assertEquals("Wrong new buckets count", 1, nbr.newBuckets.size());
 		WorkBucketType newBucket = nbr.newBuckets.get(0);
@@ -417,11 +417,11 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		return newBucket;
 	}
 
-	private void assumeNoNextBucket(WorkBucketPartitioningStrategy partitioningStrategy, TaskWorkStateType workState) throws SchemaException {
-		WorkBucketPartitioningStrategy.GetBucketResult gbr = partitioningStrategy.getBucket(workState);
+	private void assumeNoNextBucket(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState) throws SchemaException {
+		WorkSegmentationStrategy.GetBucketResult gbr = segmentationStrategy.getBucket(workState);
 		display("get bucket result", gbr);
-		assertTrue("Wrong answer", gbr instanceof WorkBucketPartitioningStrategy.GetBucketResult.NothingFound);
-		WorkBucketPartitioningStrategy.GetBucketResult.NothingFound nothingFound = (WorkBucketPartitioningStrategy.GetBucketResult.NothingFound) gbr;
+		assertTrue("Wrong answer", gbr instanceof WorkSegmentationStrategy.GetBucketResult.NothingFound);
+		WorkSegmentationStrategy.GetBucketResult.NothingFound nothingFound = (WorkSegmentationStrategy.GetBucketResult.NothingFound) gbr;
 		assertEquals("Wrong definite flag", true, nothingFound.definite);
 	}
 }

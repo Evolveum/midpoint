@@ -33,14 +33,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.content.WorkBucketContentHandler;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.content.WorkBucketContentHandlerRegistry;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.FoundExisting;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.NewBuckets;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkBucketPartitioningStrategy.GetBucketResult.NothingFound;
-import com.evolveum.midpoint.task.quartzimpl.work.partitioning.WorkStateManagementStrategyFactory;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.FoundExisting;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NewBuckets;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NothingFound;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -77,7 +77,7 @@ public class WorkStateManager {
 	@Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
-	@Autowired private WorkStateManagementStrategyFactory strategyFactory;
+	@Autowired private WorkSegmentationStrategyFactory strategyFactory;
 	@Autowired private WorkBucketContentHandlerRegistry handlerFactory;
 
 	private static final int MAX_ATTEMPTS = 40;                              // temporary
@@ -166,7 +166,7 @@ public class WorkStateManager {
 	private WorkBucketType getWorkBucketMultiNode(Context ctx, long freeBucketWaitTime, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
-		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkManagement());
+		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkManagement());
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
@@ -284,7 +284,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	private WorkBucketType getWorkBucketStandalone(Context ctx, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		WorkBucketPartitioningStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkManagement());
+		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkManagement());
 		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask.getTaskPrismObject());
 		GetBucketResult response = workStateStrategy.getBucket(workState);
 		LOGGER.trace("getWorkBucketStandalone: workStateStrategy returned {} for standalone task {}", response, ctx.workerTask);
@@ -542,7 +542,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		Context ctx = createContext(workerTask.getOid(), () -> true, result);
 
 		TaskWorkManagementType config = ctx.getWorkStateConfiguration();
-		AbstractWorkSegmentationType bucketsConfig = WorkBucketUtil.getWorkBucketsConfiguration(config);
+		AbstractWorkSegmentationType bucketsConfig = WorkBucketUtil.getWorkSegmentationConfiguration(config);
 		WorkBucketContentHandler handler = handlerFactory.getHandler(workBucket.getContent());
 		List<ObjectFilter> conjunctionMembers = new ArrayList<>(
 				handler.createSpecificFilters(workBucket, bucketsConfig, type, itemDefinitionProvider));
