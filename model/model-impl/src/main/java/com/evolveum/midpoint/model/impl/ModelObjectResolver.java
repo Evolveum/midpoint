@@ -62,18 +62,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
-	@Autowired(required = true)
-	private transient ProvisioningService provisioning;
+	@Autowired private transient ProvisioningService provisioning;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired(required = true)
-	private transient PrismContext prismContext;
+	@Autowired private transient PrismContext prismContext;
 
-    @Autowired
-    private transient TaskManager taskManager;
+    @Autowired private transient TaskManager taskManager;
 
 	@Autowired(required = false)
 	private transient WorkflowManager workflowManager;

@@ -16,11 +16,13 @@
 package com.evolveum.midpoint.testing.story;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -41,15 +43,14 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -73,7 +74,21 @@ public class TestMapleLeaf extends AbstractStoryTest {
 	
 	private static final File ROLE_META_MONKEY_DONKEY = new File(TEST_DIR, "meta-role-monkey-donkey.xml");
 	
+	private static final File ROLE_MAPLE_LEAF_FACULTY_LICENSE = new File(TEST_DIR, "role-maple-leaf-faculty-license.xml");
+	private static final String ROLE_MAPLE_LEAF_FACULTY_LICENSE_OID = "00000000-role-meta-0000-000011112222";
+	private static final File ROLE_MAPLE_LEAF_FACULTY = new File(TEST_DIR, "role-maple-leaf-faculty.xml");
+	private static final String ROLE_MAPLE_LEAF_FACULTY_OID = "00000000-role-0000-0000-000011112222";
+	
+	private static final File ROLE_MAPLE_LEAF_GRADUATE_LICENSE = new File(TEST_DIR, "role-maple-leaf-graduate-license.xml");
+	private static final String ROLE_MAPLE_LEAF_GRADUATE_LICENSE_OID = "00000000-role-meta-0000-000011113333";
+	private static final File ROLE_MAPLE_LEAF_GRADUATE = new File(TEST_DIR, "role-maple-leaf-graduate.xml");
+	private static final String ROLE_MAPLE_LEAF_GRADUATE_OID = "00000000-role-0000-0000-000011113333";
+	
+	private static final String LDIF_GROUPS =  TEST_DIR + "/mapleLeafGroups.ldif";
+	
 	private static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+	
+	
 	
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
@@ -102,6 +117,12 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
 		
+		openDJController.addEntriesFromLdifFile(LDIF_GROUPS);
+		
+		importObjectFromFile(ROLE_MAPLE_LEAF_FACULTY_LICENSE);
+		importObjectFromFile(ROLE_MAPLE_LEAF_FACULTY);
+		importObjectFromFile(ROLE_MAPLE_LEAF_GRADUATE_LICENSE);
+		importObjectFromFile(ROLE_MAPLE_LEAF_GRADUATE);
 		importObjectFromFile(ROLE_META_MONKEY_DONKEY);
 		importObjectFromFile(ROLE_SQUIRREL_FILE);
 		importObjectFromFile(SECURITY_POLICY_FILE);
@@ -227,6 +248,114 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		assertTrue(values.contains("donkey"), "No donkey found among values");
 		assertTrue(values.contains("mcconkey"), "No mcconkey found among values");
 	}
+	
+	
+	@Test
+	public void test004assignRoleMapleLeafFaculty() throws Exception {
+		final String TEST_NAME = "test004assignRoleMapleLeafFaculty";
+		displayTestTitle(TEST_NAME);
+		
+		//when
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
+		
+		//then
+		displayThen(TEST_NAME);
+		PrismObject<UserType> user = getUser(USER_JACK_OID);
+		assertNotNull("User is null", user);
+		
+		assertLinks(user, 1);
+		
+		PrismReference ref = user.findReference(UserType.F_LINK_REF);
+		String shadowOid = ref.getOid();
+		assertNotNull("Reference without oid? Something went wrong.", shadowOid);
+		
+		PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+		assertNotNull("Shadow not found", shadow);
+		ShadowType shadowType = shadow.asObjectable();
+		List<ShadowAssociationType> associations = shadowType.getAssociation();
+		assertFalse(associations.isEmpty(), "Expected 2 associations, but no one exists");
+		assertEquals(associations.size(), 2, "Unexpected number of associations");
+		
+		openDJController.assertUniqueMember("cn=mapleLeafFaculty,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+		openDJController.assertUniqueMember("cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+		
+	}
+	
+	private boolean containRoleMemebrShip(List<ObjectReferenceType> roleMemberships, String roleId) {
+		for (ObjectReferenceType ref : roleMemberships) {
+			if (ref.getOid().equals(roleId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Test
+	public void test005assignRoleMapleLeafGraduate() throws Exception {
+		final String TEST_NAME = "test005assignRoleMapleLeafGraduate";
+		displayTestTitle(TEST_NAME);
+		
+		//when
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_GRADUATE_OID);
+		
+		//then
+		displayThen(TEST_NAME);
+		PrismObject<UserType> user = getUser(USER_JACK_OID);
+		assertNotNull("User is null", user);
+		
+		assertLinks(user, 1);
+		
+		PrismReference ref = user.findReference(UserType.F_LINK_REF);
+		String shadowOid = ref.getOid();
+		assertNotNull("Reference without oid? Something went wrong.", shadowOid);
+		
+		PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+		assertNotNull("Shadow not found", shadow);
+		ShadowType shadowType = shadow.asObjectable();
+		List<ShadowAssociationType> associations = shadowType.getAssociation();
+		assertFalse(associations.isEmpty(), "Expected 4 associations, but no one exists");
+		assertEquals(associations.size(), 4, "Unexpected number of associations");
+		
+		openDJController.assertUniqueMember("cn=mapleLeafFaculty,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+		openDJController.assertUniqueMember("cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+		openDJController.assertUniqueMember("cn=mapleLeafGraduate,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+		openDJController.assertUniqueMember("cn=mapleLeafGraduateLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+	}
+	
+	@Test
+	public void test006unassignRoleMapleLeafFaculty() throws Exception {
+		final String TEST_NAME = "test006unassignRoleMapleLeafFaculty";
+		displayTestTitle(TEST_NAME);
+		
+		//when
+		displayWhen(TEST_NAME);
+		unassignRole(USER_JACK_OID, ROLE_MAPLE_LEAF_FACULTY_OID);
+		
+		//then
+		displayThen(TEST_NAME);
+		PrismObject<UserType> user = getUser(USER_JACK_OID);
+		assertNotNull("User is null", user);
+		
+		assertLinks(user, 1);
+		
+		PrismReference ref = user.findReference(UserType.F_LINK_REF);
+		String shadowOid = ref.getOid();
+		assertNotNull("Reference without oid? Something went wrong.", shadowOid);
+		
+		PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+		assertNotNull("Shadow not found", shadow);
+		ShadowType shadowType = shadow.asObjectable();
+		List<ShadowAssociationType> associations = shadowType.getAssociation();
+		assertFalse(associations.isEmpty(), "Expected 2 associations, but no one exists");
+		assertEquals(associations.size(), 2, "Unexpected number of associations");
+		
+		openDJController.assertUniqueMember("cn=mapleLeafGraduate,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+		openDJController.assertUniqueMember("cn=mapleLeafGraduateLicense,ou=groups,dc=example,dc=com", "uid=jack,ou=People,dc=example,dc=com");
+	}
+	
+	
 	
 	@Test
 	public void test100changePasswordForceChange() throws Exception {

@@ -77,6 +77,8 @@ public class Main {
 
             context = new NinjaContext(jc);
 
+            preInit(context);
+
             action.init(context, options);
 
             preExecute(context);
@@ -89,6 +91,10 @@ public class Main {
         } finally {
             cleanupResources(base, context);
         }
+    }
+
+    protected void preInit(NinjaContext context) {
+        // intentionally left out empty
     }
 
     protected void preExecute(NinjaContext context) {

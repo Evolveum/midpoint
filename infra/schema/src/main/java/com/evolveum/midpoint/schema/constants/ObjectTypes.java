@@ -339,6 +339,18 @@ public enum ObjectTypes {
 
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
+    
+    public static String getRestTypeFromClass(Class<?> clazz) {
+        Validate.notNull(clazz, "Class must not be null.");
+
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (type.getClassDefinition().equals(clazz)) {
+                return type.getRestType();
+            }
+        }
+
+        throw new IllegalArgumentException("Not suitable rest type found for class: " + clazz);
+    }
 
     public static List<Class<? extends ObjectType>> getAllObjectTypes() {
         List<Class<? extends ObjectType>> list = new ArrayList<>();

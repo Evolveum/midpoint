@@ -5,7 +5,9 @@ import org.apache.commons.lang.StringUtils;
 public enum RestAuthenticationMethod {
 
 	BASIC("Basic"),
-	SECURITY_QUESTIONS("SecQ");
+	SECURITY_QUESTIONS("SecQ"),
+	CLUSTER("Cluster");
+	
 
 	private String method;
 

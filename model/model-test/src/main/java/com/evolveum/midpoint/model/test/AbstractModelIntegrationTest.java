@@ -135,6 +135,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -434,6 +435,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		importObjectFromFile(file, result);
 		OperationResult importResult = result.getLastSubresult();
 		TestUtil.assertSuccess("Import of "+file+" has failed", importResult);
+		return modelService.getObject(type, oid, null, task, result);
+	}
+	
+	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFileIgnoreWarnings(Class<T> type, File file, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		importObjectFromFile(file, result);
+		OperationResult importResult = result.getLastSubresult();
+		OperationResultStatus status = importResult.getStatus();
+		if (status == OperationResultStatus.FATAL_ERROR || status == OperationResultStatus.PARTIAL_ERROR) {
+			fail("Import of "+file+" has failed: "+importResult.getMessage());
+		}
 		return modelService.getObject(type, oid, null, task, result);
 	}
 
@@ -1074,8 +1085,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	 * Executes unassign delta by removing each assignment individually by id.
 	 */
 	protected <F extends FocusType> void unassignAll(PrismObject<F> focusBefore, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<F> focusDelta = createUnassignAllDelta(focusBefore);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
+		executeChanges(createUnassignAllDelta(focusBefore), null, task, result);
 	}
 
 	/**
@@ -1395,6 +1405,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		display("Executing delta", objectDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		return modelService.executeChanges(deltas, options, task, result);
 	}

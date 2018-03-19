@@ -43,6 +43,8 @@
     <bean name="auditService" factory-bean="auditFactory" factory-method="getAuditService"
           class="com.evolveum.midpoint.audit.api.AuditService" depends-on="auditFactory" />
 
+    <bean name="cacheDispatcher" class="com.evolveum.midpoint.repo.sql.CacheDispatcherImpl"/>
+
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
         <property name="configuration">

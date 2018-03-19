@@ -2897,8 +2897,8 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void recordState(String message) {
-		if (LOGGER.isDebugEnabled()) {        // TODO consider this
-			LOGGER.debug("{}", message);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("{}", message);
 		}
 		if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
 			PERFORMANCE_ADVISOR.debug("{}", message);

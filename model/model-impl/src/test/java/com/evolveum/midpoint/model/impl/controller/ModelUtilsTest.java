@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -56,23 +56,23 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void validatePagingNull() {
-		ModelUtils.validatePaging(null);
+		ModelImplUtils.validatePaging(null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadOffsetAttribute() {
-		ModelUtils.validatePaging(ObjectPaging.createPaging(-5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
+		ModelImplUtils.validatePaging(ObjectPaging.createPaging(-5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadMaxAttribute() {
-		ModelUtils.validatePaging(ObjectPaging
+		ModelImplUtils.validatePaging(ObjectPaging
 				.createPaging(5, -10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test
 	public void validatePagingGood() {
-		ModelUtils
+		ModelImplUtils
 				.validatePaging(ObjectPaging
 						.createPaging(5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}

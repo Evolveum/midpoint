@@ -285,6 +285,8 @@ public class PasswordPanel extends InputPanel {
 			} else {
 				if (psModel.getObject() == null) {
 					psModel.setObject(new ProtectedStringType());
+				} else {
+					psModel.getObject().clear();
 				}
 				psModel.getObject().setClearValue(object);
 			}

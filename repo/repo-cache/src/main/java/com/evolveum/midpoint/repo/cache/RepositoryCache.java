@@ -86,6 +86,8 @@ public class RepositoryCache implements RepositoryService {
 	private PrismContext prismContext;
 
 	private MidpointConfiguration midpointConfiguration;
+	
+	private CacheDispatcher cacheDispatcher;
 
 
 	private long cacheMaxTTL;
@@ -108,6 +110,10 @@ public class RepositoryCache implements RepositoryService {
 
 	public void setMidpointConfiguration(MidpointConfiguration midpointConfiguration) {
 		this.midpointConfiguration = midpointConfiguration;
+	}
+	
+	public void setCacheDispatcher(CacheDispatcher cacheDispatcher) {
+		this.cacheDispatcher = cacheDispatcher;
 	}
 
 	public void initialize() {
@@ -166,7 +172,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 
 			if (!shouldCheckVersion(cacheObject)) {
-				LOGGER.trace("Cache: Global HIT {}", key);
+				log("Cache: Global HIT {}", key);
 				return cacheObject.getObject();
 			}
 
@@ -177,7 +183,7 @@ public class RepositoryCache implements RepositoryService {
 			// version matches, renew ttl
 			cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);
 
-			LOGGER.trace("Cache: Global HIT, version check {}", key);
+			log("Cache: Global HIT, version check {}", key);
 			return cacheObject.getObject();
 		}
 
@@ -443,6 +449,8 @@ public class RepositoryCache implements RepositoryService {
 		}
 
 		globalCache.remove(new CacheKey(type, oid));
+		cacheDispatcher.dispatch(type, oid);
+		
 	}
 
 	@Override
@@ -792,7 +800,7 @@ public class RepositoryCache implements RepositoryService {
 			CacheKey key, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
-		LOGGER.trace("Cache: Global MISS {}", key);
+		log("Cache: Global MISS {}", key);
 
 		try {
 			PrismObject object = repository.getObject(key.getType(), key.getOid(), options, result);

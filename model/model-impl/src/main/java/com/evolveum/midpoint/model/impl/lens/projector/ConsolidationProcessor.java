@@ -432,7 +432,7 @@ public class ConsolidationProcessor {
         	forceAddUnchangedValues = true;
         }
 
-        LOGGER.trace("CONSOLIDATE {}\n({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
+        LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
 				itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
         // Use the consolidator to do the computation. It does most of the work.

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -109,6 +110,7 @@ public class ModelRestService {
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
 	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
+	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -124,6 +126,7 @@ public class ModelRestService {
 	@Autowired private TaskManager taskManager;
 	@Autowired private Protector protector;
 	@Autowired private ResourceValidator resourceValidator;
+	@Autowired private CacheRegistry cacheRegistry;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 
@@ -912,7 +915,7 @@ public class ModelRestService {
 	@POST
 	@Path("/rpc/executeScript")
 	//	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml" })
+	@Consumes({"application/xml", MediaType.APPLICATION_JSON, "application/yaml" })
 	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
 			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
@@ -1056,6 +1059,24 @@ public class ModelRestService {
 		result.computeStatus();
 		finishRequest(task);
 		return response;
+
+	}
+	
+	@POST
+	@Path("/event/{type}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
+		//TODO: task??
+//		Task task = RestServiceUtil.initRequest(mc);
+//		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CLUSTER_EVENT);
+		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_EVENT);
+		cacheRegistry.clearAllCaches();
+		
+//		result.computeStatus();
+//		finishRequest(task);
+		result.recordSuccess();
+		return RestServiceUtil.createResponse(Response.Status.OK, result);
 
 	}
 
