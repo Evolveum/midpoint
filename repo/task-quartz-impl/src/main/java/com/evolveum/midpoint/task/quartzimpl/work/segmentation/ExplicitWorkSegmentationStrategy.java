@@ -22,6 +22,7 @@ import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -56,5 +57,10 @@ public class ExplicitWorkSegmentationStrategy extends BaseWorkSegmentationStrate
 		} else {
 			return singletonList(bucketsConfiguration.getContent().get(nextSequentialNumber-1));
 		}
+	}
+
+	@Override
+	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+		return bucketsConfiguration.getContent().size();
 	}
 }

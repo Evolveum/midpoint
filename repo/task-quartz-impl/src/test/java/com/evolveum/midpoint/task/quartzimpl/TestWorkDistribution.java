@@ -146,13 +146,14 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 	    assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
 	    List<WorkBucketType> cBuckets = coordinatorAfter.getTaskType().getWorkState().getBucket();
 	    assertNumericBucket(cBuckets.get(0), WorkBucketStateType.DELEGATED, 1, 0, 1000);
+	    assertNumberOfBuckets(coordinatorAfter, 100);
 
 	    assertOptimizedCompletedBuckets(coordinatorAfter);
 
 	    suspendAndDeleteTasks(coordinatorAfter.getOid());
     }
 
-    @Test
+	@Test
     public void test105AllocateBucketStandalone() throws Exception {
         final String TEST_NAME = "test105AllocateBucketStandalone";
         OperationResult result = createResult(TEST_NAME, LOGGER);
@@ -168,9 +169,11 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 	    TaskQuartzImpl standaloneAfter = taskManager.getTask(standalone.getOid(), result);
 	    display("task after", standaloneAfter);
 
-	    //assertNumericBucket(bucket, null, 1, 0, 1000);
-//	    List<WorkBucketType> wBuckets = standaloneAfter.getTaskType().getWorkState().getBucket();
-//	    assertNumericBucket(wBuckets.get(0), WorkBucketStateType.READY, 1, 0, 1000);
+		List<WorkBucketType> wBuckets = standaloneAfter.getTaskType().getWorkState().getBucket();
+		assertEquals("Wrong # of buckets", 1, wBuckets.size());
+		assertBucket(wBuckets.get(0), WorkBucketStateType.READY, 1);
+		assertNull(wBuckets.get(0).getContent());
+		assertNumberOfBuckets(standaloneAfter, 1);
 
 	    suspendAndDeleteTasks(standalone.getOid());
     }
@@ -542,6 +545,8 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		display("worker1 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker1.getStoredOperationStats()));
 		display("worker2 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker2.getStoredOperationStats()));
 		display("worker3 op stats task after", PrismTestUtil.serializeAnyDataWrapped(worker3.getStoredOperationStats()));
+
+		assertNumberOfBuckets(coordinatorAfter, 11);
 
 		assertOptimizedCompletedBuckets(coordinatorAfter);
 

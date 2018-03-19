@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -51,4 +52,8 @@ public class SingleNullWorkSegmentationStrategy extends BaseWorkSegmentationStra
 		}
 	}
 
+	@Override
+	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+		return 1;
+	}
 }

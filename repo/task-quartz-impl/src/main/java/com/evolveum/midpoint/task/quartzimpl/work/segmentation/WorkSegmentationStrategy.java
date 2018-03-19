@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,6 +36,14 @@ public interface WorkSegmentationStrategy {
 	 */
 	@NotNull
 	GetBucketResult getBucket(@NotNull TaskWorkStateType workState) throws SchemaException;
+
+	/**
+	 * Estimates total number of buckets. Might utilize current work state, if available.
+	 * @return null if the number cannot be determined
+	 */
+	default Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+		return null;
+	}
 
 	class GetBucketResult {
 		public static class NothingFound extends GetBucketResult {

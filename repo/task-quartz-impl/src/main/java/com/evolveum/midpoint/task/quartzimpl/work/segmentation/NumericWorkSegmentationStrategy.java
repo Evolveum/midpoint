@@ -22,6 +22,7 @@ import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -109,24 +110,24 @@ public class NumericWorkSegmentationStrategy extends BaseWorkSegmentationStrateg
 		}
 	}
 
-//	@NotNull
-//	private BigInteger computeIntervalSpan() throws SchemaException {
-//		return getOrComputeTo().subtract(getFrom());
-//	}
-//
-//	public int getOrComputeNumberOfBuckets() throws SchemaException {
-//		if (configuration.getNumberOfBuckets() != null) {
-//			return configuration.getNumberOfBuckets();
-//		} else if (configuration.getTo() != null && configuration.getBucketSize() != null) {
-//			BigInteger[] divideAndRemainder = computeIntervalSpan().divideAndRemainder(configuration.getBucketSize());
-//			if (BigInteger.ZERO.equals(divideAndRemainder[1])) {
-//				return divideAndRemainder[0].intValue();
-//			} else {
-//				return divideAndRemainder[0].intValue() + 1;
-//			}
-//		} else {
-//			throw new SchemaException("Neither numberOfBuckets nor to + bucketSize is specified");
-//		}
-//	}
+	@NotNull
+	private BigInteger computeIntervalSpan() {
+		return getOrComputeTo().subtract(getFrom());
+	}
 
+	@Override
+	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+		if (bucketsConfiguration.getNumberOfBuckets() != null) {
+			return bucketsConfiguration.getNumberOfBuckets();
+		} else if (bucketsConfiguration.getTo() != null && bucketsConfiguration.getBucketSize() != null) {
+			BigInteger[] divideAndRemainder = computeIntervalSpan().divideAndRemainder(bucketsConfiguration.getBucketSize());
+			if (BigInteger.ZERO.equals(divideAndRemainder[1])) {
+				return divideAndRemainder[0].intValue();
+			} else {
+				return divideAndRemainder[0].intValue() + 1;
+			}
+		} else {
+			throw new IllegalStateException("Neither numberOfBuckets nor to + bucketSize is specified");
+		}
+	}
 }

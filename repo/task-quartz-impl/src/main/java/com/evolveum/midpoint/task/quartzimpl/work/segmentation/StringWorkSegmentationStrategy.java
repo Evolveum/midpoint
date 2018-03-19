@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -175,5 +176,15 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 			sb.append(boundaries.get(i).charAt(currentIndices.get(i)));
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+		int combinations = 1;
+		List<String> boundaries = bucketsConfiguration.getBoundaryCharacters();
+		for (String boundary : boundaries) {
+			combinations *= boundary.length();
+		}
+		return marking == INTERVAL ? combinations+1 : combinations;
 	}
 }

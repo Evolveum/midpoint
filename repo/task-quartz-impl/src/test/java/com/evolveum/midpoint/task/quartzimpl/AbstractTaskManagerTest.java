@@ -318,4 +318,8 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 			throw new AssertionError("Unexpected exception", t);
 		}
 	}
+
+	protected void assertNumberOfBuckets(TaskQuartzImpl task, Integer expectedNumber) {
+		assertEquals("Wrong # of expected buckets", expectedNumber, task.getWorkState().getNumberOfBuckets());
+	}
 }

@@ -167,6 +167,7 @@ public class WorkStateManager {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
 		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkManagement());
+		setOrUpdateEstimatedNumberOfBuckets(ctx.coordinatorTask, workStateStrategy, result);
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
@@ -239,6 +240,17 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 	}
 
+	private void setOrUpdateEstimatedNumberOfBuckets(Task task, WorkSegmentationStrategy workStateStrategy, OperationResult result)
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		Integer number = workStateStrategy.estimateNumberOfBuckets(task.getWorkState());
+		if (number != null && (task.getWorkState() == null || !number.equals(task.getWorkState().getNumberOfBuckets()))) {
+			List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+					.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_NUMBER_OF_BUCKETS).replace(number)
+					.asItemDeltas();
+			repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
+		}
+	}
+
 	private void dynamicSleep(long delay, Context ctx) throws InterruptedException {
 		while (delay > 0) {
 			if (!ctx.canRun()) {
@@ -285,6 +297,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	private WorkBucketType getWorkBucketStandalone(Context ctx, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.workerTask.getWorkManagement());
+		setOrUpdateEstimatedNumberOfBuckets(ctx.workerTask, workStateStrategy, result);
 		TaskWorkStateType workState = getWorkStateOrNew(ctx.workerTask.getTaskPrismObject());
 		GetBucketResult response = workStateStrategy.getBucket(workState);
 		LOGGER.trace("getWorkBucketStandalone: workStateStrategy returned {} for standalone task {}", response, ctx.workerTask);

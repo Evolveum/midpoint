@@ -201,15 +201,20 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
 
         // WHEN
+	    WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
 	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    ObjectQuery narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, new ObjectQuery(), ShadowType.class, null, bucket, result);
+	    Integer numberOfBuckets = segmentationStrategy.estimateNumberOfBuckets(null);
 
 	    // THEN
 	    display("allocated bucket", bucket);
 	    TaskQuartzImpl taskAfter = taskManager.getTask(task.getOid(), result);
 	    display("task after", taskAfter);
 	    display("narrowed query", narrowedQuery);
+
+	    assertEquals("Wrong # of estimated buckets (API)", Integer.valueOf(3), numberOfBuckets);
+	    assertEquals("Wrong # of estimated buckets (task)", Integer.valueOf(3), taskAfter.getWorkState().getNumberOfBuckets());
 
 	    assertBucket(bucket, null, 1);
 	    assertOptimizedCompletedBuckets(taskAfter);
@@ -288,6 +293,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 		// WHEN+THEN
 		// a, 01abc, 01abc
+		assertEquals("Wrong # of estimated buckets", Integer.valueOf(25), segmentationStrategy.estimateNumberOfBuckets(null));
+
 		WorkBucketType bucket = assumeNextPrefix(segmentationStrategy, workState, "a00", 1);
 		ObjectQuery narrowedQuery = workStateManager
 				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
@@ -340,7 +347,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 		// WHEN+THEN
 		// 05am, 0am
-
+		assertEquals("Wrong # of estimated buckets", Integer.valueOf(13), segmentationStrategy.estimateNumberOfBuckets(null));
 		WorkBucketType bucket = assumeNextInterval(segmentationStrategy, workState, null, "00", 1);
 		ObjectQuery narrowedQuery = workStateManager
 				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
