@@ -1181,6 +1181,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="allWorkComplete" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						True if all the work is complete. This means that on next run the task should start from
+						the beginning. (We do not simply erase workState because of progress reporting needs.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<!--<xsd:element name="completePartitionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->

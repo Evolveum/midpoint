@@ -204,11 +204,13 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 						return foundBucket;
 					} else if (response instanceof NothingFound) {
 						if (((NothingFound) response).definite || freeBucketWaitTime == 0L) {
+							markWorkComplete(ctx.coordinatorTask, result);       // TODO also if response is not definite?
 							return null;
 						} else {
 							long waitDeadline = freeBucketWaitTime >= 0 ? start + freeBucketWaitTime : Long.MAX_VALUE;
 							long toWait = waitDeadline - System.currentTimeMillis();
 							if (toWait <= 0) {
+								markWorkComplete(ctx.coordinatorTask, result);       // TODO also if response is not definite?
 								return null;
 							}
 							//System.out.println("*** No free work bucket -- waiting ***");
@@ -312,10 +314,19 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			if (!((NothingFound) response).definite) {
 				throw new AssertionError("Unexpected 'indefinite' answer when looking for next bucket in a standalone task: " + ctx.workerTask);
 			}
+			markWorkComplete(ctx.workerTask, result);
 			return null;
 		} else {
 			throw new AssertionError(response);
 		}
+	}
+
+	private void markWorkComplete(Task task, OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ALL_WORK_COMPLETE).replace(true)
+				.asItemDeltas();
+		repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
 	}
 
 	private Context createContext(String workerTaskOid, Supplier<Boolean> canRun,

@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -674,6 +676,18 @@ mainCycle:
 
 	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
 		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+
+		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
+			try {
+				List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, taskManagerImpl.getPrismContext())
+						.item(TaskType.F_WORK_STATE).replace()
+						.asItemDeltas();
+				task.applyDeltasImmediate(itemDeltas, executionResult);
+			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
+			}
+		}
 
 		TaskWorkBucketProcessingResult runResult = null;
 		for (;;) {

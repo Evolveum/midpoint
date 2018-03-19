@@ -231,8 +231,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		reconResult.setResource(resource);
 		reconResult.setObjectclassDefinition(objectclassDef);
 
-		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}, stage: {}",
-				resource, objectclassDef, stage);
+		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}, stage: {}, work bucket: {}",
+				resource, objectclassDef, stage, workBucket);
 		long reconStartTimestamp = clock.currentTimeMillis();
 
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
