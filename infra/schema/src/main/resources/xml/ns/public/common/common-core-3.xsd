@@ -1181,10 +1181,10 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<!--<xsd:element name="partition" type="tns:TaskPartitionStateType" minOccurs="0" maxOccurs="unbounded">-->
+			<!--<xsd:element name="completePartitionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->
-						<!--Processing state of individual partitions. Used to quickly assess the progress of the whole task-->
+						<!--References of complete partitions. Used to quickly assess the progress of the whole task-->
 						<!--without the need for fetching all partitions (subtasks).-->
 					<!--</xsd:documentation>-->
 				<!--</xsd:annotation>-->
@@ -1199,6 +1199,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.8</a:since>
+				<a:container>true</a:container>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -1674,6 +1675,16 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="WORKER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="partitionedMaster">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is a master task that is partitioned into subtasks.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PARTITIONED_MASTER"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

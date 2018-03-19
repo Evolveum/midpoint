@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -312,10 +313,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
 		List<Task> subtasks = masterTask.listSubtasks(result);
-		assertEquals("Wrong # of partitions", 3, subtasks.size());
 
 		display("master task", masterTask);
 		display("subtasks", subtasks);
+
+		assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
+		assertEquals("Wrong # of partitions", 3, subtasks.size());
 
 		waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
@@ -343,10 +346,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
 		List<Task> subtasks = masterTask.listSubtasks(result);
-		assertEquals("Wrong # of partitions", 3, subtasks.size());
 
 		display("master task", masterTask);
 		display("subtasks", subtasks);
+
+		assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
+		assertEquals("Wrong # of partitions", 3, subtasks.size());
 
 		Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
 		Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
@@ -393,10 +398,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
 		List<Task> subtasks = masterTask.listSubtasks(result);
-		assertEquals("Wrong # of partitions", 3, subtasks.size());
 
 		display("master task", masterTask);
 		display("subtasks", subtasks);
+
+		assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
+		assertEquals("Wrong # of partitions", 3, subtasks.size());
 
 		Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
 		Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);

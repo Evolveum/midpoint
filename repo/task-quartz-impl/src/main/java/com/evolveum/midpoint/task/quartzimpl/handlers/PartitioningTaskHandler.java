@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -81,6 +82,18 @@ public class PartitioningTaskHandler implements TaskHandler {
 				return runResult;
 			}
 			taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), TaskManager.DO_NOT_WAIT, true, opResult);
+
+			// task kind setting
+			TaskKindType taskKind = masterTask.getWorkManagement() != null ? masterTask.getWorkManagement().getTaskKind() : null;
+			if (taskKind == null) {
+				ItemDelta<?, ?> itemDelta = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+						.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
+						.replace(TaskKindType.PARTITIONED_MASTER)
+						.asItemDelta();
+				masterTask.addModificationImmediate(itemDelta, opResult);
+			} else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
+				throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
+			}
 
 			// subtasks creation
 			List<Task> subtasksCreated;
