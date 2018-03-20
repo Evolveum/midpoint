@@ -113,7 +113,7 @@ public abstract class RestServiceInitializer {
 
 	private Server server;
 
-	private RepositoryService repositoryService;
+	protected RepositoryService repositoryService;
 	private ProvisioningService provisioning;
 	protected DummyAuditService dummyAuditService;
 

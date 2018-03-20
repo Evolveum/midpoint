@@ -21,12 +21,17 @@
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<!-- no namespace prefixes in path -->
-		<t:path>credentials/securityQuestions/questionAnswer</t:path>
+		<t:path>c:credentials/c:securityQuestions/c:questionAnswer</t:path>
 		<t:value>
 			<c:questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</c:questionIdentifier>
 			<c:questionAnswer>
-			  <t:clearValue>you would not believe what happens next</t:clearValue>
+			  <t:clearValue>yet another answer</t:clearValue>
+		  </c:questionAnswer>
+		</t:value>
+		<t:value>
+			<c:questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002</c:questionIdentifier>
+			<c:questionAnswer>
+			  <t:clearValue>42</t:clearValue>
 		  </c:questionAnswer>
 		</t:value>
 	</itemDelta>
