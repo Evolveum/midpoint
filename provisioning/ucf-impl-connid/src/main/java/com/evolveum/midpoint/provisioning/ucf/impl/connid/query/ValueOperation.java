@@ -100,7 +100,7 @@ public class ValueOperation extends Operation {
 						if (convertedValues.size() != 1) {
 							throw new IllegalArgumentException("Comparative filter with multiple values makes no sense");
 						}
-						Attribute attribute = AttributeBuilder.build(icfName, convertedValues.iterator().next().toString());        // HACK TODO
+						Attribute attribute = AttributeBuilder.build(icfName, convertedValues.iterator().next());
 						if (comparativeFilter instanceof GreaterFilter) {
 							if (comparativeFilter.isEquals()) {
 								return FilterBuilder.greaterThanOrEqualTo(attribute);
