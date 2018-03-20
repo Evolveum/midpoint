@@ -110,7 +110,7 @@ public class PrismBeanInspector {
     private Map<Class<?>, QName> _determineTypeForClass = Collections.synchronizedMap(new HashMap<>());
 
     QName determineTypeForClass(Class<?> paramType) {
-        return find1(_determineTypeForClass, paramType, this::determineTypeForClassUncached);
+        return find1(_determineTypeForClass, paramType, PrismBeanInspector::determineTypeForClassUncached);
     }
 
     private Map<Field,Map<Method,Boolean>> _isAttribute = Collections.synchronizedMap(new HashMap<>());
@@ -290,7 +290,7 @@ public class PrismBeanInspector {
         return namespace;
     }
 
-    private QName determineTypeForClassUncached(Class<?> beanClass) {
+    public static QName determineTypeForClassUncached(Class<?> beanClass) {
         XmlType xmlType = beanClass.getAnnotation(XmlType.class);
         if (xmlType == null) {
             return null;

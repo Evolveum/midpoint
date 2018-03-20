@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
@@ -116,6 +117,9 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
             if (typeQName == null) {
                 // last desperate attempt to determine type name from the value type
                 typeQName = XsdTypeMapper.getJavaToXsdMapping(value.getClass());
+                if (typeQName == null) {
+	                typeQName = PrismBeanInspector.determineTypeForClassUncached(value.getClass());     // little hack
+                }
                 if (typeQName == null) {
                     throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
                 }
