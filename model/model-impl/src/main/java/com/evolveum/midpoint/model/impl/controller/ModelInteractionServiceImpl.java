@@ -699,7 +699,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	private RoleSelectionSpecEntry getRoleSelectionSpecEq(EqualFilter<String> eqFilter) throws SchemaException {
-		if (QNameUtil.match(RoleType.F_ROLE_TYPE, eqFilter.getElementName())) {
+		if (QNameUtil.match(RoleType.F_ROLE_TYPE, eqFilter.getElementName()) || QNameUtil.match(RoleType.F_SUB_TYPE, eqFilter.getElementName())) {
 			List<PrismPropertyValue<String>> ppvs = eqFilter.getValues();
 			if (ppvs.size() > 1) {
 				throw new SchemaException("More than one value in roleType search filter");
