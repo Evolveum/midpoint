@@ -3146,8 +3146,10 @@
 			<xsd:element name="taskName" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						How to derive names for worker tasks. It is possible to use substitution strings of {node} and {index}
-						here. Node is the node identifier and index numbers workers created for particular node, starting at 1.
+						How to derive names for worker tasks. It is possible to use substitution strings of {coordinatorTaskName},
+						{node} and {index} here. CoordinatorTaskName is the name of the coordinator task, node is the node
+						identifier and index numbers workers created for particular node, starting at 1. The default value is
+						"{coordinatorTaskName} ({node}:{index})".
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -3204,8 +3206,9 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						How to derive names for the tasks. This overrides the name setting of parent element.
-						It is possible to use substitution strings of {node} and {index} here. Node is the node
-						identifier and index numbers workers created for particular node, starting at 1.
+						It is possible to use substitution strings of {coordinatorTaskName}, {node} and {index} here.
+						CoordinatorTaskName is the name of the coordinator task, node is the node identifier and index
+						numbers workers created for particular node, starting at 1.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

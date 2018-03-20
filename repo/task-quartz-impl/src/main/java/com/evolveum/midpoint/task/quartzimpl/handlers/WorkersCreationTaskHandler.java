@@ -142,6 +142,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		Map<String, String> replacements = new HashMap<>();
 		replacements.put("node", nodeIdentifier);
 		replacements.put("index", String.valueOf(index));
+		replacements.put("coordinatorTaskName", coordinatorTask.getName().getOrig());
 
 		String nameTemplate;
 		if (perNodeConfig.getTaskName() != null) {
@@ -149,7 +150,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		} else if (workersCfg.getTaskName() != null) {
 			nameTemplate = workersCfg.getTaskName();
 		} else {
-			nameTemplate = coordinatorTask.getName().getOrig() + " ({node}:{index})";
+			nameTemplate = "{coordinatorTaskName} ({node}:{index})";
 		}
 
 		TaskType coordinatorTaskBean = coordinatorTask.getTaskType();
