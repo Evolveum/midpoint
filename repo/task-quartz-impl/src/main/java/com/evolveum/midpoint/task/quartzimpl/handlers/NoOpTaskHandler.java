@@ -38,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
 
 	private static NoOpTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;
@@ -49,13 +48,19 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 		if (instance == null) {
 			instance = new NoOpTaskHandler();
 		}
-		taskManager.registerHandler(HANDLER_URI, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_1, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_2, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_3, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_4, instance);
 		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
 	}
 
 	@Override
 	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
 			TaskWorkBucketProcessingResult previousRunResult) {
+
+		String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
 
 		OperationResult opResult = new OperationResult(NoOpTaskHandler.class.getName()+".run");
 		TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
@@ -100,7 +105,7 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
         }
 
         LOGGER.info("NoOpTaskHandler run starting; progress = {}, steps to be executed = {}, delay for one step = {},"
-		        + " work bucket = {}, in task {}", task.getProgress(), steps, delay, workBucket, task);
+		        + " partition = '{}', work bucket = {}, in task {}", task.getProgress(), steps, delay, partition, workBucket, task);
 
         int objectFrom;
         int objectTo;

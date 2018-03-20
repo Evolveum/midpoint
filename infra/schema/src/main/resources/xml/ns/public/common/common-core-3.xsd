@@ -3278,7 +3278,6 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Work management configuration to use for partition task.
-						Overrides the value specified in the parent element.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -3286,14 +3285,13 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Whether to copy task extension from the master task.
-						Overrides the value specified in the parent element.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Other deltas to be applied to newly created worker task.
+						Other deltas to be applied to newly created partition tasks.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -3368,7 +3366,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Dependents of this subtask, i.e. subtasks that should be started only after this subtask has finished.
-						* Provided as indices starting at 1.
+						Provided as indices starting at 1.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

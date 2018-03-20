@@ -1038,7 +1038,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
             secondPrerequisiteTask.setName("Second prerequisite");
             secondPrerequisiteTask.setOwner(rootTask.getOwner());
             secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
-            secondPrerequisiteTask.pushHandlerUri(NoOpTaskHandler.HANDLER_URI, new ScheduleType(), null);
+            secondPrerequisiteTask.pushHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI, new ScheduleType(), null);
             secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
             secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
             secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
