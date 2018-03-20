@@ -79,12 +79,6 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
                 repositoryService, systemObjectCache, opResult);
 	}
 
-	@Override
-	protected boolean initializeRun(ObjectIntegrityCheckResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
         return ObjectType.class;
@@ -98,7 +92,7 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
 	}
 
 	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(ObjectIntegrityCheckResultHandler resultHandler,
+	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(ObjectIntegrityCheckResultHandler resultHandler,
 			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
 		return SelectorOptions.createCollection(GetOperationOptions.createAttachDiagData());
 	}
@@ -111,10 +105,5 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

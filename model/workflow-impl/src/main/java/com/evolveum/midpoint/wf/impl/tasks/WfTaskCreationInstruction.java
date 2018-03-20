@@ -396,7 +396,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
 			} else {
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
-				task.makeWaiting();
+				task.makeWaiting(TaskWaitingReason.OTHER);
 			}
 		}
 

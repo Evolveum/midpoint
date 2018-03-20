@@ -194,9 +194,19 @@ public class TestUtil {
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + TEST_LOG_SECTION_SUFFIX);
 	}
 
+	public static void displayWhen(String testName, String part) {
+		System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + " (" + part + ")" + TEST_OUT_SECTION_SUFFIX);
+		LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + " (" + part + ")" + TEST_LOG_SECTION_SUFFIX);
+	}
+
 	public static void displayThen(String testName) {
 		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
+	}
+
+	public static void displayThen(String testName, String part) {
+		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + " (" + part + ")" + TEST_OUT_SECTION_SUFFIX);
+		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + " (" + part + ")" + TEST_LOG_SECTION_SUFFIX);
 	}
 
 	public static void displayCleanup(String testName) {

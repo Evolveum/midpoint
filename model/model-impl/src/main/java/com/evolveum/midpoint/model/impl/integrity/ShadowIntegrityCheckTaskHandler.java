@@ -98,12 +98,6 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
                 matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);
 	}
 
-	@Override
-	protected boolean initializeRun(ShadowIntegrityCheckResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
         return ShadowType.class;
@@ -124,10 +118,5 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

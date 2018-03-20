@@ -53,6 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -226,6 +227,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		cleanupProcessedOids(coordinatorTask);
 	}
 
+	@NotNull
 	@Override
 	protected AbstractScannerResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {

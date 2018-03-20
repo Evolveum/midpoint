@@ -21,10 +21,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -42,11 +49,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -58,9 +60,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -68,7 +67,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * @author semancik
  *
  */
-public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H extends AbstractSearchIterativeResultHandler<O>> implements TaskHandler {
+public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H extends AbstractSearchIterativeResultHandler<O>>
+		implements WorkBucketAwareTaskHandler {
 
 	// WARNING! This task handler is efficiently singleton!
 	// It is a spring bean and it is supposed to handle all search task instances
@@ -104,7 +104,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 
 	protected AbstractSearchIterativeTaskHandler(String taskName, String taskOperationPrefix) {
-		super();
 		this.taskName = taskName;
 		this.taskOperationPrefix = taskOperationPrefix;
 	}
@@ -177,196 +176,259 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	@Override
-    public TaskRunResult run(Task coordinatorTask) {
-	    LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-		OperationResult opResult = new OperationResult(taskOperationPrefix + ".run");
+	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
+			TaskWorkBucketProcessingResult previousRunResult) {
+	    LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}", taskName,
+			    localCoordinatorTask, workBucket, previousRunResult);
+
+		if (localCoordinatorTask.getOid() == null) {
+			throw new IllegalArgumentException(
+					"Transient tasks cannot be run by " + AbstractSearchIterativeTaskHandler.class + ": "
+							+ localCoordinatorTask);
+		}
+
+		TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
+		runResult.setShouldContinue(false);         // overridden later if the processing is successful
+		runResult.setBucketComplete(false);         // overridden later if the processing is successful
+		if (previousRunResult != null) {
+			runResult.setProgress(previousRunResult.getProgress());
+			runResult.setOperationResult(previousRunResult.getOperationResult());
+		} else {
+			runResult.setProgress(0L);
+			runResult.setOperationResult(new OperationResult(taskOperationPrefix + ".run"));
+		}
+		OperationResult opResult = runResult.getOperationResult();
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
 
-		H resultHandler;
 		try {
-			resultHandler = createHandler(runResult, coordinatorTask, opResult);
-		} catch (Throwable e) {
-			LOGGER.error("{}: Error while creating a result handler: {}", taskName, e.getMessage(), e);
-			opResult.recordFatalError("Error while creating a result handler: " + e.getMessage(), e);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			return runResult;
-		}
-		if (resultHandler == null) {
-			// the error should already be in the runResult
-			return runResult;
-		}
-        // copying relevant configuration items from task to handler
-        resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
-        resultHandler.setEnableSynchronizationStatistics(isEnableSynchronizationStatistics());
-        resultHandler.setEnableActionsExecutedStatistics(isEnableActionsExecutedStatistics());
+			H resultHandler = setupHandler(runResult, localCoordinatorTask, opResult);
 
-		boolean cont = initializeRun(resultHandler, runResult, coordinatorTask, opResult);
-		if (!cont) {
+			boolean cont = initializeRun(resultHandler, runResult, localCoordinatorTask, opResult);
+			if (!cont) {
+				return runResult;
+			}
+
+			// TODO: error checking - already running
+			handlers.put(localCoordinatorTask.getOid(), resultHandler);
+
+			Class<? extends ObjectType> type = getType(localCoordinatorTask);
+			ObjectQuery query = prepareQuery(resultHandler, type, workBucket, localCoordinatorTask, runResult, opResult);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = createSearchOptions(resultHandler, runResult, localCoordinatorTask, opResult);
+			boolean useRepository = useRepositoryDirectly(resultHandler, runResult, localCoordinatorTask, opResult);
+
+			LOGGER.trace("{}: searching {} with options {}, using query:\n{}", taskName, type, searchOptions, query.debugDumpLazily());
+
+			try {
+				// counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
+				Long expectedTotal = computeExpectedTotalIfApplicable(type, query, searchOptions, useRepository, workBucket, localCoordinatorTask, opResult);
+
+				localCoordinatorTask.setProgress(runResult.getProgress());
+				if (expectedTotal != null) {
+					localCoordinatorTask.setExpectedTotal(expectedTotal);
+				}
+				try {
+					localCoordinatorTask.savePendingModifications(opResult);
+				} catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
+					throw new IllegalStateException(
+							"Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
+				}
+
+				searchOptions = updateSearchOptionsWithIterationMethod(searchOptions, localCoordinatorTask);
+
+				resultHandler.createWorkerThreads(localCoordinatorTask, opResult);
+				if (!useRepository) {
+					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
+				} else {
+					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
+				}
+				resultHandler.completeProcessing(localCoordinatorTask, opResult);
+
+			} catch (ObjectNotFoundException e) {
+				// This is bad. The resource does not exist. Permanent problem.
+				return logErrorAndSetResult(runResult, resultHandler, "Object not found", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+			} catch (CommunicationException e) {
+				// Error, but not critical. Just try later.
+				return logErrorAndSetResult(runResult, resultHandler, "Communication error", e,
+						OperationResultStatus.PARTIAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
+			} catch (SchemaException e) {
+				// Not sure about this. But most likely it is a misconfigured resource or connector
+				// It may be worth to retry. Error is fatal, but may not be permanent.
+				return logErrorAndSetResult(runResult, resultHandler, "Error dealing with schema", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
+			} catch (RuntimeException e) {
+				// Can be anything ... but we can't recover from that.
+				// It is most likely a programming error. Does not make much sense to retry.
+				return logErrorAndSetResult(runResult, resultHandler, "Internal error", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+			} catch (ConfigurationException e) {
+				// Not sure about this. But most likely it is a misconfigured resource or connector
+				// It may be worth to retry. Error is fatal, but may not be permanent.
+				return logErrorAndSetResult(runResult, resultHandler, "Configuration error", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
+			} catch (SecurityViolationException e) {
+				return logErrorAndSetResult(runResult, resultHandler, "Security violation", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+			} catch (ExpressionEvaluationException e) {
+				return logErrorAndSetResult(runResult, resultHandler, "Expression error", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+			}
+
+			// TODO: check last handler status
+
+			handlers.remove(localCoordinatorTask.getOid());
+
+			runResult.setProgress(runResult.getProgress() + resultHandler.getProgress());     // TODO ?
+			runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+
+			if (logFinishInfo) {
+				String finishMessage = "Finished " + taskName + " (" + localCoordinatorTask + "). ";
+				String statistics =
+						"Processed " + resultHandler.getProgress() + " objects in " + resultHandler.getWallTime() / 1000
+								+ " seconds, got " + resultHandler.getErrors() + " errors.";
+				if (resultHandler.getProgress() > 0) {
+					statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
+							" (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
+				}
+				if (!localCoordinatorTask.canRun()) {
+					statistics += " Task was interrupted during processing.";
+				}
+
+				opResult.createSubresult(taskOperationPrefix + ".statistics")
+						.recordStatus(OperationResultStatus.SUCCESS, statistics);
+				TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, localCoordinatorTask, opResult);
+
+				LOGGER.info("{}", finishMessage + statistics);
+			}
+
+			try {
+				finish(resultHandler, runResult, localCoordinatorTask, opResult);
+			} catch (SchemaException e) {
+				logErrorAndSetResult(runResult, resultHandler, "Schema error while finishing the run", e,
+						OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+				return runResult;
+			}
+
+			LOGGER.trace("{} run finished (task {}, run result {})", taskName, localCoordinatorTask, runResult);
+			runResult.setBucketComplete(localCoordinatorTask.canRun());     // TODO
+			runResult.setShouldContinue(localCoordinatorTask.canRun());     // TODO
 			return runResult;
+		} catch (ExitHandlerException e) {
+			return e.getRunResult();
+		}
+	}
+
+	private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions, Task localCoordinatorTask) {
+		Collection<SelectorOptions<GetOperationOptions>> rv;
+		IterationMethodType iterationMethod = getIterationMethodFromTask(localCoordinatorTask);
+		if (iterationMethod != null) {
+			rv = CloneUtil.cloneCollectionMembers(searchOptions);
+			return SelectorOptions.updateRootOptions(rv, o -> o.setIterationMethod(iterationMethod), GetOperationOptions::new);
+		} else {
+			return searchOptions;
+		}
+	}
+
+	@Nullable
+	private Long computeExpectedTotalIfApplicable(Class<? extends ObjectType> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> queryOptions, boolean useRepository,
+			WorkBucketType workBucket, Task localCoordinatorTask,
+			OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		if (!countObjectsOnStart) {
+			return null;
+		} else if (TaskTypeUtil.hasLimitations(workBucket)) {
+			// We avoid computing expected total if we are processing a bucket -- actually we could but we should
+			// not display it as 'task expected total'
+			return null;
+		} else {
+			Long expectedTotal;
+			if (!useRepository) {
+				Integer expectedTotalInt = countObjects(type, query, queryOptions, localCoordinatorTask, opResult);
+				if (expectedTotalInt != null) {
+					expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+				} else {
+					expectedTotal = null;
+				}
+			} else {
+				expectedTotal = (long) repositoryService.countObjects(type, query, queryOptions, opResult);
+			}
+			LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
+			return expectedTotal;
+		}
+	}
+
+	private ObjectQuery prepareQuery(H resultHandler,
+			Class<? extends ObjectType> type,
+			WorkBucketType workBucket, Task localCoordinatorTask, TaskWorkBucketProcessingResult runResult,
+			OperationResult opResult) throws ExitHandlerException {
+
+		ObjectQuery query;
+		try {
+			query = createQuery(resultHandler, runResult, localCoordinatorTask, opResult);
+		} catch (SchemaException ex) {
+			throw new ExitHandlerException(
+					logErrorAndSetResult(runResult, resultHandler, "Schema error while creating a search filter", ex,
+							OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
 		}
 
-		// TODO: error checking - already running
-		if (coordinatorTask.getOid() == null) {
-			throw new IllegalArgumentException("Transient tasks cannot be run by " + AbstractSearchIterativeTaskHandler.class + ": " + coordinatorTask);
-		}
-        handlers.put(coordinatorTask.getOid(), resultHandler);
-
-        ObjectQuery query;
-        try {
-        	query = createQuery(resultHandler, runResult, coordinatorTask, opResult);
-        } catch (SchemaException ex) {
-			logErrorAndSetResult(runResult, resultHandler, "Schema error while creating a search filter", ex,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-			return runResult;
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{}: using a query (before evaluating expressions):\n{}", taskName, DebugUtil.debugDump(query));
-		}
+		LOGGER.trace("{}: using a query (before applying work bucket and evaluating expressions):\n{}", taskName,
+				DebugUtil.debugDumpLazily(query));
 
 		if (query == null) {
 			// the error should already be in the runResult
-			return runResult;
+			throw new ExitHandlerException(runResult);
 		}
 
 		try {
-			
-			query = preProcessQuery(query, coordinatorTask, opResult);
-			
+			query = taskManager.narrowQueryForWorkBucket(query, type,
+					getIdentifierDefinitionProvider(localCoordinatorTask, opResult), localCoordinatorTask,
+					workBucket, opResult);
+		} catch (SchemaException | ObjectNotFoundException e) {
+			throw new ExitHandlerException(
+					logErrorAndSetResult(runResult, resultHandler, "Exception while narrowing a search query", e,
+							OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
+		}
+
+		LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", taskName,
+				DebugUtil.debugDumpLazily(query));
+
+		try {
+			query = preProcessQuery(query, localCoordinatorTask, opResult);
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-			logErrorAndSetResult(runResult, resultHandler, "Error while pre-processing search filter", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-			return runResult;
+			throw new ExitHandlerException(
+					logErrorAndSetResult(runResult, resultHandler, "Error while pre-processing search filter", e,
+							OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
 		}
 
-		Class<? extends ObjectType> type = getType(coordinatorTask);
-
-        Collection<SelectorOptions<GetOperationOptions>> queryOptions = createQueryOptions(resultHandler, runResult, coordinatorTask, opResult);
-        boolean useRepository = useRepositoryDirectly(resultHandler, runResult, coordinatorTask, opResult);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("{}: searching {} with options {}, using query:\n{}", taskName, type, queryOptions, query.debugDump());
-        }
-
-        try {
-
-            // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
-            Long expectedTotal = null;
-            if (countObjectsOnStart) {
-                if (!useRepository) {
-                    Integer expectedTotalInt = countObjects(type, query, queryOptions, coordinatorTask, opResult);
-                    if (expectedTotalInt != null) {
-                        expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
-                    }
-                } else {
-                    expectedTotal = (long) repositoryService.countObjects(type, query, queryOptions, opResult);
-                }
-                LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
-            }
-
-            coordinatorTask.setProgress(0);
-            if (expectedTotal != null) {
-                coordinatorTask.setExpectedTotal(expectedTotal);
-            }
-            try {
-                coordinatorTask.savePendingModifications(opResult);
-            } catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
-                throw new IllegalStateException("Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
-            }
-
-            Collection<SelectorOptions<GetOperationOptions>> searchOptions;
-	        IterationMethodType iterationMethod = getIterationMethodFromTask(coordinatorTask);
-            if (iterationMethod != null) {
-            	searchOptions = CloneUtil.cloneCollectionMembers(queryOptions);
-            	searchOptions = SelectorOptions.updateRootOptions(searchOptions, o -> o.setIterationMethod(iterationMethod), GetOperationOptions::new);
-            } else {
-            	searchOptions = queryOptions;
-            }
-
-	        resultHandler.createWorkerThreads(coordinatorTask, opResult);
-            if (!useRepository) {
-                searchIterative((Class<O>) type, query, searchOptions, resultHandler, coordinatorTask, opResult);
-            } else {
-                repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
-            }
-            resultHandler.completeProcessing(coordinatorTask, opResult);
-
-        } catch (ObjectNotFoundException e) {
-            // This is bad. The resource does not exist. Permanent problem.
-			logErrorAndSetResult(runResult, resultHandler, "Object not found", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        } catch (CommunicationException e) {
-			// Error, but not critical. Just try later.
-			logErrorAndSetResult(runResult, resultHandler, "Communication error", e,
-					OperationResultStatus.PARTIAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
-            return runResult;
-        } catch (SchemaException e) {
-            // Not sure about this. But most likely it is a misconfigured resource or connector
-            // It may be worth to retry. Error is fatal, but may not be permanent.
-			logErrorAndSetResult(runResult, resultHandler, "Error dealing with schema", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
-            return runResult;
-        } catch (RuntimeException e) {
-            // Can be anything ... but we can't recover from that.
-            // It is most likely a programming error. Does not make much sense to retry.
-			logErrorAndSetResult(runResult, resultHandler, "Internal error", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        } catch (ConfigurationException e) {
-            // Not sure about this. But most likely it is a misconfigured resource or connector
-            // It may be worth to retry. Error is fatal, but may not be permanent.
-			logErrorAndSetResult(runResult, resultHandler, "Configuration error", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
-            return runResult;
-		} catch (SecurityViolationException e) {
-			logErrorAndSetResult(runResult, resultHandler, "Security violation", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-		} catch (ExpressionEvaluationException e) {
-			logErrorAndSetResult(runResult, resultHandler, "Expression error", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-		}
-
-        // TODO: check last handler status
-
-        handlers.remove(coordinatorTask.getOid());
-
-        runResult.setProgress(resultHandler.getProgress());     // TODO ?
-        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-
-        if (logFinishInfo) {
-	        String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
-	        String statistics = "Processed " + resultHandler.getProgress() + " objects in " + resultHandler.getWallTime()/1000 + " seconds, got " + resultHandler.getErrors() + " errors.";
-            if (resultHandler.getProgress() > 0) {
-                statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
-                    " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
-            }
-			if (!coordinatorTask.canRun()) {
-				statistics += " Task was interrupted during processing.";
-			}
-
-			opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
-			TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, coordinatorTask, opResult);
-
-			LOGGER.info("{}", finishMessage + statistics);
-        }
-
-        try {
-        	finish(resultHandler, runResult, coordinatorTask, opResult);
-        } catch (SchemaException e) {
-			logErrorAndSetResult(runResult, resultHandler, "Schema error while finishing the run", e,
-					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        }
-
-        LOGGER.trace("{} run finished (task {}, run result {})", taskName, coordinatorTask, runResult);
-		return runResult;
+		return query;
 	}
-	
+
+	private H setupHandler(TaskWorkBucketProcessingResult runResult, Task localCoordinatorTask, OperationResult opResult)
+			throws ExitHandlerException {
+		try {
+			H resultHandler = createHandler(runResult, localCoordinatorTask, opResult);
+			if (resultHandler == null) {
+				throw new ExitHandlerException(runResult);       // the error should already be in the runResult
+			}
+			// copying relevant configuration items from task to handler
+			resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
+			resultHandler.setEnableSynchronizationStatistics(isEnableSynchronizationStatistics());
+			resultHandler.setEnableActionsExecutedStatistics(isEnableActionsExecutedStatistics());
+			return resultHandler;
+		} catch (Throwable e) {
+			throw new ExitHandlerException(
+					logErrorAndSetResult(runResult, null, "Error while creating a result handler", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
+		}
+	}
+
+	protected Function<ItemPath,ItemDefinition<?>> getIdentifierDefinitionProvider(Task localCoordinatorTask,
+			OperationResult opResult) {
+		return null;
+	}
+
 	/**
 	 * Used to count objects using model or any similar higher-level interface. Defaults to repository count.
 	 */
@@ -379,7 +441,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	 */
 	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Object coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
+		repositoryService.searchObjectsIterative(type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
 	}
 
 	/**
@@ -389,12 +451,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		return query;
 	}
 
-	private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, H resultHandler, String message, Throwable e,
+	private TaskWorkBucketProcessingResult logErrorAndSetResult(TaskWorkBucketProcessingResult runResult, H resultHandler, String message, Throwable e,
 			OperationResultStatus opStatus, TaskRunResultStatus status) {
 		LOGGER.error("{}: {}: {}", taskName, message, e.getMessage(), e);
 		runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
 		runResult.setRunResultStatus(status);
-		runResult.setProgress(resultHandler.getProgress());     // TODO ???
+		if (resultHandler != null) {
+			runResult.setProgress(resultHandler.getProgress());     // TODO ???
+		}
 		return runResult;
 
 	}
@@ -429,7 +493,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException;
 
     // useful e.g. to specify noFetch options for shadow-related queries
-    protected Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return null;
     }
 

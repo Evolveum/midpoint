@@ -116,7 +116,7 @@ public class TaskSynchronizer {
             oidsInRepo.add(taskPrism.getOid());
             TaskQuartzImpl task;
             try {
-                task = (TaskQuartzImpl) taskManager.getTask(taskPrism.getOid(), result);    // in order for the task to be "fresh"
+                task = taskManager.getTask(taskPrism.getOid(), result);    // in order for the task to be "fresh"
                 if (synchronizeTask(task, result)) {
                     changed++;      // todo are we sure that we increment this counter only for successfully processed tasks? we hope so :)
                 }
@@ -209,31 +209,31 @@ public class TaskSynchronizer {
             if (!scheduler.checkExists(jobKey) && !waitingOrClosedOrSuspended) {
                 String m1 = "Quartz job does not exist for a task, adding it. Task = " + task;
                 message += "[" + m1 + "] ";
-                LOGGER.trace(" - " + m1);
+                LOGGER.trace(" - {}", m1);
                 scheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
                 changed = true;
             }
 
-            // WAITING and CLOSED tasks should have no triggers; SUSPENDED tasks should have no extra triggers
+            // CLOSED tasks should have no triggers; SUSPENDED and WAITING tasks should have no extra triggers
 
             List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
             boolean standardTriggerExists = triggers.stream().anyMatch(t -> t.getKey().equals(standardTriggerKey));
             if (waitingOrClosedOrSuspended) {
 				for (Trigger trigger : triggers) {
-					if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED || !trigger.getKey().equals(standardTriggerKey)) {
+					if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
 						String m1 = "Removing Quartz trigger " + trigger.getKey() + " for WAITING/CLOSED/SUSPENDED task " + task;
 						message += "[" + m1 + "] ";
-						LOGGER.trace(" - " + m1);
+						LOGGER.trace(" - {}", m1);
 						scheduler.unscheduleJob(trigger.getKey());
 						changed = true;
 					} else {
-						// For SUSPENDED tasks, we keep the standard trigger untouched. We want to preserve original
+						// For SUSPENDED/WAITING tasks, we keep the standard trigger untouched. We want to preserve original
 						// scheduled time. (This might or might not be what the user wants ... but it has been so for so
 						// many years, so let's not change it now.)
 						//
 						// It's harmless to keep the standard trigger, because:
 						// 1) If a trigger is mistakenly alive, JobExecutor will take care of it.
-						// 2) If a trigger has wrong parameters, this will be corrected on task resume.
+						// 2) If a trigger has wrong parameters, this will be corrected on task resume/unpause.
 					}
 				}
             } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {

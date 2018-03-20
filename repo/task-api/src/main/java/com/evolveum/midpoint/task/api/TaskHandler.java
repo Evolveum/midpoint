@@ -27,10 +27,13 @@ public interface TaskHandler {
 
 	TaskRunResult run(Task task);
 
-	Long heartbeat(Task task);
+	default Long heartbeat(Task task) {
+		return null;
+	}
 
 	// TODO: fix signature
-	void refreshStatus(Task task);
+	default void refreshStatus(Task task) {
+	}
 
     /**
      * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
@@ -45,7 +48,9 @@ public interface TaskHandler {
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
-	List<String> getCategoryNames();
+	default List<String> getCategoryNames() {
+		return null;
+	}
 
 	@NotNull
 	default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {

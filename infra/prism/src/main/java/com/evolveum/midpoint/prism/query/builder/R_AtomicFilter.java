@@ -136,7 +136,8 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry gt(Object value) {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, false, owner.getPrismContext(), value));
+        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, null, value,
+                false, owner.getPrismContext()));
     }
 
     @Override
@@ -146,7 +147,8 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry ge(Object value) {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, true, owner.getPrismContext(), value));
+        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, null, value,
+                true, owner.getPrismContext()));
     }
 
     @Override
@@ -156,7 +158,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry lt(Object value) {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, owner.getPrismContext(), value, false));
+        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, null, value, false, owner.getPrismContext()));
     }
 
     @Override
@@ -166,7 +168,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry le(Object value) {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, owner.getPrismContext(), value, true));
+        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, null, value, true, owner.getPrismContext()));
     }
 
     @Override

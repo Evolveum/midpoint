@@ -1149,7 +1149,601 @@
     	</xsd:sequence>
     </xsd:complexType>
 
-    <!-- Property-related types -->
+	<xsd:complexType name="TaskWorkStateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes the task work state: what has been processed, what is being processed and what is yet to be done.
+				Useful for work distribution as well as for stateful suspend+resume feature.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="bucket" type="tns:WorkBucketType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current buckets of work. Some buckets might be present implicitly: if a complete bucket with
+						sequence number of N is present, it is expected that all buckets with lower numbers not explicitly
+						lister are either completed (for coordinator and standalone tasks) or not relevant (for worker tasks).
+
+						In a similar way, if no free bucket is available and we are not at the end it is expected that some
+						free buckets are yet to be created (for coordinator tasks).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many buckets are there? This is an indicative information, e.g. to be used when
+						estimating total progress.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allWorkComplete" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						True if all the work is complete. This means that on next run the task should start from
+						the beginning. (We do not simply erase workState because of progress reporting needs.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="completePartitionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--References of complete partitions. Used to quickly assess the progress of the whole task-->
+						<!--without the need for fetching all partitions (subtasks).-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TaskWorkManagementType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes how we are going to manage the work that is to be done: how to divide it into work buckets,
+				how to describe progress within buckets, how to create and manager workers that will process the buckets.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+				<a:container>true</a:container>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="taskKind" type="tns:TaskKindType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Kind of task with respect to the work management (standalone, coordinator, worker).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="buckets" type="tns:WorkBucketsManagementType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to create and manage buckets.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workers" type="tns:WorkersManagementType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to create and manage workers.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partitions" type="tns:TaskPartitionsDefinitionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to create and manage partitions.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<!-- Work buckets configurations -->
+
+	<xsd:complexType name="WorkBucketsManagementType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="numericSegmentation" type="tns:NumericWorkSegmentationType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							How to partition the work into numeric interval based buckets and manage them.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="stringSegmentation" type="tns:StringWorkSegmentationType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							How to partition the work into string value based buckets and manage them.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="explicitSegmentation" type="tns:ExplicitWorkSegmentationType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							How to partition the work into filter based buckets and manage them.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="segmentation" type="tns:AbstractWorkSegmentationType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							How to partition the work into buckets and manage them.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+			<!--<xsd:element name="progressMarking" type="tns:WorkBucketsProgressMarkingType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--TODO-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="AbstractWorkSegmentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes how to segment the work into buckets and manage them.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="discriminator" type="t:ItemPathType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Item or OID whose values will used to divide objects into buckets - if applicable.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="matchingRule" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Matching rule to be applied when creating filters - if applicable.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="numberOfBuckets" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configurable number of buckets. Optional.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="NumericWorkSegmentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that divides the processing space (represented by an interval of numeric
+				values) into a number of work buckets. Each bucket itself is defined as an interval of values.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkSegmentationType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Start of the processing space (inclusive). If omitted, 0 is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="to" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								End of the processing space (exclusive). If not present, both bucketSize and numberOfBuckets
+								must be defined and the upper boundary is determined as their product.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="bucketSize" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Size of one bucket. If not present it is computed as the total processing space divided by
+								number of buckets (i.e. 'to' and 'numberOfBuckets' must be present).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="StringWorkSegmentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that divides the processing space (represented by a set of string
+				values) into a number of work buckets; either based on intervals or prefixes.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkSegmentationType">
+				<xsd:sequence>
+					<xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Characters that make up the prefix (or interval). TODO Must be sorted!
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="comparisonMethod" type="tns:StringWorkBucketsBoundaryMarkingType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Whether to use intervals or prefixes. Former is the default.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:simpleType name="StringWorkBucketsBoundaryMarkingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="interval">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="INTERVAL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="prefix">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PREFIX"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="ExplicitWorkSegmentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that explicitly enumerates the buckets.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkSegmentationType">
+				<xsd:sequence>
+					<xsd:element name="content" type="tns:AbstractWorkBucketContentType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Work buckets content.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<!-- Work bucket runtime structures -->
+
+	<xsd:complexType name="WorkBucketType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Description of a state and content of a work bucket. Buckets are used e.g. to distribute workload
+				in multi-node tasks or to implement stateful suspend+resume.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="sequentialNumber" type="xsd:int">
+				<xsd:annotation>
+					<xsd:documentation>
+						Sequential number of give work bucket. Starting at 1.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="state" type="tns:WorkBucketStateType">
+				<xsd:annotation>
+					<xsd:documentation>
+						State of the work bucket: ready, delegated or complete.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="content" type="tns:AbstractWorkBucketContentType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Content of the bucket described e.g. as a numeric interval of discriminator values.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="progress" type="tns:AbstractWorkBucketProgressType">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Progress of bucket processing.-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+			<!--<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Worker task to which is this bucket allocated.-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+			<!--<xsd:element name="processedCount" type="xsd:int" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Number of items that were suc-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="AbstractWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Abstract supertype for description of bucket contents.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="NumericIntervalWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined as a interval of numeric values of discriminator item.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Start of the processing space belonging to this bucket (inclusive). If not present, 0 is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="to" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								End of the processing space belonging to this bucket (exclusive). If not present, it is assumed
+								that this is the last bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="StringPrefixWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined using string value prefix.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="prefix" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Prefix(es) that are part of this bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="StringIntervalWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined as interval of string values.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="from" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Start of the processing space belonging to this bucket (inclusive). If not present, empty string is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="to" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								End of the processing space belonging to this bucket (exclusive). If not present, it is assumed
+								that this is the last bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="FilterWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined explicitly by a filter.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element ref="q:filter" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Filter(s) to be used to define the bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:simpleType name="TaskKindType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Kind of task with respect to the work state management.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="standalone">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is standalone: it executes all the work itself (single- or multi-threaded).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="STANDALONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="coordinator">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is a coordinator task in a multi-node execution.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="COORDINATOR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="worker">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is a worker task in a multi-node execution.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WORKER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="partitionedMaster">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is a master task that is partitioned into subtasks.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PARTITIONED_MASTER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="WorkBucketStateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				State of the work bucket.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ready">
+				<xsd:annotation>
+					<xsd:documentation>
+						The bucket is ready to be delegated (when in coordinator) or to be directly processed (when in worker
+						or standalone task).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="READY"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="delegated">
+				<xsd:annotation>
+					<xsd:documentation>
+						The bucket has been delegated for processing by a worker task. (May occur in coordinator only.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DELEGATED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="complete">
+				<xsd:annotation>
+					<xsd:documentation>
+						The bucket has been processed.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="COMPLETE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<!-- Property-related types -->
 
     <xsd:complexType name="EmptyType">
         <xsd:annotation>
@@ -1658,6 +2252,30 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="unpauseAction" type="tns:TaskUnpauseActionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What to do after task is unpaused (i.e. stopped waiting)?
+								The default for single-run tasks is executeImmediately (mainly for backwards compatibility
+								reasons); the default for recurring tasks is reschedule. It is expected that this item is
+								set by the code that puts the task into waiting state.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.8</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stateBeforeSuspend" type="tns:TaskExecutionStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What was the task state before it was suspended? It could be either runnable or waiting.
+								This is important because we want to restore the correct state on resume.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.8</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="node" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1805,7 +2423,26 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
+                    <xsd:element name="workState" type="tns:TaskWorkStateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+								State of the work the task is supposed to do (or has done). This information is used e.g. to
+								distribute the work or to provide stateful suspend+resume feature. The information here is
+								managed by the system (by task manager and task handler).
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.8</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Configuration of how the work should be managed: segmented into buckets and processed by workers.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 From which moment is this task stalled (if applicable)?
@@ -1909,13 +2546,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                     <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Policy rule for the task. E.g notify user 5 days before their account expires.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+					<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Policy rule for the task. E.g notify user 5 days before their account expires.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2221,8 +2858,11 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The task is waiting for a workflow process (that it monitors/shadows) to be finished.
+						DEPRECATED. DO NOT USE.
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.8</a:deprecatedSince>
                         <jaxb:typesafeEnumMember name="WORKFLOW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -2234,6 +2874,51 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OTHER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TaskUnpauseActionType">
+        <xsd:annotation>
+			<xsd:documentation>
+				What to do after task is unpaused (i.e. stopped waiting)?
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="executeImmediately">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execute current handler immediately (if there is any). This is the default for single-run tasks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTE_IMMEDIATELY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="reschedule">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Execute current handler (if there is any) on next scheduled time. This is the default for recurring tasks.
+						For single-run tasks this means the task is closed, as there is no next scheduled time.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESCHEDULE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="close">
+                <xsd:annotation>
+                    <xsd:documentation>
+						The task will be closed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOSE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -2448,7 +3133,247 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="FocusType" abstract="true">
+    <xsd:complexType name="WorkersManagementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to create and manage worker tasks. EXPERIMENTAL.
+            </xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="taskName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to derive names for worker tasks. It is possible to use substitution strings of {coordinatorTaskName},
+						{node} and {index} here. CoordinatorTaskName is the name of the coordinator task, node is the node
+						identifier and index numbers workers created for particular node, starting at 1. The default value is
+						"{coordinatorTaskName} ({node}:{index})".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Worker tasks handler URI. Default value might be known from the context.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other deltas to be applied to newly created worker task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="workersPerNode" type="tns:WorkerTasksPerNodeConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many tasks to create?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkerTasksPerNodeConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to create worker tasks per node. EXPERIMENTAL.
+            </xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nodeIdentifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node identifier(s) for which we are going to generate the tasks.
+						Empty list means all nodes that are currently defined in the repository.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many workers to create for given node(s). Default is 1 per node.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="taskName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to derive names for the tasks. This overrides the name setting of parent element.
+						It is possible to use substitution strings of {coordinatorTaskName}, {node} and {index} here.
+						CoordinatorTaskName is the name of the coordinator task, node is the node identifier and index
+						numbers workers created for particular node, starting at 1.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="executionGroup" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution group for created workers. It is possible to use substitution strings of {node} and {index}
+						here. Node is the node identifier and index numbers workers created for particular node, starting at 1.
+						Default is "{node}".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other deltas to be applied to newly created worker task in this group.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="TaskPartitionsDefinitionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes how to partition the work into subtasks.
+				If interpreted by a specific task handler (e.g. partitioned reconciliation task handler), defaults
+				other than the ones specified here might be applied.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="count" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of partitions to create. Optional. The default is the number of partition item values.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether the subtasks should be executed sequentially. The default is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="taskName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to derive names for partition tasks. It is possible to use substitution strings of {masterTaskName},
+						{masterTaskHandlerUri} and {index} here.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Partition tasks handler URI. The default is {masterTaskHandlerUri}#{index} or
+						http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3 for subtasks that are
+						coordinators themselves.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Work management configuration to use for partition task.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to copy task extension from the master task.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Other deltas to be applied to newly created partition tasks.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partition" type="tns:TaskPartitionDefinitionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of the partition(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="TaskPartitionDefinitionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes how to create a single task partition.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="index" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The number of the partition, starting at 1.
+						It might be omitted if all partitions are explicitly defined, and all of them are unnumbered.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="taskName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to derive names for the partition task. It is possible to use substitution strings of {masterTaskName},
+						{masterTaskHandlerUri} and {index} here. Overrides the name specified in the parent element.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Partition task handler URI. The default is {masterTaskHandlerUri}#{index}.
+						Overrides the handler URI specified in the parent element.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workManagement" type="tns:TaskWorkManagementType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Work management configuration to use for partition task.
+						Overrides the value specified in the parent element.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to copy task extension from the master task.
+						Overrides the value specified in the parent element.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Other deltas to be applied to newly created partition task.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="dependents" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Dependents of this subtask, i.e. subtasks that should be started only after this subtask has finished.
+						Provided as indices starting at 1.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="FocusType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
             	<p>

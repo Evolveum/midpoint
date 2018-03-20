@@ -46,6 +46,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -2810,10 +2812,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					OperationResult result = freshTask.getResult();
 					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to start. Last result "+result;
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
-				} catch (SchemaException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e, e);
 				}
 			}
 		};
@@ -2906,10 +2906,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
 					+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
-				} catch (SchemaException e) {
-					LOGGER.error("Exception during task refresh: {}", e,e);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e, e);
 				}
 			}
 		};
@@ -2923,6 +2921,85 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 
 		return taskResultHolder.getValue();
+	}
+
+	protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskTreeNextFinishedRun");
+		Task origRootTask = taskManager.getTask(rootTaskOid, waitResult);
+		return waitForTaskTreeNextFinishedRun(origRootTask, timeout, waitResult);
+	}
+
+	// a bit experimental
+	protected OperationResult waitForTaskTreeNextFinishedRun(Task origRootTask, int timeout, OperationResult waitResult) throws Exception {
+		Long origLastRunStartTimestamp = origRootTask.getLastRunStartTimestamp();
+		Long origLastRunFinishTimestamp = origRootTask.getLastRunFinishTimestamp();
+		long start = System.currentTimeMillis();
+		Holder<Boolean> triggered = new Holder<>(false);    // to avoid repeated checking for start-finish timestamps
+		OperationResult aggregateResult = new OperationResult("aggregate");
+		Checker checker = () -> {
+			Task freshRootTask = taskManager.getTask(origRootTask.getOid(), waitResult);
+
+			String s = TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult);
+			display("task tree", s);
+
+			long waiting = (System.currentTimeMillis() - start) / 1000;
+			String description =
+					freshRootTask.getName().getOrig() + " (" + freshRootTask.getExecutionStatus() + "/" + freshRootTask
+							.getNode() + "/" + freshRootTask.getProgress() + ") ["
+							+ waiting + "]";
+			// was the whole task tree refreshed at least once after we were called?
+			if (!triggered.getValue() && (freshRootTask.getLastRunStartTimestamp() == null
+					|| freshRootTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
+					|| freshRootTask.getLastRunFinishTimestamp() == null
+					|| freshRootTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
+					|| freshRootTask.getLastRunStartTimestamp() >= freshRootTask.getLastRunFinishTimestamp())) {
+				display("Root (triggering) task next run has not been completed yet: " + description);
+				return false;
+			}
+			triggered.setValue(true);
+
+			aggregateResult.getSubresults().clear();
+			List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
+			Task failedTask = null;
+			for (Task subtask : subtasks) {
+				if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+					display("Found runnable/running subtasks during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
+				if (subtask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+					display("Found waiting subtasks during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
+				OperationResult subtaskResult = subtask.getResult();
+				if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
+					display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
+				if (subtaskResult.getStatus() == OperationResultStatus.UNKNOWN) {
+					display("Found 'unknown' subtask operation result during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
+				aggregateResult.addSubresult(subtaskResult);
+				if (subtaskResult.isError()) {
+					failedTask = subtask;
+				}
+			}
+			if (failedTask != null) {
+				display("Found 'error' subtask operation result during waiting => done waiting: " + description, failedTask);
+				return true;
+			}
+			if (freshRootTask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+				display("Found WAITING root task during wait for next finished run => continuing waiting: " + description);
+				return false;
+			}
+			return true;        // all executive subtasks are closed
+		};
+		IntegrationTestTools.waitFor("Waiting for task tree " + origRootTask + " next finished run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+		Task freshTask = taskManager.getTask(origRootTask.getOid(), waitResult);
+		LOGGER.debug("Final root task:\n{}", freshTask.debugDump());
+		aggregateResult.computeStatusIfUnknown();
+		return aggregateResult;
 	}
 
 	private String longTimeToString(Long longTime) {

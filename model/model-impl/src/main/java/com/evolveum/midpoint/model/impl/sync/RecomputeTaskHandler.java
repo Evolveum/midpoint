@@ -149,9 +149,4 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     public String getCategoryName(Task task) {
         return TaskCategory.RECOMPUTATION;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

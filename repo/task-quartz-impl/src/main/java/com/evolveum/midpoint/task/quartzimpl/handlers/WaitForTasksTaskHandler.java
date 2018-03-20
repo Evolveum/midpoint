@@ -88,9 +88,4 @@ public class WaitForTasksTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return null;        // hopefully we will never need to derive category from this handler! (category is filled-in when persisting tasks)
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

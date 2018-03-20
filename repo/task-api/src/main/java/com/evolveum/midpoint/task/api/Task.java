@@ -159,16 +159,18 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * Status-changing method. It changes task's execution status to WAITING.
-     * Currently use ONLY on transient tasks.
+     * Currently use only on transient tasks, on suspended tasks or from within task handler.
      */
     void makeWaiting();
 
     /**
      * Changes exec status to WAITING, with a given waiting reason.
-     * Currently use ONLY on transient tasks.
+     * Currently use only on transient tasks or from within task handler.
      * @param reason
      */
     void makeWaiting(TaskWaitingReason reason);
+
+    void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction);
 
     /**
      * Status-changing method. It changes task's execution status to RUNNABLE.
@@ -833,6 +835,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @return
      * @throws SchemaException
      */
+	@NotNull
     List<Task> listSubtasks(OperationResult parentResult) throws SchemaException;
 
     /**
@@ -1027,4 +1030,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	void incrementProgressAndStoreStatsIfNeeded();
 
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	TaskWorkManagementType getWorkManagement();
+
+	TaskWorkStateType getWorkState();
+
+	TaskUnpauseActionType getUnpauseAction();
+
+	TaskExecutionStatusType getStateBeforeSuspend();
 }

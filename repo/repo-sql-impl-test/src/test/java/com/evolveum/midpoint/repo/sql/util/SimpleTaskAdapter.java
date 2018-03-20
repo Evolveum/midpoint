@@ -556,6 +556,7 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @NotNull
     @Override
     public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
@@ -608,6 +609,11 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void makeWaiting(TaskWaitingReason reason) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -872,5 +878,25 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) {
+    }
+
+    @Override
+    public TaskWorkManagementType getWorkManagement() {
+        return null;
+    }
+
+    @Override
+    public TaskWorkStateType getWorkState() {
+        return null;
+    }
+
+    @Override
+    public TaskUnpauseActionType getUnpauseAction() {
+        return null;
+    }
+
+    @Override
+    public TaskExecutionStatusType getStateBeforeSuspend() {
+        return null;
     }
 }

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.util;
 
 import java.util.Collection;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -85,13 +83,6 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 		super(taskName, taskOperationPrefix);
 	}
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy(!isPreserveStatistics(), isEnableIterationStatistics(),
-				isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
-	}
-	
 	@Override
 	protected ObjectQuery preProcessQuery(ObjectQuery query, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		// TODO consider which variables should go here (there's no focus, shadow, resource - only configuration)
@@ -120,11 +111,11 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 	@Override
 	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Object coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		modelObjectResolver.searchIterative((Class<O>) type, query, searchOptions, resultHandler, coordinatorTask, opResult);
+		modelObjectResolver.searchIterative(type, query, searchOptions, resultHandler, coordinatorTask, opResult);
 	}
 	
     protected <T extends ObjectType> T resolveObjectRef(Class<T> type, TaskRunResult runResult, Task task, OperationResult opResult) {
-    	String typeName = type.getClass().getSimpleName();
+    	String typeName = type.getSimpleName();
     	String objectOid = task.getObjectOid();
         if (objectOid == null) {
             LOGGER.error("Import: No {} OID specified in the task", typeName);
