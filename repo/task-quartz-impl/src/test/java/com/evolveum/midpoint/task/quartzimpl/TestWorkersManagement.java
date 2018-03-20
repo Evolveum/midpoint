@@ -230,6 +230,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
 				    coordinatorTask.getExecutionStatus());
+		    // in very slow environments the coordinator could be started in the meanwhile, so here the state could be WAITING
 		    assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.RUNNABLE,
 				    coordinatorTask.getStateBeforeSuspend());
 		    assertEquals("Wrong execution status of worker", TaskExecutionStatus.CLOSED, worker.getExecutionStatus());
@@ -272,8 +273,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
 				    coordinatorTask.getExecutionStatus());
 		    // in theory, the execution could be 'after' at this time; so this assertion might fail
-		    assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING,
-				    coordinatorTask.getStateBeforeSuspend());
+		    //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING,
+			//	    coordinatorTask.getStateBeforeSuspend());
 		    assertEquals("Wrong execution status of worker", TaskExecutionStatus.SUSPENDED, worker.getExecutionStatus());
 		    assertEquals("Wrong state-before-suspend of worker", TaskExecutionStatusType.RUNNABLE,
 				    worker.getStateBeforeSuspend());
