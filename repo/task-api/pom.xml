@@ -48,6 +48,11 @@
 			<version>3.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-api</artifactId>
+			<version>3.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>stax</groupId>
 			<artifactId>stax-api</artifactId>
 		</dependency>

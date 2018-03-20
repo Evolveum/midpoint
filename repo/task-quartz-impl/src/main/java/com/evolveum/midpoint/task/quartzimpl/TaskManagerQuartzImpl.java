@@ -35,6 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -538,11 +539,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // todo: better name for this method
 
     @Override
-    public void unpauseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+    public void unpauseTask(Task task, OperationResult parentResult)
+		    throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "unpauseTask");
         result.addArbitraryObjectAsParam("task", task);
 
+        // Here can a race condition occur. If the parent was WAITING but has become SUSPENDED in the meanwhile,
+	    // this test could pass (seeing WAITING status) but the following unpause action is mistakenly executed
+	    // on suspended task, overwriting SUSPENDED status!
+	    //
+	    // Therefore scheduleWaitingTaskNow and makeWaitingTaskRunnable must make sure the task is (still) waiting.
+	    // The closeTask method is OK even if the task has become suspended in the meanwhile.
         if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
             String message = "Attempted to unpause a task that is not in the WAITING state (task = " + task + ", state = " + task.getExecutionStatus();
             LOGGER.error(message);
@@ -561,12 +569,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         switch (action) {
         	case EXECUTE_IMMEDIATELY:
 		        LOGGER.trace("Unpausing task using 'executeImmediately' action (scheduling it now): {}", task);
-		        scheduleTaskNow(task, result);
+		        scheduleWaitingTaskNow(task, result);
 		        break;
 	        case RESCHEDULE:
 		        if (task.isCycle()) {
 			        LOGGER.trace("Unpausing recurring task using 'reschedule' action (making it runnable): {}", task);
-			        makeTaskRunnable(task, result);
+			        makeWaitingTaskRunnable(task, result);
 		        } else {
 			        LOGGER.trace("Unpausing task using 'reschedule' action (closing it, because the task is single-run): {}", task);
 			        closeTask(task, result);
@@ -652,16 +660,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
-    private void makeTaskRunnable(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void makeWaitingTaskRunnable(Task task, OperationResult result)
+		    throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
 
         try {
-            ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);
+            ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, result);
         } catch (ObjectNotFoundException e) {
             String message = "A task cannot be made runnable, because it does not exist; task = " + task;
             LoggingUtils.logException(LOGGER, message, e);
             throw e;
-        } catch (SchemaException e) {
-            String message = "A task cannot be made runnable due to schema exception; task = " + task;
+        } catch (SchemaException | PreconditionViolationException e) {
+            String message = "A task cannot be made runnable; task = " + task;
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             throw e;
         }

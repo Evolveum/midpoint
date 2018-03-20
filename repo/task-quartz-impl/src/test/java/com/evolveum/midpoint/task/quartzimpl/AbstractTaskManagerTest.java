@@ -76,6 +76,10 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 
 	private static final String USER_ADMINISTRATOR_FILE = "src/test/resources/common/user-administrator.xml";
 
+	// TODO make configurable. Due to a race condition there can be a small number of unoptimized complete buckets
+	// (it should not exceed the number of workers ... at least not by much amount :)
+	private static final int OPTIMIZED_BUCKETS_THRESHOLD = 8;
+
 	@Autowired protected RepositoryService repositoryService;
 	@Autowired protected TaskManagerQuartzImpl taskManager;
 	@Autowired protected PrismContext prismContext;
@@ -288,7 +292,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		long completed = task.getWorkState().getBucket().stream()
 				.filter(b -> b.getState() == WorkBucketStateType.COMPLETE)
 				.count();
-		if (completed > 1) {
+		if (completed > OPTIMIZED_BUCKETS_THRESHOLD) {
 			display("Task with more than one completed bucket", task);
 			fail("More than one completed bucket found in task: " + completed + " in " + task);
 		}

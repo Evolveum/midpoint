@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -198,7 +199,11 @@ public class WfTaskController {
     }
 
     public void unpauseTask(WfTask wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        taskManager.unpauseTask(wfTask.getTask(), result);
+	    try {
+		    taskManager.unpauseTask(wfTask.getTask(), result);
+	    } catch (PreconditionViolationException e) {
+		    throw new SystemException("Task " + wfTask + " cannot be unpaused because it is no longer in WAITING state (should not occur)");
+	    }
     }
     //endregion
 

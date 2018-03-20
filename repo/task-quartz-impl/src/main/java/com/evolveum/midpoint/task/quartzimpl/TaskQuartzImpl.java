@@ -42,6 +42,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -402,6 +404,14 @@ public class TaskQuartzImpl implements Task {
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (isPersistent()) {
 			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+			synchronizeWithQuartzIfNeeded(deltas, parentResult);
+		}
+	}
+
+	private void processModificationsNow(Collection<ItemDelta<?, ?>> deltas, ModificationPrecondition<TaskType> precondition, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+		if (isPersistent()) {
+			repositoryService.modifyObject(TaskType.class, getOid(), deltas, precondition, null, parentResult);
 			synchronizeWithQuartzIfNeeded(deltas, parentResult);
 		}
 	}
@@ -924,7 +934,11 @@ public class TaskQuartzImpl implements Task {
 			}
 		}
 		LOGGER.trace("All dependencies of {} are closed, unpausing the task", this);
-		taskManager.unpauseTask(this, result);
+		try {
+			taskManager.unpauseTask(this, result);
+		} catch (PreconditionViolationException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Task cannot be unpaused because it is no longer in WAITING state -- ignoring", e, this);
+		}
 	}
 
 	public int getHandlersCount() {
@@ -1040,6 +1054,16 @@ public class TaskQuartzImpl implements Task {
 			throws ObjectNotFoundException, SchemaException {
 		try {
 			processModificationNow(setExecutionStatusAndPrepareDelta(value), parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+
+	public void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, PreconditionViolationException {
+		try {
+			processModificationsNow(singleton(setExecutionStatusAndPrepareDelta(value)),
+					t -> previousValue == null || previousValue == t.asObjectable().getExecutionStatus(), parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			throw new SystemException(ex);
 		}
