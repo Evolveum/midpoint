@@ -36,7 +36,7 @@
 					<taskKind>coordinator</taskKind>
 					<workers>
 						<workersPerNode>
-							<count>8</count>
+							<count>3</count>
 						</workersPerNode>
 					</workers>
 				</workManagement>
