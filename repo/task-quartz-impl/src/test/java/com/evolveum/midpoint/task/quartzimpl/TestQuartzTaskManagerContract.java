@@ -1387,34 +1387,48 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task1 = getTaskType(task1.getOid(), result);
         assertNull("First task should have no retry time", task1.getNextRetryTimestamp());
 
-		task2 = getTaskType(task2.getOid(), result);
+        String task2Oid = task2.getOid();
+        task2 = getTaskType(task2Oid, result);
 		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
-		assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
+        assertNextRetryTimeSet(task2, result);
 
-		// now finish first task and check the second one is started
+        // now finish first task and check the second one is started
 		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
 		assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2.getOid(), result, 10000, 500);
+		waitForTaskStart(task2Oid, result, 10000, 500);
 
 		// import third task that has another collision (large-ram) with the second one
         TaskType task3 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-3")).asObjectable();
 
         Thread.sleep(10000);
-        task2 = getTaskType(task2.getOid(), result);
+        task2 = getTaskType(task2Oid, result);
         assertNull("Second task should have no retry time", task2.getNextRetryTimestamp());
 
         task3 = getTaskType(task3.getOid(), result);
         assertNull("Third task was started even if it should not be", task3.getLastRunStartTimestamp());
-        assertNotNull("Next retry time is not set for third task", task3.getNextRetryTimestamp());
+        assertNextRetryTimeSet(task3, result);
 
         // now finish second task and check the third one is started
-        stopped = taskManager.suspendTasks(Collections.singleton(task2.getOid()), 20000L, result);
+        stopped = taskManager.suspendTasks(Collections.singleton(task2Oid), 20000L, result);
         assertTrue("Task 2 was not suspended successfully", stopped);
 
         waitForTaskStart(task3.getOid(), result, 10000, 500);
 
 		taskManager.suspendTasks(Collections.singleton(task3.getOid()), 20000L, result);
+    }
+
+    protected void assertNextRetryTimeSet(TaskType task, OperationResult result)
+            throws InterruptedException, SchemaException, ObjectNotFoundException {
+        // this one may occasionally fail because of a race condition (nextRetryTimestamp is derived from quartz scheduling data;
+        // and if the task is just being rescheduled because of a group limitation it might be temporarily null)
+        // -- so if this is the case we check a little later
+        if (task.getNextRetryTimestamp() == null) {
+            Thread.sleep(1000L);
+            task = getTaskType(task.getOid(), result);
+            assertNull("Second task was started even if it should not be", task.getLastRunStartTimestamp());
+            assertNotNull("Next retry time is not set for second task", task.getNextRetryTimestamp());
+        }
     }
 
     @Test
@@ -1434,24 +1448,17 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task1 = getTaskType(task1.getOid(), result);
         assertNull("First task should have no retry time", task1.getNextRetryTimestamp());
 
-		task2 = getTaskType(task2.getOid(), result);
+        String task2Oid = task2.getOid();
+        task2 = getTaskType(task2Oid, result);
 		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
-		// this one may occasionally fail because of a race condition (nextRetryTimestamp is derived from quartz scheduling data;
-        // and if the task2 is just being rescheduled because of a group limitation it might be temporarily null)
-        // -- so if this is the case we check a little later
-        if (task2.getNextRetryTimestamp() == null) {
-            Thread.sleep(1000L);
-            task2 = getTaskType(task2.getOid(), result);
-            assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
-            assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
-        }
+		assertNextRetryTimeSet(task2, result);
 
 		// now finish first task and check the second one is started
 		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
 		assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2.getOid(), result, 10000, 500);
-		taskManager.suspendTasks(Collections.singleton(task2.getOid()), 20000L, result);
+		waitForTaskStart(task2Oid, result, 10000, 500);
+		taskManager.suspendTasks(Collections.singleton(task2Oid), 20000L, result);
     }
 
     private TaskType getTaskType(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {

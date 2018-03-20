@@ -55,7 +55,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestWorkersManagement.class);
 	public static final long DEFAULT_SLEEP_INTERVAL = 250L;
-	public static final long DEFAULT_TIMEOUT = 10000L;
+	public static final long DEFAULT_TIMEOUT = 30000L;
 
 	@Autowired private WorkStateManager workStateManager;
 
@@ -125,39 +125,41 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 	    // THEN
 	    String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
-	    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+	    try {
+		    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-	    TaskQuartzImpl coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    List<Task> workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
+		    TaskQuartzImpl coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    List<Task> workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
 
-	    display("coordinator task", coordinatorTask);
-	    display("worker task", workers.get(0));
+		    display("coordinator task", coordinatorTask);
+		    display("worker task", workers.get(0));
 
-	    waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+		    waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-	    Thread.sleep(1000);         // if workers would be started again, we would get some more processing here
-	    assertEquals("Wrong # of items processed", 4, workBucketsTaskHandler.getItemsProcessed());
+		    Thread.sleep(1000);         // if workers would be started again, we would get some more processing here
+		    assertEquals("Wrong # of items processed", 4, workBucketsTaskHandler.getItemsProcessed());
 
-	    // TODO some asserts here
+		    // TODO some asserts here
 
-	    // WHEN
-	    taskManager.scheduleTasksNow(singleton(coordinatorTaskOid), result);
+		    // WHEN
+		    taskManager.scheduleTasksNow(singleton(coordinatorTaskOid), result);
 
-	    // THEN
-	    waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+		    // THEN
+		    waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-	    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
+		    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
 
-	    display("coordinator task after re-run", coordinatorTask);
-	    display("worker task after re-run", workers.get(0));
+		    display("coordinator task after re-run", coordinatorTask);
+		    display("worker task after re-run", workers.get(0));
 
-	    Thread.sleep(1000);         // if workers would be started again, we would get some more processing here
-	    assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
-
-	    suspendAndDeleteTasks(coordinatorTaskOid);
+		    Thread.sleep(1000);         // if workers would be started again, we would get some more processing here
+		    assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
+	    } finally {
+		    suspendAndDeleteTasks(coordinatorTaskOid);
+	    }
     }
 
     @Test
@@ -171,128 +173,136 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
         // (1) ------------------------------------------------------------------------------------ WHEN (import task)
 	    displayWhen(TEST_NAME, "1: import task");
 	    addObjectFromFile(coordinatorTaskFilename(TEST_NAME));
-
-	    // THEN (worker is created and executed)
-	    displayThen(TEST_NAME, "1: import task");
 	    String coordinatorTaskOid = coordinatorTaskOid(TEST_NAME);
-	    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-	    TaskQuartzImpl coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    List<Task> workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
+	    try {
+		    // THEN (worker is created and executed)
+		    displayThen(TEST_NAME, "1: import task");
+		    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-	    display("coordinator task", coordinatorTask);
-	    display("worker task", workers.get(0));
+		    TaskQuartzImpl coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    List<Task> workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
 
-	    waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+		    display("coordinator task", coordinatorTask);
+		    display("worker task", workers.get(0));
 
-	    assertEquals("Wrong # of items processed", 4, workBucketsTaskHandler.getItemsProcessed());
-	    // TODO some asserts here
+		    waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-	    // coordinator should run automatically in cca 2-3 seconds
+		    assertEquals("Wrong # of items processed", 4, workBucketsTaskHandler.getItemsProcessed());
+		    // TODO some asserts here
 
-	    // (2) ------------------------------------------------------------------------------------ WHEN (wait for coordinator next run)
-	    displayWhen(TEST_NAME, "2: wait for coordinator next run");
-	    // TODO adapt this when the coordinator progress will be reported in other ways
-	    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
+		    // coordinator should run automatically in cca 2-3 seconds
 
-	    // THEN (worker is still present and executed)
-	    displayThen(TEST_NAME, "2: wait for coordinator next run");
-	    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
+		    // (2) ------------------------------------------------------------------------------------ WHEN (wait for coordinator next run)
+		    displayWhen(TEST_NAME, "2: wait for coordinator next run");
+		    // TODO adapt this when the coordinator progress will be reported in other ways
+		    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 2);
 
-	    display("coordinator task after re-run", coordinatorTask);
-	    display("worker task after re-run", workers.get(0));
+		    // THEN (worker is still present and executed)
+		    displayThen(TEST_NAME, "2: wait for coordinator next run");
+		    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
 
-	    waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+		    display("coordinator task after re-run", coordinatorTask);
+		    display("worker task after re-run", workers.get(0));
 
-	    assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
+		    waitForTaskClose(workers.get(0).getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-	    // (3) ------------------------------------------------------------------------------------  WHEN (suspend the tree while work is done)
-	    displayWhen(TEST_NAME, "3: suspend the tree while work is done");
-	    boolean stopped = taskManager.suspendTaskTree(coordinatorTaskOid, 20000L, result);
+		    assertEquals("Wrong # of items processed", 8, workBucketsTaskHandler.getItemsProcessed());
 
-	    // THEN (tasks are suspended)
-	    displayThen(TEST_NAME, "3: suspend the tree while work is done");
-	    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
-	    Task worker = workers.get(0);
+		    // (3) ------------------------------------------------------------------------------------  WHEN (suspend the tree while work is done)
+		    displayWhen(TEST_NAME, "3: suspend the tree while work is done");
+		    boolean stopped = taskManager.suspendTaskTree(coordinatorTaskOid, DEFAULT_TIMEOUT, result);
 
-	    display("coordinator task after suspend-when-waiting", coordinatorTask);
-	    display("worker task after suspend-when-waiting", worker);
+		    // THEN (tasks are suspended)
+		    displayThen(TEST_NAME, "3: suspend the tree while work is done");
+		    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
+		    Task worker = workers.get(0);
 
-	    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED, coordinatorTask.getExecutionStatus());
-	    assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.RUNNABLE, coordinatorTask.getStateBeforeSuspend());
-	    assertEquals("Wrong execution status of worker", TaskExecutionStatus.CLOSED, worker.getExecutionStatus());
-	    assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
+		    assertTrue("tasks were not stopped", stopped);
 
-	    assertTrue("tasks were not stopped", stopped);
+		    display("coordinator task after suspend-when-waiting", coordinatorTask);
+		    display("worker task after suspend-when-waiting", worker);
 
-	    // (4) ------------------------------------------------------------------------------------  WHEN (resume the tree)
-	    displayWhen(TEST_NAME, "4: resume the tree");
-	    taskManager.resumeTaskTree(coordinatorTaskOid, result);
+		    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
+				    coordinatorTask.getExecutionStatus());
+		    assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.RUNNABLE,
+				    coordinatorTask.getStateBeforeSuspend());
+		    assertEquals("Wrong execution status of worker", TaskExecutionStatus.CLOSED, worker.getExecutionStatus());
+		    assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
 
-	    // THEN (tasks are resumed)
-	    displayThen(TEST_NAME, "4: resume the tree");
-	    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
-	    worker = workers.get(0);
+		    // (4) ------------------------------------------------------------------------------------  WHEN (resume the tree)
+		    displayWhen(TEST_NAME, "4: resume the tree");
+		    taskManager.resumeTaskTree(coordinatorTaskOid, result);
 
-	    display("coordinator task after resume-from-suspend-when-waiting", coordinatorTask);
-	    display("worker task after resume-from-suspend-when-waiting", worker);
+		    // THEN (tasks are resumed)
+		    displayThen(TEST_NAME, "4: resume the tree");
+		    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
+		    worker = workers.get(0);
 
-	    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.RUNNABLE, coordinatorTask.getExecutionStatus());
-	    assertEquals("Wrong state-before-suspend of coordinator", null, coordinatorTask.getStateBeforeSuspend());
-	    assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
+		    display("coordinator task after resume-from-suspend-when-waiting", coordinatorTask);
+		    display("worker task after resume-from-suspend-when-waiting", worker);
 
-	    // (5) ------------------------------------------------------------------------------------  WHEN (suspend the tree while worker is executing)
-	    displayWhen(TEST_NAME, "5: suspend the tree while worker is executing");
-	    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 3);
-	    stopped = taskManager.suspendTaskTree(coordinatorTaskOid, 20000L, result);
+		    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.RUNNABLE,
+				    coordinatorTask.getExecutionStatus());
+		    assertEquals("Wrong state-before-suspend of coordinator", null, coordinatorTask.getStateBeforeSuspend());
+		    assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
 
-	    // THEN (tasks are suspended)
-	    displayThen(TEST_NAME, "5: suspend the tree while worker is executing");
-	    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
-	    worker = workers.get(0);
+		    // (5) ------------------------------------------------------------------------------------  WHEN (suspend the tree while worker is executing)
+		    displayWhen(TEST_NAME, "5: suspend the tree while worker is executing");
+		    waitForTaskProgress(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 3);
+		    stopped = taskManager.suspendTaskTree(coordinatorTaskOid, DEFAULT_TIMEOUT, result);
 
-	    display("coordinator task after suspend-when-running", coordinatorTask);
-	    display("worker task after suspend-when-running", worker);
+		    // THEN (tasks are suspended)
+		    displayThen(TEST_NAME, "5: suspend the tree while worker is executing");
+		    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
+		    worker = workers.get(0);
 
-	    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED, coordinatorTask.getExecutionStatus());
-	    // in theory, the execution could be 'after' at this time; so this assertion might fail
-	    assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING, coordinatorTask.getStateBeforeSuspend());
-	    assertEquals("Wrong execution status of worker", TaskExecutionStatus.SUSPENDED, worker.getExecutionStatus());
-	    assertEquals("Wrong state-before-suspend of worker", TaskExecutionStatusType.RUNNABLE, worker.getStateBeforeSuspend());
+		    display("coordinator task after suspend-when-running", coordinatorTask);
+		    display("worker task after suspend-when-running", worker);
 
-	    assertTrue("tasks were not stopped", stopped);
+		    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.SUSPENDED,
+				    coordinatorTask.getExecutionStatus());
+		    // in theory, the execution could be 'after' at this time; so this assertion might fail
+		    assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.WAITING,
+				    coordinatorTask.getStateBeforeSuspend());
+		    assertEquals("Wrong execution status of worker", TaskExecutionStatus.SUSPENDED, worker.getExecutionStatus());
+		    assertEquals("Wrong state-before-suspend of worker", TaskExecutionStatusType.RUNNABLE,
+				    worker.getStateBeforeSuspend());
 
-	    // (6) ------------------------------------------------------------------------------------  WHEN (resume after 2nd suspend)
-	    displayWhen(TEST_NAME, "6: resume after 2nd suspend");
-	    taskManager.resumeTaskTree(coordinatorTaskOid, result);
+		    assertTrue("tasks were not stopped", stopped);
 
-	    // THEN (tasks are suspended)
-	    displayThen(TEST_NAME, "6: resume after 2nd suspend");
-	    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
-	    workers = coordinatorTask.listSubtasks(result);
-	    assertEquals("Wrong # of workers", 1, workers.size());
-	    worker = workers.get(0);
+		    // (6) ------------------------------------------------------------------------------------  WHEN (resume after 2nd suspend)
+		    displayWhen(TEST_NAME, "6: resume after 2nd suspend");
+		    taskManager.resumeTaskTree(coordinatorTaskOid, result);
 
-	    display("coordinator task after resume-after-2nd-suspend", coordinatorTask);
-	    display("worker task after resume-after-2nd-suspend", worker);
+		    // THEN (tasks are suspended)
+		    displayThen(TEST_NAME, "6: resume after 2nd suspend");
+		    coordinatorTask = taskManager.getTask(coordinatorTaskOid(TEST_NAME), result);
+		    workers = coordinatorTask.listSubtasks(result);
+		    assertEquals("Wrong # of workers", 1, workers.size());
+		    worker = workers.get(0);
 
-	    waitForTaskClose(worker.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+		    display("coordinator task after resume-after-2nd-suspend", coordinatorTask);
+		    display("worker task after resume-after-2nd-suspend", worker);
 
-	    // brittle - might fail
-	    assertEquals("Wrong # of items processed", 12, workBucketsTaskHandler.getItemsProcessed());
+		    waitForTaskClose(worker.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-	    // cleanup
+		    // brittle - might fail
+		    assertEquals("Wrong # of items processed", 12, workBucketsTaskHandler.getItemsProcessed());
 
-	    suspendAndDeleteTasks(coordinatorTaskOid);
+		    // cleanup
+	    } finally {
+		    suspendAndDeleteTasks(coordinatorTaskOid);
+	    }
     }
 
 	@Test
@@ -309,23 +319,27 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		// THEN
 		String masterTaskOid = taskOid(TEST_NAME, "r");
-		waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+		try {
+			waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-		TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
-		List<Task> subtasks = masterTask.listSubtasks(result);
+			TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
+			List<Task> subtasks = masterTask.listSubtasks(result);
 
-		display("master task", masterTask);
-		display("subtasks", subtasks);
+			display("master task", masterTask);
+			display("subtasks", subtasks);
 
-		assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
-		assertEquals("Wrong # of partitions", 3, subtasks.size());
+			assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
+			assertEquals("Wrong # of partitions", 3, subtasks.size());
 
-		waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-		assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
+			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
 
-		// TODO some asserts here
-		// TODO test suspend, resume here
+			// TODO some asserts here
+			// TODO test suspend, resume here
+		} finally {
+			suspendAndDeleteTasks(masterTaskOid);
+		}
 	}
 
 	@Test
@@ -342,43 +356,47 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		// THEN
 		String masterTaskOid = taskOid(TEST_NAME, "r");
-		waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+		try {
+			waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-		TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
-		List<Task> subtasks = masterTask.listSubtasks(result);
+			TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
+			List<Task> subtasks = masterTask.listSubtasks(result);
 
-		display("master task", masterTask);
-		display("subtasks", subtasks);
+			display("master task", masterTask);
+			display("subtasks", subtasks);
 
-		assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
-		assertEquals("Wrong # of partitions", 3, subtasks.size());
+			assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
+			assertEquals("Wrong # of partitions", 3, subtasks.size());
 
-		Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
-		Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
-		assertNotNull("Second-phase task was not created", second);
-		assertNotNull("Third-phase task was not created", third);
+			Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
+			Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
+			assertNotNull("Second-phase task was not created", second);
+			assertNotNull("Third-phase task was not created", third);
 
-		waitForTaskCloseCheckingSubtasks(second.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
-		second = taskManager.getTask(second.getOid(), result);
-		display("Second task after completion", second);
-		List<Task> secondSubtasks = second.listSubtasks(result);
-		display("Subtasks of second task after completion", secondSubtasks);
-		assertEquals("Wrong # of second task's subtasks", 8, secondSubtasks.size());
+			waitForTaskCloseCheckingSubtasks(second.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+			second = taskManager.getTask(second.getOid(), result);
+			display("Second task after completion", second);
+			List<Task> secondSubtasks = second.listSubtasks(result);
+			display("Subtasks of second task after completion", secondSubtasks);
+			assertEquals("Wrong # of second task's subtasks", 8, secondSubtasks.size());
 
-		waitForTaskCloseCheckingSubtasks(third.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
-		third = taskManager.getTask(third.getOid(), result);
-		display("Third task after completion", third);
-		List<Task> thirdSubtasks = third.listSubtasks(result);
-		display("Subtasks of third task after completion", thirdSubtasks);
-		assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
+			waitForTaskCloseCheckingSubtasks(third.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+			third = taskManager.getTask(third.getOid(), result);
+			display("Third task after completion", third);
+			List<Task> thirdSubtasks = third.listSubtasks(result);
+			display("Subtasks of third task after completion", thirdSubtasks);
+			assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 
-		waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-		assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
+			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
 
-		// TODO some asserts here
+			// TODO some asserts here
 
-		// TODO test suspend, resume here
+			// TODO test suspend, resume here
+		} finally {
+			suspendAndDeleteTasks(masterTaskOid);
+		}
 	}
 
 	@Test
@@ -394,51 +412,54 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		// THEN
 		String masterTaskOid = taskOid(TEST_NAME, "r");
-		waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
+		try {
+			waitForTaskProgress(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL, 1);
 
-		TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
-		List<Task> subtasks = masterTask.listSubtasks(result);
+			TaskQuartzImpl masterTask = taskManager.getTask(masterTaskOid, result);
+			List<Task> subtasks = masterTask.listSubtasks(result);
 
-		display("master task", masterTask);
-		display("subtasks", subtasks);
+			display("master task", masterTask);
+			display("subtasks", subtasks);
 
-		assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
-		assertEquals("Wrong # of partitions", 3, subtasks.size());
+			assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
+			assertEquals("Wrong # of partitions", 3, subtasks.size());
 
-		Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
-		Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
-		assertNotNull("Second-phase task was not created", second);
-		assertNotNull("Third-phase task was not created", third);
+			Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
+			Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
+			assertNotNull("Second-phase task was not created", second);
+			assertNotNull("Third-phase task was not created", third);
 
-		waitForTaskCloseCheckingSubtasks(second.getOid(), result, 30000L, DEFAULT_SLEEP_INTERVAL);
-		second = taskManager.getTask(second.getOid(), result);
-		display("Second task after completion", second);
-		List<Task> secondSubtasks = second.listSubtasks(result);
-		display("Subtasks of second task after completion", secondSubtasks);
-		assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
+			waitForTaskCloseCheckingSubtasks(second.getOid(), result, 30000L, DEFAULT_SLEEP_INTERVAL);
+			second = taskManager.getTask(second.getOid(), result);
+			display("Second task after completion", second);
+			List<Task> secondSubtasks = second.listSubtasks(result);
+			display("Subtasks of second task after completion", secondSubtasks);
+			assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
 
-		waitForTaskCloseCheckingSubtasks(third.getOid(), result, 20000L, DEFAULT_SLEEP_INTERVAL);
-		third = taskManager.getTask(third.getOid(), result);
-		display("Third task after completion", third);
-		List<Task> thirdSubtasks = third.listSubtasks(result);
-		display("Subtasks of third task after completion", thirdSubtasks);
-		assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
+			waitForTaskCloseCheckingSubtasks(third.getOid(), result, 20000L, DEFAULT_SLEEP_INTERVAL);
+			third = taskManager.getTask(third.getOid(), result);
+			display("Third task after completion", third);
+			List<Task> thirdSubtasks = third.listSubtasks(result);
+			display("Subtasks of third task after completion", thirdSubtasks);
+			assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 
-		waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
-		assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
+			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
 
-		assertEquals("Wrong # of items processed", 41, partitionedWorkBucketsTaskHandler.getItemsProcessed());
+			assertEquals("Wrong # of items processed", 41, partitionedWorkBucketsTaskHandler.getItemsProcessed());
 
-		int totalItems2 = getTotalItemsProcessed(second.getOid());
-		assertEquals("Wrong # of items processed in 2nd stage", 32, totalItems2);
+			int totalItems2 = getTotalItemsProcessed(second.getOid());
+			assertEquals("Wrong # of items processed in 2nd stage", 32, totalItems2);
 
-		int totalItems3 = getTotalItemsProcessed(third.getOid());
-		assertEquals("Wrong # of items processed in 3rd stage", 8, totalItems3);
+			int totalItems3 = getTotalItemsProcessed(third.getOid());
+			assertEquals("Wrong # of items processed in 3rd stage", 8, totalItems3);
 
-		// TODO some asserts here
+			// TODO some asserts here
 
-		// TODO test suspend, resume here
+			// TODO test suspend, resume here
+		} finally {
+			suspendAndDeleteTasks(masterTaskOid);
+		}
 	}
-
 }
