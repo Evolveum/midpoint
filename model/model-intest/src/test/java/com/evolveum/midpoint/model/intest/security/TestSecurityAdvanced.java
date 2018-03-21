@@ -55,6 +55,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -82,6 +84,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -96,6 +100,13 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	private static final String BIG_BADA_BOOM = "bigBadaBoom";
 	private static final String HUGE_BADA_BOOM = "hugeBadaBoom";
 	private static final String FIRST_RULE = "firstRule";
+	
+	protected static final File RESOURCE_DUMMY_VAULT_FILE = new File(TEST_DIR, "resource-dummy-vault.xml");
+	protected static final String RESOURCE_DUMMY_VAULT_OID = "84a420cc-2904-11e8-862b-0fc0d7ab7174";
+	protected static final String RESOURCE_DUMMY_VAULT_NAME = "vault";
+	
+	protected static final File ROLE_VAULT_DWELLER_FILE = new File(TEST_DIR, "role-vault-dweller.xml");
+	protected static final String ROLE_VAULT_DWELLER_OID = "8d8471f4-2906-11e8-9078-4f2b205aa01d";
 	
 	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
 	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
@@ -129,6 +140,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
+		initDummyResourcePirate(RESOURCE_DUMMY_VAULT_NAME,
+				RESOURCE_DUMMY_VAULT_FILE, RESOURCE_DUMMY_VAULT_OID, initTask, initResult);
+		
+		repoAddObjectFromFile(ROLE_VAULT_DWELLER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MAXASSIGNEES_10_FILE, initResult);
@@ -141,7 +156,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 8;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 9;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -1285,10 +1300,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertSearchDeny(RoleType.class, null, null);
         assertSearchDeny(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("business").build(),
+        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("business").build(),
         		null);
         assertSearchDeny(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
+        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("application").build(),
         		null);
         
         assertGlobalStateUntouched();
@@ -1329,9 +1344,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertSearch(RoleType.class, null, 3);
         assertSearch(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("business").build(), 3);
+        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("business").build(), 3);
         assertSearchDeny(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
+        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("application").build(),
         		null);
         
         assertGlobalStateUntouched();
@@ -1939,7 +1954,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		display("Exclusion role edit schema", roleExclusionEditSchema);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_NAME, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_DESCRIPTION, true, true, true);
-		assertItemFlags(roleExclusionEditSchema, RoleType.F_ROLE_TYPE, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_SUB_TYPE, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_METADATA, false, false, false);
 		
@@ -2200,7 +2215,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		display("Exclusion role edit schema", roleEmptyEditSchema);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_NAME, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_DESCRIPTION, true, true, true);
-		assertItemFlags(roleEmptyEditSchema, RoleType.F_ROLE_TYPE, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_SUB_TYPE, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_METADATA, false, false, false);
 		
@@ -2760,6 +2775,57 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
         		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_FROM,
         		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_TO);
+		
+		assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4304
+	 */
+	@Test
+    public void test320AutzJackGuybrushValutDweller() throws Exception {
+		final String TEST_NAME = "test320AutzJackGuybrushValutDweller";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assertNoDummyAccount(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME);
+		
+		assignRole(USER_JACK_OID, ROLE_ASSIGN_APPLICATION_ROLES_OID);
+		modifyJackValidTo();
+		login(USER_JACK_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		PrismObject<UserType> userBuybrush = getUser(USER_GUYBRUSH_OID);
+		display("Guybrush(1)", userBuybrush);
+		assertAssignments(userBuybrush, 1);
+		
+		assertGetDeny(LookupTableType.class, LOOKUP_LANGUAGES_OID);
+
+		assertAllow("assign vault dweller role to guybrush",
+        		(task, result) -> assignRole(USER_GUYBRUSH_OID, ROLE_VAULT_DWELLER_OID, task, result)
+			);
+
+		userBuybrush = getUser(USER_GUYBRUSH_OID);
+		display("Guybrush(2)", userBuybrush);
+        assertAssignments(userBuybrush, 2);
+        assertAssignedRole(userBuybrush, ROLE_VAULT_DWELLER_OID);
+        
+        assertDummyAccount(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "I can see lookupTable:70000000-0000-0000-1111-000000000001(Languages)");
+        
+        assertGetDeny(LookupTableType.class, LOOKUP_LANGUAGES_OID);
+        
+        assertAllow("unassign vault dweller role from guybrush",
+        		(task, result) -> unassignRole(USER_GUYBRUSH_OID, ROLE_VAULT_DWELLER_OID, task, result)
+			);
+
+        userBuybrush = getUser(USER_GUYBRUSH_OID);
+        assertAssignments(userBuybrush, 1);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME);
 		
 		assertGlobalStateUntouched();
 	}

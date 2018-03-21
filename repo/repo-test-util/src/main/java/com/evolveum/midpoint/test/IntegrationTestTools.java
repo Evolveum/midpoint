@@ -376,11 +376,11 @@ public class IntegrationTestTools {
 		return values.iterator().next();
 	}
 
-	public static void waitFor(String message, Checker checker, int timeoutInterval) throws CommonException {
+	public static void waitFor(String message, Checker checker, long timeoutInterval) throws CommonException {
         waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILIS);
     }
 
-	public static void waitFor(String message, Checker checker, int timeoutInterval, long sleepInterval) throws CommonException {
+	public static void waitFor(String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
 		System.out.println(message);
 		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
 		long startTime = System.currentTimeMillis();
@@ -523,9 +523,7 @@ public class IntegrationTestTools {
 		String stackTrace = ExceptionUtils.getStackTrace(e);
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title + ": "+e.getClass() + " " + e.getMessage());
 		System.out.println(stackTrace);
-		LOGGER.debug("{}{}: {} {}\n{}", new Object[]{
-				OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(),
-				stackTrace});
+		LOGGER.debug("{}{}: {} {}\n{}", OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(), stackTrace);
 	}
 
 	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {

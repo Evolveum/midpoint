@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright (c) 2017-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="8d8471f4-2906-11e8-9078-4f2b205aa01d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Vault Dweller</name>
+    <subType>application</subType>
+    <inducement>
+	    <construction>
+	    		<resourceRef oid="84a420cc-2904-11e8-862b-0fc0d7ab7174" type="c:ResourceType"/> <!-- Vault -->
+	    		<kind>account</kind>
+	    </construction>
+    </inducement>
+    <authorization>
+    	<name>read-some-roles</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:or>
+					<q:equal>
+						<q:path>subType</q:path>
+						<q:value>application</q:value>
+					</q:equal>
+					<q:equal>
+						<q:path>subType</q:path>
+						<q:value>business</q:value>
+					</q:equal>
+				</q:or>
+    		</filter>
+    	</object>
+    </authorization>
+</role>

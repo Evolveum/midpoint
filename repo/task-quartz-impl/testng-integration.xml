@@ -19,6 +19,8 @@
 	<test name="task" preserve-order="true">
 		<classes>
 			<class name="com.evolveum.midpoint.task.quartzimpl.TestQuartzTaskManagerContract"/>
+			<class name="com.evolveum.midpoint.task.quartzimpl.TestWorkDistribution"/>
+			<class name="com.evolveum.midpoint.task.quartzimpl.TestWorkersManagement"/>
             <class name="com.evolveum.midpoint.task.quartzimpl.CleanupTest"/>
 		</classes>
 	</test>

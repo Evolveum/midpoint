@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
@@ -283,12 +285,14 @@ public class ExecutionManager {
 
         boolean interruptExecuted = false;
 
-        LOGGER.trace("Waiting for task(s) " + tasks + " to complete, at most for " + maxWaitTime + " ms.");
+        LOGGER.trace("Waiting for task(s) {} to complete, at most for {} ms.", tasks, maxWaitTime);
 
         Set<String> oids = new HashSet<>();
-        for (Task t : tasks)
-            if (t.getOid() != null)
+        for (Task t : tasks) {
+            if (t.getOid() != null) {
                 oids.add(t.getOid());
+            }
+        }
 
         long singleWait = WAIT_FOR_COMPLETION_INITIAL;
         long started = System.currentTimeMillis();
@@ -335,8 +339,9 @@ public class ExecutionManager {
                 LOGGER.trace("Waiting interrupted" + e);
             }
 
-            if (singleWait < WAIT_FOR_COMPLETION_MAX)
+            if (singleWait < WAIT_FOR_COMPLETION_MAX) {
                 singleWait *= 2;
+            }
         }
     }
 
@@ -580,19 +585,47 @@ public class ExecutionManager {
             unscheduleTask(task, result);
             ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
             synchronizeTask((TaskQuartzImpl) task, result);
-            result.computeStatus();
+        } else {
+            // otherwise, we simply add another trigger to this task
+            addTriggerNowForTask(task, result);
+        }
+	    result.recordSuccessIfUnknown();
+    }
+
+    // experimental
+    public void scheduleWaitingTaskNow(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleWaitingTaskNow");
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+            String message = "Task " + task + " cannot be scheduled as waiting task, because it is not in WAITING state.";
+            result.recordFatalError(message);
+            LOGGER.error(message);
             return;
         }
 
-        // otherwise, we simply add another trigger to this task
+        try {
+            if (!quartzScheduler.checkExists(TaskQuartzImplUtil.createJobKeyForTask(task))) {
+                quartzScheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
+            }
+	        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
+        } catch (SchedulerException | ObjectNotFoundException | SchemaException | PreconditionViolationException e) {
+            String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
+            result.recordFatalError(message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            return;
+        }
+	    addTriggerNowForTask(task, result);
+        result.recordSuccessIfUnknown();
+    }
+
+    private void addTriggerNowForTask(Task task, OperationResult result) {
         Trigger now = TaskQuartzImplUtil.createTriggerNowForTask(task);
         try {
             quartzScheduler.scheduleJob(now);
-            result.recordSuccess();
         } catch (SchedulerException e) {
             String message = "Task " + task + " cannot be scheduled: " + e.getMessage();
             result.recordFatalError(message, e);
-            LOGGER.error(message);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
         }
     }
 

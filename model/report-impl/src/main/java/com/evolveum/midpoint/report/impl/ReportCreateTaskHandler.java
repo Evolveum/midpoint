@@ -555,11 +555,4 @@ public class ReportCreateTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.REPORT;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 }

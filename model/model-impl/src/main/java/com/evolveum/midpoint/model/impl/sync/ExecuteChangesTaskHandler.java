@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -91,6 +92,7 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 		return getTypeFromTask(task, UserType.class);
 	}
 
+	@NotNull
 	@Override
 	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
@@ -140,10 +142,4 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
     public String getCategoryName(Task task) {
         return TaskCategory.EXECUTE_CHANGES;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
 }

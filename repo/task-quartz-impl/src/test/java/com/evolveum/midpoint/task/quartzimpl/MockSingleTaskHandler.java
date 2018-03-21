@@ -92,7 +92,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 LOGGER.info("L1 handler, first run - scheduling L2 handler");
                 ScheduleType l2Schedule = new ScheduleType();
                 l2Schedule.setInterval(2);
-                task.pushHandlerUri(TestQuartzTaskManagerContract.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(l1FlagDefinition, true));
+                task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(l1FlagDefinition, true));
                 try {
                     task.savePendingModifications(opResult);
                 } catch(Exception e) {
@@ -105,7 +105,7 @@ public class MockSingleTaskHandler implements TaskHandler {
         } else if ("L2".equals(id)) {
             if (task.getProgress() == 5) {
                 LOGGER.info("L2 handler, fourth run - scheduling L3 handler");
-                task.pushHandlerUri(TestQuartzTaskManagerContract.L3_TASK_HANDLER_URI, new ScheduleType(), null);
+                task.pushHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI, new ScheduleType(), null);
                 try {
                     task.savePendingModifications(opResult);
                 } catch(Exception e) {
@@ -133,11 +133,11 @@ public class MockSingleTaskHandler implements TaskHandler {
                 LOGGER.info("Wait-for-subtasks creating subtasks...");
 
                 Task t1 = task.createSubtask();
-                t1.setHandlerUri(TestQuartzTaskManagerContract.L3_TASK_HANDLER_URI);
+                t1.setHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI);
                 taskManager.switchToBackground(t1, opResult);
 
                 Task t2 = task.createSubtask();
-                t2.setHandlerUri(TestQuartzTaskManagerContract.SINGLE_TASK_HANDLER_URI);
+                t2.setHandlerUri(AbstractTaskManagerTest.SINGLE_TASK_HANDLER_URI);
                 taskManager.switchToBackground(t2, opResult);
 
                 try {
@@ -180,11 +180,6 @@ public class MockSingleTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 
     public TaskManagerQuartzImpl getTaskManager() {

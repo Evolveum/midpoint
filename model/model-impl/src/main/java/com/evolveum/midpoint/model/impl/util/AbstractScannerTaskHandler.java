@@ -107,9 +107,4 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
     public String getCategoryName(Task task) {
         return TaskCategory.SYSTEM;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }

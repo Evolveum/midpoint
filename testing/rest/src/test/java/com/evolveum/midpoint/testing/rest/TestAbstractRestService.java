@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Evolveum
+ * Copyright (c) 2013-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.evolveum.midpoint.testing.rest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.util.TestUtil.displayTestTitle;
+import static com.evolveum.midpoint.test.util.TestUtil.displayWhen;
+import static com.evolveum.midpoint.test.util.TestUtil.displayThen;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -29,8 +31,10 @@ import java.util.function.Function;
 
 import javax.ws.rs.core.Response;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.*;
@@ -42,6 +46,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -53,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -111,7 +117,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	private static final String MODIFICATION_DISABLE = "modification-disable";
 	private static final String MODIFICATION_ENABLE = "modification-enable";
 	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier";
+	private static final String MODIFICATION_REPLACE_ANSWER_ID_1_VALUE = "modification-replace-answer-id-1-value";
+	private static final String MODIFICATION_REPLACE_TWO_ANSWERS = "modification-replace-two-answers";
 	private static final String MODIFICATION_REPLACE_ANSWER = "modification-replace-answer";
+	private static final String MODIFICATION_REPLACE_NO_ANSWER = "modification-replace-no-answer";
 	private static final String MODIFICATION_FORCE_PASSWORD_CHANGE = "modification-force-password-change";
 	private static final String EXECUTE_CREDENTIAL_RESET = "execute-credential-reset";
 
@@ -119,7 +128,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	protected abstract File getRepoFile(String fileBaseName);
 	protected abstract File getRequestFile(String fileBaseName);
 
-	public static final String QUESTION_ID = "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001";
+	private static final String NS_SECURITY_QUESTION_ANSWER = "http://midpoint.evolveum.com/xml/ns/public/security/question-2";
+	public static final String QUESTION_ID = QNameUtil.qNameToUri(new QName(NS_SECURITY_QUESTION_ANSWER, "q001"));
 
 
 	public TestAbstractRestService() {
@@ -1347,9 +1357,12 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		return extractedResults;
 	}
 
+	/**
+	 * MID-4528
+	 */
 	@Test
-	public void test600modifySecurityQuestionAnswer() throws Exception {
-		final String TEST_NAME = "test600modifySecurityQuestionAnswer";
+	public void test600ModifySecurityQuestionReplaceAnswerId1Existing() throws Exception {
+		final String TEST_NAME = "test600ModifySecurityQuestionReplaceAnswerId1Existing";
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -1357,30 +1370,151 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		getDummyAuditService().clear();
 
-		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER));
+		// WHEN
+		displayWhen(TEST_NAME);
+		Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER_ID_1_VALUE));
 
-		TestUtil.displayThen(TEST_NAME);
+		// THEN
+		displayThen(TEST_NAME);
 		displayResponse(response);
 		traceResponse(response);
 
 		assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
-
 
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(4);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 
-		TestUtil.displayWhen(TEST_NAME);
-		response = client.get();
-
-		TestUtil.displayThen(TEST_NAME);
-		displayResponse(response);
-
+		UserType userFromResponse = getUserRest(USER_DARTHADDER_OID);
+		assertSecurityQuestionAnswer(userFromResponse, "newAnswer");
+		
+		PrismObject<UserType> userRepoAfter = getObjectRepo(UserType.class, USER_DARTHADDER_OID);
+		display("User after", userRepoAfter);
+		assertSecurityQuestionAnswer(userRepoAfter.asObjectable(), "newAnswer");
+	}
+	
+	private UserType getUserRest(String oid) {
+		WebClient client = prepareClient();
+		client.path("/users/" + oid);
+		Response response = client.get();
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-		UserType userDarthadder = response.readEntity(UserType.class);
-		CredentialsType credentials = userDarthadder.getCredentials();
+		return response.readEntity(UserType.class);
+	}
+	
+	/**
+	 * MID-4528
+	 */
+	@Test
+	public void test602ModifySecurityQuestionReplaceTwoAnswersExisting() throws Exception {
+		final String TEST_NAME = "test602ModifySecurityQuestionReplaceTwoAnswersExisting";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID);
+
+		getDummyAuditService().clear();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		Response response = client.post(getRequestFile(MODIFICATION_REPLACE_TWO_ANSWERS));
+
+		// THEN
+		displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+		assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
+		
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+
+		UserType userFromResponse = getUserRest(USER_DARTHADDER_OID);
+		assertSecurityQuestionAnswers(userFromResponse, "yet another answer", "42");
+		
+		PrismObject<UserType> userRepoAfter = getObjectRepo(UserType.class, USER_DARTHADDER_OID);
+		display("User after", userRepoAfter);
+		assertSecurityQuestionAnswers(userRepoAfter.asObjectable(), "yet another answer", "42");
+	}
+	
+	/**
+	 * MID-4528
+	 */
+	@Test
+	public void test604ModifySecurityQuestionReplaceNoAnswer() throws Exception {
+		final String TEST_NAME = "test604ModifySecurityQuestionReplaceNoAnswer";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID);
+
+		getDummyAuditService().clear();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		Response response = client.post(getRequestFile(MODIFICATION_REPLACE_NO_ANSWER));
+
+		// THEN
+		displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+		assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
+		
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+
+		UserType userFromResponse = getUserRest(USER_DARTHADDER_OID);
+		assertSecurityQuestionNoAnswer(userFromResponse);
+		
+		PrismObject<UserType> userRepoAfter = getObjectRepo(UserType.class, USER_DARTHADDER_OID);
+		display("User after", userRepoAfter);
+		assertSecurityQuestionNoAnswer(userRepoAfter.asObjectable());
+	}
+	
+	/**
+	 * MID-4528
+	 */
+	@Test
+	public void test606ModifySecurityQuestionReplaceAnswer() throws Exception {
+		final String TEST_NAME = "test606ModifySecurityQuestionReplaceAnswer";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID);
+
+		getDummyAuditService().clear();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER));
+
+		// THEN
+		displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+		assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+
+		UserType userFromResponse = getUserRest(USER_DARTHADDER_OID);
+		assertSecurityQuestionAnswer(userFromResponse, "you would not believe what happens next");
+		
+		PrismObject<UserType> userRepoAfter = getObjectRepo(UserType.class, USER_DARTHADDER_OID);
+		display("User after", userRepoAfter);
+		assertSecurityQuestionAnswer(userRepoAfter.asObjectable(), "you would not believe what happens next");
+	}
+
+	private void assertSecurityQuestionAnswer(UserType userType, String expectedAnswer) throws EncryptionException {
+		CredentialsType credentials = userType.getCredentials();
 		assertNotNull("No credentials in user. Something is wrong.", credentials);
 		SecurityQuestionsCredentialsType securityQuestions = credentials.getSecurityQuestions();
 		assertNotNull("No security questions defined for user. Something is wrong.", securityQuestions);
@@ -1389,12 +1523,49 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		SecurityQuestionAnswerType secQuestionAnswer = secQuestionAnswers.iterator().next();
 		String decrypted = getPrismContext().getDefaultProtector().decryptString(secQuestionAnswer.getQuestionAnswer());
-		assertEquals("Unexpected answer " + decrypted + ". Expected 'newAnswer'." , "newAnswer", decrypted);
+		assertEquals("Unexpected security question answer in " + userType, expectedAnswer, decrypted);
 	}
+	
+	private void assertSecurityQuestionAnswers(UserType userType, String expectedAnswer001, String expectedAnswer002) throws EncryptionException {
+		CredentialsType credentials = userType.getCredentials();
+		assertNotNull("No credentials in user. Something is wrong.", credentials);
+		SecurityQuestionsCredentialsType securityQuestions = credentials.getSecurityQuestions();
+		assertNotNull("No security questions defined for user. Something is wrong.", securityQuestions);
+		List<SecurityQuestionAnswerType> secQuestionAnswers = securityQuestions.getQuestionAnswer();
+		assertEquals("Expected just one question-answer couple, but found " + secQuestionAnswers.size(), 2, secQuestionAnswers.size());
 
+		assertSecurityQuestionAnswer(secQuestionAnswers, "q001", expectedAnswer001);
+		assertSecurityQuestionAnswer(secQuestionAnswers, "q002", expectedAnswer002);
+		SecurityQuestionAnswerType secQuestionAnswer = secQuestionAnswers.iterator().next();
+		String decrypted = getPrismContext().getDefaultProtector().decryptString(secQuestionAnswer.getQuestionAnswer());
+		assertEquals("Unexpected security question 001 answer in " + userType, expectedAnswer001, decrypted);
+	}
+	
+	private void assertSecurityQuestionNoAnswer(UserType userType) throws EncryptionException {
+		CredentialsType credentials = userType.getCredentials();
+		assertNotNull("No credentials in user. Something is wrong.", credentials);
+		SecurityQuestionsCredentialsType securityQuestions = credentials.getSecurityQuestions();
+		assertNotNull("No security questions defined for user. Something is wrong.", securityQuestions);
+		List<SecurityQuestionAnswerType> secQuestionAnswers = securityQuestions.getQuestionAnswer();
+		assertEquals("Expected no question-answer couple, but found " + secQuestionAnswers.size(), 0, secQuestionAnswers.size());
+	}
+	
+	private void assertSecurityQuestionAnswer(List<SecurityQuestionAnswerType> secQuestionAnswers,
+			String anwerUriLocalPart, String expectedAnswer) throws EncryptionException {
+		for (SecurityQuestionAnswerType secQuestionAnswer: secQuestionAnswers) {
+			if (secQuestionAnswer.getQuestionIdentifier().equals(QNameUtil.qNameToUri(
+					new QName(NS_SECURITY_QUESTION_ANSWER, anwerUriLocalPart)))) {
+				String decrypted = getPrismContext().getDefaultProtector().decryptString(secQuestionAnswer.getQuestionAnswer());
+				assertEquals("Unexpected security question "+anwerUriLocalPart+" answer", expectedAnswer, decrypted);
+				return;
+			}
+		}
+		AssertJUnit.fail("Security question answer "+anwerUriLocalPart+" not found");
+	}
+	
 	@Test
-	public void test601modifyPasswordForceChange() throws Exception {
-		final String TEST_NAME = "test601modifyPasswordForceChange";
+	public void test610ModifyPasswordForceChange() throws Exception {
+		final String TEST_NAME = "test610ModifyPasswordForceChange";
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -1434,8 +1605,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	}
 	
 	@Test
-	public void test602resetPassword() throws Exception {
-		final String TEST_NAME = "test602resetPassword";
+	public void test612ResetPassword() throws Exception {
+		final String TEST_NAME = "test612ResetPassword";
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -1493,5 +1664,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	private void displayResponse(Response response) {
 		LOGGER.info("response : {} ", response.getStatus());
 		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
+	}
+	
+	protected <O extends ObjectType> PrismObject<O> getObjectRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getObjectRepo");
+		return repositoryService.getObject(type, oid, null, result);
 	}
 }

@@ -93,11 +93,6 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
 	}
 
 	@Override
-	public List<String> getCategoryNames() {
-		return null;
-	}
-
-	@Override
 	protected ObjectQuery createQuery(MultiPropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) throws SchemaException {
 		ObjectQuery objectQuery = createQueryFromTask(handler, runResult, coordinatorTask, opResult);

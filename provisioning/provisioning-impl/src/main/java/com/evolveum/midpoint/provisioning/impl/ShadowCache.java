@@ -1680,10 +1680,10 @@ public abstract class ShadowCache {
 			throws SchemaException {
 		List<ObjectFilter> attributeFilter = new ArrayList<>();
 		for (ObjectFilter f : conditions) {
-			if (f instanceof EqualFilter) {
-				ItemPath parentPath = ((EqualFilter) f).getParentPath();
+			if (f instanceof PropertyValueFilter) { // TODO
+				ItemPath parentPath = ((PropertyValueFilter) f).getParentPath();
 				if (parentPath.isEmpty()) {
-					QName elementName = ((EqualFilter) f).getElementName();
+					QName elementName = ((PropertyValueFilter) f).getElementName();
 					if (QNameUtil.match(ShadowType.F_OBJECT_CLASS, elementName) ||
 							QNameUtil.match(ShadowType.F_AUXILIARY_OBJECT_CLASS, elementName) ||
 							QNameUtil.match(ShadowType.F_KIND, elementName) ||

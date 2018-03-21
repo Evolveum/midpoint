@@ -366,7 +366,11 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) {
-        return R_AtomicFilter.create(itemPath, itemDefinition, this);
+        if (itemDefinition != null) {
+            return R_AtomicFilter.create(itemPath, itemDefinition, this);
+        } else {
+            return item(itemPath);
+        }
     }
 
     @Override

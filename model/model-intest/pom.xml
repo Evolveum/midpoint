@@ -347,4 +347,25 @@
 			<scope>test</scope> 
 		</dependency>
     </dependencies>
+	<profiles>
+		<profile>
+			<id>dbtest</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<suiteXmlFiles>
+								<suiteXmlFile>testng-integration.xml</suiteXmlFile>
+								<suiteXmlFile>testng-db-specific.xml</suiteXmlFile>		<!-- these tests cannot be run under H2 -->
+							</suiteXmlFiles>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

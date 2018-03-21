@@ -112,7 +112,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		return false;
 	}
 
-
 	@Test
     public void test100ImportLiveSyncTaskDummyGreen() throws Exception {
 		final String TEST_NAME = "test100ImportLiveSyncTaskDummyGreen";
@@ -848,7 +847,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         // Interesting things can happen here. Like this:
         //
-        // Recon blue:  Search on resource, remeber results in connector, sending them one
+        // Recon blue:  Search on resource, remember results in connector, sending them one
         //              by one to midpoint. But recon task is slow, it will not send wally
         //              account yet.
         // Recon green: Search on resource, got wally as the first result, sending to model,
@@ -881,10 +880,10 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
             	// Blue resource recon may fail. The user may be deleted before the blue
         		// recon task finishes. If the result (user, accounts) is OK then tolerate this error.
         	} else {
-        		TestUtil.assertSuccess("Blue resource syncronization has failed", takResultBlue);
+        		TestUtil.assertSuccess("Blue resource synchronization has failed", takResultBlue);
         	}
         } else {
-        	TestUtil.assertSuccess("Blue resource syncronization has failed", takResultBlue);
+        	TestUtil.assertSuccess("Blue resource synchronization has failed", takResultBlue);
         }
 
         // notifications

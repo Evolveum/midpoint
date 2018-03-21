@@ -26,6 +26,9 @@ public class BaseImportExportOptions {
     public static final String P_ZIP = "-z";
     public static final String P_ZIP_LONG = "--zip";
 
+    public static final String P_MULTI_THREAD = "-l";
+    public static final String P_MULTI_THREAD_LONG = "--multi-thread";
+
     @Parameter(names = {P_RAW, P_RAW_LONG}, descriptionKey = "baseImportExport.raw")
     private boolean raw;
 
@@ -42,6 +45,9 @@ public class BaseImportExportOptions {
 
     @Parameter(names = {P_ZIP, P_ZIP_LONG}, descriptionKey = "baseImportExport.zip")
     private boolean zip;
+
+    @Parameter(names = {P_MULTI_THREAD, P_MULTI_THREAD_LONG}, descriptionKey = "baseImportExport.multiThread")
+    private int multiThread = 1;
 
     public boolean isRaw() {
         return raw;
@@ -61,5 +67,9 @@ public class BaseImportExportOptions {
 
     public String getOid() {
         return oid;
+    }
+
+    public int getMultiThread() {
+        return multiThread;
     }
 }

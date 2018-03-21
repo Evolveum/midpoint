@@ -50,7 +50,6 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.NONE);
 
 		allwaysCheckTimestamp = true;
-
 	}
 
 	@Override

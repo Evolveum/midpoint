@@ -17,6 +17,7 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -28,7 +29,7 @@ import java.util.Objects;
  * @author Radovan Semancik
  *
  */
-public final class TaskRunResult {
+public class TaskRunResult implements Serializable {
 
 	public enum TaskRunResultStatus {
 		/**
@@ -46,7 +47,6 @@ public final class TaskRunResult {
          * For single-run tasks, the effect is the same as of FINISHED value.
          * However, for recurring tasks, this return value causes current handler to be removed from the handler stack.
          */
-
         FINISHED_HANDLER,
 
         /**
@@ -82,13 +82,17 @@ public final class TaskRunResult {
          * Task has to be restarted, typically because a new handler was put onto the handler stack during
          * the task run.
          */
-        RESTART_REQUESTED
+        RESTART_REQUESTED,
 
+		/**
+		 * Task has entered waiting state. TODO. EXPERIMENTAL.
+		 */
+		IS_WAITING
     }
 
-	private Long progress;          // null means "do not update, take whatever is in the task"
-	private TaskRunResultStatus runResultStatus;
-	private OperationResult operationResult;
+	protected Long progress;          // null means "do not update, take whatever is in the task"
+	protected TaskRunResultStatus runResultStatus;
+	protected OperationResult operationResult;
 
 	/**
 	 * @return the progress
