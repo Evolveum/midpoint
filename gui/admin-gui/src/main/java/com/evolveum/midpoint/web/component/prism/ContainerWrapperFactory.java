@@ -21,12 +21,15 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -112,6 +115,10 @@ public class ContainerWrapperFactory {
     	
     	RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, shadowIntent);
+		if (oc == null) {
+			LOGGER.debug("Association for {}/{} not supported by resource {}", kind, shadowIntent, resource);
+			return null;
+		}
 		Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 		
 		if (CollectionUtils.isEmpty(refinedAssociationDefinitions)) {
@@ -324,7 +331,8 @@ public class ContainerWrapperFactory {
     }
 
     
-    private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper, List<ContainerWrapper<C>> properties, boolean onlyEmpty) {
+    private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper,
+																  List<ContainerWrapper<C>> properties, boolean onlyEmpty){
     	
     	if (itemDef instanceof PrismContainerDefinition) {
         	
@@ -332,8 +340,37 @@ public class ContainerWrapperFactory {
         		return;
         	}
         	
-        	ContainerWrapper<C> subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty);
-        	
+        	ContainerWrapper<C> subContainerWrapper;
+//        	if (((PrismContainerDefinition) itemDef).getCompileTimeClass() != null
+//					&& ((PrismContainerDefinition) itemDef).getCompileTimeClass().equals(ResourceObjectAssociationType.class)){
+//        		if (!ConstructionType.class.equals(cWrapper.getDefinition().getCompileTimeClass())){
+//        			return;
+//				}
+//				ConstructionType construction = (ConstructionType)cWrapper.getContainerValue().getValue();
+//				Task task = modelServiceLocator.createSimpleTask("Load resource ref");
+//				PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(construction.getResourceRef(),
+//						modelServiceLocator, task, result);
+//
+//				result.computeStatusIfUnknown();
+//				if (!result.isAcceptable()) {
+//					LOGGER.error("Cannot find resource referenced from shadow. {}", result.getMessage());
+//					result.recordPartialError("Could not find resource referenced from shadow.");
+//					return;
+//				}
+//				try {
+//					PrismContainer<ResourceObjectAssociationType> assocContainer = cWrapper.getContainer().getItem()
+//							.findOrCreateContainer(ConstructionType.F_ASSOCIATION);
+//					subContainerWrapper = createAssociationWrapper(resource, construction.getKind(), construction.getIntent() , assocContainer,
+//							cWrapper.getObjectStatus(), assocContainer == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
+//							new ItemPath(ConstructionType.F_ASSOCIATION));
+//				} catch (SchemaException ex){
+//					LOGGER.error("Cannot create association container wrapper for construction.", ex);
+//					return;
+//				}
+//
+//			} else {
+        		subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty);
+//			}
         	
         	if (subContainerWrapper == null) {
         		return;

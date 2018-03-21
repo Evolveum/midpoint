@@ -16,27 +16,35 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -55,9 +63,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
 
@@ -65,6 +70,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	private static final String ID_TYPE = "type";
 	private static final String ID_RELATION = "relation";
+	private static final String ID_KIND = "kind";
+	private static final String ID_INTENT = "intent";
+	private static final String ID_RELATION_CONTAINER = "relationContainer";
+	private static final String ID_KIND_CONTAINER = "kindContainer";
+	private static final String ID_INTENT_CONTAINER = "intentContainer";
 	private static final String ID_ROLE_TABLE = "roleTable";
 	private static final String ID_RESOURCE_TABLE = "resourceTable";
 	private static final String ID_ORG_TABLE = "orgTable";
@@ -206,26 +216,94 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		add(typeSelect);
 
 
+		WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+		relationContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return TypedAssignablePanel.this.isRelationPanelVisible() &&
+						!ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
+			}
+
+		});
+		relationContainer.setOutputMarkupId(true);
+		add(relationContainer);
+
 		DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER), TypedAssignablePanel.this, false);
         relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        relationSelector.add(new VisibleEnableBehaviour(){
+        relationSelector.setOutputMarkupId(true);
+        relationSelector.setOutputMarkupPlaceholderTag(true);
+		relationContainer.add(relationSelector);
+
+		WebMarkupContainer kindContainer = new WebMarkupContainer(ID_KIND_CONTAINER);
+		kindContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
+			}
+		});
+		kindContainer.setOutputMarkupId(true);
+		add(kindContainer);
+
+		DropDownChoicePanel kindSelector = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND,
+				WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(ShadowKindType.ACCOUNT),TypedAssignablePanel.this, false);
+		kindSelector.setOutputMarkupId(true);
+		kindSelector.getBaseFormComponent().add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled(){
+				return ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName()) && getSelectedResourceCount() > 0;
+			}
+		});
+		kindSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(TypedAssignablePanel.this);
+			}
+		});
+		kindSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+		kindSelector.setOutputMarkupPlaceholderTag(true);
+		kindContainer.add(kindSelector);
+
+		WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);
+		intentContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
+			}
+		});
+		intentContainer.setOutputMarkupId(true);
+		add(intentContainer);
+
+		DropDownChoicePanel intentSelector = new DropDownChoicePanel(ID_INTENT,
+				Model.of(), getIntentAvailableValuesModel());
+		intentSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(TypedAssignablePanel.this);
+			}
+		});
+		intentSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+		intentSelector.setOutputMarkupId(true);
+		intentSelector.setOutputMarkupPlaceholderTag(true);
+		intentSelector.getBaseFormComponent().add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled(){
-                return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
+				return ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName()) && getSelectedResourceCount() > 0;
             }
-
-            @Override
-            public boolean isVisible() {
-            	return TypedAssignablePanel.this.isRelationPanelVisible();
-            }
-
         });
-        relationSelector.setOutputMarkupId(true);
-        relationSelector.setOutputMarkupPlaceholderTag(true);
-        add(relationSelector);
+		intentContainer.add(intentSelector);
 
         WebMarkupContainer orgTreeViewContainer = new WebMarkupContainer(ID_ORG_TREE_VIEW_CONTAINER);
 		orgTreeViewContainer.setOutputMarkupId(true);
@@ -263,7 +341,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	}
 
 	private QName getSelectedRelation(){
-		DropDownChoicePanel<RelationTypes> relationPanel = (DropDownChoicePanel<RelationTypes>) get(ID_RELATION);
+		DropDownChoicePanel<RelationTypes> relationPanel = (DropDownChoicePanel<RelationTypes>) get(ID_RELATION_CONTAINER).get(ID_RELATION);
 		RelationTypes relation = relationPanel.getModel().getObject();
 		if (relation == null) {
 			return SchemaConstants.ORG_DEFAULT;
@@ -301,12 +379,30 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 			private static final long serialVersionUID = 1L;
 
-
 			@Override
 			protected void onUpdateCheckbox(AjaxRequestTarget target) {
+				if (type.equals(ObjectTypes.RESOURCE)) {
+					target.add(TypedAssignablePanel.this);
+				}
 				refreshCounts(target);
 			}
 
+			@Override
+			protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<T>> rowModel){
+				if (type.equals(ObjectTypes.RESOURCE)) {
+					return new LoadableModel<Boolean>() {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						protected Boolean load() {
+							return getSelectedResourceCount() == 0 || (rowModel != null && rowModel.getObject().isSelected());
+						}
+					};
+
+				} else {
+					return Model.of(true);
+				}
+			}
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
@@ -382,4 +478,45 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		return this;
 	}
 
+	private IModel<List<String>> getIntentAvailableValuesModel(){
+		return new LoadableModel<List<String>>(true){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<String> load(){
+				List<String> availableIntentValues = new ArrayList<>();
+				List<T> selectedResources = getResourceTable().getSelectedObjects();
+				if (selectedResources != null && selectedResources.size() > 0){
+					ResourceType selectedResource = (ResourceType)selectedResources.get(0);
+
+					try {
+						RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
+						if (refinedSchema != null){
+							ShadowKindType kind = (ShadowKindType) TypedAssignablePanel.this.getKindDropdownComponent().getBaseFormComponent().getModelObject();
+							List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
+							for (RefinedObjectClassDefinition def : definitions){
+								availableIntentValues.add(def.getIntent());
+							}
+						}
+					} catch (SchemaException ex){
+						LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
+					}
+
+				}
+				return availableIntentValues;
+			}
+		};
+	}
+
+	private DropDownChoicePanel getKindDropdownComponent(){
+		return (DropDownChoicePanel)get(ID_KIND_CONTAINER).get(ID_KIND);
+	}
+
+	private PopupObjectListPanel<T> getResourceTable(){
+		return (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_RESOURCE_TABLE));
+	}
+	private int getSelectedResourceCount(){
+		return getResourceTable().getSelectedObjectsCount();
+
+	}
 }

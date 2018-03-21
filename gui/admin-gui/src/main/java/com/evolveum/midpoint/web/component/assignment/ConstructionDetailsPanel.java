@@ -15,33 +15,47 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.xml.namespace.QName;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -51,7 +65,6 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
 
     private static final String ID_KIND_FIELD = "kindField";
     private static final String ID_INTENT_FIELD = "intentField";
-    private static final String ID_ASSOCIATION_CONTAINER = "associationContainer";
     private static final String ID_ASSOCIATION = "association";
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionDetailsPanel.class);
@@ -59,6 +72,7 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private LoadableDetachableModel<PrismObject<ResourceType>> resourceModel;
+    private ContainerWrapper<ResourceObjectAssociationType> associationWrapper;
 
     public ConstructionDetailsPanel(String id, IModel<ContainerValueWrapper<C>> constructionWrapperModel){
         super(id, constructionWrapperModel);
@@ -99,26 +113,125 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(getKindDropdownComponent());
-                target.add(getIntentDropdownComponent());
+                target.add(ConstructionDetailsPanel.this);
             }
         });
         add(kindDropDown);
 
         DropDownChoicePanel intentDropDown = new DropDownChoicePanel(ID_INTENT_FIELD,
         WebComponentUtil.createPrismPropertySingleValueModel(getModel(), ConstructionType.F_INTENT), getIntentAvailableValuesModel());
+        intentDropDown.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(ConstructionDetailsPanel.this);
+            }
+        });
         intentDropDown.setOutputMarkupId(true);
         add(intentDropDown);
 
+        ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+        ContainerStatus containerStatus = ContainerStatus.MODIFYING;
+        PrismContainer<ResourceObjectAssociationType> assocContainer = getModelObject().getContainerValue().findContainer(ConstructionType.F_ASSOCIATION);
+            try {
+                if (assocContainer == null){
+                    assocContainer = getModelObject().getContainerValue().findOrCreateContainer(ConstructionType.F_ASSOCIATION);
+                    containerStatus = ContainerStatus.ADDING;
+                }
+                associationWrapper =
+                        factory.createAssociationWrapper(resourceModel.getObject(), (ShadowKindType)kindDropDown.getBaseFormComponent().getModelObject(),
+                                (String)intentDropDown.getBaseFormComponent().getModelObject(),
+                                assocContainer, getModelObject().getObjectStatus(), containerStatus, new ItemPath(ConstructionType.F_ASSOCIATION));
 
-        ListView<ContainerValueWrapper<ResourceObjectAssociationType>> associationDetailsPanel =
-                new ListView<ContainerValueWrapper<ResourceObjectAssociationType>>(ID_ASSOCIATION_CONTAINER, getAssociationsModel()){
-                        @Override
-                        protected void populateItem(ListItem<ContainerValueWrapper<ResourceObjectAssociationType>> item) {
-                        item.add(new AssociationDetailsPanel(ID_ASSOCIATION, item.getModel(),
-                                (ConstructionType)ConstructionDetailsPanel.this.getModelObject().getContainerValue().asContainerable()));
+            } catch (SchemaException ex){
+                LOGGER.error("Cannot create association container for construction {}. {}", resourceModel.getObject().getName().getOrig(), ex.getLocalizedMessage());
+            }
+//           ListView<ContainerValueWrapper<ResourceObjectAssociationType>> associationDetailsPanel =
+//                new ListView<ContainerValueWrapper<ResourceObjectAssociationType>>(ID_ASSOCIATION_CONTAINER, getAssociationsModel()){
+//                        @Override
+//                        protected void populateItem(ListItem<ContainerValueWrapper<ResourceObjectAssociationType>> item) {
+//                        item.add(new AssociationDetailsPanel(ID_ASSOCIATION, item.getModel(),
+//                                (ConstructionType)ConstructionDetailsPanel.this.getModelObject().getContainerValue().asContainerable()));
+//                    }
+//                };
+
+//        ValueChoosePanel associationDetailsPanel = new ValueChoosePanel<PrismReferenceValue, ObjectType>(ID_ASSOCIATION,
+//                new PropertyModel<>(getModel(), "value")) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected ObjectFilter createCustomFilter() {
+////                ItemWrapper wrapper = PrismValuePanel.this.getModel().getObject().getItem();
+////                if (!(wrapper instanceof ReferenceWrapper)) {
+////                    return null;
+////                }
+////                return ((ReferenceWrapper) wrapper).getFilter();
+//                return null;
+//            }
+//
+//            @Override
+//            protected boolean isEditButtonEnabled() {
+////                return PrismValuePanel.this.getModel().getObject().isEditEnabled();
+//                return true;
+//            }
+//
+//            @Override
+//            public List<QName> getSupportedTypes() {
+////                List<QName> targetTypeList = ((ReferenceWrapper) PrismValuePanel.this.getModel().getObject().getItem()).getTargetTypes();
+////                if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
+////                    return Arrays.asList(ObjectType.COMPLEX_TYPE);
+////                }
+//
+//                return Arrays.asList(ShadowType.COMPLEX_TYPE);
+//            }
+//
+//            @Override
+//            protected Class getDefaultType(List<QName> supportedTypes){
+////                if (AbstractRoleType.COMPLEX_TYPE.equals(((PrismReference)item).getDefinition().getTargetTypeName())){
+////                    return RoleType.class;
+////                } else {
+////                    return super.getDefaultType(supportedTypes);
+////                }
+//                return ShadowType.class;
+//            }
+//
+//        };
+//
+        PrismContainerPanel<ResourceObjectAssociationType> associationDetailsPanel = new PrismContainerPanel<ResourceObjectAssociationType>(ID_ASSOCIATION,
+                new IModel<ContainerWrapper<ResourceObjectAssociationType>>(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public ContainerWrapper<ResourceObjectAssociationType> getObject(){
+                        return associationWrapper;
                     }
-                };
+
+                    @Override
+                    public void setObject(ContainerWrapper<ResourceObjectAssociationType> obj){
+                        String s = "";
+                    }
+
+                    @Override
+                    public void detach(){
+
+                    }
+                }, true, null, null, getPageBase()){
+            @Override
+            protected void onModelChanged() {
+                super.onModelChanged();
+
+                String r= "";
+            }
+        };
+//
+//        associationDetailsPanel.add(new AjaxEventBehavior("change") {
+//
+//            @Override
+//            protected void onEvent(AjaxRequestTarget target) {
+//                target.add(ConstructionDetailsPanel.this);
+//            }
+//        });
         associationDetailsPanel.setOutputMarkupId(true);
         add(associationDetailsPanel);
     }
@@ -161,6 +274,95 @@ public class ConstructionDetailsPanel<C extends Containerable, IW extends ItemWr
             }
         };
     }
+
+//    private List<ResourceObjectAssociationType> loadAssociationFromResourceSchema(){
+//        List<ResourceObjectAssociationType> assocList =  new ArrayList<>();
+//        if (resourceModel.getObject() == null){
+//            return assocList;
+//        }
+//        try {
+//            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceModel.getObject());
+//            if (refinedSchema != null){
+//                ShadowKindType kind = (ShadowKindType) ConstructionDetailsPanel.this.getKindDropdownComponent().getBaseFormComponent().getModelObject();
+//                String intent = (String) ConstructionDetailsPanel.this.getIntentDropdownComponent().getBaseFormComponent().getModelObject();
+//                RefinedObjectClassDefinition oc = refinedSchema.getRefinedDefinition(kind, intent);
+//                if (oc == null) {
+//                    LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resourceModel.getObject());
+//                    return assocList;
+//                }
+//                Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+//
+//                if (CollectionUtils.isEmpty(refinedAssociationDefinitions)) {
+//                    LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resourceModel.getObject());
+//                    return assocList;
+//                }
+//
+//                PrismContainer<ResourceObjectAssociationType> association = getModelObject().getContainerValue().findOrCreateContainer(ConstructionType.F_ASSOCIATION);
+//                for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {
+//                    PrismReferenceDefinitionImpl shadowRefDef = new PrismReferenceDefinitionImpl(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE, modelServiceLocator.getPrismContext());
+//                    shadowRefDef.setMaxOccurs(-1);
+//                    shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
+//                    PrismReference shadowAss = shadowRefDef.instantiate();
+//                    ItemPath itemPath = null;
+//                    for (PrismContainerValue<ResourceObjectAssociationType> associationValue : association.getValues()) {
+//                            //for now Induced entitlements gui should support only targetRef expression value
+//                            //that is why no need to look for another expression types within association
+//                            ResourceObjectAssociationType resourceAssociation = (ResourceObjectAssociationType) associationValue.asContainerable();
+//                            if (resourceAssociation.getRef() == null || resourceAssociation.getRef().getItemPath() == null){
+//                                continue;
+//                            }
+//                            if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
+//                                itemPath = associationValue.getPath();
+//                                MappingType outbound = ((ResourceObjectAssociationType)association.getValue().asContainerable()).getOutbound();
+//                                if (outbound == null){
+//                                    continue;
+//                                }
+//                                ExpressionType expression = outbound.getExpression();
+//                                if (expression == null){
+//                                    continue;
+//                                }
+//                                ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(expression);
+//                                if (shadowRef != null) {
+//                                    shadowAss.add(shadowRef.asReferenceValue().clone());
+//                                }
+//                            }
+//                    }
+//
+//                    if (itemPath == null) {
+//                        itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
+//                    }
+//
+////                    ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, isItemReadOnly(association.getDefinition(), shadowValueWrapper), shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
+//                    String displayName = refinedAssocationDefinition.getDisplayName();
+//                    if (displayName == null) {
+//                        displayName = refinedAssocationDefinition.getName().getLocalPart();
+//                    }
+////                    associationValueWrapper.setDisplayName(displayName);
+//                    S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext());
+//                    List<ObjectFilter> orFilterClauses = new ArrayList<>();
+//                    refinedAssocationDefinition.getIntents()
+//                            .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+//                    OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+//
+//                    AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
+//                            .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+//                    filter.addCondition(intentFilter);
+////                    associationValueWrapper.setFilter(filter);
+////
+////                    for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
+////                        valueWrapper.setEditEnabled(isEmpty(valueWrapper));
+////                    }
+//                    associationValueWrapper.setTargetTypes(Collections.singletonList(ShadowType.COMPLEX_TYPE));
+//                    associationValuesWrappers.add(associationValueWrapper);
+//                }
+//
+//            }
+//        } catch (SchemaException ex){
+//            LOGGER.error("Cannot get refined resource schema for resource {}. {}", resourceModel.getObject().getName().getOrig(), ex.getLocalizedMessage());
+//        }
+//
+//        return assocList;
+//    }
 
     private DropDownChoicePanel getKindDropdownComponent(){
         return (DropDownChoicePanel) get(ID_KIND_FIELD);

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.model.Model;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
 	private static final long serialVersionUID = 1L;
@@ -70,6 +71,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 					onUpdateCheckbox(target);
 				}
 
+				@Override
+				protected IModel<Boolean> getEnabled(IModel<SelectableBean<O>> rowModel) {
+						return PopupObjectListPanel.this.getCheckBoxEnableModel(rowModel);
+				}
 
 				@Override
 				protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<O>> rowModel){
@@ -136,4 +141,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
 	}
 
+	protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
+		return Model.of(true);
+	}
 }
