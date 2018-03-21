@@ -248,6 +248,9 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 try {
                     RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
                     RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+                    if (oc == null){
+                        return new ObjectQuery();
+                    }
                     Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 
                     for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {

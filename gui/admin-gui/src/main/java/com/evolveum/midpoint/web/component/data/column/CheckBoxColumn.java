@@ -50,7 +50,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
                              final IModel<T> rowModel) {
         IModel<Boolean> selected = getCheckBoxValueModel(rowModel);
 
-        CheckBoxPanel check = new CheckBoxPanel(componentId, selected, getEnabled()) {
+        CheckBoxPanel check = new CheckBoxPanel(componentId, selected, getEnabled(rowModel)) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
@@ -75,7 +75,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
         return "icon";
     }
 
-    protected IModel<Boolean> getEnabled() {
+    protected IModel<Boolean> getEnabled(IModel<T> rowModel) {
         return enabled;
     }
 

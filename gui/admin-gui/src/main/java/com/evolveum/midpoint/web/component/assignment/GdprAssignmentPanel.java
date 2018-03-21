@@ -64,7 +64,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<Boolean> getEnabled() {
+			protected IModel<Boolean> getEnabled(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 				return Model.of(Boolean.FALSE);
 			}
 

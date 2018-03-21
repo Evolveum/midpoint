@@ -25,11 +25,23 @@
 	                </label>
 	                <span wicket:id="type"/>
 	           	</div>
-	            <div class="col-md-3">    
+	            <div class="col-md-3" wicket:id="relationContainer">
 	                <label>
 	              		<wicket:message key="AssignmentEditorPanel.relation"/>
 	        	    </label>
 	          	  	<span wicket:id="relation" />
+	          	</div>
+				<div class="col-md-3" wicket:id="kindContainer">
+	                <label>
+	              		<wicket:message key="TypedAssignablePanel.Kind"/>
+	        	    </label>
+	          	  	<span wicket:id="kind" />
+	          	</div>
+				<div class="col-md-3" wicket:id="intentContainer">
+	                <label>
+	              		<wicket:message key="TypedAssignablePanel.Intent"/>
+	        	    </label>
+	          	  	<span wicket:id="intent" />
 	          	</div>
 				<div class="col-md-3" wicket:id="orgTreeViewContainer">
 					<input type="checkbox" wicket:id="orgTreeView" />

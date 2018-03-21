@@ -54,7 +54,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     @Override
     public Component getHeader(final String componentId) {
         final IModel<Boolean> model = new Model<>(false);
-        CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled()) {
+        CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled(null)) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
