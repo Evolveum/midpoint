@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -158,6 +159,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private List<TaskDto> subtasks = new ArrayList<>();          // only persistent subtasks are here
 	private List<TaskDto> transientSubtasks = new ArrayList<>();        // transient ones are here
 
+	private boolean subtasksLoaded;
+
 	// other
 	private List<InlineMenuItem> menuItems;
 	private HandlerDto handlerDto;
@@ -168,7 +171,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	// parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
 	// (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
     public TaskDto(@NotNull TaskType taskType, TaskType parentTaskBean, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
-			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options,
+			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options, boolean subtasksLoaded,
 			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException {
         Validate.notNull(modelService);
         Validate.notNull(taskService);
@@ -184,6 +187,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.currentEditableState.executionGroup = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroup() : null;
 		this.currentEditableState.groupTaskLimit = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroupTaskLimit() : null;
 		fillInScheduleAttributes(taskType);
+
+		this.subtasksLoaded = subtasksLoaded;
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
@@ -236,7 +241,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		TaskType thisTaskWithChildren = null;
 		for (TaskType child : taskType.getSubtask()) {
 			TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
-					taskManager, workflowManager, options, opTask, parentResult, pageBase);
+					taskManager, workflowManager, options, false, opTask, parentResult, pageBase);
 			addChildTaskDto(childTaskDto);
 			thisTaskWithChildren = childTaskDto.parentTaskType;     // to avoid repeated reads
 		}
@@ -637,12 +642,106 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskType.getExpectedTotal();
     }
 
-    public String getProgressDescription() {
-        return getProgressDescription(taskType.getProgress());
+    public String getProgressDescription(PageBase pageBase) {
+	    Long stalledSince = getStalledSince();
+	    if (stalledSince != null) {
+		    return pageBase.getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription());
+	    } else {
+		    return getRealProgressDescription();
+	    }
     }
 
-    public String getProgressDescription(Long currentProgress) {
-        if (currentProgress == null && taskType.getExpectedTotal() == null) {
+	public boolean isPartitionedMaster() {
+		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.PARTITIONED_MASTER;
+	}
+
+	public boolean isCoordinator() {
+		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR;
+	}
+
+	public boolean hasBuckets() {
+		if (taskType.getWorkState() == null) {
+			return false;
+		}
+		if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
+			return true;
+		}
+		List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
+		if (buckets.size() > 1) {
+			return true;
+		} else if (buckets.size() == 1 && buckets.get(0).getContent() != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isBucketed() {
+		return isCoordinator() || hasBuckets();
+	}
+
+	private String getRealProgressDescription() {
+		if (isPartitionedMaster()) {
+			return getPartitionedTaskProgressDescription();
+		} else if (isBucketed()) {
+			return getBucketedTaskProgressDescription();
+		} else {
+			return getPlainTaskProgressDescription();
+		}
+	}
+
+	private String getPartitionedTaskProgressDescription() {
+		if (!subtasksLoaded) {
+			return "?";
+		}
+		int completePartitions = 0;
+		int allPartitions = subtasks.size();
+		int firstIncompleteSequentialNumber = 0;
+		TaskDto firstIncomplete = null;
+		for (TaskDto subtask : subtasks) {
+			if (subtask.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+				completePartitions++;
+			} else if (subtask.getPartitionSequentialNumber() != null) {
+				if (firstIncomplete == null ||
+						subtask.getPartitionSequentialNumber() < firstIncompleteSequentialNumber) {
+					firstIncompleteSequentialNumber = subtask.getPartitionSequentialNumber();
+					firstIncomplete = subtask;
+				}
+			}
+		}
+		String coarseProgress = completePartitions + "/" + allPartitions;
+		if (firstIncomplete == null) {
+			return coarseProgress;
+		} else {
+			return coarseProgress + " + " + firstIncomplete.getRealProgressDescription();
+		}
+	}
+
+	private Integer getPartitionSequentialNumber() {
+    	return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
+	}
+
+	private String getBucketedTaskProgressDescription() {
+    	int completeBuckets = getCompleteBuckets();
+		Integer expectedBuckets = getExpectedBuckets();
+		if (expectedBuckets == null) {
+			return String.valueOf(completeBuckets);
+		} else {
+			return (completeBuckets*100/expectedBuckets) + "%";
+		}
+	}
+
+	private Integer getExpectedBuckets() {
+		return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
+	}
+
+	private Integer getCompleteBuckets() {
+    	return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
+	}
+
+	private String getPlainTaskProgressDescription() {
+		Long currentProgress = taskType.getProgress();
+	    if (currentProgress == null && taskType.getExpectedTotal() == null) {
             return "";      // the task handler probably does not report progress at all
         } else {
             StringBuilder sb = new StringBuilder();
@@ -1171,4 +1270,22 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return triggers;
 	}
 
+	public void ensureSubtasksLoaded(PageBase pageBase) {
+		if (!subtasksLoaded) {
+			Collection<SelectorOptions<GetOperationOptions>> getOptions = createCollection(TaskType.F_SUBTASK, createRetrieve());
+			Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
+			try {
+				TaskType task = pageBase.getModelService()
+						.getObject(TaskType.class, getOid(), getOptions, opTask, opTask.getResult()).asObjectable();
+				fillInChildren(task, pageBase.getModelService(), pageBase.getTaskService(), pageBase.getModelInteractionService(),
+						pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(), opTask,
+						opTask.getResult(), pageBase);
+				subtasksLoaded = true;
+			} catch (Throwable t) {
+				pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);
+				subtasksLoaded = false;
+			}
+		}
+	}
 }

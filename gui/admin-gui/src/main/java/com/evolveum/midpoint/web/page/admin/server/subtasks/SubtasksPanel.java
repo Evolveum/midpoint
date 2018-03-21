@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.server.subtasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
@@ -36,20 +37,21 @@ public class SubtasksPanel extends BasePanel<List<TaskDto>> {
 
     private static final String ID_SUBTASKS_TABLE = "subtasksTable";
 
-    public SubtasksPanel(String id, IModel<List<TaskDto>> model, boolean workflowsEnabled) {
+    public SubtasksPanel(String id, IModel<List<TaskDto>> model, boolean workflowsEnabled, PageBase pageBase) {
         super(id, model);
-        initLayout(workflowsEnabled);
+        initLayout(workflowsEnabled, pageBase);
     }
 
-    private void initLayout(boolean workflowsEnabled) {
+    private void initLayout(boolean workflowsEnabled, PageBase pageBase) {
         List<IColumn<TaskDto, String>> columns = new ArrayList<>();
         columns.add(PageTasks.createTaskNameColumn(this, "SubtasksPanel.label.name"));
         columns.add(PageTasks.createTaskCategoryColumn(this, "SubtasksPanel.label.category"));
         columns.add(PageTasks.createTaskExecutionStatusColumn(this, "SubtasksPanel.label.executionState"));
+        columns.add(PageTasks.createProgressColumn(pageBase, "SubtasksPanel.label.progress"));
         columns.add(PageTasks.createTaskResultStatusColumn(this, "SubtasksPanel.label.result"));
         //columns.add(PageTasks.createTaskDetailColumn(this, "SubtasksPanel.label.detail", workflowsEnabled));
 
-        ISortableDataProvider provider = new ListDataProvider(this, getModel());
+        ISortableDataProvider provider = new ListDataProvider(this, getModel(), true);
         add(new TablePanel<>(ID_SUBTASKS_TABLE, provider, columns));
 
     }

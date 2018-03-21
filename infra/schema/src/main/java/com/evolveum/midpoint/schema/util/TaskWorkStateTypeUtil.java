@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.quartzimpl.work;
+package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketsManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
@@ -29,7 +26,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class WorkBucketUtil {
+public class TaskWorkStateTypeUtil {
 
 	public static WorkBucketType findBucketByNumber(List<WorkBucketType> buckets, int sequentialNumber) {
 		return buckets.stream()
@@ -40,15 +37,6 @@ public class WorkBucketUtil {
 	// beware: do not call this on prism structure directly (it does not support setting values)
 	public static void sortBucketsBySequentialNumber(List<WorkBucketType> buckets) {
 		buckets.sort(Comparator.comparingInt(WorkBucketType::getSequentialNumber));
-	}
-
-	public static Task findWorkerByBucketNumber(List<Task> workers, int sequentialNumber) {
-		for (Task worker : workers) {
-			if (worker.getWorkState() != null && findBucketByNumber(worker.getWorkState().getBucket(), sequentialNumber) != null) {
-				return worker;
-			}
-		}
-		return null;
 	}
 
 	public static AbstractWorkSegmentationType getWorkSegmentationConfiguration(TaskWorkManagementType cfg) {
@@ -62,5 +50,33 @@ public class WorkBucketUtil {
 		} else {
 			return null;
 		}
+	}
+
+	public static int getCompleteBucketsNumber(TaskType taskType) {
+		if (taskType.getWorkState() == null) {
+			return 0;
+		}
+		Integer max = null;
+		int notComplete = 0;
+		for (WorkBucketType bucket : taskType.getWorkState().getBucket()) {
+			if (max == null || bucket.getSequentialNumber() > max) {
+				max = bucket.getSequentialNumber();
+			}
+			if (bucket.getState() != WorkBucketStateType.COMPLETE) {
+				notComplete++;
+			}
+		}
+		if (max == null) {
+			return 0;
+		} else {
+			// what is not listed is assumed to be complete
+			return max - notComplete;
+		}
+	}
+
+	private static Integer getFirstBucketNumber(@NotNull TaskWorkStateType workState) {
+		return workState.getBucket().stream()
+				.map(WorkBucketType::getSequentialNumber)
+				.min(Integer::compareTo).orElse(null);
 	}
 }

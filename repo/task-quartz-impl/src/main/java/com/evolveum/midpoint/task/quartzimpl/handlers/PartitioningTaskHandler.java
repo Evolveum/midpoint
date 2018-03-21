@@ -130,16 +130,16 @@ public class PartitioningTaskHandler implements TaskHandler {
 	private List<Task> createSubtasks(Task masterTask, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskPartitionsDefinition partitionsDefinition = partitionsDefinitionSupplier.apply(masterTask);
+		boolean sequential = partitionsDefinition.isSequentialExecution(masterTask);
 		List<String> subtaskOids = new ArrayList<>();
 		int count = partitionsDefinition.getCount(masterTask);
 		for (int i = 1; i <= count; i++) {
-			subtaskOids.add(createSubtask(i, partitionsDefinition, masterTask, opResult));
+			subtaskOids.add(createSubtask(i, partitionsDefinition, sequential, masterTask, opResult));
 		}
 		List<Task> subtasks = new ArrayList<>(subtaskOids.size());
 		for (String subtaskOid : subtaskOids) {
 			subtasks.add(taskManager.getTask(subtaskOid, opResult));
 		}
-		boolean sequential = partitionsDefinition.isSequentialExecution(masterTask);
 		for (int i = 1; i <= count; i++) {
 			Task subtask = subtasks.get(i - 1);
 			TaskPartitionDefinition partition = partitionsDefinition.getPartition(masterTask, i);
@@ -161,7 +161,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	private String createSubtask(int index, TaskPartitionsDefinition partitionsDefinition,
-			Task masterTask, OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException {
+			boolean sequential, Task masterTask, OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException {
 		Map<String, String> replacements = new HashMap<>();
 		replacements.put("index", String.valueOf(index));
 		replacements.put("masterTaskName", String.valueOf(masterTask.getName().getOrig()));
@@ -226,6 +226,13 @@ public class PartitioningTaskHandler implements TaskHandler {
 
 		applyDeltas(subtask, partition.getOtherDeltas(masterTask));
 		applyDeltas(subtask, partitionsDefinition.getOtherDeltas(masterTask));
+
+		if (sequential) {
+			if (subtask.getWorkManagement() == null) {
+				subtask.setWorkManagement(new TaskWorkManagementType(getPrismContext()));
+			}
+			subtask.getWorkManagement().setPartitionSequentialNumber(index);
+		}
 		LOGGER.debug("Partitioned subtask to be created:\n{}", subtask.asPrismObject().debugDumpLazily());
 
 		return taskManager.addTask(subtask.asPrismObject(), opResult);

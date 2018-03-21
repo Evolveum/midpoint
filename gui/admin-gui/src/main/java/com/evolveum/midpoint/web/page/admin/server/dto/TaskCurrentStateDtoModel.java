@@ -82,7 +82,7 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
             Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
             PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, options, operationTask, result);
             TaskDto taskDto = new TaskDto(task.asObjectable(), null, page.getModelService(), page.getTaskService(),
-                    page.getModelInteractionService(), taskManager, page.getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, page);
+                    page.getModelInteractionService(), taskManager, page.getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), false, operationTask, result, page);
             taskModel.setObject(taskDto);
         } catch (CommunicationException|ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|ExpressionEvaluationException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, taskModel.getObject());

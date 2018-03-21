@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public class WorkSegmentationStrategyFactory {
 	@NotNull
 	public WorkSegmentationStrategy createStrategy(TaskWorkManagementType configuration) {
 
-		AbstractWorkSegmentationType cfg = WorkBucketUtil.getWorkSegmentationConfiguration(configuration);
+		AbstractWorkSegmentationType cfg = TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
 
 		if (cfg == null) {
 			return new SingleNullWorkSegmentationStrategy(configuration, prismContext);

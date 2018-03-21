@@ -1164,9 +1164,9 @@
 			<xsd:element name="bucket" type="tns:WorkBucketType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Current buckets of work. Some buckets might be present implicitly: if a complete bucket with
-						sequence number of N is present, it is expected that all buckets with lower numbers not explicitly
-						lister are either completed (for coordinator and standalone tasks) or not relevant (for worker tasks).
+						Current buckets of work. Some buckets might be present implicitly: if a bucket with
+						sequence number of N is present, it is expected that all unlisted buckets with numbers lower than N
+						are either complete (for coordinator and standalone tasks) or not relevant (for worker tasks).
 
 						In a similar way, if no free bucket is available and we are not at the end it is expected that some
 						free buckets are yet to be created (for coordinator tasks).
@@ -1215,6 +1215,14 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Kind of task with respect to the work management (standalone, coordinator, worker).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partitionSequentialNumber" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If this is a partition task executed sequentially under a partitioned master,
+						this is its sequential number.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

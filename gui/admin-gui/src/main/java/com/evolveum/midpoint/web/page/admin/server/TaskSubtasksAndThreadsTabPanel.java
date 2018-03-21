@@ -108,7 +108,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
 		subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
 		add(subtasksLabel);
-		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled());
+		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled(), parentPage);
 		subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
 		add(subtasksPanel);
 
