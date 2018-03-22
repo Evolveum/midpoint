@@ -141,14 +141,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
        @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
     	   TypedAssignablePanel panel = new TypedAssignablePanel(
-                   getPageBase().getMainPopupBodyId(), RoleType.class) {
+                   getPageBase().getMainPopupBodyId(), getDefaultNewAssignmentFocusType()) {
 
     		   private static final long serialVersionUID = 1L;
 
                @Override
-               protected void addPerformed(AjaxRequestTarget target, List selected, QName relation) {
-            	   super.addPerformed(target, selected, relation);
-                   addSelectedAssignmentsPerformed(target, selected, relation);
+               protected void addPerformed(AjaxRequestTarget target, List selected, QName relation, ShadowKindType kind, String intent) {
+            	   super.addPerformed(target, selected, relation, kind, intent);
+                   addSelectedAssignmentsPerformed(target, selected, relation, kind, intent);
                }
 
            };
@@ -156,7 +156,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            getPageBase().showMainPopup(panel, target);
     }
 
-    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
+    protected Class getDefaultNewAssignmentFocusType(){
+        return RoleType.class;
+    }
+
+    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation,
+                                                                          ShadowKindType kind, String intent){
            if (assignmentsList == null || assignmentsList.isEmpty()){
                    warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
                    target.add(getPageBase().getFeedbackPanel());
@@ -170,6 +175,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         	   if (ResourceType.class.equals(object.getClass())) {
         		   ConstructionType constructionType = new ConstructionType();
         		   constructionType.setResourceRef(ref);
+        		   constructionType.setKind(kind);
+        		   constructionType.setIntent(intent);
         		   assignmentType.setConstruction(constructionType);
         	   } else {
         		   assignmentType.setTargetRef(ref);

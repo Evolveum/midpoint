@@ -15,11 +15,15 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * Created by honchar.
@@ -29,6 +33,14 @@ public class InducedEntitlementDetailsPanel<R extends AbstractRoleType> extends 
 
     public InducedEntitlementDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(id, form, assignmentModel);
+    }
+
+    @Override
+    protected void initContainersPanel(Form form, PageAdminObjectDetails<R> pageBase) {
+        ContainerWrapper<ConstructionType> constructionContainer = getModelObject().findContainerWrapper(getModelObject().getPath().append((AssignmentType.F_CONSTRUCTION)));
+        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(ID_SPECIFIC_CONTAINERS, Model.of(constructionContainer));
+        constructionDetailsPanel.setOutputMarkupId(true);
+        add(constructionDetailsPanel);
     }
 
 }

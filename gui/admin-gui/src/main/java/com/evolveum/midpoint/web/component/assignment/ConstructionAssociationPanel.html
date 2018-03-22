@@ -24,34 +24,17 @@
                 <div class="container-fluid prism-container">
                     <div class="prism-properties">
 
-                        <div>
+                        <div wicket:id="associations">
                             <div class="row prism-property">
-                                <div class="col-xs-3">
-                                    <span><wicket:message key="ConstructionType.kind"/></span>
-                                </div>
-                                <div class="col-xs-8">
-                                    <div wicket:id="kindField"/>
+                                <div class="col-xs-12">
+                                    <div wicket:id="associationReferencePanel"/>
                                 </div>
                             </div>
                         </div>
-                        <div class="stripe">
-                            <div class="row prism-property">
-                                <div class="col-xs-3">
-                                    <span><wicket:message key="ConstructionType.intent"/></span>
-                                </div>
-                                <div class="col-xs-8">
-                                    <div wicket:id="intentField"/>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!--<div wicket:id="associationContainer" >-->
-        <div wicket:id="association" />
-    <!--</div>-->
 </wicket:panel>
 </html>

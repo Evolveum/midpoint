@@ -100,7 +100,18 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 					return null;
 				}
 			}
-    	};
+
+			@Override
+			protected IModel<String> getKindIntentLabelModel() {
+				AssignmentType assignment = AbstractAssignmentDetailsPanel.this.getModelObject().getContainerValue().getValue();
+				if (assignment.getConstruction() != null){
+					return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
+							assignment.getConstruction().getIntent());
+				}
+				return Model.of();
+			}
+
+		};
 
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
