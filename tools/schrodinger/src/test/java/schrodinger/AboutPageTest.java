@@ -43,7 +43,7 @@ public class AboutPageTest extends TestBase {
         );
     }
 
-    //@Test // TODO fix select the right element
+    @Test // TODO fix select the right element
     public void checkHibernateDialect() {
         Assert.assertEquals(aboutPage.hibernateDialect(), HIBERNATE_DIALECT_EXPECTED);
     }

@@ -55,9 +55,12 @@ public class AboutPage extends BasicPage {
         return $(Schrodinger.bySchrodingerDataId("build")).parent().getText();
     }
 
+
+    // NOTE not sure if using xpath is the best way around this
     public String hibernateDialect() {
-        SelenideElement aditionalDetails = $(Schrodinger.bySchrodingerDataId("wicket_message-1130625231"));
-        return $(Schrodinger.bySchrodingerDataId("detailValue")).parent().getText();
+        SelenideElement additionalDetailsBox = $(By.cssSelector("div.box.box-danger"));
+
+        return additionalDetailsBox.findElementByXPath("/html/body/div[2]/div/section/div[2]/div[1]/div[2]/div/div[2]/div[2]/table/tbody/tr[4]/td[2]").getText();
     }
 
     public String connIdFrameworkVersion() {
@@ -65,8 +68,8 @@ public class AboutPage extends BasicPage {
     }
 
     public FeedbackBox<AboutPage> feedback() {
-
         SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
+
         return new FeedbackBox<>(this, feedback);
     }
 }
