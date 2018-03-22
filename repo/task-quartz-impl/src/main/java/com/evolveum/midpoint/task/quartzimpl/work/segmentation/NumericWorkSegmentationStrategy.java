@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,7 +55,7 @@ public class NumericWorkSegmentationStrategy extends BaseWorkSegmentationStrateg
 		BigInteger from = getFrom();
 		BigInteger to = getOrComputeTo();
 
-		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
+		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
 		NumericIntervalWorkBucketContentType newContent;
 		if (lastBucket != null) {
 			if (!(lastBucket.getContent() instanceof NumericIntervalWorkBucketContentType)) {

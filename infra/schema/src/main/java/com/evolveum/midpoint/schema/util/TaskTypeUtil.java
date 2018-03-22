@@ -16,41 +16,9 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-import org.jetbrains.annotations.Nullable;
-
-import java.math.BigInteger;
-import java.util.List;
-
 /**
  * @author mederly
  */
 public class TaskTypeUtil {
 
-	@Nullable
-	public static WorkBucketType getLastBucket(List<WorkBucketType> buckets) {
-		WorkBucketType lastBucket = null;
-		for (WorkBucketType bucket : buckets) {
-			if (lastBucket == null || lastBucket.getSequentialNumber() < bucket.getSequentialNumber()) {
-				lastBucket = bucket;
-			}
-		}
-		return lastBucket;
-	}
-
-	public static boolean hasLimitations(WorkBucketType bucket) {
-		if (bucket == null || bucket.getContent() == null) {
-			return false;
-		}
-		if (bucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
-			NumericIntervalWorkBucketContentType numInterval = (NumericIntervalWorkBucketContentType) bucket.getContent();
-			return numInterval.getTo() != null || numInterval.getFrom() != null && !BigInteger.ZERO.equals(numInterval.getFrom());
-		} else if (AbstractWorkBucketContentType.class.equals(bucket.getContent().getClass())) {
-			return false;
-		} else {
-			throw new AssertionError("Unsupported bucket content: " + bucket.getContent());
-		}
-	}
 }

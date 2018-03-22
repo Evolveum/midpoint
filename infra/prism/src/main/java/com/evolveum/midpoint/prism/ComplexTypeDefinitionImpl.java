@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -232,6 +228,22 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 				}
 			} else if (first instanceof ObjectReferencePathSegment) {
 				throw new IllegalStateException("Couldn't use '@' path segment in this context. CTD=" + getTypeName() + ", path=" + path);
+			} else if (first instanceof IdentifierPathSegment) {
+				if (!clazz.isAssignableFrom(PrismPropertyDefinition.class)) {
+					return null;
+				}
+				PrismPropertyDefinitionImpl<?> oidDefinition;
+				// experimental
+				if (objectMarker) {
+					oidDefinition = new PrismPropertyDefinitionImpl<>(PrismConstants.T_ID, DOMUtil.XSD_STRING, prismContext);
+				} else if (containerMarker) {
+					oidDefinition = new PrismPropertyDefinitionImpl<>(PrismConstants.T_ID, DOMUtil.XSD_INTEGER, prismContext);
+				} else {
+					throw new IllegalStateException("No identifier for complex type " + this);
+				}
+				oidDefinition.setMaxOccurs(1);
+				//noinspection unchecked
+				return (ID) oidDefinition;
 			} else {
 				throw new IllegalStateException("Unexpected path segment: " + first + " in " + path);
 			}
