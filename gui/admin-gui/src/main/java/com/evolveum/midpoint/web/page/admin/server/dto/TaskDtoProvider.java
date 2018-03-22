@@ -89,7 +89,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
-                    TaskDto taskDto = createTaskDto(task, operationTask, result);
+                    TaskDto taskDto = createTaskDto(task, false, operationTask, result);
                     getAvailableData().add(taskDto);
                 } catch (Exception ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
@@ -127,11 +127,11 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 		}
 	}
 
-	public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result)
+	public TaskDto createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         return new TaskDto(task.asObjectable(), null, getModel(), getTaskService(),
-                getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, opTask, result, (PageBase)component);
+                getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, subtasksLoaded, opTask, result, (PageBase)component);
     }
 
     @Override

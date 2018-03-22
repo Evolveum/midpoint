@@ -17,9 +17,8 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,13 +43,13 @@ public class ExplicitWorkSegmentationStrategy extends BaseWorkSegmentationStrate
 		super(prismContext);
 		this.configuration = configuration;
 		this.bucketsConfiguration = (ExplicitWorkSegmentationType)
-				WorkBucketUtil.getWorkSegmentationConfiguration(configuration);
+				TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
 	}
 
 	@NotNull
 	@Override
 	protected List<AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
-		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
+		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
 		int nextSequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
 		if (nextSequentialNumber > bucketsConfiguration.getContent().size()) {
 			return emptyList();

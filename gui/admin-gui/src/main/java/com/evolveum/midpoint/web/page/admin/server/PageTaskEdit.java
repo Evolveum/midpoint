@@ -113,7 +113,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
-					currentTaskDto = prepareTaskDto(taskType, operationTask, result);
+					currentTaskDto = prepareTaskDto(taskType, true, operationTask, result);
 					result.computeStatusIfUnknown();
 					if (!result.isSuccess()) {
 						showResult(result);
@@ -197,9 +197,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskType;
 	}
 
-	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException {
+	private TaskDto prepareTaskDto(TaskType task, boolean subtasksLoaded, Task operationTask, OperationResult result) throws SchemaException {
 		return new TaskDto(task, null, getModelService(), getTaskService(), getModelInteractionService(),
-				getTaskManager(), getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
+				getTaskManager(), getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), subtasksLoaded, operationTask, result, this);
 	}
 
 
@@ -309,7 +309,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		try {
 			LOGGER.debug("Refreshing task {}", oldTaskDto);
 			TaskType taskType = loadTaskType(oldTaskDto.getOid(), operationTask, result);
-			TaskDto newTaskDto = prepareTaskDto(taskType, operationTask, result);
+			TaskDto newTaskDto = prepareTaskDto(taskType, true, operationTask, result);
 			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), operationTask, result);
 			previousTaskDto = currentTaskDto;
 			currentTaskDto = newTaskDto;

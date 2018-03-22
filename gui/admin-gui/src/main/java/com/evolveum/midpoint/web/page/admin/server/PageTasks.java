@@ -95,6 +95,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -230,8 +231,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
 
             @Override
-            public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-                TaskDto dto = super.createTaskDto(task, opTask, result);
+            public TaskDto createTaskDto(PrismObject<TaskType> task, boolean subtasksLoaded, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+                TaskDto dto = super.createTaskDto(task, subtasksLoaded, opTask, result);
                 addInlineMenuToTaskRow(dto);
 
                 return dto;
@@ -259,7 +260,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						
 						TaskDto taskDto = null;
 						try {
-							taskDto = new TaskDto(taskType.asObjectable(), null, getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, task, result, PageTasks.this);
+							taskDto = new TaskDto(taskType.asObjectable(), null, getModel(), getTaskService(),
+									getModelInteractionService(), getTaskManager(), getWorkflowManager(), options,
+									false, task, result, PageTasks.this);
 							taskDto.setSelected(object.isSelected());
 						} catch (SchemaException e) {
 							// TODO Auto-generated catch block
@@ -375,7 +378,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
                     @Override
                     public Object getObject() {
-                        return createLastCheckInTime(rowModel);
+                        return getLastCheckInTime(rowModel);
                     }
                 }));
             }
@@ -606,23 +609,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         });
         columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
         columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
-        columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.progress")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-                    @Override
-                    public Object getObject() {
-                        return createProgress(rowModel);
-                    }
-                }));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
-                return Model.of(createProgress(rowModel));
-            }
-        });
+        columns.add(createProgressColumn(this, "pageTasks.task.progress"));
         columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override
@@ -633,7 +620,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
                     @Override
                     public Date getObject() {
-                        Date date = createCurrentRuntime(rowModel);
+                        Date date = getCurrentRuntime(rowModel);
                         TaskDto task = rowModel.getObject();
                         if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
                             ((DateLabelComponent) item.get(componentId)).setBefore("closed at ");
@@ -649,7 +636,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             @Override
             public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
                 TaskDto task = rowModel.getObject();
-                Date date = createCurrentRuntime(rowModel);
+                Date date = getCurrentRuntime(rowModel);
                 String displayValue = "";
                 if (date != null) {
                     if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
@@ -731,7 +718,30 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         return columns;
     }
 
-    private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
+	@NotNull
+	public static AbstractExportableColumn<TaskDto, String> createProgressColumn(PageBase pageBase, final String titleKey) {
+		return new AbstractExportableColumn<TaskDto, String>(pageBase.createStringResource(titleKey)) {
+
+		    @Override
+		    public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
+		        cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+		            @Override
+		            public Object getObject() {
+			            rowModel.getObject().ensureSubtasksLoaded(pageBase);
+		                return rowModel.getObject().getProgressDescription(pageBase);
+		            }
+		        }));
+		    }
+
+		    @Override
+		    public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
+			    rowModel.getObject().ensureSubtasksLoaded(pageBase);
+		        return Model.of(rowModel.getObject().getProgressDescription(pageBase));
+		    }
+		};
+	}
+
+	private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"),
             new Model<>(false),
@@ -1021,17 +1031,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(displayTime, true, true)).getString();
     }
 
-    private String createProgress(IModel<TaskDto> taskModel) {
-        TaskDto task = taskModel.getObject();
-
-        if (task.getStalledSince() != null) {
-            return getString("pageTasks.stalledSince", new Date(task.getStalledSince()).toLocaleString(), task.getProgressDescription());
-        } else {
-            return task.getProgressDescription();
-        }
-    }
-
-    private Date createCurrentRuntime(IModel<TaskDto> taskModel) {
+    private Date getCurrentRuntime(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
 
         if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
@@ -1053,7 +1053,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
     }
 
-    private String createLastCheckInTime(IModel<NodeDto> nodeModel) {
+    private String getLastCheckInTime(IModel<NodeDto> nodeModel) {
         NodeDto node = nodeModel.getObject();
         Long time = node.getLastCheckInTime();
         if (time == null || time == 0) {

@@ -12,6 +12,8 @@ public class MidPoint {
 
     private EnvironmentConfiguration environment;
 
+    public static long TIMEOUT_DEFAULT = 2000;
+
     public MidPoint(EnvironmentConfiguration environment) {
         Validate.notNull(environment, "Environment configuration must not be null");
 
@@ -22,7 +24,6 @@ public class MidPoint {
 
     private void init() {
         environment.validate();
-
         System.setProperty("selenide.browser", environment.getDriver().name().toLowerCase());
         System.setProperty("selenide.baseUrl", environment.getBaseUrl());
 

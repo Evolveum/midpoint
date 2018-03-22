@@ -16,11 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.helpers;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import org.apache.wicket.Page;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -41,13 +40,12 @@ public class AvailableResponses implements Serializable {
 
     private List<String> responseKeys;
     private List<AccessCertificationResponseType> responseValues;
-    private Page page;
+    private PageBase pageBase;
 
-    public AvailableResponses(Page page) {
-        this.page = page;
+    public AvailableResponses(PageBase pageBase) {
+        this.pageBase = pageBase;
 
-        // TODO: use ModelInteractionService.getCertificationConfiguration() instead
-        AccessCertificationConfigurationType config = SystemConfigurationHolder.getCertificationConfiguration();
+        AccessCertificationConfigurationType config = WebModelServiceUtils.getCertificationConfiguration(pageBase);
 
         responseKeys = new ArrayList<>(6);
         responseValues = new ArrayList<>(6);
@@ -82,9 +80,9 @@ public class AvailableResponses implements Serializable {
 
     public String getTitle(int id) {
         if (id < responseKeys.size()) {
-            return PageBase.createStringResourceStatic(page, responseKeys.get(id)).getString();
+            return PageBase.createStringResourceStatic(pageBase, responseKeys.get(id)).getString();
         } else {
-            return PageBase.createStringResourceStatic(page, "PageCertDecisions.menu.illegalResponse").getString();
+            return PageBase.createStringResourceStatic(pageBase, "PageCertDecisions.menu.illegalResponse").getString();
         }
     }
 

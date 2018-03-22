@@ -31,7 +31,7 @@ public class NewUserPage extends BasicPage {
     }
 
     public NewUserPage checkKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsLabel:keepDisplayingResults", true);
+        setOptionChecked("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", true);
         return this;
     }
 
@@ -51,7 +51,7 @@ public class NewUserPage extends BasicPage {
     }
 
     public NewUserPage uncheckKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsLabel:keepDisplayingResults", false);
+        setOptionChecked("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", false);
         return this;
     }
 
@@ -65,9 +65,9 @@ public class NewUserPage extends BasicPage {
         return new PreviewPage();
     }
 
-    public BasicPage clickSave() {
+    public ProgressPage clickSave() {
         $(Schrodinger.byDataId("save")).click();
-        return new BasicPage();
+        return new ProgressPage();
     }
 
     private TabPanel findTabPanel() {

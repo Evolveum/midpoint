@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.evolveum.midpoint.task.quartzimpl.work.WorkBucketUtil.sortBucketsBySequentialNumber;
+import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.sortBucketsBySequentialNumber;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static java.util.Collections.singleton;

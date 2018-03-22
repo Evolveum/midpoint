@@ -22,8 +22,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 
 public interface ObjectSecurityConstraints extends DebugDumpable {
 
+	/**
+	 * This is old version of the findActionDecision method that was here before we have switched to findAllItemsDecision.
+	 * This method is provided for compatibility. Whenever possible, the algorithms should be changed to use findAllItemsDecision().
+	 * There are few places where we really need to find action decision. For that reason there is a new findAllItemsDecision() method.
+	 */
 	@Deprecated
 	AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase);
+	
+	/**
+	 * Returns decision for the whole action. This is fact returns a decision that applies to all items - if there is any.
+	 * If there is no universally-applicable decision then null is returned. In that case there may still be fine-grained
+	 * decisions for individual items. Use findItemDecision() to get them.
+	 */
+	AuthorizationDecisionType findAllItemsDecision(String actionUrl, AuthorizationPhaseType phase);
 
 	AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase);
 

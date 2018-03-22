@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -136,7 +135,6 @@ public class SystemConfigurationHandler implements ChangeHook {
             LOGGER.trace("invoke() SystemConfig from repo: {}, ApplyingLoggingConfiguration", config.getVersion());
 
             SystemConfigurationType configType = config.asObjectable();
-            SystemConfigurationHolder.setCurrentConfiguration(configType);
             SecurityUtil.setRemoteHostAddressHeaders(configType);
 
             applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), configType.getVersion(), result);
