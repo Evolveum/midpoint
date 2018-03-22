@@ -127,7 +127,7 @@ public class TestScience  extends AbstractStoryTest {
 		repoAddObjectFromFile(ROLE_STATISTICS_FILE, initResult);
 //		repoAddObjectFromFile(ROLE_MATH_FILE, RoleType.class, initResult);
 
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_AD_SIMULATION_FILE, RESOURCE_OPENDJ_AD_SIMULATION_OID, initTask, initResult);
+		resourceOpenDj = importAndGetObjectFromFileIgnoreWarnings(ResourceType.class, RESOURCE_OPENDJ_AD_SIMULATION_FILE, RESOURCE_OPENDJ_AD_SIMULATION_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
 

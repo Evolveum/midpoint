@@ -17,3 +17,5 @@ dependency-reduced-pom.xml
 /nbactions.xml
 
 .DS_Store
+
+tools/schrodinger/build
