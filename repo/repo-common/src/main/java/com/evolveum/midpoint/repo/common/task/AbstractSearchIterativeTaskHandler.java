@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -338,7 +338,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			SecurityViolationException, ExpressionEvaluationException {
 		if (!countObjectsOnStart) {
 			return null;
-		} else if (TaskTypeUtil.hasLimitations(workBucket)) {
+		} else if (TaskWorkStateTypeUtil.hasLimitations(workBucket)) {
 			// We avoid computing expected total if we are processing a bucket -- actually we could but we should
 			// not display it as 'task expected total'
 			return null;

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,7 +61,7 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 	}
 
 	private List<? extends AbstractWorkBucketContentType> createAdditionalIntervalBuckets(TaskWorkStateType workState) {
-		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
+		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
 		String lastBoundary;
 		if (lastBucket != null) {
 			if (!(lastBucket.getContent() instanceof StringIntervalWorkBucketContentType)) {
@@ -84,7 +83,7 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 	}
 
 	private List<? extends AbstractWorkBucketContentType> createAdditionalPrefixBuckets(TaskWorkStateType workState) {
-		WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
+		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
 		String lastBoundary;
 		if (lastBucket != null) {
 			if (!(lastBucket.getContent() instanceof StringPrefixWorkBucketContentType)) {

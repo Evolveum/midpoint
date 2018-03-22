@@ -19,7 +19,9 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 
@@ -78,5 +80,39 @@ public class TaskWorkStateTypeUtil {
 		return workState.getBucket().stream()
 				.map(WorkBucketType::getSequentialNumber)
 				.min(Integer::compareTo).orElse(null);
+	}
+
+	@Nullable
+	public static WorkBucketType getLastBucket(List<WorkBucketType> buckets) {
+		WorkBucketType lastBucket = null;
+		for (WorkBucketType bucket : buckets) {
+			if (lastBucket == null || lastBucket.getSequentialNumber() < bucket.getSequentialNumber()) {
+				lastBucket = bucket;
+			}
+		}
+		return lastBucket;
+	}
+
+	public static boolean hasLimitations(WorkBucketType bucket) {
+		if (bucket == null || bucket.getContent() == null) {
+			return false;
+		}
+		if (bucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
+			NumericIntervalWorkBucketContentType numInterval = (NumericIntervalWorkBucketContentType) bucket.getContent();
+			return numInterval.getTo() != null || numInterval.getFrom() != null && !BigInteger.ZERO.equals(numInterval.getFrom());
+		} else if (bucket.getContent() instanceof StringIntervalWorkBucketContentType) {
+			StringIntervalWorkBucketContentType stringInterval = (StringIntervalWorkBucketContentType) bucket.getContent();
+			return stringInterval.getTo() != null || stringInterval.getFrom() != null;
+		} else if (bucket.getContent() instanceof StringPrefixWorkBucketContentType) {
+			StringPrefixWorkBucketContentType stringPrefix = (StringPrefixWorkBucketContentType) bucket.getContent();
+			return !stringPrefix.getPrefix().isEmpty();
+		} else if (bucket.getContent() instanceof FilterWorkBucketContentType) {
+			FilterWorkBucketContentType filtered = (FilterWorkBucketContentType) bucket.getContent();
+			return !filtered.getFilter().isEmpty();
+		} else if (AbstractWorkBucketContentType.class.equals(bucket.getContent().getClass())) {
+			return false;
+		} else {
+			throw new AssertionError("Unsupported bucket content: " + bucket.getContent());
+		}
 	}
 }
