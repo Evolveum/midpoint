@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -345,6 +348,14 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> delta, PrismObject<O> currentObject, String operationUrl,
 			AuthorizationPhaseType phase, ItemPath subitemRootPath) {
 		return securityEnforcer.determineSubitemDecision(securityConstraints, delta, currentObject, operationUrl, phase, subitemRootPath);
+	}
+
+	@Override
+	public <C extends Containerable> AccessDecision determineSubitemDecision(
+			ObjectSecurityConstraints securityConstraints, PrismContainerValue<C> containerValue,
+			String operationUrl, AuthorizationPhaseType phase, ItemPath subitemRootPath,
+			PlusMinusZero plusMinusZero, String decisionContextDesc) {
+		return securityEnforcer.determineSubitemDecision(securityConstraints, containerValue, operationUrl, phase, subitemRootPath, plusMinusZero, decisionContextDesc);
 	}
 
 }
