@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -1136,8 +1135,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			LOGGER.debug("System configuration not found, exiting postInit method.");
 			return;
 		}
-
-		SystemConfigurationHolder.setCurrentConfiguration(systemConfiguration);
 
 		Configuration systemConfigFromFile = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
 		if (systemConfigFromFile != null && systemConfigFromFile
