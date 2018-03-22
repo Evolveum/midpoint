@@ -307,7 +307,7 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        final AvailableResponses availableResponses = new AvailableResponses(getPage());
+        final AvailableResponses availableResponses = new AvailableResponses(this);
         final int responses = availableResponses.getResponseKeys().size();
 
         column = new MultiButtonColumn<CertWorkItemDto>(new Model<>(), responses+1) {

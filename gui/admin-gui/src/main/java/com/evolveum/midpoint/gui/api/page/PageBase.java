@@ -18,7 +18,6 @@ package com.evolveum.midpoint.gui.api.page;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -1468,7 +1467,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
         addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
-        if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
             addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
         }
         addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);

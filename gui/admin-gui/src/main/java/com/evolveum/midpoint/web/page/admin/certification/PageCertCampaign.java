@@ -311,7 +311,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedInStage"), CertCaseDto.F_CURRENT_RESPONSE_STAGE_NUMBER);
 		columns.add(column);
 
-		final AvailableResponses availableResponses = new AvailableResponses(getPage());
+		final AvailableResponses availableResponses = new AvailableResponses(this);
 		final int responses = availableResponses.getCount();
 
 		column = new MultiButtonColumn<CertCaseDto>(new Model(), responses+1) {
