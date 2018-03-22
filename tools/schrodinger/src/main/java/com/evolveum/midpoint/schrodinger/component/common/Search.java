@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
 
 
 /**
@@ -28,4 +32,12 @@ public class Search<T> extends Component<T> {
     public Search(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
+
+    public Popover<Search> byName() {
+        getParentElement().$(By.partialLinkText("Name: All")).click();
+        SelenideElement popover = getParentElement().$(Schrodinger.byDataId("popover")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+
+        return new Popover<>(this, popover);
+    }
 }
+

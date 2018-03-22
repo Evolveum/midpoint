@@ -60,9 +60,14 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 		}
 		return phasedConstraints.get(phase);
 	}
-
+	
 	@Override
 	public AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase) {
+		return findAllItemsDecision(actionUrl, phase);
+	}
+
+	@Override
+	public AuthorizationDecisionType findAllItemsDecision(String actionUrl, AuthorizationPhaseType phase) {
 		if (phase == null) {
 			AuthorizationDecisionType requestDecision = getActionDecisionPhase(actionUrl, AuthorizationPhaseType.REQUEST);
 			if (requestDecision == null || AuthorizationDecisionType.DENY.equals(requestDecision)) {
