@@ -218,6 +218,11 @@ public class BasicPage {
         return new ListConnectorHostsPage();
     }
 
+    public AboutPage aboutPage(){
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.about",null);
+        return new AboutPage();
+    }
+
     public BulkActionsPage bulkActions() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.bulkActions", null);
         return new BulkActionsPage();

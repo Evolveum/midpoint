@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
 @Listeners({BrowserPerClass.class})
 public abstract class TestBase {
 
-    public static final String BASE_URL = "http://localhost:38080";
+    public static final String BASE_URL = "http://localhost:8080/midpoint";
 
     public static final String USERNAME = "administrator";
     public static final String PASSWORD = "5ecr3t";

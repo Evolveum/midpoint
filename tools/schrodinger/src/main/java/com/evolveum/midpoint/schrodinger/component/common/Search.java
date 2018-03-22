@@ -19,6 +19,7 @@ package com.evolveum.midpoint.schrodinger.component.common;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;
 
+
 /**
  * Created by Viliam Repan (lazyman).
  */
