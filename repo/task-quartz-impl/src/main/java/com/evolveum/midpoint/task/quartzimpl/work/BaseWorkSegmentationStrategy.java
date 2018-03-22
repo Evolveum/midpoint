@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.task.quartzimpl.work;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.TaskTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -58,7 +58,7 @@ public abstract class BaseWorkSegmentationStrategy implements WorkSegmentationSt
 		List<? extends AbstractWorkBucketContentType> newBucketsContent = createAdditionalBuckets(workState);
 		if (!newBucketsContent.isEmpty()) {
 			List<WorkBucketType> newBuckets = new ArrayList<>(newBucketsContent.size());
-			WorkBucketType lastBucket = TaskTypeUtil.getLastBucket(workState.getBucket());
+			WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
 			int sequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
 			for (AbstractWorkBucketContentType newBucketContent : newBucketsContent) {
 				newBuckets.add(new WorkBucketType(prismContext)
