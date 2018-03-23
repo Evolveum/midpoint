@@ -45,9 +45,12 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
@@ -119,9 +122,6 @@ import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -2367,6 +2367,20 @@ public final class WebComponentUtil {
 
 	public static boolean isAllNulls(Iterable<?> array) {
 		return StreamSupport.stream(array.spliterator(), true).allMatch(o -> o == null);
+	}
+
+	public static ObjectFilter createAssociationShadowRefFilter(RefinedAssociationDefinition refinedAssocationDefinition, PrismContext prismContext,
+																String resourceOid){
+		S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		List<ObjectFilter> orFilterClauses = new ArrayList<>();
+		refinedAssocationDefinition.getIntents()
+				.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+		OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+
+		AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
+		filter.addCondition(intentFilter);
+		return filter;
 	}
 
 	private static IModel<List<Boolean>> createChoices() {
