@@ -780,8 +780,8 @@ CREATE INDEX iDescendant
   ON m_org_closure (descendant_oid);
 CREATE INDEX iDescendantAncestor
   ON m_org_closure (descendant_oid, ancestor_oid);
-CREATE INDEX iReferenceTargetOid
-  ON m_reference (targetOid);
+CREATE INDEX iReferenceTargetTypeRelation
+  ON m_reference (targetOid, reference_type, relation);
 CREATE INDEX iShadowResourceRef
   ON m_shadow (resourceRef_targetOid);
 CREATE INDEX iShadowDead
