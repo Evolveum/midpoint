@@ -271,6 +271,27 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_REPORTS_REPORT_CREATE_QNAME = new QName(NS_AUTHORIZATION_UI, "reportCreate");
 	public static final String AUTZ_UI_REPORTS_REPORT_CREATE_URL = NS_AUTHORIZATION_UI + "#reportCreate";
 
+   //Cases
+	public static final QName AUTZ_UI_CASES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "casesAll");
+	public static final String AUTZ_UI_CASES_ALL_URL = NS_AUTHORIZATION_UI + "#casesAll";
+
+	public static final QName AUTZ_UI_CASES_ALLOCATED_TO_ME_QNAME = new QName(NS_AUTHORIZATION_UI, "casesAllocatedToMe");
+	public static final String AUTZ_UI_CASES_ALLOCATED_TO_ME_URL = NS_AUTHORIZATION_UI + "#casesAllocatedToMe";
+
+    public static final QName AUTZ_UI_CASE_QNAME = new QName(NS_AUTHORIZATION_UI, "case");
+    public static final String AUTZ_UI_CASE_URL = NS_AUTHORIZATION_UI + "#case";
+
+    public static final QName AUTZ_UI_CASE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "caseDetails");
+    public static final String AUTZ_UI_CASE_DETAILS_URL = NS_AUTHORIZATION_UI + "#caseDetails";
+
+	public static final QName AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_QNAME = new QName(NS_AUTHORIZATION_UI, "caseWorkItemsAllocatedToMe");
+	public static final String AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL = NS_AUTHORIZATION_UI + "#caseWorkItemsAllocatedToMe";
+
+	public static final QName AUTZ_UI_CASE_WORK_ITEMS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "caseWorkItemsAll");
+	public static final String AUTZ_UI_CASE_WORK_ITEMS_ALL_URL = NS_AUTHORIZATION_UI + "#caseWorkItemsAll";
+	public static final String AUTZ_UI_CASE_WORK_ITEM_URL = NS_AUTHORIZATION_UI + "#caseWorkItem";
+
+
     //Certification
 	public static final String AUTZ_UI_CERTIFICATION_DEFINITIONS_URL = NS_AUTHORIZATION_UI + "#certificationDefinitions";
 	public static final String AUTZ_UI_CERTIFICATION_DEFINITION_URL = NS_AUTHORIZATION_UI + "#certificationDefinition";

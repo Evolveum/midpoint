@@ -5,12 +5,15 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -21,7 +24,8 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PrismPanel;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -130,7 +134,11 @@ public class PageCase  extends PageAdminCases {
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get case.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
-            wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status);
+            try {
+				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
         }
 
         wrapper.setShowEmpty(emptyCase);
@@ -143,8 +151,12 @@ public class PageCase  extends PageAdminCases {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        PrismObjectPanel<CaseType> caseForm = new PrismObjectPanel<CaseType>(ID_CASE, caseModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.HDD_PRISM), mainForm, this);
+        List<ItemPath> itemPath = new ArrayList<>();
+        itemPath.add(ItemPath.EMPTY_PATH);
+        PrismPanel<CaseType> caseForm = new PrismPanel<CaseType>(ID_CASE, 
+        		new ContainerWrapperListFromObjectWrapperModel<CaseType,CaseType>(caseModel, itemPath), 
+        		new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM), 
+        		mainForm, null, this);
         mainForm.add(caseForm);
 
         initButtons(mainForm);
