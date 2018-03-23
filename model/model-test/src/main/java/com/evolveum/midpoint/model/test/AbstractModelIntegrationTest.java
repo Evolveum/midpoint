@@ -4079,7 +4079,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		prismContext, inducement);
 		ModelExecuteOptions options = nullToEmpty(defaultOptions);
         options.setReconcileAffected(reconcileAffected);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
+        executeChanges(roleDelta, options, task, result);
         result.computeStatus();
         if (reconcileAffected) {
             TestUtil.assertInProgressOrSuccess(result);
@@ -4113,21 +4113,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
 	        		prismContext, assignment);
 		}
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleAddAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
 	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
 	        		prismContext, assignment);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleDeleteAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
 	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
 	        		prismContext, assignment);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        executeChanges(roleDelta, null, task, result);
 	}
 
 	protected PolicyRuleType createExclusionPolicyRule(String excludedRoleOid) {
@@ -4173,21 +4173,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
 	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
 	        		prismContext, policyException);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleDeletePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
 	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
 	        		prismContext, policyException);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleReplacePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationReplaceContainer(RoleType.class, roleOid,
 	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
 	        		prismContext, policyException);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected PolicyExceptionType createPolicyException(String ruleName, String policySituation) {

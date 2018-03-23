@@ -17,8 +17,11 @@ package com.evolveum.midpoint.security.enforcer.api;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -110,4 +113,8 @@ public interface SecurityEnforcer {
 
 	<O extends ObjectType> AccessDecision determineSubitemDecision(ObjectSecurityConstraints securityConstraints,
 			ObjectDelta<O> delta, PrismObject<O> currentObject, String operationUrl, AuthorizationPhaseType phase, ItemPath subitemRootPath);
+	
+	<C extends Containerable> AccessDecision determineSubitemDecision(
+			ObjectSecurityConstraints securityConstraints, PrismContainerValue<C> containerValue, String operationUrl,
+			AuthorizationPhaseType phase, ItemPath subitemRootPath, PlusMinusZero plusMinusZero, String decisionContextDesc);
 }

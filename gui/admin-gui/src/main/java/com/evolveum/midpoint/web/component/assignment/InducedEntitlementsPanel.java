@@ -12,6 +12,8 @@ import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -64,6 +66,11 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     @Override
     protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
         return new InducedEntitlementDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
+    }
+
+    @Override
+    protected Class getDefaultNewAssignmentFocusType(){
+        return ResourceType.class;
     }
 
 }

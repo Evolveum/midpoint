@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -195,7 +192,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		} else {
 			selected.addAll(getSelectedData(ID_ORG_TABLE));
 		}
-		addPerformed(target, selected, getSelectedRelation());
+		addPerformed(target, selected, getSelectedRelation(), getKind(), getIntent());
 	}
 
 
@@ -349,6 +346,21 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		return relation.getRelation();
 	}
 
+	private ShadowKindType getKind(){
+		DropDownChoicePanel<ShadowKindType> kindPanel = getKindDropdownComponent();
+		ShadowKindType kind = kindPanel.getModel().getObject();
+		if (kind == null) {
+			return ShadowKindType.ACCOUNT;
+		}
+		return kind;
+	}
+
+	private String getIntent(){
+		DropDownChoicePanel<String> intentPanel = getIntentDropdownComponent();
+		String intent = intentPanel.getModel().getObject();
+		return intent == null ? "" : intent;
+	}
+
 	private WebMarkupContainer createCountContainer(){
 		WebMarkupContainer countContainer = new WebMarkupContainer(ID_COUNT_CONTAINER);
 		countContainer.setOutputMarkupId(true);
@@ -454,7 +466,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		return true;
 	}
 
-	protected void addPerformed(AjaxRequestTarget target, List<T> selected, QName relation) {
+	protected void addPerformed(AjaxRequestTarget target, List<T> selected, QName relation, ShadowKindType kind, String intent) {
 		getPageBase().hideMainPopup(target);
 	}
 
@@ -510,6 +522,10 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	private DropDownChoicePanel getKindDropdownComponent(){
 		return (DropDownChoicePanel)get(ID_KIND_CONTAINER).get(ID_KIND);
+	}
+
+	private DropDownChoicePanel getIntentDropdownComponent(){
+		return (DropDownChoicePanel)get(ID_INTENT_CONTAINER).get(ID_INTENT);
 	}
 
 	private PopupObjectListPanel<T> getResourceTable(){

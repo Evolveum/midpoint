@@ -1369,22 +1369,22 @@ public class Clockwork {
 						LOGGER.debug("Deny assignment/unassignment to {} becasue access to assignment container/properties is explicitly denied", object);
 						throw new AuthorizationException("Access denied");
 					} else {
-						AuthorizationDecisionType actionDecision = securityConstraints.getActionDecision(operationUrl, getRequestAuthorizationPhase(context));
-						if (actionDecision == AuthorizationDecisionType.ALLOW) {
+						AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(operationUrl, getRequestAuthorizationPhase(context));
+						if (allItemsDecision == AuthorizationDecisionType.ALLOW) {
 							// Nothing to do, operation is allowed for all values
-						} else if (actionDecision == AuthorizationDecisionType.DENY) {
+						} else if (allItemsDecision == AuthorizationDecisionType.DENY) {
 							throw new AuthorizationException("Access denied");
 						} else {
-							// No explicit decision for assignment modification yet
+							// No blank decision for assignment modification yet
 							// process each assignment individually
-							authorizeAssignmentRequest(context, ModelAuthorizationAction.ASSIGN.getUrl(),
-									object, ownerResolver, PlusMinusZero.PLUS, true, task, result);
+							authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
+									object, ownerResolver, securityConstraints, PlusMinusZero.PLUS, true, task, result);
 
 							if (!primaryDelta.isAdd()) {
 								// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
 								// rid of that assignment
-								authorizeAssignmentRequest(context, ModelAuthorizationAction.UNASSIGN.getUrl(),
-										object, ownerResolver,PlusMinusZero.MINUS, false, task, result);
+								authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
+										object, ownerResolver, securityConstraints, PlusMinusZero.MINUS, false, task, result);
 							}
 						}
 					}
@@ -1473,8 +1473,18 @@ public class Clockwork {
 				ModelAuthorizationAction.CHANGE_CREDENTIALS.getUrl(), getRequestAuthorizationPhase(context));
 	}
 
-	private <F extends ObjectType,O extends ObjectType> void authorizeAssignmentRequest(LensContext<F> context, String assignActionUrl, PrismObject<O> object,
-			OwnerResolver ownerResolver, PlusMinusZero plusMinusZero, boolean prohibitPolicies, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+	private <F extends ObjectType,O extends ObjectType> void authorizeAssignmentRequest(
+			LensContext<F> context,
+			String operationUrl,
+			String assignActionUrl,
+			PrismObject<O> object,
+			OwnerResolver ownerResolver,
+			ObjectSecurityConstraints securityConstraints,
+			PlusMinusZero plusMinusZero,
+			boolean prohibitPolicies,
+			Task task, 
+			OperationResult result) 
+					throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		// This is *request* authorization. Therefore we care only about primary delta.
 		ObjectDelta<F> focusPrimaryDelta = context.getFocusContext().getPrimaryDelta();
 		if (focusPrimaryDelta == null) {
@@ -1484,15 +1494,25 @@ public class Clockwork {
 		if (focusAssignmentDelta == null) {
 			return;
 		}
+		String operationDesc = assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1);
 		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = determineChangedAssignmentValues(context.getFocusContext(), focusAssignmentDelta, plusMinusZero);
 		for (PrismContainerValue<AssignmentType> changedAssignmentValue: changedAssignmentValues) {
 			AssignmentType changedAssignment = changedAssignmentValue.getRealValue();
 			ObjectReferenceType targetRef = changedAssignment.getTargetRef();
 			if (targetRef == null || targetRef.getOid() == null) {
-				String operationDesc = assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1);
-				LOGGER.debug("{} of non-target assignment not allowed", operationDesc);
-				securityEnforcer.failAuthorization(operationDesc, getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
-				assert false;    // just to keep static checkers happy
+				// This may still be allowed by #add and #modify authorizations. We have already checked these, but there may be combinations of
+				// assignments, one of the assignments allowed by #assign, other allowed by #modify (e.g. MID-4517).
+				// Therefore check the items again. This is not very efficient to check it twice. But this is not a common case
+				// so there should not be any big harm in suffering this inefficiency.
+				AccessDecision subitemDecision = securityEnforcer.determineSubitemDecision(securityConstraints, changedAssignmentValue, operationUrl, 
+						getRequestAuthorizationPhase(context), null, plusMinusZero, operationDesc);
+				if (subitemDecision == AccessDecision.ALLOW) {
+					LOGGER.debug("{} of policy assignment to {} allowed with {} authorization", operationDesc, object, operationUrl);
+					continue;
+				} else {
+					LOGGER.debug("{} of non-target assignment not allowed", operationDesc);
+					securityEnforcer.failAuthorization(operationDesc, getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
+				}
 			}
 			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
 			PrismObject<ObjectType> target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving assignment target", task, result);
@@ -1514,32 +1534,35 @@ public class Clockwork {
 			
 			if (prohibitPolicies) {
 				if (changedAssignment.getPolicyRule() != null || !changedAssignment.getPolicyException().isEmpty() || !changedAssignment.getPolicySituation().isEmpty() || !changedAssignment.getTriggeredPolicyRule().isEmpty()) {
-					securityEnforcer.failAuthorization("with assignment because of policies in the assignment", getRequestAuthorizationPhase(context), autzParams, result);
+					// This may still be allowed by #add and #modify authorizations. We have already checked these, but there may be combinations of
+					// assignments, one of the assignments allowed by #assign, other allowed by #modify (e.g. MID-4517).
+					// Therefore check the items again. This is not very efficient to check it twice. But this is not a common case
+					// so there should not be any big harm in suffering this inefficiency.
+					AccessDecision subitemDecision = securityEnforcer.determineSubitemDecision(securityConstraints, changedAssignmentValue, operationUrl, 
+							getRequestAuthorizationPhase(context), null, plusMinusZero, operationDesc);
+					if (subitemDecision == AccessDecision.ALLOW) {
+						LOGGER.debug("{} of policy assignment to {} allowed with {} authorization", operationDesc, object, operationUrl);
+						continue;
+					} else {
+						securityEnforcer.failAuthorization("with assignment because of policies in the assignment", getRequestAuthorizationPhase(context), autzParams, result);
+					}
 				}
 			}
 
 			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), autzParams, ownerResolver, task, result)) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("{} of target {} to {} allowed with {} authorization",
-							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
-							target, object, assignActionUrl);
-				}
+				LOGGER.debug("{} of target {} to {} allowed with {} authorization", operationDesc, target, object, assignActionUrl);
 				continue;
 			}
 			if (ObjectTypeUtil.isDelegationRelation(relation)) {
 				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), autzParams, ownerResolver, task, result)) {
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("{} of target {} to {} allowed with {} authorization",
-							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
-							target, object, ModelAuthorizationAction.DELEGATE.getUrl());
+						LOGGER.debug("{} of target {} to {} allowed with {} authorization", operationDesc, target, object, ModelAuthorizationAction.DELEGATE.getUrl());
 					}
 					continue;
 				}
 			}
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("{} of target {} to {} denied",
-						assignActionUrl.substring(assignActionUrl.lastIndexOf('#')),
-						target, object);
+				LOGGER.debug("{} of target {} to {} denied", operationDesc, target, object);
 			}
 			securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context),  autzParams, result);
 		}
