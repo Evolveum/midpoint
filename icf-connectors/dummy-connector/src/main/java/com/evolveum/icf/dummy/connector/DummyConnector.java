@@ -167,12 +167,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         	uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
         resource.setMonsterization(this.configuration.isMonsterized());
-
         if (connected) {
 			throw new IllegalStateException("Double connect in "+this);
 		}
 		connected = true;
-
         resource.connect();
 
         if (staticVal == null) {

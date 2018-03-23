@@ -54,7 +54,7 @@ public class CertDecisionHelper implements Serializable {
         OBJECT, TARGET
     }
 
-    <T extends CertCaseOrWorkItemDto> IColumn<T, String> createTypeColumn(final WhichObject which, final PageBase page) {
+    public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createTypeColumn(final WhichObject which, final PageBase page) {
         IColumn column;
         column = new IconColumn<CertCaseOrWorkItemDto>(page.createStringResource("")) {
             @Override
@@ -82,7 +82,7 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    <T extends CertCaseOrWorkItemDto> IColumn<T, String> createObjectNameColumn(final PageBase page, final String headerKey) {
+    public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createObjectNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
                 SearchingUtils.OBJECT_NAME, CertCaseOrWorkItemDto.F_OBJECT_NAME) {
@@ -96,7 +96,7 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    <T extends CertCaseOrWorkItemDto> IColumn<T, String> createTargetNameColumn(final PageBase page, final String headerKey) {
+    public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createTargetNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
                 SearchingUtils.TARGET_NAME, CertCaseOrWorkItemDto.F_TARGET_NAME) {
@@ -110,11 +110,11 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    <T extends CertCaseOrWorkItemDto> IColumn<T, String> createConflictingNameColumn(final PageBase page, final String headerKey) {
+    public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createConflictingNameColumn(final PageBase page, final String headerKey) {
         return new PropertyColumn<>(page.createStringResource(headerKey), CertCaseOrWorkItemDto.F_CONFLICTING_TARGETS);
     }
 
-    <T extends CertCaseOrWorkItemDto> IColumn<T, String> createDetailedInfoColumn(final PageBase page) {
+    public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createDetailedInfoColumn(final PageBase page) {
         IColumn column;
         column = new IconColumn<CertCaseOrWorkItemDto>(page.createStringResource("")) {
 

@@ -23,6 +23,10 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.casemgmt.api.CaseManager;
+import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerAware;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,13 +77,11 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	private static final String CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN + "/bundle/";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryBuiltinImpl.class);
-
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
+	
+	@Autowired private PrismContext prismContext;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+	@Autowired private CaseManager caseManager;
+	@Autowired private TaskManager taskManager;
 
 	private Map<String,ConnectorStruct> connectorMap;
 
@@ -237,6 +239,12 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		}
 		if (connectorInstance instanceof RepositoryAware) {
 			((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
+		}
+		if (connectorInstance instanceof CaseManagerAware) {
+			((CaseManagerAware)connectorInstance).setCaseManager(caseManager);
+		}
+		if (connectorInstance instanceof TaskManagerAware) {
+			((TaskManagerAware)connectorInstance).setTaskManager(taskManager);
 		}
 		return connectorInstance;
 	}

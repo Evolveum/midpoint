@@ -796,4 +796,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		PrismObject<O> object = getObjectAny();
 		return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
 	}
+
+	public abstract void deleteSecondaryDeltas();
 }

@@ -416,7 +416,7 @@ public class ResourceObjectConverter {
 				throw e;
 			}
 
-			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, ctx, result);
+			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, shadow, identifiers, ctx, result);
 
 			computeResultStatus(result);
 			LOGGER.debug("PROVISIONING DELETE: {}", result.getStatus());
@@ -568,7 +568,7 @@ public class ResourceObjectConverter {
 				}
 				
 				// Execute primary ICF operation on this shadow
-				sideEffectOperations = executeModify(ctx, preReadShadow, identifiers, operations, result);
+				sideEffectOperations = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, result);
 				
 			} else {
 				// We have to check BEFORE we add script operations, otherwise the check would be pointless
@@ -750,7 +750,7 @@ public class ResourceObjectConverter {
 			List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectClassDefinition);
 			LOGGER.trace("Operation waves: {}", operationsWaves.size());
 			boolean inProgress = false;
-			String asyncronousOperationReference = null;
+			String asynchronousOperationReference = null;
 			for (Collection<Operation> operationsWave : operationsWaves) {
 				Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectClassDefinition);
 				LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
@@ -766,7 +766,7 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, currentShadow, identifiersWorkingCopy, operationsWave, ctx, parentResult);
 					Collection<PropertyModificationOperation> sideEffects = ret.getReturnValue();
 					if (sideEffects != null) {
 						sideEffectChanges.addAll(sideEffects);
@@ -774,7 +774,7 @@ public class ResourceObjectConverter {
 					}
 					if (ret.isInProgress()) {
 						inProgress = true;
-						asyncronousOperationReference = ret.getOperationResult().getAsynchronousOperationReference();
+						asynchronousOperationReference = ret.getOperationResult().getAsynchronousOperationReference();
 					}
 				}
 			}
@@ -785,7 +785,7 @@ public class ResourceObjectConverter {
 			
 			if (inProgress) {
 				parentResult.recordInProgress();
-				parentResult.setAsynchronousOperationReference(asyncronousOperationReference);
+				parentResult.setAsynchronousOperationReference(asynchronousOperationReference);
 			}
 
 		} catch (ObjectNotFoundException ex) {

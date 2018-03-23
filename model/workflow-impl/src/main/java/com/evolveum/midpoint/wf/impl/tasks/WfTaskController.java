@@ -61,6 +61,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
 
@@ -81,8 +82,8 @@ public class WfTaskController {
 
     private static final Object DOT_CLASS = WfTaskController.class.getName() + ".";
 
-    private Set<ProcessListener> processListeners = new HashSet<>();
-    private Set<WorkItemListener> workItemListeners = new HashSet<>();
+    private Set<ProcessListener> processListeners = ConcurrentHashMap.newKeySet();
+    private Set<WorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();
 
     @Autowired private WfTaskUtil wfTaskUtil;
     @Autowired private TaskManager taskManager;

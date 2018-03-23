@@ -35,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -97,6 +99,12 @@ public class OpResult implements Serializable, Visitable {
             LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
             if (localizableMessage != null) {
                 opResult.message = WebComponentUtil.resolveLocalizableMessage(localizableMessage, page);
+                
+                // Exclamation code:
+//                String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+//        		StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
+//				.setParameters(localizableMessage.getArgs());
+//        		opResult.message = stringResourceModel.getString();
             }
         }
 

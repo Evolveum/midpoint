@@ -1467,7 +1467,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	//     (other identifiers are ignored on input and output of this method)
 
 	@Override
-	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClassDef, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
+	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClassDef, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
 														   OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
 
@@ -1925,8 +1925,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
-							 OperationResult parentResult)
+	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+							 OperationResult parentResult) 
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
 		Validate.notNull(objectClass, "No objectclass");
 

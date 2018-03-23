@@ -94,13 +94,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 				GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
 	protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
-			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException, ConfigurationException;
 
 	protected abstract String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
-					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 						ConfigurationException;
 
 	@Override
@@ -137,7 +137,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
-			ObjectClassComplexTypeDefinition objectClass,
+			ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
 			StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
@@ -151,9 +151,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		String ticketIdentifier = null;
 
 		try {
-
-			ticketIdentifier = createTicketModify(objectClass, identifiers, changes, result);
-
+			
+			ticketIdentifier = createTicketModify(objectClass, shadow, identifiers, reporter.getResourceOid(), changes, result);
+			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
@@ -171,7 +171,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-			Collection<Operation> additionalOperations,
+			Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
 			Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ConfigurationException {
@@ -181,12 +181,12 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		InternalMonitor.recordConnectorOperation("delete");
 		InternalMonitor.recordConnectorModification("delete");
 
-		String ticketIdentifier = null;
-
+		String ticketIdentifier;
+		
 		try {
-
-			ticketIdentifier = createTicketDelete(objectClass, identifiers, result);
-
+			
+			ticketIdentifier = createTicketDelete(objectClass, shadow, identifiers, reporter.getResourceOid(), result);
+			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
@@ -218,10 +218,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-
+		
 		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
-
+		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(deleteCap));
