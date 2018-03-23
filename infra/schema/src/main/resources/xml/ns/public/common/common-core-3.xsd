@@ -6170,6 +6170,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="operatorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to users that should execute operations on manual resources.
+                        It may point to user or organization. (Currently only users are supported.)
+                        If more than one operator is specified they are considered equivalent.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
