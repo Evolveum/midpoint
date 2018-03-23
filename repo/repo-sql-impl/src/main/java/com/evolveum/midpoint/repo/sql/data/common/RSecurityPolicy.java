@@ -3,6 +3,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -22,13 +23,22 @@ import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iSecurityPolicyNameOrig", columnList = "name_orig"),
+        }
+)
 @ForeignKey(name = "fk_security_policy")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
     private RPolyString name;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -48,7 +49,11 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_resource")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iResourceNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RResource extends RObject<ResourceType> {
 
@@ -89,6 +94,11 @@ public class RResource extends RObject<ResourceType> {
         return operationalState;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;

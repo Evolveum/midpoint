@@ -54,7 +54,8 @@ import java.util.Set;
 		@javax.persistence.Index(name = "iTaskWfEndTimestamp", columnList = "wfEndTimestamp"),
 		@javax.persistence.Index(name = "iTaskWfRequesterOid", columnList = "wfRequesterRef_targetOid"),
 		@javax.persistence.Index(name = "iTaskWfObjectOid", columnList = "wfObjectRef_targetOid"),
-		@javax.persistence.Index(name = "iTaskWfTargetOid", columnList = "wfTargetRef_targetOid") },
+		@javax.persistence.Index(name = "iTaskWfTargetOid", columnList = "wfTargetRef_targetOid"),
+        @javax.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig")},
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = {"taskIdentifier"}))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
@@ -160,6 +161,11 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return recurrence;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;

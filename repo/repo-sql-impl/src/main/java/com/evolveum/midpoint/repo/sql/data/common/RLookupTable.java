@@ -4,6 +4,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -24,14 +25,22 @@ import java.util.*;
  */
 @Entity
 @ForeignKey(name = "fk_lookup_table")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_lookup_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_lookup_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iLookupTableNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RLookupTable extends RObject<LookupTableType> {
 
     private RPolyString name;
     private Set<RLookupTableRow> rows;
 
-    @Override
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;

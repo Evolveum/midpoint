@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -40,7 +41,11 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_org")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_org_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_org_name", columnNames = {"name_norm"}),
+        indexes = {
+                @javax.persistence.Index(name = "iOrgNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class ROrg extends RAbstractRole<OrgType> {
 
@@ -51,6 +56,11 @@ public class ROrg extends RAbstractRole<OrgType> {
     private Boolean tenant;
     private Integer displayOrder;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;

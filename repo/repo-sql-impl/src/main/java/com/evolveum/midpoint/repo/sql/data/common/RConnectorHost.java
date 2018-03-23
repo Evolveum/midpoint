@@ -25,6 +25,7 @@ import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -43,7 +44,11 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @ForeignKey(name = "fk_connector_host")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_connector_host_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_connector_host_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iConnectorHostNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RConnectorHost extends RObject<ConnectorHostType> {
 
@@ -67,6 +72,11 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         this.port = port;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;

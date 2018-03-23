@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -25,11 +26,19 @@ import java.util.Collection;
 @Entity
 @ForeignKey(name = "fk_report_output")
 @Persister(impl = MidPointJoinedPersister.class)
+@Table(indexes = {
+        @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
+        @Index(name = "iReportOutputNameNorm", columnList = "name_norm")})
 public class RReportOutput extends RObject<ReportOutputType> {
 
     private RPolyString name;
     private REmbeddedReference reportRef;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
     public RPolyString getName() {
         return name;
