@@ -718,6 +718,10 @@ CREATE INDEX iAssignmentAdministrative
   ON m_assignment (administrativeStatus);
 CREATE INDEX iAssignmentEffective
   ON m_assignment (effectiveStatus);
+CREATE INDEX iAssignmentValidFrom
+  ON m_assignment (validFrom);
+CREATE INDEX iAssignmentValidTo
+  ON m_assignment (validTo);
 CREATE INDEX iTargetRefTargetOid
   ON m_assignment (targetRef_targetOid);
 CREATE INDEX iTenantRefTargetOid
@@ -834,6 +838,10 @@ CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus);
 CREATE INDEX iLocality
   ON m_focus (locality_orig);
+CREATE INDEX iFocusValidFrom
+  ON m_focus (validFrom);
+CREATE INDEX iFocusValidTo
+  ON m_focus (validTo);
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 ALTER TABLE m_function_library
