@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -32,7 +33,11 @@ import javax.persistence.*;
  */
 @Entity
 @ForeignKey(name = "fk_connector_host")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_connector_host_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_connector_host_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iConnectorHostNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RConnectorHost extends RObject<ConnectorHostType> {
 
@@ -56,6 +61,7 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         this.port = port;
     }
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))

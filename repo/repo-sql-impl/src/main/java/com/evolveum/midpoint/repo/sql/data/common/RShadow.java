@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.definition.Count;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -46,7 +47,9 @@ import java.util.Objects;
  * @author lazyman
  */
 @Entity
-@Table(name = "m_shadow")
+@Table(name = "m_shadow", indexes = {
+        @javax.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
+        @javax.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm")})
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
 		indexes = {
 				@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
@@ -117,6 +120,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         return failedOperationType;
     }
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))

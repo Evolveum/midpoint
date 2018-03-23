@@ -4,6 +4,7 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -16,7 +17,11 @@ import org.hibernate.annotations.Persister;
 import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_report_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_report_name", columnNames = {"name_norm"}),
+        indexes = {
+                @javax.persistence.Index(name = "iReportNameOrig", columnList = "name_orig"),
+        }
+)
 @ForeignKey(name = "fk_report")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RReport extends RObject<ReportType> {
@@ -27,6 +32,7 @@ public class RReport extends RObject<ReportType> {
     private Boolean parent;
     private Boolean useHibernateSession;
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
