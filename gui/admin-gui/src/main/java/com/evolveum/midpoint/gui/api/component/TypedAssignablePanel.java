@@ -96,6 +96,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
     protected IModel<ObjectTypes> typeModel;
     private IModel<Boolean> orgTreeViewModel;
+    private String intent;
 
 	public TypedAssignablePanel(String id, final Class<T> type) {
 		super(id);
@@ -192,7 +193,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		} else {
 			selected.addAll(getSelectedData(ID_ORG_TABLE));
 		}
-		addPerformed(target, selected, getSelectedRelation(), getKind(), getIntent());
+		addPerformed(target, selected, getSelectedRelation(), getKind(), intent);
 	}
 
 
@@ -281,7 +282,22 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		add(intentContainer);
 
 		DropDownChoicePanel intentSelector = new DropDownChoicePanel(ID_INTENT,
-				Model.of(), getIntentAvailableValuesModel());
+				new IModel<String>() {
+					@Override
+					public String getObject() {
+						return intent;
+					}
+
+					@Override
+					public void setObject(String o) {
+						TypedAssignablePanel.this.intent = o;
+					}
+
+					@Override
+					public void detach() {
+
+					}
+				}, getIntentAvailableValuesModel());
 		intentSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -150,19 +152,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                             }
 
                             @Override
-                            protected IModel<String> createTextModel(final IModel<ObjectReferenceType> model) {
-                                return new AbstractReadOnlyModel<String>() {
-                                    private static final long serialVersionUID = 1L;
-                                    @Override
-                                    public String getObject() {
-                                        ObjectReferenceType obj = model.getObject();
-                                        return WebComponentUtil.getDisplayNameOrName(obj, getPageBase(), OPERATION_LOAD_SHADOW_DISPLAY_NAME);
-                                    }
-                                };
-                            }
-
-                            @Override
-                            protected void editValuePerformed(AjaxRequestTarget target, IModel rowModel) {
+                            protected void addValuePerformed(AjaxRequestTarget target) {
                                 ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(item.getModelObject(),
                                         getPageBase().getPrismContext(), resourceModel.getObject().getOid());
                                 ObjectBrowserPanel<ShadowType> objectBrowserPanel = new ObjectBrowserPanel<ShadowType>(
@@ -174,7 +164,25 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                                     @Override
                                     protected void onSelectPerformed(AjaxRequestTarget target, ShadowType object) {
                                         getPageBase().hideMainPopup(target);
-//                                            ValueChoosePanel.this.choosePerformed(target, object);
+                                        ContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
+                                        ContainerWrapper associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
+                                                .getPath().append(ConstructionType.F_ASSOCIATION));
+                                        PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
+                                        QName associationRefPath = item.getModelObject().getName();
+                                        NameItemPathSegment segment = new NameItemPathSegment(associationRefPath);
+                                        ((ResourceObjectAssociationType)newAssociation.asContainerable())
+                                                .setRef(new ItemPathType(new ItemPath(segment)));
+                                        ExpressionType newAssociationExpression = ((ResourceObjectAssociationType)newAssociation.asContainerable()).beginOutbound().beginExpression();
+                                        ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
+                                                getPageBase().getPrismContext());
+                                        ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+                                        ContainerValueWrapper<ResourceObjectAssociationType> valueWrapper =
+                                                factory.createContainerValueWrapper(associationWrapper, newAssociation,
+                                                        associationWrapper.getObjectStatus(), ValueStatus.ADDED, associationWrapper.getPath());
+//                                        valueWrapper.setShowEmpty(true, false);
+                                        associationWrapper.getValues().add(valueWrapper);
+
+                                        target.add(ConstructionAssociationPanel.this);
                                     }
 
                                 };
@@ -183,8 +191,15 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                             }
 
                             @Override
-                            protected ObjectReferenceType createNewEmptyItem() {
-                                return null;
+                            protected IModel<String> createTextModel(final IModel<ObjectReferenceType> model) {
+                                return new AbstractReadOnlyModel<String>() {
+                                    private static final long serialVersionUID = 1L;
+                                    @Override
+                                    public String getObject() {
+                                        ObjectReferenceType obj = model.getObject();
+                                        return WebComponentUtil.getDisplayNameOrName(obj, getPageBase(), OPERATION_LOAD_SHADOW_DISPLAY_NAME);
+                                    }
+                                };
                             }
 
                             @Override
