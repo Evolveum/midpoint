@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,33 +25,41 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 /**
+ * Isolated checkbox - checkbox that is displayed as (visually) stand-alone component.
+ * This checkbox is not supposed to have any labels associated with it.
+ * 
+ * For checkbox in forms see com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel
+ * 
  * @author lazyman
  */
-public class CheckBoxPanel extends Panel {
+public class IsolatedCheckBoxPanel extends Panel {
+	private static final long serialVersionUID = 1L;
 
-    private static final String ID_CHECK = "check";
+	private static final String ID_CHECK = "check";
 
-    public CheckBoxPanel(String id, IModel<Boolean> model) {
+    public IsolatedCheckBoxPanel(String id, IModel<Boolean> model) {
         this(id, model, new Model<>(true));
     }
 
-    public CheckBoxPanel(String id, IModel<Boolean> model, final IModel<Boolean> enabled) {
+    public IsolatedCheckBoxPanel(String id, IModel<Boolean> model, final IModel<Boolean> enabled) {
         super(id);
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, model) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                CheckBoxPanel.this.onUpdate(target);
+                IsolatedCheckBoxPanel.this.onUpdate(target);
             }
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                CheckBoxPanel.this.updateAjaxAttributes(attributes);
+                IsolatedCheckBoxPanel.this.updateAjaxAttributes(attributes);
             }
         };
         check.setOutputMarkupId(true);
         check.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled() {
