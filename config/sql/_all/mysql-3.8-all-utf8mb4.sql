@@ -523,8 +523,8 @@ CREATE TABLE m_shadow (
   fullSynchronizationTimestamp DATETIME(6),
   intent                       VARCHAR(191),
   kind                         INTEGER,
-  name_norm                    VARCHAR(255),
-  name_orig                    VARCHAR(255),
+  name_norm                    VARCHAR(191),
+  name_orig                    VARCHAR(191),
   objectClass                  VARCHAR(157),
   pendingOperationCount        INTEGER,
   resourceRef_relation         VARCHAR(157),
@@ -548,8 +548,8 @@ CREATE TABLE m_task (
   handlerUri               VARCHAR(255),
   lastRunFinishTimestamp   DATETIME(6),
   lastRunStartTimestamp    DATETIME(6),
-  name_norm                VARCHAR(255),
-  name_orig                VARCHAR(255),
+  name_norm                VARCHAR(191),
+  name_orig                VARCHAR(191),
   node                     VARCHAR(255),
   objectRef_relation       VARCHAR(157),
   objectRef_targetOid      VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
@@ -645,8 +645,8 @@ CREATE TABLE m_connector (
   connectorType              VARCHAR(255),
   connectorVersion           VARCHAR(255),
   framework                  VARCHAR(255),
-  name_norm                  VARCHAR(255),
-  name_orig                  VARCHAR(255),
+  name_norm                  VARCHAR(191),
+  name_orig                  VARCHAR(191),
   oid                        VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -785,8 +785,8 @@ CREATE TABLE m_report (
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_report_output (
-  name_norm           VARCHAR(255),
-  name_orig           VARCHAR(255),
+  name_norm           VARCHAR(191),
+  name_orig           VARCHAR(191),
   reportRef_relation  VARCHAR(157),
   reportRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
   reportRef_type      INTEGER,
@@ -840,8 +840,8 @@ CREATE TABLE m_sequence (
   ENGINE = InnoDB;
 CREATE TABLE m_service (
   displayOrder INTEGER,
-  name_norm    VARCHAR(255),
-  name_orig    VARCHAR(255),
+  name_norm    VARCHAR(191),
+  name_orig    VARCHAR(191),
   oid          VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
