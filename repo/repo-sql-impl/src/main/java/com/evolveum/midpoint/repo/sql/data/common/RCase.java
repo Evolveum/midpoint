@@ -32,7 +32,6 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,19 +43,33 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_case")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_case_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_case_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iCaseNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RCase extends RObject<CaseType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
+
     private String state;
     private REmbeddedReference objectRef;
     private Set<RCaseWorkItem> workItems = new HashSet<>();
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
+    @Embedded
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
+    }
 
     @Column
     public String getState() {
@@ -97,20 +110,20 @@ public class RCase extends RObject<CaseType> {
         if (!super.equals(o))
             return false;
         RCase rCase = (RCase) o;
-        return Objects.equals(name, rCase.name) &&
+        return Objects.equals(nameCopy, rCase.nameCopy) &&
                 Objects.equals(objectRef, rCase.objectRef) &&
                 Objects.equals(workItems, rCase.workItems);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, objectRef, workItems);
+        return Objects.hash(super.hashCode(), nameCopy, objectRef, workItems);
     }
 
     @Override
     public String toString() {
         return "RCase{" +
-                "name=" + name +
+                "name=" + nameCopy +
                 ", objectRef=" + objectRef +
                 '}';
     }
@@ -118,6 +131,9 @@ public class RCase extends RObject<CaseType> {
     public static void copyFromJAXB(CaseType jaxb, RCase repo, RepositoryContext context,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, context, generatorResult);
+
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
+
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.prismContext));
         repo.setState(jaxb.getState());
         for (CaseWorkItemType workItem : jaxb.getWorkItem()) {
