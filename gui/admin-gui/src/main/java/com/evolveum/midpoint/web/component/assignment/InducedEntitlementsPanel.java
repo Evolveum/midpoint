@@ -5,16 +5,18 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * Created by honchar.
@@ -73,4 +75,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         return ResourceType.class;
     }
 
+    @Override
+
+    protected void initAssociationContainer(ConstructionType constructionType){
+        constructionType.beginAssociation();
+    }
 }

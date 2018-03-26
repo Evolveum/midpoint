@@ -523,8 +523,8 @@ CREATE TABLE m_shadow (
   fullSynchronizationTimestamp DATETIME(6),
   intent                       VARCHAR(191),
   kind                         INTEGER,
-  name_norm                    VARCHAR(255),
-  name_orig                    VARCHAR(255),
+  name_norm                    VARCHAR(191),
+  name_orig                    VARCHAR(191),
   objectClass                  VARCHAR(157),
   pendingOperationCount        INTEGER,
   resourceRef_relation         VARCHAR(157),
@@ -548,8 +548,8 @@ CREATE TABLE m_task (
   handlerUri               VARCHAR(255),
   lastRunFinishTimestamp   DATETIME(6),
   lastRunStartTimestamp    DATETIME(6),
-  name_norm                VARCHAR(255),
-  name_orig                VARCHAR(255),
+  name_norm                VARCHAR(191),
+  name_orig                VARCHAR(191),
   node                     VARCHAR(255),
   objectRef_relation       VARCHAR(157),
   objectRef_targetOid      VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
@@ -645,8 +645,8 @@ CREATE TABLE m_connector (
   connectorType              VARCHAR(255),
   connectorVersion           VARCHAR(255),
   framework                  VARCHAR(255),
-  name_norm                  VARCHAR(255),
-  name_orig                  VARCHAR(255),
+  name_norm                  VARCHAR(191),
+  name_orig                  VARCHAR(191),
   oid                        VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -785,8 +785,8 @@ CREATE TABLE m_report (
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_report_output (
-  name_norm           VARCHAR(255),
-  name_orig           VARCHAR(255),
+  name_norm           VARCHAR(191),
+  name_orig           VARCHAR(191),
   reportRef_relation  VARCHAR(157),
   reportRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
   reportRef_type      INTEGER,
@@ -840,8 +840,8 @@ CREATE TABLE m_sequence (
   ENGINE = InnoDB;
 CREATE TABLE m_service (
   displayOrder INTEGER,
-  name_norm    VARCHAR(255),
-  name_orig    VARCHAR(255),
+  name_norm    VARCHAR(191),
+  name_orig    VARCHAR(191),
   oid          VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -902,6 +902,8 @@ CREATE TABLE m_value_policy (
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
+CREATE INDEX iCertCampaignNameOrig
+  ON m_acc_cert_campaign (name_orig);
 ALTER TABLE m_acc_cert_campaign
   ADD CONSTRAINT uc_acc_cert_campaign_name UNIQUE (name_norm);
 CREATE INDEX iCaseObjectRefTargetOid
@@ -912,6 +914,8 @@ CREATE INDEX iCaseTenantRefTargetOid
   ON m_acc_cert_case (tenantRef_targetOid);
 CREATE INDEX iCaseOrgRefTargetOid
   ON m_acc_cert_case (orgRef_targetOid);
+CREATE INDEX iCertDefinitionNameOrig
+  ON m_acc_cert_definition (name_orig);
 ALTER TABLE m_acc_cert_definition
   ADD CONSTRAINT uc_acc_cert_definition_name UNIQUE (name_norm);
 CREATE INDEX iCertWorkItemRefTargetOid
@@ -984,8 +988,8 @@ CREATE INDEX iOpExecOwnerOid
 -- create index iDescendant on m_org_closure (descendant_oid);
 CREATE INDEX iDescendantAncestor
   ON m_org_closure (descendant_oid, ancestor_oid);
-CREATE INDEX iReferenceTargetOid
-  ON m_reference (targetOid);
+CREATE INDEX iReferenceTargetTypeRelation
+  ON m_reference (targetOid, reference_type, relation);
 CREATE INDEX iShadowResourceRef
   ON m_shadow (resourceRef_targetOid);
 CREATE INDEX iShadowDead
@@ -1002,6 +1006,10 @@ CREATE INDEX iShadowSyncSituation
   ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount
   ON m_shadow (pendingOperationCount);
+CREATE INDEX iShadowNameOrig
+  ON m_shadow (name_orig);
+CREATE INDEX iShadowNameNorm
+  ON m_shadow (name_norm);
 CREATE INDEX iParent
   ON m_task (parent);
 CREATE INDEX iTaskWfProcessInstanceId
@@ -1016,6 +1024,8 @@ CREATE INDEX iTaskWfObjectOid
   ON m_task (wfObjectRef_targetOid);
 CREATE INDEX iTaskWfTargetOid
   ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskNameOrig
+  ON m_task (name_orig);
 ALTER TABLE m_task
   ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier);
 CREATE INDEX iAbstractRoleIdentifier
@@ -1024,8 +1034,16 @@ CREATE INDEX iRequestable
   ON m_abstract_role (requestable);
 CREATE INDEX iAutoassignEnabled
   ON m_abstract_role (autoassign_enabled);
+CREATE INDEX iCaseNameOrig
+  ON m_case (name_orig);
 ALTER TABLE m_case
   ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iConnectorNameOrig
+  ON m_connector (name_orig);
+CREATE INDEX iConnectorNameNorm
+  ON m_connector (name_norm);
+CREATE INDEX iConnectorHostNameOrig
+  ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
@@ -1034,36 +1052,70 @@ CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus);
 CREATE INDEX iLocality
   ON m_focus (locality_orig);
+CREATE INDEX iFormNameOrig
+  ON m_form (name_orig);
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
+CREATE INDEX iFunctionLibraryNameOrig
+  ON m_function_library (name_orig);
 ALTER TABLE m_function_library
   ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
+CREATE INDEX iGenericObjectNameOrig
+  ON m_generic_object (name_orig);
 ALTER TABLE m_generic_object
   ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
+CREATE INDEX iLookupTableNameOrig
+  ON m_lookup_table (name_orig);
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
 ALTER TABLE m_lookup_table_row
   ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key);
+CREATE INDEX iNodeNameOrig
+  ON m_node (name_orig);
 ALTER TABLE m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
+CREATE INDEX iObjectTemplateNameOrig
+  ON m_object_template (name_orig);
 ALTER TABLE m_object_template
   ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm);
 CREATE INDEX iDisplayOrder
   ON m_org (displayOrder);
+CREATE INDEX iOrgNameOrig
+  ON m_org (name_orig);
 ALTER TABLE m_org
   ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 CREATE INDEX iReportParent
   ON m_report (parent);
+CREATE INDEX iReportNameOrig
+  ON m_report (name_orig);
 ALTER TABLE m_report
   ADD CONSTRAINT uc_report_name UNIQUE (name_norm);
+CREATE INDEX iReportOutputNameOrig
+  ON m_report_output (name_orig);
+CREATE INDEX iReportOutputNameNorm
+  ON m_report_output (name_norm);
+CREATE INDEX iResourceNameOrig
+  ON m_resource (name_orig);
 ALTER TABLE m_resource
   ADD CONSTRAINT uc_resource_name UNIQUE (name_norm);
+CREATE INDEX iRoleNameOrig
+  ON m_role (name_orig);
 ALTER TABLE m_role
   ADD CONSTRAINT uc_role_name UNIQUE (name_norm);
+CREATE INDEX iSecurityPolicyNameOrig
+  ON m_security_policy (name_orig);
 ALTER TABLE m_security_policy
   ADD CONSTRAINT uc_security_policy_name UNIQUE (name_norm);
+CREATE INDEX iSequenceNameOrig
+  ON m_sequence (name_orig);
 ALTER TABLE m_sequence
   ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
+CREATE INDEX iServiceNameOrig
+  ON m_service (name_orig);
+CREATE INDEX iServiceNameNorm
+  ON m_service (name_norm);
+CREATE INDEX iSystemConfigurationNameOrig
+  ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 CREATE INDEX iTriggerTimestamp
@@ -1076,8 +1128,12 @@ CREATE INDEX iGivenName
   ON m_user (givenName_orig);
 CREATE INDEX iEmployeeNumber
   ON m_user (employeeNumber);
+CREATE INDEX iUserNameOrig
+  ON m_user (name_orig);
 ALTER TABLE m_user
   ADD CONSTRAINT uc_user_name UNIQUE (name_norm);
+CREATE INDEX iValuePolicyNameOrig
+  ON m_value_policy (name_orig);
 ALTER TABLE m_value_policy
   ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
 ALTER TABLE m_acc_cert_campaign

@@ -50,6 +50,7 @@ import java.util.List;
  *  @author shood
  * */
 public class GenericMultiValueLabelEditPanel <T extends Serializable> extends BasePanel<List<T>> {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(GenericMultiValueLabelEditPanel.class);
 
@@ -93,6 +94,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         addFirstContainer.setOutputMarkupId(true);
         addFirstContainer.setOutputMarkupPlaceholderTag(true);
         addFirstContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -102,6 +104,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         add(addFirstContainer);
 
         AjaxLink addFirst = new AjaxLink(ID_ADD_FIRST) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -111,6 +114,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         addFirstContainer.add(addFirst);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<T> listItem) {
@@ -134,6 +138,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
 
                 TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("blur") {
+                    private static final long serialVersionUID = 1L;
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
                 });
@@ -159,12 +164,21 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
                 }));
 
                 AjaxLink edit = new AjaxLink(ID_EDIT) {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         editValuePerformed(target, listItem.getModel());
                     }
                 };
+                edit.add(new VisibleEnableBehaviour(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public boolean isEnabled(){
+                        return GenericMultiValueLabelEditPanel.this.isEditButtonEnabled();
+                    }
+                });
                 textWrapper.add(edit);
 
                 listItem.add(buttonGroup);
@@ -189,24 +203,19 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     }
 
     protected IModel<String> createTextModel(final IModel<T> model) {
-        return new IModel<String>() {
+        return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
                 T obj = model.getObject();
                 return obj != null ? obj.toString() : null;
-            }
-
-            @Override
-            public void setObject(String object) {}
-
-            @Override
-            public void detach() {
             }
         };
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
         AjaxLink add = new AjaxLink(ID_ADD) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -214,6 +223,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
             }
         };
         add.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -223,6 +233,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         buttonGroup.add(add);
 
         AjaxLink remove = new AjaxLink(ID_REMOVE) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -318,4 +329,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         return true;
     }
 
+    protected boolean isEditButtonEnabled(){
+        return true;
+    }
 }

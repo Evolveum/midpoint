@@ -39,7 +39,11 @@ import java.util.Set;
 
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
-        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = {"name_norm"}))
+        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iCertCampaignNameOrig", columnList = "name_orig")
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_campaign")
 public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
@@ -57,6 +61,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     private RAccessCertificationCampaignState state;
     private Integer stageNumber;
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))

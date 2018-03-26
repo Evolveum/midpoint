@@ -177,6 +177,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         		   constructionType.setResourceRef(ref);
         		   constructionType.setKind(kind);
         		   constructionType.setIntent(intent);
+        		   initAssociationContainer(constructionType);
         		   assignmentType.setConstruction(constructionType);
         	   } else {
         		   assignmentType.setTargetRef(ref);
@@ -186,6 +187,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
             refreshTable(target);
             reloadSavePreviewButtons(target);
+       }
+
+       protected void initAssociationContainer(ConstructionType constructionType){
        }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {

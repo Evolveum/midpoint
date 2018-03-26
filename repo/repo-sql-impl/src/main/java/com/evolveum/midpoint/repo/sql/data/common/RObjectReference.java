@@ -45,7 +45,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation
 @Entity
 @IdClass(RObjectReferenceId.class)
 @Table(name = "m_reference", indexes = {
-        @Index(name = "iReferenceTargetOid", columnList = "targetOid")
+        @Index(name = "iReferenceTargetTypeRelation", columnList = "targetOid, reference_type, relation")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RObjectReference<T extends RObject> implements ObjectReference, EntityState {
