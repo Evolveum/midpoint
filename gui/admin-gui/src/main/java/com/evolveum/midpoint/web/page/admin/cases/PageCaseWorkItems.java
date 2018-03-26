@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum et al.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,46 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
-import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
-import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.reports.component.SingleValueChoosePanel;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -74,14 +44,48 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.function.Function;
-
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
+import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
+import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.reports.component.SingleValueChoosePanel;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author bpowers
@@ -117,8 +121,9 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private CaseWorkItemDtoProvider createProvider() {
         CaseWorkItemDtoProvider provider = new CaseWorkItemDtoProvider(PageCaseWorkItems.this);
         try {
-            provider.setQuery(createQuery());
-        } catch (SchemaException e) {
+			provider.setQuery(createQuery());
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
+					| ConfigurationException | SecurityViolationException e) {
             // TODO handle more cleanly
             throw new SystemException("Couldn't create case work item query", e);
         }
@@ -126,7 +131,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         return provider;
     }
 
-    private ObjectQuery createQuery() throws SchemaException {
+    private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectQuery query;
         boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
         S_FilterEntryOrEmpty q = QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext());
@@ -182,7 +187,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     private String getCurrentUserOid() {
         try {
-            return getSecurityEnforcer().getPrincipal().getOid();
+            return getSecurityContextManager().getPrincipal().getOid();
         } catch (SecurityViolationException e) {
             // TODO handle more cleanly
             throw new SystemException("Couldn't get currently logged user OID", e);
@@ -389,9 +394,16 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         searchFilterForm.add(includeClosedCases);
     }
 
-    private boolean isAuthorizedToSeeAllCases(){
-        boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-        return all && authorizedToSeeAll;
+    private boolean isAuthorizedToSeeAllCases() {
+        boolean authorizedToSeeAll;
+		try {
+			authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
+			return all && authorizedToSeeAll;
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
+				| CommunicationException | ConfigurationException | SecurityViolationException e) {
+			// TODO handle more cleanly
+            throw new SystemException("Couldn't evaluate authoriztion: "+e.getMessage(), e);
+		}
     }
     //endregion
 
@@ -400,7 +412,8 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         ObjectQuery query;
         try {
             query = createQuery();
-        } catch (SchemaException e) {
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
+				| ConfigurationException | SecurityViolationException e) {
             // TODO handle more cleanly
             throw new SystemException("Couldn't create case work item query", e);
         }
@@ -451,9 +464,10 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                         if (objectToCreate != null) {
                             page.getMidpointApplication().getPrismContext().adopt(objectToCreate);
                         }
-                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+                        isVisible = ((PageBase) getPage()).isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
                                 null, objectToCreate, null, null, null);
-                    } catch (Exception ex){
+                    } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
+            				| ConfigurationException | SecurityViolationException ex) {
                         LOGGER.error("Failed to check authorization for ADD action on new object of " + CaseType.class.getSimpleName()
                                 + " type, ", ex);
                     }

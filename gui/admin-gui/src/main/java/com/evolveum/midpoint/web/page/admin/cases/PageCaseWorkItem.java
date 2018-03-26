@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum et al.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OB
 				label = "PageCaseWorkItem.auth.caseWorkItem.label",
 				description = "PageCaseWorkItem.auth.caseWorkItem.description")})
 public class PageCaseWorkItem extends PageAdminCaseWorkItems {
+	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = PageCaseWorkItem.class.getName() + ".";
 	private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
@@ -224,20 +225,26 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_OUTCOME)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
 		UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, true){
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public InputStream getStream() {
 				return new ByteArrayInputStream(caseWorkItemDtoModel.getObject().getEvidence());
 			}
+			
 			@Override
 			public String getDownloadFileName() {
 				return caseWorkItemDtoModel.getObject().getEvidenceFilename();
 			}
+			
 			@Override
 			public String getDownloadContentType() {
 				return caseWorkItemDtoModel.getObject().getEvidenceContentType();
 			}
 		};
 		evidencePanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return caseWorkItemDtoModel.getObject().getEvidence() != null;
@@ -252,6 +259,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		FileUploadField evidenceUpload = new FileUploadField(ID_CASE_WORK_ITEM_FORM_EVIDENCE);
 		caseWorkItemForm.add(evidenceUpload);
 		caseWorkItemForm.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return caseDtoModel.getObject().getState() == null || !caseDtoModel.getObject().getState().equals(SchemaConstants.CASE_STATE_CLOSED);
@@ -287,6 +296,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
     private void initButtons(Form mainForm) {
 		AjaxButton back = new AjaxButton(ID_BACK_BUTTON, createStringResource("pageCase.button.back")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
