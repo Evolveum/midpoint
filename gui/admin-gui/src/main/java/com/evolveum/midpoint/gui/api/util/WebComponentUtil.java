@@ -942,7 +942,7 @@ public final class WebComponentUtil {
 			String oid = ref.getOid();
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
 					.createCollection(GetOperationOptions.createNoFetch());
-			Class<O> type = (Class<O>) ObjectType.class;
+			Class<O> type = ref.getType() != null ? (Class<O>)qnameToClass(pageBase.getPrismContext(), ref.getType())  : (Class<O>) ObjectType.class;
 			PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
 					pageBase.createSimpleTask(operation), new OperationResult(operation));
 			if (object != null) {
