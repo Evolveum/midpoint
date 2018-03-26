@@ -22,9 +22,12 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -35,6 +38,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -73,6 +77,11 @@ import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static java.util.Collections.emptyList;
 
 public class ProvisioningUtil {
 
@@ -80,44 +89,31 @@ public class ProvisioningUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
-	public static <T extends ShadowType> void normalizeShadow(T shadow, OperationResult result)
-			throws SchemaException {
+	public static List<ItemDelta<?, ?>> createShadowCleanupAndReconciliationDeltas(PrismObject<ShadowType> currentShadow,
+			PrismObject<ShadowType> repoShadowBefore, PrismContext prismContext) throws SchemaException {
+		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
 
-		if (shadow.getAttemptNumber() != null) {
-			shadow.setAttemptNumber(null);
+		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
+		ShadowType repo = repoShadowBefore.asObjectable();
+		if (repo.getAttemptNumber() != null) {
+			i = i.item(ShadowType.F_ATTEMPT_NUMBER).replace();
 		}
-
-		if (shadow.getFailedOperationType() != null) {
-			shadow.setFailedOperationType(null);
+		if (repo.getFailedOperationType() != null) {
+			i = i.item(ShadowType.F_FAILED_OPERATION_TYPE).replace();
 		}
-
-		if (shadow.getObjectChange() != null) {
-			shadow.setObjectChange(null);
+		if (repo.getObjectChange() != null) {
+			i = i.item(ShadowType.F_OBJECT_CHANGE).replace();
 		}
-
-		if (shadow.getResult() != null) {
-			shadow.setResult(null);
+		if (repo.getResult() != null) {
+			i = i.item(ShadowType.F_RESULT).replace();
 		}
-
-		if (shadow.getCredentials() != null) {
-			shadow.setCredentials(null);
+		if (repo.getCredentials() != null) {
+			i = i.item(ShadowType.F_CREDENTIALS).replace();
 		}
-
-		ResourceAttributeContainer normalizedContainer = ShadowUtil.getAttributesContainer(shadow);
-		ResourceAttributeContainer oldContainer = normalizedContainer.clone();
-
-		normalizedContainer.clear();
-		Collection<ResourceAttribute<?>> identifiers = oldContainer.getPrimaryIdentifiers();
-		for (PrismProperty<?> p : identifiers) {
-			normalizedContainer.getValue().add(p.clone());
-		}
-
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = oldContainer.getSecondaryIdentifiers();
-		for (PrismProperty<?> p : secondaryIdentifiers) {
-			normalizedContainer.getValue().add(p.clone());
-		}
-
-		cleanupShadowActivation(shadow);
+		itemDeltas.addAll(i.asItemDeltas());
+		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
+		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
+		return itemDeltas;
 	}
 
 	public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
@@ -406,7 +402,7 @@ public class ProvisioningUtil {
 		}
 	}
 
-
+	// mirrors createShadowActivationCleanupDeltas
 	public static void cleanupShadowActivation(ActivationType a) {
 		a.setAdministrativeStatus(null);
 		a.setEffectiveStatus(null);
@@ -417,7 +413,95 @@ public class ProvisioningUtil {
 		a.setLockoutExpirationTimestamp(null);
 		a.setValidityChangeTimestamp(null);
 	}
-	
+
+	// mirrors cleanupShadowActivation
+	public static List<ItemDelta<?, ?>> createShadowActivationCleanupDeltas(
+			ShadowType repo, PrismContext prismContext) throws SchemaException {
+		ActivationType activation = repo.getActivation();
+		if (activation == null) {
+			return emptyList();
+		}
+		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
+		if (activation.getAdministrativeStatus() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace();
+		}
+		if (activation.getEffectiveStatus() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).replace();
+		}
+		if (activation.getValidFrom() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM).replace();
+		}
+		if (activation.getValidTo() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO).replace();
+		}
+		if (activation.getValidityStatus() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS).replace();
+		}
+		if (activation.getLockoutStatus() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).replace();
+		}
+		if (activation.getLockoutExpirationTimestamp() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).replace();
+		}
+		if (activation.getValidityChangeTimestamp() != null) {
+			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP).replace();
+		}
+		return i.asItemDeltas();
+	}
+
+	/**
+	 * Identifiers are set.
+	 * Extra non-identifying attributes are removed.
+	 */
+	public static Collection<? extends ItemDelta<?, ?>> createShadowAttributesReconciliationDeltas(
+			PrismObject<ShadowType> sourceShadow,
+			PrismObject<ShadowType> repoShadowBefore,
+			PrismContext prismContext) throws SchemaException {
+		List<ItemDelta<?, ?>> rv = new ArrayList<>();
+		ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(sourceShadow);
+		ResourceAttributeContainerDefinition attributesDefinition = attributes.getDefinition();
+		if (attributesDefinition == null) {
+			throw new IllegalStateException("No definition for " + attributes);
+		}
+		List<QName> identifiers = attributesDefinition.getAllIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toList());
+		List<QName> outstandingInRepo;
+		PrismContainer<?> repoAttributes = repoShadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
+		if (repoAttributes != null && repoAttributes.getValue() != null && repoAttributes.getValue().getItems() != null) {
+			outstandingInRepo = repoAttributes.getValue().getItems().stream()
+					.map(Item::getElementName)
+					.collect(Collectors.toCollection(ArrayList::new));
+		} else {
+			outstandingInRepo = new ArrayList<>();
+		}
+		for (ResourceAttribute<?> attribute : attributes.getAttributes()) {
+			QName attributeName = attribute.getElementName();
+			boolean isIdentifier = QNameUtil.matchAny(attributeName, identifiers);
+			List<? extends PrismPropertyValue<?>> valuesToReplace;
+			if (isIdentifier) {
+				valuesToReplace = CloneUtil.cloneCollectionMembers(attribute.getValues());
+				LOGGER.trace("- updating identifier {} value of {}", attributeName, attribute.getValues());
+				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+						.item(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
+						.asItemDelta());
+				QNameUtil.remove(outstandingInRepo, attributeName);
+			}
+		}
+		for (QName outstanding : outstandingInRepo) {
+			boolean isIdentifier = QNameUtil.matchAny(outstanding, identifiers);
+			if (!isIdentifier) {
+				ResourceAttributeDefinition<?> outstandingDefinition = attributesDefinition.findAttributeDefinition(outstanding);
+				if (outstandingDefinition == null) {
+					continue;       // cannot do anything with this
+				}
+				LOGGER.trace("- removing non-identifier {} value", outstanding);
+				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+						.item(new ItemPath(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
+						.asItemDelta());
+			}
+		}
+		return rv;
+	}
+
 	public static void cleanupShadowPassword(PasswordType p) {
 		p.setValue(null);
 	}
@@ -511,5 +595,4 @@ public class ProvisioningUtil {
 		return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
 				QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	}
-
 }
