@@ -83,12 +83,7 @@ public class ClusterCacheListener implements CacheListener {
 		
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication instanceof NodeAuthenticationToken) {
-			NodeAuthenticationToken nodeAuthenticationToken = (NodeAuthenticationToken) authentication;
-			PrismObject<NodeType> node = nodeAuthenticationToken.getPrincipal();
-			if (nodeId.equals(node.asObjectable().getNodeIdentifier())) {
-				LOGGER.trace("Skipping cluster-wide cache celaring. We are on the same node.");
-				return;
-			}
+			LOGGER.trace("Skipping cluster-wide cache celaring, other nodes were already called.");
 		}
 		
 		

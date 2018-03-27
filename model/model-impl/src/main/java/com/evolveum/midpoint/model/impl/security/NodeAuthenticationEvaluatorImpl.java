@@ -24,9 +24,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 
 @Component
-public class NodeAuthenticator {
+public class NodeAuthenticationEvaluatorImpl implements NodeAuthenticationEvaluator {
 	
 	@Autowired 
 	@Qualifier("cacheRepositoryService")
@@ -36,9 +37,9 @@ public class NodeAuthenticator {
 
 	@Autowired SecurityHelper securityHelper;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(NodeAuthenticationEvaluatorImpl.class);
 	
-	private static final String OPERATION_SEARCH_NODE = NodeAuthenticator.class.getName() + ".searchNode";
+	private static final String OPERATION_SEARCH_NODE = NodeAuthenticationEvaluatorImpl.class.getName() + ".searchNode";
 	
 	public boolean authenticate(String remoteName, String remoteAddress, String operation) {
 		LOGGER.debug("Checking if {} is a known node", remoteName);
@@ -94,19 +95,6 @@ private List<PrismObject<NodeType>> getMatchingNodes(List<PrismObject<NodeType>>
 	return matchingNodes;
 }
 
-	 private ObjectQuery createQuery(String remoteName, String remoteAddress) {
-		 S_FilterEntryOrEmpty filterBuilder = QueryBuilder.queryFor(NodeType.class, prismContext);
- 		
-		 if (StringUtils.isNotBlank(remoteName)) {
- 			return filterBuilder.item(NodeType.F_HOSTNAME).eq(remoteName).build();
- 		}
- 		
- 		
- 		if (StringUtils.isNotBlank(remoteAddress)) {
- 			return filterBuilder.item(NodeType.F_IP_ADDRESS).contains(remoteAddress).build();
- 		}
- 		
- 		return null;
-	 }
+	
 	
 }

@@ -35,6 +35,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -67,7 +68,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
 	
-	@Autowired private NodeAuthenticator nodeAuthenticator;
+	@Autowired private NodeAuthenticationEvaluator nodeAuthenticator;
 	@Autowired private TaskManager taskManager;
 
 	@Override
