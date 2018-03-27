@@ -1,10 +1,12 @@
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -16,6 +18,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -79,5 +82,13 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     protected void initAssociationContainer(ConstructionType constructionType){
         constructionType.beginAssociation();
+    }
+
+    protected boolean isRelationVisible() {
+        return false;
+    }
+
+    protected List<ObjectTypes> getObjectTypesList(){
+        return Arrays.asList(ObjectTypes.RESOURCE);
     }
 }

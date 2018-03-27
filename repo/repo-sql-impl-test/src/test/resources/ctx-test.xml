@@ -27,7 +27,6 @@
     </bean>
 
     <import resource="ctx-repository-test.xml" />
-    <import resource="classpath:ctx-repo-cache.xml" />
     <import resource="classpath:ctx-common.xml" />
     <import resource="ctx-configuration-sql-test.xml" />
 

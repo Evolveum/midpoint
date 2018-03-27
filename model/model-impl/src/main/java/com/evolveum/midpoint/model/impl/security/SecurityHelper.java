@@ -53,8 +53,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -83,6 +85,10 @@ public class SecurityHelper implements ModelAuditRecorder {
     public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
     }
+	
+	public void auditLoginSuccess(@NotNull NodeType node, @NotNull ConnectionEnvironment connEnv) {
+        auditLogin(node.getName().getOrig(), null, connEnv, OperationResultStatus.SUCCESS, null);
+    }
 
 	@Override
     public void auditLoginFailure(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, String message) {
@@ -100,7 +106,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
-		if (user != null) {
+		if (user != null ) {
 			record.setInitiator(user.asPrismObject());
 		}
         record.setTimestamp(System.currentTimeMillis());

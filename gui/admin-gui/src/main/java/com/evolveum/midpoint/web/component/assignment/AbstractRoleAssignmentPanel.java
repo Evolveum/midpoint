@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -65,6 +66,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	private static final long serialVersionUID = 1L;
 
     private static final String ID_RELATION = "relation";
+    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
 
@@ -73,6 +75,20 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
+
+        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+        relationContainer.setOutputMarkupId(true);
+        relationContainer.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return AbstractRoleAssignmentPanel.this.isRelationVisible();
+            }
+
+        });
+        assignmentsContainer.addOrReplace(relationContainer);
 
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(), this, true);
@@ -86,17 +102,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
-        relation.add(new VisibleEnableBehaviour() {
-
-        	private static final long serialVersionUID = 1L;
-
-			@Override
-        	public boolean isVisible() {
-        		return AbstractRoleAssignmentPanel.this.isRelationVisible();
-        	}
-
-        });
-        assignmentsContainer.addOrReplace(relation);
+        relationContainer.addOrReplace(relation);
 
         AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
                 createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
@@ -121,7 +127,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     private DropDownChoicePanel<RelationTypes> getRelationPanel() {
-    	return (DropDownChoicePanel<RelationTypes>) getAssignmentContainer().get(ID_RELATION);
+    	return (DropDownChoicePanel<RelationTypes>) getAssignmentContainer().get(ID_RELATION_CONTAINER).get(ID_RELATION);
     }
 
 
@@ -149,6 +155,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                protected void addPerformed(AjaxRequestTarget target, List selected, QName relation, ShadowKindType kind, String intent) {
             	   super.addPerformed(target, selected, relation, kind, intent);
                    addSelectedAssignmentsPerformed(target, selected, relation, kind, intent);
+               }
+
+               @Override
+               protected List<ObjectTypes> getObjectTypesList(){
+                   return AbstractRoleAssignmentPanel.this.getObjectTypesList();
                }
 
            };
@@ -338,4 +349,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return true;
 	}
 
+	protected List<ObjectTypes> getObjectTypesList(){
+        return WebComponentUtil.createAssignableTypesList();
+    }
 }

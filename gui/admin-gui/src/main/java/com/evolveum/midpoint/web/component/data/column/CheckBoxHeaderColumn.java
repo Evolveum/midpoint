@@ -54,7 +54,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     @Override
     public Component getHeader(final String componentId) {
         final IModel<Boolean> model = new Model<>(false);
-        CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled(null)) {
+        IsolatedCheckBoxPanel panel = new IsolatedCheckBoxPanel(componentId, model, getEnabled(null)) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
@@ -162,7 +162,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     @Override
     protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
         //update header checkbox
-        CheckBoxPanel header = findCheckBoxColumnHeader(table);
+        IsolatedCheckBoxPanel header = findCheckBoxColumnHeader(table);
         if (header == null) {
             return;
         }
@@ -171,7 +171,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         target.add(header);
     }
 
-    public CheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
+    public IsolatedCheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
         WebMarkupContainer topToolbars = table.getTopToolbars();
         ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
         if (!iterator.hasNext()) {
@@ -182,14 +182,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         // simple attempt to find checkbox which is header for our column
         // todo: this search will fail if there are more checkbox header columns (which is not supported now,
         // because Selectable.F_SELECTED is hardcoded all over the place...
-        iterator = toolbar.visitChildren(CheckBoxPanel.class);
+        iterator = toolbar.visitChildren(IsolatedCheckBoxPanel.class);
         while (iterator.hasNext()) {
             Component c = iterator.next();
             if (!c.getOutputMarkupId()) {
                 continue;
             }
 
-            return (CheckBoxPanel) c;
+            return (IsolatedCheckBoxPanel) c;
         }
 
         return null;

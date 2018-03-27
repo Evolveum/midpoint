@@ -220,7 +220,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	protected void initAssignmentParametersPanel(){
 		DropDownChoicePanel<ObjectTypes> typeSelect = new DropDownChoicePanel<>(
-				ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new EnumChoiceRenderer<>());
+				ID_TYPE, typeModel, Model.ofList(getObjectTypesList()), new EnumChoiceRenderer<>());
 		typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;
@@ -559,5 +559,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	private int getSelectedResourceCount(){
 		return getResourceTable().getSelectedObjectsCount();
 
+	}
+
+	protected List<ObjectTypes> getObjectTypesList(){
+		return WebComponentUtil.createAssignableTypesList();
 	}
 }

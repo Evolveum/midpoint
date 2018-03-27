@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -126,7 +127,8 @@ public class ModelRestService {
 	@Autowired private TaskManager taskManager;
 	@Autowired private Protector protector;
 	@Autowired private ResourceValidator resourceValidator;
-	@Autowired private CacheRegistry cacheRegistry;
+	
+	@Autowired private CacheDispatcher cacheDispatcher;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 
@@ -1068,15 +1070,16 @@ public class ModelRestService {
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
 		//TODO: task??
-//		Task task = RestServiceUtil.initRequest(mc);
-//		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CLUSTER_EVENT);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_EVENT);
-		cacheRegistry.clearAllCaches();
+		String oid = "";
+		Class clazz = ObjectTypes.getClassFromRestType(type);
+		cacheDispatcher.dispatch(clazz, oid);
 		
-//		result.computeStatus();
-//		finishRequest(task);
 		result.recordSuccess();
-		return RestServiceUtil.createResponse(Response.Status.OK, result);
+		Response response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		finishRequest(task);
+		return response;
 
 	}
 
