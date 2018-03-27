@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.common.task;
+package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,11 +28,11 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author mederly
  */
-public class ExitHandlerException extends Exception {
+public class ExitWorkBucketHandlerException extends Exception {
 
 	@NotNull private final TaskWorkBucketProcessingResult runResult;
 
-	public ExitHandlerException(@NotNull TaskWorkBucketProcessingResult runResult) {
+	public ExitWorkBucketHandlerException(@NotNull TaskWorkBucketProcessingResult runResult) {
 		this.runResult = runResult;
 	}
 

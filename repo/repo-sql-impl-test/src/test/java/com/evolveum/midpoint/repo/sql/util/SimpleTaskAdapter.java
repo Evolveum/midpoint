@@ -899,4 +899,9 @@ public class SimpleTaskAdapter implements Task {
     public TaskExecutionStatusType getStateBeforeSuspend() {
         return null;
     }
+
+    @Override
+    public boolean isPartitionedMaster() {
+        return false;
+    }
 }

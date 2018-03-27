@@ -64,6 +64,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 	}
 
 	private boolean hasRun = false;
+    private int executions = 0;
 
 	@Override
 	public TaskRunResult run(Task task) {
@@ -83,6 +84,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
 		hasRun = true;
+		executions++;
 
         if ("L1".equals(id)) {
             PrismProperty<Boolean> l1flag = task.getExtensionProperty(L1_FLAG_QNAME);
@@ -177,7 +179,15 @@ public class MockSingleTaskHandler implements TaskHandler {
 		hasRun = false;
 	}
 
-    @Override
+	public int getExecutions() {
+		return executions;
+	}
+
+	public void resetExecutions() {
+		executions = 0;
+	}
+
+	@Override
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;
     }

@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Task handler for "reindex" task.
