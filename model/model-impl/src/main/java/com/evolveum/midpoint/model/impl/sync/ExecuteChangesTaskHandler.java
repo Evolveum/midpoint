@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 

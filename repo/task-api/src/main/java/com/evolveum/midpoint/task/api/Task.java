@@ -1038,4 +1038,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	TaskUnpauseActionType getUnpauseAction();
 
 	TaskExecutionStatusType getStateBeforeSuspend();
+
+	boolean isPartitionedMaster();
 }

@@ -3258,10 +3258,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0">
+			<xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
-						Whether the subtasks should be executed sequentially. The default is true.
+						Whether the subtasks should be executed sequentially.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="durablePartitions" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether the partitions should be durable i.e. whether they should persist through master task restarts.
+						This is useful e.g. for partitioned validity scanner because each partition keeps its own last
+						scan timestamp. (EXPERIMENTAL)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -5126,7 +5135,7 @@
 	                		of historical data, audit records, etc. It may also be used to "blocks" the user or account
 	                		identifier to avoid their reuse. 
                 		</p><p>
-	                		Usualy used for retired employees and similar cases.
+	                		Usually used for retired employees and similar cases.
                 		</p> 
                 	</xsd:documentation>
                     <xsd:appinfo>

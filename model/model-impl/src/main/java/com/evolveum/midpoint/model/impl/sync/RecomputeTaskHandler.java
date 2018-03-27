@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;

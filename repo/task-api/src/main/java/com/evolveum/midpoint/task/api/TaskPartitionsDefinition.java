@@ -48,6 +48,15 @@ public interface TaskPartitionsDefinition {
 	}
 
 	/**
+	 * Whether the partitions should be durable i.e. whether they should persist through master task restarts.
+	 * This is useful e.g. for partitioned validity scanner because each partition keeps its own last
+	 * scan timestamp. (EXPERIMENTAL)
+	 */
+	default boolean isDurablePartitions(Task masterTask) {
+		return false;
+	}
+
+	/**
 	 * Template for the subtask name. The default is {masterTaskName} ({index})
 	 */
 	default String getName(Task masterTask) {

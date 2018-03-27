@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.importer;
 
-import java.util.List;
 import java.util.function.Function;
 
 import javax.annotation.PostConstruct;

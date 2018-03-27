@@ -461,6 +461,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_OID = "10000000-0000-0000-5555-555500000404";
 
 	protected static final String TASK_VALIDITY_SCANNER_FILENAME = COMMON_DIR + "/task-validity-scanner.xml";
+	protected static final String TASK_PARTITIONED_VALIDITY_SCANNER_FILENAME = COMMON_DIR + "/task-partitioned-validity-scanner.xml";
 	protected static final String TASK_VALIDITY_SCANNER_OID = "10000000-0000-0000-5555-555505060400";
 
 	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner.xml");
