@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,10 +30,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -41,6 +39,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -73,7 +73,7 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private void initModels(){
-        policiesListModel = new LoadableModel<List<PrismObject<AbstractRoleType>>>() {
+        policiesListModel = new LoadableModel<List<PrismObject<AbstractRoleType>>>(false) {
             @Override
             protected List<PrismObject<AbstractRoleType>> load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_POLICY_GROUP_MEMBERS);
@@ -82,7 +82,16 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                 ObjectQuery membersQuery = QueryBuilder.queryFor(AbstractRoleType.class, getPageBase().getPrismContext())
                         .isChildOf(policyGroupObject.getOid())
                         .build();
-                return WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());
+                List<PrismObject<AbstractRoleType>> policiesList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());
+                Collections.sort(policiesList, new Comparator<PrismObject<AbstractRoleType>>() {
+                    @Override
+                    public int compare(PrismObject<AbstractRoleType> o1, PrismObject<AbstractRoleType> o2) {
+                        String displayName1 = WebComponentUtil.getDisplayNameOrName(o1);
+                        String displayName2 = WebComponentUtil.getDisplayNameOrName(o2);
+                        return String.CASE_INSENSITIVE_ORDER.compare(displayName1, displayName2);
+                    }
+                });
+                return policiesList;
             }
         };
     }
