@@ -16,18 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
-import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
-import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
-import java.util.Properties;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
+import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
+import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,11 +37,6 @@ public class SqlRepositoryBeanConfig {
 
     @Autowired
     private SqlRepositoryFactory sqlRepositoryFactory;
-
-    @Bean
-    public CacheDispatcher cacheDispatcher() {
-        return new CacheDispatcherImpl();
-    }
 
     @Bean
     public DataSourceFactory dataSourceFactory() {
