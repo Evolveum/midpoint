@@ -36,12 +36,14 @@ import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -65,6 +68,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -78,6 +82,7 @@ import static org.testng.AssertJUnit.*;
 public class ModifyTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/modify");
+    private static final File ACCOUNT_ATTRIBUTE_FILE = new File(TEST_DIR, "account-attribute.xml");
     private static final File ACCOUNT_FILE = new File(TEST_DIR, "account.xml");
     private static final File MODIFY_USER_ADD_LINK = new File(TEST_DIR, "change-add.xml");
 
@@ -603,7 +608,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult(TEST_NAME);
 
-        PrismObject<ShadowType> account = prismContext.parseObject(new File(TEST_DIR, "account-attribute.xml"));
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
         repositoryService.addObject(account, null, result);
         accountOid = account.getOid();
 
@@ -825,6 +830,49 @@ public class ModifyTest extends BaseSQLRepoTest {
         String description = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable().getDescription();
         assertEquals("description was not set", "123456", description);
     }
+
+    @Test(enabled = false)
+    public void test200ReplaceAttributes() throws Exception {
+        final String TEST_NAME = "test200ReplaceAttributes";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
+        repositoryService.addObject(account, null, result);
+        accountOid = account.getOid();
+
+        QName ATTR1_QNAME = new QName(MidPointConstants.NS_RI, "attr1");
+        PrismPropertyDefinition<String> def1 = new PrismPropertyDefinitionImpl<>(ATTR1_QNAME, DOMUtil.XSD_STRING, prismContext);
+        ShadowAttributesType attributes = new ShadowAttributesType(prismContext);
+        PrismProperty<String> attr1 = def1.instantiate();
+        attr1.setRealValue("value1");
+        attributes.asPrismContainerValue().add(attr1);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .replace(attributes)
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        Session session = open();
+        List shadows = session.createQuery("from RShadow").list();
+        System.out.println("shadows:\n" + shadows);
+        //noinspection unchecked
+        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.item.id, e.value from ROExtString e").list();
+        for (Object[] extString : extStrings) {
+            System.out.println("-> " + Arrays.asList(extString));
+        }
+
+        ObjectQuery query1 = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
+                .build();
+        SearchResultList<PrismObject<ShadowType>> list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
+        System.out.println("*** query1 result:\n" + DebugUtil.debugDump(list1));
+        assertEquals("Wrong # of query1 results", 1, list1.size());
+    }
+
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
     	assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);

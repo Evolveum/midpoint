@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -39,6 +40,9 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_connector")
 @Persister(impl = MidPointJoinedPersister.class)
+@Table(indexes = {
+        @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
+        @Index(name = "iConnectorNameNorm", columnList = "name_norm")})
 public class RConnector extends RObject<ConnectorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
@@ -81,6 +85,7 @@ public class RConnector extends RObject<ConnectorType> {
         return framework;
     }
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))

@@ -33,7 +33,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 @Entity
 @Table(name = RAccessCertificationDefinition.TABLE_NAME,
-        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = {"name_norm"}))
+        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iCertDefinitionNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_definition")
 public class RAccessCertificationDefinition extends RObject<AccessCertificationDefinitionType> {
@@ -47,6 +51,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
     private XMLGregorianCalendar lastCampaignClosedTimestamp;
 //    private String campaignSchedulingInterval;
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))

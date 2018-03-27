@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -239,7 +239,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 			@Override
 			public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem, String componentId,
 					IModel<JasperReportParameterDto> rowModel) {
-				CheckBoxPanel checkBox = new CheckBoxPanel(componentId,
+				IsolatedCheckBoxPanel checkBox = new IsolatedCheckBoxPanel(componentId,
                     new PropertyModel<>(rowModel, getPropertyExpression()), new Model<>(true));
 				cellItem.add(checkBox);
 			}
