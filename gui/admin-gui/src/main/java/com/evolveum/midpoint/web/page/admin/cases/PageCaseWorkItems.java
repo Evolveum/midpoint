@@ -66,7 +66,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -91,8 +91,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author bpowers
  */
 public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
 
     private static final String DOT_CLASS = PageCaseWorkItems.class.getName() + ".";
     private static final String PARAMETER_CASE_ID = "caseId";
@@ -144,7 +145,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
                     .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
         }
-        CheckBoxPanel includeClosedCases = (CheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
+        IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
         if (includeClosedCases == null || !includeClosedCases.getValue()) {
             query.addFilter(
                 QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
@@ -384,7 +385,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         });
         searchFilterForm.add(assigneeContainer);
 
-        CheckBoxPanel includeClosedCases = new CheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
+        IsolatedCheckBoxPanel includeClosedCases = new IsolatedCheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
             private static final long serialVersionUID = 1L;
 
             public void onUpdate(AjaxRequestTarget target) {
