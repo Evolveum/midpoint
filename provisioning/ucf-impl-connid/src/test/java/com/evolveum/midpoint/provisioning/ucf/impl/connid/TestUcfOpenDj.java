@@ -317,7 +317,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 
-		cc.deleteObject(accountDefinition, null, identifiers, null, result);
+		cc.deleteObject(accountDefinition, null, null, identifiers, null, result);
 
 		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
 				accountDefinition, identifiers);
@@ -350,7 +350,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 
-		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
+		cc.modifyObject(accountDefinition, null, identifiers, changes, null, result);
 
 		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
 				accountDefinition, identifiers);
@@ -751,7 +751,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 //		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
 //		changes.add(passwordChange);
-		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
+		cc.modifyObject(accountDefinition, null, identifiers, changes, null, result);
 
 		// THEN
 

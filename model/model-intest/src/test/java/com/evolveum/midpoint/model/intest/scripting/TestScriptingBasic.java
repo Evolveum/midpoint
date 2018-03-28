@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionTaskHandler;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -98,6 +98,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_FILE = new File(TEST_DIR, "scripting-users-in-background.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_ASSIGN_FILE = new File(TEST_DIR, "scripting-users-in-background-assign.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE = new File(TEST_DIR, "scripting-users-in-background-task.xml");
+	private static final File SCRIPTING_USERS_IN_BACKGROUND_ITERATIVE_TASK_FILE = new File(TEST_DIR, "scripting-users-in-background-iterative-task.xml");
 	private static final File START_TASKS_FROM_TEMPLATE_FILE = new File(TEST_DIR, "start-tasks-from-template.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
 	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
@@ -770,7 +771,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 			    .findContainer(TaskType.F_EXTENSION)
 			    .findOrCreateProperty(USER_DESCRIPTION_TASK_EXTENSION_PROPERTY)
 			    .addRealValue("admin description");
-	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+	    task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
 
 	    dummyTransport.clearMessages();
 	    boolean notificationsDisabled = notificationManager.isDisabled();
@@ -809,7 +810,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		// WHEN
 
 	    task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
-	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+	    task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
 
 	    dummyTransport.clearMessages();
 	    boolean notificationsDisabled = notificationManager.isDisabled();
@@ -1074,6 +1075,28 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		assertNoObject(TaskType.class, oid2, task, result);
 
 		taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 10000L, result);
+	}
+
+	@Test
+	public void test570IterativeScriptingTask() throws Exception {
+		final String TEST_NAME = "test570IterativeScriptingTask";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+		String taskOid = repoAddObjectFromFile(SCRIPTING_USERS_IN_BACKGROUND_ITERATIVE_TASK_FILE, result).getOid();
+
+		// WHEN
+		waitForTaskFinish(taskOid, false);
+
+		// THEN
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		PrismObject<UserType> administrator = getUser(USER_ADMINISTRATOR_OID);
+		display("jack", jack);
+		display("administrator", administrator);
+		assertEquals("Wrong jack description", "hello jack", jack.asObjectable().getDescription());
+		assertEquals("Wrong administrator description", "hello administrator", administrator.asObjectable().getDescription());
 	}
 
 	private void assertNoOutputData(ExecutionContext output) {

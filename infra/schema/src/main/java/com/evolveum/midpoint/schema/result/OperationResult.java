@@ -240,8 +240,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return asynchronousOperationReference;
 	}
 
-	public void setAsynchronousOperationReference(String asyncronousOperationReference) {
-		this.asynchronousOperationReference = asyncronousOperationReference;
+	public void setAsynchronousOperationReference(String asynchronousOperationReference) {
+		this.asynchronousOperationReference = asynchronousOperationReference;
 	}
 
 	/**
@@ -1558,7 +1558,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		if (asynchronousOperationReference != null) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "asyncronousOperationReference", asynchronousOperationReference, indent + 2);
+			DebugUtil.debugDumpWithLabel(sb, "asynchronousOperationReference", asynchronousOperationReference, indent + 2);
 		}
 		sb.append("\n");
 

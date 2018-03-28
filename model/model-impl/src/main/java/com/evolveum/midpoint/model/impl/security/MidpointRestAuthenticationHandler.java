@@ -35,6 +35,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,7 +44,11 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
@@ -62,12 +67,14 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	@Autowired 
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
-	@Autowired private PrismContext prismContext;
-	@Autowired private SecurityContextManager securityContextManager;
+	
+	@Autowired private NodeAuthenticationEvaluator nodeAuthenticator;
+	@Autowired private TaskManager taskManager;
 
 	@Override
 	public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
 		// nothing to do
+		
 	}
 
 	@Override
@@ -95,6 +102,40 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
 				return;
 			}
+			
+			//TODO: audit login/logout?
+			
+			if (RestAuthenticationMethod.CLUSTER.equals(authenticationType)) {
+				HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
+				String remoteAddress  = connectionInfo.getRemoteHostAddress();
+
+				
+				if (!nodeAuthenticator.authenticate(null, remoteAddress, "invalidateCache")) {
+					RestServiceUtil.createAbortMessage(requestCtx);
+					return;
+				}
+				Task task = taskManager.createTaskInstance();
+				m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
+//				try {
+//					decodedCredentials = new String(Base64Utility.decode(base64Credentials));
+//					ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).contains(decodedCredentials).build();
+//					OperationResult result = new OperationResult("authenticate node");
+//					SearchResultList<PrismObject<NodeType>> nodes = repository.searchObjects(NodeType.class, query, null, result);
+//					if (nodes.size() != 1) {
+//						RestServiceUtil.createAbortMessage(requestCtx);
+//						return;
+//					}
+//					//TODO: http header
+//					
+//					PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(nodes.iterator().next(), null);
+//					 SecurityContext securityContext = SecurityContextHolder.getContext();
+//				     securityContext.setAuthentication(authentication);
+//				} catch (Base64Exception | SchemaException e) {
+//					RestServiceUtil.createAbortMessage(requestCtx);
+//					return;
+//				}
+			}
+			return;
 		}
 
 		if (parts.length != 2) {
@@ -110,34 +151,14 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 				policy.setAuthorizationType(RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod());
 				policy.setAuthorization(decodedCredentials);
 				securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
+				
 			} catch (Base64Exception e) {
 				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
 				return;
 			}
 		}
 		
-		//TODO: audit login/logout?
 		
-		if (RestAuthenticationMethod.CLUSTER.equals(authenticationType)) {
-			String decodedCredentials;
-			try {
-				decodedCredentials = new String(Base64Utility.decode(base64Credentials));
-				ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).contains(decodedCredentials).build();
-				OperationResult result = new OperationResult("authenticate node");
-				SearchResultList<PrismObject<NodeType>> nodes = repository.searchObjects(NodeType.class, query, null, result);
-				if (nodes.size() != 1) {
-					RestServiceUtil.createAbortMessage(requestCtx);
-					return;
-				}
-				
-				PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(nodes.iterator().next(), null);
-				 SecurityContext securityContext = SecurityContextHolder.getContext();
-			     securityContext.setAuthentication(authentication);
-			} catch (Base64Exception | SchemaException e) {
-				RestServiceUtil.createAbortMessage(requestCtx);
-				return;
-			}
-		}
 		
 	}
 

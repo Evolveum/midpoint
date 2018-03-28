@@ -102,7 +102,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return getPageBase().getPrismContext();
 	}
 
-		private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
+	private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
 			IChoiceRenderer<V> renderer) {
 		DropDownChoice<V> listSelect = new DropDownChoice<>(id, defaultModel,
             new AbstractReadOnlyModel<List<V>>() {

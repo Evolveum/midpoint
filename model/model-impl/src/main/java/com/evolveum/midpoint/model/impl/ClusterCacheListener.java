@@ -22,10 +22,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.RestAuthenticationMethod;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -76,13 +79,21 @@ public class ClusterCacheListener implements CacheListener {
 			return;
 		}
 		
+		String nodeId = taskManager.getNodeId();
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication instanceof NodeAuthenticationToken) {
+			LOGGER.trace("Skipping cluster-wide cache celaring, other nodes were already called.");
+		}
+		
+		
 		Task task = taskManager.createTaskInstance("invalidateCache");
 		OperationResult result = task.getResult();
 		
 		SearchResultList<PrismObject<NodeType>> resultList;
 		try {
-			String nodeId = taskManager.getNodeId();
-			ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
+			
+			ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).not().item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
 			resultList = modelService.searchObjects(NodeType.class, query, null, task, result);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException
 				| ConfigurationException | ExpressionEvaluationException e) {
@@ -112,12 +123,10 @@ public class ClusterCacheListener implements CacheListener {
 		for (PrismObject<NodeType> node : resultList.getList()) {
 			NodeType nodeType = node.asObjectable();
 			
-			String ipAddress = nodeType.getNodeIdentifier();
-			
-			String httpPattern = clusterHttpPattern.replace("$host", nodeType.getHostname() + ":8080");
+			String httpPattern = clusterHttpPattern.replace("$host", nodeType.getHostname());
 			
 			WebClient client = WebClient.create(httpPattern + "/ws/rest");
-			client.header("Authorization", RestAuthenticationMethod.CLUSTER + " " + Base64Utility.encode((ipAddress).getBytes()));
+			client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod());// + " " + Base64Utility.encode((nodeIdentifier).getBytes()));
 			
 			client.path("/event/" + ObjectTypes.getRestTypeFromClass(type));
 			Response response = client.post(null);

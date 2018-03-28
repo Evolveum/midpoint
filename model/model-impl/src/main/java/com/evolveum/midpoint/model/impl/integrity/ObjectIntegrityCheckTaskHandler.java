@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Task handler for "Object integrity check" task.
@@ -92,7 +91,8 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
 	}
 
 	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(ObjectIntegrityCheckResultHandler resultHandler,
+	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
+			ObjectIntegrityCheckResultHandler resultHandler,
 			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
 		return SelectorOptions.createCollection(GetOperationOptions.createAttachDiagData());
 	}

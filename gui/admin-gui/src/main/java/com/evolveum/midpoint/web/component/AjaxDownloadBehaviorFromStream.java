@@ -71,7 +71,11 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
 }

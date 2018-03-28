@@ -186,10 +186,19 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 
 	protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
 			CommonException {
-	    waitFor("Waiting for task manager to execute the task", () -> {
+	    waitFor("Waiting for task to close", () -> {
 	        Task task = taskManager.getTask(taskOid, result);
-	        IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+	        IntegrationTestTools.display("Task while waiting for it to close", task);
 	        return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
+	    }, timeoutInterval, sleepInterval);
+	}
+
+	protected void waitForTaskRunnable(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval) throws
+			CommonException {
+	    waitFor("Waiting for task to become runnable", () -> {
+	        Task task = taskManager.getTask(taskOid, result);
+	        IntegrationTestTools.display("Task while waiting for it to become runnable", task);
+	        return task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE;
 	    }, timeoutInterval, sleepInterval);
 	}
 
@@ -223,9 +232,9 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 
 	protected void waitForTaskProgress(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval,
 	        int threshold) throws CommonException {
-	    waitFor("Waiting for task manager to execute the task", () -> {
+	    waitFor("Waiting for task progress reaching " + threshold, () -> {
 	        Task task = taskManager.getTask(taskOid, result);
-	        IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+	        IntegrationTestTools.display("Task while waiting for progress reaching " + threshold, task);
 	        return task.getProgress() >= threshold;
 	    }, timeoutInterval, sleepInterval);
 	}

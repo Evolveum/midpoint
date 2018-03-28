@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Task handler for "reindex" task.
@@ -82,13 +81,6 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
     protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, ObjectType.class);
     }
-
-    @Override
-	protected ObjectQuery createQuery(ReindexResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
-        LOGGER.info("Using query:\n{}", query.debugDump());
-        return query;
-	}
 
     @Override
     protected boolean useRepositoryDirectly(ReindexResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {

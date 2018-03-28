@@ -53,6 +53,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  */
 public class ReportTypeUtil {
 
+	public static String FILENAMEPARAMETER = "fname";
+	public static final String HEADER_USERAGENT = "mp-cluster-peer-client";
+	public static String URLENCODING = "UTF-8";
+	
+	
 	private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
 
 

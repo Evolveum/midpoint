@@ -65,17 +65,10 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 	// all tasks of a specified type
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 
-	@Autowired
-	protected ModelObjectResolver modelObjectResolver;
-
-	@Autowired
-	protected SecurityEnforcer securityEnforcer;
-
-	@Autowired
-	protected ExpressionFactory expressionFactory;
-
-	@Autowired
-	protected SystemObjectCache systemObjectCache;
+	@Autowired protected ModelObjectResolver modelObjectResolver;
+	@Autowired protected SecurityEnforcer securityEnforcer;
+	@Autowired protected ExpressionFactory expressionFactory;
+	@Autowired protected SystemObjectCache systemObjectCache;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeModelTaskHandler.class);
 

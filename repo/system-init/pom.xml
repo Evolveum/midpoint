@@ -80,13 +80,6 @@
 			<artifactId>security-api</artifactId>
 			<version>3.8-SNAPSHOT</version>
 		</dependency>
-		<!-- this dependency is here, because we don't have hammer factory factory for cache repository in system init-->
-        <dependency>
-                <groupId>com.evolveum.midpoint.repo</groupId>
-                <artifactId>repo-cache</artifactId>
-                <version>3.8-SNAPSHOT</version>
-        </dependency>
-
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>

@@ -94,7 +94,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ContextLoader {
 
-	@Autowired(required = true)
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 

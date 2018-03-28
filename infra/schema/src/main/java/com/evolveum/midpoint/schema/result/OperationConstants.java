@@ -33,6 +33,7 @@ public class OperationConstants {
 	public static final String CLEANUP = PREFIX + ".cleanup";
 
 	public static final String EXECUTE = PREFIX + ".execute";
+	public static final String EXECUTE_SCRIPT = PREFIX + ".executeScript";
 
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
     public static final String IMPORT_ACCOUNTS_FROM_RESOURCE_STATISTICS = PREFIX + ".import.accountsFromResource.statistics";

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CacheDispatcherImpl implements CacheDispatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(CacheDispatcherImpl.class);

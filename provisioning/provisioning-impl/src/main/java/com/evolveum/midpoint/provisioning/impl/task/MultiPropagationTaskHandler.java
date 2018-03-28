@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.task;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,15 +88,6 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
 	@Override
 	public String getCategoryName(Task task) {
 		return TaskCategory.SYSTEM;
-	}
-
-	@Override
-	protected ObjectQuery createQuery(MultiPropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
-			OperationResult opResult) throws SchemaException {
-		ObjectQuery objectQuery = createQueryFromTask(handler, runResult, coordinatorTask, opResult);
-		LOGGER.trace("Resource query: {}", objectQuery);
-		return objectQuery;
-		
 	}
 
 	@Override

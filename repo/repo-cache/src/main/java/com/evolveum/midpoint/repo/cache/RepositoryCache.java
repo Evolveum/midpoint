@@ -41,7 +41,9 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
@@ -56,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Radovan Semancik
  *
  */
+@Component(value="cacheRepositoryService")
 public class RepositoryCache implements RepositoryService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
@@ -81,13 +84,13 @@ public class RepositoryCache implements RepositoryService {
 
 	private static final Map<CacheKey, CacheObject> globalCache = new ConcurrentHashMap<>();
 
-	private RepositoryService repository;
+	@Autowired private RepositoryService repositoryService;
 
-	private PrismContext prismContext;
+	@Autowired private PrismContext prismContext;
 
-	private MidpointConfiguration midpointConfiguration;
+	@Autowired private MidpointConfiguration midpointConfiguration;
 	
-	private CacheDispatcher cacheDispatcher;
+	@Autowired private CacheDispatcher cacheDispatcher;
 
 
 	private long cacheMaxTTL;
@@ -99,23 +102,8 @@ public class RepositoryCache implements RepositoryService {
 	public RepositoryCache() {
     }
 
-    public void setRepository(RepositoryService service) {
-        Validate.notNull(service, "Repository service must not be null.");
-        this.repository = service;
-    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
-
-	public void setMidpointConfiguration(MidpointConfiguration midpointConfiguration) {
-		this.midpointConfiguration = midpointConfiguration;
-	}
-	
-	public void setCacheDispatcher(CacheDispatcher cacheDispatcher) {
-		this.cacheDispatcher = cacheDispatcher;
-	}
-
+	@PostConstruct
 	public void initialize() {
 		Integer cacheMaxTTL = midpointConfiguration.getConfiguration(CONFIGURATION_COMPONENT)
 				.getInt(PROPERTY_CACHE_MAX_TTL,0);
@@ -191,7 +179,7 @@ public class RepositoryCache implements RepositoryService {
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
 			Long startTime = repoOpStart();
 			try {
-				return repository.getObject(type, oid, options, parentResult);
+				return repositoryService.getObject(type, oid, options, parentResult);
 			} finally {
 				repoOpEnd(startTime);
 			}
@@ -218,7 +206,7 @@ public class RepositoryCache implements RepositoryService {
 		PrismObject<T> object;
 		Long startTime = repoOpStart();
 		try {
-			object = repository.getObject(type, oid, null, parentResult);
+			object = repositoryService.getObject(type, oid, null, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -258,7 +246,7 @@ public class RepositoryCache implements RepositoryService {
 		String oid;
 		Long startTime = repoOpStart();
 		try {
-			oid = repository.addObject(object, options, parentResult);
+			oid = repositoryService.addObject(object, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -282,7 +270,7 @@ public class RepositoryCache implements RepositoryService {
 			log("Cache: PASS ({})", type.getSimpleName());
 			Long startTime = repoOpStart();
 			try {
-				return repository.searchObjects(type, query, options, parentResult);
+				return repositoryService.searchObjects(type, query, options, parentResult);
 			} finally {
 				repoOpEnd(startTime);
 			}
@@ -309,7 +297,7 @@ public class RepositoryCache implements RepositoryService {
 		SearchResultList<PrismObject<T>> objects;
 		Long startTime = repoOpStart();
 		try {
-			objects = repository.searchObjects(type, query, options, parentResult);
+			objects = repositoryService.searchObjects(type, query, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -327,7 +315,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.searchContainers(type, query, options, parentResult);
+			return repositoryService.searchContainers(type, query, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -352,7 +340,7 @@ public class RepositoryCache implements RepositoryService {
 		};
 		Long startTime = repoOpStart();
 		try {
-			return repository.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
+			return repositoryService.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -366,7 +354,7 @@ public class RepositoryCache implements RepositoryService {
 		log("Cache: PASS countObjects ({})", type.getSimpleName());
 		Long startTime = repoOpStart();
 		try {
-			return repository.countObjects(type, query, null, parentResult);
+			return repositoryService.countObjects(type, query, null, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -378,7 +366,7 @@ public class RepositoryCache implements RepositoryService {
 		log("Cache: PASS countContainers ({})", type.getSimpleName());
 		Long startTime = repoOpStart();
 		try {
-			return repository.countContainers(type, query, options, parentResult);
+			return repositoryService.countContainers(type, query, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -392,7 +380,7 @@ public class RepositoryCache implements RepositoryService {
 		log("Cache: PASS countObjects ({})", type.getSimpleName());
 		Long startTime = repoOpStart();
 		try {
-			return repository.countObjects(type, query, options, parentResult);
+			return repositoryService.countObjects(type, query, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -432,7 +420,7 @@ public class RepositoryCache implements RepositoryService {
 		delay(modifyRandomDelayRange);
 		Long startTime = repoOpStart();
 		try {
-			repository.modifyObject(type, oid, modifications, precondition, options, parentResult);
+			repositoryService.modifyObject(type, oid, modifications, precondition, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
@@ -458,7 +446,7 @@ public class RepositoryCache implements RepositoryService {
 			throws ObjectNotFoundException {
 		Long startTime = repoOpStart();
 		try {
-			repository.deleteObject(type, oid, parentResult);
+			repositoryService.deleteObject(type, oid, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 			invalidateCacheEntry(type, oid);
@@ -472,7 +460,7 @@ public class RepositoryCache implements RepositoryService {
 		PrismObject<F> ownerObject;
 		Long startTime = repoOpStart();
 		try {
-			ownerObject = repository.searchShadowOwner(shadowOid, options, parentResult);
+			ownerObject = repositoryService.searchShadowOwner(shadowOid, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -506,7 +494,7 @@ public class RepositoryCache implements RepositoryService {
 			throws ObjectNotFoundException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.listAccountShadowOwner(accountOid, parentResult);
+			return repositoryService.listAccountShadowOwner(accountOid, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -518,7 +506,7 @@ public class RepositoryCache implements RepositoryService {
             SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
+			return repositoryService.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -534,7 +522,7 @@ public class RepositoryCache implements RepositoryService {
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
 			Long startTime = repoOpStart();
 			try {
-				return repository.getVersion(type, oid, parentResult);
+				return repositoryService.getVersion(type, oid, parentResult);
 			} finally {
 				repoOpEnd(startTime);
 			}
@@ -553,7 +541,7 @@ public class RepositoryCache implements RepositoryService {
 		String version;
 		Long startTime = repoOpStart();
 		try {
-			version = repository.getVersion(type, oid, parentResult);
+			version = repositoryService.getVersion(type, oid, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -568,7 +556,7 @@ public class RepositoryCache implements RepositoryService {
 	public RepositoryDiag getRepositoryDiag() {
 		Long startTime = repoOpStart();
 		try {
-			return repository.getRepositoryDiag();
+			return repositoryService.getRepositoryDiag();
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -581,7 +569,7 @@ public class RepositoryCache implements RepositoryService {
 	public void repositorySelfTest(OperationResult parentResult) {
 		Long startTime = repoOpStart();
 		try {
-			repository.repositorySelfTest(parentResult);
+			repositoryService.repositorySelfTest(parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -591,7 +579,7 @@ public class RepositoryCache implements RepositoryService {
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
     	Long startTime = repoOpStart();
 		try {
-			repository.testOrgClosureConsistency(repairIfNecessary, testResult);
+			repositoryService.testOrgClosureConsistency(repairIfNecessary, testResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -621,7 +609,7 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
+			return repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOids);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -632,7 +620,7 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.isDescendant(object, orgOid);
+			return repositoryService.isDescendant(object, orgOid);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -643,7 +631,7 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.isAncestor(object, oid);
+			return repositoryService.isAncestor(object, oid);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -654,7 +642,7 @@ public class RepositoryCache implements RepositoryService {
 			PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.selectorMatches(objectSelector, object, filterEvaluator, logger, logMessagePrefix);
+			return repositoryService.selectorMatches(objectSelector, object, filterEvaluator, logger, logMessagePrefix);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -674,7 +662,7 @@ public class RepositoryCache implements RepositoryService {
 			SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repository.advanceSequence(oid, parentResult);
+			return repositoryService.advanceSequence(oid, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 			invalidateCacheEntry(SequenceType.class, oid);
@@ -686,7 +674,7 @@ public class RepositoryCache implements RepositoryService {
 			throws ObjectNotFoundException, SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			repository.returnUnusedValuesToSequence(oid, unusedValues, parentResult);
+			repositoryService.returnUnusedValuesToSequence(oid, unusedValues, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 			invalidateCacheEntry(SequenceType.class, oid);
@@ -697,7 +685,7 @@ public class RepositoryCache implements RepositoryService {
 	public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
 		Long startTime = repoOpStart();
 		try {
-			return repository.executeQueryDiagnostics(request, result);
+			return repositoryService.executeQueryDiagnostics(request, result);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -707,7 +695,7 @@ public class RepositoryCache implements RepositoryService {
 	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
 		Long startTime = repoOpStart();
 		try {
-			return repository.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
+			return repositoryService.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -717,7 +705,7 @@ public class RepositoryCache implements RepositoryService {
 	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
 		Long startTime = repoOpStart();
 		try {
-			repository.applyFullTextSearchConfiguration(fullTextSearch);
+			repositoryService.applyFullTextSearchConfiguration(fullTextSearch);
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -727,7 +715,7 @@ public class RepositoryCache implements RepositoryService {
 	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
 		Long startTime = repoOpStart();
 		try {
-			return repository.getFullTextSearchConfiguration();
+			return repositoryService.getFullTextSearchConfiguration();
 		} finally {
 			repoOpEnd(startTime);
 		}
@@ -735,22 +723,22 @@ public class RepositoryCache implements RepositoryService {
 
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
-		repository.postInit(result);
+		repositoryService.postInit(result);
 	}
 
 	@Override
 	public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
-		return repository.createAndRegisterConflictWatcher(oid);
+		return repositoryService.createAndRegisterConflictWatcher(oid);
 	}
 
 	@Override
 	public void unregisterConflictWatcher(ConflictWatcher watcher) {
-		repository.unregisterConflictWatcher(watcher);
+		repositoryService.unregisterConflictWatcher(watcher);
 	}
 
 	@Override
 	public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
-		return repository.hasConflict(watcher, result);
+		return repositoryService.hasConflict(watcher, result);
 	}
 
 	private <T extends ObjectType> boolean supportsGlobalCaching(
@@ -782,7 +770,7 @@ public class RepositoryCache implements RepositoryService {
 			throws ObjectNotFoundException, SchemaException {
 
 		try {
-			String version = repository.getVersion(object.getObjectType(), object.getObjectOid(), result);
+			String version = repositoryService.getVersion(object.getObjectType(), object.getObjectOid(), result);
 
 			return !Objects.equals(version, object.getObjectVersion());
 		} catch (ObjectNotFoundException | SchemaException ex) {
@@ -803,7 +791,7 @@ public class RepositoryCache implements RepositoryService {
 		log("Cache: Global MISS {}", key);
 
 		try {
-			PrismObject object = repository.getObject(key.getType(), key.getOid(), options, result);
+			PrismObject object = repositoryService.getObject(key.getType(), key.getOid(), options, result);
 
 			long ttl = System.currentTimeMillis() + cacheMaxTTL;
 			CacheObject<T> cacheObject = new CacheObject<>(object, ttl);

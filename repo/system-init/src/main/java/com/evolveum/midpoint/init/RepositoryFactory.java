@@ -15,24 +15,23 @@
  */
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class RepositoryFactory implements ApplicationContextAware, RuntimeConfiguration {
 
@@ -47,10 +46,8 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     private PrismContext prismContext;
 	//Repository factory
     private RepositoryServiceFactory factory;
-    private RepositoryServiceFactory cacheFactory;
     //Repository services
     private RepositoryService repositoryService;
-    private RepositoryService cacheRepositoryService;
 
     public void init() {
         Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
@@ -128,38 +125,6 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
 
     public RepositoryServiceFactory getFactory() {
         return factory;
-    }
-
-    public synchronized RepositoryService getCacheRepositoryService() {
-        if (cacheRepositoryService != null) {
-            return cacheRepositoryService;
-        }
-
-        try {
-            Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(REPOSITORY_FACTORY_CACHE_CLASS);
-            cacheFactory = getFactoryBean(clazz);
-            //TODO decompose this dependency, remove class casting !!!
-            RepositoryCache repositoryCache = (RepositoryCache) cacheFactory.getRepositoryService();
-
-            RepositoryService repositoryService = applicationContext.getBean("repositoryService", RepositoryService.class);
-
-            repositoryCache.setRepository(repositoryService);
-            repositoryCache.setPrismContext(prismContext);
-            repositoryCache.setMidpointConfiguration(midpointConfiguration);
-
-            CacheDispatcher cacheDispatcher = applicationContext.getBean("cacheDispatcher", CacheDispatcher.class);
-            repositoryCache.setCacheDispatcher(cacheDispatcher);
-            
-            repositoryCache.initialize();
-
-            cacheRepositoryService = repositoryCache;
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Failed to get cache repository service. ExceptionClass = {}",
-                    ex, ex.getClass().getName());
-            throw new SystemException("Failed to get cache repository service", ex);
-        }
-
-        return cacheRepositoryService;
     }
 
     @Override

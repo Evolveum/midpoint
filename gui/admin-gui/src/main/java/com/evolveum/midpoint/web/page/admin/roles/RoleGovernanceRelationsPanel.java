@@ -226,6 +226,11 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     protected boolean isRelationColumnVisible(){
         return true;
     }
+    
+    @Override
+    protected boolean isGovernance(){
+        return true;
+    }
 
     class RoleRelationSelectionDto implements Serializable {
 		
@@ -246,5 +251,5 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 			return owner;
 		}
 	}
-
+    
 }

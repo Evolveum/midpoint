@@ -70,7 +70,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	// it's a bit fragile, as adding new references to child CTD in future may break existing code
 	ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest);
 
-	PrismObjectDefinition determineReferencedObjectDefinition(QName targetTypeName, ItemPath rest);
+	PrismObjectDefinition determineReferencedObjectDefinition(@NotNull QName targetTypeName, ItemPath rest);
 
 	Class<? extends ObjectType> getCompileTimeClassForObjectType(QName objectType);
 
