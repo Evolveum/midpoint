@@ -69,6 +69,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
+    private RelationTypes relationValue = null;
 
     public AbstractRoleAssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
     	super(id, assignmentContainerWrapperModel);
@@ -91,7 +92,24 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         assignmentsContainer.addOrReplace(relationContainer);
 
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(), this, true);
+                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
+                new IModel<RelationTypes>() {
+                    @Override
+                    public RelationTypes getObject() {
+                        return relationValue;
+                    }
+
+                    @Override
+                    public void setObject(RelationTypes relationTypes) {
+                        relationValue = relationTypes;
+                    }
+
+                    @Override
+                    public void detach() {
+
+                    }
+                }, this, true,
+                createStringResource("RelationTypes.ANY").getString());
         relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             private static final long serialVersionUID = 1L;
 
@@ -282,20 +300,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	private QName getRelation() {
-		DropDownChoicePanel<RelationTypes> relationPanel = getRelationPanel();
-		if (relationPanel == null) {
-		 return PrismConstants.Q_ANY;
-		}
-
-		if (relationPanel.getModel() == null) {
-			return PrismConstants.Q_ANY;
-		}
-
-		if (relationPanel.getModel().getObject() == null) {
-			return PrismConstants.Q_ANY;
-		}
-
-		return relationPanel.getModel().getObject().getRelation();
+		return relationValue == null ? PrismConstants.Q_ANY : relationValue.getRelation();
 	}
 
 	@Override
