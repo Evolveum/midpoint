@@ -130,7 +130,7 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     private void executeNotifyAny(OperationStatus status, ResourceOperationDescription operationDescription, Task task, OperationResult result) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("AccountOperationListener.notify (" + status + ") called with operationDescription = " + operationDescription.debugDump());
+            LOGGER.trace("AccountOperationListener.notify ({}) called with operationDescription = {}", status, operationDescription.debugDump());
         }
 
         if (operationDescription.getObjectDelta() == null) {
@@ -147,8 +147,8 @@ public class AccountOperationListener implements ResourceOperationListener {
         if (operationDescription.getObjectDelta().getObjectTypeClass() == null ||
                 !ShadowType.class.isAssignableFrom(operationDescription.getObjectDelta().getObjectTypeClass())) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Object that was changed was not an account, exiting the operation listener (class = " +
-                        operationDescription.getObjectDelta().getObjectTypeClass() + ")");
+                LOGGER.trace("Object that was changed was not an account, exiting the operation listener (class = {})",
+                        operationDescription.getObjectDelta().getObjectTypeClass());
             }
             return;
         }
@@ -158,9 +158,9 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     private ResourceObjectEvent createRequest(OperationStatus status,
-                                                     ResourceOperationDescription operationDescription,
-                                                     Task task,
-                                                     OperationResult result) {
+                                              ResourceOperationDescription operationDescription,
+                                              Task task,
+                                              OperationResult result) {
 
         ResourceObjectEvent event = new ResourceObjectEvent(lightweightIdentifierGenerator);
         event.setAccountOperationDescription(operationDescription);
@@ -177,14 +177,14 @@ public class AccountOperationListener implements ResourceOperationListener {
         if (task != null && task.getOwner() != null) {
             event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));
         } else {
-            LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
+            LOGGER.warn("No owner for task {}, therefore no requester will be set for event {}", task, event.getId());
         }
 
         if (task != null && task.getChannel() != null) {
             event.setChannel(task.getChannel());
         } else if (operationDescription.getSourceChannel() != null) {
-			event.setChannel(operationDescription.getSourceChannel());
-		}
+            event.setChannel(operationDescription.getSourceChannel());
+        }
 
         return event;
     }
@@ -204,7 +204,7 @@ public class AccountOperationListener implements ResourceOperationListener {
             try {
                 user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("listAccountShadowOwner for account " + accountOid + " yields " + user);
+                    LOGGER.trace("listAccountShadowOwner for account {} yields {}",accountOid, user);
                 }
             } catch (ObjectNotFoundException e) {
                 LOGGER.trace("There's a problem finding account " + accountOid, e);
@@ -218,14 +218,14 @@ public class AccountOperationListener implements ResourceOperationListener {
 
         PrismObject<UserType> requestee = task != null ? task.getRequestee() : null;
         if (requestee == null) {
-            LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task).");
+            LOGGER.debug("There is no owner of account {} (in repo nor in task).", accountOid);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Task = " + (task != null ? task.debugDump() : "(null)"));
+                LOGGER.trace("Task = {}", (task != null ? task.debugDump() : null));
             }
             return null;
         }
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Requestee = " + requestee + " for account " + accountOid);
+            LOGGER.trace("Requestee = {} for account {}", requestee, accountOid);
         }
         if (requestee.getOid() == null) {
             return requestee;
