@@ -129,7 +129,7 @@ public abstract class ShadowCache {
 	/**
 	 * Get the value of repositoryService.
 	 * 
-	 * DO NOT USE. Only ShadowManager shoudl access repository
+	 * DO NOT USE. Only ShadowManager should access repository
 	 * 
 	 * @return the value of repositoryService
 	 */
@@ -232,7 +232,7 @@ public abstract class ShadowCache {
 				SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
 						+ repositoryShadow + " with respect to " + resource);
 				parentResult.recordFatalError(
-						"No prmary identifiers found in the repository shadow " + repositoryShadow, ex);
+						"No primary identifiers found in the repository shadow " + repositoryShadow, ex);
 				throw ex;
 			}
 			
@@ -1539,7 +1539,7 @@ public abstract class ShadowCache {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Found resource object\n{}", resourceShadow.debugDump(1));
 				}
-				PrismObject<ShadowType> resultShadow;
+			PrismObject<ShadowType> resultShadow;
 				try {
 					// The shadow does not have any kind or intent at this
 					// point.

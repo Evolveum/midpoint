@@ -70,52 +70,36 @@ public class PartitioningTaskHandler implements TaskHandler {
 		runResult.setOperationResult(opResult);
 
 		try {
-			// subtasks cleanup
-			List<Task> subtasks = masterTask.listSubtasks(opResult);
-			List<Task> subtasksNotClosed = subtasks.stream()
-					.filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
-					.collect(Collectors.toList());
-			if (!subtasksNotClosed.isEmpty()) {
-				LOGGER.warn("Couldn't (re)create subtasks tasks because the following ones are not closed yet: {}", subtasksNotClosed);
-				opResult.recordFatalError("Couldn't (re)create worker tasks because the following ones are not closed yet: " + subtasksNotClosed);
-				runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-				return runResult;
-			}
-			taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), TaskManager.DO_NOT_WAIT, true, opResult);
+			setOrCheckTaskKind(masterTask, opResult);
 
-			// task kind setting
-			TaskKindType taskKind = masterTask.getWorkManagement() != null ? masterTask.getWorkManagement().getTaskKind() : null;
-			if (taskKind == null) {
-				ItemDelta<?, ?> itemDelta = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
-						.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
-						.replace(TaskKindType.PARTITIONED_MASTER)
-						.asItemDelta();
-				masterTask.addModificationImmediate(itemDelta, opResult);
-			} else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
-				throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
+			List<Task> subtasks = checkSubtasksClosed(masterTask, opResult, runResult);
+
+			boolean subtasksPresent;
+			TaskPartitionsDefinition partitionsDefinition = partitionsDefinitionSupplier.apply(masterTask);
+			boolean durablePartitions = partitionsDefinition.isDurablePartitions(masterTask);
+			if (durablePartitions) {
+				subtasksPresent = !subtasks.isEmpty();
+				if (subtasksPresent) {
+					checkSubtasksCorrect(subtasks, partitionsDefinition, masterTask, opResult, runResult);
+				}
+			} else {
+				// subtasks cleanup
+				taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), TaskManager.DO_NOT_WAIT, true, opResult);
+				subtasksPresent = false;
 			}
 
-			// subtasks creation
-			List<Task> subtasksCreated;
-			try {
-				subtasksCreated = createSubtasks(masterTask, opResult);
-			} catch (Throwable t) {
-				List<Task> subtasksToRollback = masterTask.listSubtasks(opResult);
-				taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasksToRollback), TaskManager.DO_NOT_WAIT, true, opResult);
-				throw t;
+			if (!subtasksPresent) {     // either not durable, or durable but no subtasks (yet)
+				createAndStartSubtasks(partitionsDefinition, masterTask, opResult);
+			} else {
+				scheduleSubtasksNow(subtasks, masterTask, opResult);
 			}
-			masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
-			masterTask.savePendingModifications(opResult);
-			List<Task> subtasksToResume = subtasksCreated.stream()
-					.filter(t -> t.getExecutionStatus() == TaskExecutionStatus.SUSPENDED)
-					.collect(Collectors.toList());
-			taskManager.resumeTasks(TaskUtil.tasksToOids(subtasksToResume), opResult);
-			LOGGER.info("Partitioned subtasks were successfully created and started for master {}", masterTask);
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't (re)create partitioned subtasks for {}", e, masterTask);
-			opResult.recordFatalError("Couldn't (re)create partitioned subtasks", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't (re)create/restart partitioned subtasks for {}", e, masterTask);
+			opResult.recordFatalError("Couldn't (re)create/restart partitioned subtasks", e);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
+		} catch (ExitHandlerException e) {
+			return e.getRunResult();
 		}
 		runResult.setProgress(runResult.getProgress() + 1);
 		opResult.computeStatusIfUnknown();
@@ -123,13 +107,106 @@ public class PartitioningTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
+	private void setOrCheckTaskKind(Task masterTask, OperationResult opResult)
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		TaskKindType taskKind = masterTask.getWorkManagement() != null ? masterTask.getWorkManagement().getTaskKind() : null;
+		if (taskKind == null) {
+			ItemDelta<?, ?> itemDelta = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
+					.replace(TaskKindType.PARTITIONED_MASTER)
+					.asItemDelta();
+			masterTask.addModificationImmediate(itemDelta, opResult);
+		} else if (taskKind != TaskKindType.PARTITIONED_MASTER) {
+			throw new IllegalStateException("Partitioned task has incompatible task kind: " + masterTask.getWorkManagement() + " in " + masterTask);
+		}
+	}
+
+	/**
+	 * Just a basic check of the subtasks - in the future, we could check them completely.
+	 */
+	private void checkSubtasksCorrect(List<Task> subtasks, TaskPartitionsDefinition partitionsDefinition, Task masterTask,
+			OperationResult opResult, TaskRunResult runResult) throws ExitHandlerException {
+		int expectedCount = partitionsDefinition.getCount(masterTask);
+		if (subtasks.size() != expectedCount) {
+			String message = "Couldn't restart subtasks tasks because their number (" + subtasks.size() +
+					") does not match expected count (" + expectedCount + "): " + masterTask;
+			LOGGER.warn("{}", message);
+			opResult.recordFatalError(message);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			throw new ExitHandlerException(runResult);
+		}
+	}
+
+	private void createAndStartSubtasks(TaskPartitionsDefinition partitionsDefinition, Task masterTask,
+			OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		List<Task> subtasksCreated;
+		try {
+			subtasksCreated = createSubtasks(partitionsDefinition, masterTask, opResult);
+		} catch (Throwable t) {
+			List<Task> subtasksToRollback = masterTask.listSubtasks(opResult);
+			taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasksToRollback), TaskManager.DO_NOT_WAIT, true,
+					opResult);
+			throw t;
+		}
+		masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
+		masterTask.savePendingModifications(opResult);
+		List<Task> subtasksToResume = subtasksCreated.stream()
+				.filter(t -> t.getExecutionStatus() == TaskExecutionStatus.SUSPENDED)
+				.collect(Collectors.toList());
+		taskManager.resumeTasks(TaskUtil.tasksToOids(subtasksToResume), opResult);
+		LOGGER.info("Partitioned subtasks were successfully created and started for master {}", masterTask);
+	}
+
+	private List<Task> checkSubtasksClosed(Task masterTask, OperationResult opResult, TaskRunResult runResult)
+			throws SchemaException, ExitHandlerException {
+		List<Task> subtasks = masterTask.listSubtasks(opResult);
+		List<Task> subtasksNotClosed = subtasks.stream()
+				.filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
+				.collect(Collectors.toList());
+		if (!subtasksNotClosed.isEmpty()) {
+			LOGGER.warn("Couldn't (re)create/restart subtasks tasks because the following ones are not closed yet: {}", subtasksNotClosed);
+			opResult.recordFatalError("Couldn't (re)create/restart subtasks because the following ones are not closed yet: " + subtasksNotClosed);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			throw new ExitHandlerException(runResult);
+		}
+		return subtasks;
+	}
+
+	private void scheduleSubtasksNow(List<Task> subtasks, Task masterTask, OperationResult opResult) throws SchemaException,
+			ObjectAlreadyExistsException, ObjectNotFoundException {
+		masterTask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
+		masterTask.savePendingModifications(opResult);
+
+		Set<String> dependents = getDependentTasksIdentifiers(subtasks);
+		// first set dependents to waiting, and only after that start runnables
+		for (Task subtask : subtasks) {
+			if (dependents.contains(subtask.getTaskIdentifier())) {
+				subtask.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.EXECUTE_IMMEDIATELY);
+				subtask.savePendingModifications(opResult);
+			}
+		}
+		for (Task subtask : subtasks) {
+			if (!dependents.contains(subtask.getTaskIdentifier())) {
+				taskManager.scheduleTaskNow(subtask, opResult);
+			}
+		}
+	}
+
+	private Set<String> getDependentTasksIdentifiers(List<Task> subtasks) {
+		Set<String> rv = new HashSet<>();
+		for (Task subtask : subtasks) {
+			rv.addAll(subtask.getDependents());
+		}
+		return rv;
+	}
+
 	/**
 	 * Creates subtasks: either suspended (these will be resumed after everything is prepared) or waiting (if they
 	 * have dependencies).
 	 */
-	private List<Task> createSubtasks(Task masterTask, OperationResult opResult)
+	private List<Task> createSubtasks(TaskPartitionsDefinition partitionsDefinition,
+			Task masterTask, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		TaskPartitionsDefinition partitionsDefinition = partitionsDefinitionSupplier.apply(masterTask);
 		boolean sequential = partitionsDefinition.isSequentialExecution(masterTask);
 		List<String> subtaskOids = new ArrayList<>();
 		int count = partitionsDefinition.getCount(masterTask);

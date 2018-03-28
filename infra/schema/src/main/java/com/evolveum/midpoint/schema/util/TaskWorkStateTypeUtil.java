@@ -47,6 +47,7 @@ public class TaskWorkStateTypeUtil {
 			return MiscUtil.getFirstNonNull(
 					buckets.getNumericSegmentation(),
 					buckets.getStringSegmentation(),
+					buckets.getOidSegmentation(),
 					buckets.getExplicitSegmentation(),
 					buckets.getSegmentation());
 		} else {

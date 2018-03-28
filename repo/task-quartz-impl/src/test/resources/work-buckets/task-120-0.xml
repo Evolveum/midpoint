@@ -31,7 +31,7 @@
 				<discriminator>name</discriminator>
 				<matchingRule>polyStringNorm</matchingRule>
 				<boundaryCharacters>a</boundaryCharacters>
-				<boundaryCharacters>01abc</boundaryCharacters>
+				<boundaryCharacters>\0-\1\a-\c</boundaryCharacters>
 				<boundaryCharacters>01abc</boundaryCharacters>
 				<comparisonMethod>prefix</comparisonMethod>
 			</stringSegmentation>

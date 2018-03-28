@@ -107,6 +107,11 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
 	}
 
 	@Override
+	public boolean isDurablePartitions(Task masterTask) {
+		return Boolean.TRUE.equals(data.isDurablePartitions());
+	}
+
+	@Override
 	public String getName(Task masterTask) {
 		return data.getTaskName();
 	}

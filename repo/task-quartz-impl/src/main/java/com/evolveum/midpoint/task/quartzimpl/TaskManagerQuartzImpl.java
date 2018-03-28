@@ -1452,7 +1452,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public void registerHandler(String uri, TaskHandler handler) {
-        LOGGER.trace("Registering task handler for URI " + uri);
+        LOGGER.trace("Registering task handler for URI {}", uri);
 		handlers.put(uri, handler);
 	}
 

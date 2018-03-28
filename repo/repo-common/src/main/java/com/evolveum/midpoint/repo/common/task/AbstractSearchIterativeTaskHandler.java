@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,13 +52,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -313,7 +307,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			runResult.setBucketComplete(localCoordinatorTask.canRun());     // TODO
 			runResult.setShouldContinue(localCoordinatorTask.canRun());     // TODO
 			return runResult;
-		} catch (ExitHandlerException e) {
+		} catch (ExitWorkBucketHandlerException e) {
 			return e.getRunResult();
 		}
 	}
@@ -362,13 +356,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	private ObjectQuery prepareQuery(H resultHandler,
 			Class<? extends ObjectType> type,
 			WorkBucketType workBucket, Task localCoordinatorTask, TaskWorkBucketProcessingResult runResult,
-			OperationResult opResult) throws ExitHandlerException {
+			OperationResult opResult) throws ExitWorkBucketHandlerException {
 
 		ObjectQuery query;
 		try {
 			query = createQuery(resultHandler, runResult, localCoordinatorTask, opResult);
 		} catch (SchemaException ex) {
-			throw new ExitHandlerException(
+			throw new ExitWorkBucketHandlerException(
 					logErrorAndSetResult(runResult, resultHandler, "Schema error while creating a search filter", ex,
 							OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
 		}
@@ -378,7 +372,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 		if (query == null) {
 			// the error should already be in the runResult
-			throw new ExitHandlerException(runResult);
+			throw new ExitWorkBucketHandlerException(runResult);
 		}
 
 		try {
@@ -386,7 +380,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 					getIdentifierDefinitionProvider(localCoordinatorTask, opResult), localCoordinatorTask,
 					workBucket, opResult);
 		} catch (SchemaException | ObjectNotFoundException e) {
-			throw new ExitHandlerException(
+			throw new ExitWorkBucketHandlerException(
 					logErrorAndSetResult(runResult, resultHandler, "Exception while narrowing a search query", e,
 							OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
 		}
@@ -397,7 +391,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		try {
 			query = preProcessQuery(query, localCoordinatorTask, opResult);
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-			throw new ExitHandlerException(
+			throw new ExitWorkBucketHandlerException(
 					logErrorAndSetResult(runResult, resultHandler, "Error while pre-processing search filter", e,
 							OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
 		}
@@ -406,11 +400,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	private H setupHandler(TaskWorkBucketProcessingResult runResult, Task localCoordinatorTask, OperationResult opResult)
-			throws ExitHandlerException {
+			throws ExitWorkBucketHandlerException {
 		try {
 			H resultHandler = createHandler(runResult, localCoordinatorTask, opResult);
 			if (resultHandler == null) {
-				throw new ExitHandlerException(runResult);       // the error should already be in the runResult
+				throw new ExitWorkBucketHandlerException(runResult);       // the error should already be in the runResult
 			}
 			// copying relevant configuration items from task to handler
 			resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
@@ -418,7 +412,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			resultHandler.setEnableActionsExecutedStatistics(isEnableActionsExecutedStatistics());
 			return resultHandler;
 		} catch (Throwable e) {
-			throw new ExitHandlerException(
+			throw new ExitWorkBucketHandlerException(
 					logErrorAndSetResult(runResult, null, "Error while creating a result handler", e,
 					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
 		}
@@ -490,7 +484,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     /**
      * Handler parameter may be used to pass task instance state between the calls.
      */
-	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException;
+	protected ObjectQuery createQuery(H handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+		return createQueryFromTask(handler, runResult, coordinatorTask, opResult);
+	}
 
     // useful e.g. to specify noFetch options for shadow-related queries
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {

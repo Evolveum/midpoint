@@ -22,10 +22,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -51,10 +49,7 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
 		if (configuration == null) {
 			throw new IllegalStateException("No buckets configuration but having defined bucket content: " + content);
 		}
-		if (configuration.getDiscriminator() == null) {
-			throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
-		}
-		ItemPath discriminator = configuration.getDiscriminator().getItemPath();
+		ItemPath discriminator = getDiscriminator(configuration, content);
 		ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
 
 		QName matchingRuleName = configuration.getMatchingRule() != null
@@ -73,6 +68,18 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
 					.buildFilter());
 		}
 		return filters;
+	}
+
+	@NotNull
+	private ItemPath getDiscriminator(AbstractWorkSegmentationType configuration, AbstractWorkBucketContentType content) {
+		ItemPathType discriminatorPathType = configuration.getDiscriminator();
+		if (discriminatorPathType != null) {
+			return discriminatorPathType.getItemPath();
+		} else if (configuration instanceof OidWorkSegmentationType) {
+			return new ItemPath(PrismConstants.T_ID);
+		} else {
+			throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
+		}
 	}
 
 	protected abstract boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent);

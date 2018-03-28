@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,11 +91,6 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
-	}
-
-	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-		return createQueryFromTask(handler, runResult, task, opResult);
 	}
 
 	protected Class<? extends ObjectType> getType(Task task) {

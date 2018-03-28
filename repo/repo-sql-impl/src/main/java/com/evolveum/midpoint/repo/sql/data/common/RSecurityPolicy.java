@@ -2,6 +2,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -12,13 +13,18 @@ import org.hibernate.annotations.Persister;
 import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iSecurityPolicyNameOrig", columnList = "name_orig"),
+        }
+)
 @ForeignKey(name = "fk_security_policy")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
     private RPolyString nameCopy;
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))

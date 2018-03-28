@@ -25,11 +25,13 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -81,8 +83,6 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
 
-	public static final String HANDLER_URI = ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI;
-
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
@@ -118,12 +118,34 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	@PostConstruct
 	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
+		taskManager.registerHandler(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
+		taskManager.registerHandler(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1, this);
+		taskManager.registerHandler(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2, this);
+		taskManager.registerHandler(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
 	}
 
 	@Override
 	protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, UserType.class);
+	}
+
+	private Integer getPartition(Task task) {
+		String handlerUri = task.getHandlerUri();
+		if (ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1.equals(handlerUri)) {
+			return 1;
+		} else if (ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2.equals(handlerUri)) {
+			return 2;
+		} else {
+			return null;
+		}
+	}
+
+	private boolean checkFocusValidity(Integer partition) {
+		return partition == null || partition == 1;
+	}
+
+	private boolean checkAssignmentValidity(Integer partition) {
+		return partition == null || partition == 2;
 	}
 
 	@Override
@@ -134,9 +156,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 		Duration activateOn = getActivateOn(validityConstraintType);
 
+		Integer partition = getPartition(coordinatorTask);
+
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
-//		PrismObjectDefinition<FocusType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(FocusType.class);
 
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
@@ -151,10 +174,8 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 				lastScanTimestamp.add(activateOn.negate());
 			}
 			filter = createFilterFor(getType(coordinatorTask), path, lastScanTimestamp, thisScanTimestamp);
-
 		} else {
-
-			filter = createBasicFilter(lastScanTimestamp, thisScanTimestamp);
+			filter = createBasicFilter(lastScanTimestamp, thisScanTimestamp, partition);
 		}
 
 		query.setFilter(filter);
@@ -170,47 +191,54 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		}
 	}
 
-	private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp){
+	private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp,
+			Integer partition) {
+		S_AtomicFilterExit i = QueryBuilder.queryFor(FocusType.class, prismContext).none();
 		if (lastScanTimestamp == null) {
-			return QueryBuilder.queryFor(FocusType.class, prismContext)
-					.item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
-					.or().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
-					.or().exists(F_ASSIGNMENT)
+			if (checkFocusValidity(partition)) {
+				i = i.or().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+						.or().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp);
+			}
+			if (checkAssignmentValidity(partition)) {
+				i = i.or().exists(F_ASSIGNMENT)
 						.block()
 							.item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
 							.or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
-						.endBlock()
-					.buildFilter();
-		}
+						.endBlock();
+			}
+		} else {
+			if (checkFocusValidity(partition)) {
+				i = i.or().item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+							.and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+						.or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+							.and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp);
 
-		return QueryBuilder.queryFor(FocusType.class, prismContext)
-					.item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
-						.and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
-					.or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
-						.and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
-					.or().exists(F_ASSIGNMENT)
+			}
+			if (checkAssignmentValidity(partition)) {
+				i = i.or().exists(F_ASSIGNMENT)
 						.block()
 							.item(AssignmentType.F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
 								.and().item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
 							.or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
 								.and().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
-						.endBlock()
-					.buildFilter();
-
+						.endBlock();
+			}
+		}
+		return i.buildFilter();
 	}
 
-	private ObjectFilter createFilterFor(Class type, ItemPath path, XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp){
+	private ObjectFilter createFilterFor(Class<? extends Containerable> type, ItemPath path, XMLGregorianCalendar lastScanTimestamp,
+			XMLGregorianCalendar thisScanTimestamp) {
 		if (lastScanTimestamp == null) {
 			return QueryBuilder.queryFor(type, prismContext)
 					.item(path).le(thisScanTimestamp)
 					.buildFilter();
-		}
-
-		return QueryBuilder.queryFor(type, prismContext)
+		} else {
+			return QueryBuilder.queryFor(type, prismContext)
 					.item(path).gt(lastScanTimestamp)
 						.and().item(path).le(thisScanTimestamp)
 					.buildFilter();
-
+		}
 	}
 
 	@Override
@@ -255,10 +283,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		// We want reconcile option here. There may be accounts that are in wrong activation state.
 		// We will not notice that unless we go with reconcile.
 		LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, ModelExecuteOptions.createReconcile(), workerTask, result);
-		if (hasNotifyAction(workerTask)) {
+		TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
+		if (hasNotifyAction(workerTask) && constraint != null) {
 			EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
 			policyRule.computeEnabledActions(null, focus, expressionFactory, prismContext, workerTask, result);
-			TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
 			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
 					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
 					constraint,
@@ -283,13 +311,11 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			return null;
 		}
 
-		List<TimeValidityPolicyConstraintType> timeValidityContstraints = policyRule.getPolicyConstraints().getObjectTimeValidity();
-		if (CollectionUtils.isEmpty(timeValidityContstraints)){
+		List<TimeValidityPolicyConstraintType> timeValidityConstraints = policyRule.getPolicyConstraints().getObjectTimeValidity();
+		if (CollectionUtils.isEmpty(timeValidityConstraints)) {
 			return null;
 		}
-
-		return timeValidityContstraints.iterator().next();
-
+		return timeValidityConstraints.iterator().next();
 	}
 
 	private List<NotificationPolicyActionType> getNotificationActions(Task coordinatorTask){
@@ -310,7 +336,8 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		return !getNotificationActions(coordinatorTask).isEmpty();
 	}
 
-	private boolean isTimeValidityConstraint(Task coordinatorTask){
+	@SuppressWarnings("unused")
+	private boolean isTimeValidityConstraint(Task coordinatorTask) {
 		return getValidityPolicyConstraint(coordinatorTask) != null;
 	}
 

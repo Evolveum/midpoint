@@ -191,7 +191,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (RuntimeException | Error ex) {
-			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
+			LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
 					oid, clazz);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		} finally {

@@ -43,9 +43,6 @@
 	<bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
 		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory"/>
 		
-	<bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
-		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory,repositoryService" />
-
     <bean name="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"
           init-method="init" destroy-method="destroy" />
 

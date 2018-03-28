@@ -3227,4 +3227,10 @@ public class TaskQuartzImpl implements Task {
 		ItemDelta.applyTo(itemDeltas, taskPrism);
 		synchronizeWithQuartzIfNeeded(pendingModifications, result);
 	}
+
+	@Override
+	public boolean isPartitionedMaster() {
+		TaskWorkManagementType workManagement = getWorkManagement();
+		return workManagement != null && workManagement.getTaskKind() == TaskKindType.PARTITIONED_MASTER;
+	}
 }

@@ -82,6 +82,7 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitioned"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTaskDeprecated"/>

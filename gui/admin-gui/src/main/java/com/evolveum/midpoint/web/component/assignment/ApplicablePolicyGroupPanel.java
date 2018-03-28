@@ -16,9 +16,11 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -27,11 +29,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -40,6 +39,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -56,7 +57,6 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     private static final String ID_POLICY_GROUP_NAME = "policyGroupName";
     private static final String ID_POLICIES_CONTAINER = "policiesContainer";
     private static final String ID_POLICY_CHECK_BOX = "policyCheckBox";
-    private static final String ID_POLICY_LABEL = "policyLabel";
     private LoadableModel<List<PrismObject<AbstractRoleType>>> policiesListModel;
     IModel<ContainerWrapper<AssignmentType>> assignmentsModel;
 
@@ -73,7 +73,7 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private void initModels(){
-        policiesListModel = new LoadableModel<List<PrismObject<AbstractRoleType>>>() {
+        policiesListModel = new LoadableModel<List<PrismObject<AbstractRoleType>>>(false) {
             @Override
             protected List<PrismObject<AbstractRoleType>> load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_POLICY_GROUP_MEMBERS);
@@ -82,7 +82,16 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                 ObjectQuery membersQuery = QueryBuilder.queryFor(AbstractRoleType.class, getPageBase().getPrismContext())
                         .isChildOf(policyGroupObject.getOid())
                         .build();
-                return WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());
+                List<PrismObject<AbstractRoleType>> policiesList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());
+                Collections.sort(policiesList, new Comparator<PrismObject<AbstractRoleType>>() {
+                    @Override
+                    public int compare(PrismObject<AbstractRoleType> o1, PrismObject<AbstractRoleType> o2) {
+                        String displayName1 = WebComponentUtil.getDisplayNameOrName(o1);
+                        String displayName2 = WebComponentUtil.getDisplayNameOrName(o2);
+                        return String.CASE_INSENSITIVE_ORDER.compare(displayName1, displayName2);
+                    }
+                });
+                return policiesList;
             }
         };
     }
@@ -97,9 +106,13 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
 
             @Override
             protected void populateItem(ListItem<PrismObject<AbstractRoleType>> listItem) {
-                CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
-                        Model.of(isAssignmentAlreadyInList(listItem.getModelObject().getOid()) &&
-                                !ValueStatus.DELETED.equals(getExistingAssignmentStatus(listItem.getModelObject().getOid())))){
+            	PrismObject<AbstractRoleType> abstractRole = listItem.getModelObject();
+            	CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
+            			getCheckboxModel(abstractRole),
+            			null, // visibility
+            			Model.of(WebComponentUtil.getDisplayNameOrName(abstractRole)), // label
+            			null // tooltip
+            			) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -109,16 +122,16 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                 };
                 policyCheckBox.setOutputMarkupId(true);
                 listItem.add(policyCheckBox);
-
-                Label policyLabel = new Label(ID_POLICY_LABEL, Model.of(WebComponentUtil.getDisplayNameOrName(listItem.getModelObject())));
-                policyLabel.setOutputMarkupId(true);
-                listItem.add(policyLabel);
             }
         };
         policiesPanel.setOutputMarkupId(true);
         add(policiesPanel);
     }
 
+    private IModel<Boolean> getCheckboxModel(PrismObject<AbstractRoleType> abstractRole) {
+    	return Model.of(isAssignmentAlreadyInList(abstractRole.getOid()) &&
+                !ValueStatus.DELETED.equals(getExistingAssignmentStatus(abstractRole.getOid())));
+    }
 
     private boolean isAssignmentAlreadyInList(String policyRoleOid){
         for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){

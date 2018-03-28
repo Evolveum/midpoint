@@ -925,8 +925,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			completeObject = completeObject(type, object, options, task, objResult);
 
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-			LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
-					object, e.getMessage(), e });
+			LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", object, e.getMessage(), e);
 			objResult.recordFatalError(e);
 			object.asObjectable().setFetchResult(objResult.createOperationResultType());
 			completeObject = object;

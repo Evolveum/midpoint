@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
@@ -46,6 +47,7 @@ public class ExecutionContext {
     private final Map<String, PipelineData> globalVariables = new HashMap<>();      // will probably remain unused
     private final Map<String, Object> initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
     private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
+    private final boolean recordProgressAndIterationStatistics;
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
@@ -55,6 +57,7 @@ public class ExecutionContext {
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
         this.privileged = privileged;
         this.initialVariables = initialVariables;
+        this.recordProgressAndIterationStatistics = !ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI.equals(task.getHandlerUri());        // todo fix this hack
     }
 
 	public Task getTask() {
@@ -102,6 +105,10 @@ public class ExecutionContext {
 
     public void setFinalOutput(PipelineData finalOutput) {
         this.finalOutput = finalOutput;
+    }
+
+    public boolean isRecordProgressAndIterationStatistics() {
+        return recordProgressAndIterationStatistics;
     }
 
     public ScriptExecutionResult toExecutionResult() {

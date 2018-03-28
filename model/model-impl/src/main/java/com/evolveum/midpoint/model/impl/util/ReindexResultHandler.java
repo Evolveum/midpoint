@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;

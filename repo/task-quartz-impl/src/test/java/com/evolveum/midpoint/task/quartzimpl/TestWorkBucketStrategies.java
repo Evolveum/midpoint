@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.task.quartzimpl.work.segmentation.StringWorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,8 +40,11 @@ import org.testng.annotations.Test;
 import javax.annotation.PostConstruct;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -293,6 +297,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 		// WHEN+THEN
 		// a, 01abc, 01abc
+		StringWorkSegmentationStrategy stringStrategy = (StringWorkSegmentationStrategy) segmentationStrategy;
+		assertEquals("Wrong expanded boundaries", Arrays.asList("a", "01abc", "01abc"), stringStrategy.getBoundaries());
 		assertEquals("Wrong # of estimated buckets", Integer.valueOf(25), segmentationStrategy.estimateNumberOfBuckets(null));
 
 		WorkBucketType bucket = assumeNextPrefix(segmentationStrategy, workState, "a00", 1);
@@ -379,6 +385,44 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		assumeNextInterval(segmentationStrategy, workState, "ma", "mm", 12);
 		assumeNextInterval(segmentationStrategy, workState, "mm", null, 13);
 		assumeNoNextBucket(segmentationStrategy, workState);
+
+		suspendAndDeleteTasks(task.getOid());
+	}
+
+	@Test
+	public void test140OidBuckets() throws Exception {
+		final String TEST_NAME = "test140OidBuckets";
+		OperationResult result = createResult(TEST_NAME, LOGGER);
+		addObjectFromFile(taskFilename(TEST_NAME));
+
+		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+
+		// WHEN
+		WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
+
+		// WHEN+THEN
+		StringWorkSegmentationStrategy stringStrategy = (StringWorkSegmentationStrategy) segmentationStrategy;
+		List<String> boundaries = stringStrategy.getBoundaries();
+		assertEquals("Wrong boundaries", singletonList("0123456789abcdef"), boundaries);
+
+		suspendAndDeleteTasks(task.getOid());
+	}
+
+	@Test
+	public void test150OidBucketsTwice() throws Exception {
+		final String TEST_NAME = "test150OidBucketsTwice";
+		OperationResult result = createResult(TEST_NAME, LOGGER);
+		addObjectFromFile(taskFilename(TEST_NAME));
+
+		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+
+		// WHEN
+		WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
+
+		// WHEN+THEN
+		StringWorkSegmentationStrategy stringStrategy = (StringWorkSegmentationStrategy) segmentationStrategy;
+		List<String> boundaries = stringStrategy.getBoundaries();
+		assertEquals("Wrong boundaries", Arrays.asList("0123456789abcdef", "0123456789abcdef"), boundaries);
 
 		suspendAndDeleteTasks(task.getOid());
 	}

@@ -189,16 +189,9 @@ public class ContainerWrapperFactory {
 				displayName = refinedAssocationDefinition.getName().getLocalPart();
 			}
 			associationValueWrapper.setDisplayName(displayName);
-			S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext());
-			List<ObjectFilter> orFilterClauses = new ArrayList<>();
-			refinedAssocationDefinition.getIntents()
-					.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-			OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
 
-			AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
-					.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-			filter.addCondition(intentFilter);
-			associationValueWrapper.setFilter(filter);
+			associationValueWrapper.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssocationDefinition,
+					modelServiceLocator.getPrismContext(), resource.getOid()));
 			
 			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
 				valueWrapper.setEditEnabled(isEmpty(valueWrapper));

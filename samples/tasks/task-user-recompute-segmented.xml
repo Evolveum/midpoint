@@ -29,10 +29,7 @@
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
 	<workManagement>
 		<buckets>
-			<stringSegmentation>
-				<discriminator>#</discriminator>
-				<boundaryCharacters>0123456789abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
-			</stringSegmentation>
+			<oidSegmentation/>
 		</buckets>
 	</workManagement>
 	<recurrence>single</recurrence>

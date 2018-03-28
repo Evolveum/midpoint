@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Task handler for "Shadow integrity check" task.
@@ -102,13 +101,6 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     protected Class<? extends ObjectType> getType(Task task) {
         return ShadowType.class;
     }
-
-    @Override
-	protected ObjectQuery createQuery(ShadowIntegrityCheckResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
-        LOGGER.info("Using query:\n{}", query.debugDump());
-        return query;
-	}
 
     @Override
     protected boolean useRepositoryDirectly(ShadowIntegrityCheckResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {

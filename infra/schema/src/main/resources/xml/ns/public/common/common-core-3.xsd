@@ -1277,6 +1277,13 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
+				<xsd:element name="oidSegmentation" type="tns:OidWorkSegmentationType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							How to partition the work into string value based buckets and manage them.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
 				<xsd:element name="explicitSegmentation" type="tns:ExplicitWorkSegmentationType" minOccurs="0">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -1393,7 +1400,18 @@
 					<xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								Characters that make up the prefix (or interval). TODO Must be sorted!
+								Characters that make up the prefix (or interval). These characters must be sorted.
+								Reserved characters: '-', '$' (to be implemented later)
+								Escaping character: '\'
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="depth" type="xsd:int" minOccurs="0" default="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								If a value N greater than 1 is specified here, boundaryCharacters values are repeated N times
+								(if values of V1, V2, ..., Vk are specified, the resulting sequence is V1, V2, ..., Vk, V1, V2,
+								... Vk, etc, with N repetitions - so N*k values in total).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1404,6 +1422,24 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="OidWorkSegmentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work state management strategy that divides the processing space into a number of buckets based on OID values.
+				When specified, it provides default values of discriminator=#, boundaryCharacters=0-9a-f.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:StringWorkSegmentationType">
+				<xsd:sequence>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -3258,10 +3294,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0">
+			<xsd:element name="sequentialExecution" type="xsd:boolean" minOccurs="0" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
-						Whether the subtasks should be executed sequentially. The default is true.
+						Whether the subtasks should be executed sequentially.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="durablePartitions" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether the partitions should be durable i.e. whether they should persist through master task restarts.
+						This is useful e.g. for partitioned validity scanner because each partition keeps its own last
+						scan timestamp. (EXPERIMENTAL)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -5126,7 +5171,7 @@
 	                		of historical data, audit records, etc. It may also be used to "blocks" the user or account
 	                		identifier to avoid their reuse. 
                 		</p><p>
-	                		Usualy used for retired employees and similar cases.
+	                		Usually used for retired employees and similar cases.
                 		</p> 
                 	</xsd:documentation>
                     <xsd:appinfo>

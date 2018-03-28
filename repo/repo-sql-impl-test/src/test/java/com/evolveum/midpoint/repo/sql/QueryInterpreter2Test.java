@@ -186,7 +186,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
-                    "  u.name.norm = :norm";
+                    "  u.nameCopy.norm = :norm";
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
@@ -211,7 +211,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
-                    "  u.name.orig = :orig";
+                    "  u.nameCopy.orig = :orig";
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
@@ -236,7 +236,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
-                    "  ( u.name.orig = :orig and u.name.norm = :norm )";
+                    "  ( u.nameCopy.orig = :orig and u.nameCopy.norm = :norm )";
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
@@ -540,7 +540,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RGenericObject g\n" +
                     "    left join g.longs l with ( l.ownerType = :ownerType and l.item.id = :id )\n" +
                     "where\n" +
-                    "  ( g.name.norm = :norm and l.value = :value )\n";
+                    "  ( g.nameCopy.norm = :norm and l.value = :value )\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
 
@@ -573,7 +573,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.item.id = :id2 )\n" +
                     "where\n" +
                     "  (\n" +
-                    "    g.name.norm = :norm and\n" +
+                    "    g.nameCopy.norm = :norm and\n" +
                     "    l.value >= :value and\n" +
                     "    l.value < :value2 and\n" +
                     "    l2.value = :value3\n" +
@@ -745,7 +745,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
                     "where\n" +
                     "  a.activation.administrativeStatus = :administrativeStatus\n" +
-                    "order by u.name.orig asc\n";
+                    "order by u.nameCopy.orig asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -780,7 +780,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
                     "where\n" +
                     "  a.activation.administrativeStatus = :administrativeStatus\n" +
-                    "order by u.name.orig asc\n";
+                    "order by u.nameCopy.orig asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -817,7 +817,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
                     "where\n" +
                     "  a.activation.administrativeStatus = :administrativeStatus\n" +
-                    "order by u.name.orig asc\n";
+                    "order by u.nameCopy.orig asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -1081,7 +1081,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
-                    "  u.name.norm = :norm";
+                    "  u.nameCopy.norm = :norm";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -1692,8 +1692,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RUser u\n" +
                     "where\n" +
                     "  (\n" +
-                    "    u.name.orig = :orig and\n" +
-                    "    u.name.norm = :norm\n" +
+                    "    u.nameCopy.orig = :orig and\n" +
+                    "    u.nameCopy.norm = :norm\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -1850,7 +1850,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  ROrg o\n" +
                     "where\n" +
                     "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.targetOid = :orgOid)\n" +
-                    "order by o.name.orig asc\n";
+                    "order by o.nameCopy.orig asc\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -1965,7 +1965,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  ROrg o\n" +
                     "where\n" +
                     "  o.oid in (select ref.ownerOid from RObjectReference ref where ref.referenceType = 0 and ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n" +
-                    "order by o.name.orig asc";
+                    "order by o.nameCopy.orig asc";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2104,7 +2104,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  ROrg o\n" +
                     "where\n" +
                     "  o.oid in (select descendantOid from ROrgClosure group by descendantOid having count(descendantOid) = 1)\n" +
-                    "order by o.name.orig asc";
+                    "order by o.nameCopy.orig asc";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2460,14 +2460,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
-                    "      u.name.orig = :orig and\n" +
-                    "      u.name.norm = :norm\n" +
+                    "      u.nameCopy.orig = :orig and\n" +
+                    "      u.nameCopy.norm = :norm\n" +
                     "    ) and\n" +
                     "    u.oid in (select ref.ownerOid from RObjectReference ref " +
                     "               where ref.referenceType = 0 and " +
                     "               ref.targetOid in (select descendantOid from ROrgClosure where ancestorOid = :orgOid))\n" +
                     "  )\n" +
-                    "order by u.name.orig asc\n";
+                    "order by u.nameCopy.orig asc\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3308,7 +3308,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "  RAccessCertificationWorkItem a\n"
                     + "    left join a.owner o\n"
                     + "    left join o.owner o2\n"
-                    + "order by o2.name.orig asc\n";
+                    + "order by o2.nameCopy.orig asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -3723,8 +3723,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join l.target t\n" +
                     "where\n" +
                     "  (\n" +
-                    "    t.name.orig like :orig and\n" +
-                    "    t.name.norm like :norm\n" +
+                    "    t.nameCopy.orig like :orig and\n" +
+                    "    t.nameCopy.norm like :norm\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3819,8 +3819,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join a.owner o\n" +
                     "where\n" +
                     "  (\n" +
-                    "    o.name.orig = :orig and\n" +
-                    "    o.name.norm = :norm\n" +
+                    "    o.nameCopy.orig = :orig and\n" +
+                    "    o.nameCopy.norm = :norm\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3880,7 +3880,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.owner o\n" +
-                    "order by o.name.orig desc\n";
+                    "order by o.nameCopy.orig desc\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4081,7 +4081,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "    ) and\n"
 					+ "      w.outcome is null\n"
 					+ "  )\n"
-					+ "order by o.name.orig asc, a.id asc, a.ownerOid asc\n";
+					+ "order by o.nameCopy.orig asc, a.id asc, a.ownerOid asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -4283,8 +4283,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "  RShadow s\n"
                     + "where\n"
                     + "  (\n"
-                    + "    s.name.orig = :orig and\n"
-                    + "    s.name.norm = :norm\n"
+                    + "    s.nameCopy.orig = :orig and\n"
+                    + "    s.nameCopy.norm = :norm\n"
                     + "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4319,8 +4319,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "  RShadow s\n"
                     + "where\n"
                     + "  (\n"
-                    + "    s.name.orig = :orig and\n"
-                    + "    s.name.norm = :norm\n"
+                    + "    s.nameCopy.orig = :orig and\n"
+                    + "    s.nameCopy.norm = :norm\n"
                     + "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4770,10 +4770,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "  u.referencesCount,\n"
                         + "  u.polysCount,\n"
                         + "  u.booleansCount,\n"
-                        + "  u.name.orig\n"
+                        + "  u.nameCopy.orig\n"
                         + "from\n"
                         + "  RUser u\n"
-                        + "order by u.name.orig asc\n";
+                        + "order by u.nameCopy.orig asc\n";
             }
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4827,7 +4827,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "  u.referencesCount,\n"
                         + "  u.polysCount,\n"
                         + "  u.booleansCount,\n"
-                        + "  u.name.orig\n"
+                        + "  u.nameCopy.orig\n"
                         + "from\n"
                         + "  RUser u\n"
                         + "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
@@ -4836,7 +4836,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "    a.targetRef.targetOid = :targetOid and\n"
                         + "    a.targetRef.relation in (:relation)\n"
                         + "  )\n"
-                        + "order by u.name.orig asc\n";
+                        + "order by u.nameCopy.orig asc\n";
             }
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -5110,6 +5110,48 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "Expected: " + expNorm + "\nActual:   " + realNorm + "\n";
             LOGGER.error("{}", m);
             throw new AssertionError(m);
+        }
+    }
+
+    @Test
+    public void test1220QueryOrderByNameOrigLimit20() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext).asc(UserType.F_NAME).maxSize(20).build();
+
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "order by\n" +
+                    "u.nameCopy.orig asc";
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1230QueryOrderByNameOrigLimit20() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext).asc(RoleType.F_NAME).maxSize(20).build();
+
+            String expected = "select\n" +
+                    "  r.oid, r.fullObject, r.stringsCount, r.longsCount, r.datesCount, r.referencesCount, r.polysCount, r.booleansCount\n" +
+                    "from\n" +
+                    "  RRole r\n" +
+                    "order by\n" +
+                    "r.nameCopy.orig asc";
+
+            String real = getInterpretedQuery2(session, RoleType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
         }
     }
 

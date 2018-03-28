@@ -96,6 +96,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
     protected IModel<ObjectTypes> typeModel;
     private IModel<Boolean> orgTreeViewModel;
+	private IModel<String> intentValueModel;
+	private LoadableModel<List<String>> intentValues;
+	String intent;
 
 	public TypedAssignablePanel(String id, final Class<T> type) {
 		super(id);
@@ -113,6 +116,25 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 			}
 		};
     	orgTreeViewModel = Model.of(false);
+    	intentValues =  getIntentAvailableValuesModel();
+    	intentValueModel = new IModel<String>() {
+			@Override
+			public String getObject() {
+				return intent != null ? intent :
+						(intentValues.getObject().size() > 0 ?
+						intentValues.getObject().get(0) : "default");
+			}
+
+			@Override
+			public void setObject(String s) {
+				intent = s;
+			}
+
+			@Override
+			public void detach() {
+
+			}
+		};
 	}
 
 	@Override
@@ -198,7 +220,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	protected void initAssignmentParametersPanel(){
 		DropDownChoicePanel<ObjectTypes> typeSelect = new DropDownChoicePanel<>(
-				ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new EnumChoiceRenderer<>());
+				ID_TYPE, typeModel, Model.ofList(getObjectTypesList()), new EnumChoiceRenderer<>());
 		typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;
@@ -281,7 +303,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		add(intentContainer);
 
 		DropDownChoicePanel intentSelector = new DropDownChoicePanel(ID_INTENT,
-				Model.of(), getIntentAvailableValuesModel());
+				intentValueModel, intentValues);
+		intentSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		intentSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
@@ -357,8 +380,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	private String getIntent(){
 		DropDownChoicePanel<String> intentPanel = getIntentDropdownComponent();
-		String intent = intentPanel.getModel().getObject();
-		return intent == null ? "" : intent;
+		String intent = intentPanel.getBaseFormComponent().getModelObject();
+		return intent == null  ? "default" : intent;
 	}
 
 	private WebMarkupContainer createCountContainer(){
@@ -490,30 +513,32 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		return this;
 	}
 
-	private IModel<List<String>> getIntentAvailableValuesModel(){
+	private LoadableModel<List<String>> getIntentAvailableValuesModel(){
 		return new LoadableModel<List<String>>(true){
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<String> load(){
 				List<String> availableIntentValues = new ArrayList<>();
-				List<T> selectedResources = getResourceTable().getSelectedObjects();
-				if (selectedResources != null && selectedResources.size() > 0){
-					ResourceType selectedResource = (ResourceType)selectedResources.get(0);
+				if (getResourceTable() != null) {
+					List<T> selectedResources = getResourceTable().getSelectedObjects();
+					if (selectedResources != null && selectedResources.size() > 0) {
+						ResourceType selectedResource = (ResourceType) selectedResources.get(0);
 
-					try {
-						RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
-						if (refinedSchema != null){
-							ShadowKindType kind = (ShadowKindType) TypedAssignablePanel.this.getKindDropdownComponent().getBaseFormComponent().getModelObject();
-							List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
-							for (RefinedObjectClassDefinition def : definitions){
-								availableIntentValues.add(def.getIntent());
+						try {
+							RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
+							if (refinedSchema != null) {
+								ShadowKindType kind = (ShadowKindType) TypedAssignablePanel.this.getKindDropdownComponent().getBaseFormComponent().getModelObject();
+								List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
+								for (RefinedObjectClassDefinition def : definitions) {
+									availableIntentValues.add(def.getIntent());
+								}
 							}
+						} catch (SchemaException ex) {
+							LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
 						}
-					} catch (SchemaException ex){
-						LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
-					}
 
+					}
 				}
 				return availableIntentValues;
 			}
@@ -534,5 +559,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	private int getSelectedResourceCount(){
 		return getResourceTable().getSelectedObjectsCount();
 
+	}
+
+	protected List<ObjectTypes> getObjectTypesList(){
+		return WebComponentUtil.createAssignableTypesList();
 	}
 }

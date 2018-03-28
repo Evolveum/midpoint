@@ -21,7 +21,7 @@
 		<file>./target/test.log</file>
 		<encoder>
 			<!-- <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n%caller{16}</pattern>  -->
-			<pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n</pattern>
+			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
 		</encoder>
 	</appender>
 
@@ -42,6 +42,7 @@
 	<!-- Silencing some chatty packages -->
 	<logger name="com.evolveum.midpoint.model.repo.sql.query" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
+	<!--<logger name="com.evolveum.midpoint.repo.sql.helpers.ObjectDeltaUpdater" level="TRACE" />-->
 	<logger name="com.evolveum.midpoint.task" level="INFO" />
 	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
 	<logger name="com.evolveum.midpoint.model.impl.sync.action" level="DEBUG" />

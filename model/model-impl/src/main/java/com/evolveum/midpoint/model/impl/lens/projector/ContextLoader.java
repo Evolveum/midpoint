@@ -94,7 +94,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ContextLoader {
 
-	@Autowired(required = true)
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
@@ -843,7 +843,7 @@ public class ContextLoader {
 					GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
 					rootOpt.setDoNotDiscovery(true);
 					Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(rootOpt);
-					LOGGER.trace("Projection conflict detected, exsting: {}, new {}", projectionContext.getOid(), projection.getOid());
+					LOGGER.trace("Projection conflict detected, existing: {}, new {}", projectionContext.getOid(), projection.getOid());
 					PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, projectionContext.getOid(), opts, task, result);
 					// Maybe it is the other way around
 					try {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -39,7 +40,8 @@ import java.util.Set;
                 @Index(name = "iFullName", columnList = "fullName_orig"),
                 @Index(name = "iFamilyName", columnList = "familyName_orig"),
                 @Index(name = "iGivenName", columnList = "givenName_orig"),
-                @Index(name = "iEmployeeNumber", columnList = "employeeNumber")})
+                @Index(name = "iEmployeeNumber", columnList = "employeeNumber"),
+                @Index(name = "iUserNameOrig", columnList = "name_orig")})
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RUser extends RFocus<UserType> {
@@ -123,6 +125,7 @@ public class RUser extends RFocus<UserType> {
         return honorificSuffix;
     }
 
+    @JaxbName(localPart = "name")
     @AttributeOverrides({
             @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
