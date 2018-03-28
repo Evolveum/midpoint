@@ -549,4 +549,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
 		this.addContainerButtonVisible = addContainerButtonVisible;
 	}
+
+	@Override
+	public boolean isExperimental() {
+		return getItemDefinition().isExperimental();
+	}
 }

@@ -84,6 +84,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	
 	boolean isDeprecated();
 	
+	boolean isExperimental();
+	
 	String getDeprecatedSince();
 
     void setStripe(boolean isStripe);
