@@ -484,7 +484,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     /**
      * Handler parameter may be used to pass task instance state between the calls.
      */
-	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException;
+	protected ObjectQuery createQuery(H handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+		return createQueryFromTask(handler, runResult, coordinatorTask, opResult);
+	}
 
     // useful e.g. to specify noFetch options for shadow-related queries
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {

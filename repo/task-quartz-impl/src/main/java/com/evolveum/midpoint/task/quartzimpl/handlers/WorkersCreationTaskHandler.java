@@ -81,6 +81,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		runResult.setOperationResult(opResult);
 
 		try {
+			setOrCheckTaskKind(task, opResult);
 			List<Task> workers = task.listSubtasks(opResult);
 			List<Task> workersNotClosed = workers.stream()
 					.filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
@@ -118,9 +119,6 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	private boolean createWorkers(Task task, OperationResult opResult)
 			throws SchemaException, ObjectAlreadyExistsException {
 		TaskWorkManagementType wsCfg = task.getWorkManagement();
-		if (wsCfg == null || wsCfg.getTaskKind() != TaskKindType.COORDINATOR) {
-			throw new IllegalStateException("Work state configuration missing or task kind is not 'coordinator': " + task);
-		}
 		WorkersManagementType workersCfg = wsCfg.getWorkers();
 		if (workersCfg == null) {
 			throw new IllegalStateException("Workers configuration is missing: " + task);
@@ -135,6 +133,22 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		}
 		return false;
 	}
+
+	private void setOrCheckTaskKind(Task task, OperationResult opResult)
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		TaskKindType taskKind = task.getWorkManagement() != null ? task.getWorkManagement().getTaskKind() : null;
+		if (taskKind == null) {
+			ItemDelta<?, ?> itemDelta = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+					.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
+					.replace(TaskKindType.COORDINATOR)
+					.asItemDelta();
+			task.addModificationImmediate(itemDelta, opResult);
+		} else if (taskKind != TaskKindType.COORDINATOR) {
+			throw new IllegalStateException("Task has incompatible task kind; expected " + TaskKindType.COORDINATOR +
+					" but having: " + task.getWorkManagement() + " in " + task);
+		}
+	}
+
 
 	private void createWorker(String nodeIdentifier, int index, WorkerTasksPerNodeConfigurationType perNodeConfig,
 			WorkersManagementType workersCfg, Task coordinatorTask, OperationResult opResult)

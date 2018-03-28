@@ -31,7 +31,7 @@
 		<buckets>
 			<stringSegmentation>
 				<discriminator>#</discriminator>
-				<boundaryCharacters>0123456789abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
+				<boundaryCharacters>0123456789abcdef</boundaryCharacters>
 			</stringSegmentation>
 		</buckets>
 	</workManagement>
