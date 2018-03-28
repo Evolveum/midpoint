@@ -44,6 +44,7 @@ public class WorkSegmentationStrategyFactory {
 	{
 		registerStrategyClass(NumericWorkSegmentationType.class, NumericWorkSegmentationStrategy.class);
 		registerStrategyClass(StringWorkSegmentationType.class, StringWorkSegmentationStrategy.class);
+		registerStrategyClass(OidWorkSegmentationType.class, StringWorkSegmentationStrategy.class);
 		registerStrategyClass(ExplicitWorkSegmentationType.class, ExplicitWorkSegmentationStrategy.class);
 	}
 

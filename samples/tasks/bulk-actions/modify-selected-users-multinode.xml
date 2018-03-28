@@ -46,10 +46,7 @@
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
     <workManagement>
         <buckets>
-            <stringSegmentation>
-                <discriminator>#</discriminator>
-                <boundaryCharacters>0123456789abcdef</boundaryCharacters>
-            </stringSegmentation>
+            <oidSegmentation/>
         </buckets>
         <workers>
             <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>

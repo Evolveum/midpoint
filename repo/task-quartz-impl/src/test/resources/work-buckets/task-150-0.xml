@@ -15,23 +15,22 @@
   ~ limitations under the License.
   -->
 
-<!-- User recompute task definition. The task recomputes all users with all the mappings.
-     This is useful specially after change of mapping definition (roles, outbound, user template). -->
-
-<task
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-								  
-	<name>User Recompute (segmented)</name>
-	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+<task oid="44444444-0000-0000-0000-150000000000"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<name>task-150-c-single</name>
+    <taskIdentifier>44444444-0000-0000-0000-150000000000</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>suspended</executionStatus>
+	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<workManagement>
 		<buckets>
-			<oidSegmentation/>
+			<oidSegmentation>
+				<depth>2</depth>
+			</oidSegmentation>
 		</buckets>
 	</workManagement>
 	<recurrence>single</recurrence>
-	<binding>tight</binding>
 </task>

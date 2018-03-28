@@ -19,33 +19,41 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.INTERVAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.PREFIX;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author mederly
  */
 public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
+	private static final Trace LOGGER = TraceManager.getTrace(StringWorkSegmentationStrategy.class);
+
 	@NotNull private final StringWorkSegmentationType bucketsConfiguration;
 	@NotNull private final StringWorkBucketsBoundaryMarkingType marking;
+	@NotNull private final List<String> boundaries;
 
-	public StringWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration,
-			PrismContext prismContext) {
+	private static final String OID_BOUNDARIES = "0-9a-f";
+
+	public StringWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
 		super(prismContext);
 		this.bucketsConfiguration = (StringWorkSegmentationType)
 				TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
-		this.marking = ObjectUtils.defaultIfNull(bucketsConfiguration.getComparisonMethod(), INTERVAL);
+		this.marking = defaultIfNull(bucketsConfiguration.getComparisonMethod(), INTERVAL);
+		this.boundaries = processBoundaries();
 	}
 
 	@NotNull
@@ -122,7 +130,6 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 
 	@NotNull
 	private List<Integer> stringToIndices(String lastBoundary) {
-		List<String> boundaries = bucketsConfiguration.getBoundaryCharacters();
 		List<Integer> currentIndices = new ArrayList<>();
 		if (lastBoundary == null) {
 			for (int i = 0; i < boundaries.size(); i++) {
@@ -151,7 +158,6 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 
 	// true if the new state is a valid one
 	private boolean incrementIndices(List<Integer> currentIndices) {
-		List<String> boundaries = bucketsConfiguration.getBoundaryCharacters();
 		assert boundaries.size() == currentIndices.size();
 
 		for (int i = currentIndices.size() - 1; i >= 0; i--) {
@@ -167,7 +173,6 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 	}
 
 	private String indicesToString(List<Integer> currentIndices) {
-		List<String> boundaries = bucketsConfiguration.getBoundaryCharacters();
 		assert boundaries.size() == currentIndices.size();
 
 		StringBuilder sb = new StringBuilder();
@@ -180,10 +185,109 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 	@Override
 	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
 		int combinations = 1;
-		List<String> boundaries = bucketsConfiguration.getBoundaryCharacters();
 		for (String boundary : boundaries) {
 			combinations *= boundary.length();
 		}
 		return marking == INTERVAL ? combinations+1 : combinations;
+	}
+
+	private List<String> processBoundaries() {
+		List<String> configuredBoundaries;
+		if (bucketsConfiguration instanceof OidWorkSegmentationType && bucketsConfiguration.getBoundaryCharacters().isEmpty()) {
+			configuredBoundaries = singletonList(OID_BOUNDARIES);
+		} else {
+			configuredBoundaries = bucketsConfiguration.getBoundaryCharacters();
+		}
+		int depth = defaultIfNull(bucketsConfiguration.getDepth(), 1);
+		List<String> expanded = configuredBoundaries.stream()
+				.map(this::expand)
+				.collect(Collectors.toList());
+		List<String> rv = new ArrayList<>(expanded.size() * depth);
+		for (int i = 0; i < depth; i++) {
+			rv.addAll(expanded);
+		}
+		return rv;
+	}
+
+	private class Scanner {
+		final String string;
+		int index;
+
+		Scanner(String string) {
+			this.string = string;
+		}
+
+		boolean hasNext() {
+			return index < string.length();
+		}
+
+		// @pre hasNext()
+		boolean isDash() {
+			return string.charAt(index) == '-';
+		}
+
+		// @pre hasNext()
+		public char next() {
+			char c = string.charAt(index++);
+			if (c != '\\') {
+				return c;
+			} else if (index != string.length()) {
+				return string.charAt(index++);
+			} else {
+				throw new IllegalArgumentException("Boundary specification cannot end with '\\': " + string);
+			}
+		}
+	}
+
+	private String expand(String s) {
+		StringBuilder sb = new StringBuilder();
+		Scanner scanner = new Scanner(s);
+
+		while (scanner.hasNext()) {
+			if (scanner.isDash()) {
+				if (sb.length() == 0) {
+					throw new IllegalArgumentException("Boundary specification cannot start with '-': " + s);
+				} else {
+					scanner.next();
+					if (!scanner.hasNext()) {
+						throw new IllegalArgumentException("Boundary specification cannot end with '-': " + s);
+					} else {
+						appendFromTo(sb, sb.charAt(sb.length()-1), scanner.next());
+					}
+				}
+			} else {
+				sb.append(scanner.next());
+			}
+		}
+		String expanded = sb.toString();
+		if (marking == INTERVAL) {
+			checkBoundary(expanded);
+		}
+		return expanded;
+	}
+
+	// this is a bit tricky: we do not know what matching rule will be used to execute the comparisons
+	// but let's assume it will be consistent with the default ordering
+	private void checkBoundary(String boundary) {
+		for (int i = 1; i < boundary.length(); i++) {
+			char before = boundary.charAt(i - 1);
+			char after = boundary.charAt(i);
+			if (before >= after) {
+				LOGGER.warn("Boundary characters are not sorted in ascending order ({}); comparing '{}' and '{}'",
+						boundary, before, after);
+			}
+		}
+	}
+
+	private void appendFromTo(StringBuilder sb, char fromExclusive, char toInclusive) {
+		for (char c = (char) (fromExclusive+1); c <= toInclusive; c++) {
+			sb.append(c);
+		}
+	}
+
+	// just for testing
+	@NotNull
+	public List<String> getBoundaries() {
+		return boundaries;
 	}
 }
