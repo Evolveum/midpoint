@@ -65,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -549,7 +550,7 @@ public class ResourceObjectConverter {
 			if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there
 				LOGGER.trace("Pre-reading resource shadow");
-				preReadShadow = preReadShadow(ctx, identifiers, operations, true, result);  // yes, we need associations here
+				preReadShadow = preReadShadow(ctx, identifiers, operations, true, repoShadow, result);  // yes, we need associations here
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Pre-read object:\n{}", preReadShadow==null?null:preReadShadow.debugDump());
 				}
@@ -590,7 +591,7 @@ public class ResourceObjectConverter {
 	        if (hasVolatilityTriggerModification) {
 	        	// There may be other changes that were not detected by the connector. Re-read the object and compare.
 	        	LOGGER.trace("Post-reading resource shadow");
-	        	postReadShadow = preReadShadow(ctx, identifiers, operations, true, result);
+	        	postReadShadow = preReadShadow(ctx, identifiers, operations, true, repoShadow, result);
 	        	if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Post-read object:\n{}", postReadShadow.debugDump());
 				}
@@ -686,7 +687,7 @@ public class ResourceObjectConverter {
 
 				if (currentShadow == null) {
 					LOGGER.trace("Fetching shadow for duplicate filtering");
-					currentShadow = preReadShadow(ctx, identifiers, operations, false, parentResult);
+					currentShadow = preReadShadow(ctx, identifiers, operations, false, currentShadow, parentResult);
 				}
 				
 				if (currentShadow == null) {
@@ -822,9 +823,13 @@ public class ResourceObjectConverter {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private PrismObject<ShadowType> preReadShadow(ProvisioningContext ctx, 
+	private PrismObject<ShadowType> preReadShadow(
+			ProvisioningContext ctx, 
 			Collection<? extends ResourceAttribute<?>> identifiers, 
-			Collection<Operation> operations, boolean fetchEntitlements, OperationResult parentResult) 
+			Collection<Operation> operations,
+			boolean fetchEntitlements,
+			PrismObject<ShadowType> repoShadow,
+			OperationResult parentResult) 
 					throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> currentShadow;
 		List<RefinedAttributeDefinition> neededExtraAttributes = new ArrayList<>();
@@ -846,6 +851,10 @@ public class ResourceObjectConverter {
 			LOGGER.warn("Cannot pre-read shadow {}, it is probably not present in the {}. Skipping pre-read.", identifiers, ctx.getResource());
 			return null;
 		}
+		if (repoShadow != null) {
+			currentShadow.setOid(repoShadow.getOid());
+		}
+		currentShadow.asObjectable().setName(new PolyStringType(ShadowUtil.determineShadowName(currentShadow)));
 		return currentShadow;
 	}
 
