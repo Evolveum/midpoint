@@ -857,20 +857,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
 			isWorkItem = WorkItemType.class.equals(type);
 
-			if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
-				throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
-			}
+		if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
+			throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
+		}
 
-			if (isCertCase) {
-				refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
-				manager = ObjectTypes.ObjectManager.REPOSITORY;
-			} else if (isWorkItem) {
-				refinedQuery = preProcessWorkItemSecurity(query);
-				manager = ObjectTypes.ObjectManager.WORKFLOW;
-			} else //noinspection ConstantConditions
-				if (isCaseMgmtWorkItem) {
+		if (isCertCase) {
+			refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
+			manager = ObjectTypes.ObjectManager.REPOSITORY;
+		} else if (isWorkItem) {
+			refinedQuery = preProcessWorkItemSecurity(query);
+			manager = ObjectTypes.ObjectManager.WORKFLOW;
+		} else //noinspection ConstantConditions
+			if (isCaseMgmtWorkItem) {
 				refinedQuery = query;           // TODO
-				manager = ObjectTypes.ObjectManager.EMULATED;
+				manager = ObjectTypes.ObjectManager.REPOSITORY;
 			} else {
 				throw new IllegalStateException();
 			}
