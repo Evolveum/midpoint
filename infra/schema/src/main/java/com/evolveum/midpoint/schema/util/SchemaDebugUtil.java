@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
@@ -318,6 +319,23 @@ public class SchemaDebugUtil {
 		}
 
 		// TODO: Other properties
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ResourceObjectTypeDependencyType depType) {
+		if (depType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ResourceObjectTypeDependencyType(");
+		
+		if (depType.getResourceRef() != null) {
+			sb.append(depType.getResourceRef().getOid());
+			sb.append(":");
+		}
+		sb.append(depType.getKind());
+		sb.append("/");
+		sb.append(depType.getIntent());
 		sb.append(")");
 		return sb.toString();
 	}
