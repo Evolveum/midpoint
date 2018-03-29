@@ -2571,6 +2571,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
 	
+	protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName) throws SchemaException {
+		return createModifyUserAddAccount(userOid, getDummyResourceObject(dummyResourceName));
+	}
 
 	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
 		PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
@@ -2589,6 +2592,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return userDelta;
 	}
 
+	protected ObjectDelta<UserType> createModifyUserDeleteDummyAccount(String userOid, String dummyResourceName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return createModifyUserDeleteAccount(userOid, getDummyResourceObject(dummyResourceName));
+	}
+	
 	protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		String accountOid = getLinkRefOid(userOid, resource.getOid());
 		PrismObject<ShadowType> account = getShadowModel(accountOid);
