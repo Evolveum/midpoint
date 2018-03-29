@@ -54,7 +54,9 @@ import java.util.Set;
 @Table(indexes = {
         @Index(name = "iFocusAdministrative", columnList = "administrativeStatus"),
         @Index(name = "iFocusEffective", columnList = "effectiveStatus"),
-        @Index(name = "iLocality", columnList = "locality_orig")
+        @Index(name = "iLocality", columnList = "locality_orig"),
+        @Index(name = "iFocusValidFrom", columnList = "validFrom"),
+        @Index(name = "iFocusValidTo", columnList = "validTo")
 })
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RFocus<T extends FocusType> extends RObject<T> {
