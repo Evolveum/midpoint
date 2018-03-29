@@ -272,7 +272,7 @@ public class PageAccountActivation extends PageBase {
 		Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
 		for (ShadowType shadow : shadowsToActivate) {
 			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE, getPrismContext(), passwordValue);
-			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
+			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 			passwordDeltas.add(shadowDelta);
 		}
 
