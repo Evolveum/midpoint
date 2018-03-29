@@ -109,7 +109,7 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 
 	@Override
 	protected ObjectQuery createQuery(PropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
-			OperationResult opResult) throws SchemaException {
+			OperationResult opResult) {
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(handler.getResource().getOid())

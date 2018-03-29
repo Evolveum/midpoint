@@ -760,7 +760,12 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
-		return new DropDownChoicePanel<>(id, model, choicesList,
+		return createEnumPanel(clazz, id, choicesList, model, component, allowNull, null);
+	}
+
+	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
+			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull, String nullValidDisplayValue) {
+		return new DropDownChoicePanel<E>(id, model, choicesList,
             new IChoiceRenderer<E>() {
 
                 private static final long serialVersionUID = 1L;
@@ -782,7 +787,16 @@ public final class WebComponentUtil {
                 public String getIdValue(E object, int index) {
                     return Integer.toString(index);
                 }
-            }, allowNull);
+            }, allowNull){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected String getNullValidDisplayValue() {
+				return nullValidDisplayValue != null && StringUtils.isNotEmpty(nullValidDisplayValue.trim()) ?
+						nullValidDisplayValue : super.getNullValidDisplayValue();
+			}
+		};
 	}
 
 	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,

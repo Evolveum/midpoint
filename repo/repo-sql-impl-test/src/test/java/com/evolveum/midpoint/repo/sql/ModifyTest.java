@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -831,7 +833,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("description was not set", "123456", description);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test200ReplaceAttributes() throws Exception {
         final String TEST_NAME = "test200ReplaceAttributes";
         TestUtil.displayTestTitle(TEST_NAME);
@@ -839,6 +841,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult(TEST_NAME);
 
         PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
+        account.setOid(null);
         repositoryService.addObject(account, null, result);
         accountOid = account.getOid();
 
@@ -858,21 +861,50 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         Session session = open();
         List shadows = session.createQuery("from RShadow").list();
-        System.out.println("shadows:\n" + shadows);
+        LOGGER.info("shadows:\n{}", shadows);
         //noinspection unchecked
         List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.item.id, e.value from ROExtString e").list();
         for (Object[] extString : extStrings) {
-            System.out.println("-> " + Arrays.asList(extString));
+            LOGGER.info("-> {}", Arrays.asList(extString));
         }
+        close(session);
 
         ObjectQuery query1 = QueryBuilder.queryFor(ShadowType.class, prismContext)
                 .item(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
                 .build();
-        SearchResultList<PrismObject<ShadowType>> list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
-        System.out.println("*** query1 result:\n" + DebugUtil.debugDump(list1));
+        List list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
+        LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
         assertEquals("Wrong # of query1 results", 1, list1.size());
-    }
 
+        session = open();
+        RObject obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        assertEquals(1, obj.getStrings().size());
+        close(session);
+
+        // delete
+        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .delete(attributes.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        session = open();
+        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        assertEquals(0, obj.getStrings().size());
+        close(session);
+
+        // add
+        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .add(attributes.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        session = open();
+        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        assertEquals(1, obj.getStrings().size());
+        close(session);
+    }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
     	assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);

@@ -93,11 +93,6 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
-	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-		return createQueryFromTask(handler, runResult, task, opResult);
-	}
-
 	protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, UserType.class);
 	}

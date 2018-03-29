@@ -112,7 +112,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     public void test100CreateWrapperUserJack() throws Exception {
 		final String TEST_NAME = "test100CreateWrapperUserJack";
 		TestUtil.displayTestTitle(TEST_NAME);
-
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 
 		// WHEN
@@ -169,7 +168,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     public void test102CreateWrapperUserEmpty() throws Exception {
 		final String TEST_NAME = "test102CreateWrapperUserEmpty";
 		TestUtil.displayTestTitle(TEST_NAME);
-
 		PrismObject<UserType> user = getUser(USER_EMPTY_OID);
 
 		// WHEN
@@ -224,7 +222,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     public void test150CreateWrapperShadow() throws Exception {
 		final String TEST_NAME = "test150CreateWrapperShadow";
 		TestUtil.displayTestTitle(TEST_NAME);
-
 		PrismObject<ShadowType> shadow = getShadowModel(accountJackOid);
 		shadow.findReference(ShadowType.F_RESOURCE_REF).getValue().setObject(resourceDummy);
 		display("Shadow", shadow);

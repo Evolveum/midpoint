@@ -20,7 +20,12 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBase;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -192,5 +197,63 @@ public class DeltaUpdaterUtils {
 
             existing.add(item.getRepository());
         }
+    }
+
+    public static void clearExtension(RAssignmentExtension extension) {
+        clearExtensionCollection(extension.getBooleans());
+        clearExtensionCollection(extension.getDates());
+        clearExtensionCollection(extension.getLongs());
+        clearExtensionCollection(extension.getPolys());
+        clearExtensionCollection(extension.getReferences());
+        clearExtensionCollection(extension.getStrings());
+
+        updateExtensionCounts(extension);
+    }
+
+    public static void clearExtension(RObject obj, RObjectExtensionType extType) {
+        clearExtensionCollection(obj.getBooleans(), extType);
+        clearExtensionCollection(obj.getDates(), extType);
+        clearExtensionCollection(obj.getLongs(), extType);
+        clearExtensionCollection(obj.getPolys(), extType);
+        clearExtensionCollection(obj.getReferences(), extType);
+        clearExtensionCollection(obj.getStrings(), extType);
+
+        updateExtensionCounts(obj);
+    }
+
+    private static void clearExtensionCollection(Collection<? extends RAExtBase> collection) {
+        Iterator<? extends RAExtBase> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            RAExtBase base = iterator.next();
+            iterator.remove();
+        }
+    }
+
+    private static void clearExtensionCollection(Collection<? extends ROExtBase> collection, RObjectExtensionType extType) {
+        Iterator<? extends ROExtBase> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            ROExtBase base = iterator.next();
+            if (extType.equals(base.getOwnerType())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    public static void updateExtensionCounts(RAssignmentExtension extension) {
+        extension.setStringsCount((short) extension.getStrings().size());
+        extension.setDatesCount((short) extension.getDates().size());
+        extension.setPolysCount((short) extension.getPolys().size());
+        extension.setReferencesCount((short) extension.getReferences().size());
+        extension.setLongsCount((short) extension.getLongs().size());
+        extension.setBooleansCount((short) extension.getBooleans().size());
+    }
+
+    public static void updateExtensionCounts(RObject object) {
+        object.setStringsCount((short) object.getStrings().size());
+        object.setDatesCount((short) object.getDates().size());
+        object.setPolysCount((short) object.getPolys().size());
+        object.setReferencesCount((short) object.getReferences().size());
+        object.setLongsCount((short) object.getLongs().size());
+        object.setBooleansCount((short) object.getBooleans().size());
     }
 }

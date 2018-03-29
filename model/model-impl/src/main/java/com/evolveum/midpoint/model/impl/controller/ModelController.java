@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
@@ -88,6 +91,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.*;
 import java.util.*;
@@ -110,7 +114,7 @@ import java.util.*;
  * Use its interfaces instead.
  */
 @Component
-public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
+public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService, CaseManagementService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -853,20 +857,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
 			isWorkItem = WorkItemType.class.equals(type);
 
-			if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
-				throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
-			}
+		if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
+			throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
+		}
 
-			if (isCertCase) {
-				refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
-				manager = ObjectTypes.ObjectManager.REPOSITORY;
-			} else if (isWorkItem) {
-				refinedQuery = preProcessWorkItemSecurity(query);
-				manager = ObjectTypes.ObjectManager.WORKFLOW;
-			} else //noinspection ConstantConditions
-				if (isCaseMgmtWorkItem) {
+		if (isCertCase) {
+			refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
+			manager = ObjectTypes.ObjectManager.REPOSITORY;
+		} else if (isWorkItem) {
+			refinedQuery = preProcessWorkItemSecurity(query);
+			manager = ObjectTypes.ObjectManager.WORKFLOW;
+		} else //noinspection ConstantConditions
+			if (isCaseMgmtWorkItem) {
 				refinedQuery = query;           // TODO
-				manager = ObjectTypes.ObjectManager.EMULATED;
+				manager = ObjectTypes.ObjectManager.REPOSITORY;
 			} else {
 				throw new IllegalStateException();
 			}
@@ -2108,4 +2112,47 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private void exitModelMethod() {
 		clockworkMedic.exitModelMethod();
 	}
+
+	//region Case Management
+
+	// temporary implementation
+	// TODO move to (not yet existing) case manager
+	// TODO add event processing
+	// TODO some authorizations
+	@Override
+	public void completeWorkItem(@NotNull String caseOid, long workItemId, AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+
+		OperationResult result = parentResult.createSubresult(COMPLETE_WORK_ITEM);
+		try {
+			PrismObject<CaseType> aCase = getObject(CaseType.class, caseOid, null, task, result);
+			PrismContainer<Containerable> workItems = aCase.findContainer(CaseType.F_WORK_ITEM);
+			PrismContainerValue<Containerable> workItemPcv = workItems.findValue(workItemId);
+			if (workItemPcv == null) {
+				throw new ObjectNotFoundException("Work item with ID " + workItemId + " was not found in " + aCase);
+			}
+			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+			ObjectDelta<CaseType> delta = DeltaBuilder.deltaFor(CaseType.class, prismContext)
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT).replace(output)
+					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
+					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
+					.item(CaseType.F_CLOSE_TIMESTAMP).replace(now)
+					.asObjectDeltaCast(caseOid);
+			for (CaseWorkItemType workItem : aCase.asObjectable().getWorkItem()) {
+				delta.swallow(
+						DeltaBuilder.deltaFor(CaseType.class, prismContext)
+								.item(CaseType.F_WORK_ITEM, workItem.getId(), WorkItemType.F_CLOSE_TIMESTAMP).replace(now)
+								.asItemDelta());
+			}
+			executeChanges(Collections.singleton(delta), null, task, result);
+			result.computeStatus();
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't complete work item: " + t.getMessage(), t);
+			throw t;
+		}
+	}
+
+//endregion
+
 }

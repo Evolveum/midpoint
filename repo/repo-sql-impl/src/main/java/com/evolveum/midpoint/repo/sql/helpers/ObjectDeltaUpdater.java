@@ -35,10 +35,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
-import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
-import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
-import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
-import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
+import com.evolveum.midpoint.repo.sql.helpers.modify.*;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -108,7 +105,7 @@ public class ObjectDeltaUpdater {
         // mark newly added containers/references as transient
 
         // validate metadata/*, assignment/metadata/*, assignment/construction/resourceRef changes
-        
+
         PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
         idGenerator.collectUsedIds(prismObject);
 
@@ -132,7 +129,12 @@ public class ObjectDeltaUpdater {
             }
 
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
-                handleObjectExtensionOrAttributesDelta(object, delta, idGenerator);
+                if (delta.getPath().size() == 1) {
+                    handleObjectExtensionWholeContainer(object, delta, idGenerator);
+                } else {
+                    handleObjectExtensionOrAttributesDelta(object, delta, idGenerator);
+                }
+
                 continue;
             }
 
@@ -151,7 +153,12 @@ public class ObjectDeltaUpdater {
                 String nameLocalPart = nameSegment.getName().getLocalPart();
 
                 if (isAssignmentExtensionDelta(attributeStep, nameSegment)) {
-                    handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta, idGenerator);
+                    NameItemPathSegment lastNamed = delta.getPath().namedSegmentsOnly().lastNamed();
+                    if (AssignmentType.F_EXTENSION.equals(lastNamed.getName())) {
+                        handleAssignmentExtensionWholeContainer((RAssignment) attributeStep.bean, delta, idGenerator);
+                    } else {
+                        handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta, idGenerator);
+                    }
                     continue;
                 }
 
@@ -226,7 +233,7 @@ public class ObjectDeltaUpdater {
     private boolean isOperationResult(ItemDelta delta) throws SchemaException {
         ItemDefinition def = delta.getDefinition();
         if (def == null) {
-        	throw new SchemaException("No definition in delta for item "+delta.getPath());
+            throw new SchemaException("No definition in delta for item " + delta.getPath());
         }
         return OperationResultType.COMPLEX_TYPE.equals(def.getTypeName());
     }
@@ -568,14 +575,66 @@ public class ObjectDeltaUpdater {
         return Integer.valueOf(collection.size()).shortValue();
     }
 
-    private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
-        RObjectExtensionType ownerType = null;
-        if (isObjectExtensionDelta(delta.getPath())) {
-            ownerType = RObjectExtensionType.EXTENSION;
-        } else if (isShadowAttributesDelta(delta.getPath())) {
-            ownerType = RObjectExtensionType.ATTRIBUTES;
+    private void handleObjectExtensionWholeContainer(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
+        RObjectExtensionType extType = computeObjectExtensionType(delta);
+
+        if (!delta.isAdd()) {
+            clearExtension(object, extType);
         }
 
+        if (delta.isDelete()) {
+            return;
+        }
+
+        PrismContainerValue extension = (PrismContainerValue) delta.getAnyValue();
+        for (Item item : (List<Item>) extension.getItems()) {
+            ItemDelta itemDelta = item.createDelta();
+            itemDelta.setValuesToReplace(item.getClonedValues());
+
+            processAnyExtensionDeltaValues(itemDelta, object, extType, null, null, idGenerator);
+        }
+    }
+
+    private void handleAssignmentExtensionWholeContainer(RAssignment assignment, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
+        RAssignmentExtension ext = assignment.getExtension();
+        if (!delta.isAdd()) {
+            if (ext != null) {
+                clearExtension(ext);
+            }
+        }
+
+        if (delta.isDelete()) {
+            return;
+        }
+
+        if (ext == null) {
+            ext = new RAssignmentExtension();
+            ext.setOwner(assignment);
+            assignment.setExtension(ext);
+        }
+
+        PrismContainerValue extension = (PrismContainerValue) delta.getAnyValue();
+        for (Item item : (List<Item>) extension.getItems()) {
+            ItemDelta itemDelta = item.createDelta();
+            itemDelta.setValuesToReplace(item.getClonedValues());
+
+            processAnyExtensionDeltaValues(itemDelta, null, null, ext,
+                    RAssignmentExtensionType.EXTENSION, idGenerator);
+        }
+    }
+
+    private RObjectExtensionType computeObjectExtensionType(ItemDelta delta) {
+        if (isObjectExtensionDelta(delta.getPath())) {
+            return RObjectExtensionType.EXTENSION;
+        } else if (isShadowAttributesDelta(delta.getPath())) {
+            return RObjectExtensionType.ATTRIBUTES;
+        }
+
+        throw new IllegalStateException("Unknown extension type, shouldn't happen");
+    }
+
+    private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
+        RObjectExtensionType ownerType = computeObjectExtensionType(delta);
         processAnyExtensionDeltaValues(delta, object, ownerType, null, null, idGenerator);
     }
 

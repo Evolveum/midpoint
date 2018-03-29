@@ -150,6 +150,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return secondaryDeltas.get(wave);
     }
 
+    // preliminary implementation - deletes all secondary deltas
+	@Override
+	public void deleteSecondaryDeltas() {
+		secondaryDeltas.deleteDeltas();
+	}
+
 	@Override
 	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
 		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew());

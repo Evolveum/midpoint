@@ -91,15 +91,6 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
 	}
 
 	@Override
-	protected ObjectQuery createQuery(MultiPropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
-			OperationResult opResult) throws SchemaException {
-		ObjectQuery objectQuery = createQueryFromTask(handler, runResult, coordinatorTask, opResult);
-		LOGGER.trace("Resource query: {}", objectQuery);
-		return objectQuery;
-		
-	}
-
-	@Override
 	protected Class<? extends ObjectType> getType(Task task) {
 		return ResourceType.class;
 	}

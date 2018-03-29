@@ -82,11 +82,6 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
-	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-		return createQueryFromTask(handler, runResult, task, opResult);
-	}
-
 	protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, UserType.class);
 	}
@@ -111,7 +106,7 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 	private <T extends ObjectType> void executeChange(PrismObject<T> focalObject, Task coordinatorTask, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Recomputing object {}", focalObject);
+		LOGGER.trace("Executing change on object {}", focalObject);
 
 		ObjectDelta<T> delta = createDeltaFromTask(coordinatorTask);
 		if (delta == null) {

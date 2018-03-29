@@ -30,7 +30,9 @@ import java.util.Objects;
 @Ignore
 @Entity
 //@IdClass(ROExtStringId.class)
-@Table(name = "m_ext_item")
+@Table(name = "m_ext_item", indexes = {
+		@Index(name = "iExtItemDefinition", unique = true, columnList = "itemName, itemType, kind")
+})
 public class RExtItem {
 
 	public static final String F_ID = "id";

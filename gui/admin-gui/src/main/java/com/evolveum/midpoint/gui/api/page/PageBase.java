@@ -82,6 +82,12 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
+import com.evolveum.midpoint.web.page.admin.cases.PageCasesAll;
+import com.evolveum.midpoint.web.page.admin.cases.PageCasesAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
@@ -263,6 +269,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelController")
     private AccessCertificationService certficationService;
+    
+    @SpringBean(name = "modelController")
+    private CaseManagementService caseManagementService;
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
@@ -481,6 +490,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public AccessCertificationService getCertificationService() {
         return certficationService;
+    }
+    
+    public CaseManagementService getCaseManagementService() {
+		return caseManagementService;
     }
 
     @Override
@@ -1410,6 +1423,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
@@ -1527,6 +1542,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.list", PageCasesAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCasesAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", PageCaseWorkItemsAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
+        addMenuItem(item, "PageAdmin.menu.top.case.new", PageCase.class);
 
         return item;
     }

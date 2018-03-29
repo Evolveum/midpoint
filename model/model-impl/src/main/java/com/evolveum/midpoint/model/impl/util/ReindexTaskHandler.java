@@ -83,13 +83,6 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
     }
 
     @Override
-	protected ObjectQuery createQuery(ReindexResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
-        LOGGER.info("Using query:\n{}", query.debugDump());
-        return query;
-	}
-
-    @Override
     protected boolean useRepositoryDirectly(ReindexResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }

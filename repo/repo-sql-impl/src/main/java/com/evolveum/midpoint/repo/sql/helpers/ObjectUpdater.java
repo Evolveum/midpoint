@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -544,7 +545,7 @@ public class ObjectUpdater {
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
             LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[]{ex, sqlException, nextException});
-            String[] ok = new String[]{
+            String[] okStrings = new String[] {
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
                     "duplicate key value violates unique constraint \"m_reference_pkey\""
             };
@@ -560,8 +561,8 @@ public class ObjectUpdater {
             } else {
                 msg2 = "";
             }
-            for (int i = 0; i < ok.length; i++) {
-                if (msg1.contains(ok[i]) || msg2.contains(ok[i])) {
+            for (String okString : okStrings) {
+                if (msg1.contains(okString) || msg2.contains(okString)) {
                     baseHelper.rollbackTransaction(session, ex, result, false);
                     throw new SerializationRelatedException(ex);
                 }
@@ -584,6 +585,10 @@ public class ObjectUpdater {
                     RepositoryContext.class, IdGeneratorResult.class);
             method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext), generatorResult);
         } catch (Exception ex) {
+            SerializationRelatedException serializationException = ExceptionUtil.findCause(ex, SerializationRelatedException.class);
+            if (serializationException != null) {
+                throw serializationException;
+            }
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {
                 message = ex.getCause().getMessage();

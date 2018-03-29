@@ -156,7 +156,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 //	}
 
 	public void initLayout(ObjectPolicyConfigurationTypeDto config) {
-		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 
@@ -167,7 +167,6 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		form.add(type);
 		type.getInput().setNullValid(config.getConflictResolution() != null);
 		type.getInput().setRequired(config.getConflictResolution() == null);           // traditional template entries still require object type
-
 		TextField<String> fieldSubtype = new TextField<>(ID_SUBTYPE, new PropertyModel<String>(model, ObjectPolicyDialogDto.F_SUBTYPE));
 		form.add(fieldSubtype);
 		form.add(fieldSubtype);
