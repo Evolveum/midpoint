@@ -313,12 +313,41 @@ CREATE TABLE m_audit_prop_value (
 CREATE TABLE m_audit_ref_value (
   id              BIGINT NOT NULL AUTO_INCREMENT,
   name            VARCHAR(255),
-  oid             VARCHAR(255),
+  oid             VARCHAR(36),
   record_id       BIGINT,
   targetName_norm VARCHAR(255),
   targetName_orig VARCHAR(255),
   type            VARCHAR(255),
   PRIMARY KEY (id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+CREATE TABLE m_case_wi (
+  id                            INTEGER     NOT NULL,
+  owner_oid                     VARCHAR(36) NOT NULL,
+  closeTimestamp                DATETIME(6),
+  deadline                      DATETIME(6),
+  originalAssigneeRef_relation  VARCHAR(157),
+  originalAssigneeRef_targetOid VARCHAR(36),
+  originalAssigneeRef_type      INTEGER,
+  outcome                       VARCHAR(255),
+  performerRef_relation         VARCHAR(157),
+  performerRef_targetOid        VARCHAR(36),
+  performerRef_type             INTEGER,
+  stageNumber                   INTEGER,
+  PRIMARY KEY (owner_oid, id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+CREATE TABLE m_case_wi_reference (
+  owner_id        INTEGER      NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  targetType      INTEGER,
+  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -629,9 +658,13 @@ CREATE TABLE m_abstract_role (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_case (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
+  name_norm           VARCHAR(255),
+  name_orig           VARCHAR(255),
+  objectRef_relation  VARCHAR(157),
+  objectRef_targetOid VARCHAR(36),
+  objectRef_type      INTEGER,
+  state               VARCHAR(255),
+  oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -954,6 +987,8 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id);
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
+CREATE INDEX iCaseWorkItemRefTargetOid
+  ON m_case_wi_reference (targetOid);
 CREATE INDEX iObjectNameOrig
   ON m_object (name_orig);
 CREATE INDEX iObjectNameNorm
@@ -1184,6 +1219,10 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event (id);
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event (id);
+ALTER TABLE m_case_wi
+  ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case (oid);
+ALTER TABLE m_case_wi_reference
+  ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi (owner_oid, id);
 ALTER TABLE m_connector_target_system
   ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector (oid);
 ALTER TABLE m_focus_photo
