@@ -558,7 +558,7 @@ CREATE TABLE m_focus (
   validityStatus          NUMBER(10, 0),
   costCenter              VARCHAR2(255 CHAR),
   emailAddress            VARCHAR2(255 CHAR),
-  hasPhoto                NUMBER(1, 0) DEFAULT FALSE NOT NULL,
+  hasPhoto                NUMBER(1, 0) DEFAULT 0 NOT NULL,
   locale                  VARCHAR2(255 CHAR),
   locality_norm           VARCHAR2(255 CHAR),
   locality_orig           VARCHAR2(255 CHAR),
