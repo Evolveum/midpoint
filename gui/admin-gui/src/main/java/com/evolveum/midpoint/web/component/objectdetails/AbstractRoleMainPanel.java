@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -319,10 +320,19 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 			int count = 0;
 			for (AssignmentType inducement : inducements){
-				if (inducement.getConstruction() != null && inducement.getConstruction().getAssociation() != null){
-					count++;
+				if (inducement.getConstruction() == null){
+					continue;
 				}
-			};
+				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
+					continue;
+				}
+				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
+					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
+							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
+						count++;
+					}
+				}
+			}
 			return Integer.toString(count);
 	}
 }

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import javax.annotation.Resource;
 import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +59,11 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         ObjectQuery query = super.createObjectQuery();
         ObjectFilter filter = query.getFilter();
         ObjectQuery entitlementsQuery = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                .exists(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)
+                .block()
+                .not()
+                .item(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION)
+                .isNull()
+                .endBlock()
                 .build();
         if (filter != null){
             query.setFilter(AndFilter.createAnd(filter, entitlementsQuery.getFilter()));
@@ -81,7 +86,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     @Override
 
     protected void initAssociationContainer(ConstructionType constructionType){
-        constructionType.beginAssociation();
+        constructionType.beginAssociation().beginOutbound().beginExpression();
     }
 
     protected boolean isRelationVisible() {
