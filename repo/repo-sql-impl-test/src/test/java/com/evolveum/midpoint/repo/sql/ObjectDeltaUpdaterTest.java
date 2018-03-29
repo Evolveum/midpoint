@@ -17,14 +17,22 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -33,6 +41,8 @@ import com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -49,6 +59,8 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 import java.util.Objects;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -471,5 +483,69 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 //        cachingMetadata
 //            REPLACE: CachingMetadataType(retrievalTimestamp:2018-02-09T18:30:10.423+01:00)
 //        ]
+    }
+
+    @Test
+    public void test260ReplaceAssignmentExtension() throws Exception {
+        OperationResult result = new OperationResult("test210ReplaceAssignmentExtension");
+
+        String file = FOLDER_BASE + "/modify/user-with-assignment-extension.xml";
+        PrismObject<UserType> user = prismContext.parseObject(new File(file));
+        user.setOid(null);
+        repositoryService.addObject(user, null, result);
+        String userOid = user.getOid();
+
+        QName SHIP_NAME_QNAME = new QName("http://example.com/p", "shipName");
+        PrismPropertyDefinition<String> def1 = new PrismPropertyDefinitionImpl<>(SHIP_NAME_QNAME, DOMUtil.XSD_STRING, prismContext);
+        ExtensionType extension = new ExtensionType(prismContext);
+        PrismProperty<String> loot = def1.instantiate();
+        loot.setRealValue("otherString");
+        extension.asPrismContainerValue().add(loot);
+
+        List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .replace(extension)
+                .asItemDeltas();
+
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
+                .build();
+        List list = repositoryService.searchObjects(UserType.class, query, null, result);
+        LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list));
+        assertEquals("Wrong # of query1 results", 1, list.size());
+
+        Session session = open();
+        RUser ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        RAssignmentExtension ext = ruser.getAssignments().iterator().next().getExtension();
+        assertEquals(1, ext.getStrings().size());
+        close(session);
+
+        // delete
+        deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .delete(extension.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        session = open();
+        ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        ext = ruser.getAssignments().iterator().next().getExtension();
+        assertEquals(0, ext.getStrings().size());
+        close(session);
+
+        // add
+        deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .add(extension.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        session = open();
+        ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        ext = ruser.getAssignments().iterator().next().getExtension();
+        assertEquals(1, ext.getStrings().size());
+        close(session);
     }
 }

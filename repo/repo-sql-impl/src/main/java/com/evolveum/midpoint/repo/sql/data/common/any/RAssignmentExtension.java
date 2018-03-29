@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -322,24 +323,12 @@ public class RAssignmentExtension implements Serializable, EntityState {
             }
         }
 
-        repo.setStringsCount((short) repo.getStrings().size());
-        repo.setDatesCount((short) repo.getDates().size());
-        repo.setPolysCount((short) repo.getPolys().size());
-        repo.setReferencesCount((short) repo.getReferences().size());
-        repo.setLongsCount((short) repo.getLongs().size());
-        repo.setBooleansCount((short) repo.getBooleans().size());
+        DeltaUpdaterUtils.updateExtensionCounts(repo);
     }
 
     @Override
     public String toString() {
         return "RAssignmentExtension{" +
-//                "owner=" + (owner != null ? owner.getOwner() + ":" + owner.getId() : "null" ) +
-//                ", strings=" + strings +
-//                ", longs=" + longs +
-//                ", dates=" + dates +
-//                ", references=" + references +
-//                ", polys=" + polys +
-//                ", booleans=" + booleans +
                 "strings#=" + stringsCount +
                 ", longs#=" + longsCount +
                 ", dates#=" + datesCount +
