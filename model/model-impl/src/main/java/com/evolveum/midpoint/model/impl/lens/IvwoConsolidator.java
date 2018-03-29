@@ -187,10 +187,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidating {} IVwO triple:\n{}\nApriori Delta:\n{}\nExisting item:\n{}",
+			LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}",
 					itemPath, ivwoTriple.debugDump(1),
-					DebugUtil.debugDump(aprioriItemDelta, 1),
-					DebugUtil.debugDump(itemExisting, 1));
+					DebugUtil.debugDump(aprioriItemDelta, 2),
+					DebugUtil.debugDump(itemExisting, 2));
 		}
 
         Collection<V> allValues = collectAllValues();

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -1625,7 +1626,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (AuthorizationPhaseType.EXECUTION.equals(phase) && isInList(nameOnlyItemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)) {
 						return null;
 					}
-					if (!subitemRootPath.isSubPathOrEquivalent(nameOnlyItemPath)) {
+					if (subitemRootPath != null && !subitemRootPath.isSubPathOrEquivalent(nameOnlyItemPath)) {
 //						LOGGER.trace("subitem decision: {} <=> {} (not under root) : {}", subitemRootPath, nameOnlyItemPath, null);
 						return null;
 					}
@@ -1635,5 +1636,33 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 //					LOGGER.trace("subitem decision: {} <=> {} : {}", subitemRootPath, nameOnlyItemPath, decision);
 					return decision;
 				});
+	}
+	
+	@Override
+	public <C extends Containerable> AccessDecision determineSubitemDecision(
+			ObjectSecurityConstraints securityConstraints, PrismContainerValue<C> containerValue, String operationUrl,
+			AuthorizationPhaseType phase, ItemPath subitemRootPath, PlusMinusZero plusMinusZero, String decisionContextDesc) {
+		boolean removingContainer = false;
+		if (plusMinusZero == PlusMinusZero.MINUS) {
+			removingContainer = true;
+		}
+		return determineContainerDecision(containerValue,
+				(nameOnlyItemPath, lRemovingContainer) -> {
+					if (lRemovingContainer && isInList(nameOnlyItemPath, AuthorizationConstants.OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE)) {
+						return null;
+					}
+					if (AuthorizationPhaseType.EXECUTION.equals(phase) && isInList(nameOnlyItemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT)) {
+						return null;
+					}
+					if (subitemRootPath != null && !subitemRootPath.isSubPathOrEquivalent(nameOnlyItemPath)) {
+//						LOGGER.trace("subitem decision: {} <=> {} (not under root) : {}", subitemRootPath, nameOnlyItemPath, null);
+						return null;
+					}
+					
+					AuthorizationDecisionType authorizationDecisionType = securityConstraints.findItemDecision(nameOnlyItemPath, operationUrl, phase);
+					AccessDecision decision = AccessDecision.translate(authorizationDecisionType);
+//					LOGGER.trace("subitem decision: {} <=> {} : {}", subitemRootPath, nameOnlyItemPath, decision);
+					return decision;
+				}, removingContainer, decisionContextDesc);
 	}
 }

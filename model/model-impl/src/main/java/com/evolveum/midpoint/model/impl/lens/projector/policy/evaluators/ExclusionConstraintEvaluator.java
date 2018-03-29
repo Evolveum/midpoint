@@ -136,7 +136,7 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 						continue targetB;
 					}
 				}
-				return createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint.getValue(), ctx.policyRule, ctx, result);
+				return createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
 			}
 		}
 		return null;
@@ -191,7 +191,7 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 
 	private <F extends FocusType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<F> assignmentA,
 			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl targetB,
-			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule,
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, EvaluatedPolicyRule policyRule,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -202,31 +202,31 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 		ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
 		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 
-		LocalizableMessage message = createMessage(infoA, infoB, constraint, ctx, result);
-		LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraint, ctx, result);
-		return new EvaluatedExclusionTrigger(constraint, message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
+		LocalizableMessage message = createMessage(infoA, infoB, constraintElement, ctx, result);
+		LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraintElement, ctx, result);
+		return new EvaluatedExclusionTrigger(constraintElement.getValue(), message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createShortMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
 	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {

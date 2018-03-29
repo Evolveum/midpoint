@@ -461,7 +461,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 		ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
-                getModelObject().getObjectStatus(), ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
+                getModelObject().getObjectStatus(), ValueStatus.ADDED, getModelObject().getPath());
 		valueWrapper.setShowEmpty(true, false);
 		getModelObject().getValues().add(valueWrapper);
 		return valueWrapper;

@@ -60,7 +60,7 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel() {
-		ContainerWrapper<PolicyRuleType> policyRuleWrapper = getModelObject().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE));
+		ContainerWrapper<PolicyRuleType> policyRuleWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(), AssignmentType.F_POLICY_RULE));
 		if (policyRuleWrapper != null && policyRuleWrapper.getValues() != null) {
 			policyRuleWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 		}

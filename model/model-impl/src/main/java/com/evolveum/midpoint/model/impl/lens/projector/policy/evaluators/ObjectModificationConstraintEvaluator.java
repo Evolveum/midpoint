@@ -73,7 +73,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		}
 		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
 
-		if (modificationConstraintMatches(constraint.getValue(), ctx, result)) {
+		if (modificationConstraintMatches(constraint, ctx, result)) {
 			LocalizableMessage message = createMessage(constraint, rctx, result);
 			LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
 			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), 
@@ -91,7 +91,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
 				.args(ObjectTypeUtil.createDisplayInformation(rctx.focusContext.getObjectAny(), true))
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, rctx, builtInMessage, result);
 	}
 
 	private <F extends FocusType> LocalizableMessage createShortMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
@@ -102,7 +102,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
 				.args(ObjectTypeUtil.createDisplayInformation(rctx.focusContext.getObjectAny(), false))
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), rctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraint, rctx, builtInMessage, result);
 	}
 
 	@NotNull
@@ -118,10 +118,11 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 
 	// TODO discriminate between primary and secondary changes (perhaps make it configurable)
 	// Primary changes are "approvable", secondary ones are not.
-	private <F extends FocusType> boolean modificationConstraintMatches(ModificationPolicyConstraintType constraint,
+	private <F extends FocusType> boolean modificationConstraintMatches(JAXBElement<ModificationPolicyConstraintType> constraintElement,
 			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
+		ModificationPolicyConstraintType constraint = constraintElement.getValue();
 		if (!operationMatches(ctx.focusContext, constraint.getOperation())) {
 			LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
 			return false;
@@ -139,7 +140,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 				return false;
 			}
 		}
-		if (!expressionPasses(constraint, ctx, result)) {
+		if (!expressionPasses(constraintElement, ctx, result)) {
 			return false;
 		}
 		return true;

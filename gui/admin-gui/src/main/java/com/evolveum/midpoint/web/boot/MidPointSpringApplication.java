@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
+import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
 import org.springframework.boot.ExitCodeGenerator;
@@ -61,6 +63,7 @@ import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -110,6 +113,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
     private static final String USER_HOME_PROPERTY_NAME = "user.home";
     private static ConfigurableApplicationContext applicationContext = null;
+    
+    @Autowired StartupConfiguration startupConfiguration;
 
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
@@ -228,6 +233,16 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.setServlet(new ReportPeerQueryInterceptor());
         registration.addUrlMappings("/report");
 
+        return registration;
+    }
+    
+    @Bean
+    public ServletRegistrationBean staticWebServlet() {
+        ServletRegistrationBean registration = new ServletRegistrationBean();
+        StaticWebServlet servlet = new StaticWebServlet(
+        		new File(startupConfiguration.getMidpointHome(), "static-web"));
+        registration.setServlet(servlet);
+        registration.addUrlMappings("/static-web/*");
         return registration;
     }
 

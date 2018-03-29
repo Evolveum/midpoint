@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
@@ -28,6 +29,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import org.apache.wicket.model.Model;
+
+import javax.xml.namespace.QName;
 
 /**
  * TODO: is this class abstract or not?
@@ -44,7 +47,9 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel() {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION));
+			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
+					AssignmentType.F_CONSTRUCTION));
+
 			constructionWrapper.setAddContainerButtonVisible(true);
 			constructionWrapper.setShowEmpty(true, false);
 			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
@@ -58,14 +63,15 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 		}
 		
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
-			ContainerWrapper<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_PERSONA_CONSTRUCTION));
+			ContainerWrapper<PolicyRuleType> personasWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
 			if (personasWrapper != null && personasWrapper.getValues() != null) {
 				personasWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 			}
 
-			return Model.of();
+			return Model.of(personasWrapper);
 		}
-		return null;
+		return Model.of();
 	}
 
 }

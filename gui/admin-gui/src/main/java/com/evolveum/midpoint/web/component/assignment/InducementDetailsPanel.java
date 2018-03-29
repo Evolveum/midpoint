@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
