@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.ACCOUNT_ACTIVATION_PREFIX)})
+@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.ACCOUNT_ACTIVATION_PREFIX)}, permitAll = true)
 public class PageAccountActivation extends PageBase {
 
 	private static final long serialVersionUID = 1L;
@@ -272,7 +272,7 @@ public class PageAccountActivation extends PageBase {
 		Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
 		for (ShadowType shadow : shadowsToActivate) {
 			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE, getPrismContext(), passwordValue);
-			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
+			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 			passwordDeltas.add(shadowDelta);
 		}
 

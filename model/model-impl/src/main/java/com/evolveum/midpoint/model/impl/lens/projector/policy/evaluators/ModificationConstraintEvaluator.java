@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBElement;
+
 /**
  * @author semancik
  * @author mederly
@@ -52,11 +54,12 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
 		return stateKey;
 	}
 
-	boolean expressionPasses(T constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+	boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
+		T constraint = constraintElement.getValue();
 		if (constraint.getExpression() != null) {
-			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
 					"expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
 				return false;
 			}

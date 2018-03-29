@@ -18,10 +18,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
-import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -34,6 +32,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -48,21 +47,16 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
 import javax.xml.bind.JAXBElement;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
@@ -98,26 +92,28 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 				return null;            // assignment state can be evaluated only in the context of an assignment
 			} else {
-				return evaluateForAssignment(constraint.getValue(), (AssignmentPolicyRuleEvaluationContext<F>) rctx, result);
+				return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<F>) rctx, result);
 			}
 		} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
-			return evaluateForObject(constraint.getValue(), rctx, result);
+			return evaluateForObject(constraint, rctx, result);
 		} else {
 			throw new AssertionError("unexpected state constraint " + constraint.getName());
 		}
 	}
 
-	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForObject(StatePolicyConstraintType constraint,
+	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForObject(JAXBElement<StatePolicyConstraintType> constraintElement,
 			PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+		StatePolicyConstraintType constraint = constraintElement.getValue();
 		int count =
 				(constraint.getFilter() != null ? 1 : 0)
 				+ (constraint.getExpression() != null ? 1 : 0)
+				+ (constraint.getMessageExpression() != null ? 1 : 0)
 				+ (constraint.getExecuteScript() != null ? 1 : 0);
 
 		if (count != 1) {
-			throw new SchemaException("Exactly one of filter, expression, executeScript element must be present.");
+			throw new SchemaException("Exactly one of filter, expression, messageExpression, executeScript element must be present.");
 		}
 
 		PrismObject<F> object = ctx.getObject();
@@ -150,22 +146,36 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 			// TODO retrieve localization messages from output
 		}
+
+		if (constraint.getMessageExpression() != null) {
+			LocalizableMessageType messageBean = evaluatorHelper
+					.evaluateLocalizableMessageType(constraint.getMessageExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
+							"message expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task,
+							result);
+			if (messageBean == null) {
+				return null;
+			} else {
+				LocalizableMessage message = LocalizationUtil.toLocalizableMessage(messageBean);
+				return new EvaluatedStateTrigger(OBJECT_STATE, constraint, message, message);
+			}
+		}
+
 		if (constraint.getExpression() != null) {
-			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
 					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
 				return null;
 			}
-			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
 		}
 
 		return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
-				createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result),
-				createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
+					createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result),
+					createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result));
 	}
 
-	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
+	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(JAXBElement<StatePolicyConstraintType> constraintElement,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		StatePolicyConstraintType constraint = constraintElement.getValue();
 		if (constraint.getFilter() != null) {
 			throw new UnsupportedOperationException("Filter is not supported for assignment state constraints yet.");
 		}
@@ -175,23 +185,26 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		if (!ctx.isApplicableToState()) {
 			return null;
 		}
-		boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+		boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
 				"expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
 		if (match) {
 			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,
-					createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result),
-					createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
+					createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result),
+					createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result));
 		}
 		return null;
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(String constraintKeyPrefix,
-			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			JAXBElement<StatePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, boolean assignmentTarget, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		StatePolicyConstraintType constraint = constraintElement.getValue();
 		List<Object> args = new ArrayList<>();
 		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
-		addFirstOrderChainArgument(args, ctx);
+		if (assignmentTarget) {
+			addAssignmentTargetArgument(args, ctx);
+		}
 		String keySuffix;
 		if (constraint.getName() != null) {
 			args.add(constraint.getName());
@@ -203,31 +216,28 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix + keySuffix)
 				.args(args)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> void addFirstOrderChainArgument(List<Object> args, PolicyRuleEvaluationContext<F> ctx) {
-		
-		AssignmentPath assignmentPath = ctx.policyRule.getAssignmentPath();
-	
-		String stringPathChain = Optional.ofNullable(assignmentPath)
-			.map(AssignmentPath::getFirstOrderChain)
-			.map(chain -> chain.stream()
-					.map(ObjectType::getName)
-					.map(PolyStringType::getOrig)
-					.collect(Collectors.joining(" > ")))
-			.orElse("");
-	
-		args.add(stringPathChain);
+	private <F extends FocusType> void addAssignmentTargetArgument(List<Object> args, PolicyRuleEvaluationContext<F> ctx) {
+		if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext)) {
+			args.add("");
+		} else {
+			AssignmentPolicyRuleEvaluationContext<F> actx = (AssignmentPolicyRuleEvaluationContext<F>) ctx;
+			args.add(ObjectTypeUtil.createDisplayInformation(actx.evaluatedAssignment.getTarget(), false));
+		}
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createShortMessage(String constraintKeyPrefix,
-			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			JAXBElement<StatePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, boolean assignmentTarget, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		StatePolicyConstraintType constraint = constraintElement.getValue();
 		List<Object> args = new ArrayList<>();
 		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
-		addFirstOrderChainArgument(args, ctx);
+		if (assignmentTarget) {
+			addAssignmentTargetArgument(args, ctx);
+		}
 		String keySuffix;
 		if (constraint.getName() != null) {
 			args.add(constraint.getName());
@@ -239,6 +249,6 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKeyPrefix + keySuffix)
 				.args(args)
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
 	}
 }

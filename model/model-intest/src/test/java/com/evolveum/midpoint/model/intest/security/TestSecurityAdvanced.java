@@ -124,6 +124,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	
 	protected static final File ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE = new File(TEST_DIR, "role-prop-except-administrative-status.xml");
 	protected static final String ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID = "cc549256-02a5-11e8-994e-43c307e2a819";
+	
+	protected static final File ROLE_ASSIGN_ORG_FILE = new File(TEST_DIR, "role-assign-org.xml");
+	protected static final String ROLE_ASSIGN_ORG_OID = "be96f834-2dbb-11e8-b29d-7f5de07e7995";
 
 
 	@Override
@@ -138,11 +141,12 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_MODIFY_DESCRIPTION_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_EXCEPT_ASSIGNMENT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_ORG_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 8;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 9;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -2418,6 +2422,119 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         
         assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4517
+	 */
+	@Test
+    public void test280AutzJackModifyPolicyExceptionAndAssignOrg() throws Exception {
+		final String TEST_NAME = "test280AutzJackModifyPolicyExceptionAndAssignOrg";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_ORG_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertReadDenyRaw();
+        assertAddDeny();
+        assertDeleteDeny();
+
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role", roleEmpty);
+        
+        assertAllow("add exclusion & assign org (1)",
+        		(task, result) -> modifyRoleAddExclusionAndAssignOrg(ROLE_EMPTY_OID, ROLE_PIRATE_OID, ORG_MINISTRY_OF_RUM_OID, task, result));
+		
+		PrismObject<RoleType> roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role with exclusion and org", roleEmptyException);
+        assertAssignments(roleEmptyException, 2);
+        
+        // TODO: delete the assignments
+             
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Partial check related to test280AutzJackModifyPolicyExceptionAndAssignOrg.
+	 * Make sure that the operation is denied if the user does not have all the roles.
+	 */
+	@Test
+    public void test282AutzJackModifyPolicyExceptionAndAssignOrgDeny() throws Exception {
+		final String TEST_NAME = "test282AutzJackModifyPolicyExceptionAndAssignOrgDeny";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_ADMINISTRATOR_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertReadDenyRaw();
+        assertAddDeny();
+        assertDeleteDeny();
+
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role", roleEmpty);
+        
+        assertDeny("add policyException & assign org (1)",
+        		(task, result) -> modifyRoleAddExclusionAndAssignOrg(ROLE_EMPTY_OID, ROLE_PIRATE_OID, ORG_MINISTRY_OF_RUM_OID, task, result));
+		
+		PrismObject<RoleType> roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role ", roleEmptyException);
+        assertAssignments(roleEmptyException, 0);
+             
+        assertGlobalStateUntouched();
+	}
+
+	/**
+	 * Partial check related to test280AutzJackModifyPolicyExceptionAndAssignOrg.
+	 * Make sure that org assignment is allowed with just the org assign role.
+	 */
+	@Test
+    public void test283AutzJackModifyPolicyAssignOrg() throws Exception {
+		final String TEST_NAME = "test283AutzJackModifyPolicyAssignOrg";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_ORG_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertReadDenyRaw();
+        assertAddDeny();
+        assertDeleteDeny();
+
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role", roleEmpty);
+        
+        assertAllow("assign org (1)",
+        		(task, result) -> assignOrg(RoleType.class, ROLE_EMPTY_OID, ORG_MINISTRY_OF_RUM_OID, task, result));
+		
+		PrismObject<RoleType> roleEmptyException = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty role ", roleEmptyException);
+        assertAssignments(roleEmptyException, 1);
+             
+        assertGlobalStateUntouched();
+	}
+	
+	protected void modifyRoleAddExclusionAndAssignOrg(String roleOid, String excludedRoleOid, String orgOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<RoleType> roleDelta = createAssignmentFocusDelta(RoleType.class, roleOid, orgOid, OrgType.COMPLEX_TYPE, null, null, null, true);
+		PolicyRuleType exclusionPolicyRule = createExclusionPolicyRule(excludedRoleOid);
+		AssignmentType assignment = new AssignmentType();
+		assignment.setPolicyRule(exclusionPolicyRule);
+		roleDelta.addModificationAddContainer(new ItemPath(RoleType.F_ASSIGNMENT), assignment);
+        executeChanges(roleDelta, null, task, result);
 	}
 
 	@Test

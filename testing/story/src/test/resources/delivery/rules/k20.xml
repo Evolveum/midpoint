@@ -33,17 +33,22 @@ Matches if the role 'roleRef' is not assigned to the user.
 		<policyRule>
 			<policyConstraints>
 				<objectState>
-					<expression>
+					<messageExpression>
 						<script>
-							<code>
-								rulesLib.execute('evaluateRolePresence', [
+							<code><![CDATA[
+
+								return rulesLib.execute('evaluateRolePresenceWithMessage', [
 									object : object,
 									ruleEvaluationContext : ruleEvaluationContext,
-									assumeExistence : true
+									assumeExistence : true,
+									rolesAttributeName : 'k20RoleRef',
+									evaluatorHelper: evaluatorHelper,
+									constraint: constraint
 								])
+								]]>
 							</code>
 						</script>
-					</expression>
+					</messageExpression>
 				</objectState>
 			</policyConstraints>
 			<policyActions>
