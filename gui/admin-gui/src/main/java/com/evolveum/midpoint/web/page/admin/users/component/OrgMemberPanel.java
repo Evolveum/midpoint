@@ -118,6 +118,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private static final String ID_DELETE_MANAGER = "deleteManager";
 	private static final String ID_EDIT_MANAGER = "editManager";
 
+	private RelationTypes relationValue = null;
 	private static final long serialVersionUID = 1L;
 
 	public OrgMemberPanel(String id, IModel<OrgType> model) {
@@ -175,10 +176,26 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		seachScrope.setOutputMarkupId(true);
 		form.add(seachScrope);
 
-		List<RelationTypes> relationTypes = new ArrayList<>(Arrays.asList(RelationTypes.values()));
-		DropDownChoicePanel<RelationTypes> relationSelector = new DropDownChoicePanel<>(ID_SEARCH_BY_RELATION,
-            Model.of(), Model.ofList(relationTypes),
-            new EnumChoiceRenderer<>(), true);
+		DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_SEARCH_BY_RELATION,
+				WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
+				new IModel<RelationTypes>() {
+					@Override
+					public RelationTypes getObject() {
+						return relationValue;
+					}
+
+					@Override
+					public void setObject(RelationTypes relationTypes) {
+						relationValue = relationTypes;
+					}
+
+					@Override
+					public void detach() {
+
+					}
+				}, this, true,
+				createStringResource("RelationTypes.ANY").getString());
+
 		relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		relationSelector.setOutputMarkupId(true);
 		relationSelector.setOutputMarkupPlaceholderTag(true);
@@ -684,13 +701,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			q = q.type(searchType.getClassDefinition());
 		}
 
-		RelationTypes relation = getSelectedRelation();
-		QName relationValue = null;
-		if (relation == null){
-			relationValue = PrismConstants.Q_ANY;
-		} else {
-			relationValue = relation.getRelation();
-		}
+		QName relationValue = getSelectedRelation();
 		PrismReferenceValue ref = new PrismReferenceValue(oid);
 		ref.setRelation(relationValue);
 		ObjectQuery query;
@@ -707,9 +718,12 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return query;
 	}
 
-	private RelationTypes getSelectedRelation(){
-		DropDownChoicePanel<RelationTypes> relationSelector = (DropDownChoicePanel<RelationTypes>) getFormComponent().get(ID_SEARCH_BY_RELATION);
-		return relationSelector.getBaseFormComponent().getModelObject();
+	private QName getSelectedRelation(){
+		if (relationValue == null){
+			return PrismConstants.Q_ANY;
+		} else {
+			return relationValue.getRelation();
+		}
 	}
 
 	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
@@ -816,15 +830,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 
 		return OBJECT_TYPES_DEFAULT.getClassDefinition();
-	}
-
-	private List<String> getRelationsLocalizedList(){
-		List<String> relationsList = new ArrayList<>();
-		relationsList.add(createStringResource("RelationTypes.ANY").getString());
-		for (RelationTypes relation : RelationTypes.values()){
-			relationsList.add(createStringResource(RelationTypes.class.getSimpleName() + "." + relation.name()).getString());
-		}
-		return relationsList;
 	}
 
 	@Override
