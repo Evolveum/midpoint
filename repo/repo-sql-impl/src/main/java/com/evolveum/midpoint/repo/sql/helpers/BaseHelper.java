@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.sql.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -244,11 +245,13 @@ public class BaseHelper {
 
 	private boolean isExceptionRelatedToSerializationInternal(Exception ex) {
 
-		if (ex instanceof SerializationRelatedException
-				|| ex instanceof PessimisticLockException
+		if (ex instanceof PessimisticLockException
 				|| ex instanceof LockAcquisitionException
 				|| ex instanceof HibernateOptimisticLockingFailureException
 				|| ex instanceof StaleObjectStateException) {                       // todo the last one is questionable
+			return true;
+		}
+		if (ExceptionUtil.findCause(ex, SerializationRelatedException.class) != null) {
 			return true;
 		}
 
@@ -320,4 +323,5 @@ public class BaseHelper {
 		}
 		return false;
 	}
+
 }
