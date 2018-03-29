@@ -105,6 +105,7 @@ public class RAuditReferenceValue implements EntityState {
 		this.name = name;
 	}
 
+	@Column(length = 36)
 	public String getOid() {
 		return oid;
 	}

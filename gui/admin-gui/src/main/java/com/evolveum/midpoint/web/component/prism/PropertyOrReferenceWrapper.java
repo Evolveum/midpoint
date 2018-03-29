@@ -16,19 +16,23 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import java.io.Serializable;
+import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Extracts common functionality of PropertyWrapper and ReferenceWrapper.
@@ -286,6 +290,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	@Override
 	public boolean isDeprecated() {
 		return getItemDefinition().isDeprecated();
+	}
+	
+	@Override
+	public boolean isExperimental() {
+		return getItemDefinition().isExperimental();
 	}
 	
 	@Override

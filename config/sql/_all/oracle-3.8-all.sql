@@ -254,12 +254,35 @@ CREATE TABLE m_audit_prop_value (
 CREATE TABLE m_audit_ref_value (
   id              NUMBER(19, 0) GENERATED AS IDENTITY,
   name            VARCHAR2(255 CHAR),
-  oid             VARCHAR2(255 CHAR),
+  oid             VARCHAR2(36 CHAR),
   record_id       NUMBER(19, 0),
   targetName_norm VARCHAR2(255 CHAR),
   targetName_orig VARCHAR2(255 CHAR),
   type            VARCHAR2(255 CHAR),
   PRIMARY KEY (id)
+) INITRANS 30;
+CREATE TABLE m_case_wi (
+  id                            NUMBER(10, 0)     NOT NULL,
+  owner_oid                     VARCHAR2(36 CHAR) NOT NULL,
+  closeTimestamp                TIMESTAMP,
+  deadline                      TIMESTAMP,
+  originalAssigneeRef_relation  VARCHAR2(157 CHAR),
+  originalAssigneeRef_targetOid VARCHAR2(36 CHAR),
+  originalAssigneeRef_type      NUMBER(10, 0),
+  outcome                       VARCHAR2(255 CHAR),
+  performerRef_relation         VARCHAR2(157 CHAR),
+  performerRef_targetOid        VARCHAR2(36 CHAR),
+  performerRef_type             NUMBER(10, 0),
+  stageNumber                   NUMBER(10, 0),
+  PRIMARY KEY (owner_oid, id)
+) INITRANS 30;
+CREATE TABLE m_case_wi_reference (
+  owner_id        NUMBER(10, 0)      NOT NULL,
+  owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
+  relation        VARCHAR2(157 CHAR) NOT NULL,
+  targetOid       VARCHAR2(36 CHAR)  NOT NULL,
+  targetType      NUMBER(10, 0),
+  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
 ) INITRANS 30;
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR2(36 CHAR) NOT NULL,
@@ -492,9 +515,13 @@ CREATE TABLE m_abstract_role (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_case (
-  name_norm VARCHAR2(255 CHAR),
-  name_orig VARCHAR2(255 CHAR),
-  oid       VARCHAR2(36 CHAR) NOT NULL,
+  name_norm           VARCHAR2(255 CHAR),
+  name_orig           VARCHAR2(255 CHAR),
+  objectRef_relation  VARCHAR2(157 CHAR),
+  objectRef_targetOid VARCHAR2(36 CHAR),
+  objectRef_type      NUMBER(10, 0),
+  state               VARCHAR2(255 CHAR),
+  oid                 VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_connector (
@@ -531,7 +558,7 @@ CREATE TABLE m_focus (
   validityStatus          NUMBER(10, 0),
   costCenter              VARCHAR2(255 CHAR),
   emailAddress            VARCHAR2(255 CHAR),
-  hasPhoto                NUMBER(1, 0) DEFAULT FALSE NOT NULL,
+  hasPhoto                NUMBER(1, 0) DEFAULT 0 NOT NULL,
   locale                  VARCHAR2(255 CHAR),
   locality_norm           VARCHAR2(255 CHAR),
   locality_orig           VARCHAR2(255 CHAR),
@@ -718,6 +745,10 @@ CREATE INDEX iAssignmentAdministrative
   ON m_assignment (administrativeStatus) INITRANS 30;
 CREATE INDEX iAssignmentEffective
   ON m_assignment (effectiveStatus) INITRANS 30;
+CREATE INDEX iAssignmentValidFrom
+  ON m_assignment (validFrom) INITRANS 30;
+CREATE INDEX iAssignmentValidTo
+  ON m_assignment (validTo) INITRANS 30;
 CREATE INDEX iTargetRefTargetOid
   ON m_assignment (targetRef_targetOid) INITRANS 30;
 CREATE INDEX iTenantRefTargetOid
@@ -748,6 +779,8 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id) INITRANS 30;
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id) INITRANS 30;
+CREATE INDEX iCaseWorkItemRefTargetOid
+  ON m_case_wi_reference (targetOid) INITRANS 30;
 CREATE INDEX iObjectNameOrig
   ON m_object (name_orig) INITRANS 30;
 CREATE INDEX iObjectNameNorm
@@ -848,6 +881,10 @@ CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus) INITRANS 30;
 CREATE INDEX iLocality
   ON m_focus (locality_orig) INITRANS 30;
+CREATE INDEX iFocusValidFrom
+  ON m_focus (validFrom) INITRANS 30;
+CREATE INDEX iFocusValidTo
+  ON m_focus (validTo) INITRANS 30;
 CREATE INDEX iFormNameOrig
   ON m_form (name_orig) INITRANS 30;
 ALTER TABLE m_form
@@ -980,6 +1017,10 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_case_wi
+  ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
+ALTER TABLE m_case_wi_reference
+  ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi;
 ALTER TABLE m_connector_target_system
   ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 ALTER TABLE m_focus_photo

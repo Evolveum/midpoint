@@ -80,6 +80,8 @@ import java.util.Set;
 @Table(name = "m_assignment", indexes = {
         @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
         @Index(name = "iAssignmentEffective", columnList = "effectiveStatus"),
+        @Index(name = "iAssignmentValidFrom", columnList = "validFrom"),
+        @Index(name = "iAssignmentValidTo", columnList = "validTo"),
         @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid"),
         @Index(name = "iTenantRefTargetOid", columnList = "tenantRef_targetOid"),
         @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),

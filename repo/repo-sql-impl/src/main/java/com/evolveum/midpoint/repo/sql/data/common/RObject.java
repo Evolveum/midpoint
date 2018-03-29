@@ -38,6 +38,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
@@ -599,7 +600,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.operationExecutions = operationExecutions;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -778,11 +778,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             }
         }
 
-        repo.setStringsCount((short) repo.getStrings().size());
-        repo.setDatesCount((short) repo.getDates().size());
-        repo.setPolysCount((short) repo.getPolys().size());
-        repo.setReferencesCount((short) repo.getReferences().size());
-        repo.setLongsCount((short) repo.getLongs().size());
-        repo.setBooleansCount((short) repo.getBooleans().size());
+        DeltaUpdaterUtils.updateExtensionCounts(repo);
     }
 }

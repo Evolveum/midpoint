@@ -254,12 +254,35 @@ CREATE TABLE m_audit_prop_value (
 CREATE TABLE m_audit_ref_value (
   id              BIGSERIAL NOT NULL,
   name            VARCHAR(255),
-  oid             VARCHAR(255),
+  oid             VARCHAR(36),
   record_id       INT8,
   targetName_norm VARCHAR(255),
   targetName_orig VARCHAR(255),
   type            VARCHAR(255),
   PRIMARY KEY (id)
+);
+CREATE TABLE m_case_wi (
+  id                            INT4        NOT NULL,
+  owner_oid                     VARCHAR(36) NOT NULL,
+  closeTimestamp                TIMESTAMP,
+  deadline                      TIMESTAMP,
+  originalAssigneeRef_relation  VARCHAR(157),
+  originalAssigneeRef_targetOid VARCHAR(36),
+  originalAssigneeRef_type      INT4,
+  outcome                       VARCHAR(255),
+  performerRef_relation         VARCHAR(157),
+  performerRef_targetOid        VARCHAR(36),
+  performerRef_type             INT4,
+  stageNumber                   INT4,
+  PRIMARY KEY (owner_oid, id)
+);
+CREATE TABLE m_case_wi_reference (
+  owner_id        INT4         NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  targetType      INT4,
+  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
 );
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR(36) NOT NULL,
@@ -492,9 +515,13 @@ CREATE TABLE m_abstract_role (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_case (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
+  name_norm           VARCHAR(255),
+  name_orig           VARCHAR(255),
+  objectRef_relation  VARCHAR(157),
+  objectRef_targetOid VARCHAR(36),
+  objectRef_type      INT4,
+  state               VARCHAR(255),
+  oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_connector (
@@ -718,6 +745,10 @@ CREATE INDEX iAssignmentAdministrative
   ON m_assignment (administrativeStatus);
 CREATE INDEX iAssignmentEffective
   ON m_assignment (effectiveStatus);
+CREATE INDEX iAssignmentValidFrom
+  ON m_assignment (validFrom);
+CREATE INDEX iAssignmentValidTo
+  ON m_assignment (validTo);
 CREATE INDEX iTargetRefTargetOid
   ON m_assignment (targetRef_targetOid);
 CREATE INDEX iTenantRefTargetOid
@@ -748,6 +779,8 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id);
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
+CREATE INDEX iCaseWorkItemRefTargetOid
+  ON m_case_wi_reference (targetOid);
 CREATE INDEX iObjectNameOrig
   ON m_object (name_orig);
 CREATE INDEX iObjectNameNorm
@@ -848,6 +881,10 @@ CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus);
 CREATE INDEX iLocality
   ON m_focus (locality_orig);
+CREATE INDEX iFocusValidFrom
+  ON m_focus (validFrom);
+CREATE INDEX iFocusValidTo
+  ON m_focus (validTo);
 CREATE INDEX iFormNameOrig
   ON m_form (name_orig);
 ALTER TABLE IF EXISTS m_form
@@ -980,6 +1017,10 @@ ALTER TABLE IF EXISTS m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE IF EXISTS m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE IF EXISTS m_case_wi
+  ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
+ALTER TABLE IF EXISTS m_case_wi_reference
+  ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi;
 ALTER TABLE IF EXISTS m_connector_target_system
   ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 ALTER TABLE IF EXISTS m_focus_photo

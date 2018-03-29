@@ -60,6 +60,8 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
 	public static final String F_ADDITIONAL_MENU_LINK = "additionalMenuLink";
 	public static final String F_DEPLOYMENT_INFORMATION = "deploymentInformation";
+	
+	public static final String F_ADMIN_GUI_CONFIGURATION = "adminGuiConfiguration";
 	private AEPlevel aepLevel;
 
 	private class CleanupInfo implements Serializable {
@@ -96,11 +98,13 @@ public class SystemConfigurationDto implements Serializable {
 	private DeploymentInformationType deploymentInformation;
 
 	private Boolean enableExperimentalCode;
+	
 
 	private ObjectViewDto<ValuePolicyType> passPolicyDto;
 	private ObjectViewDto<SecurityPolicyType> securityPolicyDto;
 	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
 	private NotificationConfigurationDto notificationConfig;
+	private AdminGuiConfigurationType adminGuiConfiguration;
 	private List<RichHyperlinkType> userDashboardLink;
 	private List<RichHyperlinkType> additionalMenuLink;
 
@@ -189,8 +193,9 @@ public class SystemConfigurationDto implements Serializable {
 
 		enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
 
-		userDashboardLink = loadUserDashboardLink(config);
-        additionalMenuLink = loadAdditionalMenuItem(config);
+//		userDashboardLink = loadUserDashboardLink(config);
+//        additionalMenuLink = loadAdditionalMenuItem(config);
+		adminGuiConfiguration = config.getAdminGuiConfiguration();
 	}
 
 	public SystemConfigurationType getOldObject() {
@@ -249,6 +254,8 @@ public class SystemConfigurationDto implements Serializable {
 			profLogging.getClassLogger().add(profilingClassLogger);
 			newObject.setLogging(profLogging);
 		}
+		
+		newObject.setAdminGuiConfiguration(adminGuiConfiguration);
 
 		return newObject;
 	}
@@ -304,9 +311,13 @@ public class SystemConfigurationDto implements Serializable {
 		return securityPolicyDto;
 	}
 
-	public DeploymentInformationType getDeploymentInformation() { return deploymentInformation; }
+	public DeploymentInformationType getDeploymentInformation() {
+		return deploymentInformation;
+	}
 
-	public void setDeploymentInformation(DeploymentInformationType deploymentInformation) { this.deploymentInformation = deploymentInformation; }
+	public void setDeploymentInformation(DeploymentInformationType deploymentInformation) {
+		this.deploymentInformation = deploymentInformation;
+	}
 
 	public String getAuditCleanupAge() {
 		return auditCleanup.ageValue;

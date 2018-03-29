@@ -57,6 +57,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
     private static final String ID_DEPRECATED = "deprecated";
+    private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_LABEL = "label";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
@@ -152,6 +153,30 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         });
         labelContainer.add(help);
         
+        Label experimental = new Label(ID_EXPERIMENTAL);
+        experimental.add(AttributeModifier.replace("experimental", pageBase.createStringResource("prismPropertyPanel.experimental")));
+        experimental.add(new InfoTooltipBehavior() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String getCssClass() {
+        		return "fa fa-fw  fa-lightbulb-o text-warning";
+        	}
+        	
+        	
+        });
+        experimental.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return model.getObject().isExperimental();
+            }
+        });
+        labelContainer.add(experimental);
+
+
         Label deprecated = new Label(ID_DEPRECATED);
         deprecated.add(AttributeModifier.replace("deprecated", new AbstractReadOnlyModel<String>() {
         	
@@ -183,6 +208,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         });
         labelContainer.add(deprecated);
 
+        
         WebMarkupContainer required = new WebMarkupContainer("required");
         required.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;

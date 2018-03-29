@@ -17,10 +17,13 @@
 package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,20 +53,6 @@ public class ExtItemDictionary {
 
 	private Map<Integer, RExtItem> itemsById;
 	private Map<RExtItem.Key, RExtItem> itemsByKey;
-
-	//	public Map<Long, RExtItem> getItemsById(Session session) {
-	//		if (itemsById == null) {
-	//			fetchItems(session);
-	//		}
-	//		return itemsById;
-	//	}
-	//
-	//	public Map<String, RExtItem> getItemsByName(Session session) {
-	//		if (itemsByName == null) {
-	//			fetchItems(session);
-	//		}
-	//		return itemsByName;
-	//	}
 
 	private boolean fetchItemsIfNeeded(@NotNull Session session) {
 		if (itemsByKey != null) {
@@ -116,7 +105,15 @@ public class ExtItemDictionary {
 		if (item == null && create) {
 			LOGGER.debug("Ext item for {} not found even in current items; creating it.", key);
 			item = RExtItem.createFromDefinition(definition);
-			session.persist(item);
+			try {
+				session.persist(item);
+			} catch (Throwable t) {
+				if (ExceptionUtil.findCause(t, ConstraintViolationException.class) != null) {
+					throw new SerializationRelatedException(t);
+				} else {
+					throw t;
+				}
+			}
 		}
 		return item;
 	}
