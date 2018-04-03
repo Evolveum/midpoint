@@ -55,19 +55,13 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -82,9 +76,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lazyman
@@ -111,6 +107,19 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private TaskManager taskManager;
 
 	private MessageSourceAccessor messages;
+
+	private static final long MAX_CACHE_SIZE = 1000;
+	private static final long MAX_CACHE_TTL = 60; // 60 seconds
+	private static final long CACHE_VERSION_CHECK = 5 * 1000; // 5 seconds
+	private LoadingCache<String, CacheValue> cache;
+
+	{
+		cache = (LoadingCache) CacheBuilder.newBuilder()
+				.expireAfterAccess(MAX_CACHE_TTL, TimeUnit.SECONDS)
+				.concurrencyLevel(10)
+				.maximumSize(MAX_CACHE_SIZE)
+				.build();
+	}
 
 	@Override
 	public void setMessageSource(MessageSource messageSource) {
@@ -181,6 +190,27 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		CacheValue cached = null;
+		try {
+			cached = cache.get(username);
+		} catch (Exception ex) {
+		}
+		if (cached != null) {
+			PrismObject user = cached.getObject();
+
+			if (cached.getTtl() < System.currentTimeMillis()) {
+				LOGGER.debug("Cache HIT");
+				return user;
+			}
+
+			String version = repositoryService.getVersion(UserType.class, user.getOid(), result);
+			if (Objects.equals(user.getVersion(), version)) {
+				cache.put(username, new CacheValue(user, System.currentTimeMillis() + CACHE_VERSION_CHECK));
+				LOGGER.debug("Cache HIT, version check");
+				return user;
+			}
+		}
+
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
@@ -190,7 +220,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         if (list.size() != 1) {
             return null;
         }
-        return list.get(0);
+        PrismObject<UserType> user = list.get(0);
+        cache.put(username, new CacheValue(user, System.currentTimeMillis() + CACHE_VERSION_CHECK));
+		LOGGER.debug("Cache MISS");
+
+        return user;
     }
 
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException {
@@ -390,5 +424,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	}
 
+	private static class CacheValue implements Serializable {
 
+		private PrismObject<UserType> object;
+		private long ttl;
+
+		public CacheValue(PrismObject<UserType> object, long ttl) {
+			this.object = object;
+			this.ttl = ttl;
+		}
+
+		public PrismObject<UserType> getObject() {
+			return object;
+		}
+
+		public long getTtl() {
+			return ttl;
+		}
+	}
 }
