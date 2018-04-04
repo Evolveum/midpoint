@@ -40,6 +40,8 @@ import javax.annotation.PostConstruct;
 
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+
 /**
  * @author mederly
  */
@@ -76,23 +78,38 @@ public class UserPasswordNotifier extends GeneralNotifier {
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
         }
+        return getPasswordFromEvent((ModelEvent) event) != null;    // logging is done in the called method
+    }
 
-        ModelEvent modelEvent = (ModelEvent) event;
+    private String getPasswordFromEvent(ModelEvent modelEvent) {
         if (modelEvent.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
-            return false;
+            return null;
         }
-        if (getPasswordFromDeltas(modelEvent.getFocusDeltas()) != null) {
-            LOGGER.trace("Found password in user delta(s), continuing.");
-            return true;
+        String password = getPasswordFromDeltas(modelEvent.getFocusDeltas());
+        if (password != null) {
+            LOGGER.trace("Found password in user executed delta(s), continuing.");
+            return password;
+        }
+        //noinspection unchecked
+        ObjectDelta<FocusType> focusPrimaryDelta = (ObjectDelta) modelEvent.getFocusPrimaryDelta();
+        if (focusPrimaryDelta == null) {
+            LOGGER.trace("No password in executed delta(s) and no primary delta, exiting.");
+            return null;
+        }
+        password = getPasswordFromDeltas(singletonList(focusPrimaryDelta));
+        if (password != null) {
+            LOGGER.trace("Found password in user primary delta, continuing.");
+            return password;
         } else {
-            LOGGER.trace("No password in user delta(s), exiting.");
-            return false;
+            LOGGER.trace("No password in executed delta(s) nor in primary delta, exiting.");
+            return null;
         }
     }
 
     private String getPasswordFromDeltas(List<ObjectDelta<FocusType>> deltas) {
         try {
+            //noinspection unchecked
             return midpointFunctions.getPlaintextUserPasswordFromDeltas((List) deltas);
         } catch (EncryptionException e) {
             LoggingUtils.logException(LOGGER, "Couldn't decrypt password from user deltas: {}", e, DebugUtil.debugDump(deltas));
@@ -107,15 +124,12 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-
-        ModelEvent modelEvent = (ModelEvent) event;
-        List<ObjectDelta<FocusType>> deltas = modelEvent.getFocusDeltas();
-        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), false, result).getName() + " is: " + getPasswordFromDeltas(deltas);
+        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), false, result).getName()
+                + " is: " + getPasswordFromEvent((ModelEvent) event);
     }
 
     @Override
     protected Trace getLogger() {
         return LOGGER;
     }
-
 }
