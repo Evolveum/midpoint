@@ -105,11 +105,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         ObjectQuery query = super.createObjectQuery();
         ObjectFilter filter = query.getFilter();
         ObjectQuery entitlementsQuery = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                .block()
-                .not()
-                .item(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION)
-                .isNull()
-                .endBlock()
+                .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
         if (filter != null){
             query.setFilter(AndFilter.createAnd(filter, entitlementsQuery.getFilter()));
@@ -130,11 +126,6 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-
-    protected void initAssociationContainer(ConstructionType constructionType){
-        constructionType.beginAssociation().beginOutbound().beginExpression();
-    }
-
     protected boolean isRelationVisible() {
         return false;
     }
@@ -202,24 +193,32 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
-        //TODO fix post search filtering
         List<ContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
         assignments.forEach(assignmentWrapper -> {
-            AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
-            if (assignment.getConstruction() != null && assignment.getConstruction().getAssociation() != null){
-                List<ResourceObjectAssociationType> associations = assignment.getConstruction().getAssociation();
-                associations.forEach(association -> {
-                    if (association.getOutbound() != null && association.getOutbound().getExpression() != null){
-                        ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression());
-                        if (shadowRef != null || (shadowRef == null && ValueStatus.ADDED.equals(assignmentWrapper.getStatus()))){
-                            filteredAssignments.add(assignmentWrapper);
-                            return;
-                        }
+                AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+                if (assignment.getConstruction() != null && assignment.getConstruction().getAssociation() != null) {
+                    List<ResourceObjectAssociationType> associations = assignment.getConstruction().getAssociation();
+                    if (associations.size() == 0 && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())){
+                        filteredAssignments.add(assignmentWrapper);
+                        return;
                     }
-                });
+                    associations.forEach(association -> {
+                        if (!filteredAssignments.contains(assignmentWrapper)) {
+                            if (association.getOutbound() == null && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                                filteredAssignments.add(assignmentWrapper);
+                                return;
+                            }
+                            if (association.getOutbound() != null && association.getOutbound().getExpression() != null) {
+                                ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression());
+                                if ((shadowRef != null || ValueStatus.ADDED.equals(assignmentWrapper.getStatus()))) {
+                                    filteredAssignments.add(assignmentWrapper);
+                                    return;
+                                }
+                            }
+                        }
+                    });
             }
         });
-//        return filteredAssignments;
-        return assignments;
+        return filteredAssignments;
     }
 }
