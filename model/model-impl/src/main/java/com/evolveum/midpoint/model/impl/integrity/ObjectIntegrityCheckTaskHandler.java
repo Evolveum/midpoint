@@ -94,7 +94,9 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
 	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
 			ObjectIntegrityCheckResultHandler resultHandler,
 			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-		return SelectorOptions.createCollection(GetOperationOptions.createAttachDiagData());
+		Collection<SelectorOptions<GetOperationOptions>> optionsFromTask = createSearchOptionsFromTask(resultHandler,
+				runResult, coordinatorTask, opResult);
+		return SelectorOptions.updateRootOptions(optionsFromTask, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
 	}
 
 	@Override

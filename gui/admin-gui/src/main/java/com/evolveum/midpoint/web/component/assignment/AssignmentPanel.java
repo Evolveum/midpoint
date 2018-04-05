@@ -224,7 +224,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected abstract ObjectQuery createObjectQuery();
 
-	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
+	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
