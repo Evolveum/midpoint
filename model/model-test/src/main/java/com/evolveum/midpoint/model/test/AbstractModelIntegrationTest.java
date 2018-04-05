@@ -3419,13 +3419,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             if (messages != null && !messages.isEmpty()) {
             	LOGGER.error(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'");
             	logNotifyMessages(messages);
-                assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
+            	printNotifyMessages(messages);
+                fail(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'");
             }
         } else {
             assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
             if (expectedCount != messages.size()) {
             	LOGGER.error("Invalid number of messages recorded in dummy transport '" + name + "', expected: "+expectedCount+", actual: "+messages.size());
             	logNotifyMessages(messages);
+            	printNotifyMessages(messages);
             	assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
             }
         }
@@ -3475,6 +3477,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     private void logNotifyMessages(List<Message> messages) {
 		for (Message message: messages) {
 			LOGGER.debug("Notification message:\n{}", message.getBody());
+		}
+	}
+
+    private void printNotifyMessages(List<Message> messages) {
+		for (Message message: messages) {
+			System.out.println(message);
 		}
 	}
 
