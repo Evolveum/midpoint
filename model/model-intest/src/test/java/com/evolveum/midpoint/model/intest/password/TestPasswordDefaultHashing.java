@@ -15,17 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,7 +69,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 	 * There is a RED account with a strong password
 	 * mapping. The reconcile and the strong mapping would normally try to set the short
 	 * password to RED account which would fail on RED account password policy. But not today.
-	 * As we do not have password cleartexct in the user then no password change should happen.
+	 * As we do not have password cleartext in the user then no password change should happen.
 	 * And everything should go smoothly.
 	 */
 	@Test
@@ -139,7 +134,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 	protected void assertAccountActivationNotification(String dummyResourceName, String username) {
 		checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 1);
 		String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
-		String expectedPrefix = getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username);
+		//String expectedPrefix = getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username);
 		if (!body.contains("activat")) {
 			fail("Activation not mentioned in "+dummyResourceName+" dummy account activation notification message : "+body);
 		}

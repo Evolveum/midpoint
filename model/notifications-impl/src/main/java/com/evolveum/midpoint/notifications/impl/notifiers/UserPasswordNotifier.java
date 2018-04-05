@@ -74,7 +74,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!event.isSuccess()) {
+        if (!event.isAlsoSuccess()) {       // TODO
             LOGGER.trace("Operation was not successful, exiting.");
             return false;
         }
@@ -93,18 +93,28 @@ public class UserPasswordNotifier extends GeneralNotifier {
         }
         //noinspection unchecked
         ObjectDelta<FocusType> focusPrimaryDelta = (ObjectDelta) modelEvent.getFocusPrimaryDelta();
-        if (focusPrimaryDelta == null) {
-            LOGGER.trace("No password in executed delta(s) and no primary delta, exiting.");
+        //noinspection unchecked
+        ObjectDelta<FocusType> focusSecondaryDelta = (ObjectDelta) modelEvent.getFocusSecondaryDelta();
+        if (focusPrimaryDelta == null && focusSecondaryDelta == null) {
+            LOGGER.trace("No password in executed delta(s) and no primary/secondary deltas, exiting.");
             return null;
         }
-        password = getPasswordFromDeltas(singletonList(focusPrimaryDelta));
-        if (password != null) {
-            LOGGER.trace("Found password in user primary delta, continuing.");
-            return password;
-        } else {
-            LOGGER.trace("No password in executed delta(s) nor in primary delta, exiting.");
-            return null;
+        if (focusPrimaryDelta != null) {
+            password = getPasswordFromDeltas(singletonList(focusPrimaryDelta));
+            if (password != null) {
+                LOGGER.trace("Found password in user primary delta, continuing.");
+                return password;
+            }
         }
+        if (focusSecondaryDelta != null) {
+            password = getPasswordFromDeltas(singletonList(focusSecondaryDelta));
+            if (password != null) {
+                LOGGER.trace("Found password in user secondary delta(s), continuing.");
+                return password;
+            }
+        }
+        LOGGER.trace("No password in executed delta(s) nor in primary/secondary deltas, exiting.");
+        return null;
     }
 
     private String getPasswordFromDeltas(List<ObjectDelta<FocusType>> deltas) {
