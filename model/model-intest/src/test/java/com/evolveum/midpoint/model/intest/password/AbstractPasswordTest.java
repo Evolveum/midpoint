@@ -248,6 +248,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertPasswordMetadata(userJack, false, startCal, endCal);
 		// Password policy is not active yet. No history should be kept.
 		assertPasswordHistoryEntries(userJack);
+
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
 
 	@Test
@@ -292,6 +294,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -315,6 +318,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertPasswordMetadata(userAfter, true, startCal, endCal);
 		// Password policy is not active yet. No history should be kept.
 		assertPasswordHistoryEntries(userAfter);
+
+		assertSingleUserPasswordNotification(USER_HERMAN_USERNAME, USER_HERMAN_PASSWORD);
 	}
 
 	@Test
@@ -363,7 +368,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         assertDummyPasswordConditional(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 
-        assertSinglePasswordNotificationConditional(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+        assertSingleAccountPasswordNotificationConditional(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+        assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -413,7 +419,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertShadowPasswordMetadata(accountShadowModel, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
         assertShadowLifecycle(accountShadowModel, false);
 
-        assertSinglePasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_2_CLEAR);
+        assertSingleAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_2_CLEAR);
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_2_CLEAR);
 	}
 
 	/**
@@ -447,7 +454,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
-		assertSinglePasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_3_CLEAR);
+		assertSingleAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_3_CLEAR);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -497,7 +505,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
-		assertSinglePasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_5_CLEAR);
+		assertSingleAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_5_CLEAR);
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_4_CLEAR);
 	}
 
 
@@ -543,12 +552,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
      	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
      	if (isPasswordEncryption()) {
-	     	assertPasswordNotifications(2);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_4_CLEAR);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+	     	assertAccountPasswordNotifications(2);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_4_CLEAR);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
      	} else {
-     		assertSinglePasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+     		assertSingleAccountPasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
      	}
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -605,10 +615,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
-		displayPasswordNotifications();
-		assertPasswordNotifications(2);
-		assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
 
 	/**
@@ -636,7 +647,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         	assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
         }
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 
@@ -682,7 +694,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -721,7 +734,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
-		assertSinglePasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		assertSingleAccountPasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -763,7 +777,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordHistoryEntries(userJack);
 
-		assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_BLACK_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+		assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_BLACK_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -791,7 +806,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         	assertDummyPasswordConditional(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         }
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -829,7 +845,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordHistoryEntries(userJack);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -875,8 +892,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordHistoryEntries(userJack);
 
-		displayPasswordNotifications();
-		assertSinglePasswordNotificationConditionalGenerated(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+		displayAccountPasswordNotifications();
+		assertSingleAccountPasswordNotificationConditionalGenerated(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -927,10 +945,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordHistoryEntries(userJack);
 
-		displayPasswordNotifications();
-		assertPasswordNotifications(2);
-		assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
+		displayAccountPasswordNotifications();
+		displayUserPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
 	}
 
 	@Test
@@ -1007,7 +1027,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordHistoryEntries(userAfter);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1053,7 +1074,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertPasswordHistoryEntries(userAfter);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1155,7 +1177,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         } catch (PolicyViolationException e) {
         	// This is expected
-        	display("Exected exception", e);
+        	display("Expected exception", e);
         }
 
 		// THEN
@@ -1163,6 +1185,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.assertFailure(result);
 
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_AA_CLEAR);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1276,10 +1299,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         assertJackPasswordsWithHistory(newPassword, expectedPasswordHistory);
 
-        displayPasswordNotifications();
-		assertPasswordNotifications(2);
-		assertHasPasswordNotification(null, USER_JACK_USERNAME, newPassword);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, newPassword);
+        displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, newPassword);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, newPassword);
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, newPassword);
 	}
 
 	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME,
@@ -1308,7 +1332,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         assertJackPasswordsWithHistory(oldPassword, expectedPasswordHistory);
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+        assertNoUserPasswordNotifications();
 	}
 
 	private void assertJackPasswordsWithHistory(String expectedCurrentPassword, String... expectedPasswordHistory) throws Exception {
@@ -1370,7 +1395,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 			AssertJUnit.fail("Unexpected success");
 		} catch (PolicyViolationException e) {
 			// This is expected
-			display("Exected exception", e);
+			display("Expected exception", e);
 		}
 
 		// THEN
@@ -1393,7 +1418,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1447,13 +1473,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
 		if (isPasswordEncryption()) {
-			assertPasswordNotifications(2);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_1);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_1);
+			assertAccountPasswordNotifications(2);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_1);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_1);
 
 		} else {
-			assertNoPasswordNotifications();
+			assertNoAccountPasswordNotifications();
 		}
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -1496,18 +1523,19 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
-		displayPasswordNotifications();
+		displayAccountPasswordNotifications();
 		if (isPasswordEncryption()) {
-			assertPasswordNotifications(2);
-			assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+			assertAccountPasswordNotifications(2);
+			assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
 	     	// not BLUE, it already has a password
 		} else {
-			assertPasswordNotifications(3);
-			assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
-	     	assertHasPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+			assertAccountPasswordNotifications(3);
+			assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
 		}
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
 	}
 
 	protected abstract void assert31xBluePasswordAfterAssignment(PrismObject<UserType> userAfter) throws Exception;
@@ -1541,6 +1569,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		} finally {
 			setPasswordMinOccurs(null, task, result);
 		}
+		assertNoUserPasswordNotifications();
 	}
 
 	private void setPasswordMinOccurs(Integer value, Task task, OperationResult result) throws CommonException {
@@ -1594,7 +1623,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
-		assertNoPasswordNotifications();
+		displayAllNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/*
@@ -1643,8 +1674,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
-		displayPasswordNotifications();
-		assertNoPasswordNotifications();
+		displayAccountPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertUserPasswordNotifications(1);
 	}
 
 	/**
@@ -1689,11 +1721,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
-		displayPasswordNotifications();
-		assertPasswordNotifications(2);
-		assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
      	// not BLUE, it already has a password
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
 	}
 
 	@Test
@@ -1726,7 +1759,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp0000");
 
-		assertSinglePasswordNotification(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp0000");
+		assertSingleAccountPasswordNotification(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp0000");
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -1759,7 +1793,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1811,7 +1846,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertSinglePasswordNotification(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertSingleAccountPasswordNotification(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+		assertSingleUserPasswordNotification(USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 	}
 
 	/**
@@ -1852,7 +1888,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+        assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1915,8 +1952,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
         displayAllNotifications();
-        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
         assertAccountActivationNotification(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -1978,7 +2016,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -2043,7 +2082,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -2106,7 +2146,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -2156,7 +2197,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
-        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -2232,8 +2274,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
         assertShadowLifecycle(accountShadow, null);
 
-        assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
-
+        assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -2303,7 +2345,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
         assertShadowLifecycle(accountShadow, null);
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -2373,7 +2416,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
         assertShadowLifecycle(accountShadow, null);
 
-        assertNoPasswordNotifications();
+        assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 
 	}
 	// TODO: employeeType->WRECK
@@ -2436,8 +2480,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPasswordConditional(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 		
 		displayAllNotifications();
-        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_SOUVENIR_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+        assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_SOUVENIR_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
         assertAccountActivationNotification(RESOURCE_DUMMY_SOUVENIR_NAME, USER_JACK_USERNAME);
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
@@ -2481,7 +2526,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertEquals("Wrong comparison result", ItemComparisonResult.MATCH, comparisonResult);
 
 		// TODO
-//		assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+//		assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
@@ -2522,8 +2569,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPasswordConditional(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 		
 		displayAllNotifications();
-        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+        assertSingleAccountPasswordNotificationConditional(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
         assertAccountActivationNotification(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME);
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
@@ -2566,9 +2614,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 		
 		assertDummyPasswordConditional(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+		assertNoUserPasswordNotifications();
 		
 		// TODO
-//		assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+//		assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
 	}
 
 	/**
@@ -2608,7 +2657,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_CROCODILE);
 		
 		// TODO
-//		assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+//		assertSingleAccountInitializationPasswordNotification(RESOURCE_DUMMY_PASSWORD_CACHING_NAME, USER_JACK_USERNAME, PASSWORD_Alligator);
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
@@ -2646,6 +2696,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userAfter, 6);
 		
 		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, PASSWORD_CROCODILE);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -2676,6 +2727,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userAfter, 6);
 		
 		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, USER_JACK_USERNAME, PASSWORD_GIANT_LIZARD);
+		assertNoUserPasswordNotifications();
 	}
 
 	/**
@@ -2709,7 +2761,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after", userAfter);
 		assertAssignments(userAfter, 5);
 		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
-		assertLinks(userAfter, 5);		
+		assertLinks(userAfter, 5);
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
@@ -2749,6 +2802,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userAfter, 5);
 		
 		assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, PASSWORD_ALLIGATOR);
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
@@ -2782,6 +2836,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserPassword(userAfter, PASSWORD_ALLIGATOR);
 		
 		assertDummyPassword(RESOURCE_DUMMY_MAVERICK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_ALLIGATOR);
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, PASSWORD_ALLIGATOR);
 	}
 	
 	/**
@@ -2816,29 +2871,30 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertAssignments(userAfter, 4);
 		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_MAVERICK_OID);
 		assertAssignedNoAccount(userAfter, RESOURCE_DUMMY_SOUVENIR_OID);
-		assertLinks(userAfter, 4);		
+		assertLinks(userAfter, 4);
+		assertNoUserPasswordNotifications();
 	}
 	
 	/**
 	 * MID-4507
 	 */
 	@Test
-	public void test550JackManyPassowrdChangesClear() throws Exception {
-		testJackManyPassowrdChanges("test550JackManyPassowrdChangesClear", "TesT550x", null);
+	public void test550JackManyPasswordChangesClear() throws Exception {
+		testJackManyPasswordChanges("test550JackManyPasswordChangesClear", "TesT550x", null);
 	}
 
 	/**
 	 * MID-4507
 	 */
 	@Test
-	public void test552JackManyPassowrdChangesEncrypted() throws Exception {
-		testJackManyPassowrdChanges("test552JackManyPassowrdChangesEncrypted", "TesT552x", CredentialsStorageTypeType.ENCRYPTION);
+	public void test552JackManyPasswordChangesEncrypted() throws Exception {
+		testJackManyPasswordChanges("test552JackManyPasswordChangesEncrypted", "TesT552x", CredentialsStorageTypeType.ENCRYPTION);
 	}
 
 	/**
 	 * MID-4507
 	 */
-	public void testJackManyPassowrdChanges(final String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType) throws Exception {
+	public void testJackManyPasswordChanges(final String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType) throws Exception {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -2851,12 +2907,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userBefore, 4);
 
 		for (int i = 1; i < 10; i++) {
-			testJackManyPassowrdChangesAttempt(TEST_NAME, passwordPrefix, storageType, i);
+			testJackManyPasswordChangesAttempt(TEST_NAME, passwordPrefix, storageType, i);
 		}
 		
 	}
 	
-	private void testJackManyPassowrdChangesAttempt(String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType, int i) throws Exception {		
+	private void testJackManyPasswordChangesAttempt(String TEST_NAME, String passwordPrefix, CredentialsStorageTypeType storageType, int i) throws Exception {
 		Task task = createTask(TEST_NAME + "-" + i);
 		OperationResult result = task.getResult();
 
@@ -2917,22 +2973,22 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		}
 	}
 
-	protected void assertSinglePasswordNotificationConditional(String dummyResourceName, String username, String password) {
+	protected void assertSingleAccountPasswordNotificationConditional(String dummyResourceName, String username, String password) {
 		if (isPasswordEncryption()) {
-			assertSinglePasswordNotification(dummyResourceName, username, password);
+			assertSingleAccountPasswordNotification(dummyResourceName, username, password);
 		}
 	}
 
-	protected void assertSinglePasswordNotificationConditionalGenerated(String dummyResourceName, String username, String password) {
+	protected void assertSingleAccountPasswordNotificationConditionalGenerated(String dummyResourceName, String username, String password) {
 		if (isPasswordEncryption()) {
-			assertSinglePasswordNotification(dummyResourceName, username, password);
+			assertSingleAccountPasswordNotification(dummyResourceName, username, password);
 		} else {
-			assertSinglePasswordNotificationGenerated(dummyResourceName, username);
+			assertSingleAccountPasswordNotificationGenerated(dummyResourceName, username);
 		}
 	}
 
-	private void assertSingleInitializationPasswordNotification(String dummyResourceName, String username, String password) {
-		assertSinglePasswordNotification(dummyResourceName, username, password);
+	private void assertSingleAccountInitializationPasswordNotification(String dummyResourceName, String username, String password) {
+		assertSingleAccountPasswordNotification(dummyResourceName, username, password);
 	}
 
 	protected abstract void assertAccountActivationNotification(String dummyResourceName, String username);
@@ -2992,11 +3048,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
 
-		displayPasswordNotifications();
-		assertPasswordNotifications(3);
-		assertHasPasswordNotification(null, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(3);
+		assertHasAccountPasswordNotification(null, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
 	}
 
 	@Test
@@ -3024,7 +3080,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
 				XmlTypeConverter.createDuration("PT10M"));
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
 	}
 
 	/**
@@ -3061,7 +3117,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
 
-		assertNoPasswordNotifications();
+		assertNoAccountPasswordNotifications();
+		assertNoUserPasswordNotifications();
 	}
 
 	@Test
@@ -3091,11 +3148,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 
-		displayPasswordNotifications();
-		assertPasswordNotifications(2);
-		assertHasPasswordNotification(null, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
-     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
      	// BLUE resource already has a password
+		assertSingleUserPasswordNotification(USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
 
 	}
 
@@ -3127,6 +3185,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		} finally {
 			setPasswordMinOccurs(null, task, result);
 		}
+		assertNoUserPasswordNotifications();
 	}
 
 

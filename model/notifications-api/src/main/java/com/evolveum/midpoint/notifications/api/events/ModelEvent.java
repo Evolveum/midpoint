@@ -153,6 +153,10 @@ public class ModelEvent extends BaseEvent {
         return getFocusContext() != null ? getFocusContext().getPrimaryDelta() : null;
     }
 
+    public ObjectDelta<?> getFocusSecondaryDelta() {
+        return getFocusContext() != null ? getFocusContext().getSecondaryDelta() : null;
+    }
+
     public List<ObjectDelta<FocusType>> getFocusDeltas() {
         List<ObjectDelta<FocusType>> retval = new ArrayList<>();
         Class c = modelContext.getFocusClass();
