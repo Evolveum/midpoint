@@ -2593,6 +2593,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
 	
+	protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName) throws SchemaException {
+		return createModifyUserAddAccount(userOid, getDummyResourceObject(dummyResourceName));
+	}
 
 	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
 		PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
@@ -2611,6 +2614,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return userDelta;
 	}
 
+	protected ObjectDelta<UserType> createModifyUserDeleteDummyAccount(String userOid, String dummyResourceName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return createModifyUserDeleteAccount(userOid, getDummyResourceObject(dummyResourceName));
+	}
+	
 	protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		String accountOid = getLinkRefOid(userOid, resource.getOid());
 		PrismObject<ShadowType> account = getShadowModel(accountOid);
@@ -3412,13 +3419,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             if (messages != null && !messages.isEmpty()) {
             	LOGGER.error(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'");
             	logNotifyMessages(messages);
-                assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
+            	printNotifyMessages(messages);
+                fail(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'");
             }
         } else {
             assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
             if (expectedCount != messages.size()) {
             	LOGGER.error("Invalid number of messages recorded in dummy transport '" + name + "', expected: "+expectedCount+", actual: "+messages.size());
             	logNotifyMessages(messages);
+            	printNotifyMessages(messages);
             	assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
             }
         }
@@ -3468,6 +3477,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     private void logNotifyMessages(List<Message> messages) {
 		for (Message message: messages) {
 			LOGGER.debug("Notification message:\n{}", message.getBody());
+		}
+	}
+
+    private void printNotifyMessages(List<Message> messages) {
+		for (Message message: messages) {
+			System.out.println(message);
 		}
 	}
 

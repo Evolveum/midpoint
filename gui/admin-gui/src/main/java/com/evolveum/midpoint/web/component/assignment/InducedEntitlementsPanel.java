@@ -7,17 +7,27 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
+import javax.jws.WebParam;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +38,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(InducedEntitlementsPanel.class);
+    private static final String DOT_CLASS = InducedEntitlementsPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_SHADOW_DISPLAY_NAME = DOT_CLASS + "loadShadowDisplayName";
 
     public InducedEntitlementsPanel(String id, IModel<ContainerWrapper<AssignmentType>> inducementContainerWrapperModel){
         super(id, inducementContainerWrapperModel);
@@ -54,11 +67,45 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
+    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ConstructionType.kind")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getKindLabelModel(rowModel.getObject())));
+            }
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ConstructionType.intent")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getIntentLabelModel(rowModel.getObject())));
+            }
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ConstructionType.association")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getAssociationLabelModel(rowModel.getObject())));
+            }
+        });
+
+        return columns;
+    }
+
+    @Override
     protected ObjectQuery createObjectQuery() {
         ObjectQuery query = super.createObjectQuery();
         ObjectFilter filter = query.getFilter();
         ObjectQuery entitlementsQuery = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                .exists(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)
+                .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
         if (filter != null){
             query.setFilter(AndFilter.createAnd(filter, entitlementsQuery.getFilter()));
@@ -79,16 +126,99 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-
-    protected void initAssociationContainer(ConstructionType constructionType){
-        constructionType.beginAssociation();
-    }
-
     protected boolean isRelationVisible() {
         return false;
     }
 
     protected List<ObjectTypes> getObjectTypesList(){
         return Arrays.asList(ObjectTypes.RESOURCE);
+    }
+
+    private IModel<String> getKindLabelModel(ContainerValueWrapper<AssignmentType> assignmentWrapper){
+        if (assignmentWrapper == null){
+            return Model.of("");
+        }
+        AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+        ConstructionType construction = assignment.getConstruction();
+        if (construction == null || construction.getKind() == null){
+            return Model.of("");
+        }
+        return WebComponentUtil.createLocalizedModelForEnum(construction.getKind(), InducedEntitlementsPanel.this);
+
+    }
+
+    private IModel<String> getIntentLabelModel(ContainerValueWrapper<AssignmentType> assignmentWrapper){
+        if (assignmentWrapper == null){
+            return Model.of("");
+        }
+        AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+        ConstructionType construction = assignment.getConstruction();
+        if (construction == null || construction.getIntent() == null){
+            return Model.of("");
+        }
+        return Model.of(construction.getIntent());
+
+    }
+
+    private IModel<String> getAssociationLabelModel(ContainerValueWrapper<AssignmentType> assignmentWrapper){
+        if (assignmentWrapper == null){
+            return Model.of("");
+        }
+        AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+        ConstructionType construction = assignment.getConstruction();
+        if (construction == null || construction.getAssociation() == null){
+            return Model.of("");
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ResourceObjectAssociationType association : construction.getAssociation()){
+            if (association.getOutbound() == null || association.getOutbound().getExpression() == null){
+                continue;
+            }
+            ObjectReferenceType shadowRefValue = ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression());
+            if (shadowRefValue == null || StringUtils.isEmpty(shadowRefValue.getOid())){
+                continue;
+            }
+            String shadowDisplayName = WebComponentUtil.getDisplayNameOrName(shadowRefValue, getPageBase(), OPERATION_LOAD_SHADOW_DISPLAY_NAME);
+            if (sb.length() == 0){
+                sb.append(createStringResource("ExpressionValuePanel.shadowRefValueTitle").getString() + ":");
+            }
+            if (StringUtils.isNotEmpty(shadowDisplayName)){
+                sb.append("\n");
+                sb.append(shadowDisplayName);
+            }
+        }
+        return Model.of(sb.toString());
+
+    }
+
+    @Override
+    protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+        List<ContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
+        assignments.forEach(assignmentWrapper -> {
+                AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+                if (assignment.getConstruction() != null && assignment.getConstruction().getAssociation() != null) {
+                    List<ResourceObjectAssociationType> associations = assignment.getConstruction().getAssociation();
+                    if (associations.size() == 0 && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())){
+                        filteredAssignments.add(assignmentWrapper);
+                        return;
+                    }
+                    associations.forEach(association -> {
+                        if (!filteredAssignments.contains(assignmentWrapper)) {
+                            if (association.getOutbound() == null && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                                filteredAssignments.add(assignmentWrapper);
+                                return;
+                            }
+                            if (association.getOutbound() != null && association.getOutbound().getExpression() != null) {
+                                ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression());
+                                if ((shadowRef != null || ValueStatus.ADDED.equals(assignmentWrapper.getStatus()))) {
+                                    filteredAssignments.add(assignmentWrapper);
+                                    return;
+                                }
+                            }
+                        }
+                    });
+            }
+        });
+        return filteredAssignments;
     }
 }

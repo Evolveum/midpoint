@@ -508,7 +508,7 @@ public class ExpressionUtil {
             return null;
         }
         PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)filterNodeMap.get(new QName("path"));
-        return pathValue != null ? pathValue.getValue().toString() : null;
+        return pathValue != null && pathValue.getValue() != null ? pathValue.getValue().toString() : null;
     }
 
     public static String getTargetSearchExpValue(ExpressionType expression){
@@ -532,7 +532,7 @@ public class ExpressionUtil {
         if (valueNode.getValueParser() != null) {
             return valueNode.getValueParser().getStringValue();
         } else {
-            return valueNode.getValue().toString();
+            return valueNode.getValue() != null ? valueNode.getValue().toString() : null;
         }
 
     }

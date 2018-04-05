@@ -206,7 +206,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         		   constructionType.setResourceRef(ref);
         		   constructionType.setKind(kind);
         		   constructionType.setIntent(intent);
-        		   initAssociationContainer(constructionType);
         		   assignmentType.setConstruction(constructionType);
         	   } else {
         		   assignmentType.setTargetRef(ref);
@@ -218,9 +217,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             reloadSavePreviewButtons(target);
        }
 
-       protected void initAssociationContainer(ConstructionType constructionType){
-       }
-
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -228,6 +224,25 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
                 item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
+            }
+        });
+
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
+            }
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
             }
         });
 
@@ -307,30 +322,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
 		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
 	}
-
-	@Override
-    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
-        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = super.initBasicColumns();
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
-            }
-        });
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
-            }
-        });
-        return columns;
-    }
 
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){

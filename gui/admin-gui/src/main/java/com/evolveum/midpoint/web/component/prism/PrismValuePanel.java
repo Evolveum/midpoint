@@ -208,6 +208,9 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 	}
 
 	private boolean isAccessible(ItemDefinition def, ContainerStatus status) {
+		if (def.getName().equals(ConstructionType.F_KIND) || def.getName().equals(ConstructionType.F_INTENT)){
+			return false;
+		}
 		switch (status) {
 			case ADDING:
 				if (!def.canAdd()) {

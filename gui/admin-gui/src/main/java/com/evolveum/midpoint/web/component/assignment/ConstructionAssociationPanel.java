@@ -237,11 +237,13 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                     PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
                     ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                     if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
-                            || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null) {
+                            || (ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null
+                            && !ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         return;
                     }
                     QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
-                    if (defName != null && defName.equals(assocRef)) {
+                    if ((defName != null && defName.equals(assocRef))
+                            || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                     }
                 });

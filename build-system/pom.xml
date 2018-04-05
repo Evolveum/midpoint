@@ -49,7 +49,7 @@
         <commons.lang.version>2.6</commons.lang.version>
         <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.2.1</cxf.version>
+        <cxf.version>3.2.4</cxf.version>
         <cxf-xjc.version>3.2.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
@@ -63,7 +63,8 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <spring.boot.version>1.5.8.e1</spring.boot.version>
+        <spring.boot.version>1.5.8.e1</spring.boot.version> <!-- can be replaced by a stock version;
+                ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
         <spring.version>4.3.14.RELEASE</spring.version>
         <spring.security.version>4.2.4.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>

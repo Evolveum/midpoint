@@ -745,6 +745,10 @@ CREATE INDEX iAssignmentAdministrative
   ON m_assignment (administrativeStatus) INITRANS 30;
 CREATE INDEX iAssignmentEffective
   ON m_assignment (effectiveStatus) INITRANS 30;
+CREATE INDEX iAssignmentValidFrom
+  ON m_assignment (validFrom) INITRANS 30;
+CREATE INDEX iAssignmentValidTo
+  ON m_assignment (validTo) INITRANS 30;
 CREATE INDEX iTargetRefTargetOid
   ON m_assignment (targetRef_targetOid) INITRANS 30;
 CREATE INDEX iTenantRefTargetOid
@@ -877,6 +881,10 @@ CREATE INDEX iFocusEffective
   ON m_focus (effectiveStatus) INITRANS 30;
 CREATE INDEX iLocality
   ON m_focus (locality_orig) INITRANS 30;
+CREATE INDEX iFocusValidFrom
+  ON m_focus (validFrom) INITRANS 30;
+CREATE INDEX iFocusValidTo
+  ON m_focus (validTo) INITRANS 30;
 CREATE INDEX iFormNameOrig
   ON m_form (name_orig) INITRANS 30;
 ALTER TABLE m_form
