@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
   ~ limitations under the License.
   -->
 
-<!-- PERU dummy resource for testing. It is used in multi-resource tests.
-      It has relaxed dependency on yellow resource. -->
+<!-- Same as PERU dummy resource. It is used in multi-resource tests.
+      It has relaxed dependency on yellow resource.
+      PLUS disable instead of delete. -->
 
-<resource oid="10000000-0000-0000-0000-00000001c504"
+<resource oid="f5253596-333d-11e8-8894-37a2f88e7609"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -28,7 +29,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
-	<name>Dummy Resource Peru</name>
+	<name>Dummy Resource Peru Disable</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -47,7 +48,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>peru</icfi:instanceId>
+			<icfi:instanceId>peru-disable</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -102,14 +103,31 @@
 				<strictness>relaxed</strictness>
 			</dependency>
 			<activation>
-            	<administrativeStatus>
+				<existence>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
                     <outbound>
                     	<strength>strong</strength>
-                    	<expression>
-                        	<asIs/>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
                         </expression>
-                    </outbound>            	
-            	</administrativeStatus>
+                    </outbound>
+                </administrativeStatus>
             </activation>
 			<credentials>
                 <password>

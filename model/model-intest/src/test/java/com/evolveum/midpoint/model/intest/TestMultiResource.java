@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,6 +105,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_PERU_NAME = "peru";
 	protected static final String RESOURCE_DUMMY_PERU_NAMESPACE = MidPointConstants.NS_RI;
 
+	// PERU dummy resource has a RELAXED dependency on YELLOW dummy resource and disable instead of delete
+	protected static final File RESOURCE_DUMMY_PERU_DISABLE_FILE = new File(TEST_DIR, "resource-dummy-peru-disable.xml");
+	protected static final String RESOURCE_DUMMY_PERU_DISABLE_OID = "f5253596-333d-11e8-8894-37a2f88e7609";
+	protected static final String RESOURCE_DUMMY_PERU_DISABLE_NAME = "peru-disable";
+	protected static final String RESOURCE_DUMMY_PERU_DISABLE_NAMESPACE = MidPointConstants.NS_RI;
+
 	protected static final File RESOURCE_DUMMY_DAVID_FILE = new File(TEST_DIR, "resource-dummy-david.xml");
 	protected static final String RESOURCE_DUMMY_DAVID_OID = "10000000-0000-0000-0000-000000300001";
 	protected static final String RESOURCE_DUMMY_DAVID_NAME = "david";
@@ -118,12 +124,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	// Assigns default dummy resource and red dummy resource
 	protected static final File ROLE_DUMMIES_FILE = new File(TEST_DIR, "role-dummies.xml");
 	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
+	
 	protected static final File ROLE_DUMMIES_IVORY_FILE = new File(TEST_DIR, "role-dummies-ivory.xml");
 	protected static final String ROLE_DUMMIES_IVORY_OID = "12345678-d34d-b33f-f00d-55555511dddd";
+	
 	protected static final File ROLE_DUMMIES_BEIGE_FILE = new File(TEST_DIR, "role-dummies-beige.xml");
 	protected static final String ROLE_DUMMIES_BEIGE_OID = "12345678-d34d-b33f-f00d-5555551bdddd";
+	
 	protected static final File ROLE_FIGHT_FILE = new File(TEST_DIR, "role-fight.xml");
 	protected static final String ROLE_FIGHT_OID = "12345678-d34d-b33f-f00d-5555550303dd";
+	
+	protected static final File ROLE_YELLOW_PERU_DISABLE_FILE = new File(TEST_DIR, "role-yellow-peru-disable.xml");
+	protected static final String ROLE_YELLOW_PERU_DISABLE_OID = "95213bbc-3357-11e8-aeb8-439c6ddc0fa0";
 
     protected static final String USER_WORLD_NAME = "world";
     protected static final String USER_WORLD_FULL_NAME = "The World";
@@ -132,82 +144,36 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
 
-	protected static DummyResource dummyResourceLavender;
-	protected static DummyResourceContoller dummyResourceCtlLavender;
-	protected ResourceType resourceDummyLavenderType;
-	protected PrismObject<ResourceType> resourceDummyLavender;
-
-	protected static DummyResource dummyResourceIvory;
-	protected static DummyResourceContoller dummyResourceCtlIvory;
-	protected ResourceType resourceDummyIvoryType;
-	protected PrismObject<ResourceType> resourceDummyIvory;
-
-	protected static DummyResource dummyResourceBeige;
-	protected static DummyResourceContoller dummyResourceCtlBeige;
-	protected ResourceType resourceDummyBeigeType;
-	protected PrismObject<ResourceType> resourceDummyBeige;
-
-	protected static DummyResource dummyResourcePeru;
-	protected static DummyResourceContoller dummyResourceCtlPeru;
-	protected ResourceType resourceDummyPeruType;
-	protected PrismObject<ResourceType> resourceDummyPeru;
-
-	protected static DummyResource dummyResourceDavid;
-	protected static DummyResourceContoller dummyResourceCtlDavid;
-	protected PrismObject<ResourceType> resourceDummyDavid;
-
-	protected static DummyResource dummyResourceGoliath;
-	protected static DummyResourceContoller dummyResourceCtlGoliath;
-	protected PrismObject<ResourceType> resourceDummyGoliath;
-
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		dummyResourceCtlLavender = DummyResourceContoller.create(RESOURCE_DUMMY_LAVENDER_NAME, resourceDummyLavender);
-		dummyResourceCtlLavender.extendSchemaPirate();
-		dummyResourceLavender = dummyResourceCtlLavender.getDummyResource();
-		resourceDummyLavender = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_LAVENDER_FILE, RESOURCE_DUMMY_LAVENDER_OID, initTask, initResult);
-		resourceDummyLavenderType = resourceDummyLavender.asObjectable();
-		dummyResourceCtlLavender.setResource(resourceDummyLavender);
+		initDummyResourcePirate(RESOURCE_DUMMY_LAVENDER_NAME,
+				RESOURCE_DUMMY_LAVENDER_FILE, RESOURCE_DUMMY_LAVENDER_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_IVORY_NAME,
+				RESOURCE_DUMMY_IVORY_FILE, RESOURCE_DUMMY_IVORY_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_BEIGE_NAME,
+				RESOURCE_DUMMY_BEIGE_FILE, RESOURCE_DUMMY_BEIGE_OID, initTask, initResult);
 
-		dummyResourceCtlIvory = DummyResourceContoller.create(RESOURCE_DUMMY_IVORY_NAME, resourceDummyIvory);
-		dummyResourceCtlIvory.extendSchemaPirate();
-		dummyResourceIvory = dummyResourceCtlIvory.getDummyResource();
-		resourceDummyIvory = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_IVORY_FILE, RESOURCE_DUMMY_IVORY_OID, initTask, initResult);
-		resourceDummyIvoryType = resourceDummyIvory.asObjectable();
-		dummyResourceCtlIvory.setResource(resourceDummyIvory);
-
-		dummyResourceCtlBeige = DummyResourceContoller.create(RESOURCE_DUMMY_BEIGE_NAME, resourceDummyBeige);
-		dummyResourceCtlBeige.extendSchemaPirate();
-		dummyResourceBeige = dummyResourceCtlBeige.getDummyResource();
-		resourceDummyBeige = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BEIGE_FILE, RESOURCE_DUMMY_BEIGE_OID, initTask, initResult);
-		resourceDummyBeigeType = resourceDummyBeige.asObjectable();
-		dummyResourceCtlBeige.setResource(resourceDummyBeige);
-
-		dummyResourceCtlPeru = DummyResourceContoller.create(RESOURCE_DUMMY_PERU_NAME, resourceDummyPeru);
-		dummyResourceCtlPeru.extendSchemaPirate();
-		dummyResourcePeru = dummyResourceCtlPeru.getDummyResource();
-		resourceDummyPeru = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PERU_FILE, RESOURCE_DUMMY_PERU_OID, initTask, initResult);
-		resourceDummyPeruType = resourceDummyPeru.asObjectable();
-		dummyResourceCtlPeru.setResource(resourceDummyPeru);
-
-		dummyResourceCtlDavid = DummyResourceContoller.create(RESOURCE_DUMMY_DAVID_NAME);
-		dummyResourceCtlDavid.extendSchemaPirate();
-		dummyResourceDavid = dummyResourceCtlDavid.getDummyResource();
-		resourceDummyDavid = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
-		dummyResourceCtlDavid.setResource(resourceDummyDavid);
-
-		dummyResourceCtlGoliath = DummyResourceContoller.create(RESOURCE_DUMMY_GOLIATH_NAME);
-		dummyResourceCtlGoliath.extendSchemaPirate();
-		dummyResourceGoliath = dummyResourceCtlGoliath.getDummyResource();
-		resourceDummyGoliath = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GOLIATH_FILE, RESOURCE_DUMMY_GOLIATH_OID, initTask, initResult);
-		dummyResourceCtlGoliath.setResource(resourceDummyGoliath);
+		initDummyResourcePirate(RESOURCE_DUMMY_PERU_NAME,
+				RESOURCE_DUMMY_PERU_FILE, RESOURCE_DUMMY_PERU_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_PERU_DISABLE_NAME,
+				RESOURCE_DUMMY_PERU_DISABLE_FILE, RESOURCE_DUMMY_PERU_DISABLE_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_DAVID_NAME,
+				RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_GOLIATH_NAME,
+				RESOURCE_DUMMY_GOLIATH_FILE, RESOURCE_DUMMY_GOLIATH_OID, initTask, initResult);
 
 		repoAddObjectFromFile(ROLE_DUMMIES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DUMMIES_IVORY_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_FIGHT_FILE, initResult);
+		repoAddObjectFromFile(ROLE_YELLOW_PERU_DISABLE_FILE, initResult);
 
 		getDummyResource().resetBreakMode();
 	}
@@ -489,8 +455,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
@@ -522,8 +487,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
@@ -560,8 +524,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("user after", userJack);
@@ -592,8 +555,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        dummyResourceBeige.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("beige dummy resource before", dummyResourceBeige);
+        getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -607,7 +570,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
 
-        display("beige dummy resource after", dummyResourceBeige);
+        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -635,8 +598,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         display("dummy resource before", getDummyResource());
 
-        dummyResourceBeige.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("beige dummy resource before", dummyResourceBeige);
+        getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -650,7 +613,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 2);
 
         display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", dummyResourceBeige);
+        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -694,7 +657,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 2);
 
         display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", dummyResourceBeige);
+        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
@@ -737,7 +700,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 2);
 
         display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", dummyResourceBeige);
+        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1178,12 +1141,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyLavender);
+        ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
 
         // WHEN
         try {
 	        displayWhen(TEST_NAME);
-	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        executeChanges(userDelta, null, task, result);
 
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -1209,11 +1172,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyIvory);
+        ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1233,11 +1196,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyBeige);
+        ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1261,7 +1224,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1284,11 +1247,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyLavender);
+        ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1316,7 +1279,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // WHEN
         try {
 	        displayWhen(TEST_NAME);
-	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        executeChanges(userDelta, null, task, result);
 
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -1353,7 +1316,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // WHEN
         try {
 	        displayWhen(TEST_NAME);
-	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+	        executeChanges(userDelta, null, task, result);
 
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -1381,10 +1344,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyLavender);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_NAME);
 
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1413,7 +1376,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
 
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1436,10 +1399,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyBeige);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_NAME);
 
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1463,10 +1426,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyIvory);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_NAME);
 
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1495,11 +1458,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyPeru);
+        ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1518,11 +1481,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject(RESOURCE_DUMMY_YELLOW_NAME));
+        ObjectDelta<UserType> userDelta = createModifyUserAddDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_NAME);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1587,10 +1550,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyPeru);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteDummyAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_NAME);
 
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2030,14 +1993,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
         		UserType.F_LOCALITY, prismContext);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        executeChanges(userDelta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         userBefore = findUserByUsername(USER_FIELD_NAME);
         display("User before", userBefore);
 
-        dummyResourceGoliath.setBreakMode(BreakMode.NETWORK);
+        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NETWORK);
 
         dummyAuditService.clear();
 
@@ -2096,15 +2059,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
 
-        dummyResourceGoliath.setBreakMode(BreakMode.NONE);
+        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
 
         // WHEN
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_FIELD_NAME, true, true, true);
 
@@ -2149,7 +2111,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
 //        TestUtil.assertSuccess(result, 2);
 
-        dummyResourceGoliath.setBreakMode(BreakMode.NONE);
+        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
 
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);
@@ -2189,15 +2151,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
         		UserType.F_LOCALITY, prismContext);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        executeChanges(userDelta, null, task, result);
+        assertSuccess(result);
 
         userBefore = findUserByUsername(USER_FIELD_NAME);
         display("User before", userBefore);
 
-        dummyResourceGoliath.setBreakMode(BreakMode.NONE);
-        dummyResourceDavid.setBreakMode(BreakMode.NETWORK);
+        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
+        getDummyResource(RESOURCE_DUMMY_DAVID_NAME).setBreakMode(BreakMode.NETWORK);
 
         dummyAuditService.clear();
 
@@ -2244,9 +2205,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test440DavidAndGoliathAssignRoleAndCreateUserInOneStep";
 		displayTestTitle(TEST_NAME);
 
-		dummyResourceGoliath.setBreakMode(BreakMode.NONE);
-        dummyResourceDavid.setBreakMode(BreakMode.NONE);
-		try{
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
+		getDummyResource(RESOURCE_DUMMY_DAVID_NAME).setBreakMode(BreakMode.NONE);
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		// delete user and his roles which were added before
@@ -2297,8 +2257,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "stone", USER_WORLD_NAME, true, true, true);
 
@@ -2323,9 +2282,186 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 //        ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
 //        display("Last execution delta", executionDelta);
 //        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
-		} catch (Exception ex){
-			LOGGER.info("ex: {}", ex);
-			throw ex;
-		}
 	}
+    
+    @Test
+    public void test500JackAssignDummyYellow() throws Exception {
+		final String TEST_NAME = "test500JackAssignDummyYellow";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 0);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 1);
+
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+	}
+    
+    @Test
+    public void test502JackAssignDummyPeruDisable() throws Exception {
+		final String TEST_NAME = "test502JackAssignDummyPeruDisable";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_DISABLE_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 2);
+
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+	}
+    
+    /**
+     * MID-4554
+     */
+    @Test
+    public void test504JackUnassignDummyPeruDisable() throws Exception {
+		final String TEST_NAME = "test504JackUnassignDummyPeruDisable";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_DISABLE_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+	}
+    
+    @Test
+    public void test509JackUnassignDummyYellow() throws Exception {
+		final String TEST_NAME = "test509JackUnassignDummyYellow";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 1);
+
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+	}
+    
+    @Test
+    public void test510JackAssignRoleYellowPeruDisable() throws Exception {
+		final String TEST_NAME = "test510JackAssignRoleYellowPeruDisable";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        // Old password too short for yellow resource
+        modifyUserChangePassword(USER_JACK_OID, "123abc456QWE", task, result);
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 0);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_YELLOW_PERU_DISABLE_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+	}
+    
+    /**
+     * MID-4554
+     */
+    @Test
+    public void test519JackUnassignRoleYellowPeruDisable() throws Exception {
+		final String TEST_NAME = "test519JackUnassignRoleYellowPeruDisable";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRole(USER_JACK_OID, ROLE_YELLOW_PERU_DISABLE_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 1);
+
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+	}
+    
 }
