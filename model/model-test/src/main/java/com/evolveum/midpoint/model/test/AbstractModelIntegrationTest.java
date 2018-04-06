@@ -3443,6 +3443,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Unexpected notifier "+name+" message body", expectedBody, message.getBody());
     }
 
+    protected void assertSingleDummyTransportMessageContaining(String name, String expectedSubstring) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        if (messages.size() != 1) {
+        	fail("Invalid number of messages recorded in dummy transport '" + name + "', expected: 1, actual: "+messages.size());
+        }
+        Message message = messages.get(0);
+        assertTrue("Notifier "+name+" message body does not contain text: " + expectedSubstring + ", it is:\n" + message.getBody(),
+		        message.getBody().contains(expectedSubstring));
+    }
+
     protected String getDummyTransportMessageBody(String name, int index) {
     	List<Message> messages = dummyTransport.getMessages("dummy:" + name);
     	Message message = messages.get(index);

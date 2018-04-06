@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,17 +69,10 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
 
-    @Autowired
-	private TaskManager taskManager;
-
-	@Autowired
-	private PrismContext prismContext;
-
-    @Autowired
-    private ContextFactory contextFactory;
-
-    @Autowired
-    private Clockwork clockwork;
+    @Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
+    @Autowired private ContextFactory contextFactory;
+    @Autowired private Clockwork clockwork;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 
@@ -142,4 +136,9 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     public String getCategoryName(Task task) {
         return TaskCategory.RECOMPUTATION;
     }
+
+	@Override
+	protected String getDefaultChannel() {
+		return SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI;
+	}
 }

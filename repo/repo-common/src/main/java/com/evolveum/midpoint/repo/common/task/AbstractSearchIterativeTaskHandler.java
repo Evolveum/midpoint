@@ -192,6 +192,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		OperationResult opResult = runResult.getOperationResult();
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 
+		if (localCoordinatorTask.getChannel() == null) {
+			String channel = getDefaultChannel();
+			if (channel != null) {
+				localCoordinatorTask.setChannel(channel);
+			}
+		}
+
 		try {
 			H resultHandler = setupHandler(runResult, localCoordinatorTask, opResult);
 
@@ -308,6 +315,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		} catch (ExitWorkBucketHandlerException e) {
 			return e.getRunResult();
 		}
+	}
+
+	protected String getDefaultChannel() {
+		return null;
 	}
 
 	private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(
