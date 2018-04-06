@@ -236,7 +236,7 @@ public class PageAccountActivation extends PageBase {
 	private String getOidFromParameter(PageParameters params){
 
 		if (params == null || params.isEmpty()) {
-			LOGGER.error("No page paraeters found for account activation. No user to activate his/her accounts");
+			LOGGER.error("No page parameters found for account activation. No user to activate his/her accounts");
 			return null;
 		}
 
