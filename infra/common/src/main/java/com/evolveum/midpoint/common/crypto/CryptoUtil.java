@@ -145,16 +145,21 @@ public class CryptoUtil {
     }
 
     private static void encryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName) throws EncryptionException {
-    	if (ps.isHashed()) {
-    		throw new EncryptionException("Attempt to encrypt hashed value for "+propName);
-    	}
-    	if (ps != null && ps.getClearValue() != null) {
-            try {
-                protector.encrypt(ps);
-            } catch (EncryptionException e) {
-                throw new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
-            }
-        }
+		if (ps == null) {
+			return;
+		}
+    	
+	    	if (ps.isHashed()) {
+	    		throw new EncryptionException("Attempt to encrypt hashed value for "+propName);
+	    	}
+	    	
+	    	if (ps.getClearValue() != null) {
+	            try {
+	                protector.encrypt(ps);
+	            } catch (EncryptionException e) {
+	                throw new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
+	            }
+	        }
     }
 
 	// Checks that everything is encrypted
