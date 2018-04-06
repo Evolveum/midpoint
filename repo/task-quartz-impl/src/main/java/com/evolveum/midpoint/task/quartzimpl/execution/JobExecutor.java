@@ -689,6 +689,12 @@ mainCycle:
 			}
 		}
 
+		try {
+			workStateManager.executeInitialDelay(task);
+		} catch (InterruptedException e) {
+			return createInterruptedTaskRunResult();
+		}
+
 		TaskWorkBucketProcessingResult runResult = null;
 		for (;;) {
 			WorkBucketType bucket;

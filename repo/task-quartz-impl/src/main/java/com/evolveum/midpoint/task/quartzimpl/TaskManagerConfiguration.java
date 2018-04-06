@@ -75,6 +75,11 @@ public class TaskManagerConfiguration {
     private static final String RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY = "runNowKeepsOriginalSchedule";
     private static final String SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY = "schedulerInitiallyStopped";
 
+    private static final String WORK_ALLOCATION_MAX_ATTEMPTS_ENTRY = "workAllocationMaxAttempts";
+    private static final String WORK_ALLOCATION_RETRY_INTERVAL_ENTRY = "workAllocationRetryInterval";
+    private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
+    private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
+
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
@@ -99,6 +104,11 @@ public class TaskManagerConfiguration {
     private static final int STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT = 3600;
     private static final boolean RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT = false;
 
+    private static final int WORK_ALLOCATION_MAX_ATTEMPTS_DEFAULT = 40;
+    private static final long WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT = 5000L;
+    private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
+    private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
+
     private boolean stopOnInitializationFailure;
     private int threads;
     private boolean jdbcJobStore;
@@ -116,6 +126,11 @@ public class TaskManagerConfiguration {
     private int stalledTasksRepeatedNotificationInterval;
     private boolean runNowKeepsOriginalSchedule;
     private boolean schedulerInitiallyStopped;
+
+    private int workAllocationMaxAttempts;
+    private long workAllocationRetryInterval;
+    private long workAllocationInitialDelay;
+    private long workAllocationDefaultFreeBucketWaitInterval;
 
     // JMX credentials for connecting to remote nodes
     private String jmxUsername;
@@ -178,7 +193,11 @@ public class TaskManagerConfiguration {
             STALLED_TASKS_THRESHOLD_CONFIG_ENTRY,
             STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY,
             RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
-			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY
+			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
+            WORK_ALLOCATION_MAX_ATTEMPTS_ENTRY,
+            WORK_ALLOCATION_RETRY_INTERVAL_ENTRY,
+            WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
+            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -269,6 +288,12 @@ public class TaskManagerConfiguration {
         stalledTasksRepeatedNotificationInterval = c.getInt(STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY, STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT);
         runNowKeepsOriginalSchedule = c.getBoolean(RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY, RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT);
         schedulerInitiallyStopped = c.getBoolean(SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY, false);
+
+        workAllocationMaxAttempts = c.getInt(WORK_ALLOCATION_MAX_ATTEMPTS_ENTRY, WORK_ALLOCATION_MAX_ATTEMPTS_DEFAULT);
+        workAllocationRetryInterval = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_ENTRY, WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT);
+        workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
+        workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
+                WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
     }
 
     private static final Map<String,String> schemas = new HashMap<>();
@@ -339,8 +364,6 @@ public class TaskManagerConfiguration {
 
     /**
      * Check configuration, except for JDBC JobStore-specific parts.
-     *
-     * @throws TaskManagerConfigurationException
      */
     void validateBasicInformation() throws TaskManagerConfigurationException {
 
@@ -525,4 +548,20 @@ public class TaskManagerConfiguration {
 	public boolean isSchedulerInitiallyStopped() {
 		return schedulerInitiallyStopped;
 	}
+
+    public int getWorkAllocationMaxAttempts() {
+        return workAllocationMaxAttempts;
+    }
+
+    public long getWorkAllocationRetryInterval() {
+        return workAllocationRetryInterval;
+    }
+
+    public long getWorkAllocationInitialDelay() {
+        return workAllocationInitialDelay;
+    }
+
+    public long getWorkAllocationDefaultFreeBucketWaitInterval() {
+        return workAllocationDefaultFreeBucketWaitInterval;
+    }
 }
