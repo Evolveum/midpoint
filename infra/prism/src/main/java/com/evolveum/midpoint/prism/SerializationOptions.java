@@ -54,7 +54,7 @@ public class SerializationOptions implements Cloneable {
 		this.serializeCompositeObjects = serializeCompositeObjects;
 	}
 
-	public static SerializationOptions createSerializeCompositeObjects(){
+	public static SerializationOptions createSerializeCompositeObjects() {
 		SerializationOptions serializationOptions = new SerializationOptions();
 		serializationOptions.setSerializeCompositeObjects(true);
 		return serializationOptions;

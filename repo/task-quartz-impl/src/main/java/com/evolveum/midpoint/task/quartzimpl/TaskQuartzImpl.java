@@ -1547,26 +1547,13 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	public void setObjectRefTransient(ObjectReferenceType objectRefType) {
-		PrismReference objectRef;
-		try {
-			objectRef = taskPrism.findOrCreateReference(TaskType.F_OBJECT_REF);
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new IllegalStateException("Internal schema error: " + e.getMessage(), e);
-		}
-		objectRef.getValue().setOid(objectRefType.getOid());
-		objectRef.getValue().setTargetType(objectRefType.getType());
+		taskPrism.asObjectable().setObjectRef(objectRefType != null ? objectRefType.clone() : null);
 	}
 
 	private ReferenceDelta setObjectRefAndPrepareDelta(ObjectReferenceType value) {
 		setObjectRefTransient(value);
-
-		PrismReferenceValue prismReferenceValue = new PrismReferenceValue();
-		prismReferenceValue.setOid(value.getOid());
-		prismReferenceValue.setTargetType(value.getType());
-
 		return isPersistent() ? ReferenceDelta.createModificationReplace(TaskType.F_OBJECT_REF,
-				taskManager.getTaskObjectDefinition(), prismReferenceValue) : null;
+				taskManager.getTaskObjectDefinition(), value.clone().asReferenceValue()) : null;
 	}
 
 	@Override
