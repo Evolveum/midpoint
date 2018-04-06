@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -238,7 +235,8 @@ public class ObjectUpdater {
         // Its' because we're removing some properties during save operation and if save fails,
         // overwrite attempt (for example using object importer) might try to delete existing object
         // and then try to save this object one more time.
-        String xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        SerializationOptions options = SerializationOptions.createSerializeReferenceNames();
+        String xml = prismContext.xmlSerializer().options(options).serialize(savedObject);
         savedObject = prismContext.parseObject(xml);
 
         if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
@@ -249,7 +247,7 @@ public class ObjectUpdater {
             savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
         }
 
-        xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        xml = prismContext.xmlSerializer().options(options).serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         LOGGER.trace("Storing full object\n{}", xml);
