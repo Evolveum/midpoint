@@ -260,7 +260,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-            error("Could not save assignments. Reason: " + e);
+            error(createStringResource("PageAssignmentsList.saveAssignmentsError").getString() + e.getLocalizedMessage());
             target.add(getFeedbackPanel());
         } finally {
             result.recomputeStatus();
