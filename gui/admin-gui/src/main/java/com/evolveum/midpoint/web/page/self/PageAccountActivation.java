@@ -36,15 +36,14 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -58,12 +57,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -98,6 +94,11 @@ public class PageAccountActivation extends PageBase {
 	public PageAccountActivation(PageParameters params) {
 
 		UserType user = loadUser(params);
+		
+		if (user == null) {
+			getSession().error(getString("PageAccountActivation.account.activation.failed"));
+			throw new RestartResponseException(PageLogin.class);
+		}
 
 		userModel = new LoadableModel<UserType>(false) {
 
@@ -124,11 +125,16 @@ public class PageAccountActivation extends PageBase {
 		OperationResult result = new OperationResult(LOAD_USER);
 
 		return runPrivileged(new Producer<UserType>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public UserType run() {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(UserType.F_LINK_REF, GetOperationOptions.createResolve());
-				return WebModelServiceUtils.loadObject(UserType.class, userOid, options, PageAccountActivation.this, task, result).asObjectable();
+				PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, options, PageAccountActivation.this, task, result);
+				if (user == null) {
+					return null;
+				}
+				return user.asObjectable();
 			}
 		});
 
@@ -148,7 +154,7 @@ public class PageAccountActivation extends PageBase {
 
 		});
 
-		Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+		Form<?> form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 		activationContainer.add(form);
 
 		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label", new PropertyModel<>(userModel, "name.orig")));
@@ -230,7 +236,7 @@ public class PageAccountActivation extends PageBase {
 	private String getOidFromParameter(PageParameters params){
 
 		if (params == null || params.isEmpty()) {
-			LOGGER.error("No page paraeters found for account activation. No user to activate his/her accounts");
+			LOGGER.error("No page parameters found for account activation. No user to activate his/her accounts");
 			return null;
 		}
 
@@ -277,6 +283,7 @@ public class PageAccountActivation extends PageBase {
 		}
 
 		OperationResult result = runPrivileged(new Producer<OperationResult>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public OperationResult run() {
@@ -310,7 +317,7 @@ public class PageAccountActivation extends PageBase {
 		if (shadowsToActivate == null || shadowsToActivate.isEmpty()) {
 			return new ArrayList<>();
 		}
-		return shadowsToActivate.parallelStream().filter(shadow -> shadow.getLifecycleState().equals(SchemaConstants.LIFECYCLE_PROPOSED)).collect(Collectors.toList());
+		return shadowsToActivate.parallelStream().filter(shadow -> SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())).collect(Collectors.toList());
 	}
 
 }
