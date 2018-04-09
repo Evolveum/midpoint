@@ -616,7 +616,7 @@ public class DependencyProcessor {
 		return true;
 	}
 
-	class DependencyAndSource {
+	static class DependencyAndSource {
 		ResourceObjectTypeDependencyType dependency;
 		LensProjectionContext sourceProjectionContext;
 	}
