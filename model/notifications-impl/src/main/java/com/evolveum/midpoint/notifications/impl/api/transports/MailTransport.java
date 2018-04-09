@@ -177,7 +177,7 @@ public class MailTransport implements Transport {
                 LOGGER.debug("Using mail properties: ");
                 for (Object key : properties.keySet()) {
                     if (key instanceof String && ((String) key).startsWith("mail.")) {
-                        LOGGER.debug(" - " + key + " = " + properties.get(key));
+                        LOGGER.debug(" - {} = {}", key, properties.get(key));
                     }
                 }
             }
