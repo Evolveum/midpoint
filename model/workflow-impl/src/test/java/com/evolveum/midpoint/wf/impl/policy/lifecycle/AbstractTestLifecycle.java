@@ -114,7 +114,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		if (approveObjectAdd()) {
 			MetadataType metadata = pirateAfter.asObjectable().getMetadata();
 			assertEquals("Wrong create approver ref",
-					singleton(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
+					singleton(ObjectTypeUtil.createObjectRef(userLead1Oid, PolyStringType.fromOrig("lead1"), ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
 					new HashSet<>(metadata.getCreateApproverRef()));
 			assertEquals("Wrong create approval comments",
 					singleton("lead1 :: creation comment"),
