@@ -26,15 +26,15 @@ public class CacheObject<T extends ObjectType> {
 
     private PrismObject<T> object;
 
-    private long timeToLive;
+    private long lastVersionCheck;
 
-    public CacheObject(PrismObject<T> object, long timeToLive) {
+    public CacheObject(PrismObject<T> object, long lastVersionCheck) {
         this.object = object;
-        this.timeToLive = timeToLive;
+        this.lastVersionCheck = lastVersionCheck;
     }
 
-    public long getTimeToLive() {
-        return timeToLive;
+    public long getLastVersionCheck() {
+        return lastVersionCheck;
     }
 
     public String getObjectOid() {
@@ -53,14 +53,14 @@ public class CacheObject<T extends ObjectType> {
         return object.clone();
     }
 
-    public void setTimeToLive(long timeToLive) {
-        this.timeToLive = timeToLive;
+    public void setLastVersionCheck(long lastVersionCheck) {
+        this.lastVersionCheck = lastVersionCheck;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("CacheObject{");
-        sb.append("ttl=").append(timeToLive);
+        sb.append("ttl=").append(lastVersionCheck);
         sb.append(", object=").append(object);
         sb.append('}');
         return sb.toString();
