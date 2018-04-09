@@ -2141,6 +2141,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public void setFreeBucketWaitInterval(long value) {
-		workStateManager.setFreeBucketWaitInterval(value);
+		workStateManager.setFreeBucketWaitIntervalOverride(value);
 	}
 }

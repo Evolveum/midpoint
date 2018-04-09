@@ -34,6 +34,9 @@ import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
@@ -81,12 +84,9 @@ public class WorkStateManager {
 	@Autowired private WorkSegmentationStrategyFactory strategyFactory;
 	@Autowired private WorkBucketContentHandlerRegistry handlerFactory;
 
-	private static final int MAX_ATTEMPTS = 40;                              // temporary
-	private static final long DELAY_INTERVAL = 5000L;                        // temporary
-	private static final long DEFAULT_FREE_BUCKET_WAIT_INTERVAL = 20000L;
 	private static final long DYNAMIC_SLEEP_INTERVAL = 100L;
 
-	private long freeBucketWaitInterval = DEFAULT_FREE_BUCKET_WAIT_INTERVAL;
+	private Long freeBucketWaitIntervalOverride = null;
 
 	private class Context {
 		Task workerTask;
@@ -113,13 +113,13 @@ public class WorkStateManager {
 			workerTask = taskManager.getTask(workerTask.getOid(), null, result);
 		}
 
-		public boolean canRun() {
-			return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
-		}
-
 		public TaskWorkManagementType getWorkStateConfiguration() {
 			return isStandalone() ? workerTask.getWorkManagement() : coordinatorTask.getWorkManagement();
 		}
+	}
+
+	public boolean canRun(Supplier<Boolean> canRunSupplier) {
+		return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
 	}
 
 	/**
@@ -172,8 +172,8 @@ public class WorkStateManager {
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
-waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
-			for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+		    waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
+			for (int attempt = 0; attempt < getMaxAttempts(); attempt++) {
 				TaskWorkStateType coordinatorWorkState = getWorkStateOrNew(ctx.coordinatorTask.getTaskPrismObject());
 				GetBucketResult response = workStateStrategy.getBucket(coordinatorWorkState);
 				LOGGER.trace("getWorkBucketMultiNode: workStateStrategy returned {} for worker task {}, coordinator {}", response, ctx.workerTask, ctx.coordinatorTask);
@@ -215,7 +215,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 								return null;
 							}
 							//System.out.println("*** No free work bucket -- waiting ***");
-							dynamicSleep(Math.min(toWait, freeBucketWaitInterval), ctx);
+							dynamicSleep(Math.min(toWait, getFreeBucketWaitInterval()), ctx);
 							ctx.reloadCoordinatorTask(result);
 							ctx.reloadWorkerTask(result);
 							if (reclaimWronglyAllocatedBuckets(ctx.coordinatorTask, result)) {
@@ -229,8 +229,10 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 						throw new AssertionError(response);
 					}
 				} catch (PreconditionViolationException e) {
-					long delay = (long) (Math.random() * DELAY_INTERVAL);
-					LOGGER.debug("getWorkBucketMultiNode: conflict; this was attempt #{}; waiting {} ms", attempt, delay, e);
+					long delay = (long) (Math.random() * getDelayInterval());
+					// temporary
+					LOGGER.info("getWorkBucketMultiNode: conflict; this was attempt #{}; waiting {} ms in {}, worker {}",
+							attempt, delay, ctx.coordinatorTask, ctx.workerTask, e);
 					dynamicSleep(delay, ctx);
 					ctx.reloadCoordinatorTask(result);
 					ctx.reloadWorkerTask(result);
@@ -241,6 +243,27 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			throw new SystemException(
 					"Couldn't allocate work bucket because of database conflicts; coordinator task = " + ctx.coordinatorTask);
 		}
+	}
+
+	private long getFreeBucketWaitInterval() {
+		return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
+				getConfiguration().getWorkAllocationDefaultFreeBucketWaitInterval();
+	}
+
+	private int getMaxAttempts() {
+		return getConfiguration().getWorkAllocationMaxAttempts();
+	}
+
+	private long getDelayInterval() {
+		return getConfiguration().getWorkAllocationRetryInterval();
+	}
+
+	private long getInitialDelay() {
+		return getConfiguration().getWorkAllocationInitialDelay();
+	}
+
+	private TaskManagerConfiguration getConfiguration() {
+		return ((TaskManagerQuartzImpl) taskManager).getConfiguration();
 	}
 
 	private void setOrUpdateEstimatedNumberOfBuckets(Task task, WorkSegmentationStrategy workStateStrategy, OperationResult result)
@@ -255,8 +278,12 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	}
 
 	private void dynamicSleep(long delay, Context ctx) throws InterruptedException {
+		dynamicSleep(delay, ctx.canRunSupplier);
+	}
+
+	private void dynamicSleep(long delay, Supplier<Boolean> canRunSupplier) throws InterruptedException {
 		while (delay > 0) {
-			if (!ctx.canRun()) {
+			if (!canRun(canRunSupplier)) {
 				throw new InterruptedException();
 			}
 			Thread.sleep(Math.min(delay, DYNAMIC_SLEEP_INTERVAL));
@@ -556,8 +583,8 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 	}
 
-	public void setFreeBucketWaitInterval(long freeBucketWaitInterval) {
-		this.freeBucketWaitInterval = freeBucketWaitInterval;
+	public void setFreeBucketWaitIntervalOverride(Long value) {
+		this.freeBucketWaitIntervalOverride = value;
 	}
 
 	// TODO
@@ -592,5 +619,16 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 		// TODO update sorting criteria
 		return updatedQuery;
+	}
+
+	public void executeInitialDelay(TaskQuartzImpl task) throws InterruptedException {
+		if (task.getWorkManagement() != null && task.getWorkManagement().getTaskKind() == TaskKindType.WORKER) {
+			long delay = (long) (Math.random() * getInitialDelay());
+			if (delay != 0) {
+				// temporary info level logging
+				LOGGER.info("executeInitialDelay: waiting {} ms in {}", delay, task);
+				dynamicSleep(delay, task::canRun);
+			}
+		}
 	}
 }

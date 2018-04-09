@@ -69,7 +69,7 @@ public class WorkSegmentationStrategyFactory {
 					PrismContext.class);
 			return constructor.newInstance(configuration, prismContext);
 		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-			throw new SystemException("Couldn't instantiate work bucket segmentation strategy " + strategyClass + " for " + configuration);
+			throw new SystemException("Couldn't instantiate work bucket segmentation strategy " + strategyClass + " for " + configuration, e);
 		}
 	}
 

@@ -184,7 +184,7 @@ public class ContextFactory {
 		LensFocusContext<F> focusContext = syncContext.createFocusContext();
 		focusContext.setLoadedObject(focus);
 		focusContext.setOid(focus.getOid());
-		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
+		syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
 		syncContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
 		return syncContext;
     }
@@ -198,7 +198,7 @@ public class ContextFactory {
     	projectionContext.setLoadedObject(shadow);
     	projectionContext.setOid(shadow.getOid());
     	projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
-		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE));
+		syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
 		return syncContext;
     }
 
