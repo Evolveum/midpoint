@@ -68,7 +68,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
     }
 
     // TODO clean this up
-    private class EvaluationContext {
+    private static class EvaluationContext {
 		private final List<LocalizableMessage> messages = new ArrayList<>();
 		private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
     }

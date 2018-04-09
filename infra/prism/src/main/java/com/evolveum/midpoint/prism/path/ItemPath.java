@@ -401,7 +401,7 @@ public class ItemPath implements Serializable, Cloneable {
 	/**
 	 * Alternative to normalization: reads the same sequence of segments of 'path' as segments of 'path.normalize()'
 	 */
-	private class ItemPathNormalizingIterator implements Iterator<ItemPathSegment> {
+	private static class ItemPathNormalizingIterator implements Iterator<ItemPathSegment> {
 		final ItemPath path;
 		private int i = 0;
 		private boolean nextIsArtificialId = false;

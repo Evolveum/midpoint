@@ -256,7 +256,7 @@ public class PasswordPanel extends InputPanel {
         }
     }
 
-    private class PasswordModel implements IModel<String> {
+    private static class PasswordModel implements IModel<String> {
 
     	IModel<ProtectedStringType> psModel;
 

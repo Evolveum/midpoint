@@ -108,7 +108,7 @@ public class WfStageComputeHelper {
 	}
 
 	// TODO name
-	public class ComputationResult {
+	public static class ComputationResult {
 		private ApprovalLevelOutcomeType predeterminedOutcome;
 		private AutomatedCompletionReasonType automatedCompletionReason;
 		private Set<ObjectReferenceType> approverRefs;

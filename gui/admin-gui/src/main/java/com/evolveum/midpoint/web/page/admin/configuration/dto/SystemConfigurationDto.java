@@ -64,7 +64,7 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_ADMIN_GUI_CONFIGURATION = "adminGuiConfiguration";
 	private AEPlevel aepLevel;
 
-	private class CleanupInfo implements Serializable {
+	private static class CleanupInfo implements Serializable {
 		String ageValue;
 		Integer records;
 

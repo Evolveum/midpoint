@@ -35,7 +35,7 @@ public class DuplicateObjectTypeDetector {
 		return sb.toString();
 	}
 
-	private class ObjectTypeRecord {
+	private static class ObjectTypeRecord {
 
 		@NotNull public final ShadowKindType kind;
 		@NotNull public final String intent;
