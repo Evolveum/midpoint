@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -114,7 +115,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		if (approveObjectAdd()) {
 			MetadataType metadata = pirateAfter.asObjectable().getMetadata();
 			assertEquals("Wrong create approver ref",
-					singleton(ObjectTypeUtil.createObjectRef(userLead1Oid, PolyStringType.fromOrig("lead1"), ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
+					singleton(ObjectTypeUtil.createObjectRef(userLead1Oid, new PolyStringType(new PolyString("lead1", "lead1")), ObjectTypes.USER).relation(SchemaConstants.ORG_DEFAULT)),
 					new HashSet<>(metadata.getCreateApproverRef()));
 			assertEquals("Wrong create approval comments",
 					singleton("lead1 :: creation comment"),
