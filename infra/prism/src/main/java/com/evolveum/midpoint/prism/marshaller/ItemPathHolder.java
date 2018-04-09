@@ -543,17 +543,18 @@ public class ItemPathHolder {
 
 	private void addExplicitNsDeclarations(StringBuilder sb) {
 		if (explicitNamespaceDeclarations != null) {
-			for (String prefix : explicitNamespaceDeclarations.keySet()) {
+			for (Map.Entry<String, String> prefix : explicitNamespaceDeclarations.entrySet()) {
 				sb.append("declare ");
+				final String declaration = explicitNamespaceDeclarations.get(prefix);
 				if (prefix.equals("")) {
 					sb.append("default namespace '");
-					sb.append(explicitNamespaceDeclarations.get(prefix));
+					sb.append(declaration);
 					sb.append("'; ");
 				} else {
 					sb.append("namespace ");
 					sb.append(prefix);
 					sb.append("='");
-					sb.append(explicitNamespaceDeclarations.get(prefix));
+					sb.append(declaration);
 					sb.append("'; ");
 				}
 			}
