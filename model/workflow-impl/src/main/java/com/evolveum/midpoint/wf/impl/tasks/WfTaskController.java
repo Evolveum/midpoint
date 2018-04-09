@@ -116,9 +116,7 @@ public class WfTaskController {
 	 */
     public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType,
 			String channelOverride, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
-        }
+	    LOGGER.trace("Processing start instruction:\n{}", instruction.debugDumpLazily());
         Task task = submitTask(instruction, parentTask, wfConfigurationType, channelOverride, result);
 		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
