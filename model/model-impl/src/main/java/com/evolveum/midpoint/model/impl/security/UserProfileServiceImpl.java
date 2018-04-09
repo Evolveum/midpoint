@@ -63,8 +63,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -79,7 +79,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -113,10 +112,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	private static final long MAX_CACHE_SIZE = 5000;
 	private static final long MAX_CACHE_TTL = 60 * 1000; // 60 seconds
 	// caches <user.name, oid>
-	private LoadingCache<String, String> oidCache;
+	private Cache<String, String> oidCache;
 
 	{
-		oidCache = (LoadingCache) CacheBuilder.newBuilder()
+		oidCache = CacheBuilder.newBuilder()
 				.expireAfterAccess(MAX_CACHE_TTL, TimeUnit.MILLISECONDS)
 				.concurrencyLevel(20)
 				.maximumSize(MAX_CACHE_SIZE)
@@ -194,15 +193,14 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String oid = null;
 		try {
-			oid = oidCache.get(username);
+			oid = oidCache.getIfPresent(username);
 		} catch (Exception ex) {
 		}
 		if (oid != null) {
-			Collection<SelectorOptions<GetOperationOptions>> options = Arrays.asList(
-					SelectorOptions.create(GetOperationOptions.createPointInTimeType(PointInTimeType.CACHED)),
-					SelectorOptions.create(GetOperationOptions.createStaleness(MAX_CACHE_TTL)));
+			GetOperationOptions opts = GetOperationOptions.createPointInTimeType(PointInTimeType.CACHED);
+			opts.setStaleness(MAX_CACHE_TTL);
 
-			PrismObject user = repositoryService.getObject(UserType.class, oid, options, result);
+			PrismObject user = repositoryService.getObject(UserType.class, oid, SelectorOptions.createCollection(opts), result);
 			String userName = user.getName() != null ? user.getName().getOrig() : null;
 			if (Objects.equals(username, userName)) {
 				return user;
