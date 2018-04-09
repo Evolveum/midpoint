@@ -141,6 +141,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
         newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         ContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
         newAssignmentWrapper.setShowEmpty(true, false);
+        newAssignmentWrapper.computeStripes();
         assignmentDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
 	}
 

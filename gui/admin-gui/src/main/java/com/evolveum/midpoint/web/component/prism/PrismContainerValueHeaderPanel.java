@@ -120,9 +120,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
         	@Override
             public void onClick(AjaxRequestTarget target) {
-        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
-        		containerValueWrapper.sort();
+	        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+	        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
+	        		containerValueWrapper.sort();
+	        		containerValueWrapper.computeStripes();
 
                 onButtonClick(target);
             }
@@ -283,6 +284,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 		wrapper.setShowEmpty(!wrapper.isShowEmpty(), false);
 			
+		wrapper.computeStripes();
 		onButtonClick(target);
 		
 	}
