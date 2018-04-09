@@ -70,7 +70,7 @@ public class NinjaUtils {
         }
 
         JCommander jc = builder.build();
-        jc.setProgramName("java [-cp <jdbc_driver_jar>] -jar ninja.jar");
+        jc.setProgramName("java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar");
         jc.setColumnSize(150);
         jc.setAtFileCharset(Charset.forName(base.getCharset()));
 
