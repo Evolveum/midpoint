@@ -42,7 +42,10 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
@@ -79,7 +82,6 @@ import org.springframework.stereotype.Service;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -108,15 +110,15 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	private MessageSourceAccessor messages;
 
-	private static final long MAX_CACHE_SIZE = 1000;
-	private static final long MAX_CACHE_TTL = 60; // 60 seconds
-	private static final long CACHE_VERSION_CHECK = 5 * 1000; // 5 seconds
-	private LoadingCache<String, CacheValue> cache;
+	private static final long MAX_CACHE_SIZE = 5000;
+	private static final long MAX_CACHE_TTL = 60 * 1000; // 60 seconds
+	// caches <user.name, oid>
+	private LoadingCache<String, String> oidCache;
 
 	{
-		cache = (LoadingCache) CacheBuilder.newBuilder()
-				.expireAfterAccess(MAX_CACHE_TTL, TimeUnit.SECONDS)
-				.concurrencyLevel(10)
+		oidCache = (LoadingCache) CacheBuilder.newBuilder()
+				.expireAfterAccess(MAX_CACHE_TTL, TimeUnit.MILLISECONDS)
+				.concurrencyLevel(20)
 				.maximumSize(MAX_CACHE_SIZE)
 				.build();
 	}
@@ -190,23 +192,19 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		CacheValue cached = null;
+		String oid = null;
 		try {
-			cached = cache.get(username);
+			oid = oidCache.get(username);
 		} catch (Exception ex) {
 		}
-		if (cached != null) {
-			PrismObject user = cached.getObject();
+		if (oid != null) {
+			Collection<SelectorOptions<GetOperationOptions>> options = Arrays.asList(
+					SelectorOptions.create(GetOperationOptions.createPointInTimeType(PointInTimeType.CACHED)),
+					SelectorOptions.create(GetOperationOptions.createStaleness(MAX_CACHE_TTL)));
 
-			if (cached.getTtl() < System.currentTimeMillis()) {
-				LOGGER.debug("Cache HIT");
-				return user;
-			}
-
-			String version = repositoryService.getVersion(UserType.class, user.getOid(), result);
-			if (Objects.equals(user.getVersion(), version)) {
-				cache.put(username, new CacheValue(user, System.currentTimeMillis() + CACHE_VERSION_CHECK));
-				LOGGER.debug("Cache HIT, version check");
+			PrismObject user = repositoryService.getObject(UserType.class, oid, options, result);
+			String userName = user.getName() != null ? user.getName().getOrig() : null;
+			if (Objects.equals(username, userName)) {
 				return user;
 			}
 		}
@@ -221,8 +219,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             return null;
         }
         PrismObject<UserType> user = list.get(0);
-        cache.put(username, new CacheValue(user, System.currentTimeMillis() + CACHE_VERSION_CHECK));
-		LOGGER.debug("Cache MISS");
+        oidCache.put(username, user.getOid());
 
         return user;
     }
@@ -422,24 +419,5 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
 		// TODO Auto-generated method stub
 
-	}
-
-	private static class CacheValue implements Serializable {
-
-		private PrismObject<UserType> object;
-		private long ttl;
-
-		public CacheValue(PrismObject<UserType> object, long ttl) {
-			this.object = object;
-			this.ttl = ttl;
-		}
-
-		public PrismObject<UserType> getObject() {
-			return object;
-		}
-
-		public long getTtl() {
-			return ttl;
-		}
 	}
 }
