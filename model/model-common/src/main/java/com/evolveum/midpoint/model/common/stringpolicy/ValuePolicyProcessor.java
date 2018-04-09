@@ -554,9 +554,10 @@ public class ValuePolicyProcessor {
 		 * first in password
 		 */
 		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<>();
-		for (StringLimitType l : lims.keySet()) {
-			if (l.isMustBeFirst() != null && l.isMustBeFirst()) {
-				mustBeFirst.put(l, lims.get(l));
+		for (Map.Entry<StringLimitType, List<String>> entry : lims.entrySet()) {
+			final StringLimitType key = entry.getKey();
+			if (key.isMustBeFirst() != null && key.isMustBeFirst()) {
+				mustBeFirst.put(key, entry.getValue());
 			}
 		}
 
@@ -771,26 +772,28 @@ public class ValuePolicyProcessor {
 			List<String> password, Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<>();
 
-		for (StringLimitType l : lims.keySet()) {
+		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<>();
+		for (Map.Entry<StringLimitType, List<String>> entry : lims.entrySet()) {
+			final StringLimitType key = entry.getKey();
 			int counterKey = 1;
-			List<String> chars = lims.get(l);
+			List<String> chars = entry.getValue();
 			int i = 0;
 			if (null != password) {
-				i = charIntersectionCounter(lims.get(l), password);
+				i = charIntersectionCounter(entry.getValue(), password);
 			}
 			// If max is exceed then error unable to continue
-			if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
-				OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
+			if (key.getMaxOccurs() != null && i > key.getMaxOccurs()) {
+				OperationResult o = new OperationResult("Limitation check :" + key.getDescription());
 				o.recordFatalError(
-						"Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
+					"Exceeded maximal value for this limitation. " + i + ">" + key.getMaxOccurs());
 				op.addSubresult(o);
 				return null;
 				// if max is all ready reached or skip enabled for minimal skip
 				// counting
-			} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
+			} else if (key.getMaxOccurs() != null && i == key.getMaxOccurs()) {
 				continue;
 				// other cases minimum is not reached
-			} else if ((l.getMinOccurs() == null || i >= l.getMinOccurs()) && !skipMatchedLims) {
+			} else if ((key.getMinOccurs() == null || i >= key.getMinOccurs()) && !skipMatchedLims) {
 				continue;
 			}
 			for (String s : chars) {
@@ -803,8 +806,8 @@ public class ValuePolicyProcessor {
 				}
 			}
 			counterKey++;
-
 		}
+
 
 		// If need to remove disabled chars (already reached limitations)
 		if (null != password) {

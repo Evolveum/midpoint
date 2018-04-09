@@ -357,18 +357,18 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 map.put(key, properties.getProperty(key));
             }
 
-            for (String key : localeMap.keySet()) {
-                Map<String, String> localeDefinition = localeMap.get(key);
-                if (!localeDefinition.containsKey(key + PROP_NAME)
-                        || !localeDefinition.containsKey(key + PROP_FLAG)) {
+            for (Map.Entry<String, Map<String, String>> entry : localeMap.entrySet()) {
+                Map<String, String> localeDefinition = entry.getValue();
+                if (!localeDefinition.containsKey(entry + PROP_NAME)
+                        || !localeDefinition.containsKey(entry + PROP_FLAG)) {
                     continue;
                 }
 
                 LocaleDescriptor descriptor = new LocaleDescriptor(
-                        localeDefinition.get(key + PROP_NAME),
-                        localeDefinition.get(key + PROP_FLAG),
-                        localeDefinition.get(key + PROP_DEFAULT),
-                        WebComponentUtil.getLocaleFromString(key)
+                        localeDefinition.get(entry + PROP_NAME),
+                        localeDefinition.get(entry + PROP_FLAG),
+                        localeDefinition.get(entry + PROP_DEFAULT),
+                        WebComponentUtil.getLocaleFromString(entry.getKey())
                 );
                 locales.add(descriptor);
             }

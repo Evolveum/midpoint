@@ -105,7 +105,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 	}
 
-	private class IterativeParsingContext {
+	private static class IterativeParsingContext {
 		final RootXNodeHandler handler;
 		boolean dataSent;                      // true if we really found the list of objects and sent it out
 		String defaultNamespace;               // default namespace, if present
@@ -621,7 +621,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
 	//region Serialization implementation
 
-	class JsonSerializationContext {
+	static class JsonSerializationContext {
 		@NotNull final JsonGenerator generator;
 		@NotNull private final SerializationContext prismSerializationContext;
 		private String currentNamespace;

@@ -209,7 +209,7 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 		return rv;
 	}
 
-	private class Scanner {
+	private static class Scanner {
 		final String string;
 		int index;
 

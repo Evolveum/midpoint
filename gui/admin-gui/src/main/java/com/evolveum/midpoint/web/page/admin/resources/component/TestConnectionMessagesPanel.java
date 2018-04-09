@@ -160,7 +160,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
         }
     }
 
-	private class ConnectorStruct implements Serializable {
+	private static class ConnectorStruct implements Serializable {
 		private String connectorName;
 		private List<OpResult> connectorResultsDto;
 	}
