@@ -694,7 +694,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			}
 			policy = valuePolicy.asObjectable();
 		}
-
+		
 		return getModelInteractionService().generateValue(policy,
 				24, false, user, "nonce generation (registration)", task, result);
 	}

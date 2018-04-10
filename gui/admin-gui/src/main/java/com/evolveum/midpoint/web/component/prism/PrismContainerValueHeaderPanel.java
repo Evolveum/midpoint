@@ -16,7 +16,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.wicket.model.Model;
@@ -260,7 +264,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
 		isChildContainersSelectorPanelVisible = false;
 		getModelObject().setShowEmpty(true, false);
-		getModelObject().addNewChildContainerValue(getSelectedContainerQName(), getPageBase());
+		createNewContainerValue(getModelObject(), getSelectedContainerQName());
 		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
 	}
 
@@ -286,6 +290,30 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		onButtonClick(target);
 		
 	}
+	
+	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
+		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(new ItemPath(getPath(), path));
+		if (childContainerWrapper == null){
+			return;
+		}
+		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
+		if (isSingleValue){
+			return;
+		}
+		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
+		
+		Task task = getPageBase().createSimpleTask("Creating new container value wrapper");
+		
+		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+		ContainerValueWrapper<C> newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
+				newContainerValue, containerValueWrapper.getObjectStatus(),
+				ValueStatus.ADDED, new ItemPath(path), task);
+		newValueWrapper.setShowEmpty(true, false);
+		newValueWrapper.computeStripes();
+		childContainerWrapper.getValues().add(newValueWrapper);
+
+	}
+
 
 
 }
