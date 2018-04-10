@@ -135,7 +135,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             // adhoc check whether reference.targetName is preserved
             if ("atestuserX00003".equals(PolyString.getOrig(object.getName()))) {
                 String personaName = PolyString.getOrig(((UserType) object.asObjectable()).getPersonaRef().get(0).getTargetName());
-                assertEquals("Wrong personaRef.targetName on atestuserX00003", "u-000", personaName);
+                assertEquals("Wrong personaRef.targetName on atestuserX00003", null, personaName);
                 foundAtestuserX00003 = true;
                 break;
             }

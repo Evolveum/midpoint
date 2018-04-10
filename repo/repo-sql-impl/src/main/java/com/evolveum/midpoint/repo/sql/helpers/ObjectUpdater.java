@@ -235,8 +235,7 @@ public class ObjectUpdater {
         // Its' because we're removing some properties during save operation and if save fails,
         // overwrite attempt (for example using object importer) might try to delete existing object
         // and then try to save this object one more time.
-        SerializationOptions options = SerializationOptions.createSerializeReferenceNames();
-        String xml = prismContext.xmlSerializer().options(options).serialize(savedObject);
+        String xml = prismContext.xmlSerializer().serialize(savedObject);
         savedObject = prismContext.parseObject(xml);
 
         if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
@@ -247,7 +246,7 @@ public class ObjectUpdater {
             savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
         }
 
-        xml = prismContext.xmlSerializer().options(options).serialize(savedObject);
+        xml = prismContext.xmlSerializer().serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         LOGGER.trace("Storing full object\n{}", xml);
