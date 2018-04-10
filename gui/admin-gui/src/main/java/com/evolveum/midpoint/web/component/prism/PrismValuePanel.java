@@ -40,6 +40,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -247,6 +248,15 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					ItemDefinition def = itemWrapper.getItem().getDefinition();
 
 					return object == null || isAccessible(def, object.getStatus());
+				}
+
+				@Override
+				public void onComponentTag(Component component, ComponentTag tag) {
+					if (component instanceof TextField && !isEnabled()) {
+						tag.remove("disabled");
+						tag.append("class", "input-readonly", " ");
+						tag.append("readonly", "readonly", " ");
+					}
 				}
 			});
 		}
