@@ -587,7 +587,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		return this;
 	}
 
-	class LookupReportPropertyModel extends LookupPropertyModel<String> {
+    static class LookupReportPropertyModel extends LookupPropertyModel<String> {
 
 		private static final long serialVersionUID = 1L;
 

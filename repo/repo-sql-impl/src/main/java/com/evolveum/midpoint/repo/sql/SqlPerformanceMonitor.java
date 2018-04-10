@@ -51,7 +51,7 @@ public class SqlPerformanceMonitor {
 
     private SqlRepositoryFactory sqlRepositoryFactory;
 
-    class OperationRecord {
+    static class OperationRecord {
         String kind;
         long handle;
         int attempts;
@@ -121,7 +121,7 @@ public class SqlPerformanceMonitor {
 
     }
 
-    class StatEntry {
+    static class StatEntry {
         long totalTime, wastedTime;
         int attempts;
         int records;

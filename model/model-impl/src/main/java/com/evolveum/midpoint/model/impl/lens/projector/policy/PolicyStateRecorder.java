@@ -129,7 +129,7 @@ public class PolicyStateRecorder {
 		return cr;
 	}
 
-	private class ComputationResult {
+	private static class ComputationResult {
 		final Set<String> oldPolicySituations = new HashSet<>();
 		final Set<String> newPolicySituations = new HashSet<>();
 		final Set<EvaluatedPolicyRuleType> oldTriggeredRules = new HashSet<>();

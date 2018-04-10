@@ -1117,8 +1117,8 @@ public class SchemaProcessor implements Processor {
 
 			print("Updating fields and get/set methods: " + classOutline.implClass.fullName());
 
-			for (String field : fields.keySet()) {
-                JFieldVar fieldVar = fields.get(field);
+			for (Map.Entry<String, JFieldVar> field : fields.entrySet()) {
+				JFieldVar fieldVar = field.getValue();
 				// marks a:rawType fields with @Raw - this has to be executed for any bean, not only for prism containers
                 if (hasAnnotation(classOutline, fieldVar, A_RAW_TYPE) != null) {
                     annotateFieldAsRaw(fieldVar);
@@ -1134,7 +1134,7 @@ public class SchemaProcessor implements Processor {
         }
 
         allFieldsToBeRemoved.forEach((jDefinedClass, jFieldVars) -> {
-        	jFieldVars.forEach(field -> jDefinedClass.removeField(field));
+        	jFieldVars.forEach(jDefinedClass::removeField);
 		});
     }
 
@@ -1148,6 +1148,7 @@ public class SchemaProcessor implements Processor {
 		boolean isObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
 
 		List<JFieldVar> fieldsToBeRemoved = new ArrayList<>();
+		// WARNING: cannot change to entrySet. For some reason entrySet does not work here.
 		for (String field : fields.keySet()) {
 			JFieldVar fieldVar = fields.get(field);
 			if (isAuxiliaryField(fieldVar)) {
@@ -1183,8 +1184,8 @@ public class SchemaProcessor implements Processor {
 
 	private void createFluentFieldMethods(ClassOutline targetClass, ClassOutline sourceClass) {
 		Map<String, JFieldVar> fields = sourceClass.implClass.fields();
-		for (String field : fields.keySet()) {
-			JFieldVar fieldVar = fields.get(field);
+		for (Map.Entry<String, JFieldVar> field : fields.entrySet()) {
+			JFieldVar fieldVar = field.getValue();
 			if (!isAuxiliaryField(fieldVar) && !hasAnnotationClass(fieldVar, XmlAnyElement.class)) {
 				createFluentFieldMethods(fieldVar, targetClass, sourceClass);
 			}

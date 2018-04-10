@@ -232,7 +232,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return true;
     }
 
-    class RoleRelationSelectionDto implements Serializable {
+    static class RoleRelationSelectionDto implements Serializable {
 		
 		private static final long serialVersionUID = 1L;
 		private boolean approver;

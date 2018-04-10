@@ -71,11 +71,11 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
         }
 
         sb.append('{');
-        Iterator<String> keys = map.keySet().iterator();
+       Iterator<Map.Entry<String, String>> keys = map.entrySet().iterator();
         while (keys.hasNext()) {
-            String key = keys.next();
-            sb.append(key).append(":");
-            sb.append('\'').append(map.get(key)).append('\'');
+            final Map.Entry<String, String> key = keys.next();
+            sb.append(key.getKey()).append(":");
+            sb.append('\'').append(key.getValue()).append('\'');
             if (keys.hasNext()) {
                 sb.append(",\n");
             }

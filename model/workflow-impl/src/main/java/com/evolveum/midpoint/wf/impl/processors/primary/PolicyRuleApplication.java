@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class PolicyRuleApplication {
 
-	class Cause {
+	static class Cause {
 		private final ResourceShadowDiscriminator shadowDiscriminator;		// non-null for projection context
 		@NotNull private final ItemPath itemPath;							// should be non-empty
 		@NotNull private final PrismValue itemValue;
