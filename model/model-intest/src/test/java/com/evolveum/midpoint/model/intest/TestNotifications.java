@@ -365,6 +365,60 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     }
 
 	@Test
+	public void test135ModifyUserJackAssignRole() throws Exception {
+		final String TEST_NAME = "test135ModifyUserJackAssignRole";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("executeChanges result", result);
+
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertAssignedRole(userJack, ROLE_SUPERUSER_OID);
+		assertAssignments(userJack, 2);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("accountPasswordNotifier", 0);
+		checkDummyTransportMessages("userPasswordNotifier", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+		checkDummyTransportMessages("simpleUserNotifier", 1);
+		checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+		assertSteadyResources();
+
+		String expected = "Notification about user-related operation (status: SUCCESS)\n"
+				+ "\n"
+				+ "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+				+ "\n"
+				+ "The user record was modified. Modified attributes are:\n"
+				+ " - Assignment:\n"
+				+ "   - ADD: \n"
+				+ "      - Target: Superuser (role)\n"
+				+ "\n"
+				+ "Channel: ";
+		assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+
+	}
+
+	@Test
 	public void test200SendSmsUsingGet() {
 		final String TEST_NAME = "test200SendSmsUsingGet";
 		TestUtil.displayTestTitle(this, TEST_NAME);
