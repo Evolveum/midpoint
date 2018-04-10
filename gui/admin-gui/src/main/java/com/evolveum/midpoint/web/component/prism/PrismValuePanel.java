@@ -252,8 +252,9 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 				@Override
 				public void onComponentTag(Component component, ComponentTag tag) {
-					if (!isEnabled()) {
+					if (component instanceof TextField && !isEnabled()) {
 						tag.remove("disabled");
+						tag.append("class", "input-readonly", " ");
 						tag.append("readonly", "readonly", " ");
 					}
 				}
