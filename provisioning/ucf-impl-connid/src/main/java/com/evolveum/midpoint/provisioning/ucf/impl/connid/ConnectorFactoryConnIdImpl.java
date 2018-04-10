@@ -41,6 +41,7 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration.Configuration;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
@@ -173,17 +174,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
-	private Set<URI> bundleURLs;
+	private Set<URI> bundleURIs;
 	private Set<ConnectorType> localConnectorTypes = null;
 
-	@Autowired(required = true)
-	private MidpointConfiguration midpointConfiguration;
-
-	@Autowired(required = true)
-	private Protector protector;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private Protector protector;
+	@Autowired private PrismContext prismContext;
 
 	public ConnectorFactoryConnIdImpl() {
 	}
@@ -196,26 +192,26 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public void initialize() {
 
 		// OLD
-		// bundleURLs = listBundleJars();
-		bundleURLs = new HashSet<>();
+		// bundleURIs = listBundleJars();
+		bundleURIs = new HashSet<>();
 
 		Configuration config = midpointConfiguration.getConfiguration("midpoint.icf");
 
 		// Is classpath scan enabled
 		if (config.getBoolean("scanClasspath")) {
 			// Scan class path
-			bundleURLs.addAll(scanClassPathForBundles());
+			bundleURIs.addAll(scanClassPathForBundles());
 		}
 
 		// Scan all provided directories
 		@SuppressWarnings("unchecked")
 		List<String> dirs = config.getList("scanDirectory");
 		for (String dir : dirs) {
-			bundleURLs.addAll(scanDirectory(dir));
+			bundleURIs.addAll(scanDirectory(dir));
 		}
 
-		for (URI u : bundleURLs) {
-			LOGGER.debug("ICF bundle URL : {}", u);
+		for (URI u : bundleURIs) {
+			LOGGER.debug("ICF bundle URI : {}", u);
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
@@ -502,18 +498,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 *
 	 * @return ICF connector info manager that manages local connectors
 	 */
+
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			URL[] urls = new URL[bundleURLs.size()];
-			int i = 0;
-			for (URI uri : bundleURLs) {
-				try {
-					urls[i] = uri.toURL();
-				} catch (MalformedURLException ex) {
-					throw new SystemException(ex);
-				}
-				i++;
-			}
+			URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
 			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
 		}
 		return localConnectorInfoManager;

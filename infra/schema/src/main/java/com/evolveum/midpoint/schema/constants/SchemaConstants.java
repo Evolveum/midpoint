@@ -466,7 +466,9 @@ public abstract class SchemaConstants {
 	public static final QName C_FROM = new QName(NS_C, "from");
 	public static final QName C_ENCODED_FROM = new QName(NS_C, "encodedFrom");
 	public static final QName C_TO = new QName(NS_C, "to");
+	public static final QName C_TO_LIST = new QName(NS_C, "toList");
 	public static final QName C_ENCODED_TO = new QName(NS_C, "encodedTo");
+	public static final QName C_ENCODED_TO_LIST = new QName(NS_C, "encodedToList");
 	public static final QName C_MESSAGE_TEXT = new QName(NS_C, "messageText");
 	public static final QName C_ENCODED_MESSAGE_TEXT = new QName(NS_C, "encodedMessageText");
 	public static final QName C_MESSAGE = new QName(NS_C, "message");
