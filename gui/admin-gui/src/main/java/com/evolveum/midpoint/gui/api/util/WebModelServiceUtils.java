@@ -713,8 +713,7 @@ public class WebModelServiceUtils {
 		}
 	}
 
-	public static boolean isEnableExperimentalFeature(ModelServiceLocator pageBase) {
-		Task task = pageBase.createSimpleTask("Load admin gui config");
+	public static boolean isEnableExperimentalFeature(Task task, ModelServiceLocator pageBase) {
 		OperationResult result = task.getResult();
 		
 		ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
@@ -735,6 +734,12 @@ public class WebModelServiceUtils {
 		}
 		
 		return BooleanUtils.isTrue(adminGuiConfig.isEnableExperimentalFeatures());
+		
+	}
+	
+	public static boolean isEnableExperimentalFeature(ModelServiceLocator pageBase) {
+		Task task = pageBase.createSimpleTask("Load admin gui config");
+		return isEnableExperimentalFeature(task, pageBase);
 		
 	}
 
