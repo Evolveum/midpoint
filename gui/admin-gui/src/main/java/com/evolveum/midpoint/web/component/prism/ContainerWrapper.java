@@ -376,7 +376,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	@Override
 	public void setStripe(boolean isStripe) {
-		// Does not make much sense, but it is given by the interface
+		for (ContainerValueWrapper value : values) {
+			value.computeStripes();
+		}
 	}
 
 	public PrismContainer<C> createContainerAddDelta() throws SchemaException {

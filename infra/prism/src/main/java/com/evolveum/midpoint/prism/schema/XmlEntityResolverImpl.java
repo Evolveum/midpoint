@@ -166,7 +166,7 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 		return inputSource;
 	}
 
-	class Input implements LSInput {
+	static class Input implements LSInput {
 
 		private String publicId;
 		private String systemId;

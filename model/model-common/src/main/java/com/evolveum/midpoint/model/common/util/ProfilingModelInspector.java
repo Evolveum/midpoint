@@ -56,8 +56,8 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 	private ModelContext lastLensContext;
 	private ModelState currentState = null;
 	private long totalRepoTime = 0;
-	
-	class Runtimes {
+
+	static class Runtimes {
 		long startTime = 0;
 		long finishTime = 0;
 		
@@ -70,7 +70,7 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 		}
 	}
 	
-	class PartRuntime {
+	static class PartRuntime {
 		
 		public PartRuntime(String part) {
 			super();

@@ -135,7 +135,7 @@ public class PageCase  extends PageAdminCases {
             result.recordFatalError("Couldn't get case.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
             try {
-				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status);
+				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status, task);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}

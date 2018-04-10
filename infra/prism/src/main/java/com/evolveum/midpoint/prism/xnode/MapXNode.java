@@ -395,7 +395,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return new RootXNode(key, get(key));
 	}
 
-	private class Entry implements Map.Entry<QName, XNode>, Serializable {
+	private static class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;
 		private XNode value;

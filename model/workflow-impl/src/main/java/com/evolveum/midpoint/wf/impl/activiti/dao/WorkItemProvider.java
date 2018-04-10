@@ -249,7 +249,7 @@ public class WorkItemProvider {
 	/**
      * Helper class to carry relevant data from both Task and DelegateTask (to avoid code duplication)
      */
-    private class TaskExtract {
+    private static class TaskExtract {
 
         private String id;
         private String assignee;

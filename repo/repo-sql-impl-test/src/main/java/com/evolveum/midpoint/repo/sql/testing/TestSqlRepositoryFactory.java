@@ -148,7 +148,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         if (value == null) {
             return;
         }
-        boolean val = new Boolean(value).booleanValue();
+        boolean val = Boolean.valueOf(value);
         LOGGER.info("Overriding loaded configuration with value read from system properties: {}={}", propertyName, val);
         configuration.setProperty(propertyName, val);
     }

@@ -635,7 +635,6 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 		target.add(getFeedbackPanel());
 
-		result.recomputeStatus();
 		showResult(result);
 	}
 
