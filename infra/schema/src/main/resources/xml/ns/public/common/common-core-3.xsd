@@ -18289,6 +18289,7 @@
        			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
        			<!-- TODO: refernce to object collection (MID-3517) -->
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto"/>
            		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
            		<!-- TODO: number of results per page (MID-1931) -->
            		<!-- TODO: later: export settings (GuiExportSettingsType) -->
@@ -18346,6 +18347,41 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FULLTEXT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="DistinctSearchOptionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies whether "distinct" option should be used in database searches.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="auto">
+				<xsd:annotation>
+					<xsd:documentation>
+						Automatic use of distinct option. The code would use distinct option
+						in case that the query suggest that there is possibility of search
+						result duplication.
+						Note: use of "distinct" option will produce cleaner (not duplicated)
+						search results. But its use may have performance impact.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="AUTO"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="never">
+				<xsd:annotation>
+					<xsd:documentation>
+						Disable use of "distinct" option. The option would never be used,
+						even if there is a risk of search result duplication.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NEVER"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
