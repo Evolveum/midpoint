@@ -75,6 +75,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -174,11 +175,8 @@ public class SimpleSmsTransport implements Transport {
             return;
         }
 
-        String to = message.getTo().get(0);
-        if (message.getTo().size() > 1) {
-            String msg = "Currently it is possible to send the SMS to one recipient only. Among " + message.getTo() + " the chosen one is " + to + " (the first one).";
-            LOGGER.warn(msg) ;
-        }
+        List<String> to = message.getTo();
+        assert to.size() > 0;
 
         for (SmsGatewayConfigurationType smsGatewayConfigurationType : smsConfigurationType.getGateway()) {
             OperationResult resultForGateway = result.createSubresult(DOT_CLASS + "send.forGateway");
@@ -342,12 +340,18 @@ public class SimpleSmsTransport implements Transport {
 	    return exprResult.getZeroSet().stream().map(ppv -> ppv.getValue()).collect(Collectors.toList());
     }
 
-    protected ExpressionVariables getDefaultVariables(String from, String to, Message message) throws UnsupportedEncodingException {
+    protected ExpressionVariables getDefaultVariables(String from, List<String> to, Message message) throws UnsupportedEncodingException {
     	ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(SchemaConstants.C_FROM, from);
         variables.addVariableDefinition(SchemaConstants.C_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"));
-        variables.addVariableDefinition(SchemaConstants.C_TO, to);
-        variables.addVariableDefinition(SchemaConstants.C_ENCODED_TO, URLEncoder.encode(to, "US-ASCII"));
+        variables.addVariableDefinition(SchemaConstants.C_TO, to.get(0));
+        variables.addVariableDefinition(SchemaConstants.C_TO_LIST, to);
+	    List<String> encodedTo = new ArrayList<>();
+	    for (String s : to) {
+		    encodedTo.add(URLEncoder.encode(s, "US-ASCII"));
+	    }
+	    variables.addVariableDefinition(SchemaConstants.C_ENCODED_TO, encodedTo.get(0));
+	    variables.addVariableDefinition(SchemaConstants.C_ENCODED_TO_LIST, encodedTo);
         variables.addVariableDefinition(SchemaConstants.C_MESSAGE_TEXT, message.getBody());
         variables.addVariableDefinition(SchemaConstants.C_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"));
         variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
