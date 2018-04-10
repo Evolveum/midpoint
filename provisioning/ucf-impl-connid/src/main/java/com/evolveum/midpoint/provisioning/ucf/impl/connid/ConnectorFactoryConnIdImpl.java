@@ -504,7 +504,17 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 */
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs.toArray(new URL[0]));
+			URL[] urls = new URL[bundleURLs.size()];
+			int i = 0;
+			for (URI uri : bundleURLs) {
+				try {
+					urls[i] = uri.toURL();
+				} catch (MalformedURLException ex) {
+					throw new SystemException(ex);
+				}
+				i++;
+			}
+			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
 		}
 		return localConnectorInfoManager;
 	}
