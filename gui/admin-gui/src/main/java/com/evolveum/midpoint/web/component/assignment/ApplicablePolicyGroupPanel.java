@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
@@ -171,13 +172,15 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
             assignmentsModel.getObject().getValues().remove(assignmentToRemove);
         } else {
             if (added){
+            	//TODO: not sure if this is correct way of creating new value.. this value is added directly to the origin object... what about deltas??
                 PrismContainerValue<AssignmentType> newAssignment = assignmentsModel.getObject().getItem().createNewValue();
                 ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(assignmentTargetObject);
                 AssignmentType assignmentType = newAssignment.asContainerable();
                 assignmentType.setTargetRef(ref);
+                Task task = getPageBase().createSimpleTask("Creating new applicable policy");
                 ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
                 ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(assignmentsModel.getObject(), newAssignment,
-                        assignmentsModel.getObject().getObjectStatus(), ValueStatus.ADDED, assignmentsModel.getObject().getPath());
+                        assignmentsModel.getObject().getObjectStatus(), ValueStatus.ADDED, assignmentsModel.getObject().getPath(), task);
                 valueWrapper.setShowEmpty(true, false);
                 assignmentsModel.getObject().getValues().add(valueWrapper);
             }
