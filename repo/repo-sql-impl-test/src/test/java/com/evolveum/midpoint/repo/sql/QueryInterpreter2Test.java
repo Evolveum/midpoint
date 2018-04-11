@@ -2064,8 +2064,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery2(session, OrgType.class, query, true, distinct());
+            // we probably do not need 'distinct' here
             String expected = "select\n"
-                    + "  count(distinct o.oid)\n"
+                    + "  count(o.oid)\n"
                     + "from\n"
                     + "  ROrg o\n"
                     + "where\n"
@@ -4405,7 +4406,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
 	@Test
-	public void test1101AvailabilityStatus() throws Exception {
+	public void test1110AvailabilityStatus() throws Exception {
 		Session session = open();
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, prismContext)
@@ -4432,7 +4433,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
 	@Test
-	public void test1102NullRefSingle() throws Exception {
+	public void test1120NullRefSingle() throws Exception {
 		Session session = open();
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, prismContext)
@@ -4458,7 +4459,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
 	@Test   // the same as test0142QueryUserAccountRefNull, but keeping because of test structure
-	public void test1103NullRefMulti() throws Exception {
+	public void test1130NullRefMulti() throws Exception {
 		Session session = open();
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
@@ -4486,7 +4487,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
 	@Test
-	public void test1104NullEqSingle() throws Exception {
+	public void test1140NullEqSingle() throws Exception {
 		Session session = open();
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
@@ -4512,7 +4513,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
 	@Test
-	public void test1105NullEqMulti() throws Exception {
+	public void test1150NullEqMulti() throws Exception {
 		Session session = open();
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
@@ -4540,7 +4541,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
 	@Test
-	public void test1106AbstractRoleParameters() throws Exception {
+	public void test1160AbstractRoleParameters() throws Exception {
 		Session session = open();
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
@@ -4572,7 +4573,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	}
 
     @Test
-    public void test1107ExistsShadowPendingOperation() throws Exception {
+    public void test1170ExistsShadowPendingOperation() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -4599,7 +4600,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1108OperationFatalError() throws Exception {
+    public void test1180OperationFatalError() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -4628,7 +4629,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1109OperationSuccessForGivenTask() throws Exception {
+    public void test1190OperationSuccessForGivenTask() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -4666,7 +4667,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1110OperationLastFailures() throws Exception {
+    public void test1200OperationLastFailures() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -4701,7 +4702,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1111PersonaRef() throws Exception {
+    public void test1210PersonaRef() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
@@ -4732,10 +4733,37 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1112DistinctAndOrderBy() throws Exception {
+    public void test1220IgnorableDistinctAndOrderBy() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .asc(UserType.F_NAME)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
+            String expected;
+            expected = "select u.oid,\n"
+                        + "  u.fullObject,\n"
+                        + "  u.stringsCount,\n"
+                        + "  u.longsCount,\n"
+                        + "  u.datesCount,\n"
+                        + "  u.referencesCount,\n"
+                        + "  u.polysCount,\n"
+                        + "  u.booleansCount\n"
+                        + "from\n"
+                        + "  RUser u\n"
+                        + "order by u.nameCopy.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1230ApplicableDistinctAndOrderBy() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_EMPLOYEE_TYPE).startsWith("e")
                     .asc(UserType.F_NAME)
                     .build();
             String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
@@ -4750,7 +4778,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "  u.datesCount,\n"
                         + "  u.referencesCount,\n"
                         + "  u.polysCount,\n"
-                        + "  u.booleansCount\n"
+                        + "  u.booleansCount,\n"
+                        + "  u.nameCopy.orig\n"
                         + "from\n"
                         + "  RUser u\n"
                         + "where\n"
@@ -4758,8 +4787,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "    select distinct\n"
                         + "      u.oid\n"
                         + "    from\n"
-                        + "      RUser u)\n"
-                        + "order by u.name.orig asc";
+                        + "      RUser u left join u.employeeType e where e like :e )\n"
+                        + "order by u.nameCopy.orig asc";
             } else {
                 expected = "select distinct\n"
                         + "  u.oid,\n"
@@ -4772,7 +4801,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "  u.booleansCount,\n"
                         + "  u.nameCopy.orig\n"
                         + "from\n"
-                        + "  RUser u\n"
+                        + "  RUser u left join u.employeeType e where e like :e\n"
                         + "order by u.nameCopy.orig asc\n";
             }
             assertEqualsIgnoreWhitespace(expected, real);
@@ -4782,7 +4811,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1113DistinctUserWithAssignment() throws Exception {
+    public void test1240DistinctUserWithAssignment() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
@@ -4845,7 +4874,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1114CampaignEndTimestamp() throws Exception {
+    public void test1250CampaignEndTimestamp() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
@@ -4879,7 +4908,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1115CampaignEndTimestamp2() throws Exception {
+    public void test1260CampaignEndTimestamp2() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
@@ -4914,13 +4943,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1116DistinctWithCount() throws Exception {
+    public void test1270IgnorableDistinctWithCount() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                     .build();
             String real = getInterpretedQuery2(session, UserType.class, query, true, distinct());
-            String expected = "select count(distinct u.oid) from RUser u";
+            String expected = "select count(u.oid) from RUser u";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -4928,7 +4957,22 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1200OidEqTest() throws Exception {
+    public void test1280ApplicableDistinctWithCount() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_EMPLOYEE_TYPE).startsWith("a")
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query, true, distinct());
+            String expected = "select count(distinct u.oid) from RUser u left join u.employeeType e where e like :e";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1300OidEqTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -4955,7 +4999,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1210OwnerOidEqTest() throws Exception {
+    public void test1310OwnerOidEqTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
@@ -4976,7 +5020,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1220OidGeLtTest() throws Exception {
+    public void test1320OidGeLtTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -5114,7 +5158,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1220QueryOrderByNameOrigLimit20() throws Exception {
+    public void test1400QueryOrderByNameOrigLimit20() throws Exception {
         Session session = open();
 
         try {
@@ -5135,7 +5179,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1230QueryOrderByNameOrigLimit20() throws Exception {
+    public void test1410QueryOrderByNameOrigLimit20() throws Exception {
         Session session = open();
 
         try {

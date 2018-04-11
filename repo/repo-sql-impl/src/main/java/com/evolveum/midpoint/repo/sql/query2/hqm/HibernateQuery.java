@@ -134,6 +134,7 @@ public abstract class HibernateQuery {
         conditions.add(condition);
     }
 
+    // Seems to have some side effects. Do not call twice!
     public String getAsHqlText(int indent, boolean distinct) {
         StringBuilder sb = new StringBuilder();
 

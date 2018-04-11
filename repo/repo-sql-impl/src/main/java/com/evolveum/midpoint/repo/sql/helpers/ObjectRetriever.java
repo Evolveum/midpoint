@@ -309,11 +309,9 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             Number longCount;
             if (query == null || query.getFilter() == null) {
-            	if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))) {
-            		throw new UnsupportedOperationException("Distinct option is not supported here");	// TODO
-				}
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
+	            // note: distinct can be ignored here, as there is no filter, so no joins
                 NativeQuery sqlQuery = session.createNativeQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType, session));
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {

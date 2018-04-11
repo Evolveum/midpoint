@@ -60,7 +60,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
         	}
         	query.setPaging(paging);
 
-            List<PrismObject<NodeType>> nodes = getModel().searchObjects(NodeType.class, query, null, task, result);
+            List<PrismObject<NodeType>> nodes = getModel().searchObjects(NodeType.class, query, createDefaultOptions(), task, result);
 
             for (PrismObject<NodeType> node : nodes) {
                 getAvailableData().add(createNodeDto(node));
@@ -104,7 +104,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
         OperationResult result = new OperationResult(OPERATION_COUNT_NODES);
         Task task = getTaskManager().createTaskInstance(OPERATION_COUNT_NODES);
         try {
-            count = getModel().countObjects(NodeType.class, getQuery(), null, task, result);
+            count = getModel().countObjects(NodeType.class, getQuery(), createDefaultOptions(), task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when counting nodes", ex);
