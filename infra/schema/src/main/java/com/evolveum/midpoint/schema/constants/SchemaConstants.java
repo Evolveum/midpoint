@@ -266,6 +266,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
+	public static final String CHANGE_CHANNEL_RECOMPUTE_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECOMPUTE);
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
@@ -358,6 +359,7 @@ public abstract class SchemaConstants {
 
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+	public static final QName MODEL_EXTENSION_SEARCH_OPTIONS = new QName(NS_MODEL_EXTENSION, "searchOptions");
 	public static final QName MODEL_EXTENSION_ITERATION_METHOD = new QName(NS_MODEL_EXTENSION, "iterationMethod");
 	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");
 	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
@@ -464,7 +466,9 @@ public abstract class SchemaConstants {
 	public static final QName C_FROM = new QName(NS_C, "from");
 	public static final QName C_ENCODED_FROM = new QName(NS_C, "encodedFrom");
 	public static final QName C_TO = new QName(NS_C, "to");
+	public static final QName C_TO_LIST = new QName(NS_C, "toList");
 	public static final QName C_ENCODED_TO = new QName(NS_C, "encodedTo");
+	public static final QName C_ENCODED_TO_LIST = new QName(NS_C, "encodedToList");
 	public static final QName C_MESSAGE_TEXT = new QName(NS_C, "messageText");
 	public static final QName C_ENCODED_MESSAGE_TEXT = new QName(NS_C, "encodedMessageText");
 	public static final QName C_MESSAGE = new QName(NS_C, "message");

@@ -102,7 +102,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 	@PostConstruct
 	public void initialize() throws Exception {
 		super.initialize();
-		workStateManager.setFreeBucketWaitInterval(1000L);
+		workStateManager.setFreeBucketWaitIntervalOverride(1000L);
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 

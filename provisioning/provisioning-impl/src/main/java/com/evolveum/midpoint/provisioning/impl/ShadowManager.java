@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -176,7 +177,7 @@ public class ShadowManager {
 		failureDesc.setObjectDelta(objectDelta);
 		failureDesc.setResource(resource.asPrismObject());
 		failureDesc.setResult(parentResult);
-		failureDesc.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY.getLocalPart());
+		failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 		
 		return failureDesc;
 	}

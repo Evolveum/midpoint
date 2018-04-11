@@ -17,16 +17,14 @@ package com.evolveum.midpoint.repo.common.task;
 
 import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
@@ -194,6 +192,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		OperationResult opResult = runResult.getOperationResult();
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 
+		if (localCoordinatorTask.getChannel() == null) {
+			String channel = getDefaultChannel();
+			if (channel != null) {
+				localCoordinatorTask.setChannel(channel);
+			}
+		}
+
 		try {
 			H resultHandler = setupHandler(runResult, localCoordinatorTask, opResult);
 
@@ -310,6 +315,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		} catch (ExitWorkBucketHandlerException e) {
 			return e.getRunResult();
 		}
+	}
+
+	protected String getDefaultChannel() {
+		return null;
 	}
 
 	private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(
@@ -490,10 +499,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
     // useful e.g. to specify noFetch options for shadow-related queries
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-        return null;
+        return createSearchOptionsFromTask(resultHandler, runResult, coordinatorTask, opResult);
     }
 
-    // as provisioning service does not allow searches without specifying resource or objectclass/kind, we need to be able to contact repository directly
+	// as provisioning service does not allow searches without specifying resource or objectclass/kind, we need to be able to contact repository directly
     // for some specific tasks
     protected boolean useRepositoryDirectly(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return false;
@@ -522,7 +531,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	    return query != null ? query : new ObjectQuery();
     }
 
-    protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask(H resultHandler, TaskRunResult runResult,
+			Task coordinatorTask, OperationResult opResult) {
+		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
+		return MiscSchemaUtil.optionsTypeToOptions(opts);
+	}
+
+	protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
         Class<? extends ObjectType> objectType = getType(task);
         LOGGER.trace("Object type = {}", objectType);
 

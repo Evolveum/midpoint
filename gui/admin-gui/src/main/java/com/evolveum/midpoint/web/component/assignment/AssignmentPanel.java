@@ -50,6 +50,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -224,7 +225,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected abstract ObjectQuery createObjectQuery();
 
-	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
+	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
@@ -459,8 +460,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+		Task task = getPageBase().createSimpleTask("Creating new assignment");
 		ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
-                getModelObject().getObjectStatus(), ValueStatus.ADDED, getModelObject().getPath());
+                getModelObject().getObjectStatus(), ValueStatus.ADDED, getModelObject().getPath(), task);
 		valueWrapper.setShowEmpty(true, false);
 		getModelObject().getValues().add(valueWrapper);
 		return valueWrapper;

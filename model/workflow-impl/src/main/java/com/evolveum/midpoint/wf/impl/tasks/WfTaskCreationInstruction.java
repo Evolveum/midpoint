@@ -372,7 +372,8 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		task.setCategory(TaskCategory.WORKFLOW);
 
 		if (taskObject != null) {
-			task.setObjectRef(taskObject.getOid(), taskObject.getDefinition().getTypeName());
+			//noinspection unchecked
+			task.setObjectRef(ObjectTypeUtil.createObjectRef(taskObject));
 		} else if (parentTask != null && parentTask.getObjectRef() != null) {
 			task.setObjectRef(parentTask.getObjectRef().clone());
 		}

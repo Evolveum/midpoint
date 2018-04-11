@@ -112,7 +112,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                 ObjectReferenceType objectReferenceType = new ObjectReferenceType();
                 objectReferenceType.setType(type);
                 objectReferenceType.setOid(oid);
-
+                // TODO set also targetName [but it seems that this task handler is not used anymore]
                 if (task.getObjectRef() == null) {
                     task.setObjectRef(objectReferenceType);
                 } else {
@@ -123,9 +123,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                 try {
                     dependents = wfTask.listDependents(result);
                     dependents.add(wfTask.getParentJob(result));
-                } catch (SchemaException e) {
-                    return reportException("Couldn't get dependents from job " + wfTask, task, result, e);
-                } catch (ObjectNotFoundException e) {
+                } catch (SchemaException | ObjectNotFoundException e) {
                     return reportException("Couldn't get dependents from job " + wfTask, task, result, e);
                 }
 
@@ -133,12 +131,8 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                     if (dependent.getTask().getObjectRef() == null) {
                         try {
                             dependent.getTask().setObjectRefImmediate(objectReferenceType, result);
-                        } catch (ObjectNotFoundException e) {
+                        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
                             // note we DO NOT return, because we want to set all references we can
-                            reportException("Couldn't set object reference on job " + dependent, task, result, e);
-                        } catch (SchemaException e) {
-                            reportException("Couldn't set object reference on job " + dependent, task, result, e);
-                        } catch (ObjectAlreadyExistsException e) {
                             reportException("Couldn't set object reference on job " + dependent, task, result, e);
                         }
                     } else {

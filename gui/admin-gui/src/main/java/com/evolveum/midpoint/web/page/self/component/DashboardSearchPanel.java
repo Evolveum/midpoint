@@ -43,6 +43,11 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
     public DashboardSearchPanel(String id) {
         super(id);
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         SEARCH_TYPES = Arrays.asList(
                 createStringResource("PageDashboard.search.users").getString(),
                 createStringResource("PageDashboard.search.resources").getString(),

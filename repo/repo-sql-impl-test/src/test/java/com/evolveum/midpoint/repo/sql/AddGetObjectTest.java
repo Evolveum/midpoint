@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -126,10 +127,22 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void simpleAddGetTest() throws Exception {
         LOGGER.info("===[ simpleAddGetTest ]===");
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
-        addGetCompare(OBJECTS_FILE);
+        List<PrismObject<?>> objects = addGetCompare(OBJECTS_FILE);
+
+        boolean foundAtestuserX00003 = false;
+        for (PrismObject<?> object : objects) {
+            // adhoc check whether reference.targetName is preserved
+            if ("atestuserX00003".equals(PolyString.getOrig(object.getName()))) {
+                String personaName = PolyString.getOrig(((UserType) object.asObjectable()).getPersonaRef().get(0).getTargetName());
+                assertEquals("Wrong personaRef.targetName on atestuserX00003", null, personaName);
+                foundAtestuserX00003 = true;
+                break;
+            }
+        }
+        assertTrue("User atestuserX00003 was not found", foundAtestuserX00003);
     }
 
-    private void addGetCompare(File file) throws Exception {
+    private List<PrismObject<?>> addGetCompare(File file) throws Exception {
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
         List<String> oids = new ArrayList<>();
 
@@ -141,9 +154,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     object.getCompileTimeClass().getSimpleName()});
             oids.add(repositoryService.addObject(object, null, result));
         }
-        LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(),
-                (System.currentTimeMillis() - time),});
+        LOGGER.info("Time to add objects ({}): {}", elements.size(), System.currentTimeMillis() - time);
 
+        List<PrismObject<?>> objectsRead = new ArrayList<>();
         int count = 0;
         elements = prismContext.parserFor(file).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
@@ -171,10 +184,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
                 System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
 
+                objectsRead.add(newObject);
                 ObjectDelta delta = object.diff(newObject);
-                if (delta == null) {
-                    continue;
-                }
 
                 count += delta.getModifications().size();
                 if (delta.getModifications().size() > 0) {
@@ -186,8 +197,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                             continue;
                         }
                     }
-                    LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1),
-                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
+                    LOGGER.error(">>> {} Found {} changes for {}\n{}", (i + 1),
+                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3));
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
                     if (id.isReplace()) {
                         LOGGER.debug("{}", id.getValuesToReplace().iterator().next());
@@ -199,8 +210,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 throw new RuntimeException("Exception during processing of "+object+": "+ex.getMessage(), ex);
             }
         }
-
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
+        return objectsRead;
     }
 
     private Integer size(PrismContainerValue value) {

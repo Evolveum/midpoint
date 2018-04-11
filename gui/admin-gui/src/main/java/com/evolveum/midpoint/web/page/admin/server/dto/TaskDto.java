@@ -311,7 +311,21 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public String getTaskObjectName(TaskType taskType, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
-		return WebModelServiceUtils.resolveReferenceName(taskType.getObjectRef(), pageBase, opTask, thisOpResult);
+        OperationResult currentResult;
+        ObjectReferenceType objectRef;
+	    if (taskType.getWorkflowContext() != null) {
+	    	// For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
+		    // of avoiding displaying the error is to use a separate operation result.
+		    currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
+		    objectRef = taskType.getWorkflowContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
+	    } else {
+	    	currentResult = thisOpResult;
+	    	objectRef = null;
+	    }
+	    if (objectRef == null) {            // either not a workflow task, or wfc.objectRef does not exist
+	    	objectRef = taskType.getObjectRef();
+	    }
+	    return WebModelServiceUtils.resolveReferenceName(objectRef, pageBase, opTask, currentResult);
     }
 
     private void fillInParentTaskAttributes(TaskType taskType,

@@ -216,7 +216,7 @@ public class JobExecutor implements InterruptableJob {
 
 	}
 
-	class GroupExecInfo {
+	static class GroupExecInfo {
 		int limit;
 		Set<Task> tasks = new HashSet<>();
 
@@ -314,7 +314,7 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-	private class RescheduleTime {
+	private static class RescheduleTime {
 		private final long timestamp;
 		private final boolean regular;
 		private RescheduleTime(long timestamp, boolean regular) {
@@ -687,6 +687,12 @@ mainCycle:
 			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
 			}
+		}
+
+		try {
+			workStateManager.executeInitialDelay(task);
+		} catch (InterruptedException e) {
+			return createInterruptedTaskRunResult();
 		}
 
 		TaskWorkBucketProcessingResult runResult = null;

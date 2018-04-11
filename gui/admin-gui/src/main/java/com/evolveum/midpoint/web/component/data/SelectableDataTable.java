@@ -60,7 +60,7 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
     @Override
     protected Item<IColumn<T, String>> newCellItem(String id, int index, IModel<IColumn<T, String>> model) {
         Item item = super.newCellItem(id, index, model);
-        item.add(new AttributeModifier("style", "max-width: 250px; word-wrap: break-word;"));
+        item.add(new AttributeModifier("style", "word-wrap: break-word;"));
         return item;
     }
 

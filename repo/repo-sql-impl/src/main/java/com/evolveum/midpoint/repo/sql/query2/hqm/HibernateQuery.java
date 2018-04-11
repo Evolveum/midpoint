@@ -58,7 +58,7 @@ public abstract class HibernateQuery {
      */
     private List<Condition> conditions = new ArrayList<>();
 
-    public class Ordering {
+    public static class Ordering {
         @NotNull private final String byProperty;
         private final OrderDirection direction;
 
@@ -80,7 +80,7 @@ public abstract class HibernateQuery {
     private List<Ordering> orderingList = new ArrayList<>();
 
 
-    public class Grouping {
+    public static class Grouping {
         @NotNull private final String byProperty;
 
         Grouping(@NotNull String byProperty) {

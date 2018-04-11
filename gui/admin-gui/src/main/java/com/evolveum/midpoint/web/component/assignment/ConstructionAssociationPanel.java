@@ -237,11 +237,13 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                     PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
                     ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                     if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
-                            || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null) {
+                            || (ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null
+                            && !ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         return;
                     }
                     QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
-                    if (defName != null && defName.equals(assocRef)) {
+                    if ((defName != null && defName.equals(assocRef))
+                            || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                     }
                 });
@@ -279,6 +281,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
     private void addNewShadowRefValuePerformed(AjaxRequestTarget target, RefinedAssociationDefinition def){
         ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(def,
                 getPageBase().getPrismContext(), resourceModel.getObject().getOid());
+        Task task = getPageBase().createAnonymousTask("Adding new shadow");
         ObjectBrowserPanel<ShadowType> objectBrowserPanel = new ObjectBrowserPanel<ShadowType>(
                 getPageBase().getMainPopupBodyId(), ShadowType.class, Arrays.asList(ShadowType.COMPLEX_TYPE),
                 false, getPageBase(),
@@ -302,7 +305,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
                 ContainerValueWrapper<ResourceObjectAssociationType> valueWrapper =
                         factory.createContainerValueWrapper(associationWrapper, newAssociation,
-                                associationWrapper.getObjectStatus(), ValueStatus.ADDED, associationWrapper.getPath());
+                                associationWrapper.getObjectStatus(), ValueStatus.ADDED, associationWrapper.getPath(), task);
 //                                        valueWrapper.setShowEmpty(true, false);
                 associationWrapper.getValues().add(valueWrapper);
 

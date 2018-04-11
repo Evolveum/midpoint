@@ -422,6 +422,39 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong 1st line of body", "Body=\"hello+world\"&To=%2B421905123456&From=%2B421999000999", httpHandler.lastRequest.body.get(0));
 	}
 
+	@Test
+	public void test215SendSmsUsingGeneralPost() {
+		final String TEST_NAME = "test215SendSmsUsingGeneralPost";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
+				"hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
+		notificationManager.processEvent(event, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("processEvent result", result);
+
+		assertNotNull("No http request found", httpHandler.lastRequest);
+		assertEquals("Wrong HTTP method", "POST", httpHandler.lastRequest.method);
+		assertEquals("Wrong URI", "/send", httpHandler.lastRequest.uri.toString());
+		assertEquals("Wrong Content-Type header", singletonList("application/x-www-form-urlencoded"),
+				httpHandler.lastRequest.headers.get("content-type"));
+		assertEquals("Wrong X-Custom header", singletonList("test"), httpHandler.lastRequest.headers.get("x-custom"));
+		String username = "a9038321";
+		String password = "5ecr3t";
+		String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
+		assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
+		assertEquals("Wrong 1st line of body", "Body=\"body\"&To=[%2B123, %2B456, %2B789]&From=from", httpHandler.lastRequest.body.get(0));
+	}
+
 	@SuppressWarnings("Duplicates")
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);

@@ -85,7 +85,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 	@Autowired
 	private PrismContext prismContext;
 
-	private class ResourceValidationContext {
+	private static class ResourceValidationContext {
 		@NotNull final PrismObject<ResourceType> resourceObject;
 		@NotNull final ObjectReferenceType resourceRef;
 		@NotNull final Scope scope;

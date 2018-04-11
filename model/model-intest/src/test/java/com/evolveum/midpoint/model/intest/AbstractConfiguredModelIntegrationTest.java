@@ -521,6 +521,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_DRINK_URL = QNameUtil.qNameToUri(AUTZ_DRINK_QNAME);
 
 	protected static final String NOTIFIER_ACCOUNT_PASSWORD_NAME = "accountPasswordNotifier";
+	protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";
 	protected static final String NOTIFIER_ACCOUNT_ACTIVATION_NAME = "accountActivationNotifier";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
@@ -727,31 +728,45 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
 	}
 
-	protected void assertSinglePasswordNotification(String dummyResourceName, String username,
+	protected void assertSingleAccountPasswordNotification(String dummyResourceName, String username,
 			String password) {
-		assertPasswordNotifications(1);
+		assertAccountPasswordNotifications(1);
         assertSingleDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME,
-        		getExpectedPasswordNotificationBody(dummyResourceName, username, password));
+        		getExpectedAccountPasswordNotificationBody(dummyResourceName, username, password));
 	}
 
-	protected void assertPasswordNotifications(int expected) {
+	protected void assertSingleUserPasswordNotification(String username, String password) {
+		assertUserPasswordNotifications(1);
+        assertSingleDummyTransportMessage(NOTIFIER_USER_PASSWORD_NAME,
+        		getExpectedUserPasswordNotificationBody(username, password));
+	}
+
+	protected void assertAccountPasswordNotifications(int expected) {
 		checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, expected);
 	}
 
-	protected void assertNoPasswordNotifications() {
+	protected void assertUserPasswordNotifications(int expected) {
+		checkDummyTransportMessages(NOTIFIER_USER_PASSWORD_NAME, expected);
+	}
+
+	protected void assertNoAccountPasswordNotifications() {
 		checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
 	}
 
-	protected void assertHasPasswordNotification(String dummyResourceName, String username,
-			String password) {
-        assertHasDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME,
-        		getExpectedPasswordNotificationBody(dummyResourceName, username, password));
+	protected void assertNoUserPasswordNotifications() {
+		checkDummyTransportMessages(NOTIFIER_USER_PASSWORD_NAME, 0);
 	}
 
-	protected void assertSinglePasswordNotificationGenerated(String dummyResourceName, String username) {
-		assertPasswordNotifications(1);
+	protected void assertHasAccountPasswordNotification(String dummyResourceName, String username,
+			String password) {
+        assertHasDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME,
+        		getExpectedAccountPasswordNotificationBody(dummyResourceName, username, password));
+	}
+
+	protected void assertSingleAccountPasswordNotificationGenerated(String dummyResourceName, String username) {
+		assertAccountPasswordNotifications(1);
 		String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
-		String expectedPrefix = getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username);
+		String expectedPrefix = getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username);
 		if (!body.startsWith(expectedPrefix)) {
 			fail("Expected that "+dummyResourceName+" dummy password notification message starts with prefix '"+expectedPrefix+"', but it was: "+body);
 		}
@@ -761,20 +776,32 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		}
 	}
 
-	protected String getExpectedPasswordNotificationBody(String dummyResourceName, String username,
+	protected String getExpectedAccountPasswordNotificationBody(String dummyResourceName, String username,
 			String password) {
-		return getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username) + password;
+		return getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username) + password;
 	}
 
-	protected String getExpectedPasswordNotificationBodyPrefix(String dummyResourceName, String username) {
+	protected String getExpectedAccountPasswordNotificationBodyPrefix(String dummyResourceName, String username) {
 		String resourceName = getDummyResourceType(dummyResourceName).getName().getOrig();
 		return "Password for account "+username+" on "+resourceName+" is: ";
 	}
 
-	protected void displayPasswordNotifications() {
+	protected String getExpectedUserPasswordNotificationBody(String username, String password) {
+		return getExpectedUserPasswordNotificationBodyPrefix(username) + password;
+	}
+
+	protected String getExpectedUserPasswordNotificationBodyPrefix(String username) {
+		return "Password for user "+username+" is: ";
+	}
+
+	protected void displayAccountPasswordNotifications() {
 		displayNotifications(NOTIFIER_ACCOUNT_PASSWORD_NAME);
 	}
 	
+	protected void displayUserPasswordNotifications() {
+		displayNotifications(NOTIFIER_USER_PASSWORD_NAME);
+	}
+
 	protected Object getQuote(String description, String fullName) {
 		return description + " -- " + fullName;
 	}

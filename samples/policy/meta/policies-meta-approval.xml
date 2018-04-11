@@ -87,7 +87,7 @@
 	                    <approvalSchema>
 	                        <level>
 	                            <name>Role approver</name>
-	                            <approverRelation>owner</approverRelation>
+	                            <approverRelation>approver</approverRelation>
 	                            <evaluationStrategy>firstDecides</evaluationStrategy>
 	                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
 	                        </level>

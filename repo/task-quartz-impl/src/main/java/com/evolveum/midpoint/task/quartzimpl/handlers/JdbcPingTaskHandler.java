@@ -55,7 +55,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
-	private class Statistics {
+	private static class Statistics {
 		Integer min = null;
 		Integer max = null;
 		int total = 0;
