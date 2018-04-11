@@ -970,9 +970,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	private OperationResult traceResponse(Response response) throws SchemaException {
 		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
 			OperationResultType result = response.readEntity(OperationResultType.class);
-			LOGGER.info("####RESULT");
 			OperationResult opResult = OperationResult.createOperationResult(result);
-			LOGGER.info(opResult.debugDump());
+			display("REST result", opResult);
 			return opResult;
 		}
 
