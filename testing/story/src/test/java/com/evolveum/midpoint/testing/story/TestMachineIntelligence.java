@@ -132,7 +132,8 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 
         ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
 						SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")), prismContext, newRealValue);
-        repositoryService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), result);
+        provisioningService.applyDefinition(objectDelta, task, result);
+        provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);
 
         OperationResult hrTestResult = modelService.testResource(RESOURCE_HR_OID, task);
         TestUtil.assertSuccess("HR resource test result", hrTestResult);
