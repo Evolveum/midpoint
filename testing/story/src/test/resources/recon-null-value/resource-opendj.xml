@@ -137,6 +137,7 @@
 				<ref>ri:title</ref>
 				<tolerant>false</tolerant>
 				<outbound>
+					<strength>strong</strength>
 					<source>
 						<path>honorificPrefix</path>
 					</source>
