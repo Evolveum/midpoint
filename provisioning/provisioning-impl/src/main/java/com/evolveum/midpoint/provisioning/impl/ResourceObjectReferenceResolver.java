@@ -102,6 +102,7 @@ public class ResourceObjectReferenceResolver {
 			if (resourceObjectReference.getResolutionFrequency() == null
 					|| resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.ONCE) {
 				PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
+				shadowCache.applyDefinition(shadow, result);
 				return shadow;
 			}
 		} else if (resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.NEVER) {
@@ -126,7 +127,7 @@ public class ResourceObjectReferenceResolver {
 		ObjectFilter filter = AndFilter.createAnd(baseFilter, evaluatedRefQuery.getFilter());
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-		// TODO: implement "repo" search strategies
+		// TODO: implement "repo" search strategies, don't forget to apply definitions
 
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
 
@@ -165,6 +166,7 @@ public class ResourceObjectReferenceResolver {
 		if (repoShadow == null) {
 			return null;
 		}
+		shadowCache.applyDefinition(repoShadow, result);
 		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			return null;
