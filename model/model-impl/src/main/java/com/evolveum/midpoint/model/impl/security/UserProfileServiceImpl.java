@@ -109,6 +109,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	private MessageSourceAccessor messages;
 
+	private static final long ASSIGNMENT_TARGET_STALENESS = 60 * 1000; // 60 seconds
+
+	// todo move oid cache to repository cache
 	private static final long MAX_CACHE_SIZE = 5000;
 	private static final long MAX_CACHE_TTL = 60 * 1000; // 60 seconds
 	// caches <user.name, oid>
@@ -254,7 +257,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 							.loginMode(true)
 							// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
 							// will need something to push on the stack. So give them context placeholder.
-							.lensContext(lensContext);
+							.lensContext(lensContext)
+							// this will allow to read cached assignment target references
+							.allowCached(true)
+							.staleness(ASSIGNMENT_TARGET_STALENESS);
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 

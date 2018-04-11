@@ -48,6 +48,9 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -102,6 +105,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private final boolean loginMode;		// restricted mode, evaluating only authorizations and gui config (TODO name)
 	private final PrismObject<SystemConfigurationType> systemConfiguration;
 	private final MappingEvaluator mappingEvaluator;
+	private final boolean allowCached;
+	private final Long staleness;
 	private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
 
 	private AssignmentEvaluator(Builder<F> builder) {
@@ -118,6 +123,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		loginMode = builder.loginMode;
 		systemConfiguration = builder.systemConfiguration;
 		mappingEvaluator = builder.mappingEvaluator;
+		allowCached = builder.allowCached;
+		staleness = builder.staleness;
 		evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
 	}
 
@@ -623,7 +630,15 @@ public class AssignmentEvaluator<F extends FocusType> {
 			LOGGER.trace("Resolving target {}:{} from repository", targetClass.getSimpleName(), oid);
 			PrismObject<O> target;
 			try {
-				target = repository.getObject(targetClass, oid, null, ctx.result);
+				Collection<SelectorOptions<GetOperationOptions>> options = null;
+				if (allowCached) {
+					GetOperationOptions opts = GetOperationOptions.createPointInTimeType(PointInTimeType.CACHED);
+					opts.setStaleness(staleness);
+
+					options = SelectorOptions.createCollection(opts);
+				}
+
+				target = repository.getObject(targetClass, oid, options, ctx.result);
 	        } catch (SchemaException e) {
 	        	throw new SchemaException(e.getMessage() + " in " + segment.sourceDescription, e);
 	        }
@@ -1231,8 +1246,20 @@ public class AssignmentEvaluator<F extends FocusType> {
 		private boolean loginMode = false;
 		private PrismObject<SystemConfigurationType> systemConfiguration;
 		private MappingEvaluator mappingEvaluator;
+		private boolean allowCached = false;
+		private Long staleness;
 
 		public Builder() {
+		}
+
+		public Builder<F> allowCached(boolean val) {
+			allowCached = val;
+			return this;
+		}
+
+		public Builder<F> staleness(Long val) {
+			staleness = val;
+			return this;
 		}
 
 		public Builder<F> repository(RepositoryService val) {
