@@ -566,12 +566,12 @@ public class ActivationProcessor {
 	        return false;
 		});
 
-        PrismPropertyDefinitionImpl<Boolean> shadowExistsDef = new PrismPropertyDefinitionImpl<>(
+        PrismPropertyDefinitionImpl<Boolean> shadowExistenceTargetDef = new PrismPropertyDefinitionImpl<>(
 				SHADOW_EXISTS_PROPERTY_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
-        shadowExistsDef.setMinOccurs(1);
-        shadowExistsDef.setMaxOccurs(1);
-        params.setTargetItemDefinition(shadowExistsDef);
+        shadowExistenceTargetDef.setMinOccurs(1);
+        shadowExistenceTargetDef.setMaxOccurs(1);
+        params.setTargetItemDefinition(shadowExistenceTargetDef);
 		mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 
 		return (boolean) output.getValue();

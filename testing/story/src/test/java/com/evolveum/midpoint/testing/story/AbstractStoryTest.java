@@ -1,6 +1,5 @@
-package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +13,7 @@ package com.evolveum.midpoint.testing.story;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -104,7 +104,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 		// User administrator
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-		repoAddObjectFromFile(USER_JACK_FILE, true, initResult).asObjectable();
+		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
 

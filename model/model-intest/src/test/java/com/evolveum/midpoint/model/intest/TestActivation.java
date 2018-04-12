@@ -2932,11 +2932,5 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		AssertJUnit.fail("Expected validityChangeTimestamp to be between "+lowerBound+" and "+upperBound+", but it was "+validityMillis);
 	}
 
-	private <F extends FocusType> void assertEffectiveStatus(PrismObject<F> focus, ActivationStatusType expected) {
-		ActivationType activation = focus.asObjectable().getActivation();
-		assertNotNull("No activation in "+focus, activation);
-		assertEquals("Unexpected effective activation status in "+focus, expected, activation.getEffectiveStatus());
-	}
-
 
 }

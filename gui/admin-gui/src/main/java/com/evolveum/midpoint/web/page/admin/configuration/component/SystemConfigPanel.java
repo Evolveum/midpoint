@@ -16,24 +16,20 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import java.util.List;
-
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
-import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
+import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
@@ -93,7 +89,7 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
             new PropertyModel<>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
         add(objectPolicyEditor);
 
-        DropDownFormGroup assignmentPolicyEnforcementLevel = new DropDownFormGroup(ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT,
+        DropDownFormGroup<AEPlevel> assignmentPolicyEnforcementLevel = new DropDownFormGroup<>(ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT,
                 new PropertyModel<AEPlevel>(getModel(), SystemConfigurationDto.F_ASSIGNMENTPOLICYENFORCEMENT_LEVEL),
                 WebComponentUtil.createReadonlyModelFromEnum(AEPlevel.class), new EnumChoiceRenderer<AEPlevel>(SystemConfigPanel.this),
                 createStringResource("SystemConfigPanel.assignmentPolicyEnforcement"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
