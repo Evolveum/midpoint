@@ -125,10 +125,8 @@ public class RepositoryCache implements RepositoryService {
 				String.class, CacheObject.class, ResourcePoolsBuilder.heap(5000))
 				.withExpiry(Expirations.timeToLiveExpiration(Duration.of(15, TimeUnit.MINUTES)));
 
-
 		cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
 				.build(true);
-
 
 		for (ObjectTypes ot : ObjectTypes.values()) {
 			Class type =  ot.getClassDefinition();
@@ -225,14 +223,14 @@ public class RepositoryCache implements RepositoryService {
 
 		PrismObject<T> object;
 		if (cacheObject == null) {
-			object = reloadObjectInGlobalCache(type, oid, options, parentResult, gCache);
+			object = reloadObjectInGlobalCache(type, oid, options, parentResult);
 		} else {
 			if (!shouldCheckVersion(cacheObject, options)) {
 				log("Cache: Global HIT {} ({})", oid, type.getSimpleName());
 				object = cacheObject.getObject();
 			} else {
 				if (hasVersionChanged(cacheObject, parentResult)) {
-					object = reloadObjectInGlobalCache(type, oid, options, parentResult, gCache);
+					object = reloadObjectInGlobalCache(type, oid, options, parentResult);
 				} else {
 					// version matches, just update last version check
 					cacheObject.setLastVersionCheck(System.currentTimeMillis());
@@ -869,18 +867,21 @@ public class RepositoryCache implements RepositoryService {
 
 	private <T extends ObjectType> PrismObject<T> reloadObjectInGlobalCache(Class<T> type, String oid,
 																			Collection<SelectorOptions<GetOperationOptions>> options,
-																			OperationResult result, org.ehcache.Cache<String, CacheObject<T>> gCache)
+																			OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
 		log("Cache: Global MISS {} ({})", oid, type.getSimpleName());
 
 		try {
 			PrismObject object = getObjectInternal(type, oid, options, result);
-			CacheObject<T> cacheObject = new CacheObject<>(object, System.currentTimeMillis());
 
-			gCache.put(oid, cacheObject);
+			org.ehcache.Cache<String, CacheObject<T>> gCache = getGlobalCache(object.getCompileTimeClass());
+			if (gCache != null) {
+				CacheObject<T> cacheObject = new CacheObject<>(object, System.currentTimeMillis());
+				gCache.put(oid, cacheObject);
+			}
 
-			return cacheObject.getObject();
+			return object;
 		} catch (ObjectNotFoundException | SchemaException ex) {
 			invalidateCacheEntry(type, oid);
 

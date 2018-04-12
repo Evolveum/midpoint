@@ -50,7 +50,7 @@ public class CacheObject<T extends ObjectType> {
     }
 
     public PrismObject<T> getObject() {
-        return object.clone();
+        return object;
     }
 
     public void setLastVersionCheck(long lastVersionCheck) {
