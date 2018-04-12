@@ -56,6 +56,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
+import org.apache.wicket.ThreadContext;
 import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
@@ -580,7 +581,12 @@ public class WebModelServiceUtils {
                 if (locale != null && MidPointApplication.containsLocale(locale)) {
                     return locale;
                 } else {
-                    locale = Session.get().getLocale();
+                	//session in tests is null
+                		if (ThreadContext.getSession() == null) {
+                			return MidPointApplication.getDefaultLocale();
+                		}
+                    
+                		locale = Session.get().getLocale();
                     if (locale == null || !MidPointApplication.containsLocale(locale)) {
                         //default locale for web application
                         return MidPointApplication.getDefaultLocale();

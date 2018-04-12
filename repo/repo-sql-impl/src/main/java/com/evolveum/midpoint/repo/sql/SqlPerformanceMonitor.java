@@ -147,16 +147,17 @@ public class SqlPerformanceMonitor {
     private String getFormattedStatistics() {
         StatEntry all = new StatEntry();
         StatEntry unfinished = new StatEntry();
-        StatEntry[] perAttempts = new StatEntry[SqlBaseService.LOCKING_MAX_ATTEMPTS+1];         // "+1" is a safety margin
+        final int MAX_ATTEMPTS = SqlBaseService.LOCKING_MAX_RETRIES + 1;
+        StatEntry[] perAttempts = new StatEntry[MAX_ATTEMPTS];
 
-        for (int i = 0; i < SqlBaseService.LOCKING_MAX_ATTEMPTS+1; i++) {
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
             perAttempts[i] = new StatEntry();
         }
 
         synchronized (finishedOperations) {
             for (OperationRecord operation : finishedOperations) {
                 all.process(operation);
-                if (operation.attempts >= 1 && operation.attempts <= SqlBaseService.LOCKING_MAX_ATTEMPTS+1) {
+                if (operation.attempts >= 1 && operation.attempts <= MAX_ATTEMPTS) {
                     perAttempts[operation.attempts-1].process(operation);
                 } else if (operation.attempts < 0) {
                     unfinished.process(operation);
@@ -165,12 +166,12 @@ public class SqlPerformanceMonitor {
         }
 
         StringBuilder retval = new StringBuilder();
-        retval.append("Overall: " + all.dump() + "\n");
-        for (int i = 0; i < SqlBaseService.LOCKING_MAX_ATTEMPTS+1; i++) {
-            retval.append((i+1) + " attempt(s): " + perAttempts[i].dump() + "\n");
+        retval.append("Overall: ").append(all.dump()).append("\n");
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+            retval.append(i + 1).append(" attempt(s): ").append(perAttempts[i].dump()).append("\n");
         }
-        retval.append("Unfinished: " + unfinished.dump() + "\n");
-        retval.append("Outstanding: " + outstandingOperations.toString());
+        retval.append("Unfinished: ").append(unfinished.dump()).append("\n");
+        retval.append("Outstanding: ").append(outstandingOperations.toString());
         return retval.toString();
     }
 

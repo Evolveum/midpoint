@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016 Evolveum
+/*
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.util;
+
+package com.evolveum.midpoint.util.backoff;
 
 /**
- * Used mostly in tests to simplify error handling.
- *
- * @author semancik
+ * @author mederly
  */
-@FunctionalInterface
-public interface FailableRunnable {
+public class LinearBackoffComputer extends RetryLimitedBackoffComputer {
 
-	void run() throws Exception;
+	private long delayInterval;
 
+	public LinearBackoffComputer(int maxRetries, long delayInterval) {
+		super(maxRetries);
+		this.delayInterval = delayInterval;
+	}
+
+	@Override
+	public long computeDelayWithinLimits(int retryNumber) {
+		return Math.round(Math.random() * delayInterval);
+	}
 }

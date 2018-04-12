@@ -50,6 +50,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestNormalizers"/>
             <class name="com.evolveum.midpoint.testing.story.TestOperationPerf"/>
             <class name="com.evolveum.midpoint.testing.story.TestReconNullValue"/>
+            <class name="com.evolveum.midpoint.testing.story.TestExistentialIssues"/>
         </classes>
     </test>
 </suite>

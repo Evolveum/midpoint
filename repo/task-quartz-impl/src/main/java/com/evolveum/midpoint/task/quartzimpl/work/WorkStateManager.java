@@ -45,6 +45,8 @@ import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationS
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NewBuckets;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy.GetBucketResult.NothingFound;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
+import com.evolveum.midpoint.util.backoff.BackoffComputer;
+import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -172,8 +174,10 @@ public class WorkStateManager {
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
-		    waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
-			for (int attempt = 0; attempt < getMaxAttempts(); attempt++) {
+		    BackoffComputer backoffComputer = createBackoffComputer();
+		    int retry = 0;
+waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
+			for (;;) {
 				TaskWorkStateType coordinatorWorkState = getWorkStateOrNew(ctx.coordinatorTask.getTaskPrismObject());
 				GetBucketResult response = workStateStrategy.getBucket(coordinatorWorkState);
 				LOGGER.trace("getWorkBucketMultiNode: workStateStrategy returned {} for worker task {}, coordinator {}", response, ctx.workerTask, ctx.coordinatorTask);
@@ -229,10 +233,16 @@ waitForAvailableBucket:    // this cycle exits when something is found OR when a
 						throw new AssertionError(response);
 					}
 				} catch (PreconditionViolationException e) {
-					long delay = (long) (Math.random() * getDelayInterval());
-					// temporary
-					LOGGER.info("getWorkBucketMultiNode: conflict; this was attempt #{}; waiting {} ms in {}, worker {}",
-							attempt, delay, ctx.coordinatorTask, ctx.workerTask, e);
+					retry++;
+					long delay;
+					try {
+						delay = backoffComputer.computeDelay(retry);
+					} catch (BackoffComputer.NoMoreRetriesException e1) {
+						throw new SystemException(
+								"Couldn't allocate work bucket because of repeated database conflicts (retry limit reached); coordinator task = " + ctx.coordinatorTask, e1);
+					}
+					LOGGER.info("getWorkBucketMultiNode: conflict; continuing as retry #{}; waiting {} ms in {}, worker {}",
+							retry, delay, ctx.coordinatorTask, ctx.workerTask, e);
 					dynamicSleep(delay, ctx);
 					ctx.reloadCoordinatorTask(result);
 					ctx.reloadWorkerTask(result);
@@ -240,22 +250,18 @@ waitForAvailableBucket:    // this cycle exits when something is found OR when a
 					continue waitForConflictLessUpdate;
 				}
 			}
-			throw new SystemException(
-					"Couldn't allocate work bucket because of database conflicts; coordinator task = " + ctx.coordinatorTask);
 		}
+	}
+
+	private BackoffComputer createBackoffComputer() {
+		TaskManagerConfiguration c = getConfiguration();
+		return new ExponentialBackoffComputer(c.getWorkAllocationMaxRetries(), c.getWorkAllocationInitialDelay(),
+				c.getWorkAllocationRetryExponentialThreshold());
 	}
 
 	private long getFreeBucketWaitInterval() {
 		return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
 				getConfiguration().getWorkAllocationDefaultFreeBucketWaitInterval();
-	}
-
-	private int getMaxAttempts() {
-		return getConfiguration().getWorkAllocationMaxAttempts();
-	}
-
-	private long getDelayInterval() {
-		return getConfiguration().getWorkAllocationRetryInterval();
 	}
 
 	private long getInitialDelay() {
