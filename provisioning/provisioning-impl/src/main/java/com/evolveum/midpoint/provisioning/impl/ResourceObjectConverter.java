@@ -106,20 +106,11 @@ public class ResourceObjectConverter {
 	private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
 	
 	
-	@Autowired
-	private EntitlementConverter entitlementConverter;
-
-	@Autowired
-	private MatchingRuleRegistry matchingRuleRegistry;
-	
-	@Autowired
-	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
-	
-	@Autowired
-	private Clock clock;
-
-	@Autowired
-	private PrismContext prismContext;
+	@Autowired private EntitlementConverter entitlementConverter;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;	
+	@Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 

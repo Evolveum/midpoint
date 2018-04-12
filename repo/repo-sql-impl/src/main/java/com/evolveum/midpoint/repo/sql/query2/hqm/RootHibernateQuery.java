@@ -146,7 +146,11 @@ public class RootHibernateQuery extends HibernateQuery {
 		this.distinct = distinct;
 	}
 
-	public Condition createIsNull(String propertyPath) {
+    public boolean isDistinct() {
+        return distinct;
+    }
+
+    public Condition createIsNull(String propertyPath) {
         return new IsNullCondition(this, propertyPath);
     }
 
@@ -224,5 +228,9 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public Condition createFalse() {
         return new ConstantCondition(this, false);
+    }
+
+    public boolean isDistinctNotNecessary() {
+        return getPrimaryEntity().getJoins().isEmpty();
     }
 }

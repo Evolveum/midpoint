@@ -109,8 +109,8 @@ public class QueryInterpreter2 {
     public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
 			Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
 			boolean countingObjects, @NotNull Session session) throws QueryException {
-		boolean distinct = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
-        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinct={}), query:\n{}", type, countingObjects, distinct, query);
+		boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
+        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
         InterpretationContext context = new InterpretationContext(this, type, prismContext, session);
 		interpretQueryFilter(context, query);
@@ -120,6 +120,7 @@ public class QueryInterpreter2 {
 		if (countingObjects) {
 			interpretPagingAndSorting(context, query, true);
         	RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+			boolean distinct = distinctRequested && !hibernateQuery.isDistinctNotNecessary();
 			hibernateQuery.addProjectionElement(new CountProjectionElement(resultStyle.getCountString(rootAlias), distinct));
 			return hibernateQuery;
         }
@@ -135,6 +136,7 @@ public class QueryInterpreter2 {
 		 */
 		boolean distinctBlobCapable = !repoConfiguration.isUsingOracle() && !repoConfiguration.isUsingSQLServer();
 		RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+	    boolean distinct = distinctRequested && !hibernateQuery.isDistinctNotNecessary();
 		hibernateQuery.setDistinct(distinct);
 		hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
 		if (distinct && !distinctBlobCapable) {

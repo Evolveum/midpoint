@@ -20,7 +20,8 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -174,6 +175,10 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * authorizations anyway. But it must not be available outside of the secure area.
 	 */
 	private Boolean executionPhase;
+
+	/*
+	 *  !!! After adding option here don't forget to update equals, clone, merge, etc. !!!
+	 */
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -916,4 +921,82 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 
 
+	@NotNull
+	@SafeVarargs
+	public static Collection<SelectorOptions<GetOperationOptions>> merge(Collection<SelectorOptions<GetOperationOptions>>... parts) {
+		Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
+		for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
+			for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {
+				if (increment != null) {        // should always be so
+					Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(merged, increment.getItemPath());
+					if (existing.isEmpty()) {
+						merged.add(increment);
+					} else if (existing.size() == 1) {
+						existing.iterator().next().merge(increment.getOptions());
+					} else {
+						throw new AssertionError("More than one options for path: " + increment.getItemPath());
+					}
+				}
+			}
+		}
+		return merged;
+	}
+
+	@SuppressWarnings("ConstantConditions")
+	private void merge(GetOperationOptions increment) {
+		if (increment == null) {
+			return;
+		}
+		if (increment.retrieve != null) {
+			this.retrieve = increment.retrieve;
+		}
+		if (increment.resolve != null) {
+			this.resolve = increment.resolve;
+		}
+		if (increment.resolveNames != null) {
+			this.resolveNames = increment.resolveNames;
+		}
+		if (increment.noFetch != null) {
+			this.noFetch = increment.noFetch;
+		}
+		if (increment.raw != null) {
+			this.raw = increment.raw;
+		}
+		if (increment.tolerateRawData != null) {
+			this.tolerateRawData = increment.tolerateRawData;
+		}
+		if (increment.doNotDiscovery != null) {
+			this.doNotDiscovery = increment.doNotDiscovery;
+		}
+		if (increment.relationalValueSearchQuery != null) {
+			this.relationalValueSearchQuery = increment.relationalValueSearchQuery;
+		}
+		if (increment.allowNotFound != null) {
+			this.allowNotFound = increment.allowNotFound;
+		}
+		if (increment.readOnly != null) {
+			this.readOnly = increment.readOnly;
+		}
+		if (increment.pointInTimeType != null) {
+			this.pointInTimeType = increment.pointInTimeType;
+		}
+		if (increment.staleness != null) {
+			this.staleness = increment.staleness;
+		}
+		if (increment.distinct != null) {
+			this.distinct = increment.distinct;
+		}
+		if (increment.attachDiagData != null) {
+			this.attachDiagData = increment.attachDiagData;
+		}
+		if (increment.definitionProcessing != null) {
+			this.definitionProcessing = increment.definitionProcessing;
+		}
+		if (increment.iterationMethod != null) {
+			this.iterationMethod = increment.iterationMethod;
+		}
+		if (increment.executionPhase != null) {
+			this.executionPhase = increment.executionPhase;
+		}
+	}
 }

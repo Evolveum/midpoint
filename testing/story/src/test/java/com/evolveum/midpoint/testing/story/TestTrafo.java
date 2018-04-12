@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -236,7 +237,7 @@ public class TestTrafo extends AbstractStoryTest {
         String accountOid = getSingleLinkRef(userJack).getOid();
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        PrismObject<ShadowType> accountShadow = provisioningService.getObject(ShadowType.class, accountOid, GetOperationOptions.createNoFetchCollection(), task, result);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
 
         // Check account
@@ -301,7 +302,7 @@ public class TestTrafo extends AbstractStoryTest {
         String accountOid = getSingleLinkRef(userJack).getOid();
 
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        PrismObject<ShadowType> accountShadow = provisioningService.getObject(ShadowType.class, accountOid, GetOperationOptions.createNoFetchCollection(), task, result);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
 
         // Check account

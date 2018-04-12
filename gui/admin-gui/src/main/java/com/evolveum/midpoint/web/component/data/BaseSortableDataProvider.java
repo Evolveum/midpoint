@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -25,7 +26,9 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,8 +37,8 @@ import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListsType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -45,6 +48,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -93,47 +97,47 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     protected ModelService getModel() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getModel();
     }
 
     protected RepositoryService getRepositoryService() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getRepositoryService();
     }
 
     protected TaskManager getTaskManager() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getTaskManager();
     }
 
     protected PrismContext getPrismContext() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getPrismContext();
     }
 
     protected TaskService getTaskService() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getTaskService();
     }
 
     protected ModelInteractionService getModelInteractionService() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getModelInteractionService();
     }
 
     protected WorkflowService getWorkflowService() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getWorkflowService();
     }
 
     protected ModelAuditService getAuditService() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        MidPointApplication application = MidPointApplication.get();
         return application.getAuditService();
     }
 
 	protected WorkflowManager getWorkflowManager() {
-		MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+		MidPointApplication application = MidPointApplication.get();
 		return application.getWorkflowManager();
 	}
 
@@ -193,27 +197,30 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return false;
     }
 
+    public boolean isDistinct() {
+        GuiObjectListType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
+        return def == null || def.getDistinct() != DistinctSearchOptionType.NEVER;      // change after other options are added
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> createDefaultOptions() {
+        return getDistinctRelatedOptions();     // probably others in the future
+    }
+
+    @Nullable
+    protected Collection<SelectorOptions<GetOperationOptions>> getDistinctRelatedOptions() {
+        if (isDistinct()) {
+            return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
+        } else {
+            return null;
+        }
+    }
+
     public boolean isOrderingDisabled() {
         if (!checkOrderingSettings()) {
             return false;
         }
-
-        PageBase page = (PageBase) component.getPage();
-        AdminGuiConfigurationType config = page.getPrincipal().getAdminGuiConfiguration();
-        if (config == null) {
-            return false;
-        }
-        GuiObjectListsType lists = config.getObjectLists();
-        if (lists == null) {
-            return false;
-        }
-
-        GuiObjectListType def = lists.getDefault();
-        if (def == null) {
-            return false;
-        }
-
-        return def.isDisableSorting();
+        GuiObjectListType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
+        return def != null && def.isDisableSorting();
     }
 
     protected ObjectPaging createPaging(long offset, long pageSize) {
