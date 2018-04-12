@@ -403,6 +403,5 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 			sb.append(options);
 		}
 	}
-
 	//endregion
 }

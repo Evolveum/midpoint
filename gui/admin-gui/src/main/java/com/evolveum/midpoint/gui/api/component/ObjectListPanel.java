@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katkav
@@ -361,6 +362,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				return bean;
 			}
 
+			@NotNull
 			@Override
 			protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
 				List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);

@@ -188,13 +188,7 @@ public class AdminGuiConfigTypeUtil {
 	private static void mergeList(GuiObjectListsType objectLists, GuiObjectListType newList) {
 		// We support only the default object lists now, so simply replace the existing definition with the
 		// latest definition. We will need a more sophisticated merging later.
-		Iterator<GuiObjectListType> iterator = objectLists.getObjectList().iterator();
-		while (iterator.hasNext()) {
-			GuiObjectListType currentList = iterator.next();
-			if (currentList.getType().equals(newList.getType())) {
-				iterator.remove();
-			}
-		}
+		objectLists.getObjectList().removeIf(currentList -> currentList.getType().equals(newList.getType()));
 		objectLists.getObjectList().add(newList.clone());
 	}
 

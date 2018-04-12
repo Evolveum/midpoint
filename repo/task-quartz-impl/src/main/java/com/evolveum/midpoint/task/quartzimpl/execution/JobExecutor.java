@@ -699,17 +699,19 @@ mainCycle:
 		for (;;) {
 			WorkBucketType bucket;
 			try {
-				bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), executionResult);
-			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", e, task, null);
-				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", e);
-			} catch (InterruptedException e) {
-				LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-				if (task.canRun()) {
-					throw new IllegalStateException("Unexpected InterruptedException", e);
-				} else {
-					return createInterruptedTaskRunResult();
+				try {
+					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), executionResult);
+				} catch (InterruptedException e) {
+					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+					if (task.canRun()) {
+						throw new IllegalStateException("Unexpected InterruptedException", e);
+					} else {
+						return createInterruptedTaskRunResult();
+					}
 				}
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
+				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", t);
 			}
 			if (bucket == null) {
 				LOGGER.trace("No (next) work bucket within {}, exiting", task);

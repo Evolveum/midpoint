@@ -217,11 +217,11 @@ public class SearchFactory {
             return FullTextSearchConfigurationUtil.isEnabledFor(modelServiceLocator.getModelInteractionService().getSystemConfiguration(result)
                     .getFullTextSearch(), type);
         } catch (SchemaException | ObjectNotFoundException ex) {
-                throw new SystemException(ex);
+	        throw new SystemException(ex);
         }
     }
 
-    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType (ModelServiceLocator modelServiceLocator, Class<T> type) {
+    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
             AdminGuiConfigurationType guiConfig = modelServiceLocator.getModelInteractionService().getAdminGuiConfiguration(null, result);
@@ -238,7 +238,7 @@ public class SearchFactory {
             }
             return null;
         } catch (SchemaException | ObjectNotFoundException ex) {
-                throw new SystemException(ex);
+            throw new SystemException(ex);
         }
     }
 

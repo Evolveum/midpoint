@@ -416,6 +416,18 @@ public final class WebComponentUtil {
 		}
 	}
 
+	public static GuiObjectListType getDefaultGuiObjectListType(PageBase pageBase) {
+	    AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
+	    if (config == null) {
+	        return null;
+	    }
+	    GuiObjectListsType lists = config.getObjectLists();
+	    if (lists == null) {
+	        return null;
+	    }
+	    return lists.getDefault();
+	}
+
 	public enum Channel {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),

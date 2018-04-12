@@ -21,23 +21,24 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.util.backoff.BackoffComputer;
+import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.*;
 import org.hibernate.exception.LockAcquisitionException;
-import org.hibernate.jdbc.Work;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_EXP_THRESHOLD;
-import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_MAX_ATTEMPTS;
+import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_MAX_RETRIES;
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_TIMEOUT_STEP;
 
 /**
@@ -90,12 +91,7 @@ public class BaseHelper {
 
 		if (getConfiguration().getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
 			LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
-			session.doWork(new Work() {
-				@Override
-				public void execute(Connection connection) throws SQLException {
-					connection.createStatement().execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
-				}
-			});
+			session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT"));
 		}
 
 		if (readOnly) {
@@ -104,12 +100,7 @@ public class BaseHelper {
 			session.setFlushMode(FlushMode.MANUAL);
 
 			LOGGER.trace("Marking transaction as read only.");
-			session.doWork(new Work() {
-				@Override
-				public void execute(Connection connection) throws SQLException {
-					connection.createStatement().execute("SET TRANSACTION READ ONLY");
-				}
-			});
+			session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION READ ONLY"));
 		}
 		RAnyConverter.sessionThreadLocal.set(session);      // TODO fix this hack
 		return session;
@@ -177,7 +168,7 @@ public class BaseHelper {
 		} else {
 			rollbackTransaction(session, ex, result, true);
 			if (ex instanceof SystemException) {
-				throw (SystemException) ex;
+				throw ex;
 			} else {
 				throw new SystemException(ex.getMessage(), ex);
 			}
@@ -192,7 +183,7 @@ public class BaseHelper {
 		throw new SystemException(ex.getMessage(), ex);
 	}
 
-	public int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
+	public int logOperationAttempt(String oid, String operation, int attempt, @NotNull RuntimeException ex,
 			OperationResult result) {
 
 		boolean serializationException = isExceptionRelatedToSerialization(ex);
@@ -206,27 +197,20 @@ public class BaseHelper {
 			throw ex;
 		}
 
-		double waitTimeInterval = LOCKING_TIMEOUT_STEP * Math.pow(2, attempt > LOCKING_EXP_THRESHOLD ? LOCKING_EXP_THRESHOLD : (attempt - 1));
-		long waitTime = Math.round(Math.random() * waitTimeInterval);
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
-		}
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
-					+ "{} ms (this was attempt {} of {})\n{}: {}", operation, oid, waitTime,
-					attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage());
-		}
-
-		if (attempt >= LOCKING_MAX_ATTEMPTS) {
+		BackoffComputer backoffComputer = new ExponentialBackoffComputer(LOCKING_MAX_RETRIES, LOCKING_TIMEOUT_STEP, LOCKING_EXP_THRESHOLD);
+		long waitTime;
+		try {
+			waitTime = backoffComputer.computeDelay(attempt);
+		} catch (BackoffComputer.NoMoreRetriesException e) {
 			LOGGER.error("A serialization-related problem occurred, maximum attempts (" + attempt + ") reached.", ex);
-			if (ex != null && result != null) {
+			if (result != null) {
 				result.recordFatalError("A serialization-related problem occurred.", ex);
 			}
 			throw new SystemException(ex.getMessage() + " [attempts: " + attempt + "]", ex);
 		}
-
+		LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+						+ "{} ms (this is retry {} of {})\n{}: {}", operation, oid, waitTime,
+				attempt, LOCKING_MAX_RETRIES, ex.getClass().getSimpleName(), ex.getMessage());
 		if (waitTime > 0) {
 			try {
 				Thread.sleep(waitTime);
@@ -234,7 +218,7 @@ public class BaseHelper {
 				// ignore this
 			}
 		}
-		return ++attempt;
+		return attempt + 1;
 	}
 
 	private boolean isExceptionRelatedToSerialization(Exception ex) {
