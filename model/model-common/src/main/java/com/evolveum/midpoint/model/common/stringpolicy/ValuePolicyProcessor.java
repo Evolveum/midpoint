@@ -125,10 +125,16 @@ public class ValuePolicyProcessor {
 		this.expressionFactory = expressionFactory;
 	}
 	
-	public <O extends ObjectType> String generate(ItemPath path, @NotNull ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+	public <O extends ObjectType> String generate(ItemPath path, ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
 			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Context ctx = new Context(path);
 		OperationResult result = parentResult.createSubresult(OP_GENERATE);
+		
+		if (policy == null) {
+			//lets create some default policy
+			policy = new ValuePolicyType().stringPolicy(new StringPolicyType().limitations(new LimitationsType().maxLength(defaultLength).minLength(defaultLength)));
+							
+		}
 		
 		StringPolicyType stringPolicy = policy.getStringPolicy();
 		int maxAttempts = DEFAULT_MAX_ATTEMPTS;

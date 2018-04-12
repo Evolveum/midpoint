@@ -164,7 +164,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		int visibleProperties = 0;
 
-		for (ItemWrapper item : properties) {
+ 		for (ItemWrapper item : properties) {
 			if (item.isVisible()) {
 				visibleProperties++;
 			}
@@ -553,24 +553,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 	}
 
-	public void addNewChildContainerValue(QName path, PageBase pageBase){
-		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
-		if (childContainerWrapper == null){
-			return;
-		}
-		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
-		if (isSingleValue){
-			return;
-		}
-		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
-		ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
-		ContainerValueWrapper newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
-				newContainerValue, objectStatus,
-				ValueStatus.ADDED, new ItemPath(path));
-		newValueWrapper.setShowEmpty(true, false);
-		childContainerWrapper.getValues().add(newValueWrapper);
-
-	}
 
 	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {
 		List<PrismValue> prismValues = new ArrayList<>();
