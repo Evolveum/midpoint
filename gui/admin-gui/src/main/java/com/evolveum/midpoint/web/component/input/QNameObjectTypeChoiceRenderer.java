@@ -25,7 +25,9 @@ import java.util.List;
 
 public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
-    @Override
+    private static final long serialVersionUID = 1L;
+
+	@Override
     public Object getDisplayValue(QName qname) {
         if (qname == null) {
             return null;

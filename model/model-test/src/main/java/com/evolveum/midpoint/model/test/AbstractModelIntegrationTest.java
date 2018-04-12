@@ -539,6 +539,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assert status != null : "No status property is null in "+object;
 		assert status == expected : "status property is "+status+", expected "+expected+" in "+object;
 	}
+	
+	protected <F extends FocusType> void assertEffectiveStatus(PrismObject<F> focus, ActivationStatusType expected) {
+		ActivationType activation = focus.asObjectable().getActivation();
+		assertNotNull("No activation in "+focus, activation);
+		assertEquals("Unexpected effective activation status in "+focus, expected, activation.getEffectiveStatus());
+	}
 
 	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
