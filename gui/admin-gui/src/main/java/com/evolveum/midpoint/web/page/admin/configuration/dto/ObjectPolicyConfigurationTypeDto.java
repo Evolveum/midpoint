@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  *  @author shpood
@@ -41,7 +41,7 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
     private ObjectReferenceType templateRef;
     private QName type;
     private String subtype;
-    private List<PropertyConstraintTypeDto> constraints;
+    private List<PropertyConstraintType> constraints;
     private ConflictResolutionType conflictResolution;
 
     public ObjectPolicyConfigurationTypeDto(){}
@@ -51,18 +51,7 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
         type = policyConfig.getType();
         subtype = policyConfig.getSubtype();
 
-        constraints = new ArrayList<>();
-        if(policyConfig.getPropertyConstraint() != null){
-            if(policyConfig.getPropertyConstraint().isEmpty()){
-                policyConfig.getPropertyConstraint().add(new PropertyConstraintType());
-            }
-
-            for(PropertyConstraintType property: policyConfig.getPropertyConstraint()){
-                constraints.add(new PropertyConstraintTypeDto(property));
-            }
-        } else {
-            constraints.add(new PropertyConstraintTypeDto(null));
-        }
+        this.constraints = policyConfig.getPropertyConstraint();
         conflictResolution = policyConfig.getConflictResolution();
     }
 
@@ -90,11 +79,11 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
 		this.subtype = subtype;
 	}
 
-	public List<PropertyConstraintTypeDto> getConstraints() {
+	public List<PropertyConstraintType> getConstraints() {
         return constraints;
     }
 
-    public void setConstraints(List<PropertyConstraintTypeDto> constraints) {
+    public void setConstraints(List<PropertyConstraintType> constraints) {
         this.constraints = constraints;
     }
 
