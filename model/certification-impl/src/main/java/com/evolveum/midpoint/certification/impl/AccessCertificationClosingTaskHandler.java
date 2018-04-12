@@ -277,7 +277,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         LOGGER.trace("Closing task for {} switched to background, control thread returning with task {}", toShortString(campaign), task);
     }
 
-    private class ObjectContext {
+    private static class ObjectContext {
 		@NotNull final ObjectType object;
 	    @NotNull final List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
@@ -286,7 +286,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 	    }
     }
 
-    private class RunContext {
+    private static class RunContext {
 		final Task task;
 	    final Map<String, ObjectContext> objectContextMap = new HashMap<>();
 	    final PerformerCommentsFormatter commentsFormatter;

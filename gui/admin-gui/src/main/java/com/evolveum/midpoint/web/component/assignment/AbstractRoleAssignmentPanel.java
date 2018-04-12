@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -206,7 +207,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         		   constructionType.setResourceRef(ref);
         		   constructionType.setKind(kind);
         		   constructionType.setIntent(intent);
-        		   initAssociationContainer(constructionType);
         		   assignmentType.setConstruction(constructionType);
         	   } else {
         		   assignmentType.setTargetRef(ref);
@@ -216,9 +216,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
             refreshTable(target);
             reloadSavePreviewButtons(target);
-       }
-
-       protected void initAssociationContainer(ConstructionType constructionType){
        }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {

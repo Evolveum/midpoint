@@ -131,7 +131,7 @@ public class WizardIssuesDto implements Serializable {
 		}
 	}
 
-	public class Issue implements Serializable {
+	public static class Issue implements Serializable {
 		@NotNull private final Severity severity;
 		@NotNull private final String text;
 		@Nullable private final Class<? extends WizardStep> relatedStep;

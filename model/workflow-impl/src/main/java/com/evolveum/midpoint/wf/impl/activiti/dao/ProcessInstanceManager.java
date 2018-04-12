@@ -119,7 +119,7 @@ public class ProcessInstanceManager {
 		}
 	}
 
-	class Statistics {
+	static class Statistics {
 		int processes = 0;
 		int processesWithNonExistingTaskOid = 0;
 		int processesWithNonWorkflowTaskOid = 0;

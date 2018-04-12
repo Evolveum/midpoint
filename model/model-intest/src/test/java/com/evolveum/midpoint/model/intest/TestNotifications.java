@@ -365,6 +365,60 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     }
 
 	@Test
+	public void test135ModifyUserJackAssignRole() throws Exception {
+		final String TEST_NAME = "test135ModifyUserJackAssignRole";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("executeChanges result", result);
+
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertAssignedRole(userJack, ROLE_SUPERUSER_OID);
+		assertAssignments(userJack, 2);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("accountPasswordNotifier", 0);
+		checkDummyTransportMessages("userPasswordNotifier", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+		checkDummyTransportMessages("simpleUserNotifier", 1);
+		checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+		assertSteadyResources();
+
+		String expected = "Notification about user-related operation (status: SUCCESS)\n"
+				+ "\n"
+				+ "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+				+ "\n"
+				+ "The user record was modified. Modified attributes are:\n"
+				+ " - Assignment:\n"
+				+ "   - ADD: \n"
+				+ "      - Target: Superuser (role)\n"
+				+ "\n"
+				+ "Channel: ";
+		assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+
+	}
+
+	@Test
 	public void test200SendSmsUsingGet() {
 		final String TEST_NAME = "test200SendSmsUsingGet";
 		TestUtil.displayTestTitle(this, TEST_NAME);
@@ -420,6 +474,39 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
 		assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
 		assertEquals("Wrong 1st line of body", "Body=\"hello+world\"&To=%2B421905123456&From=%2B421999000999", httpHandler.lastRequest.body.get(0));
+	}
+
+	@Test
+	public void test215SendSmsUsingGeneralPost() {
+		final String TEST_NAME = "test215SendSmsUsingGeneralPost";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
+				"hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
+		notificationManager.processEvent(event, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("processEvent result", result);
+
+		assertNotNull("No http request found", httpHandler.lastRequest);
+		assertEquals("Wrong HTTP method", "POST", httpHandler.lastRequest.method);
+		assertEquals("Wrong URI", "/send", httpHandler.lastRequest.uri.toString());
+		assertEquals("Wrong Content-Type header", singletonList("application/x-www-form-urlencoded"),
+				httpHandler.lastRequest.headers.get("content-type"));
+		assertEquals("Wrong X-Custom header", singletonList("test"), httpHandler.lastRequest.headers.get("x-custom"));
+		String username = "a9038321";
+		String password = "5ecr3t";
+		String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
+		assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
+		assertEquals("Wrong 1st line of body", "Body=\"body\"&To=[%2B123, %2B456, %2B789]&From=from", httpHandler.lastRequest.body.get(0));
 	}
 
 	@SuppressWarnings("Duplicates")

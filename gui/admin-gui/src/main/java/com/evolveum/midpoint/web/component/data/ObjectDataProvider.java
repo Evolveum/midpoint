@@ -78,6 +78,12 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     	return allSelected;
     }
 
+    // Here we apply the distinct option. It is easier and more reliable to apply it here than to do at all the places
+	// where options for this provider are defined.
+    private Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
+    	return GetOperationOptions.merge(options, getDistinctRelatedOptions());
+    }
+
 
     @Override
     public Iterator<W> internalIterator(long first, long count) {
@@ -120,7 +126,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, getOptionsToUse(), task, result);
 
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
@@ -169,7 +175,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(type, getQuery(), options, task, result);
+            count = getModel().countObjects(type, getQuery(), getOptionsToUse(), task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);

@@ -5,6 +5,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHeaderPanel<ContainerWrapper<C>>{
@@ -47,7 +48,10 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	private void addValue(AjaxRequestTarget target) {
 		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
 		ContainerWrapper<C> containerWrapper = getModelObject();
-		ContainerValueWrapper<C> newContainerValue = cwf.createContainerValueWrapper(containerWrapper, containerWrapper.getItem().createNewValue(), containerWrapper.getObjectStatus(), ValueStatus.ADDED, containerWrapper.getPath());
+		Task task = getPageBase().createSimpleTask("Creating new container");
+		ContainerValueWrapper<C> newContainerValue = cwf.createContainerValueWrapper(containerWrapper,
+				containerWrapper.getItem().createNewValue(), containerWrapper.getObjectStatus(), ValueStatus.ADDED,
+				containerWrapper.getPath(), task);
 		newContainerValue.setShowEmpty(true, false);
 		getModelObject().addValue(newContainerValue);
 		onButtonClick(target);

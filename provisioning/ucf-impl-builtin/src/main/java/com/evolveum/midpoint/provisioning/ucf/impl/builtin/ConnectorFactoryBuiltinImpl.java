@@ -277,7 +277,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		// Nothing to do
 	}
 
-	private class ConnectorStruct {
+	private static class ConnectorStruct {
 		Class<? extends ConnectorInstance> connectorClass;
 		ConnectorType connectorObject;
 		PrismSchema connectorConfigurationSchema;

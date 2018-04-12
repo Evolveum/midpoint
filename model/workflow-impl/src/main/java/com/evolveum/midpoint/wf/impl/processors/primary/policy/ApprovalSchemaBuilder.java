@@ -51,7 +51,7 @@ class ApprovalSchemaBuilder {
 		this.processSpecification = processSpecification;
 	}
 
-	class Result {
+	static class Result {
 		@NotNull final ApprovalSchemaType schemaType;
 		@NotNull final SchemaAttachedPolicyRulesType attachedRules;
 		@Nullable final ProcessSpecification processSpecification;
@@ -68,7 +68,7 @@ class ApprovalSchemaBuilder {
 		}
 	}
 
-	private class Fragment {
+	private static class Fragment {
 		// object to which relations (approved, owner) are resolved
 		// TODO test this thoroughly in presence of non-direct rules and merged schemas
 		final PrismObject<?> target;

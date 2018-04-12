@@ -322,6 +322,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareNotifications();
 
 		// Preconditions
 		assertUsers(6);
@@ -367,6 +368,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
 		assertUsers(6);
 
+		displayAllNotifications();
+		assertSingleDummyTransportMessageContaining("simpleAccountNotifier-SUCCESS", "Channel: " + SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
 	}
 
 	/**

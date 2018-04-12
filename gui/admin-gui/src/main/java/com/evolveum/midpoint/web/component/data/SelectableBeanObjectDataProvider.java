@@ -161,7 +161,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
-            if (ResourceType.class.equals(type) && (options == null || options.isEmpty())){
+            if (ResourceType.class.equals(type) && (options == null || options.isEmpty())) {
             	options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
 			Collection<SelectorOptions<GetOperationOptions>> currentOptions = options;
@@ -178,6 +178,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 									(o) -> o.setDefinitionProcessing(FULL));
 				}
 			}
+			currentOptions = GetOperationOptions.merge(currentOptions, getDistinctRelatedOptions());
             List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, currentOptions, task, result);
 
             if (LOGGER.isTraceEnabled()) {
@@ -240,7 +241,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
         OperationResult result = task.getResult();
         try {
-            Integer counted = getModel().countObjects(type, getQuery(), options, task, result);
+	        Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(options, getDistinctRelatedOptions());
+            Integer counted = getModel().countObjects(type, getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, 0);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);

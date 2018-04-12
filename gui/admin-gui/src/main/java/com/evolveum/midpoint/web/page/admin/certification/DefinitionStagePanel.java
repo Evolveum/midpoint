@@ -201,7 +201,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 	}
 
 
-	private class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
+	private static class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
 		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form, PageBase pageBase) {
 			super(id, propertyModel, form, null, pageBase);
 		}

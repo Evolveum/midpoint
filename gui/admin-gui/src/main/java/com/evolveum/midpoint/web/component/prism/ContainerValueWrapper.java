@@ -155,15 +155,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		int visibleProperties = 0;
 
-		for (ItemWrapper item : properties) {
+ 		for (ItemWrapper item : properties) {
 			if (item.isVisible()) {
 				visibleProperties++;
 			}
+			
 			if (visibleProperties % 2 == 0) {
 				item.setStripe(true);
 			} else {
 				item.setStripe(false);
 			}
+			
 		}
 	}
 
@@ -284,9 +286,40 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		if (isSorted()) {
 			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
+			
+//			List<ItemWrapper> containerWrappers = new ArrayList<>();
+//			List<ItemWrapper> propertyOrReferenceWrapper = new ArrayList<>();
+//			for(ItemWrapper w : properties) {
+//				if (w instanceof ContainerWrapper) {
+//					containerWrappers.add(w);
+//					continue;
+//				}
+//				
+//				if (PropertyOrReferenceWrapper.class.isAssignableFrom(w.getClass())) {
+//					propertyOrReferenceWrapper.add(w);
+//				}
+//			}
+			
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+					
+					if (pw1 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw1).sort();
+					}
+					
+					if (pw2 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw2).sort();
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapper) {
+						return -1;
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapper) {
+						return 1;
+					}
+//					
 					return compareByDisplayNames(pw1, pw2, collator);
 				}
 			});
@@ -294,6 +327,23 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+					
+					if (pw1 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw1).sort();
+					}
+					
+					if (pw2 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw2).sort();
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapper) {
+						return -1;
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapper) {
+						return 1;
+					}
+					
 					ItemDefinition id1 = pw1.getItemDefinition();
 					ItemDefinition id2 = pw2.getItemDefinition();
 
@@ -307,6 +357,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				}
 			});
 		}
+
 	}
 
 	private int compareByDisplayNames(ItemWrapper pw1, ItemWrapper pw2, Collator collator) {
@@ -548,25 +599,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 	}
 
-	public void addNewChildContainerValue(QName path, PageBase pageBase){
-		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
-		if (childContainerWrapper == null){
-			return;
-		}
-		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
-		if (isSingleValue){
-			return;
-		}
-		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
-		ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
-		ContainerValueWrapper newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
-				newContainerValue, objectStatus,
-				ValueStatus.ADDED, new ItemPath(path));
-		newValueWrapper.setShowEmpty(true, false);
-		childContainerWrapper.getValues().add(newValueWrapper);
-
-	}
-
+	
 	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {
 		List<PrismValue> prismValues = new ArrayList<>();
 		for (Object vWrapper : itemWrapper.getValues()) {

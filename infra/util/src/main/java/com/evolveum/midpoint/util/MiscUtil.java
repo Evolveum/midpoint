@@ -27,6 +27,9 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.Map.Entry;
@@ -697,4 +700,13 @@ public class MiscUtil {
 	public static <V> Collection<V> nonNullValues(@NotNull Collection<V> values) {
 		return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
 	}
+
+	public static URL toUrlUnchecked(URI uri) {
+		try {
+			return uri.toURL();
+		} catch (MalformedURLException e) {
+			throw new SystemException(e);
+		}
+	}
+
 }

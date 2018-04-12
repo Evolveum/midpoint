@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.security.Key;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration.Configuration;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
@@ -172,17 +174,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
-	private Set<URL> bundleURLs;
+	private Set<URI> bundleURIs;
 	private Set<ConnectorType> localConnectorTypes = null;
 
-	@Autowired(required = true)
-	private MidpointConfiguration midpointConfiguration;
-
-	@Autowired(required = true)
-	private Protector protector;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private Protector protector;
+	@Autowired private PrismContext prismContext;
 
 	public ConnectorFactoryConnIdImpl() {
 	}
@@ -195,26 +192,26 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public void initialize() {
 
 		// OLD
-		// bundleURLs = listBundleJars();
-		bundleURLs = new HashSet<>();
+		// bundleURIs = listBundleJars();
+		bundleURIs = new HashSet<>();
 
 		Configuration config = midpointConfiguration.getConfiguration("midpoint.icf");
 
 		// Is classpath scan enabled
 		if (config.getBoolean("scanClasspath")) {
 			// Scan class path
-			bundleURLs.addAll(scanClassPathForBundles());
+			bundleURIs.addAll(scanClassPathForBundles());
 		}
 
 		// Scan all provided directories
 		@SuppressWarnings("unchecked")
 		List<String> dirs = config.getList("scanDirectory");
 		for (String dir : dirs) {
-			bundleURLs.addAll(scanDirectory(dir));
+			bundleURIs.addAll(scanDirectory(dir));
 		}
 
-		for (URL u : bundleURLs) {
-			LOGGER.debug("ICF bundle URL : {}", u);
+		for (URI u : bundleURIs) {
+			LOGGER.debug("ICF bundle URI : {}", u);
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
@@ -501,9 +498,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 *
 	 * @return ICF connector info manager that manages local connectors
 	 */
+
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs.toArray(new URL[0]));
+			URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
+			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
 		}
 		return localConnectorInfoManager;
 	}
@@ -543,8 +542,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 *
 	 * @return Set of all bundle URL
 	 */
-	private Set<URL> scanClassPathForBundles() {
-		Set<URL> bundle = new HashSet<>();
+	private Set<URI> scanClassPathForBundles() {
+		Set<URI> bundle = new HashSet<>();
 
 		// scan class path for bundles
 		Enumeration<URL> en = null;
@@ -595,7 +594,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 					URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
 					if (isThisBundleCompatible(tmp)) {
-						bundle.add(tmp);
+						try {
+							bundle.add(tmp.toURI());
+						} catch (Exception e) {
+							LOGGER.error(e.getMessage(), e);
+						}
 					} else {
 						LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
 					}
@@ -623,23 +626,24 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 * @param path
 	 * @return
 	 */
-	private Set<URL> scanDirectory(String path) {
+	private Set<URI> scanDirectory(String path) {
 
 		// Prepare return object
-		Set<URL> bundle = new HashSet<>();
-		// COnvert path to object File
+		Set<URI> bundle = new HashSet<>();
+		// Convert path to object File
 		File dir = new File(path);
 
 		// Test if this path is single jar or need to do deep examination
 		if (isThisJarFileBundle(dir)) {
 			try {
-				if (isThisBundleCompatible(dir.toURI().toURL())) {
-					bundle.add(dir.toURI().toURL());
+				final URI uri = dir.toURI();
+				if (isThisBundleCompatible(uri.toURL())) {
+					bundle.add(uri);
 				} else {
-					LOGGER.warn("Skip loading budle {} due error occured", dir.toURI().toURL());
+					LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
 				}
 			} catch (MalformedURLException e) {
-				LOGGER.error("This never happend we hope.", e);
+				LOGGER.error("This never happened we hope.", e);
 				throw new SystemException(e);
 			}
 			return bundle;
@@ -657,17 +661,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			return bundle;
 		}
 
-		// test all entires for bundle
+		// test all entries for bundle
 		for (int i = 0; i < dirEntries.length; i++) {
 			if (isThisJarFileBundle(dirEntries[i])) {
 				try {
-					if (isThisBundleCompatible(dirEntries[i].toURI().toURL())) {
-						bundle.add(dirEntries[i].toURI().toURL());
+					final URI uri = dirEntries[i].toURI();
+					if (isThisBundleCompatible(uri.toURL())) {
+						bundle.add(uri);
 					} else {
-						LOGGER.warn("Skip loading budle {} due error occured", dirEntries[i].toURI().toURL());
+						LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
 					}
 				} catch (MalformedURLException e) {
-					LOGGER.error("This never happend we hope.", e);
+					LOGGER.error("This never happened we hope.", e);
 					throw new SystemException(e);
 				}
 			}

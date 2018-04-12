@@ -506,7 +506,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
-				wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status);
+				wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, task);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}

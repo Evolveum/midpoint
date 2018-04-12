@@ -84,8 +84,9 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
                 propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);
                 propertiesToGet.add(TaskType.F_NEXT_RETRY_TIMESTAMP);
             }
-            Collection<SelectorOptions<GetOperationOptions>> searchOptions =
-                    GetOperationOptions.createRetrieveAttributesOptions(propertiesToGet.toArray(new QName[0]));
+            Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.merge(
+		            createDefaultOptions(),
+		            GetOperationOptions.createRetrieveAttributesOptions(propertiesToGet.toArray(new QName[0])));
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
@@ -140,7 +141,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         OperationResult result = new OperationResult(OPERATION_COUNT_TASKS);
         Task task = getTaskManager().createTaskInstance(OPERATION_COUNT_TASKS);
         try {
-            count = getModel().countObjects(TaskType.class, getQuery(), null, task, result);
+            count = getModel().countObjects(TaskType.class, getQuery(), createDefaultOptions(), task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when counting tasks", ex);

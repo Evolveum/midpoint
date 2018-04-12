@@ -352,7 +352,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
-				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status);
+				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
