@@ -13804,8 +13804,80 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="caching" type="tns:CachingConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+
+						TEMPORARY/EXPERIMENTAL.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+	<xsd:complexType name="CachingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="global" type="tns:GlobalCacheConfigurationType" minOccurs="0"/>
+			<xsd:element name="authentication" type="xsd:int" minOccurs="0" default="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="GlobalCacheConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="objectType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="maxObjectsPerType" type="xsd:int" minOccurs="0" default="5000">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expirationInterval" type="xsd:int" minOccurs="0" default="900">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="defaultVersionCheckInterval" type="xsd:int" minOccurs="0" default="60">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
     
     <xsd:complexType name="AdminGuiConfigurationType">
         <xsd:annotation>
