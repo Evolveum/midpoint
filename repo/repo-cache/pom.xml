@@ -79,6 +79,12 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
+
+		<!-- Eh cache -->
+		<dependency>
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+		</dependency>
 		
 		<!--  Testing dependecies  -->
 		<dependency>

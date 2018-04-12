@@ -42,7 +42,10 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
@@ -55,19 +58,13 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -82,9 +79,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lazyman
@@ -111,6 +108,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private TaskManager taskManager;
 
 	private MessageSourceAccessor messages;
+
+	private static final long ASSIGNMENT_TARGET_STALENESS = 60 * 1000; // 60 seconds
+
+	// todo move oid cache to repository cache
+	private static final long MAX_CACHE_SIZE = 5000;
+	private static final long MAX_CACHE_TTL = 60 * 1000; // 60 seconds
+	// caches <user.name, oid>
+	private Cache<String, String> oidCache;
+
+	{
+		oidCache = CacheBuilder.newBuilder()
+				.expireAfterAccess(MAX_CACHE_TTL, TimeUnit.MILLISECONDS)
+				.concurrencyLevel(20)
+				.maximumSize(MAX_CACHE_SIZE)
+				.build();
+	}
 
 	@Override
 	public void setMessageSource(MessageSource messageSource) {
@@ -181,6 +194,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     private PrismObject<UserType> findByUsername(String username, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		String oid = null;
+		try {
+			oid = oidCache.getIfPresent(username);
+		} catch (Exception ex) {
+		}
+		if (oid != null) {
+			GetOperationOptions opts = GetOperationOptions.createPointInTimeType(PointInTimeType.CACHED);
+			opts.setStaleness(MAX_CACHE_TTL);
+
+			PrismObject user = repositoryService.getObject(UserType.class, oid, SelectorOptions.createCollection(opts), result);
+			String userName = user.getName() != null ? user.getName().getOrig() : null;
+			if (Objects.equals(username, userName)) {
+				return user;
+			}
+		}
+
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
@@ -190,7 +219,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         if (list.size() != 1) {
             return null;
         }
-        return list.get(0);
+        PrismObject<UserType> user = list.get(0);
+        oidCache.put(username, user.getOid());
+
+        return user;
     }
 
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException {
@@ -225,7 +257,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 							.loginMode(true)
 							// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
 							// will need something to push on the stack. So give them context placeholder.
-							.lensContext(lensContext);
+							.lensContext(lensContext)
+							// this will allow to read cached assignment target references
+							.allowCached(true)
+							.staleness(ASSIGNMENT_TARGET_STALENESS);
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
@@ -389,6 +424,4 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		// TODO Auto-generated method stub
 
 	}
-
-
 }

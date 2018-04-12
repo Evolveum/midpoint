@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -37,17 +38,22 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.Validate;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.expiry.Duration;
+import org.ehcache.expiry.Expirations;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -67,6 +73,7 @@ public class RepositoryCache implements RepositoryService {
 	private static final String CONFIGURATION_COMPONENT = "midpoint.repository";
 	private static final String PROPERTY_CACHE_MAX_TTL = "cacheMaxTTL";
 
+	@Deprecated
 	private static final Set<Class<? extends ObjectType>> GLOBAL_CACHE_SUPPORTED_TYPES;
 
 	static {
@@ -82,16 +89,13 @@ public class RepositoryCache implements RepositoryService {
 
 	private static final ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
 
-	private static final Map<CacheKey, CacheObject> globalCache = new ConcurrentHashMap<>();
-
 	@Autowired private RepositoryService repositoryService;
 
 	@Autowired private PrismContext prismContext;
 
 	@Autowired private MidpointConfiguration midpointConfiguration;
-	
-	@Autowired private CacheDispatcher cacheDispatcher;
 
+	@Autowired private CacheDispatcher cacheDispatcher;
 
 	private long cacheMaxTTL;
 
@@ -99,9 +103,10 @@ public class RepositoryCache implements RepositoryService {
 
 	private Integer modifyRandomDelayRange;
 
+	private CacheManager cacheManager;
+
 	public RepositoryCache() {
     }
-
 
 	@PostConstruct
 	public void initialize() {
@@ -111,6 +116,26 @@ public class RepositoryCache implements RepositoryService {
 			cacheMaxTTL = 0;
 		}
 		this.cacheMaxTTL = cacheMaxTTL * 1000;
+
+		initializeGlobalCache();
+	}
+
+	private void initializeGlobalCache() {
+		CacheConfigurationBuilder ccBuilder = CacheConfigurationBuilder.newCacheConfigurationBuilder(
+				String.class, CacheObject.class, ResourcePoolsBuilder.heap(5000))
+				.withExpiry(Expirations.timeToLiveExpiration(Duration.of(15, TimeUnit.MINUTES)));
+
+		cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+				.build(true);
+
+		for (ObjectTypes ot : ObjectTypes.values()) {
+			Class type =  ot.getClassDefinition();
+			if (Modifier.isAbstract(type.getModifiers())) {
+				continue;
+			}
+
+			cacheManager.createCache(type.getSimpleName(), ccBuilder);
+		}
 	}
 
 	private static Cache getCache() {
@@ -175,7 +200,7 @@ public class RepositoryCache implements RepositoryService {
 
 		PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult);
 		cacheObject(cache, object, readOnly);
-        return object;
+		return object;
 	}
 
 	private <T extends ObjectType> PrismObject<T> cloneIfNecessary(PrismObject<T> object, boolean readOnly) {
@@ -188,35 +213,33 @@ public class RepositoryCache implements RepositoryService {
 
 	private <T extends ObjectType> PrismObject<T> getObjectTryGlobalCache(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 																		  OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-
-		if (!supportsGlobalCaching(type, options)) {
+		if (!shouldUseGlobalCache(type, options)) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
-            return getObjectInternal(type, oid, options, parentResult);
+			return getObjectInternal(type, oid, options, parentResult);
 		}
 
-		CacheKey key = new CacheKey(type, oid);
-		CacheObject<T> cacheObject = globalCache.get(key);
+		org.ehcache.Cache<String, CacheObject<T>> gCache = getGlobalCache(type);
+		CacheObject cacheObject = gCache != null ? gCache.get(oid) : null;
 
-        PrismObject<T> object;
-        if (cacheObject == null) {
-            object = reloadObject(key, options, parentResult);
-        } else {
-            if (!shouldCheckVersion(cacheObject)) {
-                log("Cache: Global HIT {}", key);
-                object = cacheObject.getObject();
-            } else {
-                if (hasVersionChanged(key, cacheObject, parentResult)) {
-                    object = reloadObject(key, options, parentResult);
-                } else {
+		PrismObject<T> object;
+		if (cacheObject == null) {
+			object = reloadObjectInGlobalCache(type, oid, options, parentResult);
+		} else {
+			if (!shouldCheckVersion(cacheObject, options)) {
+				log("Cache: Global HIT {} ({})", oid, type.getSimpleName());
+				object = cacheObject.getObject();
+			} else {
+				if (hasVersionChanged(cacheObject, parentResult)) {
+					object = reloadObjectInGlobalCache(type, oid, options, parentResult);
+				} else {
+					// version matches, just update last version check
+					cacheObject.setLastVersionCheck(System.currentTimeMillis());
 
-                    // version matches, renew ttl
-                    cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);
-
-                    log("Cache: Global HIT, version check {}", key);
-                    object = cacheObject.getObject();
-                }
-            }
-        }
+					log("Cache: Global HIT, version check {} ({})", oid, type.getSimpleName());
+					object = cacheObject.getObject();
+				}
+			}
+		}
 
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 
@@ -233,6 +256,31 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
+	private <T extends ObjectType> boolean shouldUseGlobalCache(Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options) {
+		// todo remove this if after model code starts to use PointInTimeType.CACHED and stallesness options correctly
+        if (supportsGlobalCaching(type, options)) {
+            return true;
+        }
+
+		if (!isCacheable(type)) {
+			return false;
+		}
+
+		GetOperationOptions opts = SelectorOptions.findRootOptions(options);
+        if (opts == null) {
+            return false;
+        }
+
+		if (Objects.equals(PointInTimeType.CACHED, opts.getPointInTimeType())) {
+			Long stalesness = opts.getStaleness();
+			if (stalesness != null && stalesness > 0) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private Long repoOpStart() {
 		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
 		if (monitor == null) {
@@ -241,14 +289,14 @@ public class RepositoryCache implements RepositoryService {
 			return System.currentTimeMillis();
 		}
 	}
-	
+
 	private void repoOpEnd(Long startTime) {
 		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
 		if (monitor != null) {
 			monitor.recordRepoOperation(System.currentTimeMillis() - startTime);
 		}
 	}
-	
+
 	private boolean isCacheable(Class<?> type) {
 		if (type.equals(TaskType.class)) {
 			return false;
@@ -455,9 +503,12 @@ public class RepositoryCache implements RepositoryService {
 			cache.clearQueryResults(type);
 		}
 
-		globalCache.remove(new CacheKey(type, oid));
+		org.ehcache.Cache gCache = getGlobalCache(type);
+		if (gCache != null) {
+			gCache.remove(oid);
+		}
+
 		cacheDispatcher.dispatch(type, oid);
-		
 	}
 
 	@Override
@@ -760,6 +811,10 @@ public class RepositoryCache implements RepositoryService {
 		return repositoryService.hasConflict(watcher, result);
 	}
 
+    private <T extends ObjectType> org.ehcache.Cache<String, CacheObject<T>> getGlobalCache(Class<T> type) {
+        return (org.ehcache.Cache) cacheManager.getCache(type.getSimpleName(), String.class, CacheObject.class);
+    }
+
 	private <T extends ObjectType> boolean supportsGlobalCaching(
 			Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options) {
 
@@ -771,55 +826,64 @@ public class RepositoryCache implements RepositoryService {
 			return false;
 		}
 
-		if (options != null && !options.isEmpty()) {    //todo support probably raw flag
+		if (!nullOrHarmlessOptions(options)) {
 			return false;
 		}
 
 		return true;
 	}
 
-	private <T extends ObjectType> void removeObject(Class<T> type, String oid) {
-		Validate.notNull(type, "Type must not be null");
-		Validate.notNull(oid, "Oid must not be null");
-
-		globalCache.remove(new CacheKey(type, oid));
-	}
-
-	private boolean hasVersionChanged(CacheKey key, CacheObject object, OperationResult result)
+	private boolean hasVersionChanged(CacheObject object, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
+		Class type = object.getObjectType();
+		String oid = object.getObjectOid();
+
 		try {
-			String version = repositoryService.getVersion(object.getObjectType(), object.getObjectOid(), result);
+			String version = repositoryService.getVersion(type, oid, result);
 
 			return !Objects.equals(version, object.getObjectVersion());
 		} catch (ObjectNotFoundException | SchemaException ex) {
-			removeObject(key.getType(), key.getOid());
+			invalidateCacheEntry(type, oid);
 
 			throw ex;
 		}
 	}
 
-	private boolean shouldCheckVersion(CacheObject object) {
-		return object.getTimeToLive() < System.currentTimeMillis();
+	private boolean shouldCheckVersion(CacheObject object, Collection<SelectorOptions<GetOperationOptions>> options) {
+		GetOperationOptions opts = SelectorOptions.findRootOptions(options);
+		Long staleness = opts != null ? opts.getStaleness() : null;
+
+		if (staleness == null) {
+			return object.getLastVersionCheck() + cacheMaxTTL < System.currentTimeMillis();
+		}
+
+		if (staleness <= 0) {
+			return true;
+		}
+
+		return object.getLastVersionCheck() + staleness < System.currentTimeMillis();
 	}
 
-	private <T extends ObjectType> PrismObject<T> reloadObject(
-			CacheKey key, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+	private <T extends ObjectType> PrismObject<T> reloadObjectInGlobalCache(Class<T> type, String oid,
+																			Collection<SelectorOptions<GetOperationOptions>> options,
+																			OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
-		log("Cache: Global MISS {}", key);
+		log("Cache: Global MISS {} ({})", oid, type.getSimpleName());
 
 		try {
-			PrismObject object = getObjectInternal(key.getType(), key.getOid(), options, result);
+			PrismObject object = getObjectInternal(type, oid, options, result);
 
-			long ttl = System.currentTimeMillis() + cacheMaxTTL;
-			CacheObject<T> cacheObject = new CacheObject<>(object, ttl);
+			org.ehcache.Cache<String, CacheObject<T>> gCache = getGlobalCache(object.getCompileTimeClass());
+			if (gCache != null) {
+				CacheObject<T> cacheObject = new CacheObject<>(object, System.currentTimeMillis());
+				gCache.put(oid, cacheObject);
+			}
 
-			globalCache.put(key, cacheObject);
-
-			return cacheObject.getObject();
+			return object;
 		} catch (ObjectNotFoundException | SchemaException ex) {
-			globalCache.remove(key);
+			invalidateCacheEntry(type, oid);
 
 			throw ex;
 		}
