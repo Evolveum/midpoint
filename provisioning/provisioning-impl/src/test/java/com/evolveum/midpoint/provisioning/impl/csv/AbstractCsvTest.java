@@ -298,8 +298,9 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
         List<Host> scriptHosts = capScript.getHost();
-        assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
+        assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
         assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
+        assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
