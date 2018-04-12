@@ -152,15 +152,14 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
-
 		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			// local cache not interested in caching this object
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
 
-			PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult);
-			return cloneIfNecessary(object, readOnly);
+			return getObjectTryGlobalCache(type, oid, options, parentResult);
 		}
+
+		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 
 		Cache cache = getCache();
 		if (cache == null) {
@@ -176,8 +175,7 @@ public class RepositoryCache implements RepositoryService {
 
 		PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult);
 		cacheObject(cache, object, readOnly);
-
-		return cloneIfNecessary(object, readOnly);
+        return object;
 	}
 
 	private <T extends ObjectType> PrismObject<T> cloneIfNecessary(PrismObject<T> object, boolean readOnly) {
@@ -193,30 +191,36 @@ public class RepositoryCache implements RepositoryService {
 
 		if (!supportsGlobalCaching(type, options)) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
-			return getObjectInternal(type, oid, options, parentResult);
+            return getObjectInternal(type, oid, options, parentResult);
 		}
 
 		CacheKey key = new CacheKey(type, oid);
 		CacheObject<T> cacheObject = globalCache.get(key);
 
+        PrismObject<T> object;
         if (cacheObject == null) {
-            return reloadObject(key, options, parentResult);
+            object = reloadObject(key, options, parentResult);
+        } else {
+            if (!shouldCheckVersion(cacheObject)) {
+                log("Cache: Global HIT {}", key);
+                object = cacheObject.getObject();
+            } else {
+                if (hasVersionChanged(key, cacheObject, parentResult)) {
+                    object = reloadObject(key, options, parentResult);
+                } else {
+
+                    // version matches, renew ttl
+                    cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);
+
+                    log("Cache: Global HIT, version check {}", key);
+                    object = cacheObject.getObject();
+                }
+            }
         }
 
-		if (!shouldCheckVersion(cacheObject)) {
-			log("Cache: Global HIT {}", key);
-			return cacheObject.getObject();
-		}
+		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 
-		if (hasVersionChanged(key, cacheObject, parentResult)) {
-			return reloadObject(key, options, parentResult);
-		}
-
-		// version matches, renew ttl
-		cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);
-
-		log("Cache: Global HIT, version check {}", key);
-		return cacheObject.getObject();
+		return cloneIfNecessary(object, readOnly);
 	}
 
 	private <T extends ObjectType> PrismObject<T> getObjectInternal(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
