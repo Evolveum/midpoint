@@ -23,23 +23,41 @@ import java.util.List;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
  */
 public class SystemConfigurationDto implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	public static final String F_ASSIGNMENTPOLICYENFORCEMENT_LEVEL = "aepLevel";
 	public static final String F_AUDIT_CLEANUP_AGE = "auditCleanupAge";
 	public static final String F_AUDIT_CLEANUP_RECORDS = "auditCleanupRecords";
@@ -65,6 +83,8 @@ public class SystemConfigurationDto implements Serializable {
 	private AEPlevel aepLevel;
 
 	private static class CleanupInfo implements Serializable {
+		
+		private static final long serialVersionUID = 1L;
 		String ageValue;
 		Integer records;
 
@@ -102,7 +122,7 @@ public class SystemConfigurationDto implements Serializable {
 
 	private ObjectViewDto<ValuePolicyType> passPolicyDto;
 	private ObjectViewDto<SecurityPolicyType> securityPolicyDto;
-	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
+	private List<ObjectPolicyConfigurationType> objectPolicyList;
 	private NotificationConfigurationDto notificationConfig;
 	private AdminGuiConfigurationType adminGuiConfiguration;
 	private List<RichHyperlinkType> userDashboardLink;
@@ -146,15 +166,7 @@ public class SystemConfigurationDto implements Serializable {
 		passPolicyDto = loadPasswordPolicy(config);
 		securityPolicyDto = loadSecurityPolicy(config);
 
-		objectPolicyList = new ArrayList<>();
-		List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
-		if (objectPolicies != null && !objectPolicies.isEmpty()) {
-			for (ObjectPolicyConfigurationType policy : objectPolicies) {
-				objectPolicyList.add(new ObjectPolicyConfigurationTypeDto(policy));
-			}
-		} else {
-			objectPolicyList.add(new ObjectPolicyConfigurationTypeDto());
-		}
+		objectPolicyList = config.getDefaultObjectPolicyConfiguration();
 
 		// NOTIFICATIONS
 		if (config.getNotificationConfiguration() != null) {
@@ -193,8 +205,6 @@ public class SystemConfigurationDto implements Serializable {
 
 		enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
 
-//		userDashboardLink = loadUserDashboardLink(config);
-//        additionalMenuLink = loadAdditionalMenuItem(config);
 		adminGuiConfiguration = config.getAdminGuiConfiguration();
 	}
 
@@ -256,7 +266,14 @@ public class SystemConfigurationDto implements Serializable {
 		}
 		
 		newObject.setAdminGuiConfiguration(adminGuiConfiguration);
-
+		newObject.getDefaultObjectPolicyConfiguration().clear();
+		for (ObjectPolicyConfigurationType objPolicyType : objectPolicyList) {
+			PrismContainerValue<ObjectPolicyConfigurationType> objPolicy = objPolicyType.asPrismContainerValue();
+			if (!objPolicy.isEmpty()) {
+				newObject.getDefaultObjectPolicyConfiguration().add(objPolicy.clone().asContainerable());
+			}
+			
+		}
 		return newObject;
 	}
 
@@ -447,11 +464,11 @@ public class SystemConfigurationDto implements Serializable {
 		this.profilingDto = profilingDto;
 	}
 
-	public List<ObjectPolicyConfigurationTypeDto> getObjectPolicyList() {
+	public List<ObjectPolicyConfigurationType> getObjectPolicyList() {
 		return objectPolicyList;
 	}
 
-	public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
+	public void setObjectPolicyList(List<ObjectPolicyConfigurationType> objectPolicyList) {
 		this.objectPolicyList = objectPolicyList;
 	}
 

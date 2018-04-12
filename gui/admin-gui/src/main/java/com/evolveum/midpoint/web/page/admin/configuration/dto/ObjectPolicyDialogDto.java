@@ -16,21 +16,23 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.io.Serializable;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  *  @author shood
@@ -40,7 +42,7 @@ public class ObjectPolicyDialogDto implements Serializable{
 
 	private static final String DOT_CLASS = ObjectPolicyDialogDto.class.getName() + ".";
 
-    private static final String OPERATION_LOAD_OBJECT_TEMPLATE = "loadObjectTemplate";
+    private static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
 
     public static final String F_CONFIG = "config";
     public static final String F_TEMPLATE_REF = "templateRef";
@@ -48,35 +50,38 @@ public class ObjectPolicyDialogDto implements Serializable{
     public static final String F_SUBTYPE = "subtype";
     public static final String F_PROPERTY_LIST = "propertyConstraintsList";
 
-    private List<PropertyConstraintTypeDto> propertyConstraintsList;
-    private ObjectPolicyConfigurationTypeDto config;
+    private List<PropertyConstraintType> propertyConstraintsList;
+    private ObjectPolicyConfigurationType config;
     private QName type;
     private String subtype;
     private ObjectTemplateConfigTypeReferenceDto templateRef;
 
-    public ObjectPolicyDialogDto(ObjectPolicyConfigurationTypeDto config, PageBase page) {
+    public ObjectPolicyDialogDto(ObjectPolicyConfigurationType config, PageBase page) {
         this.config = config;
         type = config.getType();
         subtype = config.getSubtype();
 
-        propertyConstraintsList = new ArrayList<>();
-
-        if(config != null && config.getConstraints() != null){
-            propertyConstraintsList.addAll(config.getConstraints());
-        } else {
-            propertyConstraintsList.add(new PropertyConstraintTypeDto(null));
+        propertyConstraintsList = config.getPropertyConstraint();
+        
+        if (propertyConstraintsList.isEmpty()) {
+        		propertyConstraintsList.add(new PropertyConstraintType());
         }
 
-        if(config.getTemplateRef() != null){
-            ObjectReferenceType ref = config.getTemplateRef();
+        if(config.getObjectTemplateRef() != null){
+            ObjectReferenceType ref = config.getObjectTemplateRef();
             templateRef = new ObjectTemplateConfigTypeReferenceDto(ref.getOid(), getObjectTemplateName(ref.getOid(), page));
         }
     }
 
-    public ObjectPolicyConfigurationTypeDto preparePolicyConfig(){
-        ObjectPolicyConfigurationTypeDto newConfig = new ObjectPolicyConfigurationTypeDto();
+    public ObjectPolicyConfigurationType preparePolicyConfig(){
+        ObjectPolicyConfigurationType newConfig = new ObjectPolicyConfigurationType();
 
-        newConfig.setConstraints(propertyConstraintsList);
+        for (PropertyConstraintType constraintType : propertyConstraintsList) {
+        		PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
+        		if (!constraint.isEmpty()) {
+        			newConfig.getPropertyConstraint().add(constraint.clone().asContainerable());
+        		}
+        }
         newConfig.setType(type);
         newConfig.setSubtype(subtype);
         newConfig.setConflictResolution(config.getConflictResolution());
@@ -86,17 +91,17 @@ public class ObjectPolicyDialogDto implements Serializable{
             ref.setOid(templateRef.getOid());
             ref.setType(ObjectTemplateType.COMPLEX_TYPE);
             ref.setTargetName(new PolyStringType(templateRef.getName()));
-	        newConfig.setTemplateRef(ref);
+	        newConfig.setObjectTemplateRef(ref);
         }
 
         return newConfig;
     }
 
-    public List<PropertyConstraintTypeDto> getPropertyConstraintsList() {
+    public List<PropertyConstraintType> getPropertyConstraintsList() {
         return propertyConstraintsList;
     }
 
-    public void setPropertyConstraintsList(List<PropertyConstraintTypeDto> propertyConstraintsList) {
+    public void setPropertyConstraintsList(List<PropertyConstraintType> propertyConstraintsList) {
         this.propertyConstraintsList = propertyConstraintsList;
     }
 
@@ -130,11 +135,11 @@ public class ObjectPolicyDialogDto implements Serializable{
         return "";
     }
 
-    public ObjectPolicyConfigurationTypeDto getConfig() {
+    public ObjectPolicyConfigurationType getConfig() {
         return config;
     }
 
-    public void setConfig(ObjectPolicyConfigurationTypeDto config) {
+    public void setConfig(ObjectPolicyConfigurationType config) {
         this.config = config;
     }
 
