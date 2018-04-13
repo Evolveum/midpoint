@@ -141,8 +141,6 @@ public class AuditTest extends BaseSQLRepoTest {
 			AuditEventRecord eventRecord = RAuditEventRecord.fromRepo(records.get(index), prismContext);
 			session.getTransaction().commit();
 			return eventRecord;
-		} catch (DtoTranslationException e) {
-			throw new SystemException(e);
 		} finally {
 			session.close();
 		}

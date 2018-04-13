@@ -42,12 +42,10 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializa
         }
         
         if (def1 instanceof PrismContainerDefinition) {
-        	((ContainerWrapper) p1).sort();
         	return 1;
         }
         
         if (def2 instanceof PrismContainerDefinition) {
-        	((ContainerWrapper) p2).sort();
         	return 1;
         }
         
