@@ -50,7 +50,7 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	private ItemPath defaultTargetItemPath;
 	// Only needed if defaultTargetItemPath == null
 	private D targetItemDefinition;
-	private Boolean evaluateCurrent;
+	private MappingTimeEval evaluateCurrent;
 	private boolean evaluateWeak = true;
 	private LensContext<F> context;
 	private boolean hasFullTargetObject;
@@ -137,11 +137,11 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 		this.sourceContext = sourceContext;
 	}
 
-	public Boolean getEvaluateCurrent() {
+	public MappingTimeEval getEvaluateCurrent() {
 		return evaluateCurrent;
 	}
 
-	public void setEvaluateCurrent(Boolean evaluateCurrent) {
+	public void setEvaluateCurrent(MappingTimeEval evaluateCurrent) {
 		this.evaluateCurrent = evaluateCurrent;
 	}
 

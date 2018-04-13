@@ -1525,7 +1525,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
 		displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), getDefaultOptions(), task, result);
+        executeChanges(assignmentDelta, getDefaultOptions(), task, result);
 
         // THEN
         displayThen(TEST_NAME);
