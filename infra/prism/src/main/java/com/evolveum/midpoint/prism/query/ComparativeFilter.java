@@ -27,8 +27,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-
 public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<T> {
 
 	private boolean equals;

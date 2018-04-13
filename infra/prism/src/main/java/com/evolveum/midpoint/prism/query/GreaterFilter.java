@@ -76,7 +76,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 
 	@Override
 	protected String getFilterName() {
-		return "GREATER";
+		return isEquals() ? "GREATER-OR-EQUAL" : "GREATER";
 	}
 
 	@Override
