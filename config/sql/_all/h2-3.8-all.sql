@@ -237,6 +237,7 @@ CREATE TABLE m_audit_event (
   targetOid         VARCHAR(36),
   targetOwnerName   VARCHAR(255),
   targetOwnerOid    VARCHAR(36),
+  targetOwnerType   INTEGER,
   targetType        INTEGER,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),

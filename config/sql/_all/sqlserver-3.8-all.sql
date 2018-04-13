@@ -233,6 +233,7 @@ CREATE TABLE m_audit_event (
   targetOid         NVARCHAR(36) COLLATE database_default,
   targetOwnerName   NVARCHAR(255) COLLATE database_default,
   targetOwnerOid    NVARCHAR(36) COLLATE database_default,
+  targetOwnerType   INT,
   targetType        INT,
   taskIdentifier    NVARCHAR(255) COLLATE database_default,
   taskOID           NVARCHAR(255) COLLATE database_default,
