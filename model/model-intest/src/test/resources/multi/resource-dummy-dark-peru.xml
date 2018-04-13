@@ -29,7 +29,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
-	<name>Dummy Resource Peru Disable</name>
+	<name>Dummy Resource Dark Peru</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -48,7 +48,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>peru-disable</icfi:instanceId>
+			<icfi:instanceId>dark-peru</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -99,7 +99,7 @@
 				</outbound>
 			</attribute>
 			<dependency>
-				<resourceRef oid="10000000-0000-0000-0000-000000000704"/> <!-- yellow dummy -->
+				<resourceRef oid="33da1afe-3efb-11e8-a5e3-4fed83f61ae7"/> <!-- dark yellow dummy -->
 				<strictness>relaxed</strictness>
 			</dependency>
 			<activation>
@@ -113,7 +113,6 @@
                 </existence>
                 <administrativeStatus>
                     <outbound>
-                    	<strength>strong</strength>
                         <expression>
                             <script>
                                 <code>

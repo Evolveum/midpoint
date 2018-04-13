@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -255,7 +256,7 @@ public class ProjectionCredentialsProcessor {
 
 		mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingTypes,
 				SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
-				now, true, evaluateWeak, "password mapping", task, result);
+				now, MappingTimeEval.CURRENT, evaluateWeak, "password mapping", task, result);
 
 	}
 
