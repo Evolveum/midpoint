@@ -58,6 +58,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluatorParams;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -1438,7 +1439,7 @@ public class InboundProcessor {
         params.setAPrioriTargetDelta(userPrimaryDelta);
         params.setTargetContext(context.getFocusContext());
         params.setDefaultTargetItemPath(targetPath);
-        params.setEvaluateCurrent(true);
+        params.setEvaluateCurrent(MappingTimeEval.CURRENT);
         params.setContext(context);
         params.setHasFullTargetObject(true);
 		mappingEvaluator.evaluateMappingSetProjection(params, task, opResult);

@@ -396,16 +396,25 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	            } else {
 	                // No change in assignment
 	            	if (LOGGER.isTraceEnabled()) {
-	            		LOGGER.trace("Processing unchanged assignment {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
+	            		LOGGER.trace("Processing unchanged assignment ({}) {}",
+	            				presentInCurrent ? "present" : "not present",
+	            				SchemaDebugUtil.prettyPrint(assignmentCVal));
 	            	}
 	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                if (evaluatedAssignment == null) {
 	                	return;
 	                }
+	                // NOTE: unchanged may mean both:
+	                //   * was there before, is there now
+	                //   * was not there before, is not there now
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
 					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+					if (presentInCurrent) {
+						collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+					} else {
+						collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+					}
 	            }
         	}
         }
