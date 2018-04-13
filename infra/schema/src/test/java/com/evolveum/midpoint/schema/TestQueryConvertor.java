@@ -537,6 +537,16 @@ public class TestQueryConvertor {
 	}
 
 	@Test
+	public void test305GreaterOrEqual() throws Exception {
+		final String TEST_NAME = "test305GreaterOrEqual";
+		displayTestTitle(TEST_NAME);
+		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_COST_CENTER).ge("100000")
+				.build();
+		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+	}
+
+	@Test
 	public void test310AllComparisons() throws Exception {
 		final String TEST_NAME = "test310AllComparisons";
 		displayTestTitle(TEST_NAME);

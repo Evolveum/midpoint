@@ -17,15 +17,11 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +73,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 
 	@Override
 	protected String getFilterName() {
-		return "GREATER";
+		return isEquals() ? "GREATER-OR-EQUAL" : "GREATER";
 	}
 
 	@Override
