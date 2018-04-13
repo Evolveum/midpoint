@@ -126,6 +126,10 @@
 
 			<attribute>
 				<ref>ri:givenName</ref>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
+				<tolerant>false</tolerant>
 				<outbound>
 					<strength>strong</strength>
 					<source>

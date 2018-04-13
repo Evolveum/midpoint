@@ -362,11 +362,12 @@ public class TestReconNullValue extends AbstractStoryTest {
 	 * add givenName in resource account (not using midpoint)
 	 * do recompute
 	 * in resource account value for givenName should have been removed again
+	 * See also https://wiki.evolveum.com/display/midPoint/Resource+Schema+Handling#ResourceSchemaHandling-AttributeTolerance
 	 * 
 	 */
 	@Test //MID-4567
-	public void test160AddGivenNameRA() throws Exception {
-		final String TEST_NAME = "test160AddGivenNameRA";
+	public void test160SetGivenNameAttributeAndReconcile() throws Exception {
+		final String TEST_NAME = "test160SetGivenNameAttributeAndReconcile";
 		displayTestTitle(TEST_NAME);
 
 		 // GIVEN
@@ -382,7 +383,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         
         openDJController.executeLdifChange("dn: uid="+USER_0_NAME+",ou=people,dc=example,dc=com\n"+
                 "changetype: modify\n"+
-                "add: givenName\n"+
+                "replace: givenName\n"+
                 "givenName: given0again");
         
         display("LDAP after addition");
@@ -413,7 +414,60 @@ public class TestReconNullValue extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel after attribute addition", accountModel);
 
-        PrismAsserts.assertNoItem(accountModel, openDJController.getAttributePath( ACCOUNT_ATTRIBUTE_GIVENNAME));
+        PrismAsserts.assertNoItem(accountModel, openDJController.getAttributePath(ACCOUNT_ATTRIBUTE_GIVENNAME));
+
+	}
+	
+	/**
+	 * See also https://wiki.evolveum.com/display/midPoint/Resource+Schema+Handling#ResourceSchemaHandling-AttributeTolerance
+	 */
+	@Test //MID-4567
+	public void test170ReplaceGivenNameEmpty() throws Exception {
+		final String TEST_NAME = "test170ReplaceGivenNameEmpty";
+		displayTestTitle(TEST_NAME);
+
+		 // GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        PrismObject<UserType> userBefore = getObjectByName(UserType.class, USER_0_NAME);
+        display("User before", userBefore);
+        
+        openDJController.executeLdifChange("dn: uid="+USER_0_NAME+",ou=people,dc=example,dc=com\n"+
+                "changetype: modify\n"+
+                "replace: givenName\n"+
+                "givenName: given1again");
+        
+        display("LDAP after addition");
+        dumpLdap();
+      
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserReplace(userBefore.getOid(), UserType.F_GIVEN_NAME, task, result /* no value */);
+		
+		display("LDAP after reconcile");
+        dumpLdap();
+
+		// THEN
+		displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getObjectByName(UserType.class, USER_0_NAME);
+        display("User smack after adding attribute title", userAfter);
+
+
+        String accountOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
+
+        // Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("accountShadow after attribute addition", accountShadow);
+
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("accountModel after attribute addition", accountModel);
+
+        PrismAsserts.assertNoItem(accountModel, openDJController.getAttributePath(ACCOUNT_ATTRIBUTE_GIVENNAME));
 
 	}
 
