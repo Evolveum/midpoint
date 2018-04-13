@@ -143,7 +143,7 @@ public class MappingEvaluator {
 			final LensProjectionContext projCtx, List<MappingType> outboundMappings,
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
 			final MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer, MappingOutputProcessor<PrismPropertyValue<T>> processor,
-			XMLGregorianCalendar now, final boolean evaluateCurrent, boolean evaluateWeak,
+			XMLGregorianCalendar now, final MappingTimeEval evaluateCurrent, boolean evaluateWeak,
    			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	String projCtxDesc = projCtx.toHumanReadableString();
@@ -232,11 +232,11 @@ public class MappingEvaluator {
 			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 
 			if (params.getEvaluateCurrent() != null) {
-				if (params.getEvaluateCurrent() && !timeConstraintValid) {
+				if (params.getEvaluateCurrent() == MappingTimeEval.CURRENT && !timeConstraintValid) {
 					LOGGER.trace("Mapping {} is non-current, but evulating current mappings, skipping {}", mappingName, params.getContext().getChannel());
 					continue;
 				}
-				if (!params.getEvaluateCurrent() && timeConstraintValid) {
+				if (params.getEvaluateCurrent() == MappingTimeEval.FUTURE && timeConstraintValid) {
 					LOGGER.trace("Mapping {} is current, but evulating non-current mappings, skipping {}", mappingName, params.getContext().getChannel());
 					continue;
 				}
