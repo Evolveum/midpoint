@@ -1299,6 +1299,13 @@
 					</xsd:annotation>
 				</xsd:element>
 			</xsd:choice>
+			<xsd:element name="allocation" type="tns:WorkAllocationConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Parameters related to buckets allocation process.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<!--<xsd:element name="progressMarking" type="tns:WorkBucketsProgressMarkingType" minOccurs="0">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->
@@ -1308,6 +1315,37 @@
 			<!--</xsd:element>-->
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="WorkAllocationConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Parameters related to buckets allocation process.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="bucketCreationBatch" type="xsd:int" minOccurs="0" default="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many buckets are to be created at once (when needed)?
+						EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO bucket allocation batch -->
+			<xsd:element name="allocateFirst" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Should the first available bucket be always allocated?
+						EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 
 	<xsd:complexType name="AbstractWorkSegmentationType">
 		<xsd:annotation>
