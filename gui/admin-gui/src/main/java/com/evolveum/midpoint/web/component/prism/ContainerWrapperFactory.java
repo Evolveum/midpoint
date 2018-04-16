@@ -375,22 +375,23 @@ public class ContainerWrapperFactory {
 	private <T, C extends Containerable> PropertyWrapper<T> createPropertyWrapper(
 			PrismPropertyDefinition<T> def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
- 
+
 		PrismProperty property = containerValue.findProperty(def.getName());
 		boolean propertyIsReadOnly = isItemReadOnly(def, cWrapper);
 		
 		if (property != null && onlyEmpty) {
 			return null;
 		}
-		
+		if (ExpressionType.COMPLEX_TYPE.equals(def.getTypeName())){
+			if (property == null) {
+				PrismProperty newProperty = def.instantiate();
+				return new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
+			} else {
+				return new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
+			}
+		}
 		if (property == null) {
 			PrismProperty<T> newProperty = def.instantiate();
-//			try {
-//				newProperty = containerValue.createProperty(def);
-//			} catch (SchemaException e) {
-//				LoggingUtils.logException(LOGGER, "Failed to create new property " + def, e);
-//				return null;
-//			}
 			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
 		}
 		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());

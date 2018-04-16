@@ -254,6 +254,22 @@ public class ExpressionUtil {
 		return expression == null || expression.getExpressionEvaluator().isEmpty();
 	}
 
+	public static boolean isShadowRefNotEmpty(ExpressionType expression) {
+        ObjectReferenceType shadowRefValue = getShadowRefValue(expression);
+		return !isEmpty(expression) && shadowRefValue != null && StringUtils.isNotEmpty(shadowRefValue.getOid());
+	}
+
+	public static boolean isAssociationTargetSearchNotEmpty(ExpressionType expression) {
+        String path = getTargetSearchExpPathValue(expression);
+        String value = getTargetSearchExpValue(expression);
+		return StringUtils.isNotEmpty(path) && StringUtils.isNotEmpty(value);
+	}
+
+	public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException{
+        List<String> values = getLiteralExpressionValues(expression);
+		return values != null && values.size() > 0;
+	}
+
 	public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
 		expressionObject.getExpressionEvaluator().clear();
 		if (StringUtils.isNotBlank(xml)) {

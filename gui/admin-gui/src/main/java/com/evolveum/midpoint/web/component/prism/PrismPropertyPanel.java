@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -28,8 +29,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -232,7 +235,14 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
-                PrismValuePanel panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
+                BasePanel panel;
+                if (item.getModelObject().getItem().getItemDefinition().getTypeName().equals(ExpressionType.COMPLEX_TYPE)){
+                    ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
+                    panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
+                            expressionWrapper.getConstruction(), pageBase);
+                } else {
+                    panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
+                }
                 item.add(panel);
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 
