@@ -53,10 +53,10 @@ public class PartitioningTaskHandler implements TaskHandler {
 
 	private static final String DEFAULT_HANDLER_URI = "{masterTaskHandlerUri}#{index}";
 
-	private TaskManager taskManager;
+	private TaskManagerQuartzImpl taskManager;
 	private Function<Task, TaskPartitionsDefinition> partitionsDefinitionSupplier;
 
-	public PartitioningTaskHandler(TaskManager taskManager, Function<Task, TaskPartitionsDefinition> partitionsDefinitionSupplier) {
+	public PartitioningTaskHandler(TaskManagerQuartzImpl taskManager, Function<Task, TaskPartitionsDefinition> partitionsDefinitionSupplier) {
 		this.taskManager = taskManager;
 		this.partitionsDefinitionSupplier = partitionsDefinitionSupplier;
 	}
@@ -333,7 +333,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	private PrismContext getPrismContext() {
-		return ((TaskManagerQuartzImpl) taskManager).getPrismContext();
+		return taskManager.getPrismContext();
 	}
 
 	private void applyDeltas(TaskType subtask, Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
