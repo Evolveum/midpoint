@@ -680,6 +680,11 @@ public class SearchTest extends BaseSQLRepoTest {
 				true, 1);
 
 		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("viverra")
+						.build(),
+				true, 1);       // MID-4590
+
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.fullText("sollicitudin")
 						.build(),
 				true, 0);
@@ -727,7 +732,12 @@ public class SearchTest extends BaseSQLRepoTest {
 						.build(),
 				distinct, 1);
 
-		assertUsersFoundBySearch(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                        .fullText("viverra")
+                        .build(),
+                true, 1);       // MID-4590
+
+        assertUsersFoundBySearch(QueryBuilder.queryFor(UserType.class, prismContext)
 						.fullText("sollicitudin")
 						.asc(UserType.F_FULL_NAME)
 						.maxSize(100)
