@@ -118,8 +118,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
     private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
 
+    @Autowired
+    private TaskManagerConfiguration configuration;
+
     // instances of all the helper classes (see their definitions for their description)
-    private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
     private StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
@@ -1663,10 +1665,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
-    }
-
-    public void setConfiguration(TaskManagerConfiguration configuration) {
-        this.configuration = configuration;
     }
 
     public ExecutionManager getExecutionManager() {

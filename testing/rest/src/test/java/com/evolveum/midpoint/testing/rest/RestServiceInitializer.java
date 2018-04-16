@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -197,11 +198,8 @@ public abstract class RestServiceInitializer {
 
 	protected WebClient prepareClient(String username, String password) {
 
-		List providers = new ArrayList<>();
-		providers.add(getProvider());
-		WebClient client = WebClient.create(ENDPOINT_ADDRESS, providers);// ,
+		WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));// ,
 																			// provider);
-
 		ClientConfiguration clientConfig = WebClient.getConfig(client);
 
 		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);

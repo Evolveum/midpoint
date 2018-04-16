@@ -126,7 +126,12 @@
 
 			<attribute>
 				<ref>ri:givenName</ref>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
+				<tolerant>false</tolerant>
 				<outbound>
+					<strength>strong</strength>
 					<source>
 						<path>givenName</path>
 					</source>
@@ -173,8 +178,12 @@
 
 		</objectType>
 		
-	</schemaHandling> 
-
+	</schemaHandling>
+	
+	<projection>
+		<assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement>
+	</projection> 
+	
 	<capabilities>
 		<configured
 			xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

@@ -49,11 +49,11 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
 	private WaitForSubtasksByPollingTaskHandler() {}
 	
-	public static void instantiateAndRegister(TaskManager taskManager) {
+	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
 		if (instance == null)
 			instance = new WaitForSubtasksByPollingTaskHandler();
 		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
+		instance.taskManagerImpl = taskManager;
 	}
 
 	@Override

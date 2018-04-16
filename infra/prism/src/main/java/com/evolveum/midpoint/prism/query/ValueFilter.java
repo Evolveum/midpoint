@@ -332,7 +332,8 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(getFilterName()).append(":");
-		return debugDump(indent, sb);
+		debugDump(indent, sb);
+		return sb.toString();
 	}
 
 	@Override
@@ -344,7 +345,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 
 	protected abstract String getFilterName();
 
-	protected String debugDump(int indent, StringBuilder sb) {
+	protected void debugDump(int indent, StringBuilder sb) {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("PATH: ");
@@ -401,8 +402,6 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			sb.append("MATCHING: ");
 			sb.append(matchingRule);
 		}
-
-		return sb.toString();
 	}
 
 	protected String toString(StringBuilder sb){
