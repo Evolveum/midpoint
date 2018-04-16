@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import java.util.Set;
  *
  * @author Pavol Mederly
  */
+@Component
 public class TaskManagerConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);

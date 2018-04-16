@@ -35,7 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
@@ -85,6 +84,7 @@ public class WorkStateManager {
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkSegmentationStrategyFactory strategyFactory;
 	@Autowired private WorkBucketContentHandlerRegistry handlerFactory;
+	@Autowired private TaskManagerConfiguration configuration;
 
 	private static final long DYNAMIC_SLEEP_INTERVAL = 100L;
 
@@ -254,22 +254,18 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	}
 
 	private BackoffComputer createBackoffComputer() {
-		TaskManagerConfiguration c = getConfiguration();
+		TaskManagerConfiguration c = configuration;
 		return new ExponentialBackoffComputer(c.getWorkAllocationMaxRetries(), c.getWorkAllocationInitialDelay(),
 				c.getWorkAllocationRetryExponentialThreshold());
 	}
 
 	private long getFreeBucketWaitInterval() {
 		return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
-				getConfiguration().getWorkAllocationDefaultFreeBucketWaitInterval();
+				configuration.getWorkAllocationDefaultFreeBucketWaitInterval();
 	}
 
 	private long getInitialDelay() {
-		return getConfiguration().getWorkAllocationInitialDelay();
-	}
-
-	private TaskManagerConfiguration getConfiguration() {
-		return ((TaskManagerQuartzImpl) taskManager).getConfiguration();
+		return configuration.getWorkAllocationInitialDelay();
 	}
 
 	private void setOrUpdateEstimatedNumberOfBuckets(Task task, WorkSegmentationStrategy workStateStrategy, OperationResult result)

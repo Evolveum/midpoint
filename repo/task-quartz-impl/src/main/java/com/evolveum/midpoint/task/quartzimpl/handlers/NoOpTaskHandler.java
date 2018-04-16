@@ -44,7 +44,7 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 	
 	private NoOpTaskHandler() {}
 	
-	public static void instantiateAndRegister(TaskManager taskManager) {
+	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
 		if (instance == null) {
 			instance = new NoOpTaskHandler();
 		}
@@ -53,7 +53,7 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_2, instance);
 		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_3, instance);
 		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_4, instance);
-		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
+		instance.taskManagerImpl = taskManager;
 	}
 
 	@Override
