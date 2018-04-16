@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -100,7 +101,7 @@ public class TextFormatter {
             retval.append(" - ");
             retval.append(getItemDeltaLabel(itemDelta, objectDefinition));
             retval.append(":\n");
-            formatItemDeltaContent(retval, itemDelta, hiddenPaths, showOperationalAttributes);
+            formatItemDeltaContent(retval, itemDelta, objectOld, hiddenPaths, showOperationalAttributes);
         }
 
         explainPaths(retval, toBeDisplayed, objectDefinition, objectOld, objectNew, hiddenPaths, showOperationalAttributes);
@@ -158,23 +159,41 @@ public class TextFormatter {
         }
     }
 
-    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, hiddenPaths, showOperationalAttributes);
-        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, hiddenPaths, showOperationalAttributes);
-        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, hiddenPaths, showOperationalAttributes);
+    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, PrismObject objectOld,
+            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
+        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
+        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
     }
 
-    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values,
+            boolean isDelete, ItemPath path, PrismObject objectOld,
+            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (values != null) {
             for (PrismValue prismValue : values) {
                 sb.append("   - ").append(type).append(": ");
                 String prefix = "     ";
-                formatPrismValue(sb, prefix, prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+                if (isDelete && prismValue instanceof PrismContainerValue) {
+                    prismValue = fixEmptyContainerValue((PrismContainerValue) prismValue, path, objectOld);
+                }
+                formatPrismValue(sb, prefix, prismValue, isDelete, hiddenPaths, showOperationalAttributes);
                 if (!(prismValue instanceof PrismContainerValue)) {         // container values already end with newline
                     sb.append("\n");
                 }
             }
         }
+    }
+
+    private PrismValue fixEmptyContainerValue(PrismContainerValue pcv, ItemPath path, PrismObject objectOld) {
+        if (pcv.getId() == null || CollectionUtils.isNotEmpty(pcv.getItems())) {
+            return pcv;
+        }
+        PrismContainer oldContainer = objectOld.findContainer(path);
+        if (oldContainer == null) {
+            return pcv;
+        }
+        PrismContainerValue oldValue = oldContainer.getValue(pcv.getId());
+        return oldValue != null ? oldValue : pcv;
     }
 
     // todo - should each hiddenAttribute be prefixed with something like F_ATTRIBUTE? Currently it should not be.
