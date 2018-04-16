@@ -684,7 +684,7 @@ mainCycle:
 						.item(TaskType.F_WORK_STATE).replace()
 						.asItemDeltas();
 				task.applyDeltasImmediate(itemDeltas, executionResult);
-			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
+			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
 			}
 		}
@@ -737,7 +737,7 @@ mainCycle:
 			}
 			try {
 				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
-			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
 				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
 			}
