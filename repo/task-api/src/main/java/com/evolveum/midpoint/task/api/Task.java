@@ -214,6 +214,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     String getNode();
 
+    String getNodeAsObserved();
+
     /**
      * Returns true if the task can run (was not interrupted).
      *
@@ -1035,9 +1037,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	TaskWorkStateType getWorkState();
 
+	TaskKindType getKind();
+
 	TaskUnpauseActionType getUnpauseAction();
 
 	TaskExecutionStatusType getStateBeforeSuspend();
 
 	boolean isPartitionedMaster();
+
+	String getExecutionGroup();
 }

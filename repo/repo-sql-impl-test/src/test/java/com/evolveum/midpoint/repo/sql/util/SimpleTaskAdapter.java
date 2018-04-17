@@ -450,6 +450,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public String getNodeAsObserved() {
+        return null;
+    }
+
+    @Override
     public OperationResultStatusType getResultStatus() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
@@ -903,5 +908,15 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public boolean isPartitionedMaster() {
         return false;
+    }
+
+    @Override
+    public TaskKindType getKind() {
+        return null;
+    }
+
+    @Override
+    public String getExecutionGroup() {
+        return null;
     }
 }

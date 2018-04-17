@@ -39,6 +39,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -164,6 +165,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkStateManager workStateManager;
+	@Autowired private WorkersManager workersManager;
 
 	@Autowired
 	@Qualifier("securityContextManager")
@@ -407,6 +409,22 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	    	result.computeStatusIfUnknown();
 	    }
     }
+
+	@Override
+	public void reconcileWorkers(String coordinatorTaskOid, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "reconcileWorkers");
+		result.addParam("coordinatorTaskOid", coordinatorTaskOid);
+
+		try {
+			workersManager.reconcileWorkers(coordinatorTaskOid, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't reconcile workers", t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
 
 	@Override
 	public void scheduleCoordinatorAndWorkersNow(String coordinatorOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {

@@ -410,6 +410,9 @@ public interface TaskManager {
 	void resumeTaskTree(String coordinatorOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException;
 
+	void reconcileWorkers(String coordinatorOid, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+
 	/**
 	 * TODO is this method really necessary?
 	 */
