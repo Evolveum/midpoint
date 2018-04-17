@@ -71,12 +71,14 @@ public interface WorkSegmentationStrategy {
 		 */
 		public static class NewBuckets extends GetBucketResult {
 			/**
-			 * New buckets. The first one is to be returned as the one to be processed.
+			 * New buckets.
 			 */
 			@NotNull public final List<WorkBucketType> newBuckets;
+			public final int selected;
 
-			public NewBuckets(@NotNull List<WorkBucketType> newBuckets) {
+			public NewBuckets(@NotNull List<WorkBucketType> newBuckets, int selected) {
 				this.newBuckets = newBuckets;
+				this.selected = selected;
 			}
 		}
 	}

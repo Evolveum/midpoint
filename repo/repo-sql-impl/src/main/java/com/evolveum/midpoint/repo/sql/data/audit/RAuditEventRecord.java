@@ -95,9 +95,10 @@ public class RAuditEventRecord implements Serializable {
     private String targetOid;
     private String targetName;
     private RObjectType targetType;
-    // prism object - user
+    // prism object
     private String targetOwnerOid;
     private String targetOwnerName;
+    private RObjectType targetOwnerType;
 
     private RAuditEventType eventType;
     private RAuditEventStage eventStage;
@@ -271,6 +272,15 @@ public class RAuditEventRecord implements Serializable {
         return timestamp;
     }
 
+    @Enumerated(EnumType.ORDINAL)
+    public RObjectType getTargetOwnerType() {
+        return targetOwnerType;
+    }
+
+    public void setTargetOwnerType(RObjectType targetOwnerType) {
+        this.targetOwnerType = targetOwnerType;
+    }
+
     public void setMessage(String message) {
         this.message = message;
     }
@@ -417,6 +427,7 @@ public class RAuditEventRecord implements Serializable {
             targetType == that.targetType &&
             Objects.equals(targetOwnerOid, that.targetOwnerOid) &&
             Objects.equals(targetOwnerName, that.targetOwnerName) &&
+            Objects.equals(targetOwnerType, that.targetOwnerType) &&
             eventType == that.eventType &&
             eventStage == that.eventStage &&
             Objects.equals(deltas, that.deltas) &&
@@ -436,7 +447,7 @@ public class RAuditEventRecord implements Serializable {
             .hash(id, timestamp, eventIdentifier, sessionIdentifier, taskIdentifier, taskOID, hostIdentifier,
                 remoteHostAddress, nodeIdentifier, initiatorOid, initiatorName, initiatorType,
                 attorneyOid, attorneyName, targetOid, targetName, targetType, targetOwnerOid,
-                targetOwnerName, eventType, eventStage, deltas, channel, outcome, parameter, message,
+                targetOwnerName, targetOwnerType, eventType, eventStage, deltas, channel, outcome, parameter, message,
                 changedItems, propertyValues, referenceValues, result);
     }
 
@@ -485,6 +496,7 @@ public class RAuditEventRecord implements Serializable {
                 PrismObject targetOwner = record.getTargetOwner();
                 repo.setTargetOwnerName(getOrigName(targetOwner));
                 repo.setTargetOwnerOid(targetOwner.getOid());
+                repo.setTargetOwnerType(ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
             }
             if (record.getInitiator() != null) {
                 PrismObject<? extends ObjectType> initiator = record.getInitiator();
@@ -544,8 +556,7 @@ public class RAuditEventRecord implements Serializable {
         return repo;
     }
 
-    public static AuditEventRecord fromRepo(RAuditEventRecord repo, PrismContext prismContext)
-        throws DtoTranslationException {
+    public static AuditEventRecord fromRepo(RAuditEventRecord repo, PrismContext prismContext) {
 
         AuditEventRecord audit = new AuditEventRecord();
         audit.setChannel(repo.getChannel());

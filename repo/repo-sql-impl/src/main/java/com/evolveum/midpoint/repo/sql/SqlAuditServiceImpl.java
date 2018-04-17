@@ -236,7 +236,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
                 audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
                 audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()));
-                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), RObjectType.USER));
+                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), raudit.getTargetOwnerType()));
                 count++;
                 if (!handler.handle(audit)) {
                     LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);

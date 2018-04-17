@@ -37,10 +37,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -112,7 +109,7 @@ public class AuditEventRecord implements DebugDumpable {
 	private PrismReferenceValue target;
 
 	// user that the target "belongs to"????: store OID, name
-	private PrismObject<UserType> targetOwner;
+	private PrismObject<FocusType> targetOwner;
 
 	// event type
 	private AuditEventType eventType;
@@ -269,11 +266,11 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 	}
 
-	public PrismObject<UserType> getTargetOwner() {
+	public PrismObject<FocusType> getTargetOwner() {
 		return targetOwner;
 	}
 
-	public void setTargetOwner(PrismObject<UserType> targetOwner) {
+	public void setTargetOwner(PrismObject<FocusType> targetOwner) {
 		this.targetOwner = targetOwner;
 	}
 

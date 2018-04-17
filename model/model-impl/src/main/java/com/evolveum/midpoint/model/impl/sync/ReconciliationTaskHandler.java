@@ -41,6 +41,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.repo.common.task.TaskHandlerUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -166,6 +167,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setOperationResult(opResult);
 		if (previousRunResult != null) {
 			runResult.setProgress(previousRunResult.getProgress());
+			AbstractSearchIterativeTaskHandler.logPreviousResultIfNeeded(localCoordinatorTask, previousRunResult, LOGGER);  // temporary
 		}
 		runResult.setShouldContinue(false);     // overridden later
 		runResult.setBucketComplete(false);     // overridden later

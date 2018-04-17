@@ -181,12 +181,13 @@ public class RObjectTextInfo implements Serializable {
 					sb.append(" ");
 					rv.add(new RObjectTextInfo(repo, sb.toString()));
 					sb = new StringBuilder();
+					i--;		// to reiterate
 				} else {
 					// a problem - too large string
 					LOGGER.warn("Word too long to be correctly indexed: {}", word);
 					rv.add(new RObjectTextInfo(repo, " " + word.substring(0, MAX_TEXT_SIZE - 2) + " "));
 					allWords.set(i, word.substring(MAX_TEXT_SIZE - 2));
-					i--;		// to reiterate
+					i--;		// to reiterate (with shortened word)
 				}
 			}
 		}

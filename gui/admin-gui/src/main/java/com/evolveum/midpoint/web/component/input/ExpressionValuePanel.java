@@ -233,6 +233,11 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             }
 
             @Override
+            protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
+            }
+
+            @Override
             protected ObjectQuery getChooseQuery() {
                 ObjectQuery query = new ObjectQuery();
 

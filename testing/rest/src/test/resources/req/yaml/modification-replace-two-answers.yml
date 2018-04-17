@@ -21,7 +21,11 @@ objectModification:
     modificationType: "replace"
     path: "credentials/securityQuestions/questionAnswer"
     value: 
-     '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-     questionIdentifier: "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001"
-     questionAnswer:
-       clearValue: "you would not believe what happens next"
+       - '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         questionIdentifier: "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001"
+         questionAnswer:
+           clearValue: "yet another answer"
+       - '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         questionIdentifier: "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002"
+         questionAnswer:
+           clearValue: "42"
