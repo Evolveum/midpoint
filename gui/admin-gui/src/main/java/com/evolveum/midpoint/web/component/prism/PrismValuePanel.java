@@ -454,23 +454,6 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				typePanel.setOutputMarkupId(true);
 				return typePanel;
 			}
-			if (ExpressionType.COMPLEX_TYPE.equals(valueType)) {
-				//it is expected that ExpressionType property is in the
-				// construction/association/outbound container
-				// so we will try to find ConstructionType
-				//TODO refactor to more pretty code
-				ConstructionType construction = new ConstructionType();
-				try {
-					ContainerValueWrapper cvw = ((PropertyWrapper)(getModel().getObject().getItem())).getContainerValue();
-					PrismContainerValue association = (PrismContainerValue)cvw.getContainer().getItem().getParent();
-					PrismContainer associationContainer = (PrismContainer)association.asContainerable().asPrismContainerValue().getParent();
-					PrismContainerValue<ConstructionType> constructionContainerValue = (PrismContainerValue<ConstructionType>) associationContainer.getParent();
-					construction = constructionContainerValue.asContainerable();
-				} catch (Exception ex){
-					LOGGER.error("Unable to find Construction container for expression property");
-				}
-				return new ExpressionValuePanel(id, new PropertyModel<ExpressionType>(getModel(), baseExpression), construction, getPageBase());
-			}
 
 			if (DOMUtil.XSD_DATETIME.equals(valueType)) {
 				panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(getModel(), baseExpression));
