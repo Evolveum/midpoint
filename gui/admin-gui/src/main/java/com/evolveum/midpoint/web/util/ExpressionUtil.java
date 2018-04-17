@@ -270,6 +270,10 @@ public class ExpressionUtil {
 		return values != null && values.size() > 0;
 	}
 
+	public static boolean areAllExpressionValuesEmpty(ExpressionType expression) throws SchemaException{
+        return !isShadowRefNotEmpty(expression) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
+    }
+
 	public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
 		expressionObject.getExpressionEvaluator().clear();
 		if (StringUtils.isNotBlank(xml)) {

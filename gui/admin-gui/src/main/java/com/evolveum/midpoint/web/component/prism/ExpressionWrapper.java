@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -53,19 +50,21 @@ public class ExpressionWrapper<T> extends PropertyWrapper<T> {
     public boolean hasChanged() {
         for (ValueWrapper valueWrapper : values) {
             ExpressionType expression = (ExpressionType) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
+            ExpressionType oldExpressionValue = (ExpressionType)((PrismPropertyValue)valueWrapper.getOldValue()).getValue();
             try {
                 switch (valueWrapper.getStatus()) {
                     case DELETED:
                         return true;
                     case ADDED:
                     case NOT_CHANGED:
-                        if (valueWrapper.hasValueChanged()) {
+                        if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue) && ExpressionUtil.areAllExpressionValuesEmpty(expression)) {
+                            return false;
+                        } else if (!ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue) && ExpressionUtil.areAllExpressionValuesEmpty(expression)) {
                             return true;
-                        } else if (ExpressionUtil.isEmpty(expression)) {
-                            return false;
-                        } else if (!ExpressionUtil.isAssociationTargetSearchNotEmpty(expression) && !ExpressionUtil.isLiteralExpressionValueNotEmpty(expression)
-                                && !ExpressionUtil.isShadowRefNotEmpty(expression)) {
-                            return false;
+                        } else if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue) && !ExpressionUtil.areAllExpressionValuesEmpty(expression)) {
+                            return true;
+                        } else if (valueWrapper.hasValueChanged()) {
+                            return true;
                         }
                 }
             } catch (SchemaException e) {

@@ -237,7 +237,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             protected void executeCustomRemoveAction(AjaxRequestTarget target) {
-                ExpressionUtil.createShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), null, pageBase.getPrismContext());
+                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
             }
 
             @Override
