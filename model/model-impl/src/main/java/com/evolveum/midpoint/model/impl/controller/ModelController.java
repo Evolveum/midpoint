@@ -1886,7 +1886,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, opTask, result);
-		taskManager.reconcileWorkers(oid, result);
+		taskManager.reconcileWorkers(oid, null, result);
 	}
 
 	@Override
