@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.WorkersReconciliationOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.TemplateUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -68,7 +69,7 @@ public class WorkersManager {
 	@Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
 
-	public void reconcileWorkers(String coordinatorTaskOid, OperationResult result)
+	public void reconcileWorkers(String coordinatorTaskOid, WorkersReconciliationOptions options, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
 		if (coordinatorTask.getKind() != TaskKindType.COORDINATOR) {
@@ -103,13 +104,37 @@ public class WorkersManager {
 
 		int matched = matchWorkers(currentWorkers, shouldBeWorkers);
 		int renamed = renameWorkers(currentWorkers, shouldBeWorkers, result);
-		int suspended = suspendExecutingWorkers(currentWorkers, result);
-		MovedSuspended movedSuspended = moveWorkers(currentWorkers, shouldBeWorkers, result);
+		int closedExecuting = closeExecutingWorkers(currentWorkers, result);
+		MovedClosed movedClosed = moveWorkers(currentWorkers, shouldBeWorkers, result);
 		int created = createWorkers(coordinatorTask, shouldBeWorkers, perNodeConfigurationMap, result);
+
+		TaskWorkStateType workState = coordinatorTask.getWorkState();
+		Integer closedBecauseDone = null;
+		if (isCloseWorkersOnWorkDone(options) && workState != null && Boolean.TRUE.equals(workState.isAllWorkComplete())) {
+			closedBecauseDone = closeAllWorkers(coordinatorTask, result);
+		}
 		result.recordStatus(OperationResultStatus.SUCCESS, "Worker reconciliation finished. " +
 				"Original workers: " + startingWorkersCount + ", should be: " + startingShouldBeWorkersCount + ", matched: " + matched +
-				", renamed: " + renamed + ", suspended because executing: " + suspended + ", moved: " + movedSuspended.moved +
-				", suspended because runnable: " + movedSuspended.suspended + ", created: " + created + " worker task(s)");
+				", renamed: " + renamed + ", closed because executing: " + closedExecuting + ", moved: " + movedClosed.moved +
+				", closed because superfluous: " + movedClosed.closed + ", created: " + created + " worker task(s)." +
+				(closedBecauseDone != null && closedBecauseDone > 0 ? " Closed " + closedBecauseDone + " workers because the work is done." : ""));
+	}
+
+	private boolean isCloseWorkersOnWorkDone(WorkersReconciliationOptions options) {
+		return options == null || !options.isDontCloseWorkersWhenWorkDone();
+	}
+
+	private Integer closeAllWorkers(Task coordinatorTask, OperationResult result) throws SchemaException {
+		int count = 0;
+		List<Task> workers = new ArrayList<>(coordinatorTask.listSubtasks(result));
+		for (Task worker : workers) {
+			if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+				LOGGER.info("Closing worker because the work is done: {}", worker);
+				taskManager.suspendAndCloseTask(worker, TaskManager.DO_NOT_WAIT, result);
+				count++;
+			}
+		}
+		return count;
 	}
 
 	/**
@@ -164,25 +189,25 @@ public class WorkersManager {
 		repositoryService.modifyObject(TaskType.class, currentWorker.getOid(), itemDeltas, result);
 	}
 
-	private int suspendExecutingWorkers(List<Task> currentWorkers, OperationResult result) {
+	private int closeExecutingWorkers(List<Task> currentWorkers, OperationResult result) {
 		int count = 0;
 		for (Task worker : new ArrayList<>(currentWorkers)) {
 			if (worker.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && worker.getNodeAsObserved() != null) {
 				LOGGER.info("Suspending misplaced worker task {}", worker);
-				taskManager.suspendTask(worker, TaskManager.DO_NOT_WAIT, result);
+				taskManager.suspendAndCloseTask(worker, TaskManager.DO_NOT_WAIT, result);
 				currentWorkers.remove(worker);
 				count++;
 			}
 		}
-		LOGGER.trace("After suspendExecutingWorkers (result: {}):\nCurrent workers: {}", count, currentWorkers);
+		LOGGER.trace("After closeExecutingWorkers (result: {}):\nCurrent workers: {}", count, currentWorkers);
 		return count;
 	}
 
-	class MovedSuspended {
-		int moved, suspended;
-		MovedSuspended(int moved, int suspended) {
+	class MovedClosed {
+		int moved, closed;
+		MovedClosed(int moved, int closed) {
 			this.moved = moved;
-			this.suspended = suspended;
+			this.closed = closed;
 		}
 	}
 
@@ -190,9 +215,9 @@ public class WorkersManager {
 	 * Moving workers to correct groups (and renaming them if needed).
 	 * We assume none of the workers are currently being executed.
 	 */
-	private MovedSuspended moveWorkers(List<Task> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers, OperationResult result)
+	private MovedClosed moveWorkers(List<Task> currentWorkers, MultiValuedMap<String, WorkerKey> shouldBeWorkers, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		int moved = 0, suspended = 0;
+		int moved = 0, closed = 0;
 		Iterator<WorkerKey> shouldBeIterator = shouldBeWorkers.values().iterator();
 		for (Task worker : new ArrayList<>(currentWorkers)) {
 			if (shouldBeIterator.hasNext()) {
@@ -202,16 +227,16 @@ public class WorkersManager {
 				shouldBeIterator.remove();
 				moved++;
 			} else {
-				if (worker.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-					LOGGER.info("Suspending superfluous worker task {}", worker);
-					taskManager.suspendTask(worker, TaskManager.DO_NOT_WAIT, result);
-					suspended++;
+				if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+					LOGGER.info("Closing superfluous worker task {}", worker);
+					taskManager.suspendAndCloseTask(worker, TaskManager.DO_NOT_WAIT, result);
+					closed++;
 				}
 			}
 		}
-		LOGGER.trace("After moveWorkers (result: {} moved, {} suspended):\nCurrent workers: {}\nShould be workers: {}", moved,
-				suspended, currentWorkers, shouldBeWorkers);
-		return new MovedSuspended(moved, suspended);
+		LOGGER.trace("After moveWorkers (result: {} moved, {} closed):\nCurrent workers: {}\nShould be workers: {}", moved,
+				closed, currentWorkers, shouldBeWorkers);
+		return new MovedClosed(moved, closed);
 	}
 
 	/**

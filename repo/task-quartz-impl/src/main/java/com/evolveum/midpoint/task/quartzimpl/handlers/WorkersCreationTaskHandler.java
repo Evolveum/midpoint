@@ -67,21 +67,35 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		try {
 			setOrCheckTaskKind(task, opResult);
 			List<Task> workers = task.listSubtasks(opResult);
-			List<Task> workersNotClosed = workers.stream()
-					.filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
-					.collect(Collectors.toList());
+			boolean clean = task.getWorkState() == null || Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
 			// todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
-			if (!workersNotClosed.isEmpty()) {
-				LOGGER.warn("Couldn't (re)create worker tasks because the following ones are not closed yet: {}", workersNotClosed);
-				opResult.recordFatalError("Couldn't (re)create worker tasks because the following ones are not closed yet: " + workersNotClosed);
-				runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			if (clean) {
+				List<Task> notClosedNorSuspended = workers.stream()
+						.filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED && w.getExecutionStatus() != TaskExecutionStatus.SUSPENDED)
+						.collect(Collectors.toList());
+				if (!notClosedNorSuspended.isEmpty()) {
+					LOGGER.warn("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: {}", notClosedNorSuspended);
+					opResult.recordFatalError("Couldn't (re)create worker tasks because the work is done but the following ones are not closed nor suspended: " + notClosedNorSuspended);
+					runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+					return runResult;
+				}
+			} else {
+				List<Task> notClosed = workers.stream()
+						.filter(w -> w.getExecutionStatus() == TaskExecutionStatus.CLOSED)
+						.collect(Collectors.toList());
+				if (!notClosed.isEmpty()) {
+					LOGGER.warn("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: {}", notClosed);
+					opResult.recordFatalError("Couldn't (re)create worker tasks because the work is not done and the following ones are not closed yet: " + notClosed);
+					runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+					return runResult;
+				}
+			}
+			if (deleteWorkersAndWorkState(workers, task, opResult, runResult)) {
 				return runResult;
 			}
-
-			if (deleteWorkersAndBuckets(workers, task, opResult, runResult)) {
-				return runResult;
-			}
-			taskManager.reconcileWorkers(task.getOid(), opResult);
+			WorkersReconciliationOptions options = new WorkersReconciliationOptions();
+			options.setDontCloseWorkersWhenWorkDone(true);
+			taskManager.reconcileWorkers(task.getOid(), options, opResult);
 			task.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
 			task.savePendingModifications(opResult);
 			taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(opResult)), opResult);
@@ -114,9 +128,9 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	// returns true in case of problem
-	private boolean deleteWorkersAndBuckets(List<Task> workers, Task task, OperationResult opResult, TaskRunResult runResult)
+	private boolean deleteWorkersAndWorkState(List<Task> workers, Task task, OperationResult opResult, TaskRunResult runResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		deleteBuckets(task, opResult);
+		deleteWorkState(task, opResult);
 		for (Task worker : workers) {
 			try {
 				List<Task> workerSubtasks = worker.listSubtasks(opResult);
@@ -134,9 +148,9 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		return false;
 	}
 
-	private void deleteBuckets(Task task, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	private void deleteWorkState(Task task, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
-				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET).replace()
+				.item(TaskType.F_WORK_STATE).replace()
 				.asItemDeltas();
 		repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, opResult);
 	}

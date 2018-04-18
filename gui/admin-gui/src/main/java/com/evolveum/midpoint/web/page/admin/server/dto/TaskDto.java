@@ -1295,6 +1295,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 						pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(), opTask,
 						opTask.getResult(), pageBase);
 				subtasksLoaded = true;
+			} catch (ObjectNotFoundException t) {   // often happens when refreshing Task List page
+				LOGGER.debug("Couldn't load subtasks for task {}", taskType, t);
+				subtasksLoaded = false;
 			} catch (Throwable t) {
 				pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);

@@ -618,9 +618,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     public Date getObject() {
                         Date date = getCurrentRuntime(rowModel);
                         TaskDto task = rowModel.getObject();
-                        if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                        if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED && date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore("closed at ");
-                        } else if (date != null){
+                        } else if (date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore(DurationFormatUtils.formatDurationWords(date.getTime(), true, true));
                         }
                         return date;
@@ -1641,6 +1641,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         try {
             getTaskService().reconcileWorkers(task.getOid(), opTask, result);
             result.computeStatus();
+            if (result.isSuccess() && result.getSubresults().size() == 1) {         // brutal hack: to show statistics
+            	result.setMessage(result.getSubresults().get(0).getMessage());
+            }
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't reconcile the workers", e);  // todo i18n
         }
