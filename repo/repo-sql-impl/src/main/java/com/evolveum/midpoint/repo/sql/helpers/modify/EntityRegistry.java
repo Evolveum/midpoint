@@ -96,6 +96,10 @@ public class EntityRegistry {
                 }
 
                 if (path == null) {
+                    JaxbName name = ((Method) attribute.getJavaMember()).getAnnotation(JaxbName.class);
+                    if (name != null) {
+                        overrides.put(name.localPart(), attribute);
+                    }
                     continue;
                 }
 

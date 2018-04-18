@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -487,7 +489,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
     @Test
     public void test260ReplaceAssignmentExtension() throws Exception {
-        OperationResult result = new OperationResult("test210ReplaceAssignmentExtension");
+        OperationResult result = new OperationResult("test260ReplaceAssignmentExtension");
 
         String file = FOLDER_BASE + "/modify/user-with-assignment-extension.xml";
         PrismObject<UserType> user = prismContext.parseObject(new File(file));
@@ -547,5 +549,60 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ext = ruser.getAssignments().iterator().next().getExtension();
         assertEquals(1, ext.getStrings().size());
         close(session);
+    }
+
+    @Test
+    public void test270modifyOperationExecution() throws Exception {
+        OperationResult result = new OperationResult("test270modifyOperationExecution");
+
+        String file = FOLDER_BASE + "/modify/user-with-assignment-extension.xml";
+        PrismObject<UserType> user = prismContext.parseObject(new File(file));
+
+        UserType userType = user.asObjectable();
+        userType.setName(new PolyStringType("test270modifyOperationExecution"));
+        OperationExecutionType oe = createOperationExecution("repo1");
+        userType.getOperationExecution().add(oe);
+
+        user.setOid(null);
+        repositoryService.addObject(user, null, result);
+        String userOid = user.getOid();
+
+        assertOperationExecutionSize(userOid, 1);
+
+        oe = createOperationExecution("repo2");
+        Collection deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(UserType.F_OPERATION_EXECUTION)
+                .add(oe.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        assertOperationExecutionSize(userOid, 2);
+    }
+
+    private OperationExecutionType createOperationExecution(String channel) {
+        OperationExecutionType oe = new OperationExecutionType();
+        oe.setChannel(channel);
+        oe.setStatus(OperationResultStatusType.SUCCESS);
+        oe.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(SystemObjectsType.USER_ADMINISTRATOR.value());
+        ref.setType(UserType.COMPLEX_TYPE);
+        oe.setInitiatorRef(ref);
+
+        return oe;
+    }
+
+    private void assertOperationExecutionSize(String oid, int expectedSize) {
+
+        Session session = open();
+        try {
+            RUser rUser = (RUser) session.createQuery("from RUser where oid = :o")
+                    .setParameter("o", oid)
+                    .getSingleResult();
+
+            AssertJUnit.assertEquals(expectedSize, rUser.getOperationExecutions().size());
+        } finally {
+            session.close();
+        }
     }
 }
