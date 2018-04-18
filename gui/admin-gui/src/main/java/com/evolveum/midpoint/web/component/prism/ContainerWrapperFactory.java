@@ -303,7 +303,7 @@ public class ContainerWrapperFactory {
 			createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
 			createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty, task);
 			} catch (Exception e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "something strange happenned: " + e.getMessage(), e);
+				LoggingUtils.logUnexpectedException(LOGGER, "something strange happened: " + e.getMessage(), e);
 				System.out.println(e.getMessage());
 				throw new TunnelException(e);
 			}
