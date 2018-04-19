@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<systemConfiguration
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+    <name>System Configuration</name>
+    
+    <!-- ... -->
+
+<notificationConfiguration>
+    <handler>
+        <generalNotifier>
+            <name>Welcome new user</name>
+            <expressionFilter>
+                <script>
+                    <code>
+                    import com.evolveum.midpoint.notifications.api.events.ModelEvent
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+ 
+                   (event instanceof ModelEvent &amp;&amp; event.getFocusContext() != null &amp;&amp; UserType.class.isAssignableFrom(event.getFocusContext().getObjectTypeClass()) &amp;&amp; event.getFocusContext().isAdd())
+                    </code>
+                </script>
+            </expressionFilter>
+            <recipientExpression>
+                <value>iam@localhost</value>
+            </recipientExpression>
+            <subjectExpression>
+                <script>
+                    <code>
+                    return 'New user notification'
+                </code>
+               </script>
+            </subjectExpression>
+            <bodyExpression>
+                <script>
+                   <code>
+                   import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+                   
+                   focusContext = ((ModelEvent) event).getFocusContext();
+                   objectNew = focusContext.getObjectNew();
+                   username = basic.stringify(objectNew.getName());
+                   
+                   language = objectNew.asObjectable().getPreferredLanguage();
+                   if (!language) {
+                       language = 'default'
+                   }
+                   
+                   templateParams = new HashMap()
+                   templateParams.put("username", username)
+                   return mailTemplates.execute(language, templateParams)
+                   </code>
+               </script>
+           </bodyExpression>
+           <transport>mail</transport>
+       </generalNotifier>
+   </handler>
+   <!-- configurations suitable for testing - they redirect all notifications to log files; some more real configurations are show below -->
+   <mail>
+        <redirectToFile>mail-notifications.log</redirectToFile>
+   </mail>
+   <sms>
+        <redirectToFile>sms-notifications.log</redirectToFile>
+   </sms>
+</notificationConfiguration>
+
+    <!-- ... -->
+    
+</systemConfiguration>
