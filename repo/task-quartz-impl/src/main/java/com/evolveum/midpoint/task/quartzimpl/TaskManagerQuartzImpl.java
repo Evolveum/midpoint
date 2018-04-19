@@ -39,6 +39,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -118,8 +119,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
     private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
 
+    @Autowired
+    private TaskManagerConfiguration configuration;
+
     // instances of all the helper classes (see their definitions for their description)
-    private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
     private StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
@@ -162,6 +165,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkStateManager workStateManager;
+	@Autowired private WorkersManager workersManager;
 
 	@Autowired
 	@Qualifier("securityContextManager")
@@ -348,12 +352,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) {
-        return suspendTasksResolved(singleton(task), waitTime, parentResult);
+        return suspendTasksResolved(singleton(task), waitTime, false, parentResult);
     }
 
-    @Override
+	@Override
+	public boolean suspendAndCloseTask(Task task, long waitTime, OperationResult parentResult) {
+		return suspendTasksResolved(singleton(task), waitTime, true, parentResult);
+	}
+
+	@Override
     public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
-        return suspendTasksResolved(resolveTaskOids(taskOids, parentResult), waitForStop, parentResult);
+        return suspendTasksResolved(resolveTaskOids(taskOids, parentResult), waitForStop, false, parentResult);
     }
 
     @Override
@@ -407,6 +416,22 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
 	@Override
+	public void reconcileWorkers(String coordinatorTaskOid, WorkersReconciliationOptions options, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "reconcileWorkers");
+		result.addParam("coordinatorTaskOid", coordinatorTaskOid);
+
+		try {
+			workersManager.reconcileWorkers(coordinatorTaskOid, options, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't reconcile workers", t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	@Override
 	public void scheduleCoordinatorAndWorkersNow(String coordinatorOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "scheduleCoordinatorAndWorkersNow");
 		result.addParam("coordinatorOid", coordinatorOid);
@@ -445,21 +470,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 	}
 
-	public boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, OperationResult parentResult) {
-
+	private boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, boolean closeTasks, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTasks");
         result.addArbitraryObjectCollectionAsParam("tasks", tasks);
         result.addParam("waitForStop", waitingInfo(waitForStop));
+        result.addParam("closeTasks", closeTasks);
 
-        LOGGER.info("Suspending tasks {}; {}.", tasks, waitingInfo(waitForStop));
+        LOGGER.info("{} tasks {}; {}.", closeTasks ? "Closing" : "Suspending", tasks, waitingInfo(waitForStop));
 
         for (Task task : tasks) {
 
             if (task.getOid() == null) {
                 // this should not occur; so we can treat it in such a brutal way
-                throw new IllegalArgumentException("Only persistent tasks can be suspended (for now); task " + task + " is transient.");
+                throw new IllegalArgumentException("Only persistent tasks can be suspended/closed (for now); task " + task + " is transient.");
             } else {
-            	if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+	            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 		            try {
 			            List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
 					            .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
@@ -484,6 +509,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         boolean stopped = false;
         if (waitForStop != DO_NOT_STOP) {
             stopped = executionManager.stopTasksRunAndWait(tasks, null, waitForStop, true, result);
+        }
+
+        if (closeTasks) {
+	        for (Task task : tasks) {
+	        	try {
+			        closeTask(task, result);
+			        ((TaskQuartzImpl) task).checkDependentTasksOnClose(parentResult);
+		        } catch (ObjectNotFoundException | SchemaException e) {
+			        LoggingUtils.logUnexpectedException(LOGGER, "Cannot close suspended task {}", e, task);
+		        }
+	        }
         }
         result.computeStatus();
         return stopped;
@@ -907,7 +943,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         // now suspend the tasks before deletion
         if (!tasksToBeSuspended.isEmpty()) {
-            suspendTasksResolved(tasksToBeSuspended, suspendTimeout, result);
+            suspendTasksResolved(tasksToBeSuspended, suspendTimeout, false, result);
         }
 
         // delete them
@@ -1663,10 +1699,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
-    }
-
-    public void setConfiguration(TaskManagerConfiguration configuration) {
-        this.configuration = configuration;
     }
 
     public ExecutionManager getExecutionManager() {

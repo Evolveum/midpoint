@@ -196,7 +196,7 @@ public class ReportFunctions {
                 LOGGER.debug("Could not resolve assignment for type {}. No target type defined.", type);
             }
 
-            if (!clazz.equals(type)) {
+            if (clazz == null || !clazz.equals(type)) {
                 continue;
             }
 

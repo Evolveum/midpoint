@@ -381,6 +381,11 @@ public interface TaskManager {
 	 */
 	boolean suspendTask(Task task, long waitTime, OperationResult parentResult);
 
+	/**
+	 * After stopping a task puts it into CLOSED state (not SUSPENDED one).
+	 */
+	boolean suspendAndCloseTask(Task task, long waitTime, OperationResult parentResult);
+
     /**
      * Suspends tasks and deletes them.
      *
@@ -409,6 +414,9 @@ public interface TaskManager {
 
 	void resumeTaskTree(String coordinatorOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException;
+
+	void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
 	/**
 	 * TODO is this method really necessary?

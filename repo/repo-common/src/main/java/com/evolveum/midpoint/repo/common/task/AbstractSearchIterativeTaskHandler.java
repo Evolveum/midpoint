@@ -184,11 +184,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		runResult.setBucketComplete(false);         // overridden later if the processing is successful
 		if (previousRunResult != null) {
 			runResult.setProgress(previousRunResult.getProgress());
-			runResult.setOperationResult(previousRunResult.getOperationResult());
+			logPreviousResultIfNeeded(localCoordinatorTask, previousRunResult, LOGGER); // temporary
+			//runResult.setOperationResult(previousRunResult.getOperationResult());
 		} else {
 			runResult.setProgress(0L);
-			runResult.setOperationResult(new OperationResult(taskOperationPrefix + ".run"));
+			//runResult.setOperationResult(new OperationResult(taskOperationPrefix + ".run"));
 		}
+		// temporary measure: to prevent uncontrolled growth of operation results in tasks - we'll keep only the last one
+		runResult.setOperationResult(new OperationResult(taskOperationPrefix + ".run"));
 		OperationResult opResult = runResult.getOperationResult();
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 
@@ -594,4 +597,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         return objectClass;
     }
 
+	public static void logPreviousResultIfNeeded(Task task, TaskWorkBucketProcessingResult previousRunResult, Trace logger) {
+		OperationResult previousOpResult = previousRunResult.getOperationResult();
+		if (previousOpResult != null) {
+			previousOpResult.computeStatusIfUnknown();
+			if (!previousOpResult.isSuccess()) {
+				logger.warn("Last work bucket finished with status other than SUCCESS in {}:\n{}", task, previousOpResult.debugDump());
+			}
+		}
+	}
 }

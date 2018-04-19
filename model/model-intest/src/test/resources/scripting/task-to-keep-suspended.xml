@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+	  oid="e6ad137e-23f6-444d-9478-c10a0b255b68"
+	  version="1">
+	<name>Approval and execution of: Assigning role "abc" to user "def" (old)</name>
+	<taskIdentifier>2222222222222-0-1</taskIdentifier>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"
+			  relation="org:default"
+			  type="c:UserType"><!-- administrator --></ownerRef>
+	<channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+	<executionStatus>suspended</executionStatus>
+	<category>Workflow</category>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+	<otherHandlersUriStack/>
+	<resultStatus>partial_error</resultStatus>
+	<lastRunStartTimestamp>2018-01-02T12:24:33.635+02:00</lastRunStartTimestamp>
+	<lastRunFinishTimestamp>2018-01-02T12:25:46.587+02:00</lastRunFinishTimestamp>
+	<recurrence>single</recurrence>
+	<binding>tight</binding>
+	<modelOperationContext>
+		<state>primary</state>
+	</modelOperationContext>
+	<workflowContext>
+		<processInstanceId>12345678</processInstanceId>
+		<processName>ItemApproval</processName>
+		<startTimestamp>2018-01-01T10:34:30.087+02:00</startTimestamp>
+		<endTimestamp>2018-01-12T12:24:23.192+02:00</endTimestamp>
+	</workflowContext>
+</task>

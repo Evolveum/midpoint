@@ -103,10 +103,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_PERU_NAMESPACE = MidPointConstants.NS_RI;
 
 	// PERU dummy resource has a RELAXED dependency on YELLOW dummy resource and disable instead of delete
-	protected static final File RESOURCE_DUMMY_PERU_DISABLE_FILE = new File(TEST_DIR, "resource-dummy-peru-disable.xml");
-	protected static final String RESOURCE_DUMMY_PERU_DISABLE_OID = "f5253596-333d-11e8-8894-37a2f88e7609";
-	protected static final String RESOURCE_DUMMY_PERU_DISABLE_NAME = "peru-disable";
-	protected static final String RESOURCE_DUMMY_PERU_DISABLE_NAMESPACE = MidPointConstants.NS_RI;
+	protected static final File RESOURCE_DUMMY_DARK_PERU_FILE = new File(TEST_DIR, "resource-dummy-dark-peru.xml");
+	protected static final String RESOURCE_DUMMY_DARK_PERU_OID = "f5253596-333d-11e8-8894-37a2f88e7609";
+	protected static final String RESOURCE_DUMMY_DARK_PERU_NAME = "dark-peru";
+	protected static final String RESOURCE_DUMMY_DARK_PERU_NAMESPACE = MidPointConstants.NS_RI;
+
+	// Similar to YELLOW, but has disable instead of delete
+	protected static final File RESOURCE_DUMMY_DARK_YELLOW_FILE = new File(TEST_DIR, "resource-dummy-dark-yellow.xml");
+	protected static final String RESOURCE_DUMMY_DARK_YELLOW_OID = "33da1afe-3efb-11e8-a5e3-4fed83f61ae7";
+	protected static final String RESOURCE_DUMMY_DARK_YELLOW_NAME = "dark-yellow";
+	protected static final String RESOURCE_DUMMY_DARK_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
 
 	protected static final File RESOURCE_DUMMY_DAVID_FILE = new File(TEST_DIR, "resource-dummy-david.xml");
 	protected static final String RESOURCE_DUMMY_DAVID_OID = "10000000-0000-0000-0000-000000300001";
@@ -131,8 +137,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_FIGHT_FILE = new File(TEST_DIR, "role-fight.xml");
 	protected static final String ROLE_FIGHT_OID = "12345678-d34d-b33f-f00d-5555550303dd";
 	
-	protected static final File ROLE_YELLOW_PERU_DISABLE_FILE = new File(TEST_DIR, "role-yellow-peru-disable.xml");
-	protected static final String ROLE_YELLOW_PERU_DISABLE_OID = "95213bbc-3357-11e8-aeb8-439c6ddc0fa0";
+	protected static final File ROLE_DARK_YELLOW_PERU_FILE = new File(TEST_DIR, "role-dark-yellow-peru.xml");
+	protected static final String ROLE_DARK_YELLOW_PERU_OID = "95213bbc-3357-11e8-aeb8-439c6ddc0fa0";
 
     protected static final String USER_WORLD_NAME = "world";
     protected static final String USER_WORLD_FULL_NAME = "The World";
@@ -157,8 +163,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		initDummyResourcePirate(RESOURCE_DUMMY_PERU_NAME,
 				RESOURCE_DUMMY_PERU_FILE, RESOURCE_DUMMY_PERU_OID, initTask, initResult);
 		
-		initDummyResourcePirate(RESOURCE_DUMMY_PERU_DISABLE_NAME,
-				RESOURCE_DUMMY_PERU_DISABLE_FILE, RESOURCE_DUMMY_PERU_DISABLE_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_DARK_PERU_NAME,
+				RESOURCE_DUMMY_DARK_PERU_FILE, RESOURCE_DUMMY_DARK_PERU_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_DARK_YELLOW_NAME,
+				RESOURCE_DUMMY_DARK_YELLOW_FILE, RESOURCE_DUMMY_DARK_YELLOW_OID, initTask, initResult);
 		
 		initDummyResourcePirate(RESOURCE_DUMMY_DAVID_NAME,
 				RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
@@ -170,7 +179,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_DUMMIES_IVORY_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_FIGHT_FILE, initResult);
-		repoAddObjectFromFile(ROLE_YELLOW_PERU_DISABLE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_DARK_YELLOW_PERU_FILE, initResult);
 
 		getDummyResource().resetBreakMode();
 	}
@@ -2282,37 +2291,75 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
     
     @Test
-    public void test500JackAssignDummyYellow() throws Exception {
-		final String TEST_NAME = "test500JackAssignDummyYellow";
+    public void test500PrepareJack() throws Exception {
+		final String TEST_NAME = "test500PrepareJack";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        // ... to satisfy yellow password policy
+        modifyUserChangePassword(USER_JACK_OID, "d3adM3Nt3llN0tal3s", task, result);
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
+        assertLinks(userBefore, 1);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+		deleteUserAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 0);
+
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+    @Test
+    public void test501JackAssignDummyDarkYellow() throws Exception {
+		final String TEST_NAME = "test501JackAssignDummyDarkYellow";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 0);
+        assertLinks(userBefore, 0);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
         assertAssignments(userAfter, 1);
         assertLinks(userAfter, 1);
 
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 	}
-    
+
     @Test
-    public void test502JackAssignDummyPeruDisable() throws Exception {
-		final String TEST_NAME = "test502JackAssignDummyPeruDisable";
+    public void test502JackAssignDummyDarkPeru() throws Exception {
+		final String TEST_NAME = "test502JackAssignDummyDarkPeru";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -2324,26 +2371,27 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_DISABLE_OID, null, task, result);
+		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
         assertAssignments(userAfter, 2);
         assertLinks(userAfter, 2);
 
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 	}
     
     /**
      * MID-4554
      */
     @Test
-    public void test504JackUnassignDummyPeruDisable() throws Exception {
-		final String TEST_NAME = "test504JackUnassignDummyPeruDisable";
+    public void test504JackUnassignDummyDarkPeru() throws Exception {
+		final String TEST_NAME = "test504JackUnassignDummyDarkPeru";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -2355,23 +2403,24 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_PERU_DISABLE_OID, null, task, result);
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
         assertAssignments(userAfter, 1);
         assertLinks(userAfter, 2);
 
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
 	}
     
     @Test
-    public void test509JackUnassignDummyYellow() throws Exception {
-		final String TEST_NAME = "test509JackUnassignDummyYellow";
+    public void test507JackUnassignDummyDarkYellow() throws Exception {
+		final String TEST_NAME = "test507JackUnassignDummyDarkYellow";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -2383,23 +2432,82 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 2);
+
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+	}
+
+    @Test
+    public void test508JackDeleteDummyDarkYellowAccount() throws Exception {
+		final String TEST_NAME = "test508JackDeleteDummyDarkYellowAccount";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		deleteUserAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
         assertAssignments(userAfter, 0);
         assertLinks(userAfter, 1);
 
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertNoDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
 	}
     
     @Test
-    public void test510JackAssignRoleYellowPeruDisable() throws Exception {
-		final String TEST_NAME = "test510JackAssignRoleYellowPeruDisable";
+    public void test509JackDeleteDummyDarkPeruAccount() throws Exception {
+		final String TEST_NAME = "test509JackDeleteDummyDarkPeruAccount";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		deleteUserAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 0);
+
+        assertNoDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+    @Test
+    public void test510JackAssignRoleDarkYellowPeru() throws Exception {
+		final String TEST_NAME = "test510JackAssignRoleDarkYellowPeru";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -2416,26 +2524,27 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignRole(USER_JACK_OID, ROLE_YELLOW_PERU_DISABLE_OID, task, result);
+		assignRole(USER_JACK_OID, ROLE_DARK_YELLOW_PERU_OID, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
         assertAssignments(userAfter, 1);
         assertLinks(userAfter, 2);
 
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 	}
     
     /**
      * MID-4554
      */
     @Test
-    public void test519JackUnassignRoleYellowPeruDisable() throws Exception {
-		final String TEST_NAME = "test519JackUnassignRoleYellowPeruDisable";
+    public void test519JackUnassignDarkRoleYellowPeru() throws Exception {
+		final String TEST_NAME = "test519JackUnassignDarkRoleYellowPeru";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -2447,18 +2556,86 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignRole(USER_JACK_OID, ROLE_YELLOW_PERU_DISABLE_OID, task, result);
+		unassignRole(USER_JACK_OID, ROLE_DARK_YELLOW_PERU_OID, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
         assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 1);
+        assertLinks(userAfter, 2);
 
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertDummyAccount(RESOURCE_DUMMY_PERU_DISABLE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+	}
+    
+    @Test
+    public void test520JackAssignRoleDarkYellowPeru() throws Exception {
+		final String TEST_NAME = "test520JackAssignRoleDarkYellowPeru";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        // Old password too short for yellow resource
+        modifyUserChangePassword(USER_JACK_OID, "123abc456QWE", task, result);
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 0);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_DARK_YELLOW_PERU_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+	}
+    
+    /**
+     * MID-4554
+     */
+    @Test
+    public void test529JackUnassignRoleDarkYellowPeru() throws Exception {
+		final String TEST_NAME = "test529JackUnassignRoleDarkYellowPeru";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        AssignmentType currentAssignment = findAssignmentByTargetRequired(userBefore, ROLE_DARK_YELLOW_PERU_OID);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassign(UserType.class, USER_JACK_OID, currentAssignment.getId(), task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 2);
+
+        assertDummyAccount(RESOURCE_DUMMY_DARK_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertDummyAccount(RESOURCE_DUMMY_DARK_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
 	}
     
 }

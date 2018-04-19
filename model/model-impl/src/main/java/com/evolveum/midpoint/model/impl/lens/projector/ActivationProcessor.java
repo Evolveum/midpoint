@@ -177,9 +177,11 @@ public class ActivationProcessor {
     		return;
     	}
     	
-    	boolean shadowShouldExist = evaluateExistenceMapping(context, projCtx, now, true, task, result);
+    	LOGGER.trace("Evaluating intended existence of projection {} (legal={})", projCtxDesc, projCtx.isLegal());
+    	
+    	boolean shadowShouldExist = evaluateExistenceMapping(context, projCtx, now, MappingTimeEval.CURRENT, task, result);
 
-    	LOGGER.trace("Evaluated intended existence of projection {} to {}", projCtxDesc, shadowShouldExist);
+    	LOGGER.trace("Evaluated intended existence of projection {} to {} (legal={})", projCtxDesc, shadowShouldExist, projCtx.isLegal());
 
     	// Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
 
@@ -294,7 +296,7 @@ public class ActivationProcessor {
 	    	evaluateActivationMapping(context, projCtx,
 	    			activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-	    			capActivation, now, true, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
+	    			capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
         } else {
         	LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
         }
@@ -307,7 +309,7 @@ public class ActivationProcessor {
         } else {
 	    	evaluateActivationMapping(context, projCtx, activationType.getValidFrom(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-	    			null, now, true, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+	    			null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
         ResourceBidirectionalMappingType validToMappingType = activationType.getValidTo();
@@ -318,14 +320,14 @@ public class ActivationProcessor {
         } else {
 	    	evaluateActivationMapping(context, projCtx, activationType.getValidTo(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
-	    			null, now, true, ActivationType.F_VALID_TO.getLocalPart(), task, result);
+	    			null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
 	    }
 
         if (capLockoutStatus != null) {
 	    	evaluateActivationMapping(context, projCtx,
 	    			activationType.getLockoutStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
-	    			capActivation, now, true, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
+	    			capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
         } else {
         	LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", projCtx.getResource());
         }
@@ -415,7 +417,7 @@ public class ActivationProcessor {
 
     	accCtx.recompute();
 
-    	evaluateExistenceMapping(context, accCtx, now, false, task, result);
+    	evaluateExistenceMapping(context, accCtx, now, MappingTimeEval.FUTURE, task, result);
 
         PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
@@ -446,26 +448,26 @@ public class ActivationProcessor {
 
 	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-	    			capActivation, now, false, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);	
+	    			capActivation, now, MappingTimeEval.FUTURE, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);	
         }
 
         if (capValidFrom != null) {
 	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-	    			null, now, false, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+	    			null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
         if (capValidTo != null) {
 	    	evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
-	    			null, now, false, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
+	    			null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
 	    }
 
     }
 
 
     private <F extends FocusType> boolean evaluateExistenceMapping(final LensContext<F> context,
-    		final LensProjectionContext projCtx, final XMLGregorianCalendar now, final boolean current,
+    		final LensProjectionContext projCtx, final XMLGregorianCalendar now, final MappingTimeEval current,
             Task task, final OperationResult result)
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	final String projCtxDesc = projCtx.toHumanReadableString();
@@ -474,8 +476,6 @@ public class ActivationProcessor {
     	if (legal == null) {
     		throw new IllegalStateException("Null 'legal' for "+projCtxDesc);
     	}
-
-    	LOGGER.trace("Evaluating intended existence of projection {}; legal={}", projCtxDesc, legal);
 
     	ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
@@ -581,7 +581,7 @@ public class ActivationProcessor {
     private <T, F extends FocusType> void evaluateActivationMapping(final LensContext<F> context,
 			final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType,
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
-   			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final boolean current,
+   			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final MappingTimeEval current,
    			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer =
@@ -645,7 +645,7 @@ public class ActivationProcessor {
 			final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType,
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
 			final MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer,
-			XMLGregorianCalendar now, final boolean evaluateCurrent, String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			XMLGregorianCalendar now, final MappingTimeEval evaluateCurrent, String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (bidirectionalMappingType == null) {
             LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
@@ -694,7 +694,7 @@ public class ActivationProcessor {
 		Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Mapping processing output after {}:\n{}", desc, DebugUtil.debugDump(outputTripleMap, 1));
+			LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent, DebugUtil.debugDump(outputTripleMap, 1));
 		}
 		
 		if (projCtx.isDoReconciliation()) {
@@ -702,7 +702,7 @@ public class ActivationProcessor {
 		}
 
 	}
-
+	
 	/**
 	 * TODO: can we align this with ReconciliationProcessor?
 	 */
@@ -924,7 +924,7 @@ public class ActivationProcessor {
         	LOGGER.trace("Computing projection lifecycle (mapping): {}", lifecycleStateMappingType);
 	    	evaluateActivationMapping(context, projCtx, lifecycleStateMappingType,
 	    			SchemaConstants.PATH_LIFECYCLE_STATE, SchemaConstants.PATH_LIFECYCLE_STATE,
-	    			null, now, true, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
+	    			null, now, MappingTimeEval.CURRENT, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
         }
 
     }

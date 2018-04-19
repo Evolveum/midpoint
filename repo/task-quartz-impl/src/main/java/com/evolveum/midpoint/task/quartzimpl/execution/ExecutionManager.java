@@ -258,8 +258,9 @@ public class ExecutionManager {
             csi = getClusterStatusInformation(true, false, result);
         }
 
-        for (Task task : tasks)
+        for (Task task : tasks) {
             stopTaskRun(task, csi, clusterwide, result);
+        }
 
         boolean stopped = false;
         if (waitTime >= 0) {

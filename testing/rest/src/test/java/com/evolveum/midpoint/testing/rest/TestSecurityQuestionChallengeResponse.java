@@ -20,14 +20,19 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
+import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.local.LocalConduit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
@@ -41,7 +46,7 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 	private static final Trace LOGGER = TraceManager.getTrace(TestSecurityQuestionChallengeResponse.class);
 
 	@Test
-	public void testChallengeResponse(){
+	public void testChallengeResponse() throws Exception {
 		Response response = getUserAdministrator("SecQ");
 
 		String challengeBase64 = assertAndGetChallenge(response);
@@ -109,7 +114,13 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 	}
 
 	private Response getUserAdministrator(String authorizationHeader){
-		WebClient client = WebClient.create(ENDPOINT_ADDRESS);
+		WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));
+		ClientConfiguration clientConfig = WebClient.getConfig(client);
+
+		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
+		client.accept(getAcceptHeader());
+		client.type(getContentType());
+		
 		client.authorization(authorizationHeader);
 
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());

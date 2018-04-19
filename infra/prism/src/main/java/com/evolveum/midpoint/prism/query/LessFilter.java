@@ -75,7 +75,7 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 
 	@Override
 	protected String getFilterName() {
-		return "LESS";
+		return isEquals() ? "LESS-OR-EQUAL" : "LESS";
 	}
 
 	@Override

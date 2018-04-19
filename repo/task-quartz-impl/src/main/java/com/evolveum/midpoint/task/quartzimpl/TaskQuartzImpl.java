@@ -2241,6 +2241,11 @@ public class TaskQuartzImpl implements Task {
 		return taskPrism.asObjectable().getNode();
 	}
 
+	@Override
+	public String getNodeAsObserved() {
+		return taskPrism.asObjectable().getNodeAsObserved();
+	}
+
 	public void setNode(String value) {
 		processModificationBatched(setNodeAndPrepareDelta(value));
 	}
@@ -3197,6 +3202,12 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public TaskKindType getKind() {
+		TaskWorkManagementType workManagement = getWorkManagement();
+		return workManagement != null ? workManagement.getTaskKind() : null;
+	}
+
+	@Override
 	public TaskUnpauseActionType getUnpauseAction() {
 		return taskPrism.asObjectable().getUnpauseAction();
 	}
@@ -3219,5 +3230,11 @@ public class TaskQuartzImpl implements Task {
 	public boolean isPartitionedMaster() {
 		TaskWorkManagementType workManagement = getWorkManagement();
 		return workManagement != null && workManagement.getTaskKind() == TaskKindType.PARTITIONED_MASTER;
+	}
+
+	@Override
+	public String getExecutionGroup() {
+		TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
+		return executionConstraints != null ? executionConstraints.getGroup() : null;
 	}
 }

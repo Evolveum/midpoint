@@ -66,7 +66,7 @@ public abstract class BaseWorkSegmentationStrategy implements WorkSegmentationSt
 						.content(newBucketContent)
 						.state(WorkBucketStateType.READY));
 			}
-			return new GetBucketResult.NewBuckets(newBuckets);
+			return new GetBucketResult.NewBuckets(newBuckets, 0);
 		} else {
 			return new NothingFound(!somethingDelegated);
 		}

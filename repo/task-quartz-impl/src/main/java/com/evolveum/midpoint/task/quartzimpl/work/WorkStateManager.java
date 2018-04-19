@@ -35,7 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
@@ -85,6 +84,7 @@ public class WorkStateManager {
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkSegmentationStrategyFactory strategyFactory;
 	@Autowired private WorkBucketContentHandlerRegistry handlerFactory;
+	@Autowired private TaskManagerConfiguration configuration;
 
 	private static final long DYNAMIC_SLEEP_INTERVAL = 100L;
 
@@ -184,9 +184,10 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 				try {
 					if (response instanceof NewBuckets) {
 						NewBuckets newBucketsResponse = (NewBuckets) response;
+						int selected = newBucketsResponse.selected;
 						List<WorkBucketType> newCoordinatorBuckets = new ArrayList<>(coordinatorWorkState.getBucket());
 						for (int i = 0; i < newBucketsResponse.newBuckets.size(); i++) {
-							if (i == 0) {
+							if (i == selected) {
 								newCoordinatorBuckets.add(newBucketsResponse.newBuckets.get(i).clone().state(WorkBucketStateType.DELEGATED));
 							} else {
 								newCoordinatorBuckets.add(newBucketsResponse.newBuckets.get(i).clone());
@@ -196,8 +197,8 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 								bucketsReplaceDeltas(newCoordinatorBuckets),
 								bucketsReplacePrecondition(coordinatorWorkState.getBucket()), null, result);
 						repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(),
-								bucketsAddDeltas(newBucketsResponse.newBuckets), null, result);
-						return newBucketsResponse.newBuckets.get(0);
+								bucketsAddDeltas(newBucketsResponse.newBuckets.subList(selected, selected+1)), null, result);
+						return newBucketsResponse.newBuckets.get(selected);
 					} else if (response instanceof FoundExisting) {
 						FoundExisting existingResponse = (FoundExisting) response;
 						repositoryService.modifyObject(TaskType.class, ctx.coordinatorTask.getOid(),
@@ -254,22 +255,18 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	}
 
 	private BackoffComputer createBackoffComputer() {
-		TaskManagerConfiguration c = getConfiguration();
-		return new ExponentialBackoffComputer(c.getWorkAllocationMaxRetries(), c.getWorkAllocationInitialDelay(),
+		TaskManagerConfiguration c = configuration;
+		return new ExponentialBackoffComputer(c.getWorkAllocationMaxRetries(), c.getWorkAllocationRetryInterval(),
 				c.getWorkAllocationRetryExponentialThreshold());
 	}
 
 	private long getFreeBucketWaitInterval() {
 		return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
-				getConfiguration().getWorkAllocationDefaultFreeBucketWaitInterval();
+				configuration.getWorkAllocationDefaultFreeBucketWaitInterval();
 	}
 
 	private long getInitialDelay() {
-		return getConfiguration().getWorkAllocationInitialDelay();
-	}
-
-	private TaskManagerConfiguration getConfiguration() {
-		return ((TaskManagerQuartzImpl) taskManager).getConfiguration();
+		return configuration.getWorkAllocationInitialDelay();
 	}
 
 	private void setOrUpdateEstimatedNumberOfBuckets(Task task, WorkSegmentationStrategy workStateStrategy, OperationResult result)
@@ -343,7 +340,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			NewBuckets newBucketsResponse = (NewBuckets) response;
 			repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(),
 					bucketsAddDeltas(newBucketsResponse.newBuckets), null, result);
-			return newBucketsResponse.newBuckets.get(0);
+			return newBucketsResponse.newBuckets.get(newBucketsResponse.selected);
 		} else if (response instanceof NothingFound) {
 			if (!((NothingFound) response).definite) {
 				throw new AssertionError("Unexpected 'indefinite' answer when looking for next bucket in a standalone task: " + ctx.workerTask);
@@ -554,11 +551,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			WorkBucketType currentBucket = findBucketByNumber(getWorkStateOrNew(taskObject).getBucket(),
 					originalBucket.getSequentialNumber());
 			// performance is not optimal but OK for precondition checking
-			boolean rv = currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
-			if (!rv) {
-				System.out.println("Hi");
-			}
-			return rv;
+			return currentBucket != null && cloneNoId(currentBucket).equals(cloneNoId(originalBucket));
 		};
 	}
 

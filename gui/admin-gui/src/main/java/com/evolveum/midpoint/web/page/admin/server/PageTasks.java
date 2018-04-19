@@ -38,12 +38,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -122,6 +117,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
+    private static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
     private static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
     private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
     private static final String OPERATION_DELETE_NODES = DOT_CLASS + "deleteNodes";
@@ -622,9 +618,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     public Date getObject() {
                         Date date = getCurrentRuntime(rowModel);
                         TaskDto task = rowModel.getObject();
-                        if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                        if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED && date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore("closed at ");
-                        } else if (date != null){
+                        } else if (date != null) {
                             ((DateLabelComponent) item.get(componentId)).setBefore(DurationFormatUtils.formatDurationWords(date.getTime(), true, true));
                         }
                         return date;
@@ -702,7 +698,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
         });
 
-        IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false), 2, PageTasks.this){
+        IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false, null), 2, PageTasks.this){
             @Override
             protected int getHeaderNumberOfButtons() {
                 return 2;
@@ -710,7 +706,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
             @Override
             protected List<InlineMenuItem> getHeaderMenuItems() {
-                return createTasksInlineMenu(true);
+                return createTasksInlineMenu(true, null);
             }
         };
         columns.add(menuColumn);
@@ -741,7 +737,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		};
 	}
 
-	private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
+	private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader, TaskDto dto) {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"),
             new Model<>(false),
@@ -863,6 +859,37 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
 
         });
+        if (!isHeader && dto != null) {
+        	if (dto.getTaskType().getWorkManagement() != null && dto.getTaskType().getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR) {
+		        items.add(new InlineMenuItem(createStringResource("pageTasks.button.reconcileWorkers"), false,
+				        new ColumnMenuAction<TaskDto>() {
+
+					        @Override
+					        public void onClick(AjaxRequestTarget target) {
+						        if (getRowModel() == null) {
+							        throw new UnsupportedOperationException();
+						        } else {
+							        TaskDto rowDto = getRowModel().getObject();
+							        reconcileWorkersConfirmedPerformed(target, rowDto);
+						        }
+					        }
+				        }) {
+
+			        private static final long serialVersionUID = 1L;
+
+			        @Override
+			        public boolean isShowConfirmationDialog() {
+				        return PageTasks.this.isTaskShowConfirmationDialog((ColumnMenuAction) getAction());
+			        }
+
+			        @Override
+			        public IModel<String> getConfirmationMessageModel() {
+				        String actionName = createStringResource("pageTasks.message.reconcileWorkersAction").getString();
+				        return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			        }
+		        });
+	        }
+        }
         if (isHeader) {
             items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks"), false,
                     new ColumnMenuAction<TaskDto>() {
@@ -1608,6 +1635,27 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         refreshTables(target);
     }
 
+    private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull TaskDto task) {
+        Task opTask = createSimpleTask(OPERATION_RECONCILE_WORKERS);
+        OperationResult result = opTask.getResult();
+        try {
+            getTaskService().reconcileWorkers(task.getOid(), opTask, result);
+            result.computeStatus();
+            if (result.isSuccess() && result.getSubresults().size() == 1) {         // brutal hack: to show statistics
+            	result.setMessage(result.getSubresults().get(0).getMessage());
+            }
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+            result.recordFatalError("Couldn't reconcile the workers", e);  // todo i18n
+        }
+	    showResult(result);
+
+        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
+        //refresh feedback and table
+        refreshTables(target);
+    }
+
     private static class SearchFragment extends Fragment {
 
         public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
@@ -1767,7 +1815,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             return;
         }
 
-        items.addAll(createTasksInlineMenu(false));
+        items.addAll(createTasksInlineMenu(false, dto));
     }
 
     private void addInlineMenuToNodeRow(final NodeDto dto) {

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -365,7 +366,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     }
 
 	@Test
-	public void test135ModifyUserJackAssignRole() throws Exception {
+	public void test140ModifyUserJackAssignRole() throws Exception {
 		final String TEST_NAME = "test135ModifyUserJackAssignRole";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -415,7 +416,127 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 				+ "\n"
 				+ "Channel: ";
 		assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+	}
 
+	@Test
+	public void test150ModifyUserJackModifyAssignment() throws Exception {
+		final String TEST_NAME = "test150ModifyUserJackModifyAssignment";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
+		Long id = assignment.getId();
+		executeChanges(
+				DeltaBuilder.deltaFor(UserType.class, prismContext)
+						.item(UserType.F_ASSIGNMENT, id, AssignmentType.F_DESCRIPTION)
+						.replace("hi")
+						.asObjectDeltaCast(jack.getOid()), null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("executeChanges result", result);
+
+		PrismObject<UserType> jackAfter = getUser(USER_JACK_OID);
+		display("User after change execution", jackAfter);
+		assertUserJack(jackAfter);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("accountPasswordNotifier", 0);
+		checkDummyTransportMessages("userPasswordNotifier", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+		checkDummyTransportMessages("simpleUserNotifier", 1);
+		checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+		assertSteadyResources();
+
+		String expected = "Notification about user-related operation (status: SUCCESS)\n"
+				+ "\n"
+				+ "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+				+ "\n"
+				+ "The user record was modified. Modified attributes are:\n"
+				+ " - Assignment["+id+"]/Description:\n"
+				+ "   - REPLACE: hi\n"
+				+ "\n"
+				+ "Notes:\n"
+				+ " - Assignment["+id+"]:\n"
+				+ "    - Description: hi\n"
+				+ "    - Target: Superuser (role) [default]\n"
+				+ "\n"
+				+ "Channel: ";
+		assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+	}
+
+	@Test
+	public void test160ModifyUserJackDeleteAssignment() throws Exception {
+		final String TEST_NAME = "test160ModifyUserJackDeleteAssignment";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
+		Long id = assignment.getId();
+		executeChanges(
+				DeltaBuilder.deltaFor(UserType.class, prismContext)
+						.item(UserType.F_ASSIGNMENT)
+						.delete(new AssignmentType(prismContext).id(id))
+						.asObjectDeltaCast(jack.getOid()), null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("executeChanges result", result);
+
+		PrismObject<UserType> jackAfter = getUser(USER_JACK_OID);
+		display("User after change execution", jackAfter);
+		assertUserJack(jackAfter);
+
+		// Check notifications
+		display("Notifications", dummyTransport);
+
+		notificationManager.setDisabled(true);
+		checkDummyTransportMessages("accountPasswordNotifier", 0);
+		checkDummyTransportMessages("userPasswordNotifier", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+		checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+		checkDummyTransportMessages("simpleUserNotifier", 1);
+		checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+		assertSteadyResources();
+
+		String expected = "Notification about user-related operation (status: SUCCESS)\n"
+				+ "\n"
+				+ "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+				+ "\n"
+				+ "The user record was modified. Modified attributes are:\n"
+				+ " - Assignment:\n"
+				+ "   - DELETE: \n"
+				+ "      - Description: hi\n"
+				+ "      - Target: Superuser (role) [default]\n"
+				+ "\n"
+				+ "Channel: ";
+		assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
 	}
 
 	@Test
