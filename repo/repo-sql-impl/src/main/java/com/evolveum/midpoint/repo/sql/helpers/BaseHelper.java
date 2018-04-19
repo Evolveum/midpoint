@@ -53,6 +53,7 @@ import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_TIMEOUT_STEP
 public class BaseHelper {
 
 	private static final Trace LOGGER = TraceManager.getTrace(BaseHelper.class);
+	private static final Trace CONTENTION_LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.CONTENTION_LOG_NAME);
 
 	@Autowired
 	private SessionFactory sessionFactory;
@@ -202,15 +203,22 @@ public class BaseHelper {
 		try {
 			waitTime = backoffComputer.computeDelay(attempt);
 		} catch (BackoffComputer.NoMoreRetriesException e) {
-			LOGGER.error("A serialization-related problem occurred, maximum attempts (" + attempt + ") reached.", ex);
+			CONTENTION_LOGGER.error("A serialization-related problem occurred, maximum attempts ({}) reached.", attempt, ex);
+			LOGGER.error("A serialization-related problem occurred, maximum attempts ({}) reached.", attempt, ex);
 			if (result != null) {
 				result.recordFatalError("A serialization-related problem occurred.", ex);
 			}
 			throw new SystemException(ex.getMessage() + " [attempts: " + attempt + "]", ex);
 		}
-		LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
-						+ "{} ms (this is retry {} of {})\n{}: {}", operation, oid, waitTime,
-				attempt, LOCKING_MAX_RETRIES, ex.getClass().getSimpleName(), ex.getMessage());
+		String message = "A serialization-related problem occurred when {} object with oid '{}', retrying after "
+				+ "{} ms (this is retry {} of {})\n{}: {}";
+		Object[] objects = { operation, oid, waitTime, attempt, LOCKING_MAX_RETRIES, ex.getClass().getSimpleName(), ex.getMessage() };
+		if (attempt >= SqlRepositoryServiceImpl.CONTENTION_LOG_DEBUG_THRESHOLD) {
+			CONTENTION_LOGGER.debug(message, objects);
+		} else {
+			CONTENTION_LOGGER.trace(message, objects);
+		}
+		LOGGER.debug(message, objects);
 		if (waitTime > 0) {
 			try {
 				Thread.sleep(waitTime);
