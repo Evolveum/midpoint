@@ -29,9 +29,9 @@ public class ExpressionWrapper<T> extends PropertyWrapper<T> {
             if (outboundValue != null) {
                 PrismContainer associationContainer = (PrismContainer) outboundValue.getParent();
                 if (associationContainer != null) {
-                    PrismContainerValue<ConstructionType> constructionContainer = (PrismContainerValue<ConstructionType>) associationContainer.getParent();
-                    if (constructionContainer != null) {
-                        construction = constructionContainer.asContainerable();
+                    PrismContainerValue<?> constructionContainer = (PrismContainerValue<?>) associationContainer.getParent();
+                    if (constructionContainer != null && constructionContainer.asContainerable() instanceof ConstructionType) {
+                        construction = (ConstructionType) constructionContainer.asContainerable();
                     }
                 }
             }

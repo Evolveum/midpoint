@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
@@ -344,6 +345,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 *
 	 * @return never returns null
 	 */
+	@NotNull
 	public List<OperationResult> getSubresults() {
 		if (subresults == null) {
 			subresults = new ArrayList<>();
