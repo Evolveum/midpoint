@@ -102,6 +102,8 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
+    public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
+    public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
