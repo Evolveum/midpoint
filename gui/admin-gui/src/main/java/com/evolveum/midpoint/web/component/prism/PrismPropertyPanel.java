@@ -31,9 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -261,7 +259,11 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
                 BasePanel panel;
-                if (item.getModelObject().getItem().getItemDefinition().getTypeName().equals(ExpressionType.COMPLEX_TYPE)){
+                ItemWrapper itemWrapper = item.getModelObject().getItem();
+                if (itemWrapper.getPath().containsName(AssignmentType.F_CONSTRUCTION) &&
+                        itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) &&
+                        itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
+                        itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
                     ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
                     panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
                             expressionWrapper.getConstruction(), pageBase);
