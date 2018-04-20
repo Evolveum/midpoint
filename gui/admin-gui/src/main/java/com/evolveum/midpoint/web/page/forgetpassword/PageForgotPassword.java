@@ -429,6 +429,8 @@ public class PageForgotPassword extends PageRegistrationBase {
 	private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
 		return runPrivileged(new Producer<OperationResult>() {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public OperationResult run() {
 				Task task = createAnonymousTask("generateUserNonce");
@@ -440,13 +442,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 					nonceCredentials
 							.setClearValue(generateNonce(noncePolicy, task, user.asPrismObject(), result));
 
-					NonceType nonceType = new NonceType();
-					nonceType.setValue(nonceCredentials);
+//					NonceType nonceType = new NonceType();
+//					nonceType.setValue(nonceCredentials);
 
-					ObjectDelta<UserType> nonceDelta;
-
-					nonceDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, user.getOid(),
-							SchemaConstants.PATH_NONCE, getPrismContext(), nonceType);
+					ObjectDelta<UserType> nonceDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+							SchemaConstants.PATH_NONCE_VALUE, getPrismContext(), nonceCredentials);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
 				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
