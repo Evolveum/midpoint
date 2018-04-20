@@ -54,7 +54,9 @@ public interface TaskService {
      */
     boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    /**
+	boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+	/**
      * Suspends tasks and deletes them.
      *
      * @param taskOids Collection of task OIDs to be suspended and deleted.
@@ -76,6 +78,7 @@ public interface TaskService {
      * @throws com.evolveum.midpoint.util.exception.ObjectNotFoundException 
      */
     void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void resumeTaskTree(String coordinatorOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Schedules a RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
