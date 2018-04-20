@@ -118,6 +118,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private static final String DOT_INTERFACE = TaskManager.class.getName() + ".";
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
     private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
+	public static final String CONTENTION_LOG_NAME = TaskManagerQuartzImpl.class.getName() + ".contention";
 
     @Autowired
     private TaskManagerConfiguration configuration;
