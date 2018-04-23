@@ -57,7 +57,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		ContainerWrapperFromObjectWrapperModel model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT));
+		ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT));
 		AssignmentPanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
 		assignments.add(panel);
