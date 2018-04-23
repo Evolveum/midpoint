@@ -46,6 +46,20 @@
   }
 }
 
+.table-word-break {
+  > thead,
+  > tbody,
+  > tfoot {
+    > tr {
+      > th,
+      > td {
+        word-break: break-all;
+        max-width: 40%;
+      }
+    }
+  }
+}
+
 .table.no-border {
   &,
   td,
