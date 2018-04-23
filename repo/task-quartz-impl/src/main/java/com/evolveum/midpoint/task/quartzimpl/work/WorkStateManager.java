@@ -35,6 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
@@ -78,6 +79,7 @@ import static java.util.Collections.singletonList;
 public class WorkStateManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WorkStateManager.class);
+	private static final Trace CONTENTION_LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.CONTENTION_LOG_NAME);
 
 	@Autowired private TaskManager taskManager;
 	@Autowired private RepositoryService repositoryService;
@@ -169,6 +171,7 @@ public class WorkStateManager {
 	private WorkBucketType getWorkBucketMultiNode(Context ctx, long freeBucketWaitTime, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
+		int globalAttempt = 0;      // just for statistics
 		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkManagement());
 		setOrUpdateEstimatedNumberOfBuckets(ctx.coordinatorTask, workStateStrategy, result);
 
@@ -179,6 +182,7 @@ waitForAvailableBucket:    // this cycle exits when something is found OR when a
 waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
 			for (;;) {
 				TaskWorkStateType coordinatorWorkState = getWorkStateOrNew(ctx.coordinatorTask.getTaskPrismObject());
+				globalAttempt++;
 				GetBucketResult response = workStateStrategy.getBucket(coordinatorWorkState);
 				LOGGER.trace("getWorkBucketMultiNode: workStateStrategy returned {} for worker task {}, coordinator {}", response, ctx.workerTask, ctx.coordinatorTask);
 				try {
@@ -198,6 +202,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 								bucketsReplacePrecondition(coordinatorWorkState.getBucket()), null, result);
 						repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(),
 								bucketsAddDeltas(newBucketsResponse.newBuckets.subList(selected, selected+1)), null, result);
+						CONTENTION_LOGGER.trace("New bucket(s) acquired after {} ms (attempt #{}) in {}", System.currentTimeMillis() - start, globalAttempt, ctx.workerTask);
 						return newBucketsResponse.newBuckets.get(selected);
 					} else if (response instanceof FoundExisting) {
 						FoundExisting existingResponse = (FoundExisting) response;
@@ -207,20 +212,26 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 						WorkBucketType foundBucket = existingResponse.bucket.clone();
 						repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(),
 								bucketsAddDeltas(singletonList(foundBucket)), null, result);
+						CONTENTION_LOGGER.trace("Existing bucket acquired after {} ms (attempt #{}) in {}", System.currentTimeMillis() - start, globalAttempt, ctx.workerTask);
 						return foundBucket;
 					} else if (response instanceof NothingFound) {
 						if (((NothingFound) response).definite || freeBucketWaitTime == 0L) {
 							markWorkComplete(ctx.coordinatorTask, result);       // TODO also if response is not definite?
+							CONTENTION_LOGGER.trace("'No bucket' found after {} ms (attempt #{}) in {}", System.currentTimeMillis() - start, globalAttempt, ctx.workerTask);
 							return null;
 						} else {
 							long waitDeadline = freeBucketWaitTime >= 0 ? start + freeBucketWaitTime : Long.MAX_VALUE;
 							long toWait = waitDeadline - System.currentTimeMillis();
 							if (toWait <= 0) {
 								markWorkComplete(ctx.coordinatorTask, result);       // TODO also if response is not definite?
+								CONTENTION_LOGGER.trace("'No bucket' found (wait time elapsed) after {} ms (attempt #{}) in {}", System.currentTimeMillis() - start, globalAttempt, ctx.workerTask);
 								return null;
 							}
 							//System.out.println("*** No free work bucket -- waiting ***");
-							dynamicSleep(Math.min(toWait, getFreeBucketWaitInterval()), ctx);
+							long sleepFor = Math.min(toWait, getFreeBucketWaitInterval());
+							CONTENTION_LOGGER.trace("Entering waiting for free bucket (waiting for {}) - after {} ms (attempt #{}) in {}",
+									sleepFor, System.currentTimeMillis() - start, globalAttempt, ctx.workerTask);
+							dynamicSleep(sleepFor, ctx);
 							ctx.reloadCoordinatorTask(result);
 							ctx.reloadWorkerTask(result);
 							if (reclaimWronglyAllocatedBuckets(ctx.coordinatorTask, result)) {
@@ -239,11 +250,16 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 					try {
 						delay = backoffComputer.computeDelay(retry);
 					} catch (BackoffComputer.NoMoreRetriesException e1) {
-						throw new SystemException(
-								"Couldn't allocate work bucket because of repeated database conflicts (retry limit reached); coordinator task = " + ctx.coordinatorTask, e1);
+						String message =
+								"Couldn't allocate work bucket because of repeated database conflicts (retry limit reached); coordinator task = "
+										+ ctx.coordinatorTask;
+						CONTENTION_LOGGER.error(message, e1);
+						throw new SystemException(message, e1);
 					}
-					LOGGER.info("getWorkBucketMultiNode: conflict; continuing as retry #{}; waiting {} ms in {}, worker {}",
-							retry, delay, ctx.coordinatorTask, ctx.workerTask, e);
+					String message = "getWorkBucketMultiNode: conflict; continuing as retry #{}; waiting {} ms in {}, worker {}";
+					Object[] objects = { retry, delay, ctx.coordinatorTask, ctx.workerTask, e };
+					CONTENTION_LOGGER.debug(message, objects);
+					LOGGER.info(message, objects);      // todo change to trace
 					dynamicSleep(delay, ctx);
 					ctx.reloadCoordinatorTask(result);
 					ctx.reloadWorkerTask(result);
@@ -320,6 +336,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 		LOGGER.trace("Reclaiming wrongly allocated buckets found {} buckets to reclaim in {}", reclaiming, coordinatorTask);
 		if (reclaiming > 0) {
+			CONTENTION_LOGGER.debug("Reclaiming wrongly allocated buckets found {} buckets to reclaim in {}", reclaiming, coordinatorTask);
 			repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
 					bucketsReplaceDeltas(newState.getBucket()),
 					bucketsReplacePrecondition(originalState.getBucket()), null, result);

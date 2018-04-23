@@ -96,6 +96,8 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.util.*;
 
+import static java.util.Collections.singleton;
+
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
  * don't expect that the implementation of the controller will be ever replaced.
@@ -1806,6 +1808,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return taskManager.suspendTasks(taskOids, waitForStop, parentResult);
     }
 
+    @Override
+    public boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+	    authorizeTaskCollectionOperation(ModelAuthorizationAction.SUSPEND_TASK, singleton(taskOid), operationTask, parentResult);
+	    return taskManager.suspendTaskTree(taskOid, waitForStop, parentResult);
+    }
+
 	@Override
     public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorizeTaskCollectionOperation(ModelAuthorizationAction.DELETE, taskOids, operationTask, parentResult);
@@ -1816,6 +1824,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, taskOids, operationTask, parentResult);
         taskManager.resumeTasks(taskOids, parentResult);
+    }
+
+    @Override
+    public void resumeTaskTree(String coordinatorOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, singleton(coordinatorOid), operationTask, parentResult);
+        taskManager.resumeTaskTree(coordinatorOid, parentResult);
     }
 
     @Override
@@ -2153,7 +2167,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								.item(CaseType.F_WORK_ITEM, workItem.getId(), WorkItemType.F_CLOSE_TIMESTAMP).replace(now)
 								.asItemDelta());
 			}
-			executeChanges(Collections.singleton(delta), null, task, result);
+			executeChanges(singleton(delta), null, task, result);
 			result.computeStatus();
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't complete work item: " + t.getMessage(), t);
