@@ -48,4 +48,5 @@ public class ModelPublicConstants {
 	public static final String PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3 = PARTITIONED_RECONCILIATION_TASK_HANDLER_URI + "#3";
 	public static final String SCRIPT_EXECUTION_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/scripting/handler-3";
 	public static final String ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/iterative-scripting/handler-3";
+	public static final String EXECUTE_DELTAS_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/execute-deltas/handler-3";
 }

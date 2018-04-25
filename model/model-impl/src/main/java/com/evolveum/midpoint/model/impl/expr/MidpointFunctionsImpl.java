@@ -20,10 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -1569,6 +1566,60 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
 		return AssignmentPath.collectExtensions(path, startAt, modelService, getCurrentTask(), getCurrentResult());
+	}
+	@Override
+	public TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
+			String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		return executeChangesAsynchronously(deltas, options, templateTaskOid, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
+			String templateTaskOid, Task opTask, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
+		if (principal == null) {
+			throw new SecurityViolationException("No current user");
+		}
+		TaskType newTask;
+		if (templateTaskOid != null) {
+			newTask = modelService.getObject(TaskType.class, templateTaskOid,
+					getDefaultGetOptionCollection(), opTask, result).asObjectable();
+		} else {
+			newTask = new TaskType(prismContext);
+			newTask.setName(PolyStringType.fromOrig("Execute changes"));
+			newTask.setRecurrence(TaskRecurrenceType.SINGLE);
+		}
+		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
+		newTask.setOid(null);
+		newTask.setTaskIdentifier(null);
+		newTask.setOwnerRef(createObjectRef(principal.getUser()));
+		newTask.setExecutionStatus(RUNNABLE);
+		newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
+		if (deltas.isEmpty()) {
+			throw new IllegalArgumentException("No deltas to execute");
+		}
+		List<ObjectDeltaType> deltasBeans = new ArrayList<>();
+		for (ObjectDelta<?> delta : deltas) {
+			//noinspection unchecked
+			deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
+		}
+		//noinspection unchecked
+		PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = prismContext.getSchemaRegistry()
+				.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+		PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
+		deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
+		newTask.asPrismObject().addExtensionItem(deltasProperty);
+		if (options != null) {
+			//noinspection unchecked
+			PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
+					.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+			PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
+			optionsProperty.setRealValue(options.toModelExecutionOptionsType());
+			newTask.asPrismObject().addExtensionItem(optionsProperty);
+		}
+		ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+		return newTask;
 	}
 
 	@Override
