@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
 /**
@@ -29,6 +34,7 @@ public class Table<T> extends Component<T> {
         super(parent, parentElement);
     }
 
+
     public Search<T> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
@@ -39,5 +45,14 @@ public class Table<T> extends Component<T> {
         SelenideElement pagingElement = getParentElement().$(By.className("boxed-table-footer-paging"));
 
         return new Paging(this, pagingElement);
+    }
+
+
+    public BasicPage clickByName(String name) {
+
+        getParentElement().$(By.xpath("//span[@data-s-id=\"label\"][text()=\"" + name + "\"]/.."))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        return new BasicPage();
     }
 }
