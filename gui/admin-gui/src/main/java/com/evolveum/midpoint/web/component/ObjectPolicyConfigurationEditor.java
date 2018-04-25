@@ -67,6 +67,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_BUTTON_REMOVE = "remove";
     private static final String ID_BUTTON_ADD = "add";
+    private static final String ID_BUTTON_ADD_FIRST = "addFirstButton";
 
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
     private static final String OFFSET_CLASS = "col-md-offset-4";
@@ -83,6 +84,26 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 
         final Label label = new Label(ID_LABEL, createStringResource("objectPolicyConfigurationEditor.label"));
         add(label);
+
+        AjaxLink<String> addFirst = new AjaxLink<String>(ID_BUTTON_ADD_FIRST) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addPerformed(target);
+            }
+        };
+        addFirst.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                List<ObjectPolicyConfigurationType> modelObj = ObjectPolicyConfigurationEditor.this.getModelObject();
+                return modelObj == null || modelObj.size() == 0;
+            }
+        });
+        addFirst.setOutputMarkupId(true);
+        add(addFirst);
 
         ListView<ObjectPolicyConfigurationType> repeater = new ListView<ObjectPolicyConfigurationType>(ID_REPEATER, getModel()) {
         	private static final long serialVersionUID = 1L;
