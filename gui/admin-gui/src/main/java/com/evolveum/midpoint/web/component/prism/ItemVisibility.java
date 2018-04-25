@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2018 Evolveum
+/**
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,25 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
-import java.io.Serializable;
+/**
+ * @author semancik
+ *
+ */
+public enum ItemVisibility {
+	
+	/**
+	 * Element always visible.
+	 */
+	VISIBLE, 
+	
+	/**
+	 * Visibility determined automatically (e.g. based on "show empty" button).
+	 */
+	AUTO, 
+	
+	/**
+	 * Element always hidded (not visible).
+	 */
+	HIDDEN;
 
-@FunctionalInterface
-public interface ItemVisibilityHandler extends Serializable{
-
-	public ItemVisibility isVisible(ItemWrapper wrapper);
 }

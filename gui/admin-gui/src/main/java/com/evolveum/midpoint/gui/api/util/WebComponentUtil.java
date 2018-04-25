@@ -2309,7 +2309,7 @@ public final class WebComponentUtil {
 				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
 	}
 
-	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
+	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
 																	 IModel<ObjectWrapper<ShadowType>> shadowModel) {
 		
 		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
@@ -2319,30 +2319,50 @@ public final class WebComponentUtil {
 		ResourceType resource = shadowType.getResource();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
-			return true;
+			return ItemVisibility.AUTO;
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath()) || SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
-		return true;
+		return ItemVisibility.AUTO;
 		
 	}
 
