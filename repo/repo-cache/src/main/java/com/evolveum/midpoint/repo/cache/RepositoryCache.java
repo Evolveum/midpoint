@@ -177,14 +177,14 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
+		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
+
 		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			// local cache not interested in caching this object
 			log("Cache: PASS {} ({})", oid, type.getSimpleName());
 
-			return getObjectTryGlobalCache(type, oid, options, parentResult);
+			return getObjectTryGlobalCache(type, oid, options, parentResult, readOnly);
 		}
-
-		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 
 		Cache cache = getCache();
 		if (cache == null) {
@@ -198,7 +198,7 @@ public class RepositoryCache implements RepositoryService {
 			log("Cache: MISS {} ({})", oid, type.getSimpleName());
 		}
 
-		PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult);
+		PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult, readOnly);
 		cacheObject(cache, object, readOnly);
 		return object;
 	}
@@ -212,7 +212,7 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	private <T extends ObjectType> PrismObject<T> getObjectTryGlobalCache(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-																		  OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+																		  OperationResult parentResult, boolean readOnly) throws SchemaException, ObjectNotFoundException {
 		if (!shouldUseGlobalCache(type, options)) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
 			return getObjectInternal(type, oid, options, parentResult);
@@ -223,14 +223,14 @@ public class RepositoryCache implements RepositoryService {
 
 		PrismObject<T> object;
 		if (cacheObject == null) {
-			object = reloadObjectInGlobalCache(type, oid, options, parentResult);
+			object = reloadObjectInGlobalCache(type, oid, options, parentResult, readOnly);
 		} else {
 			if (!shouldCheckVersion(cacheObject, options)) {
 				log("Cache: Global HIT {} ({})", oid, type.getSimpleName());
 				object = cacheObject.getObject();
 			} else {
 				if (hasVersionChanged(cacheObject, parentResult)) {
-					object = reloadObjectInGlobalCache(type, oid, options, parentResult);
+					object = reloadObjectInGlobalCache(type, oid, options, parentResult, readOnly);
 				} else {
 					// version matches, just update last version check
 					cacheObject.setLastVersionCheck(System.currentTimeMillis());
@@ -240,8 +240,6 @@ public class RepositoryCache implements RepositoryService {
 				}
 			}
 		}
-
-		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 
 		return cloneIfNecessary(object, readOnly);
 	}
@@ -867,17 +865,26 @@ public class RepositoryCache implements RepositoryService {
 
 	private <T extends ObjectType> PrismObject<T> reloadObjectInGlobalCache(Class<T> type, String oid,
 																			Collection<SelectorOptions<GetOperationOptions>> options,
-																			OperationResult result)
+																			OperationResult result, boolean readOnly)
 			throws ObjectNotFoundException, SchemaException {
 
 		log("Cache: Global MISS {} ({})", oid, type.getSimpleName());
 
 		try {
 			PrismObject object = getObjectInternal(type, oid, options, result);
+			object.setImmutable(true);
 
-			org.ehcache.Cache<String, CacheObject<T>> gCache = getGlobalCache(object.getCompileTimeClass());
+			PrismObject<T> objectToCache;
+			if (readOnly) {
+				object.setImmutable(true);
+				objectToCache = (PrismObject<T>) object;
+			} else {
+				objectToCache = (PrismObject<T>) object.clone();
+			}
+
+			org.ehcache.Cache<String, CacheObject<T>> gCache = getGlobalCache(objectToCache.getCompileTimeClass());
 			if (gCache != null) {
-				CacheObject<T> cacheObject = new CacheObject<>(object, System.currentTimeMillis());
+				CacheObject<T> cacheObject = new CacheObject<>(objectToCache, System.currentTimeMillis());
 				gCache.put(oid, cacheObject);
 			}
 
