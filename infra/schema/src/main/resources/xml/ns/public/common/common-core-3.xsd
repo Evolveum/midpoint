@@ -6733,7 +6733,30 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-    		<xsd:element ref="tns:ignore" minOccurs="0"/>
+    		<xsd:element ref="tns:ignore" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					DEPRECATED. Use "processing" element instead.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:deprecated>true</a:deprecated>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="processing" type="tns:ItemProcessingType" minOccurs="0" default="auto">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specifies the "depth" of item processing - whether the item is ignored,
+            			there is minimal processing or full automatic processing.
+            			In midPoint 3.8 this is only supported by the user interface
+            			(presentation layer) and only as an experimental feature.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.8</a:since>
+            			<a:experimental>true</a:experimental>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
     		<xsd:element name="access" type="tns:PropertyAccessType" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
@@ -6802,6 +6825,60 @@
     		<!-- delete does not make sense here -->
     	</xsd:sequence>
     </xsd:complexType>
+    
+    <!-- TODO: somehow align with ItemProcessingType in annotation-3.xsd -->
+    <xsd:simpleType name="ItemProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the "depth" of item processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Item is ignored. No processing is done at all.
+                		The item will behave in the same way as it is does not
+                		exists at all.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="minimal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Only very minimal item processing is done. This usually means
+                		that basic data structures about the item is maintained.
+                		The item values may be logged. But all automatic processing,
+                		presentation, transformation or any similar processing is
+                		skipped. This type of processing is designed to support
+                		item processing by custom code. The underlying data structures
+                		will be present and they can be manipulated by custom code.
+                		But any built-in automatic processing will be skipped.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auto">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All usual processing of the item is applied. Or automated presentation,
+                		transformation or any other processing will take place. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:simpleType name="AttributeFetchStrategyType">
         <xsd:annotation>

@@ -480,7 +480,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public boolean isVisible() {
 		PrismContainerDefinition<C> def = getItemDefinition();
 
-		if (def.isIgnored() || (def.isOperational()) && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+		if (def.getProcessing() != null && def.getProcessing() != ItemProcessing.AUTO) {
+			return false;
+			
+		}
+		
+		if (def.isOperational() && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
 			return false;
 		}
 		
@@ -502,6 +507,11 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		}
 
 		return false;
+	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return getItemDefinition().getProcessing();
 	}
 
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {

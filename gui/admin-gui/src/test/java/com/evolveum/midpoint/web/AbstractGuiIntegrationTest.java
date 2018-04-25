@@ -62,6 +62,7 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -72,6 +73,12 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiIntegrationTest.class);
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
+    
+    public static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+    public static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
+    public static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
+    public static final QName PIRACY_SECRET = new QName(NS_PIRACY, "secret");
+    public static final QName PIRACY_RANT = new QName(NS_PIRACY, "rant");
 
     private MidPointApplication application;
     

@@ -1017,32 +1017,34 @@ public final class WebComponentUtil {
 			return "ContainerPanel.containerProperties";
 		}
 
-		C containerable = prismContainerValue.asContainerable();
-		if (containerable instanceof AssignmentType) {
-			if (((AssignmentType) containerable).getTargetRef() != null){
-				ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
+		
+		if (prismContainerValue.canRepresent(AssignmentType.class)) {
+			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
+			if (assignmentType.getTargetRef() != null){
+				ObjectReferenceType assignemntTargetRef = assignmentType.getTargetRef();
 				return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
 			} else {
 				return "AssignmentTypeDetailsPanel.containerTitle";
 			}
 		}
 
-		if (containerable instanceof ExclusionPolicyConstraintType){
-			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) containerable;
+		if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)){
+			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) prismContainerValue.asContainerable();
 			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
 					exclusionConstraint.asPrismContainerValue().getParent().getPath().last())  + " - "
 					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
 			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
 		}
-		if (containerable instanceof AbstractPolicyConstraintType){
-			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
+		if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)){
+			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
 			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getParent().getPath().last())
 					: constraint.getName())
 					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
 			return displayName;
 		}
-		if (containerable.getClass() != null){
-			return containerable.getClass().getSimpleName() + ".details";
+		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
+		if (cvalClass != null){
+			return cvalClass.getSimpleName() + ".details";
 		}
 		return "ContainerPanel.containerProperties";
 	}

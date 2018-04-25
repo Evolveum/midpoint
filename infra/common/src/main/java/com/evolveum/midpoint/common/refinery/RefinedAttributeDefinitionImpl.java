@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
@@ -48,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  */
 public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefinitionImpl<T> implements RefinedAttributeDefinition<T> {
+	private static final long serialVersionUID = 1L;
 
 	private static LayerType DEFAULT_LAYER = LayerType.MODEL;
 
@@ -179,11 +182,16 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
 	public boolean isIgnored(LayerType layer) {
-        return limitationsMap.get(layer).isIgnore();
+        return limitationsMap.get(layer).getProcessing() == ItemProcessing.IGNORE;
     }
 
     @Override
-    public void setIgnored(boolean ignored) {
+	public ItemProcessing getProcessing(LayerType layer) {
+		return limitationsMap.get(layer).getProcessing();
+	}
+
+	@Override
+    public void setProcessing(ItemProcessing processing) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
@@ -402,7 +410,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         PropertyLimitations schemaLimitations = getOrCreateLimitations(rAttrDef.limitationsMap, LayerType.SCHEMA);
         schemaLimitations.setMinOccurs(schemaAttrDef.getMinOccurs());
         schemaLimitations.setMaxOccurs(schemaAttrDef.getMaxOccurs());
-        schemaLimitations.setIgnore(schemaAttrDef.isIgnored());
+        schemaLimitations.setProcessing(schemaAttrDef.getProcessing());
         schemaLimitations.getAccess().setAdd(schemaAttrDef.canAdd());
         schemaLimitations.getAccess().setModify(schemaAttrDef.canModify());
         schemaLimitations.getAccess().setRead(schemaAttrDef.canRead());
@@ -454,7 +462,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
             if (previousLimitations != null) {
                 limitations.setMinOccurs(previousLimitations.getMinOccurs());
                 limitations.setMaxOccurs(previousLimitations.getMaxOccurs());
-                limitations.setIgnore(previousLimitations.isIgnore());
+                limitations.setProcessing(previousLimitations.getProcessing());
                 limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
                 limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
                 limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
@@ -487,7 +495,10 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 			limitations.setMaxOccurs(SchemaProcessorUtil.parseMultiplicity(layerLimitationsType.getMaxOccurs()));
 		}
 		if (layerLimitationsType.isIgnore() != null) {
-			limitations.setIgnore(layerLimitationsType.isIgnore());
+			limitations.setProcessing(ItemProcessing.IGNORE);
+		}
+		if (layerLimitationsType.getProcessing() != null) {
+			limitations.setProcessing(MiscSchemaUtil.toItemProcessing(layerLimitationsType.getProcessing()));
 		}
 		if (layerLimitationsType.getAccess() != null) {
 			PropertyAccessType accessType = layerLimitationsType.getAccess();
@@ -523,10 +534,13 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 		if (limitationsType == null) {
 			return false;
 		}
-		if (limitationsType.isIgnore() == null) {
-			return false;
+		if (limitationsType.getProcessing() != null) {
+			return limitationsType.getProcessing() == ItemProcessingType.IGNORE;
 		}
-        return limitationsType.isIgnore();
+		if (limitationsType.isIgnore() != null) {
+			return limitationsType.isIgnore();
+		}
+        return false;
     }
 
     @NotNull

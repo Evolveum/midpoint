@@ -267,6 +267,22 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         return asContainerableInternal(resolveClass(null));
 	}
+	
+	public Class<C> getCompileTimeClass() {
+		if (containerable != null) {
+			return (Class<C>) containerable.getClass();
+		} else {
+			return resolveClass(null);
+		}
+	}
+	
+	public boolean canRepresent(Class<?> clazz) {
+		Class<C> compileTimeClass = getCompileTimeClass();
+		if (compileTimeClass == null) {
+			return false;
+		}
+		return clazz.isAssignableFrom(compileTimeClass);
+	}
 
 	// returned class must be of type 'requiredClass' (or any of its subtypes)
     public C asContainerable(Class<C> requiredClass) {

@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_USERNAM
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -152,6 +154,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
 		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
 		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true);
+		
+		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_WEAPON, null);
+		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_COLORS, ItemProcessing.AUTO);
+		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_SECRET, ItemProcessing.IGNORE);
+		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_RANT, ItemProcessing.MINIMAL);
 
 		// WHEN
 		objectWrapper.setShowEmpty(true);
@@ -519,6 +526,17 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("Wrong "+propName+" definition.canAdd", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong "+propName+" definition.canModify", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canModify());
 	}
+	
+	private void assertItemWrapperProcessing(ContainerValueWrapper<UserType> containerWrapper,
+			QName propName, ItemProcessing expectedProcessing) {
+		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(propName);
+		if (expectedProcessing == ItemProcessing.IGNORE) {
+			assertNull("Unexpected ignored item wrapper for "+propName, itemWrapper);
+		} else {
+			assertEquals("Wrong processing in item wrapper for "+propName, expectedProcessing, itemWrapper.getProcessing());
+		}
+	}
+
 
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
 		login(userAdministrator);
