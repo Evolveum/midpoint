@@ -213,7 +213,8 @@ public class ConnIdUtil {
 
 		// Introspect the inner exceptions and look for known causes
 		Exception knownCause = lookForKnownCause(connIdException, connIdException, connIdResult);
-		if (knownCause != null) {
+        // TODO remove this casting, it's temporary fix for https://jira.evolveum.com/browse/MID-4613
+		if (!(connIdException instanceof AlreadyExistsException) && knownCause != null) {
 			connIdResult.recordFatalError(knownCause);
 			return knownCause;
 		}
