@@ -22,12 +22,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageAr
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
+
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Function;
 
 /**
  * @author mederly
@@ -56,29 +59,33 @@ public class LocalizationUtil {
 	}
 
 	public static LocalizableMessageType createLocalizableMessageType(LocalizableMessage message) {
+		return createLocalizableMessageType(message, null);
+	}
+	
+	public static LocalizableMessageType createLocalizableMessageType(LocalizableMessage message, Function<LocalizableMessage, String> resolveKeys) {
 		if (message == null) {
 			return null;
 		} else if (message instanceof SingleLocalizableMessage) {
-			return createLocalizableMessageType((SingleLocalizableMessage) message);
+			return createLocalizableMessageType((SingleLocalizableMessage) message, resolveKeys);
 		} else if (message instanceof LocalizableMessageList) {
-			return createLocalizableMessageType((LocalizableMessageList) message);
+			return createLocalizableMessageType((LocalizableMessageList) message, resolveKeys);
 		} else {
 			throw new AssertionError("Unsupported localizable message type: " + message);
 		}
 	}
 
 	@NotNull
-	private static LocalizableMessageListType createLocalizableMessageType(@NotNull LocalizableMessageList messageList) {
+	private static LocalizableMessageListType createLocalizableMessageType(@NotNull LocalizableMessageList messageList, Function<LocalizableMessage, String> resolveKeys) {
 		LocalizableMessageListType rv = new LocalizableMessageListType();
-		messageList.getMessages().forEach(message -> rv.getMessage().add(createLocalizableMessageType(message)));
-		rv.setSeparator(createLocalizableMessageType(messageList.getSeparator()));
-		rv.setPrefix(createLocalizableMessageType(messageList.getPrefix()));
-		rv.setPostfix(createLocalizableMessageType(messageList.getPostfix()));
+		messageList.getMessages().forEach(message -> rv.getMessage().add(createLocalizableMessageType(message, resolveKeys)));
+		rv.setSeparator(createLocalizableMessageType(messageList.getSeparator(), resolveKeys));
+		rv.setPrefix(createLocalizableMessageType(messageList.getPrefix(), resolveKeys));
+		rv.setPostfix(createLocalizableMessageType(messageList.getPostfix(), resolveKeys));
 		return rv;
 	}
 
 	@NotNull
-	private static SingleLocalizableMessageType createLocalizableMessageType(@NotNull SingleLocalizableMessage message) {
+	private static SingleLocalizableMessageType createLocalizableMessageType(@NotNull SingleLocalizableMessage message, Function<LocalizableMessage, String> resolveKeys) {
 		SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
 		rv.setKey(message.getKey());
 		if (message.getArgs() != null) {
@@ -86,7 +93,7 @@ public class LocalizationUtil {
 				LocalizableMessageArgumentType messageArgument;
 				if (argument instanceof LocalizableMessage) {
 					messageArgument = new LocalizableMessageArgumentType()
-								.localizable(createLocalizableMessageType(((LocalizableMessage) argument)));
+								.localizable(createLocalizableMessageType(((LocalizableMessage) argument), resolveKeys));
 				} else {
 					messageArgument = new LocalizableMessageArgumentType().value(argument != null ? argument.toString() : null);
 				}
@@ -94,9 +101,14 @@ public class LocalizationUtil {
 			}
 		}
 		if (message.getFallbackLocalizableMessage() != null) {
-			rv.setFallbackLocalizableMessage(createLocalizableMessageType(message.getFallbackLocalizableMessage()));
+			rv.setFallbackLocalizableMessage(createLocalizableMessageType(message.getFallbackLocalizableMessage(), resolveKeys));
 		}
-		rv.setFallbackMessage(message.getFallbackMessage());
+		
+		if (StringUtils.isBlank(message.getFallbackMessage()) && resolveKeys != null) {
+			rv.setFallbackMessage(resolveKeys.apply(message));
+		} else {
+			rv.setFallbackMessage(message.getFallbackMessage());
+		}
 		return rv;
 	}
 
