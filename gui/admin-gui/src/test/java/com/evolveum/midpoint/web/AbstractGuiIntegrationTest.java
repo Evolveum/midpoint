@@ -21,14 +21,18 @@ import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,7 +43,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.Application;
@@ -79,6 +85,25 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     public static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
     public static final QName PIRACY_SECRET = new QName(NS_PIRACY, "secret");
     public static final QName PIRACY_RANT = new QName(NS_PIRACY, "rant");
+    public static final QName PIRACY_TRANSFORM_DESCRIPTION = new QName(NS_PIRACY, "transformDescription");
+    public static final QName PIRACY_TRANSFORMATION_ENABLED = new QName(NS_PIRACY, "transformationEnabled");
+    public static final QName PIRACY_TRANSFORM = new QName(NS_PIRACY, "transform");
+    public static final QName PIRACY_PATTERN = new QName(NS_PIRACY, "pattern");
+    public static final QName PIRACY_REPLACEMENT = new QName(NS_PIRACY, "replacement");
+    
+    protected static final File ORG_MONKEY_ISLAND_FILE = new File(COMMON_DIR, "org-monkey-island.xml");
+	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
+	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
+	protected static final String ORG_SCUMM_BAR_NAME = "F0006";
+	protected static final String ORG_SCUMM_BAR_DISPLAY_NAME = "Scumm Bar";
+	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
+    protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
+	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
+	protected static final String ORG_MINISTRY_OF_RUM_NAME = "F0004";
+	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
+	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
+	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
+	protected static final String ORG_KIDNAP_AND_MARRY_ELAINE_OID = "00000000-8888-6666-0000-200000000002";
 
     private MidPointApplication application;
     
@@ -244,5 +269,14 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			PrismAsserts.assertEqualsPolyString("Wrong jack locality", locality, userType.getLocality());
 		}
 	}
+	
+	protected ItemPath extensionPath(QName qname) {
+		return new ItemPath(ObjectType.F_EXTENSION, qname);
+	}
 
+	protected Task createSimpleTask(String operation) {
+		Task task = taskManager.createTaskInstance(operation);
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+		return task;
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	private PrismContainerValue<C> containerValue;
 	private ValueStatus status;
 	private ItemPath path;
+	// WARNING!!! This field has to be called "properties" even if the right name should be "items".
+	// But some Wicket reflection magic is looking for "properties" field. So, let it be properties for now.
 	private List<ItemWrapper> properties;
 	private boolean readonly;
 	private boolean selected;
@@ -381,8 +383,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		DebugUtil.debugDumpWithLabelLn(sb, "path", path == null ? null : path.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "containerDefinition", getDefinition() == null ? null : getDefinition().toString(),
 				indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "container", containerValue == null ? null : containerValue.toString(), indent + 1);
-		DebugUtil.debugDumpLabelLn(sb, "properties", indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "containerValue", containerValue == null ? null : containerValue.toString(), indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "items", indent + 1);
 		DebugUtil.debugDump(sb, properties, indent + 2, false);
 		return sb.toString();
 	}
@@ -408,42 +410,27 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public Collection<Item> getUpdatedContainerValueItems(PrismContext prismContext) throws SchemaException {
 		Collection<Item> updatedItems = new ArrayList<>();
-		getItems().stream().forEach(item -> {
+		for (ItemWrapper item : getItems()) {
 			try {
 				if (!item.hasChanged()) {
-					return;
+					continue;
 				}
 
 				if (item instanceof ContainerWrapper) {
 					PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
 					updatedItems.add(containerToAdd);
+					
 				} else {
 
 					PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
 					Item updatedItem = propOrRef.getUpdatedItem(prismContext);
-
-					if (item.getPath().containsName(ObjectType.F_EXTENSION)) {
-						PrismContainer extensionContainer;
-						try {
-							extensionContainer = containerValue.findOrCreateContainer(ObjectType.F_EXTENSION);
-						} catch (SchemaException e) {
-							LoggingUtils.logException(LOGGER, "Could not handle extension deltas item " + item.getItem(), e);
-							return;
-						}
-						if (extensionContainer == null) {
-							return;
-						}
-						extensionContainer.getValue().addReplaceExisting(updatedItem);
-						updatedItems.add(extensionContainer.clone());
-					} else {
-						updatedItems.add(updatedItem);
-					}
+					updatedItems.add(updatedItem);
 
 				}
 			} catch (SchemaException ex) {
 				throw new TunnelException("Cannot create add delta for container value: " + containerValue, ex);
 			}
-		});
+		}
 		return updatedItems;
 	}
 
@@ -725,6 +712,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
+		return findContainerWrapper(new ItemPath(qname));
+	}
+	
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {

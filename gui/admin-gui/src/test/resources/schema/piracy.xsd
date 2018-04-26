@@ -141,5 +141,36 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="OrgExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:OrgType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="transformDescription" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="transformationEnabled" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="transform" type="tns:TransformConfigType" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:processing>minimal</a:processing>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="TransformConfigType">
+        <xsd:annotation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="pattern" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="replacement" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>

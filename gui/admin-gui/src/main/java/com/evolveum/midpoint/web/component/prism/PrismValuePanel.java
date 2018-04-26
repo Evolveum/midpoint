@@ -433,7 +433,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 	// normally this method returns an InputPanel;
 	// however, for some special readonly types (like ObjectDeltaType) it will
 	// return a Panel
-	private Panel createTypedInputComponent(String id) {
+	protected Panel createTypedInputComponent(String id) {
 		final Item item = getModelObject().getItem().getItem();
 
 		Panel panel = null;

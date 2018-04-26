@@ -29,6 +29,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -71,6 +72,8 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
 
 		importObjectFromFile(ROLE_MAPMAKER_FILE);	
+		
+		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
 	}
 
 	@Test
