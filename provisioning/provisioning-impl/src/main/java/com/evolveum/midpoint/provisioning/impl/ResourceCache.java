@@ -18,6 +18,8 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @Component
 public class ResourceCache {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
 
 	private Map<String,PrismObject<ResourceType>> cache;
 
@@ -95,6 +99,7 @@ public class ResourceCache {
 			try {
 				cachedResource.checkImmutability();
 			} catch (IllegalStateException ex) {
+				LOGGER.error("Failed immutability test", ex);
 				// todo still need proper fix https://jira.evolveum.com/browse/MID-4574
 				return null;
 			}
