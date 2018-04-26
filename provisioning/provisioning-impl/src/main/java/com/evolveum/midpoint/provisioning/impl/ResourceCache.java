@@ -92,7 +92,13 @@ public class ResourceCache {
 		}
 
 		if (GetOperationOptions.isReadOnly(options)) {
-			cachedResource.checkImmutability();
+			try {
+				cachedResource.checkImmutability();
+			} catch (IllegalStateException ex) {
+				// todo still need proper fix https://jira.evolveum.com/browse/MID-4574
+				return null;
+			}
+
 			return cachedResource;
 		} else {
 			return cachedResource.clone();
