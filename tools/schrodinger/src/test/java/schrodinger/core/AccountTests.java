@@ -84,7 +84,9 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                     .changeAttributeValue("File path",CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
                     .and()
                 .and()
-                .clickSaveAndTestConnection();
+                .clickSaveAndTestConnection()
+                .isTestSuccess()
+            ;
 
             Selenide.sleep(5000);
 

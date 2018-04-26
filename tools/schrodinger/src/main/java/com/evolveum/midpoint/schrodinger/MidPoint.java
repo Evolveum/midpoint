@@ -24,7 +24,7 @@ public class MidPoint {
 
     private void init() {
         environment.validate();
-       // System.setProperty("webdriver.chrome.driver","C:\\Users\\matus\\chromedriver\\chromedriver.exe"); TODO workaround, find proper way how to resolve
+      //  System.setProperty("webdriver.chrome.driver","C:\\Users\\matus\\chromedriver\\chromedriver.exe"); // TODO workaround, find proper way how to resolve
         System.setProperty("selenide.browser", environment.getDriver().name().toLowerCase());
         System.setProperty("selenide.baseUrl", environment.getBaseUrl());
 
