@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -95,7 +94,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
 	private static final int MAX_RANDOM_SEQUENCE_ITERATIONS = 15;
 
-	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<CarefulAnt<ResourceType>>();
+	private static List<CarefulAnt<ResourceType>> ants = new ArrayList<>();
 	private static CarefulAnt<ResourceType> descriptionAnt;
 	private static String lastVersion;
 	private static Random rnd = new Random();
@@ -466,7 +465,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
-        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        final List<PrismObject<ResourceType>> resources = new ArrayList<>();
 
         ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, false);
@@ -517,7 +516,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
-        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        final List<PrismObject<ResourceType>> resources = new ArrayList<>();
 
         ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, false);
@@ -581,6 +580,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         // Some overhead on initial resource read is OK. What is important is that it does not increase during 
         // normal account operations.
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 2);
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 1); // cachingMetadata
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
@@ -590,6 +590,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 
         assertEquals("Wrong dummy useless string", RESOURCE_DUMMY_USELESS_STRING, dummyResource.getUselessString());
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -628,6 +630,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+        
+        assertSteadyResources();
 	}
 
 
@@ -662,11 +666,14 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         // Obviously, there is some uninitialized resource in the system
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 1); // cachingMetadata
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -682,7 +689,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         // precondition
         assertSteadyResources();
 
-        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        final List<PrismObject<ResourceType>> resources = new ArrayList<>();
 
         ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, true);
@@ -1135,9 +1142,20 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     	singleModify(descriptionAnt, -1, task, result);
     }
 
+//	@Test
+//    public void test835ModifySchemaHandling() throws Exception {
+//    	final String TEST_NAME = "test835ModifySchemaHandling";
+//    	displayTestTitle(TEST_NAME);
+//
+//    	Task task = createTask(TEST_NAME);
+//        OperationResult result = task.getResult();
+//		CarefulAnt<ResourceType> ant = ants.get(1);
+//		singleModify(ant, 0, task, result);
+//    }
+
 	@Test
-    public void test840RadomModifySequence() throws Exception {
-    	final String TEST_NAME = "test840RadomModifySequence";
+    public void test840RandomModifySequence() throws Exception {
+    	final String TEST_NAME = "test840RandomModifySequence";
     	displayTestTitle(TEST_NAME);
 
     	Task task = createTask(TEST_NAME);

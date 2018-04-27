@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,22 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,6 +70,7 @@ public class ContainerWrapperFactory {
 
     private ModelServiceLocator modelServiceLocator;
 
+    // Why do we need result here?
     private OperationResult result;
 
     public ContainerWrapperFactory(ModelServiceLocator modelServiceLocator) {
@@ -83,15 +87,19 @@ public class ContainerWrapperFactory {
                                                                               PrismContainer<C> container,
                                                                               ContainerStatus objectStatus,
                                                                               ContainerStatus status,
-                                                                              ItemPath path) {
+                                                                              ItemPath path,
+                                                                              Task task) {
 
         result = new OperationResult(CREATE_PROPERTIES);
         
         ContainerWrapper<C> cWrapper = new ContainerWrapper(container, objectStatus, status, path);
         
-        List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
+        List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
         cWrapper.computeStripes();
+        
+        result.computeStatus();
+		result.recordSuccessIfUnknown();
         
        return cWrapper;
     }
@@ -113,6 +121,10 @@ public class ContainerWrapperFactory {
     	
     	RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, shadowIntent);
+		if (oc == null) {
+			LOGGER.debug("Association for {}/{} not supported by resource {}", kind, shadowIntent, resource);
+			return null;
+		}
 		Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 		
 		if (CollectionUtils.isEmpty(refinedAssociationDefinitions)) {
@@ -148,6 +160,28 @@ public class ContainerWrapperFactory {
 						itemPath = associationValue.getPath();
 						shadowAss.add(associationValue.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
 					}
+				} else if (association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)){
+					//for now Induced entitlements gui should support only targetRef expression value
+					//that is why no need to look for another expression types within association
+					ResourceObjectAssociationType resourceAssociation = (ResourceObjectAssociationType) associationValue.asContainerable();
+					if (resourceAssociation.getRef() == null || resourceAssociation.getRef().getItemPath() == null){
+						continue;
+					}
+					if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
+						itemPath = associationValue.getPath();
+						MappingType outbound = ((ResourceObjectAssociationType)association.getValue().asContainerable()).getOutbound();
+						if (outbound == null){
+							continue;
+						}
+						ExpressionType expression = outbound.getExpression();
+						if (expression == null){
+							continue;
+						}
+						ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(expression);
+						if (shadowRef != null) {
+							shadowAss.add(shadowRef.asReferenceValue().clone());
+						}
+					}
 				}
 			}
 			
@@ -156,22 +190,19 @@ public class ContainerWrapperFactory {
 			}		
 			
 			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, isItemReadOnly(association.getDefinition(), shadowValueWrapper), shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
-			associationValueWrapper.setDisplayName(refinedAssocationDefinition.getDisplayName());
-			S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext());
-			List<ObjectFilter> orFilterClauses = new ArrayList<>();
-			refinedAssocationDefinition.getIntents()
-					.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-			OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+			String displayName = refinedAssocationDefinition.getDisplayName();
+			if (displayName == null) {
+				displayName = refinedAssocationDefinition.getName().getLocalPart();
+			}
+			associationValueWrapper.setDisplayName(displayName);
 
-			AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
-					.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-			filter.addCondition(intentFilter);
-			associationValueWrapper.setFilter(filter);
+			associationValueWrapper.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssocationDefinition,
+					modelServiceLocator.getPrismContext(), resource.getOid()));
 			
 			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
 				valueWrapper.setEditEnabled(isEmpty(valueWrapper));
 			}
-			associationValueWrapper.setTargetTypes(Arrays.asList(ShadowType.COMPLEX_TYPE));
+			associationValueWrapper.setTargetTypes(Collections.singletonList(ShadowType.COMPLEX_TYPE));
 			associationValuesWrappers.add(associationValueWrapper);
 		}
 		
@@ -179,6 +210,7 @@ public class ContainerWrapperFactory {
 		associationWrapper.setProperties(Arrays.asList(shadowValueWrapper));
 		
 		result.computeStatus();
+		result.recordSuccessIfUnknown();
 		return associationWrapper;
 		
     }
@@ -192,13 +224,13 @@ public class ContainerWrapperFactory {
     	
     }
     
-   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readonly) {
+   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readonly, Task task) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapper<C> cWrapper = new ContainerWrapper<C>(container, objectStatus, status, path, readonly);
+		ContainerWrapper<C> cWrapper = new ContainerWrapper<>(container, objectStatus, status, path, readonly);
 
-		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
+		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
         cWrapper.computeStripes();
 
@@ -206,20 +238,20 @@ public class ContainerWrapperFactory {
 		return cWrapper;
 	}
 
-	  private <C extends Containerable> List<ContainerValueWrapper<C>> createContainerValues(ContainerWrapper<C> cWrapper, ItemPath path) {
+	  private <C extends Containerable> List<ContainerValueWrapper<C>> createContainerValues(ContainerWrapper<C> cWrapper, ItemPath path, Task task) {
 	    	List<ContainerValueWrapper<C>> containerValueWrappers = new ArrayList<>();
 	    	PrismContainer<C> container = cWrapper.getItem();
 	    	
 	    	if (container.getValues().isEmpty() && container.isSingleValue()) {
 	    		PrismContainerValue<C> pcv = container.createNewValue();
-	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), ValueStatus.ADDED, cWrapper.getPath());
+	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), ValueStatus.ADDED, cWrapper.getPath(), task);
 	    		
 	    		containerValueWrappers.add(containerValueWrapper);
 	    		return containerValueWrappers;
 	    	}
 	    	
 	    	container.getValues().forEach(pcv -> {
-	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), cWrapper.getStatus() == ContainerStatus.ADDING ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, pcv.getPath());
+	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), cWrapper.getStatus() == ContainerStatus.ADDING ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, pcv.getPath(), task);
     			containerValueWrappers.add(containerValueWrapper);
 	    	});
 	    	
@@ -227,10 +259,10 @@ public class ContainerWrapperFactory {
 	    	return containerValueWrappers;
 	    }
 	  
-	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ContainerStatus objectStatus, ValueStatus status, ItemPath path){
+	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ContainerStatus objectStatus, ValueStatus status, ItemPath path, Task task){
 		  ContainerValueWrapper<C> containerValueWrapper = new ContainerValueWrapper<C>(cWrapper, value, objectStatus, status, path);
 		    
-			List<ItemWrapper> properties = createProperties(containerValueWrapper, false);
+			List<ItemWrapper> properties = createProperties(containerValueWrapper, false, task);
 			containerValueWrapper.setProperties(properties);
 			
 			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
@@ -241,7 +273,7 @@ public class ContainerWrapperFactory {
 			return containerValueWrapper;
 	  }
 
-	public <O extends ObjectType, C extends Containerable> List<ItemWrapper> createProperties(ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
+	public <O extends ObjectType, C extends Containerable> List<ItemWrapper> createProperties(ContainerValueWrapper<C> cWrapper, boolean onlyEmpty, Task task) {
 		
 		result = new OperationResult(CREATE_PROPERTIES);
 		
@@ -265,10 +297,21 @@ public class ContainerWrapperFactory {
 				LOGGER.trace("Skipping creating wrapper for: {}", itemDef);
 				return;
 			}
+			
+			if (itemDef.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(task, modelServiceLocator)) {
+				LOGGER.trace("Skipping creating wrapper for {} because it is experimental a experimental features are not enabled.", itemDef.getName());
+				return;
+			}
 
 			LOGGER.trace("Creating wrapper for {}", itemDef);
-			createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
-			createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty);
+			try {
+				createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
+				createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty, task);
+			} catch (Exception e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "something strange happened: " + e.getMessage(), e);
+				System.out.println(e.getMessage());
+				throw new TunnelException(e);
+			}
 
 		});
 
@@ -279,6 +322,7 @@ public class ContainerWrapperFactory {
 		properties.addAll(containerWrappers);
 
 		result.recomputeStatus();
+		result.recordSuccessIfUnknown();
 
 		return properties;
 	}
@@ -299,7 +343,8 @@ public class ContainerWrapperFactory {
     }
 
     
-    private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper, List<ContainerWrapper<C>> properties, boolean onlyEmpty) {
+    private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper,
+																  List<ContainerWrapper<C>> properties, boolean onlyEmpty, Task task){
     	
     	if (itemDef instanceof PrismContainerDefinition) {
         	
@@ -307,8 +352,37 @@ public class ContainerWrapperFactory {
         		return;
         	}
         	
-        	ContainerWrapper<C> subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty);
-        	
+        	ContainerWrapper<C> subContainerWrapper;
+//        	if (((PrismContainerDefinition) itemDef).getCompileTimeClass() != null
+//					&& ((PrismContainerDefinition) itemDef).getCompileTimeClass().equals(ResourceObjectAssociationType.class)){
+//        		if (!ConstructionType.class.equals(cWrapper.getDefinition().getCompileTimeClass())){
+//        			return;
+//				}
+//				ConstructionType construction = (ConstructionType)cWrapper.getContainerValue().getValue();
+//				Task task = modelServiceLocator.createSimpleTask("Load resource ref");
+//				PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(construction.getResourceRef(),
+//						modelServiceLocator, task, result);
+//
+//				result.computeStatusIfUnknown();
+//				if (!result.isAcceptable()) {
+//					LOGGER.error("Cannot find resource referenced from shadow. {}", result.getMessage());
+//					result.recordPartialError("Could not find resource referenced from shadow.");
+//					return;
+//				}
+//				try {
+//					PrismContainer<ResourceObjectAssociationType> assocContainer = cWrapper.getContainer().getItem()
+//							.findOrCreateContainer(ConstructionType.F_ASSOCIATION);
+//					subContainerWrapper = createAssociationWrapper(resource, construction.getKind(), construction.getIntent() , assocContainer,
+//							cWrapper.getObjectStatus(), assocContainer == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
+//							new ItemPath(ConstructionType.F_ASSOCIATION));
+//				} catch (SchemaException ex){
+//					LOGGER.error("Cannot create association container wrapper for construction.", ex);
+//					return;
+//				}
+//
+//			} else {
+        		subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty, task);
+//			}
         	
         	if (subContainerWrapper == null) {
         		return;
@@ -325,22 +399,23 @@ public class ContainerWrapperFactory {
 	private <T, C extends Containerable> PropertyWrapper<T> createPropertyWrapper(
 			PrismPropertyDefinition<T> def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
- 
+
 		PrismProperty property = containerValue.findProperty(def.getName());
 		boolean propertyIsReadOnly = isItemReadOnly(def, cWrapper);
 		
 		if (property != null && onlyEmpty) {
 			return null;
 		}
-		
+		if (ExpressionType.COMPLEX_TYPE.equals(def.getTypeName())){
+			if (property == null) {
+				PrismProperty newProperty = def.instantiate();
+				return new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
+			} else {
+				return new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
+			}
+		}
 		if (property == null) {
 			PrismProperty<T> newProperty = def.instantiate();
-//			try {
-//				newProperty = containerValue.createProperty(def);
-//			} catch (SchemaException e) {
-//				LoggingUtils.logException(LOGGER, "Failed to create new property " + def, e);
-//				return null;
-//			}
 			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
 		}
 		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
@@ -385,13 +460,18 @@ public class ContainerWrapperFactory {
 	    		 refWrapper.setTargetTypes(Arrays.asList(def.getTargetTypeName()));
 	    	 }
 	     }
-	     
-	     return refWrapper;
+
+		if (QNameUtil.match(AbstractRoleType.F_TENANT_REF, def.getName())) {
+			refWrapper.setFilter(EqualFilter.createEqual(new ItemPath(OrgType.F_TENANT), null, null,
+					modelServiceLocator.getPrismContext(), Boolean.TRUE));
+		}
+
+		return refWrapper;
         
 	}
 	
 	private <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainerDefinition<C> def,
-			ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
+			ContainerValueWrapper<C> cWrapper, boolean onlyEmpty, Task task) {
 
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
 
@@ -422,9 +502,9 @@ public class ContainerWrapperFactory {
 				return null;
 			}
 			return createContainerWrapper(newContainer, cWrapper.getObjectStatus(), ContainerStatus.ADDING,
-					cWrapper.getPath().append(new ItemPath(newContainer.getElementName())));
+					cWrapper.getPath().append(new ItemPath(newContainer.getElementName())), task);
 		}
-		return createContainerWrapper(container, cWrapper.getObjectStatus(), cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
+		return createContainerWrapper(container, cWrapper.getObjectStatus(), cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath(), task);
 	}
 
 	private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, ContainerValueWrapper<C> cWrapper) {

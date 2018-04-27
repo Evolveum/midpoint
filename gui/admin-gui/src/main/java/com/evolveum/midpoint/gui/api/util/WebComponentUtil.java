@@ -45,16 +45,18 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,10 +80,8 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -122,9 +122,6 @@ import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -176,44 +173,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -429,6 +388,44 @@ public final class WebComponentUtil {
 	    } else {
 		    return null;
 	    }
+	}
+
+	// quite a hack (temporary)
+	public static <T extends ObjectType> IModel<ObjectWrapper<T>> adopt(
+			PropertyModel<ObjectWrapper<T>> objectWrapperModel, PrismContext prismContext) {
+		if (objectWrapperModel == null) {
+			return null;
+		}
+		ObjectWrapper<T> wrapper = objectWrapperModel.getObject();
+		if (wrapper == null || wrapper.getObject() == null) {
+			return objectWrapperModel;
+		}
+		try {
+			prismContext.adopt(wrapper.getObject());
+		} catch (SchemaException e) {
+			throw new IllegalStateException("Unexpected SchemaException: " + e.getMessage());
+		}
+		return objectWrapperModel;
+	}
+
+	public static void safeResultCleanup(OperationResult result, Trace logger) {
+		try {
+			result.cleanupResultDeeply();
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(logger, "Couldn't clean up the operation result", t);
+		}
+	}
+
+	public static GuiObjectListType getDefaultGuiObjectListType(PageBase pageBase) {
+	    AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
+	    if (config == null) {
+	        return null;
+	    }
+	    GuiObjectListsType lists = config.getObjectLists();
+	    if (lists == null) {
+	        return null;
+	    }
+	    return lists.getDefault();
 	}
 
 	public enum Channel {
@@ -676,7 +673,7 @@ public final class WebComponentUtil {
 
 			@Override
 			public List<T> getObject() {
-				List<T> list = new ArrayList<T>();
+				List<T> list = new ArrayList<>();
 				Collections.addAll(list, type.getEnumConstants());
 
 				return list;
@@ -684,9 +681,10 @@ public final class WebComponentUtil {
 		};
 	}
 
+	// use for small enums only
 	@NotNull
-	public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(@NotNull Class<T> type, @NotNull Predicate<T> filter) {
-		return new ReadOnlyModel<>(() ->
+	public static <T extends Enum> IModel<List<T>> createReadonlyValueModelFromEnum(@NotNull Class<T> type, @NotNull Predicate<T> filter) {
+		return new ReadOnlyValueModel<>(
 				Arrays.stream(type.getEnumConstants())
 						.filter(filter)
 						.collect(Collectors.toList()));
@@ -774,29 +772,43 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
+		return createEnumPanel(clazz, id, choicesList, model, component, allowNull, null);
+	}
+
+	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
+			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull, String nullValidDisplayValue) {
 		return new DropDownChoicePanel<E>(id, model, choicesList,
-				new IChoiceRenderer<E>() {
+            new IChoiceRenderer<E>() {
 
-					private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-					@Override
-					public E getObject(String id, IModel<? extends List<? extends E>> choices) {
-						if (StringUtils.isBlank(id)) {
-							return null;
-						}
-						return choices.getObject().get(Integer.parseInt(id));
-					}
+                @Override
+                public E getObject(String id, IModel<? extends List<? extends E>> choices) {
+                    if (StringUtils.isBlank(id)) {
+                        return null;
+                    }
+                    return choices.getObject().get(Integer.parseInt(id));
+                }
 
-					@Override
-					public Object getDisplayValue(E object) {
-						return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
-					}
+                @Override
+                public Object getDisplayValue(E object) {
+                    return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
+                }
 
-					@Override
-					public String getIdValue(E object, int index) {
-						return Integer.toString(index);
-					}
-				}, allowNull);
+                @Override
+                public String getIdValue(E object, int index) {
+                    return Integer.toString(index);
+                }
+            }, allowNull){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected String getNullValidDisplayValue() {
+				return nullValidDisplayValue != null && StringUtils.isNotEmpty(nullValidDisplayValue.trim()) ?
+						nullValidDisplayValue : super.getNullValidDisplayValue();
+			}
+		};
 	}
 
 	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,
@@ -855,6 +867,22 @@ public final class WebComponentUtil {
 	}
 
 
+	public static <IW extends ItemWrapper, C extends Containerable> PropertyModel createPrismPropertySingleValueModel(IModel<ContainerValueWrapper<C>> containerModel,
+																													QName attributeName){
+		//todo should be refactored: wrap with some new  model
+		PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(containerModel, "properties");
+		List<IW> propertiesList = propertiesModel.getObject();
+		for (final IW property : propertiesList){
+			if (property.getName().equals(attributeName)){
+				List<ValueWrapper> valuesList = property.getValues();
+				if (valuesList.size() == 1) {
+					return new PropertyModel<>(valuesList.get(0).getValue(), "value");
+				}
+
+			}
+		}
+		return null;
+	}
 
 	private static List<DisplayableValue> getDisplayableValues(PrismPropertyDefinition def) {
 		List<DisplayableValue> values = null;
@@ -870,7 +898,7 @@ public final class WebComponentUtil {
 	}
 
 	public static <T> TextField<T> createAjaxTextField(String id, IModel<T> model) {
-		TextField<T> textField = new TextField<T>(id, model);
+		TextField<T> textField = new TextField<>(id, model);
 		textField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		return textField;
 	}
@@ -934,6 +962,22 @@ public final class WebComponentUtil {
 		return name;
 	}
 
+	public static <O extends ObjectType> String getDisplayNameOrName(ObjectReferenceType ref, PageBase pageBase, String operation) {
+		String name = getName(ref);
+		if (StringUtils.isEmpty(name) || name.equals(ref.getOid())) {
+			String oid = ref.getOid();
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
+					.createCollection(GetOperationOptions.createNoFetch());
+			Class<O> type = ref.getType() != null ? (Class<O>)qnameToClass(pageBase.getPrismContext(), ref.getType())  : (Class<O>) ObjectType.class;
+			PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
+					pageBase.createSimpleTask(operation), new OperationResult(operation));
+			if (object != null) {
+				name = getDisplayNameOrName(object);
+			}
+		}
+		return name;
+	}
+
 	public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName, PageBase pageBase, String operation) {
 		PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
 				pageBase.createSimpleTask(operation), new OperationResult(operation));
@@ -973,32 +1017,34 @@ public final class WebComponentUtil {
 			return "ContainerPanel.containerProperties";
 		}
 
-		C containerable = prismContainerValue.asContainerable();
-		if (containerable instanceof AssignmentType) {
-			if (((AssignmentType) containerable).getTargetRef() != null){
-				ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
+		
+		if (prismContainerValue.canRepresent(AssignmentType.class)) {
+			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
+			if (assignmentType.getTargetRef() != null){
+				ObjectReferenceType assignemntTargetRef = assignmentType.getTargetRef();
 				return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
 			} else {
 				return "AssignmentTypeDetailsPanel.containerTitle";
 			}
 		}
 
-		if (containerable instanceof ExclusionPolicyConstraintType){
-			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) containerable;
+		if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)){
+			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) prismContainerValue.asContainerable();
 			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
 					exclusionConstraint.asPrismContainerValue().getParent().getPath().last())  + " - "
 					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
 			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
 		}
-		if (containerable instanceof AbstractPolicyConstraintType){
-			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
+		if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)){
+			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
 			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getParent().getPath().last())
 					: constraint.getName())
 					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
 			return displayName;
 		}
-		if (containerable.getClass() != null){
-			return containerable.getClass().getSimpleName() + ".details";
+		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
+		if (cvalClass != null){
+			return cvalClass.getSimpleName() + ".details";
 		}
 		return "ContainerPanel.containerProperties";
 	}
@@ -1205,7 +1251,7 @@ public final class WebComponentUtil {
 		DataTable dataTable = table.getDataTable();
 		BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) dataTable.getDataProvider();
 
-		List<T> selected = new ArrayList<T>();
+		List<T> selected = new ArrayList<>();
 		for (T bean : provider.getAvailableData()) {
 			if (bean.isSelected()) {
 				selected.add(bean);
@@ -1215,9 +1261,21 @@ public final class WebComponentUtil {
 		return selected;
 	}
 
+	public static void clearProviderCache(IDataProvider provider){
+		if (provider == null){
+			return;
+		}
+		if (provider instanceof BaseSortableDataProvider){
+			((BaseSortableDataProvider)provider).clearCache();
+		}
+		if (provider instanceof SelectableBeanObjectDataProvider) {
+			((SelectableBeanObjectDataProvider) provider).clearSelectedObjects();
+		}
+	}
+
 	public static Collection<ObjectDelta<? extends ObjectType>> createDeltaCollection(
 			ObjectDelta<? extends ObjectType>... deltas) {
-		Collection<ObjectDelta<? extends ObjectType>> collection = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> collection = new ArrayList<>();
 		for (ObjectDelta delta : deltas) {
 			collection.add(delta);
 		}
@@ -1693,7 +1751,7 @@ public final class WebComponentUtil {
 			Table table, PageBase page, String nothingWarnMessage) {
 		List<T> selected;
 		if (single != null) {
-			selected = new ArrayList<T>();
+			selected = new ArrayList<>();
 			selected.add(single);
 		} else {
 			selected = WebComponentUtil.getSelectedData(table);
@@ -1871,7 +1929,7 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
+		List<ItemPathSegment> newPath = new ArrayList<>();
 
 		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
 		if (path != null) {
@@ -2251,7 +2309,7 @@ public final class WebComponentUtil {
 				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
 	}
 
-	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
+	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
 																	 IModel<ObjectWrapper<ShadowType>> shadowModel) {
 		
 		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
@@ -2261,30 +2319,50 @@ public final class WebComponentUtil {
 		ResourceType resource = shadowType.getResource();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
-			return true;
+			return ItemVisibility.AUTO;
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath()) || SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
-		return true;
+		return ItemVisibility.AUTO;
 		
 	}
 
@@ -2337,6 +2415,20 @@ public final class WebComponentUtil {
 
 	public static boolean isAllNulls(Iterable<?> array) {
 		return StreamSupport.stream(array.spliterator(), true).allMatch(o -> o == null);
+	}
+
+	public static ObjectFilter createAssociationShadowRefFilter(RefinedAssociationDefinition refinedAssocationDefinition, PrismContext prismContext,
+																String resourceOid){
+		S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		List<ObjectFilter> orFilterClauses = new ArrayList<>();
+		refinedAssocationDefinition.getIntents()
+				.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+		OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+
+		AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
+		filter.addCondition(intentFilter);
+		return filter;
 	}
 
 	private static IModel<List<Boolean>> createChoices() {

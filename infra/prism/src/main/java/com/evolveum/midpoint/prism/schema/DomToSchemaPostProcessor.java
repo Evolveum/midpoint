@@ -969,8 +969,8 @@ class DomToSchemaPostProcessor {
 			if (xsType.asSimpleType().isRestriction()) {
 				XSRestrictionSimpleType restriction = xsType.asSimpleType().asRestriction();
 				List<XSFacet> enumerations = restriction.getDeclaredFacets(XSFacet.FACET_ENUMERATION);
-				List<DisplayableValueImpl<T>> enumValues = new ArrayList<DisplayableValueImpl<T>>(
-						enumerations.size());
+				List<DisplayableValueImpl<T>> enumValues = new ArrayList<>(
+                    enumerations.size());
 				for (XSFacet facet : enumerations) {
 					String value = facet.getValue().value;
 					Element descriptionE = SchemaProcessorUtil.getAnnotationElement(facet.getAnnotation(),
@@ -1040,7 +1040,12 @@ class DomToSchemaPostProcessor {
 		// ignore
 		Boolean ignore = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_IGNORE);
 		if (ignore != null) {
-			itemDef.setIgnored(ignore);
+			itemDef.setProcessing(ItemProcessing.IGNORE);
+		}
+		
+		Element processing = SchemaProcessorUtil.getAnnotationElement(annotation, A_PROCESSING);
+		if (processing != null) {
+			itemDef.setProcessing(ItemProcessing.findByValue(processing.getTextContent()));
 		}
 
 		// deprecated

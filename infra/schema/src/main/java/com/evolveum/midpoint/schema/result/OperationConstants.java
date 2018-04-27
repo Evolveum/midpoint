@@ -33,6 +33,7 @@ public class OperationConstants {
 	public static final String CLEANUP = PREFIX + ".cleanup";
 
 	public static final String EXECUTE = PREFIX + ".execute";
+	public static final String EXECUTE_SCRIPT = PREFIX + ".executeScript";
 
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
     public static final String IMPORT_ACCOUNTS_FROM_RESOURCE_STATISTICS = PREFIX + ".import.accountsFromResource.statistics";
@@ -51,6 +52,8 @@ public class OperationConstants {
 	public static final String REINDEX = PREFIX + ".reindex";
 	public static final String AUDIT_REINDEX = PREFIX + ".auditReindex";
 	public static final String SHADOW_REFRESH = PREFIX + ".shadowRefresh";
+	
+	public static final String PROVISIONING_PROPAGATION = "com.evolveum.midpoint.provisioning.propagation";
 
 	public static final String OPERATION_SEARCH_RESULT = "com.evolveum.midpoint.schema.result.searchResult";
 

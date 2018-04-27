@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -42,15 +43,11 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 public class ReportNodeUtils {
-
+	
     private static final Trace LOGGER = TraceManager.getTrace(ReportNodeUtils.class);
     private static final String SPACE = "%20";
-    private static final String HEADER_USERAGENT = "mp-cluster-peer-client";
     private static final String ENDPOINTURIPATH = "/report";
-    private static String URLENCODING = "UTF-8";
-    private static String FILENAMEPARAMETER = "fname";
-    private static final Integer DEFAULTPORT = 80;
-
+    
     public static InputStream executeOperation(String host, String fileName, String intraClusterHttpUrlPattern, String operation) throws CommunicationException, SecurityViolationException, ObjectNotFoundException, ConfigurationException, IOException {
         fileName = fileName.replaceAll("\\s", SPACE);
         InputStream inputStream = null;
@@ -59,16 +56,13 @@ public class ReportNodeUtils {
         try {
             if (StringUtils.isNotEmpty(intraClusterHttpUrlPattern)) {
                 LOGGER.trace("The cluster uri pattern: {} ", intraClusterHttpUrlPattern);
-
-                String path = intraClusterHttpUrlPattern.replace("$host", host) + ENDPOINTURIPATH;
-                URIBuilder uriBuilder = new URIBuilder(path);
-                uriBuilder.setParameter(FILENAMEPARAMETER, fileName);
-                URI requestUri = uriBuilder.build();
-                fileName = URLDecoder.decode(fileName, URLENCODING);
+                URI requestUri = buildURI(intraClusterHttpUrlPattern, host, fileName);
+                fileName = URLDecoder.decode(fileName, ReportTypeUtil.URLENCODING);
+                
                 LOGGER.debug("Sending request to the following uri: {} ", requestUri);
                 HttpRequestBase httpRequest = buildHttpRequest(operation);
                 httpRequest.setURI(requestUri);
-                httpRequest.setHeader("User-Agent", HEADER_USERAGENT);
+                httpRequest.setHeader("User-Agent", ReportTypeUtil.HEADER_USERAGENT);
                 HttpClient client = HttpClientBuilder.create().build();
                 try (CloseableHttpResponse response = (CloseableHttpResponse) client.execute(httpRequest)) {
                     HttpEntity entity = response.getEntity();
@@ -118,6 +112,13 @@ public class ReportNodeUtils {
         }
 
         return inputStream;
+    }
+    
+    private static URI buildURI(String intraClusterHttpUrlPattern, String host, String fileName) throws URISyntaxException {
+    		String path = intraClusterHttpUrlPattern.replace("$host", host) + ENDPOINTURIPATH;
+        URIBuilder uriBuilder = new URIBuilder(path);
+        uriBuilder.setParameter(ReportTypeUtil.FILENAMEPARAMETER, fileName);
+        return uriBuilder.build();
     }
 
     private static HttpRequestBase buildHttpRequest(String typeOfRequest) {

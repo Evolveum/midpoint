@@ -52,10 +52,8 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -284,7 +282,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Configuration container", configContainer);
 		cc.configure(configContainer, result);
 
-		List<QName> objectClassesToGenerate = new ArrayList<QName>();
+		List<QName> objectClassesToGenerate = new ArrayList<>();
 		QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
 		objectClassesToGenerate.add(accountObjectClass);
 		// WHEN
@@ -361,7 +359,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
-		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
 
 		ShadowResultHandler handler = new ShadowResultHandler() {
 

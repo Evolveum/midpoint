@@ -1,50 +1,41 @@
-/*
- * Copyright (c) 2010-2017 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.evolveum.midpoint.web.page.admin.valuePolicy.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismPanel;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Created by matus on 9/18/2017.
+ * Created by matus on 2/20/2018.
  */
-public class ValuePolicyBasicPanel extends BasePanel<ValuePolicyDto> {
+public class ValuePolicyBasicPanel extends AbstractObjectTabPanel {
 
-    private static final String ID_NAME = "name";
-    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_VALUE_POLICY_BASIC_DETAIL = "valuePolicyBasic";
+    private static final String ID_MAIN_FORM_BASIC = "mainFormBasic";
 
-    private static final String ID_LABEL_SIZE = "col-md-4";
-    private static final String ID_INPUT_SIZE = "col-md-8";
-
-    public ValuePolicyBasicPanel(String id, IModel<ValuePolicyDto> model) {
-        super(id, model);
-
-        initializeBasicLayout();
+    public ValuePolicyBasicPanel(String id, Form mainForm, LoadableModel objectWrapperModel, PageBase pageBase) {
+        super(id, mainForm, objectWrapperModel, pageBase);
+        initPanelLayout();
     }
 
-    private void initializeBasicLayout() {
 
-        TextFormGroup nameField = new TextFormGroup(ID_NAME, new PropertyModel<>(getModel(), "valuePolicy.name"), createStringResource("ValuePolicyBasicPanel.valuePolicy.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
-        TextFormGroup descriptionField = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<>(getModel(), "valuePolicy.description"), createStringResource("ValuePolicyBasicPanel.valuePolicy.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+    private void initPanelLayout(){
 
-        add(nameField);
-        add(descriptionField);
+ List<ItemPath> itemPath = new ArrayList<>();
 
+        itemPath.add(ItemPath.EMPTY_PATH);
+        //itemPath.add(new ItemPath(ValuePolicyType.F_STRING_POLICY));
+        PrismPanel<ValuePolicyType> valuePolicyForm = new PrismPanel<>(ID_VALUE_POLICY_BASIC_DETAIL, new ContainerWrapperListFromObjectWrapperModel<ValuePolicyType,ValuePolicyType>(getObjectWrapperModel(), itemPath),null, getMainForm(), null, getPageBase());
+        add(valuePolicyForm);
     }
-
 }

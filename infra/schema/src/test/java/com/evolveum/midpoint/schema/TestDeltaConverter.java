@@ -355,9 +355,9 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         ObjectDeltaType xmlDelta = toObjectDeltaType(delta);
 
         // THEN
-        Map<String, Object> properties = new HashMap<String, Object>();
-        String result = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<Object>(CUSTOM_OBJECT,
-                Object.class, xmlDelta));
+        Map<String, Object> properties = new HashMap<>();
+        String result = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<>(CUSTOM_OBJECT,
+            Object.class, xmlDelta));
         assertNotNull(result);
     }
 
@@ -368,7 +368,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
-    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
+    	deltaBefore.setValueToReplace(new PrismPropertyValue<>("foo"));
 
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
@@ -396,8 +396,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
-    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
-    	deltaBefore.addEstimatedOldValue(new PrismPropertyValue<String>("BAR"));
+    	deltaBefore.setValueToReplace(new PrismPropertyValue<>("foo"));
+    	deltaBefore.addEstimatedOldValue(new PrismPropertyValue<>("BAR"));
 
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);

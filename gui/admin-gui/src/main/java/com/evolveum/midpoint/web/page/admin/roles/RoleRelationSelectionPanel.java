@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import java.io.Serializable;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -26,7 +24,7 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel.RoleRelationSelectionDto;
 
@@ -51,15 +49,15 @@ public abstract class RoleRelationSelectionPanel extends BasePanel<RoleRelationS
 	protected void onInitialize() {
 		super.onInitialize();
 		
-		CheckBoxPanel manager = new CheckBoxPanel(ID_MANAGER, new PropertyModel<>(getModel(), "manager"));
+		IsolatedCheckBoxPanel manager = new IsolatedCheckBoxPanel(ID_MANAGER, new PropertyModel<>(getModel(), "manager"));
 		manager.setOutputMarkupId(true);
 		add(manager);
 		
-		CheckBoxPanel owner = new CheckBoxPanel(ID_OWNER, new PropertyModel<>(getModel(), "owner"));
+		IsolatedCheckBoxPanel owner = new IsolatedCheckBoxPanel(ID_OWNER, new PropertyModel<>(getModel(), "owner"));
 		owner.setOutputMarkupId(true);
 		add(owner);
 		
-		CheckBoxPanel approver = new CheckBoxPanel(ID_APPROVER, new PropertyModel<>(getModel(), "approver"));
+		IsolatedCheckBoxPanel approver = new IsolatedCheckBoxPanel(ID_APPROVER, new PropertyModel<>(getModel(), "approver"));
 		approver.setOutputMarkupId(true);
 		add(approver);
 		

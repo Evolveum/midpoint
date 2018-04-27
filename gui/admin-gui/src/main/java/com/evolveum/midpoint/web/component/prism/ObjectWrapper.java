@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,8 +311,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		}
 	}
 
-	public void sort(PageBase pageBase) {
-		getContainers().forEach(ContainerWrapper -> ContainerWrapper.sort(pageBase));
+	public void sort() {
+		getContainers().forEach(ContainerWrapper -> ContainerWrapper.sort());
 //		ContainerWrapper main = findMainContainerWrapper();
 //		if (main != null) {
 //			main.sort(pageBase);
@@ -334,7 +334,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			return createAddingObjectDelta();
 		}
 
-		ObjectDelta<O> delta = new ObjectDelta<O>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
+		ObjectDelta<O> delta = new ObjectDelta<>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper<? extends Containerable>> containers = getContainers();
@@ -444,7 +444,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	private void cleanupEmptyContainers(PrismContainer container) {
 		List<PrismContainerValue> values = container.getValues();
-		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<PrismContainerValue>();
+		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<>();
 		for (PrismContainerValue value : values) {
 			List<? extends Item> items = value.getItems();
 			if (items != null) {
@@ -474,7 +474,15 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("ObjectWrapper(");
-		builder.append(ContainerWrapper.getDisplayNameFromItem(object));
+		if (displayName == null) {
+			if (object == null) {
+				builder.append("null");
+			} else {
+				builder.append(object.getElementName());
+			}
+		} else {
+			builder.append(displayName);
+		}
 		builder.append(" (");
 		builder.append(status);
 		builder.append(") ");
@@ -578,17 +586,22 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		newWrapper.setReadonly(this.isReadonly());
 	}
 
-	// returns true if everything is OK
-	// to be used when enforceRequiredFields is false, so we want to check them
-	// only when really needed
-	// (e.g. MID-3876: when rejecting a work item, fields marked as required
-	// need not be present)
+	/**
+	 * To be used when enforceRequiredFields is false, so we want to check them
+	 * only when really needed (e.g. MID-3876: when rejecting a work item,
+	 * fields marked as required need not be present).
+	 *
+	 * Currently unused; we use DynamicFormPanel.checkRequiredFields instead. Might be
+	 * useful in the future.
+	 *
+	 * @return true if everything is OK
+	 */
+	@SuppressWarnings("unused")
 	public boolean checkRequiredFields(PageBase pageBase) {
 		boolean rv = true;
 		for (ContainerWrapper<? extends Containerable> container : containers) {
 			if (!container.checkRequired(pageBase)) {
-				rv = false; // continuing to display messages for all missing
-							// fields
+				rv = false; // continuing to display messages for all missing fields
 			}
 		}
 		return rv;

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
@@ -93,13 +94,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 				GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
 	protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
-			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException, ConfigurationException;
 
 	protected abstract String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
-					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 						ConfigurationException;
 
 	@Override
@@ -111,6 +112,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD);
 
 		String ticketIdentifier = null;
+		
+		InternalMonitor.recordConnectorOperation("add");
+		InternalMonitor.recordConnectorModification("add");
 
 		try {
 
@@ -133,20 +137,23 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
-			ObjectClassComplexTypeDefinition objectClass,
+			ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
 			StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(OPERATION_MODIFY);
+		
+		InternalMonitor.recordConnectorOperation("modify");
+		InternalMonitor.recordConnectorModification("modify");
 
 		String ticketIdentifier = null;
 
 		try {
-
-			ticketIdentifier = createTicketModify(objectClass, identifiers, changes, result);
-
+			
+			ticketIdentifier = createTicketModify(objectClass, shadow, identifiers, reporter.getResourceOid(), changes, result);
+			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
@@ -164,19 +171,22 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-			Collection<Operation> additionalOperations,
+			Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
 			Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
+		
+		InternalMonitor.recordConnectorOperation("delete");
+		InternalMonitor.recordConnectorModification("delete");
 
-		String ticketIdentifier = null;
-
+		String ticketIdentifier;
+		
 		try {
-
-			ticketIdentifier = createTicketDelete(objectClass, identifiers, result);
-
+			
+			ticketIdentifier = createTicketDelete(objectClass, shadow, identifiers, reporter.getResourceOid(), result);
+			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
@@ -193,6 +203,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	public Collection<Object> fetchCapabilities(OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		Collection<Object> capabilities = new ArrayList<>();
+		
+		InternalMonitor.recordConnectorOperation("capabilities");
 
 		// caching-only read capabilities
 		ReadCapabilityType readCap = new ReadCapabilityType();
@@ -206,10 +218,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-
+		
 		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
-
+		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(deleteCap));
@@ -236,6 +248,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
+		InternalMonitor.recordConnectorOperation("fetchObject");
 		// Read operations are not supported. We cannot really manually read the content of an off-line resource.
 		return null;
 	}
@@ -248,6 +261,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ObjectNotFoundException {
+		InternalMonitor.recordConnectorOperation("search");
 		// Read operations are not supported. We cannot really manually read the content of an off-line resource.
 		return null;
 	}
@@ -257,6 +271,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, UnsupportedOperationException {
+		InternalMonitor.recordConnectorOperation("count");
 		// Read operations are not supported. We cannot really manually read the content of an off-line resource.
 		return 0;
 	}
@@ -273,6 +288,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
+		InternalMonitor.recordConnectorOperation("schea");
 		return null;
 	}
 

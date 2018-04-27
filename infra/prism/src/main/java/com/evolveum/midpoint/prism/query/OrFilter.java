@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class OrFilter extends NaryLogicalFilter {
@@ -32,7 +31,7 @@ public class OrFilter extends NaryLogicalFilter {
 	}
 
 	public static OrFilter createOr(ObjectFilter... conditions){
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+		List<ObjectFilter> filters = new ArrayList<>();
 		Collections.addAll(filters, conditions);
 		return new OrFilter(filters);
 	}
@@ -49,7 +48,7 @@ public class OrFilter extends NaryLogicalFilter {
 	
 	@Override
 	public OrFilter cloneEmpty() {
-		return new OrFilter(new ArrayList<ObjectFilter>());
+		return new OrFilter(new ArrayList<>());
 	}
 
 	@Override

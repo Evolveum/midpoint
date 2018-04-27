@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -81,6 +80,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -104,7 +104,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
@@ -730,7 +729,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Not enabled", ActivationStatusType.ENABLED, provisioningShadow.getActivation().getAdministrativeStatus());
         assertShadowPassword(provisioningShadow);
 
-        ShadowType repoShadow = repositoryService.getObject(ShadowType.class, provisioningShadow.getOid(), null, result).asObjectable();
+        ShadowType repoShadow = getShadowRepo(provisioningShadow.getOid()).asObjectable();
         display("Account repo", repoShadow);
         assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), repoShadow.getObjectClass());
         assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
@@ -851,8 +850,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
-				null, result).asObjectable();
+		ShadowType repoShadowType =  getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
 
@@ -876,8 +874,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Entry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
 		assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
 
-		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
-				null, result).asObjectable();
+		ShadowType repoShadowType =  getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", "uid=will,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_WILL_DN));
 
@@ -886,8 +883,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=People,dc=example,dc=com");
 
-		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
-				null, result).asObjectable();
+		repoShadowType =  getShadowRepo(ACCOUNT_WILL_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
 
@@ -950,8 +946,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		}
 
 		try {
-			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID,
-					null, result).asObjectable();
+			objType = getShadowRepo(ACCOUNT_SPARROW_OID).asObjectable();
 			// objType = container.getObject();
 			Assert.fail("Expected exception, but haven't got one.");
 		} catch (ObjectNotFoundException ex) {
@@ -1013,7 +1008,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals(1, snValues.size());
 
 		//check icf_name in the shadow object fetched only from the repository
-		ShadowType repoShadow = repositoryService.getObject(ShadowType.class, objectChange.getOid(), null, result).asObjectable();
+		ShadowType repoShadow = getShadowRepo(objectChange.getOid()).asObjectable();
 		String name = ShadowUtil.getSingleStringAttributeValue(repoShadow, getSecondaryIdentifierQName());
 		assertEquals("After rename, dn is not equal.", "uid=rename,ou=people,dc=example,dc=com", name);
 		assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", repoShadow.getName().getOrig());
@@ -1048,7 +1043,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NS, "jpegPhoto");
 		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDelta<>(new ItemPath(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
 				null , prismContext);
-		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<byte[]>(bytesIn));
+		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<>(bytesIn));
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
 
@@ -1103,14 +1098,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
 				null , prismContext);
-		givenNameDelta.addValueToAdd(new PrismPropertyValue<String>("Jack"));
+		givenNameDelta.addValueToAdd(new PrismPropertyValue<>("Jack"));
 
 		// Also make an ordinary non-conflicting modification. We need to make sure that
 		// the operation was not ignored as a whole
 		PropertyDelta<String> titleDelta = new PropertyDelta<>(
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
 				null , prismContext);
-		titleDelta.addValueToAdd(new PrismPropertyValue<String>("Great Captain"));
+		titleDelta.addValueToAdd(new PrismPropertyValue<>("Great Captain"));
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
 
@@ -1215,8 +1210,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
-		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-				null, result).asObjectable();
+		ShadowType accountType =  getShadowRepo( ACCOUNT_NEW_WITH_PASSWORD_OID).asObjectable();
 //			assertEquals("lechuck", accountType.getName());
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=lechuck,ou=People,dc=example,dc=com", accountType.getName());
 
@@ -1262,7 +1256,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
 
-        final Collection<ObjectType> objects = new HashSet<ObjectType>();
+        final Collection<ObjectType> objects = new HashSet<>();
 
         ResultHandler handler = new ResultHandler<ObjectType>() {
 
@@ -1374,7 +1368,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         assertEquals("ds-pwp-account-disabled not set to \"TRUE\"", "TRUE", disabled);
 
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, null, result);
+        PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_DISABLE_SIMULATED_OID);
         ActivationType repoActivation = repoShadow.asObjectable().getActivation();
         assertNotNull("No activation in repo", repoActivation);
         XMLGregorianCalendar repoDisableTimestamp = repoActivation.getDisableTimestamp();
@@ -1401,8 +1395,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		// THEN
 		assertEquals(ACCOUNT_NEW_DISABLED_OID, addedObjectOid);
 
-		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,
-				null, result).asObjectable();
+		ShadowType accountType =  getShadowRepo(ACCOUNT_NEW_DISABLED_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=rapp,ou=People,dc=example,dc=com", accountType.getName());
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_DISABLED_OID,
@@ -1453,8 +1446,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		// THEN
 		assertEquals(ACCOUNT_NEW_ENABLED_OID, addedObjectOid);
 
-		ShadowType accountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_NEW_ENABLED_OID,
-				null, result).asObjectable();
+		ShadowType accountType =  getShadowRepo(ACCOUNT_NEW_ENABLED_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", "uid=cook,ou=People,dc=example,dc=com", accountType.getName());
 
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_ENABLED_OID,
@@ -1576,7 +1568,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
 
-		final List<ShadowType> objectTypeList = new ArrayList<ShadowType>();
+		final List<ShadowType> objectTypeList = new ArrayList<>();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -2042,8 +2034,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayThen(TEST_NAME);
 		assertEquals(ACCOUNT_POSIX_MCMUTTON_OID, addedObjectOid);
 
-		ShadowType repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID,
-				null, result).asObjectable();
+		ShadowType repoShadowType =  getShadowRepo(ACCOUNT_POSIX_MCMUTTON_OID).asObjectable();
 		display("Repo shadow", repoShadowType);
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo)", ACCOUNT_POSIX_MCMUTTON_DN, repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), StringUtils.lowerCase(ACCOUNT_POSIX_MCMUTTON_DN));
@@ -2144,7 +2135,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		}
 
 		try {
-			repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, null, result);
+			repositoryService.getObject(ShadowType.class, ACCOUNT_POSIX_MCMUTTON_OID, GetOperationOptions.createRawCollection(), result);
 			// objType = container.getObject();
 			Assert.fail("Expected exception, but haven't got one.");
 		} catch (ObjectNotFoundException ex) {
@@ -2223,8 +2214,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayThen(TEST_NAME);
 		assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
 
-		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
-				null, result).asObjectable();
+		ShadowType shadowType =  getShadowRepo(GROUP_SWASHBUCKLERS_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SWASHBUCKLERS_DN, shadowType.getName());
 
 		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
@@ -2264,8 +2254,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		// THEN
 		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
-		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-				null, result).asObjectable();
+		ShadowType shadowType =  getShadowRepo(ACCOUNT_MORGAN_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", ACCOUNT_MORGAN_DN, shadowType.getName());
 
 		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
@@ -2420,8 +2409,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayThen(TEST_NAME);
 		assertEquals(GROUP_CORSAIRS_OID, addedObjectOid);
 
-		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_CORSAIRS_OID,
-				null, result).asObjectable();
+		ShadowType shadowType =  getShadowRepo(GROUP_CORSAIRS_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_CORSAIRS_DN, shadowType.getName());
 
 		// Do NOT read provisioning shadow here. We want everything to be "fresh"
@@ -2509,8 +2497,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		}
 
 		try {
-			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-					null, result).asObjectable();
+			objType = getShadowRepo(ACCOUNT_MORGAN_OID).asObjectable();
 			// objType = container.getObject();
 			Assert.fail("Expected exception, but haven't got one.");
 		} catch (Exception ex) {
@@ -2629,8 +2616,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayThen(TEST_NAME);
 		assertEquals(GROUP_SPECIALISTS_OID, addedObjectOid);
 
-		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SPECIALISTS_OID,
-				null, result).asObjectable();
+		ShadowType shadowType =  getShadowRepo(GROUP_SPECIALISTS_OID).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SPECIALISTS_DN, shadowType.getName());
 
 		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SPECIALISTS_OID,
@@ -2757,7 +2743,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 					null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 				// this is expected..
 		}
 	}
@@ -2776,7 +2762,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			provisioningService.addObject(shadow, null, null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 			LOGGER.info("exception: {}", ex.getMessage(), ex);
 				// this is expected..
 		}
@@ -2795,7 +2781,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 				// this is expected..
 		}
 	}
@@ -2815,7 +2801,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, modifications, null, null, task, result);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
-		} catch (SystemException ex) {
+		} catch (UnsupportedOperationException ex) {
 				// this is expected..
 		}
 	}

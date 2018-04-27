@@ -16,10 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -916,6 +913,39 @@ public class TestParseDiffPatch {
 		System.out.println("Campaign after:\n" + campaign.debugDump());
 
 		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
+	}
+
+	@Test
+    public void testReplaceModelOperationContext() throws Exception {
+        PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(TaskType.class, prismObject.getOid(), getPrismContext());
+        delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
+
+        PrismObject changed = prismObject.clone();
+        ItemDelta.applyTo(delta.getModifications(), changed);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, true, true);
+
+        ItemDelta.applyTo(processedModifications, prismObject);
+
+        assertNull(prismObject.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT));
+    }
+
+	@Test(enabled = false)
+	public void testDiffSameValues() throws Exception {
+		PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
+		PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
+
+		Collection<? extends ItemDelta> differences = before.diffModifications(after, true, true);
+
+		assertEquals(1, differences.size());
+		System.out.println(differences.iterator().next().debugDump());
+
+		PrismObject<ResourceType> differencesApplied = before.clone();
+		ItemDelta.applyTo(differences, differencesApplied);
+
+		System.out.println(differencesApplied.debugDump());
+		assertEquals("'after' is different from the object with differences applied", after, differencesApplied);
 	}
 
 }

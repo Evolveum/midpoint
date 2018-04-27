@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Task handler for "reindex" task.
@@ -48,7 +47,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<ObjectType, ReindexResultHandler> {
+public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ReindexResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 
@@ -78,23 +77,10 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
 				"reindex", "reindex", taskManager, repositoryService);
 	}
 
-	@Override
-	protected boolean initializeRun(ReindexResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, ObjectType.class);
     }
-
-    @Override
-	protected ObjectQuery createQuery(ReindexResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
-        LOGGER.info("Using query:\n{}", query.debugDump());
-        return query;
-	}
 
     @Override
     protected boolean useRepositoryDirectly(ReindexResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
@@ -104,10 +90,5 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

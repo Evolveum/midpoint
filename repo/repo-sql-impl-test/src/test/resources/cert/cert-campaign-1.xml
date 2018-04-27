@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<accessCertificationCampaign oid="e8c07a7a-1b11-11e8-9b32-1715a2e8273b"
+                             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                              xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                              xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                              xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -22,16 +23,16 @@
                              xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>All user assignments 1</name>
     <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
-    <trigger id="677504621">
+    <trigger id="100">
         <timestamp>2015-12-18T23:59:59.999+01:00</timestamp>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
     </trigger>
-    <trigger id="677504622">
+    <trigger id="101">
         <timestamp>2015-12-16T23:59:59.999+01:00</timestamp>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3
         </handlerUri>
     </trigger>
-    <trigger id="677504623">
+    <trigger id="102">
         <timestamp>2015-12-18T11:59:59.999+01:00</timestamp>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3
         </handlerUri>

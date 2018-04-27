@@ -23,7 +23,6 @@ import java.util.List;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -65,9 +64,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.xml.security.encryption.EncryptedData;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -112,7 +109,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model<String>("fa fa-shield"));
+        bc.setIcon(new Model<>("fa fa-shield"));
     }
 
     public PageAbstractSelfCredentials(final MyPasswordsDto myPasswordsDto) {
@@ -339,7 +336,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
 
             for (PasswordAccountDto accDto : selectedAccounts) {

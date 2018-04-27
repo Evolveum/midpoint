@@ -169,9 +169,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 
 	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask,
-			OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
+			OperationResult result) {
 		PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
 		if (triggerContainer == null) {
 			LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have trigger container", object);

@@ -218,7 +218,7 @@ public class TestJaxbParsing {
         item1.getValue().add(value);
 
         String xml = PrismTestUtil.serializeJaxbElementToString(
-                new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta));
+            new JAXBElement<>(new QName("http://www.example.com", "custom"), Object.class, delta));
         assertNotNull(xml);
     }
 

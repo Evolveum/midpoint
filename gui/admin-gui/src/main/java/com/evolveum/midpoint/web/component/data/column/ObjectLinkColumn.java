@@ -16,13 +16,11 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -52,7 +50,7 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
 
     	IModel<ObjectType> superModel = createLinkModel(rowModel);
     	final ObjectType targetObjectType = superModel.getObject();
-    	IModel<String> nameModel = new PropertyModel<String>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
+    	IModel<String> nameModel = new PropertyModel<>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
         cellItem.add(new LinkPanel(componentId, nameModel) {
         	private static final long serialVersionUID = 1L;
 
@@ -81,7 +79,7 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
     @Override
     public IModel<String> getDataModel(IModel<T> rowModel) {
         IModel<ObjectType> superModel = createLinkModel(rowModel);
-        return new PropertyModel<String>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
+        return new PropertyModel<>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
     }
 
 }

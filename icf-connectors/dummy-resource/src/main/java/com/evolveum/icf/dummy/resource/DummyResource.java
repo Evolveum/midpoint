@@ -118,6 +118,8 @@ public class DummyResource implements DebugDumpable {
 	public static final String VALUE_COOKIE = "cookie";
 
 	public static final String SCRIPT_LANGUAGE_POWERFAIL = "powerfail";
+	public static final String SCRIPT_LANGUAGE_PARROT = "parrot";
+	
 	public static final String POWERFAIL_ARG_ERROR = "error";
 	public static final String POWERFAIL_ARG_ERROR_GENERIC = "generic";
 	public static final String POWERFAIL_ARG_ERROR_RUNTIME = "runtime";
@@ -142,7 +144,7 @@ public class DummyResource implements DebugDumpable {
 	private String uselessString;
 	private String uselessGuardedString;
 
-	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
+	private static Map<String, DummyResource> instances = new HashMap<>();
 
 	DummyResource() {
 		allObjects = Collections.synchronizedMap(new LinkedHashMap<String,DummyObject>());
@@ -150,7 +152,7 @@ public class DummyResource implements DebugDumpable {
 		groups = Collections.synchronizedMap(new LinkedHashMap<String, DummyGroup>());
 		privileges = Collections.synchronizedMap(new LinkedHashMap<String, DummyPrivilege>());
 		orgs = Collections.synchronizedMap(new LinkedHashMap<String, DummyOrg>());
-		scriptHistory = new ArrayList<ScriptHistoryEntry>();
+		scriptHistory = new ArrayList<>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
 		privilegeObjectClass = new DummyObjectClass();
@@ -819,7 +821,7 @@ public class DummyResource implements DebugDumpable {
 	 *
 	 * @param scriptCode code of the script
 	 */
-	public void runScript(String language, String scriptCode, Map<String, Object> params) throws FileNotFoundException {
+	public String runScript(String language, String scriptCode, Map<String, Object> params) throws FileNotFoundException {
 		scriptHistory.add(new ScriptHistoryEntry(language, scriptCode, params));
 		if (SCRIPT_LANGUAGE_POWERFAIL.equals(language)) {
 			Object errorArg = params.get(POWERFAIL_ARG_ERROR);
@@ -832,7 +834,10 @@ public class DummyResource implements DebugDumpable {
 			} else if (POWERFAIL_ARG_ERROR_IO.equals(errorArg)) {
 				throw new FileNotFoundException("Booom! PowerFail script failed (IO)");
 			}
+		} else if (SCRIPT_LANGUAGE_PARROT.equals(language)) {
+			return scriptCode.toUpperCase();
 		}
+		return null;
 	}
 
 	/**
@@ -877,7 +882,7 @@ public class DummyResource implements DebugDumpable {
 
 
 	public List<DummyDelta> getDeltasSince(int syncToken) {
-		List<DummyDelta> result = new ArrayList<DummyDelta>();
+		List<DummyDelta> result = new ArrayList<>();
 		for (DummyDelta delta: deltas) {
 			if (delta.getSyncToken() > syncToken) {
 				result.add(delta);

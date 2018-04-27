@@ -16,7 +16,7 @@ public class SingleValueChoosePanel<U, T extends ObjectType> extends ConvertingM
 
 	public SingleValueChoosePanel(String id, List<Class<? extends T>> types,
 			Function<T, U> transformFunction, IModel<U> targetModel) {
-		super(id, types, transformFunction, new ListModel<U>(), false);
+		super(id, types, transformFunction, new ListModel<>(), false);
 		singleTargetModel = targetModel;
 	}
 

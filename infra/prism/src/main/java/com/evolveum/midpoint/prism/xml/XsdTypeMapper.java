@@ -30,13 +30,11 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -154,13 +152,13 @@ public class XsdTypeMapper {
     public static <T> Class<T> getXsdToJavaMapping(QName xsdType) {
     	Class clazz = xsdToJavaTypeMap.get(xsdType);
     	if (clazz == null){
-    		Set<QName> keys = xsdToJavaTypeMap.keySet();
-    		for (Iterator<QName> iterator = keys.iterator(); iterator.hasNext();){
-    			QName key = iterator.next();
-    			if (QNameUtil.match(key, xsdType)){
-    				return xsdToJavaTypeMap.get(key);
-    			}
-    		}
+    		Set<Map.Entry<QName, Class>> entries = xsdToJavaTypeMap.entrySet();
+    		for (Map.Entry<QName, Class> entry : entries) {
+                QName key = entry.getKey();
+                if (QNameUtil.match(key, xsdType)){
+                    return entry.getValue();
+                }
+            }
     	}
     	return xsdToJavaTypeMap.get(xsdType);
     }

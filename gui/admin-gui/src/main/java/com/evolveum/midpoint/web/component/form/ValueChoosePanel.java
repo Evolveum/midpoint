@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -69,9 +68,6 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	private static final String ID_TEXT = "text";
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_EDIT = "edit";
-
-	protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
-
 	
 	public ValueChoosePanel(String id, IModel<T> value) {
 		super(id, value);
@@ -86,7 +82,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 		textWrapper.setOutputMarkupId(true);
 
-		TextField<String> text = new TextField<String>(ID_TEXT, createTextModel());
+		TextField<String> text = new TextField<>(ID_TEXT, createTextModel());
 		text.add(new AjaxFormComponentUpdatingBehavior("blur") {
 			private static final long serialVersionUID = 1L;
 
@@ -216,7 +212,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		if (CollectionUtils.isEmpty(supportedTypes)){
 			supportedTypes = WebComponentUtil.createObjectTypeList();
 		}
-		Class<O> defaultType = (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
+		Class<O> defaultType = getDefaultType(supportedTypes);
 		ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
 				getPageBase().getMainPopupBodyId(), defaultType, supportedTypes, false, getPageBase(),
 				filter) {
@@ -237,7 +233,11 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	public List<QName> getSupportedTypes() {
 		return WebComponentUtil.createObjectTypeList();
 	}
-	
+
+	protected Class<O> getDefaultType(List<QName> supportedTypes){
+		return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
+	}
+
 	
 	/*
 	 * TODO - this method contains check, if chosen object already is not in

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -112,7 +111,7 @@ public class ItemPathResolutionState implements DebugDumpable {
         String newHqlPath = hqlDataInstance.getHqlPath();
         if (linkDefinition.hasJpaRepresentation()) {
             if (singletonOnly && linkDefinition.isMultivalued()) {
-                throw new QueryException("Collections are not allowable for right-side paths");     // TODO better message + context
+                throw new QueryException("Collections are not allowable for right-side paths nor for dereferencing");     // TODO better message + context
             }
             if (!linkDefinition.isEmbedded() || linkDefinition.isMultivalued()) {
                 LOGGER.trace("Adding join for '{}' to context", linkDefinition);

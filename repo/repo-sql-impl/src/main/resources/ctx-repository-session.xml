@@ -24,53 +24,6 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="dataSourceFactory" class="com.evolveum.midpoint.repo.sql.DataSourceFactory" destroy-method="destroy">
-        <property name="configuration" value="#{sqlRepositoryFactory.sqlConfiguration}" />
-    </bean>
-
-    <bean id="dataSource" factory-bean="dataSourceFactory" factory-method="createDataSource"
-          depends-on="dataSourceFactory"/>
-
-    <!-- Hibernate session factory -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
-          depends-on="dataSource" lazy-init="true">
-
-        <property name="dataSource" ref="dataSource" />
-        <property name="hibernateProperties">
-            <props>
-                <prop key="hibernate.dialect">#{sqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
-                <prop key="hibernate.hbm2ddl.auto">#{sqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
-                <prop key="hibernate.id.new_generator_mappings">true</prop>
-                <prop key="hibernate.jdbc.batch_size">20</prop>
-                <prop key="javax.persistence.validation.mode">none</prop>
-            </props>
-        </property>
-        <property name="namingStrategy">
-            <bean class="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy"/>
-        </property>
-        <property name="annotatedPackages">
-            <list>
-                <value>com.evolveum.midpoint.repo.sql.type</value>
-            </list>
-        </property>
-        <property name="packagesToScan">
-            <list>
-                <value>com.evolveum.midpoint.repo.sql.data.common</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.any</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.container</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.embedded</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.enums</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.id</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.other</value>
-                <value>com.evolveum.midpoint.repo.sql.data.common.type</value>
-                <value>com.evolveum.midpoint.repo.sql.data.audit</value>
-            </list>
-        </property>
-        <property name="entityInterceptor">
-            <bean class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
-        </property>
-    </bean>
-
     <context:annotation-config />
-    <context:component-scan base-package="com.evolveum.midpoint.repo.sql.helpers" />
+    <context:component-scan base-package="com.evolveum.midpoint.repo.sql" />
 </beans>

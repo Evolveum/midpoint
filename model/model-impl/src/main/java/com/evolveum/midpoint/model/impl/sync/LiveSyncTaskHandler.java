@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -88,7 +89,11 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 
-		 String resourceOid = task.getObjectOid();
+		if (task.getChannel() == null) {
+			task.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+		}
+
+		String resourceOid = task.getObjectOid();
 	        if (resourceOid == null) {
 	            LOGGER.error("Live Sync: No resource OID specified in the task");
 	            opResult.recordFatalError("No resource OID specified in the task");
@@ -244,10 +249,5 @@ public class LiveSyncTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.LIVE_SYNCHRONIZATION;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

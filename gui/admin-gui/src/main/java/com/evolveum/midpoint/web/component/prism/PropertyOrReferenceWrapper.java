@@ -16,20 +16,24 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import java.io.Serializable;
+import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Extracts common functionality of PropertyWrapper and ReferenceWrapper.
@@ -41,11 +45,14 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	private static final long serialVersionUID = -179218652752175177L;
 
-	protected ContainerValueWrapper container;
+	@Nullable protected ContainerValueWrapper container;
 	protected I item;
 	protected ValueStatus status;
 	protected List<ValueWrapper> values;
+	
+	// processed and localized display name
 	protected String displayName;
+	
 	protected boolean readonly;
 	private boolean isStripe;
 	private boolean showEmpty;
@@ -83,8 +90,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	@Override
+	@Nullable
 	public ContainerWrapper getParent() {
-		return container.getContainer();
+		return container != null ? container.getContainer() : null;
 	}
 
 	public boolean isVisible() {
@@ -96,7 +104,10 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
         if (getItemDefinition().isDeprecated() && isEmpty()) {
         	return false;
         }
-        
+
+        if (container == null) {
+        	return false;           // TODO: ok ?
+        }
         switch (container.getObjectStatus()) {
         	case ADDING : 
         		return canAddDefault() || canAddAndShowEmpty();
@@ -109,6 +120,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //		} else {
 			return true;
 //		}
+	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return getItemDefinition().getProcessing();
 	}
 	
 	private boolean canAddAndShowEmpty() {
@@ -139,17 +155,21 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	        return container;
 	    }
 
+	// TODO: unify with ContainerWrapper.getDisplayName()
 	@Override
 	public String getDisplayName() {
-		if (StringUtils.isNotEmpty(displayName)) {
-			return displayName;
+		if (displayName == null) {
+			// Lazy loading of a localized name.
+			// We really want to remember a processed name in the wrapper.
+			// getDisplatName() method may be called many times, e.g. during sorting.
+			displayName = ContainerWrapper.getDisplayNameFromItem(item);
 		}
-		return ContainerWrapper.getDisplayNameFromItem(item);
+		return displayName;
 	}
-
+	
 	@Override
 	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
+		this.displayName = ContainerWrapper.localizeName(displayName);
 	}
 
 	public ValueStatus getStatus() {
@@ -204,7 +224,15 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return false;
 	}
 	private boolean isMetadataContainer() {
-		return getParent().getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE);
+		ContainerWrapper parent = getParent();
+		if (parent == null) {
+			return false;
+		}
+		ItemDefinition<?> definition = parent.getItemDefinition();
+		if (definition == null) {
+			return false;
+		}
+		return definition.getTypeName().equals(MetadataType.COMPLEX_TYPE);
 	}
 
 	@Override
@@ -268,6 +296,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	@Override
 	public boolean isDeprecated() {
 		return getItemDefinition().isDeprecated();
+	}
+	
+	@Override
+	public boolean isExperimental() {
+		return getItemDefinition().isExperimental();
 	}
 	
 	@Override

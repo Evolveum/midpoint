@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
@@ -49,14 +50,14 @@ import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
+import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
-import org.apache.wicket.ISessionListener;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -65,6 +66,8 @@ import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
+import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
@@ -79,24 +82,26 @@ import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 
 /**
  * @author lazyman
  */
 public class MidPointApplication extends AuthenticatedWebApplication {
+
+    public static final String SYSTEM_PROPERTY_SCHRODINGER = "midpoint.schrodinger";
 
     /**
      * Max. photo size for user/jpegPhoto
@@ -185,6 +190,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient LocalizationService localizationService;
     @Autowired
     transient AsyncWebProcessManager asyncWebProcessManager;
+    @Autowired
+    transient ApplicationContext applicationContext;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -216,6 +223,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
         resourceLoaders.add(0, new MidPointStringResourceLoader(localizationService));
+
+        IResourceStreamLocator locator = new CachingResourceStreamLocator(
+                new MidPointResourceStreamLocator(resourceSettings.getResourceFinders()));
+        resourceSettings.setResourceStreamLocator(locator);
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
@@ -268,6 +279,36 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
+        
+        if (applicationContext != null) {
+
+	        Map<String, MidPointApplicationConfiguration> map =
+	                applicationContext.getBeansOfType(MidPointApplicationConfiguration.class);
+	        if (map != null) {
+	            map.forEach((key, value) -> value.init(this));
+	        }
+        }
+
+        // for schrodinger selenide library
+        initializeSchrodinger();
+    }
+
+    private void initializeSchrodinger() {
+    	if (applicationContext == null) {
+    		return;
+    	}
+        Environment environment = applicationContext.getEnvironment();
+        if (environment == null) {
+        	return;
+        }
+
+        String value = environment.getProperty(SYSTEM_PROPERTY_SCHRODINGER);
+        Boolean enabled = Boolean.parseBoolean(value);
+
+        if (enabled) {
+            LOGGER.info("Schrodinger plugin enabled");
+            getComponentInitializationListeners().add(new SchrodingerComponentInitListener());
+        }
     }
 
     private boolean isPostMethodTypeBehavior(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
@@ -316,18 +357,18 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 map.put(key, properties.getProperty(key));
             }
 
-            for (String key : localeMap.keySet()) {
-                Map<String, String> localeDefinition = localeMap.get(key);
-                if (!localeDefinition.containsKey(key + PROP_NAME)
-                        || !localeDefinition.containsKey(key + PROP_FLAG)) {
+            for (Map.Entry<String, Map<String, String>> entry : localeMap.entrySet()) {
+                Map<String, String> localeDefinition = entry.getValue();
+                if (!localeDefinition.containsKey(entry + PROP_NAME)
+                        || !localeDefinition.containsKey(entry + PROP_FLAG)) {
                     continue;
                 }
 
                 LocaleDescriptor descriptor = new LocaleDescriptor(
-                        localeDefinition.get(key + PROP_NAME),
-                        localeDefinition.get(key + PROP_FLAG),
-                        localeDefinition.get(key + PROP_DEFAULT),
-                        WebComponentUtil.getLocaleFromString(key)
+                        localeDefinition.get(entry + PROP_NAME),
+                        localeDefinition.get(entry + PROP_FLAG),
+                        localeDefinition.get(entry + PROP_DEFAULT),
+                        WebComponentUtil.getLocaleFromString(entry.getKey())
                 );
                 locales.add(descriptor);
             }
@@ -517,5 +558,74 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public SecurityContextManager getSecurityContextManager() {
         return securityContextManager;
+    }
+
+    private static class Utf8BundleStringResourceLoader implements IStringResourceLoader {
+
+        private final String bundleName;
+
+        public Utf8BundleStringResourceLoader(String bundleName) {
+            this.bundleName = bundleName;
+        }
+
+        @Override
+        public String loadStringResource(Class<?> clazz, String key, Locale locale, String style, String variation) {
+            return loadStringResource((Component) null, key, locale, style, variation);
+        }
+
+        @Override
+        public String loadStringResource(Component component, String key, Locale locale, String style, String variation) {
+            if (locale == null) {
+                locale = Session.exists() ? Session.get().getLocale() : Locale.getDefault();
+            }
+
+            ResourceBundle.Control control = new UTF8Control();
+            try {
+                return ResourceBundle.getBundle(bundleName, locale, control).getString(key);
+            } catch (MissingResourceException ex) {
+                try {
+                    return ResourceBundle.getBundle(bundleName, locale,
+                            Thread.currentThread().getContextClassLoader(), control).getString(key);
+                } catch (MissingResourceException ex2) {
+                    return null;
+                }
+            }
+        }
+
+        private static class UTF8Control extends ResourceBundle.Control {
+
+            @Override
+            public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
+                                            boolean reload) throws IllegalAccessException, InstantiationException,
+                    IOException {
+
+                // The below is a copy of the default implementation.
+                String bundleName = toBundleName(baseName, locale);
+                String resourceName = toResourceName(bundleName, "properties");
+                ResourceBundle bundle = null;
+                InputStream stream = null;
+                if (reload) {
+                    URL url = loader.getResource(resourceName);
+                    if (url != null) {
+                        URLConnection connection = url.openConnection();
+                        if (connection != null) {
+                            connection.setUseCaches(false);
+                            stream = connection.getInputStream();
+                        }
+                    }
+                } else {
+                    stream = loader.getResourceAsStream(resourceName);
+                }
+                if (stream != null) {
+                    try {
+                        // Only this line is changed to make it to read properties files as UTF-8.
+                        bundle = new PropertyResourceBundle(new InputStreamReader(stream, "UTF-8"));
+                    } finally {
+                        IOUtils.closeQuietly(stream);
+                    }
+                }
+                return bundle;
+            }
+        }
     }
 }

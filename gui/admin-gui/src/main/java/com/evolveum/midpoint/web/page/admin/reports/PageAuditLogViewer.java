@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
+
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -23,7 +26,34 @@ public class PageAuditLogViewer extends PageBase {
 	}
 
     private void initLayout(){
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, null);
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, Model.of(new AuditSearchDto()), false) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
+				getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
+				getPageBase().getSessionStorage().getAuditLog().setPageNumber(0);
+			}
+
+			@Override
+			protected void resetAuditSearchStorage() {
+				getPageBase().getSessionStorage().getAuditLog().setSearchDto(new AuditSearchDto());
+				
+			}
+
+			@Override
+			protected void updateCurrentPage(long current) {
+				getPageBase().getSessionStorage().getAuditLog().setPageNumber(current);
+				
+			}
+
+			@Override
+			protected long getCurrentPage() {
+				return getPageBase().getSessionStorage().getAuditLog().getPageNumber();
+			}
+        	
+        };
         panel.setOutputMarkupId(true);
         add(panel);
     }

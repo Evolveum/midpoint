@@ -17,22 +17,18 @@ package com.evolveum.midpoint.testing.sanity;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertEqualsPolyString;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertParentConsistency;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValues;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -673,8 +669,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         fillInConnectorRef(resource, IntegrationTestTools.DBTABLE_CONNECTOR_TYPE, result);
 
         OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<String> oidHolder = new Holder<String>();
+        Holder<OperationResultType> resultHolder = new Holder<>(resultType);
+        Holder<String> oidHolder = new Holder<>();
 
         display("Adding Derby Resource", resource);
 
@@ -825,8 +821,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<ObjectType> objectHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
 		// WHEN
@@ -883,7 +879,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     	ModelExecuteOptionsType options = new ModelExecuteOptionsType();
     	options.setIsImport(Boolean.TRUE);
-    	addObjectViaModelWS(resource.asObjectable(), options, new Holder<String>(), new Holder<OperationResultType>());
+    	addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(), new Holder<>());
 
     	 OperationResult repoResult = new OperationResult("getObject");
 
@@ -911,7 +907,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
          ModelExecuteOptionsType options = new ModelExecuteOptionsType();
          options.setOverwrite(Boolean.TRUE);
          options.setIsImport(Boolean.TRUE);
-     	addObjectViaModelWS(resource.asObjectable(), options, new Holder<String>(), new Holder<OperationResultType>());
+     	addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(), new Holder<>());
 
      	//TODO: add some asserts
 
@@ -920,10 +916,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
      	resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
 
 		try {
-     	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+     	Holder<OperationResultType> resultHolder = new Holder<>();
      	options = new ModelExecuteOptionsType();
         options.setIsImport(Boolean.TRUE);
-			addObjectViaModelWS(resource.asObjectable(), options, new Holder<String>(),
+			addObjectViaModelWS(resource.asObjectable(), options, new Holder<>(),
                     resultHolder);
 
 			OperationResultType result = resultHolder.value;
@@ -970,8 +966,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertParentConsistency(user);
 
         OperationResultType result = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
-        Holder<String> oidHolder = new Holder<String>();
+        Holder<OperationResultType> resultHolder = new Holder<>(result);
+        Holder<String> oidHolder = new Holder<>();
 
         display("Adding user object", userType);
 
@@ -1093,8 +1089,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<ObjectType> objectHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
         // WHEN
@@ -1228,8 +1224,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<ObjectType> objectHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType ();
 
         // WHEN
@@ -1261,8 +1257,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         checkRepoOpenDjResource();
         assertNoRepoCache();
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<UserType> userHolder = new Holder<UserType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<UserType> userHolder = new Holder<>();
 
         // WHEN
 
@@ -1293,7 +1289,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ObjectQuery q = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
 //        ObjectQuery q = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, query, prismContext);
 
-        final Collection<ObjectType> objects = new HashSet<ObjectType>();
+        final Collection<ObjectType> objects = new HashSet<>();
         final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
         ResultHandler handler = new ResultHandler<ObjectType>() {
 
@@ -1714,8 +1710,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Use getObject to test fetch of complete shadow
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<ObjectType> objectHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         assertNoRepoCache();
 
@@ -1809,8 +1805,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Use getObject to test fetch of complete shadow
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<ObjectType> objectHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         assertNoRepoCache();
 
@@ -2147,8 +2143,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         protector.encrypt(userType.getCredentials().getPassword().getValue());
 
         OperationResultType result = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
-        Holder<String> oidHolder = new Holder<String>();
+        Holder<OperationResultType> resultHolder = new Holder<>(result);
+        Holder<String> oidHolder = new Holder<>();
         assertNoRepoCache();
 
         addObjectViaModelWS(userType, null, oidHolder, resultHolder);
@@ -2233,8 +2229,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        Holder<UserType> userHolder = new Holder<UserType>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
+        Holder<UserType> userHolder = new Holder<>();
 
         // WHEN
 
@@ -2451,7 +2447,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ObjectDelta delta = new ObjectDelta(ShadowType.class, ChangeType.MODIFY, prismContext);
         delta.addModification(deleteDelta);
         delta.setOid(accountShadowOidGuybrushOpendj);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         deltas.add(delta);
         LOGGER.info("-------->>EXECUTE DELETE MODIFICATION<<------------");
         modelService.executeChanges(deltas, null, task, parentResult);
@@ -2505,8 +2501,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // GIVEN
 
         OperationResultType result = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
-        Holder<String> oidHolder = new Holder<String>();
+        Holder<OperationResultType> resultHolder = new Holder<>(result);
+        Holder<String> oidHolder = new Holder<>();
         assertNoRepoCache();
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -2970,8 +2966,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         protector.encrypt(userType.getCredentials().getPassword().getValue());
         // create user in repository
         OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<String> oidHolder = new Holder<String>();
+        Holder<OperationResultType> resultHolder = new Holder<>(resultType);
+        Holder<String> oidHolder = new Holder<>();
         display("Adding user object", userType);
         addObjectViaModelWS(userType, null, oidHolder, resultHolder);
         //check results
@@ -3154,8 +3150,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         waitFor("Waiting for import to complete", new Checker() {
             @Override
             public boolean check() throws CommonException {
-                Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-                Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+                Holder<OperationResultType> resultHolder = new Holder<>();
+                Holder<ObjectType> objectHolder = new Holder<>();
                 OperationResult opResult = new OperationResult("import check");
                 assertNoRepoCache();
                 SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
@@ -3189,8 +3185,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         //### Check task state after the task is finished ###
 
-        Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+        Holder<ObjectType> objectHolder = new Holder<>();
+        Holder<OperationResultType> resultHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         assertNoRepoCache();
 
@@ -3480,7 +3476,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Guybrush's attributes were set up by a role in the previous test. Let's mess the up a bit. Recon should sort it out.
 
-        List<RawModification> modifications = new ArrayList<RawModification>();
+        List<RawModification> modifications = new ArrayList<>();
         // Expect that a correct title will be added to this one
         RawModification titleMod = RawModification.create(ModificationType.REPLACE, "title", "Scurvy earthworm");
         modifications.add(titleMod);
@@ -3689,9 +3685,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResultType result = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
+        Holder<OperationResultType> resultHolder = new Holder<>(result);
 
-        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+        Holder<ObjectListType> objectListHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
 		// WHEN
@@ -3836,7 +3832,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
     	mod1.setPath(path);
 
-    	RawType value = new RawType(new PrimitiveXNode<String>("newAngelika"), prismContext);
+    	RawType value = new RawType(new PrimitiveXNode<>("newAngelika"), prismContext);
         mod1.getValue().add(value);
 
     	delta.getItemDelta().add(mod1);
@@ -4030,8 +4026,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 	private ShadowType searchAccountByOid(final String accountOid) throws Exception {
         OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectType> accountHolder = new Holder<ObjectType>();
+        Holder<OperationResultType> resultHolder = new Holder<>(resultType);
+        Holder<ObjectType> accountHolder = new Holder<>();
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountOid, options, accountHolder, resultHolder);
         ObjectType object = accountHolder.value;
@@ -4059,8 +4055,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
     	QueryType query = QueryJaxbConvertor.createQueryType(q, prismContext);
         OperationResultType resultType = new OperationResultType();
-        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+        Holder<OperationResultType> resultHolder = new Holder<>(resultType);
+        Holder<ObjectListType> listHolder = new Holder<>();
         assertNoRepoCache();
 
         modelWeb.searchObjects(ObjectTypes.USER.getTypeQName(), query, null, listHolder, resultHolder);

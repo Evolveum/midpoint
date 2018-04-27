@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -182,7 +183,7 @@ public class PageUser extends PageAdminFocus<UserType> {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior authorization;
-                if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())){
+                if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
                     authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
                     tabs.add(
                             new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
@@ -380,7 +381,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private void saveDelegationToUser(UserType user, List<AssignmentEditorDto> assignmentEditorDtos) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
         ObjectDelta<UserType> delta;
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         try {
             delta = user.asPrismObject().createModifyDelta();
             deltas.add(delta);
@@ -424,7 +425,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     protected List<AssignmentType> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentType> list = new ArrayList<AssignmentType>();
+		List<AssignmentType> list = new ArrayList<>();
 		for (AssignmentType assignment : assignments) {
 			if (isConsentAssignment(assignment)) {
 			    //TODO set status

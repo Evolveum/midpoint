@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -81,8 +80,6 @@ import org.jetbrains.annotations.Nullable;
 public class ExpressionUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
-
-	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
 	public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
 			PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
@@ -251,7 +248,7 @@ public class ExpressionUtil {
 		} else if (object instanceof ItemDeltaItem) {
 			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
 			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
-			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
+			return triple != null ? triple.getNonNegativeValues() : new ArrayList<>();
 		} else {
 			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
 		}
@@ -426,9 +423,9 @@ public class ExpressionUtil {
 			return (ItemDeltaItem<IV, ID>) new ObjectDeltaObject((PrismObject<?>) object, null,
 					(PrismObject<?>) object);
 		} else if (object instanceof Item<?, ?>) {
-			return new ItemDeltaItem<IV, ID>((Item<IV, ID>) object, null, (Item<IV, ID>) object);
+			return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object);
 		} else if (object instanceof ItemDelta<?, ?>) {
-			return new ItemDeltaItem<IV, ID>(null, (ItemDelta<IV, ID>) object, null);
+			return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null);
 		} else {
 			throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
 		}
@@ -728,12 +725,15 @@ public class ExpressionUtil {
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
 				shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
-				parentResult);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
+		return getExpressionOutputValue(outputTriple, shortDesc);
+	}
+	
+	public static <V extends PrismValue> V getExpressionOutputValue(PrismValueDeltaSetTriple<V> outputTriple, String shortDesc) throws ExpressionEvaluationException {
 		if (outputTriple == null) {
 			return null;
 		}
@@ -801,7 +801,7 @@ public class ExpressionUtil {
 	}
 
 	public static Map<QName, Object> compileVariablesAndSources(ExpressionEvaluationContext params) {
-		Map<QName, Object> variablesAndSources = new HashMap<QName, Object>();
+		Map<QName, Object> variablesAndSources = new HashMap<>();
 
 		if (params.getVariables() != null) {
 			for (Entry<QName, Object> entry : params.getVariables().entrySet()) {
@@ -984,9 +984,11 @@ public class ExpressionUtil {
 		}
 	}
 
-	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(ExpressionType conditionExpressionType, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		PrismPropertyDefinition<Boolean> conditionOutputDef = new PrismPropertyDefinitionImpl<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		return expressionFactory.makeExpression(conditionExpressionType, conditionOutputDef, shortDesc, task, result);
+	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(
+			ExpressionType conditionExpressionType,
+			ExpressionFactory expressionFactory,
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		return expressionFactory.makeExpression(conditionExpressionType, createConditionOutputDefinition(expressionFactory.getPrismContext()), shortDesc, task, result);
 	}
 
 	public static Function<Object, Object> createRefConvertor(QName defaultType) {
@@ -1008,5 +1010,9 @@ public class ExpressionUtil {
 				return o;		// let someone else complain at this
 			}
 		};
+	}
+	
+	public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
+		return new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
 	}
 }

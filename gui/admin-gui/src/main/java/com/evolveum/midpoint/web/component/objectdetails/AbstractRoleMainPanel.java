@@ -16,13 +16,8 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
-import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -32,8 +27,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -42,23 +35,16 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -220,6 +206,18 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL);
+		tabs.add(
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"), authorization) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public WebMarkupContainer createPanel(String panelId) {
+						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+					}
+				});
+
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL);
 		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
@@ -228,7 +226,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new AbstractRoleInducementPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
 
 			@Override
@@ -245,7 +243,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new InducedEntitlementsTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
 
 			@Override
@@ -302,7 +300,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
 
 	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
-		return new FocusPolicyRulesTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 	}
 
 	private String getInducementsCount(){
@@ -322,10 +320,19 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 			int count = 0;
 			for (AssignmentType inducement : inducements){
-				if (inducement.getConstruction() != null && inducement.getConstruction().getAssociation() != null){
-					count++;
+				if (inducement.getConstruction() == null){
+					continue;
 				}
-			};
+				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
+					continue;
+				}
+				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
+					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
+							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
+						count++;
+					}
+				}
+			}
 			return Integer.toString(count);
 	}
 }

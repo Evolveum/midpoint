@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -45,10 +42,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +52,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
@@ -91,32 +85,87 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 			return null;
 		}
 
+		List<OrderConstraintsType> sourceOrderConstraints = defaultIfEmpty(constraint.getValue().getOrderConstraint());
+		List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
+		if (ctx.policyRule.isGlobal()) {
+			if (!pathMatches(ctx.policyRule.getAssignmentPath(), sourceOrderConstraints)) {
+				System.out.println("[global] Source assignment path does not match: " + ctx.policyRule.getAssignmentPath());
+				return null;
+			}
+		} else {
+			// It is not clear how to match orderConstraint with assignment path of the constraint.
+			// Let us try the following test: we consider it matching if there's at least one segment
+			// on the path that matches the constraint.
+			boolean found = ctx.policyRule.getAssignmentPath().getSegments().stream()
+					.anyMatch(segment -> segment.matches(sourceOrderConstraints));
+			if (!found) {
+//				System.out.println("Source assignment path does not match: constraints=" + sourceOrderConstraints + ", whole path=" + ctx.policyRule.getAssignmentPath());
+				return null;
+			}
+		}
+
 		// We consider all policy rules, i.e. also from induced targets. (It is not possible to collect local
 		// rules for individual targets in the chain - rules are computed only for directly evaluated assignments.)
 
-		// In order to avoid false positives, we consider all targets from the current assignment as "allowed"
-		Set<String> allowedTargetOids = ctx.evaluatedAssignment.getNonNegativeTargets().stream()
-				.filter(t -> t.appliesToFocus())
-				.map(t -> t.getOid())
-				.collect(Collectors.toSet());
+//		// In order to avoid false positives, we consider all targets from the current assignment as "allowed"
+//		Set<String> allowedTargetOids = ctx.evaluatedAssignment.getNonNegativeTargets().stream()
+//				.filter(t -> t.appliesToFocus())
+//				.map(t -> t.getOid())
+//				.collect(Collectors.toSet());
+
+		List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
 
 		for (EvaluatedAssignmentImpl<F> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) {
-			for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegativeTargets()) {
-				if (!targetB.appliesToFocus() || allowedTargetOids.contains(targetB.getOid())) {
+			if (assignmentB.equals(ctx.evaluatedAssignment)) {      // TODO (value instead of reference equality?)
+				continue;
+			}
+targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegativeTargets()) {
+				if (!pathMatches(targetB.getAssignmentPath(), targetOrderConstraints)) {
+//					System.out.println("Target assignment path does not match: constraints=" + targetOrderConstraints + ", whole path=" + targetB.getAssignmentPath());
 					continue;
 				}
-				if (matches(constraint.getValue().getTargetRef(), targetB, prismContext, matchingRuleRegistry, "exclusion constraint")) {
-					return createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint.getValue(), ctx.policyRule, ctx, result);
+				if (!oidMatches(constraint.getValue().getTargetRef(), targetB, prismContext, matchingRuleRegistry, "exclusion constraint")) {
+					continue;
 				}
+				// To avoid false positives let us check if this target is not already covered by assignment being evaluated
+				// (is this really needed?)
+				for (EvaluatedAssignmentTargetImpl targetA : nonNegativeTargetsA) {
+					if (targetA.appliesToFocusWithAnyRelation()
+							&& targetA.getOid() != null && targetA.getOid().equals(targetB.getOid())
+							&& targetA.getAssignmentPath().equivalent(targetB.getAssignmentPath())) {
+						continue targetB;
+					}
+				}
+				return createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
 			}
 		}
 		return null;
 	}
 
-	static boolean matches(ObjectReferenceType targetRef, EvaluatedAssignmentTargetImpl assignmentTarget,
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean pathMatches(AssignmentPath assignmentPath, List<OrderConstraintsType> definedOrderConstraints) {
+		if (assignmentPath == null) {
+			throw new IllegalStateException("Check this. Assignment path is null.");
+		}
+		if (assignmentPath.isEmpty()) {
+			throw new IllegalStateException("Check this. Assignment path is empty.");
+		}
+		return assignmentPath.matches(definedOrderConstraints);
+	}
+
+	@NotNull
+	private List<OrderConstraintsType> defaultIfEmpty(List<OrderConstraintsType> definedOrderConstraints) {
+		return !definedOrderConstraints.isEmpty() ? definedOrderConstraints : defaultOrderConstraints();
+	}
+
+	private List<OrderConstraintsType> defaultOrderConstraints() {
+		return Collections.singletonList(new OrderConstraintsType(prismContext).order(1));
+	}
+
+	static boolean oidMatches(ObjectReferenceType targetRef, EvaluatedAssignmentTargetImpl assignmentTarget,
 			PrismContext prismContext, MatchingRuleRegistry matchingRuleRegistry, String context) throws SchemaException {
 		if (targetRef == null) {
-			throw new SchemaException("No targetRef in " + context);
+			return true;                        // this means we rely on comparing relations
 		}
 		if (assignmentTarget.getOid() == null) {
 			return false;		// shouldn't occur
@@ -142,7 +191,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
 	private <F extends FocusType> EvaluatedExclusionTrigger createTrigger(EvaluatedAssignmentImpl<F> assignmentA,
 			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl targetB,
-			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule,
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, EvaluatedPolicyRule policyRule,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -153,31 +202,31 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
 		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 
-		LocalizableMessage message = createMessage(infoA, infoB, constraint, ctx, result);
-		LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraint, ctx, result);
-		return new EvaluatedExclusionTrigger(constraint, message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
+		LocalizableMessage message = createMessage(infoA, infoB, constraintElement, ctx, result);
+		LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraintElement, ctx, result);
+		return new EvaluatedExclusionTrigger(constraintElement.getValue(), message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createShortMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
 	}
 
 	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {

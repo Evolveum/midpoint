@@ -259,7 +259,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition<String> attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		ResourceAttribute<String> attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue<String>("uid=" + name + ",ou=people,dc=example,dc=com"));
+		attribute.setValue(new PrismPropertyValue<>("uid=" + name + ",ou=people,dc=example,dc=com"));
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
@@ -282,7 +282,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
-		Set<Operation> operation = new HashSet<Operation>();
+		Set<Operation> operation = new HashSet<>();
 		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, operation, null, result);
 		Collection<ResourceAttribute<?>> resourceAttributes = ret.getReturnValue();
 		return resourceAttributes;
@@ -317,7 +317,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 
-		cc.deleteObject(accountDefinition, null, identifiers, null, result);
+		cc.deleteObject(accountDefinition, null, null, identifiers, null, result);
 
 		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
 				accountDefinition, identifiers);
@@ -341,7 +341,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
-		Set<Operation> changes = new HashSet<Operation>();
+		Set<Operation> changes = new HashSet<>();
 
 		changes.add(createAddAttributeChange("employeeNumber", "123123123"));
 		changes.add(createReplaceAttributeChange("sn", "Smith007"));
@@ -350,7 +350,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 
-		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
+		cc.modifyObject(accountDefinition, null, identifiers, changes, null, result);
 
 		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
 				accountDefinition, identifiers);
@@ -450,7 +450,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PropertyDelta<ActivationStatusType> delta = PropertyDelta.createDelta(
 				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 				shadowDefinition);
-		delta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(status));
+		delta.setValueToReplace(new PrismPropertyValue<>(status));
 		return new PropertyModificationOperation(delta);
 	}
 
@@ -663,7 +663,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
 
-		Set<Operation> additionalOperations = new HashSet<Operation>();
+		Set<Operation> additionalOperations = new HashSet<>();
 		ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
 
 //		PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
@@ -727,7 +727,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		// WHEN
 
-		Set<Operation> changes = new HashSet<Operation>();
+		Set<Operation> changes = new HashSet<>();
 		ProtectedStringType passPs = protector.encryptString("salalala");
 
 		ItemDeltaType propMod = new ItemDeltaType();
@@ -751,7 +751,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 //		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
 //		changes.add(passwordChange);
-		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
+		cc.modifyObject(accountDefinition, null, identifiers, changes, null, result);
 
 		// THEN
 

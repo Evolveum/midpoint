@@ -48,7 +48,7 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 
 	public List<ExecuteScriptArgument> getArgument() {
 		if (argument == null){
-			argument = new ArrayList<ExecuteScriptArgument>();
+			argument = new ArrayList<>();
 		}
 		return argument;
 	}

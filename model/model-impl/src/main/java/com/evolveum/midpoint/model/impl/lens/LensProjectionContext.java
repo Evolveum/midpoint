@@ -267,6 +267,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	}
 
 	@Override
+	public void deleteSecondaryDeltas() {
+		secondaryDelta = null;
+	}
+
+	@Override
 	public void setOid(String oid) {
 		super.setOid(oid);
 		if (secondaryDelta != null) {
@@ -680,7 +685,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceObjectTypeDefinitionType();
 			if (resourceAccountTypeDefinitionType == null) {
 				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
-				dependencies = new ArrayList<ResourceObjectTypeDependencyType>();
+				dependencies = new ArrayList<>();
 			} else {
 				dependencies = resourceAccountTypeDefinitionType.getDependency();
 			}
@@ -759,7 +764,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (objectToAdd != null) {
                 PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                base = new PrismObject<ShadowType>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
+                base = new PrismObject<>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
                 base = syncDelta.computeChangedObject(base);
             }
         }
@@ -859,8 +864,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			origDelta = getDelta();
             if (origDelta == null || origDelta.isModify()) {
             	// We need to convert modify delta to ADD
-            	ObjectDelta<ShadowType> addDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),
-                		ChangeType.ADD, getPrismContext());
+            	ObjectDelta<ShadowType> addDelta = new ObjectDelta<>(getObjectTypeClass(),
+                    ChangeType.ADD, getPrismContext());
                 RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
 
                 if (rObjectClassDef == null) {
@@ -878,8 +883,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             // Any delta is OK
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-        	ObjectDelta<ShadowType> deleteDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),
-            		ChangeType.DELETE, getPrismContext());
+        	ObjectDelta<ShadowType> deleteDelta = new ObjectDelta<>(getObjectTypeClass(),
+                ChangeType.DELETE, getPrismContext());
             String oid = getOid();
             if (oid == null) {
             	throw new IllegalStateException(
@@ -1064,7 +1069,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return null;
 		}
 		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap
-		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>>();
+		= new HashMap<>();
 		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
 			@Override
 			public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -91,8 +90,8 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AsIsExpressionEvaluatorType)) {
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        return new AsIsExpressionEvaluator<V,D>((AsIsExpressionEvaluatorType)evaluatorTypeObject,
-        		outputDefinition, protector, prismContext);
+        return new AsIsExpressionEvaluator<>((AsIsExpressionEvaluatorType) evaluatorTypeObject,
+            outputDefinition, protector, prismContext);
 	}
 
 }

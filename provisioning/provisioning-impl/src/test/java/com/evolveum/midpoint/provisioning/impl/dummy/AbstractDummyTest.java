@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,8 +30,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.AssertJUnit;
-import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -42,8 +38,6 @@ import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -54,36 +48,21 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ResourceManager;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
  * @author semancik
@@ -104,6 +83,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	protected static final String ACCOUNT_WILL_USERNAME = "Will";
+	protected static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
+	protected static final String ACCOUNT_WILL_PASSWORD_NEW = "3lizab3th123";
 	protected static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
 
 	protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
@@ -119,6 +100,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
 
 	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
 	protected static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
@@ -159,26 +141,18 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected ResourceType resourceType;
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
-
-	// Testing connector discovery
-	@Autowired(required = true)
-	protected ConnectorManager connectorManager;
-
-	// Used to make sure that the connector is cached
-	@Autowired(required = true)
-	protected ResourceManager resourceManager;
+	
+	protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
 	@Autowired(required = true)
 	protected ProvisioningContextFactory provisioningContextFactory;
 
-	// Values used to check if something is unchanged or changed properly
-	private Long lastResourceVersion = null;
-	private ConnectorInstance lastConfiguredConnectorInstance;
-	private CachingMetadataType lastCachingMetadata;
-	private ResourceSchema lastResourceSchema = null;
-	private RefinedResourceSchema lastRefinedResourceSchema;
-
 	protected String daemonIcfUid;
+	
+	@Override
+	protected PrismObject<ResourceType> getResource() {
+		return resource;
+	}
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -419,137 +393,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
 	protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
 		assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
-	}
-
-	protected <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
-		assertEquals("Wrong version of "+object, expectedVersion, object.asObjectable().getVersion());
-	}
-
-	protected void rememberResourceVersion(String version) {
-		lastResourceVersion = parseVersion(version);
-	}
-
-	protected void assertResourceVersionIncrement(PrismObject<ResourceType> resource, int expectedIncrement) {
-		assertResourceVersionIncrement(resource.getVersion(), expectedIncrement);
-	}
-
-	protected void assertResourceVersionIncrement(String currentVersion, int expectedIncrement) {
-		long currentVersionLong = parseVersion(currentVersion);
-		long actualIncrement = currentVersionLong - lastResourceVersion;
-		assertEquals("Unexpected increment in resource version", (long)expectedIncrement, actualIncrement);
-		lastResourceVersion = currentVersionLong;
-	}
-
-	private long parseVersion(String stringVersion) {
-		if (stringVersion == null) {
-			AssertJUnit.fail("Version is null");
-		}
-		if (stringVersion.isEmpty()) {
-			AssertJUnit.fail("Version is empty");
-		}
-		return Long.parseLong(stringVersion);
-	}
-
-	protected CachingMetadataType getSchemaCachingMetadata(PrismObject<ResourceType> resource) {
-		ResourceType resourceType = resource.asObjectable();
-		XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
-		assertNotNull("No schema", xmlSchemaTypeAfter);
-		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
-		assertNotNull("No schema XSD element", resourceXsdSchemaElementAfter);
-		return xmlSchemaTypeAfter.getCachingMetadata();
-	}
-
-	protected void rememberSchemaMetadata(PrismObject<ResourceType> resource) {
-		lastCachingMetadata = getSchemaCachingMetadata(resource);
-	}
-
-	protected void assertSchemaMetadataUnchanged(PrismObject<ResourceType> resource) {
-		CachingMetadataType current = getSchemaCachingMetadata(resource);
-		assertEquals("Schema caching metadata changed", lastCachingMetadata, current);
-	}
-
-	protected void rememberResourceSchema(ResourceSchema resourceSchema) {
-		lastResourceSchema = resourceSchema;
-	}
-
-	protected void assertResourceSchemaUnchanged(ResourceSchema currentResourceSchema) {
-		// We really want == there. We want to make sure that this is actually the same instance and that
-		// it was properly cached
-		assertTrue("Resource schema has changed", lastResourceSchema == currentResourceSchema);
-	}
-
-	protected void rememberRefinedResourceSchema(RefinedResourceSchema rResourceSchema) {
-		lastRefinedResourceSchema = rResourceSchema;
-	}
-
-	protected void assertRefinedResourceSchemaUnchanged(RefinedResourceSchema currentRefinedResourceSchema) {
-		// We really want == there. We want to make sure that this is actually the same instance and that
-		// it was properly cached
-		assertTrue("Refined resource schema has changed", lastRefinedResourceSchema == currentRefinedResourceSchema);
-	}
-
-	protected void assertHasSchema(PrismObject<ResourceType> resource, String desc) throws SchemaException {
-		ResourceType resourceType = resource.asObjectable();
-		display("Resource "+desc, resourceType);
-
-		XmlSchemaType xmlSchemaTypeAfter = resourceType.getSchema();
-		assertNotNull("No schema in "+desc, xmlSchemaTypeAfter);
-		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
-		assertNotNull("No schema XSD element in "+desc, resourceXsdSchemaElementAfter);
-
-		String resourceXml = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
-//		display("Resource XML", resourceXml);
-
-		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
-		assertNotNull("No caching metadata in "+desc, cachingMetadata);
-		assertNotNull("No retrievalTimestamp in "+desc, cachingMetadata.getRetrievalTimestamp());
-		assertNotNull("No serialNumber in "+desc, cachingMetadata.getSerialNumber());
-
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resource.toString(), prismContext);
-		assertNotNull("No schema after parsing in "+desc, parsedSchema);
-	}
-
-	protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-				+ ".rememberConnectorInstance");
-		rememberConnectorInstance(resourceManager.getConfiguredConnectorInstance(resource, ReadCapabilityType.class, false, result));
-	}
-
-	protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		lastConfiguredConnectorInstance = currentConnectorInstance;
-	}
-
-	protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-				+ ".rememberConnectorInstance");
-		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-				resource, ReadCapabilityType.class, false, result);
-		assertTrue("Connector instance has changed", lastConfiguredConnectorInstance == currentConfiguredConnectorInstance);
-	}
-
-	protected void assertConnectorInstanceChanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-				+ ".rememberConnectorInstance");
-		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-				resource, ReadCapabilityType.class, false, result);
-		assertTrue("Connector instance has NOT changed", lastConfiguredConnectorInstance != currentConfiguredConnectorInstance);
-		lastConfiguredConnectorInstance = currentConfiguredConnectorInstance;
-	}
-
-	protected void assertSteadyResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
-		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		assertResourceVersionIncrement(resource, 0);
-		assertSchemaMetadataUnchanged(resource);
-		assertConnectorInstanceUnchanged(resource);
-
-		display("Resource cache", InternalMonitor.getResourceCacheStats());
-		// We do not assert hits, there may be a lot of them
-		assertResourceCacheMissesIncrement(0);
 	}
 
 }

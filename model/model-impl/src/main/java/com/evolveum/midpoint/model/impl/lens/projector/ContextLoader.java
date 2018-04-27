@@ -21,8 +21,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -36,8 +34,10 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -94,7 +94,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ContextLoader {
 
-	@Autowired(required = true)
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
@@ -102,6 +102,7 @@ public class ContextLoader {
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private SecurityHelper securityHelper;
+	@Autowired private ClockworkMedic medic;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 
@@ -175,7 +176,7 @@ public class ContextLoader {
         	fullCheckConsistence(context);
         }
 
-        LensUtil.traceContext(LOGGER, activityDescription, "after load", false, context, false);
+        medic.traceContext(LOGGER, activityDescription, "after load", false, context, false);
 	}
 
 
@@ -389,11 +390,12 @@ public class ContextLoader {
         if (context.getFocusContext() != null) {
         	PrismObject<F> object = context.getFocusContext().getObjectAny();
             if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
-                List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
 				ObjectPolicyConfigurationType policyConfigurationType =
-                        ModelUtils.determineObjectPolicyConfiguration(context.getFocusContext().getObjectTypeClass(), subTypes,
-                        		systemConfigurationType);
-				LOGGER.trace("Selected policy configuration: {}", policyConfigurationType);
+                        ModelUtils.determineObjectPolicyConfiguration(object, systemConfigurationType);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
+							FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+				}
                 context.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
             }
         }
@@ -841,7 +843,7 @@ public class ContextLoader {
 					GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
 					rootOpt.setDoNotDiscovery(true);
 					Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(rootOpt);
-					LOGGER.trace("Projection conflict detected, exsting: {}, new {}", projectionContext.getOid(), projection.getOid());
+					LOGGER.trace("Projection conflict detected, existing: {}, new {}", projectionContext.getOid(), projection.getOid());
 					PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, projectionContext.getOid(), opts, task, result);
 					// Maybe it is the other way around
 					try {

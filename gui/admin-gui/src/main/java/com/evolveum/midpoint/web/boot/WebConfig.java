@@ -16,12 +16,13 @@
 
 package com.evolveum.midpoint.web.boot;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -43,4 +44,5 @@ public class WebConfig {
     public AsyncWebProcessManager asyncWebProcessManager() {
         return new AsyncWebProcessManagerImpl();
     }
+    
 }

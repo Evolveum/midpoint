@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
@@ -56,7 +57,7 @@ public class RepositoryObjectDataProvider
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
     private Class<? extends ObjectType> type;
 
-    private Map<String, ResourceDescription> resourceCache = new HashMap<String, ResourceDescription>();
+    private Map<String, ResourceDescription> resourceCache = new HashMap<>();
 
     public RepositoryObjectDataProvider(Component component, Class<? extends ObjectType> type) {
         super(component, true);
@@ -78,12 +79,7 @@ public class RepositoryObjectDataProvider
 			}
 			query.setPaging(paging);
 
-            //RAW and DEFAULT retrieve option selected
-            Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
-            GetOperationOptions opt = GetOperationOptions.createRaw();
-            opt.setRetrieve(RetrieveOption.DEFAULT);
-            options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-
+            Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
             List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query, options,
                     getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
@@ -99,6 +95,20 @@ public class RepositoryObjectDataProvider
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
+    }
+
+    @NotNull
+    private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
+        GetOperationOptions opt = GetOperationOptions.createRaw();
+        opt.setRetrieve(RetrieveOption.DEFAULT);
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
+        return GetOperationOptions.merge(createDefaultOptions(), options);
+    }
+
+    @Override
+    protected boolean checkOrderingSettings() {
+        return true;
     }
 
     private DebugObjectItem createItem(PrismObject<? extends ObjectType> object, OperationResult result) {
@@ -166,16 +176,14 @@ public class RepositoryObjectDataProvider
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            count = getModel().countObjects(type, getQuery(),
-                    SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()),
+            count = getModel().countObjects(type, getQuery(), getOptions(),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
-
-            getPage().showResult(result, false);
+        getPage().showResult(result, false);
         LOGGER.trace("end::internalSize()");
         return count;
     }

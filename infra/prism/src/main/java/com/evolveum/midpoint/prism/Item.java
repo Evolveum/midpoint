@@ -358,7 +358,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
 
     public Collection<V> getClonedValues() {
-    	Collection<V> clonedValues = new ArrayList<V>(getValues().size());
+    	Collection<V> clonedValues = new ArrayList<>(getValues().size());
     	for (V val: getValues()) {
     		clonedValues.add((V)val.clone());
     	}
@@ -371,6 +371,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     public boolean containsEquivalentValue(V value) {
     	return contains(value, true);
+    }
+    
+    public boolean containsEquivalentValue(V value, Comparator<V> comparator) {
+    	return contains(value, true, comparator);
     }
 
     public boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator) {
@@ -544,17 +548,23 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     		boolean ignoreMetadata, boolean isLiteral) {
     	ItemDelta delta = createDelta();
     	if (other == null) {
+    		if (delta.getDefinition() == null && this.getDefinition() != null) {
+    			delta.setDefinition(this.getDefinition().clone());
+    		}
     		//other doesn't exist, so delta means delete all values
             for (PrismValue value : getValues()) {
             	PrismValue valueClone = value.clone();
                 delta.addValueToDelete(valueClone);
             }
     	} else {
+    		if (delta.getDefinition() == null && other.getDefinition() != null) {
+    			delta.setDefinition(other.getDefinition().clone());
+		    }
     		// the other exists, this means that we need to compare the values one by one
-    		Collection<PrismValue> outstandingOtheValues = new ArrayList<PrismValue>(other.getValues().size());
-    		outstandingOtheValues.addAll(other.getValues());
+    		Collection<PrismValue> outstandingOtherValues = new ArrayList<>(other.getValues().size());
+    		outstandingOtherValues.addAll(other.getValues());
     		for (PrismValue thisValue : getValues()) {
-    			Iterator<PrismValue> iterator = outstandingOtheValues.iterator();
+    			Iterator<PrismValue> iterator = outstandingOtherValues.iterator();
     			boolean found = false;
     			while (iterator.hasNext()) {
     				PrismValue otherValue = iterator.next();
@@ -581,9 +591,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 					delta.addValueToDelete(thisValue.clone());
 				}
             }
-    		// outstandingOtheValues are those values that the other has and we could not
+    		// outstandingOtherValues are those values that the other has and we could not
     		// match them to any of our values. These must be new values to add
-    		for (PrismValue outstandingOtherValue : outstandingOtheValues) {
+    		for (PrismValue outstandingOtherValue : outstandingOtherValues) {
     			delta.addValueToAdd(outstandingOtherValue.clone());
             }
     		// Some deltas may need to be polished a bit. E.g. transforming
@@ -625,6 +635,17 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		} else {
 			visitor.visit(this);
 		}
+	}
+	
+	/**
+	 * Re-apply PolyString (and possible other) normalizations to the object.
+	 */
+	public void recomputeAllValues() {
+		accept(visitable -> {
+			if (visitable instanceof PrismPropertyValue<?>) {
+				((PrismPropertyValue<?>)visitable).recompute(getPrismContext());
+			}
+		});
 	}
 
 	public void filterValues(Function<V, Boolean> function) {
@@ -668,9 +689,18 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 	}
 
+    /**
+     * Literal clone.
+     */
     public abstract Item clone();
 
-    protected void copyValues(Item clone) {
+    /**
+     * Complex clone with different cloning strategies.
+     * @see CloneStrategy
+     */
+    public abstract Item cloneComplex(CloneStrategy strategy);
+    
+    protected void copyValues(CloneStrategy strategy, Item clone) {
         clone.elementName = this.elementName;
         clone.definition = this.definition;
         clone.prismContext = this.prismContext;
@@ -687,7 +717,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
 
 	public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
-    	Collection<T> clones = new ArrayList<T>(items.size());
+    	Collection<T> clones = new ArrayList<>(items.size());
     	for (T item: items) {
     		clones.add((T)item.clone());
     	}

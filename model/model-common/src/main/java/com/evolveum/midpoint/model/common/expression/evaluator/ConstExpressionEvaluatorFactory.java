@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -93,7 +92,7 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
 
-		return new ConstExpressionEvaluator<V,D>((ConstExpressionEvaluatorType)evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
+		return new ConstExpressionEvaluator<>((ConstExpressionEvaluatorType) evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
 	}
 
 }

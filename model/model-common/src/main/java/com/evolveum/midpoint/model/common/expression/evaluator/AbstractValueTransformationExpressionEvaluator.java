@@ -138,7 +138,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	private List<SourceTriple<?,?>> processSources(Collection<Source<?,?>> sources, Boolean includeNulls,
 			ExpressionEvaluationContext params) {
 		List<SourceTriple<?,?>> sourceTriples =
-			new ArrayList<SourceTriple<?,?>>(sources == null ? 0 : sources.size());
+            new ArrayList<>(sources == null ? 0 : sources.size());
 		if (sources == null) {
 			return sourceTriples;
 		}
@@ -207,7 +207,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		} else {
 			// No need to execute twice. There is no change.
 			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
-			outputTriple = new PrismValueDeltaSetTriple<V>();
+			outputTriple = new PrismValueDeltaSetTriple<>();
 			outputTriple.addAllToZeroSet(outputSetNew);
 		}
 
@@ -283,7 +283,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			return null;
 		}
 
-		Collection<V> outputSet = new ArrayList<V>(scriptResults.size());
+		Collection<V> outputSet = new ArrayList<>(scriptResults.size());
 		for (V pval: scriptResults) {
 			if (pval instanceof PrismPropertyValue<?>) {
 				if (((PrismPropertyValue<?>) pval).getValue() == null) {

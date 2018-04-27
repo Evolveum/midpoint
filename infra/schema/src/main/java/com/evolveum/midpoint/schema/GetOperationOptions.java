@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -33,7 +35,7 @@ import java.util.Objects;
  * @author semancik
  *
  */
-public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable {
+public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable, ShortDumpable {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -162,6 +164,21 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * Whether to override default iteration method (in searchObjectsIterative) configured for particular DBMS.
 	 */
 	private IterationMethodType iterationMethod;
+	
+	/**
+	 * Whether this operation is already part of the execution phase. I.e. the request authorization was already
+	 * processed. This means that the operation is in fact operation invoked within another operation,
+	 * e.g. invoked from script or expression evaluator.
+	 * 
+	 * WARNING: THIS OPTION MUST NOT BE AVAILABLE FROM REMOTE INTERFACES.
+	 * This is safe to use from a secure area of JVM, where the components can trick model to circumvent
+	 * authorizations anyway. But it must not be available outside of the secure area.
+	 */
+	private Boolean executionPhase;
+
+	/*
+	 *  !!! After adding option here don't forget to update equals, clone, merge, etc. !!!
+	 */
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -685,13 +702,37 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.attachDiagData;
 	}
-
+	
 	/**
 	 * Whether to attach diagnostics data to the returned object(s).
 	 */
 	public static GetOperationOptions createAttachDiagData() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setAttachDiagData(true);
+		return opts;
+	}
+	
+	public Boolean getExecutionPhase() {
+		return executionPhase;
+	}
+
+	public void setExecutionPhase(Boolean executionPhase) {
+		this.executionPhase = executionPhase;
+	}
+	
+	public static boolean isExecutionPhase(GetOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.executionPhase == null) {
+			return false;
+		}
+		return options.executionPhase;
+	}
+
+	public static GetOperationOptions createExecutionPhase() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setExecutionPhase(true);
 		return opts;
 	}
 
@@ -764,14 +805,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 				Objects.equals(readOnly, that.readOnly) &&
 				Objects.equals(pointInTimeType, that.pointInTimeType) &&
 				Objects.equals(staleness, that.staleness) &&
-				Objects.equals(distinct, that.distinct);
+				Objects.equals(attachDiagData, that.attachDiagData) &&
+				Objects.equals(executionPhase, that.executionPhase);
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects
 				.hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery, relationalValueSearchQuery,
-						allowNotFound, readOnly, staleness, distinct);
+						allowNotFound, readOnly, staleness, distinct, definitionProcessing, attachDiagData, executionPhase);
 	}
 
 	public GetOperationOptions clone() {
@@ -787,15 +829,25 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         clone.pointInTimeType = this.pointInTimeType;
         clone.staleness = this.staleness;
         clone.distinct = this.distinct;
+        clone.attachDiagData = this.attachDiagData;
+        clone.executionPhase = this.executionPhase;
         if (this.relationalValueSearchQuery != null) {
         	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
         }
+        clone.definitionProcessing = this.definitionProcessing;
         return clone;
     }
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("GetOperationOptions(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
 		appendFlag(sb, "resolve", resolve);
 		appendFlag(sb, "resolveNames", resolveNames);
 		appendFlag(sb, "noFetch", noFetch);
@@ -808,18 +860,22 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		appendVal(sb, "staleness", staleness);
 		appendVal(sb, "distinct", distinct);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
+		appendVal(sb, "definitionProcessing", definitionProcessing);
+		appendFlag(sb, "attachDiagData", attachDiagData);
+		appendFlag(sb, "executionPhase", executionPhase);
 		removeLastComma(sb);
-		sb.append(")");
-		return sb.toString();
 	}
 
 
-	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude) {
+	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude, DefinitionProcessingOption definitionProcessing) {
 		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
+			if (definitionProcessing != null) {
+				return SelectorOptions.createCollection(GetOperationOptions.createDefinitionProcessing(definitionProcessing));
+			}
 			return null;
 		}
 		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>();
-		GetOperationOptions rootOptions = fromRestOptions(options);
+		GetOperationOptions rootOptions = fromRestOptions(options, definitionProcessing);
 		if (rootOptions != null) {
 			rv.add(SelectorOptions.create(rootOptions));
 		}
@@ -829,11 +885,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		for (ItemPath excludePath : ItemPath.fromStringList(exclude)) {
 			rv.add(SelectorOptions.create(excludePath, GetOperationOptions.createDontRetrieve()));
 		}
+		// Do NOT set executionPhase here!
 		return rv;
 	}
 
-	public static GetOperationOptions fromRestOptions(List<String> options) {
+	public static GetOperationOptions fromRestOptions(List<String> options, DefinitionProcessingOption definitionProcessing) {
 		if (options == null || options.isEmpty()){
+			if (definitionProcessing != null) {
+				return GetOperationOptions.createDefinitionProcessing(definitionProcessing);
+			}
 			return null;
 		}
 
@@ -851,10 +911,92 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 			if (GetOperationOptionsType.F_RESOLVE_NAMES.getLocalPart().equals(option)) {
 				rv.setResolveNames(true);
 			}
+			
+			// Do NOT set executionPhase here!
 		}
+		
+		rv.setDefinitionProcessing(definitionProcessing);
 
 		return rv;
 	}
 
 
+	@NotNull
+	@SafeVarargs
+	public static Collection<SelectorOptions<GetOperationOptions>> merge(Collection<SelectorOptions<GetOperationOptions>>... parts) {
+		Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
+		for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
+			for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {
+				if (increment != null) {        // should always be so
+					Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(merged, increment.getItemPath());
+					if (existing.isEmpty()) {
+						merged.add(increment);
+					} else if (existing.size() == 1) {
+						existing.iterator().next().merge(increment.getOptions());
+					} else {
+						throw new AssertionError("More than one options for path: " + increment.getItemPath());
+					}
+				}
+			}
+		}
+		return merged;
+	}
+
+	@SuppressWarnings("ConstantConditions")
+	private void merge(GetOperationOptions increment) {
+		if (increment == null) {
+			return;
+		}
+		if (increment.retrieve != null) {
+			this.retrieve = increment.retrieve;
+		}
+		if (increment.resolve != null) {
+			this.resolve = increment.resolve;
+		}
+		if (increment.resolveNames != null) {
+			this.resolveNames = increment.resolveNames;
+		}
+		if (increment.noFetch != null) {
+			this.noFetch = increment.noFetch;
+		}
+		if (increment.raw != null) {
+			this.raw = increment.raw;
+		}
+		if (increment.tolerateRawData != null) {
+			this.tolerateRawData = increment.tolerateRawData;
+		}
+		if (increment.doNotDiscovery != null) {
+			this.doNotDiscovery = increment.doNotDiscovery;
+		}
+		if (increment.relationalValueSearchQuery != null) {
+			this.relationalValueSearchQuery = increment.relationalValueSearchQuery;
+		}
+		if (increment.allowNotFound != null) {
+			this.allowNotFound = increment.allowNotFound;
+		}
+		if (increment.readOnly != null) {
+			this.readOnly = increment.readOnly;
+		}
+		if (increment.pointInTimeType != null) {
+			this.pointInTimeType = increment.pointInTimeType;
+		}
+		if (increment.staleness != null) {
+			this.staleness = increment.staleness;
+		}
+		if (increment.distinct != null) {
+			this.distinct = increment.distinct;
+		}
+		if (increment.attachDiagData != null) {
+			this.attachDiagData = increment.attachDiagData;
+		}
+		if (increment.definitionProcessing != null) {
+			this.definitionProcessing = increment.definitionProcessing;
+		}
+		if (increment.iterationMethod != null) {
+			this.iterationMethod = increment.iterationMethod;
+		}
+		if (increment.executionPhase != null) {
+			this.executionPhase = increment.executionPhase;
+		}
+	}
 }

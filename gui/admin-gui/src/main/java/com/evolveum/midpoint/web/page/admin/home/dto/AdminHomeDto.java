@@ -32,35 +32,35 @@ public class AdminHomeDto implements Serializable {
 
     public List<SimpleAssignmentDto> getOrgAssignments() {
         if (orgAssignments == null) {
-            orgAssignments = new ArrayList<SimpleAssignmentDto>();
+            orgAssignments = new ArrayList<>();
         }
         return orgAssignments;
     }
 
     public List<SimpleAccountDto> getAccounts() {
         if (accounts == null) {
-            accounts = new ArrayList<SimpleAccountDto>();
+            accounts = new ArrayList<>();
         }
         return accounts;
     }
 
     public List<SimpleAssignmentDto> getAssignments() {
         if (assignments == null) {
-            assignments = new ArrayList<SimpleAssignmentDto>();
+            assignments = new ArrayList<>();
         }
         return assignments;
     }
 
     public List<String> getResources() {
         if (resources == null) {
-            resources = new ArrayList<String>();
+            resources = new ArrayList<>();
         }
         return resources;
     }
 
     public List<WorkItemDto> getWorkItems() {
         if (workItems == null) {
-            workItems = new ArrayList<WorkItemDto>();
+            workItems = new ArrayList<>();
         }
         return workItems;
     }

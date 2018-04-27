@@ -81,11 +81,11 @@ public class ROperationExecution implements Container<RObject<?>> {
         this.setOwner(owner);
     }
 
-    @Id
-    @org.hibernate.annotations.ForeignKey(name = "fk_op_exec_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @NotQueryable
+	@Id
+	@JoinColumn(foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
+	@MapsId("owner")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@NotQueryable
 	@Override
     public RObject<?> getOwner() {
         return owner;
@@ -191,12 +191,27 @@ public class ROperationExecution implements Container<RObject<?>> {
 	}
 
 	public static void copyFromJAXB(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-			ObjectType parent, RepositoryContext repositoryContext,
-			IdGeneratorResult generatorResult) throws DtoTranslationException {
+									RObject parent, RepositoryContext repositoryContext) throws DtoTranslationException {
 
-        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+		repo.setOwner(parent);
+		copyFromJAXB(jaxb, repo, repositoryContext, null);
+	}
 
-        repo.setOwnerOid(parent.getOid());
+	public static void copyFromJAXB(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+									ObjectType parent, RepositoryContext repositoryContext,
+									IdGeneratorResult generatorResult) throws DtoTranslationException {
+
+		repo.setOwnerOid(parent.getOid());
+		copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+	}
+
+	private static void copyFromJAXB(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+									 RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
+
+    	if (generatorResult != null) {
+			repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+		}
+
         repo.setId(RUtil.toInteger(jaxb.getId()));
 		repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.prismContext));
 		repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.prismContext));

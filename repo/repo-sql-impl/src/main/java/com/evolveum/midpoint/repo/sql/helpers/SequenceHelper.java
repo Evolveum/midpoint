@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,8 @@ public class SequenceHelper {
 
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = objectUpdater.createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator<SequenceType> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+            RObject rObject = objectUpdater.createDataObjectFromJAXB(prismObject, idGenerator);
             rObject.setVersion(rObject.getVersion() + 1);
 
             objectUpdater.updateFullObject(rObject, prismObject);
@@ -168,7 +169,8 @@ public class SequenceHelper {
 
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = objectUpdater.createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator<SequenceType> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+            RObject rObject = objectUpdater.createDataObjectFromJAXB(prismObject, idGenerator);
             rObject.setVersion(rObject.getVersion() + 1);
 
             objectUpdater.updateFullObject(rObject, prismObject);

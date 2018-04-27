@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum et al.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,16 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
  * @author katkav
  */
 public class UploadDownloadPanel extends InputPanel {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(UploadDownloadPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(UploadDownloadPanel.class);
 
     private static final String ID_BUTTON_DOWNLOAD = "download";
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
+    
+    private String downloadFileName = null;
+    private String downloadContentType = "text/plain";
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
@@ -53,50 +57,66 @@ public class UploadDownloadPanel extends InputPanel {
     private void initLayout(final boolean isReadOnly) {
         final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
         Form form = this.findParent(Form.class);
-        fileUpload.add(new AjaxFormSubmitBehavior(form, "change")
-        {
-            @Override
-            protected void onSubmit ( AjaxRequestTarget target )
-            {
+        fileUpload.add(new AjaxFormSubmitBehavior(form, "change") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            protected void onSubmit(AjaxRequestTarget target) {
                 super.onSubmit(target);
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }
 
             @Override
-            protected void onError (AjaxRequestTarget target){
+            protected void onError(AjaxRequestTarget target) {
                 super.onError(target);
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }
-        } );
+        });
+        fileUpload.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isVisible() {
+                return !isReadOnly;
+
+            }
+        });
         fileUpload.setOutputMarkupId(true);
         add(fileUpload);
 
         final AjaxDownloadBehaviorFromStream downloadBehavior = new AjaxDownloadBehaviorFromStream() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected InputStream initStream() {
 				return getStream();
 			}
 		};
+        downloadBehavior.setContentType(getDownloadContentType());
+        downloadBehavior.setFileName(getDownloadFileName());
 		add(downloadBehavior);
 
         add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 downloadPerformed(downloadBehavior, target);
             }
         });
 
         add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 removeFilePerformed(target);
             }
         });
 
-        add(new VisibleEnableBehaviour(){
+        add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public boolean isVisible() {
                 return !isReadOnly;
@@ -150,6 +170,14 @@ public class UploadDownloadPanel extends InputPanel {
 
     public InputStream getStream() {
     	return null;
+    }
+    
+    public String getDownloadFileName() {
+        return downloadFileName;
+    }
+
+    public String getDownloadContentType() {
+        return downloadContentType;
     }
 
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,

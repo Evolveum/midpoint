@@ -372,9 +372,10 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		task.setCategory(TaskCategory.WORKFLOW);
 
 		if (taskObject != null) {
-			task.setObjectRef(taskObject.getOid(), taskObject.getDefinition().getTypeName());
+			//noinspection unchecked
+			task.setObjectRef(ObjectTypeUtil.createObjectRef(taskObject));
 		} else if (parentTask != null && parentTask.getObjectRef() != null) {
-			task.setObjectRef(parentTask.getObjectRef());
+			task.setObjectRef(parentTask.getObjectRef().clone());
 		}
 		if (task.getName() == null || task.getName().toPolyString().isEmpty()) {
 			task.setName(taskName);
@@ -396,7 +397,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
 			} else {
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
-				task.makeWaiting();
+				task.makeWaiting(TaskWaitingReason.OTHER);
 			}
 		}
 

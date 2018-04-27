@@ -20,12 +20,12 @@
 
     <div wicket:id="assignments" class="main-form-panel">
         <div class="row">
-            <div class="col-xs-3">
+            <div wicket:id="relationContainer" class="col-xs-6">
                 <label class="col-xs-2 prism-property" ><wicket:message key="AbstractRoleAssignmentPanel.relationLabel" /></label>
-                <div class="col-xs-6" wicket:id="relation" />
+                <div class="col-xs-3" wicket:id="relation" />
             </div>
-            <div class="col-xs-2 pull-right">
-                <div class="btn btn-default" wicket:id="showAllAssignmentsButton" />
+            <div class="col-xs-3 pull-right">
+                <div class="btn btn-default pull-right" wicket:id="showAllAssignmentsButton" />
             </div>
         </div>
 

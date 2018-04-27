@@ -48,10 +48,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 @Component
 public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends AbstractScannerResultHandler<O>>
-		extends AbstractSearchIterativeTaskHandler<O,H> {
+		extends AbstractSearchIterativeModelTaskHandler<O,H> {
 
-    @Autowired(required = true)
-    protected Clock clock;
+    @Autowired protected Clock clock;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractScannerTaskHandler.class);
 
@@ -64,7 +63,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 			Task task, OperationResult opResult) {
 		boolean cont = super.initializeRun(handler, runResult, task, opResult);
 		if (!cont) {
-			return cont;
+			return false;
 		}
 
 		XMLGregorianCalendar lastScanTimestamp = null;
@@ -83,22 +82,29 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
 
-		PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
-				SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
-				DOMUtil.XSD_DATETIME, prismContext);
-		PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<XMLGregorianCalendar>(
-				new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME), lastScanTimestampDef, prismContext);
-		lastScanTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(handler.getThisScanTimestamp()));
-		task.modifyExtension(lastScanTimestampDelta);
+		if (task.canRun()) {
+			/*
+			 *  We want to update last scan timestamp only if the task has finished its current duties.
+			 *  Otherwise we might skip e.g. some triggers or validity boundaries - those that the task
+			 *  has not reached yet. They would be left unprocessed forever. See MID-4474.
+			 *
+			 *  Note this is not the whole solution. It is necessary to review AbstractSearchIterativeResultHandler.handle()
+			 *  and shouldStop() methods and use 'stop' flag at this place as well. Hopefully such stopping is (very probably)
+			 *  not requested by any scanner task handlers.
+			 */
+			PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
+					SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
+					DOMUtil.XSD_DATETIME, prismContext);
+			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<>(
+					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
+					lastScanTimestampDef, prismContext);
+			lastScanTimestampDelta.setValueToReplace(new PrismPropertyValue<>(handler.getThisScanTimestamp()));
+			task.modifyExtension(lastScanTimestampDelta);
+		}
 	}
 
 	@Override
     public String getCategoryName(Task task) {
         return TaskCategory.SYSTEM;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

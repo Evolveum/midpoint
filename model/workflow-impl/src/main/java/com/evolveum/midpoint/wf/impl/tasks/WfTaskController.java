@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.BooleanUtils;
@@ -61,6 +61,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
 
@@ -81,8 +82,8 @@ public class WfTaskController {
 
     private static final Object DOT_CLASS = WfTaskController.class.getName() + ".";
 
-    private Set<ProcessListener> processListeners = new HashSet<>();
-    private Set<WorkItemListener> workItemListeners = new HashSet<>();
+    private Set<ProcessListener> processListeners = ConcurrentHashMap.newKeySet();
+    private Set<WorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();
 
     @Autowired private WfTaskUtil wfTaskUtil;
     @Autowired private TaskManager taskManager;
@@ -116,9 +117,7 @@ public class WfTaskController {
 	 */
     public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType,
 			String channelOverride, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
-        }
+	    LOGGER.trace("Processing start instruction:\n{}", instruction.debugDumpLazily());
         Task task = submitTask(instruction, parentTask, wfConfigurationType, channelOverride, result);
 		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
@@ -199,7 +198,11 @@ public class WfTaskController {
     }
 
     public void unpauseTask(WfTask wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        taskManager.unpauseTask(wfTask.getTask(), result);
+	    try {
+		    taskManager.unpauseTask(wfTask.getTask(), result);
+	    } catch (PreconditionViolationException e) {
+		    throw new SystemException("Task " + wfTask + " cannot be unpaused because it is no longer in WAITING state (should not occur)");
+	    }
     }
     //endregion
 

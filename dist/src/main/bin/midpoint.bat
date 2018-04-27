@@ -63,7 +63,10 @@ goto execStop
 :execStart
 echo "%cd%\lib\midpoint.war"
 start /b javaw -jar -Xms2048M -Xmx2048M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks -Dmidpoint.home="%MIDPOINT_HOME%" "%cd%\lib\midpoint.war" > "%BOOT_OUT%" 2>&1 &
+goto end
 
 :execStop
 echo "%cd%\lib\midpoint.war"
 FOR /F "usebackq tokens=5" %%i IN (`netstat -aon ^| findstr "0.0.0.0:8080"`) DO taskkill /F /PID %%i
+
+:end

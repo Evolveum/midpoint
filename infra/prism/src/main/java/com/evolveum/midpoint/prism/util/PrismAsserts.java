@@ -26,9 +26,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -44,11 +46,6 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -138,7 +135,7 @@ public class PrismAsserts {
 	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
 		assertEquals(message+" - unexpected number of results", expected.size(), results.size());
 
-        Set<Object> values = new HashSet<Object>();
+        Set<Object> values = new HashSet<>();
         for (PrismPropertyValue<T> result : results) {
             values.add(result.getValue());
         }
@@ -297,7 +294,7 @@ public class PrismAsserts {
 	}
 
 	public static<C extends Containerable> void assertValueId(Long expectedId, PrismContainer<C> container) {
-		List<Long> ids = new ArrayList<Long>();
+		List<Long> ids = new ArrayList<>();
 		for (PrismContainerValue<C> value: container.getValues()) {
 			if (MiscUtil.equals(expectedId, value.getId())) {
 				return;
@@ -891,6 +888,7 @@ public class PrismAsserts {
 		}
 	}
 
+	@SafeVarargs
 	public static <T> void assertSets(String message, Collection<T> actualValues, T... expectedValues) {
 		try {
 			assertSets(message, null, actualValues, expectedValues);
@@ -909,31 +907,11 @@ public class PrismAsserts {
 		}
 	}
 
+	@SafeVarargs
 	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) throws SchemaException {
-		assertNotNull("Null set in " + message, actualValues);
-		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
-				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,
-				expectedValues.length, actualValues.size());
-		for (T actualValue: actualValues) {
-			boolean found = false;
-			for (T value: expectedValues) {
-				if (matchingRule == null) {
-					if (value.equals(actualValue)) {
-						found = true;
-					}
-				} else {
-					if (matchingRule.match(value, actualValue)) {
-						found = true;
-					}
-				}
-			}
-			if (!found) {
-				fail("Unexpected value "+actualValue+" in " + message + "; expected (real values) "
-						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues);
-			}
-		}
+		assertSets(message, matchingRule, actualValues, Arrays.asList(expectedValues));
 	}
-	
+
 	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, Collection<T> expectedValues) throws SchemaException {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
@@ -1289,5 +1267,11 @@ public class PrismAsserts {
 			Collection<? extends Referencable> realReferences) {
 		Set<String> realOids = realReferences.stream().map(r -> r.getOid()).collect(Collectors.toSet());
 		assertEquals(message, new HashSet<>(expectedOids), realOids);
+	}
+
+	public static void assertQueriesEquivalent(String message, ObjectQuery expected, ObjectQuery real) {
+		if (!expected.equivalent(real)) {
+			fail(message + ": expected:\n" + expected.debugDump() + "\nreal:\n" + real.debugDump());
+		}
 	}
 }

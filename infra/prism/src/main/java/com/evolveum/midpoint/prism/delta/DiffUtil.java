@@ -34,7 +34,7 @@ public class DiffUtil {
 			if (newObject == null) {
 				return null;
 			}
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getCompileTimeClass(), ChangeType.ADD, getPrismContext(oldObject, newObject));
+			ObjectDelta<T> objectDelta = new ObjectDelta<>(newObject.getCompileTimeClass(), ChangeType.ADD, getPrismContext(oldObject, newObject));
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;

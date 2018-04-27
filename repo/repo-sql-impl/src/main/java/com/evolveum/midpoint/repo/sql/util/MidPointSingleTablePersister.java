@@ -19,13 +19,11 @@ package com.evolveum.midpoint.repo.sql.util;
 import org.hibernate.HibernateException;
 import org.hibernate.cache.spi.access.EntityRegionAccessStrategy;
 import org.hibernate.cache.spi.access.NaturalIdRegionAccessStrategy;
-import org.hibernate.engine.spi.Mapping;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.metamodel.binding.EntityBinding;
 import org.hibernate.persister.entity.Loadable;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
+import org.hibernate.persister.spi.PersisterCreationContext;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -38,16 +36,17 @@ import java.sql.SQLException;
  */
 public class MidPointSingleTablePersister extends SingleTableEntityPersister {
 
-    public MidPointSingleTablePersister(PersistentClass persistentClass, EntityRegionAccessStrategy cacheAccessStrategy, NaturalIdRegionAccessStrategy naturalIdRegionAccessStrategy, SessionFactoryImplementor factory, Mapping mapping) throws HibernateException {
-        super(persistentClass, cacheAccessStrategy, naturalIdRegionAccessStrategy, factory, mapping);
-    }
-
-    public MidPointSingleTablePersister(EntityBinding entityBinding, EntityRegionAccessStrategy cacheAccessStrategy, NaturalIdRegionAccessStrategy naturalIdRegionAccessStrategy, SessionFactoryImplementor factory, Mapping mapping) throws HibernateException {
-        super(entityBinding, cacheAccessStrategy, naturalIdRegionAccessStrategy, factory, mapping);
+    public MidPointSingleTablePersister(PersistentClass persistentClass, EntityRegionAccessStrategy cacheAccessStrategy,
+                                        NaturalIdRegionAccessStrategy naturalIdRegionAccessStrategy,
+                                        PersisterCreationContext creationContext) throws HibernateException {
+        super(persistentClass, cacheAccessStrategy, naturalIdRegionAccessStrategy, creationContext);
     }
 
     @Override
-    public Object[] hydrate(ResultSet rs, Serializable id, Object object, Loadable rootLoadable, String[][] suffixedPropertyColumns, boolean allProperties, SessionImplementor session) throws SQLException, HibernateException {
+    public Object[] hydrate(ResultSet rs, Serializable id, Object object, Loadable rootLoadable,
+                            String[][] suffixedPropertyColumns, boolean allProperties,
+                            SharedSessionContractImplementor session) throws SQLException, HibernateException {
+
         Object[] values = super.hydrate(rs, id, object, rootLoadable, suffixedPropertyColumns, allProperties, session);
         MidpointPersisterUtil.killUnwantedAssociationValues(getPropertyNames(), getPropertyTypes(), values);
         return values;

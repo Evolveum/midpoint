@@ -36,7 +36,7 @@ import java.util.*;
  */
 public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, DebugDumpable, Serializable {
 
-	private List<ObjectDelta<O>> waves = new ArrayList<ObjectDelta<O>>();
+	private List<ObjectDelta<O>> waves = new ArrayList<>();
 
 	/**
 	 * Get merged deltas from all the waves.
@@ -107,7 +107,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 	}
 
 	public ObjectDeltaWaves<O> clone() {
-		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<O>();
+		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<>();
 		copyValues(clone);
 		return clone;
 	}
@@ -440,5 +440,9 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 				throw new IllegalStateException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
 			}
 		}
+	}
+
+	public void deleteDeltas() {
+		waves.clear();
 	}
 }

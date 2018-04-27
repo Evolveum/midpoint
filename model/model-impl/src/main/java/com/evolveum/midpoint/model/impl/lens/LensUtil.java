@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,10 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,7 +52,8 @@ import org.apache.commons.lang.BooleanUtils;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -60,10 +62,10 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
@@ -91,16 +93,6 @@ import static java.util.Collections.emptySet;
 public class LensUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
-
-	public static <F extends ObjectType> void traceContext(Trace logger, String activity, String phase,
-			boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
-        if (logger.isTraceEnabled()) {
-        	logger.trace("Lens context:\n"+
-            		"---[ {} context {} ]--------------------------------\n"+
-            		"{}\n",
-					activity, phase, context.dump(showTriples));
-        }
-    }
 
 	public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
 																  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -184,13 +176,18 @@ public class LensUtil {
 		return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
 	}
 
-	public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
-			MappingType mapping) throws SchemaException {
-		List<V> rv = new ArrayList<>();
-		for (V value : values) {
-			rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
-		}
-		return rv;
+//	public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
+//			MappingType mapping) throws SchemaException {
+//		List<V> rv = new ArrayList<>();
+//		for (V value : values) {
+//			rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
+//		}
+//		return rv;
+//	}
+
+	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, mapping::getIdentifier);
 	}
 
 	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
@@ -203,7 +200,9 @@ public class LensUtil {
 		//noinspection unchecked
 		V cloned = (V) value.clone();
 		if (isAssignment && cloned instanceof PrismContainerValue) {
+			((PrismContainerValue) cloned).setId(null);
 			String originMappingName = originMappingNameSupplier.get();
+			LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
 			if (originMappingName != null) {
 				//noinspection unchecked
 				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
@@ -223,8 +222,6 @@ public class LensUtil {
 		return null;
 	}
 
-	
-
     public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status, XMLGregorianCalendar now,
     		PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {
     	QName timestampPropertyName;
@@ -241,7 +238,7 @@ public class LensUtil {
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta
 				= timestampDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, timestampPropertyName));
-		timestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now, origin, null));
+		timestampDelta.setValueToReplace(new PrismPropertyValue<>(now, origin, null));
 		return timestampDelta;
     }
 
@@ -276,7 +273,7 @@ public class LensUtil {
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
-		propDelta.setValueToReplace(new PrismPropertyValue<Integer>(accCtx.getIteration()));
+		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIteration()));
 		PrismProperty<Integer> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIteration());
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -297,7 +294,7 @@ public class LensUtil {
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
-		propDelta.setValueToReplace(new PrismPropertyValue<String>(accCtx.getIterationToken()));
+		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIterationToken()));
 		PrismProperty<String> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -353,7 +350,7 @@ public class LensUtil {
 	 */
 	public static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
 			LensContext<F> context, LensProjectionContext refProjCtx) {
-		List<LensProjectionContext> projCtxs = new ArrayList<LensProjectionContext>();
+		List<LensProjectionContext> projCtxs = new ArrayList<>();
 		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
 		if (refDiscr == null) {
 			return projCtxs;
@@ -481,7 +478,7 @@ public class LensUtil {
 				DOMUtil.XSD_INT, context.getPrismContext());
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
-		input.add(new PrismPropertyValue<Integer>(iteration));
+		input.add(new PrismPropertyValue<>(iteration));
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
 		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION);
 		sources.add(iterationSource);
@@ -530,16 +527,15 @@ public class LensUtil {
 		if (expressionType == null) {
 			return true;
 		}
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, task, result);
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
+				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
 
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, context, null, task, result);
+		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
 			return false;
@@ -689,7 +685,7 @@ public class LensUtil {
 	    }
 	}
 
-	public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
 		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
 		return builder.addVariableDefinitions(expressionVariables.getMap());
@@ -853,7 +849,7 @@ public class LensUtil {
 																								LensElementContext<T> objectContext,
 																								LensProjectionContext projCtx,
 																								ResourceType resource) {
-		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
+		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta.clone());
 		objectDeltaOp.setExecutionResult(result);
 		PrismObject<T> object = objectContext.getObjectAny();
 		if (object != null) {
@@ -864,7 +860,7 @@ public class LensUtil {
 					if (name == null) {
 						LOGGER.debug("No name for shadow:\n{}", object.debugDump());
 					} else if (name.getNorm() == null) {
-						name.recompute(new PrismDefaultPolyStringNormalizer());
+						name.recompute(new AlphanumericPolyStringNormalizer());
 					}
 				} catch (SchemaException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());
@@ -926,37 +922,7 @@ public class LensUtil {
 		}
 		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
 	}
-
-
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-		partialExecute(componentName, runnable, optionSupplier, null);
-	}
-
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable,
-			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-		PartialProcessingTypeType option = optionSupplier.get();
-		if (option == PartialProcessingTypeType.SKIP) {
-			LOGGER.debug("Skipping projector component {} because partial execution option is set to {}", componentName, option);
-		} else {
-			LOGGER.trace("Projector component started: {}", componentName);
-			try {
-				runnable.run();
-				LOGGER.trace("Projector component finished: {}", componentName);
-			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
-				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
-				if (result != null) {
-					result.recordFatalError(e);
-				}
-				throw e;
-			}
-
-		}
-	}
+	
 
 	public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, String humanReadableName)
 			throws ObjectAlreadyExistsException {
@@ -1047,10 +1013,10 @@ public class LensUtil {
 				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
 				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
-		context.setAdditionalConvertor(additionalConvertor);
+		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
+		eeContext.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, context, task, result);
+				.evaluateExpressionInContext(expression, eeContext, task, result);
 		List<T> results = exprResultTriple.getZeroSet().stream()
 				.map(ppv -> (T) ppv.getRealValue())
 				.collect(Collectors.toList());

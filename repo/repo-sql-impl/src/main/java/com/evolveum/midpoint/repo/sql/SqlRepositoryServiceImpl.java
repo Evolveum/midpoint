@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -61,11 +62,13 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
@@ -99,6 +102,8 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
+    public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
+    public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
@@ -121,6 +126,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private BaseHelper baseHelper;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private MidpointConfiguration midpointConfiguration;
+    @Autowired private PrismContext prismContext;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -160,10 +166,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-	    PrismObject<T> object = executeAttempts(oid, "getObject", "getting",
-			    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
-	    );
-	    invokeConflictWatchers((w) -> w.afterGetObject(object));
+        PrismObject<T> object = null;
+        try {
+        	
+		    PrismObject<T> attemptobject = executeAttempts(oid, "getObject", "getting",
+				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
+		    );
+		    object = attemptobject;
+		    invokeConflictWatchers((w) -> w.afterGetObject(attemptobject));
+		    
+        } finally {
+        	OperationLogger.logGetObject(type, oid, options, object, subResult);
+        }
+        
 	    return object;
     }
 
@@ -404,19 +419,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("object", object);
         subResult.addParam("options", options.toString());
 
-        // TODO use executeAttempts
-        final String operation = "adding";
-        int attempt = 1;
-
-        String proposedOid = object.getOid();
-        while (true) {
-            try {
-                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
-	            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
-	            return createdOid;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
-            }
+        try {
+	        // TODO use executeAttempts
+	        final String operation = "adding";
+	        int attempt = 1;
+	
+	        String proposedOid = object.getOid();
+	        while (true) {
+	            try {
+	                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
+		            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
+		            return createdOid;
+	            } catch (RuntimeException ex) {
+	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
+	            }
+	        }
+        } finally {
+        	OperationLogger.logAdd(object, options, subResult);
         }
     }
 
@@ -444,10 +463,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-        executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
-                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
-        );
-	    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+        try {
+	        
+        	executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
+	                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
+	        );
+		    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+		    
+        } finally {
+        	OperationLogger.logDelete(type, oid, subResult);
+        }
     }
 
     @Override
@@ -557,8 +582,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
+        } catch (Throwable t) {
+            LOGGER.debug("Got exception while processing modifications on {}:{}:\n{}", type.getSimpleName(), oid, DebugUtil.debugDump(modifications), t);
+            throw t;
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
+            OperationLogger.logModify(type, oid, modifications, precondition, options, subResult);
         }
     }
 
@@ -1104,11 +1133,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result).asObjectable();
 		} catch (ObjectNotFoundException e) {
 			// ok, no problem e.g. for tests or initial startup
+			result.muteLastSubresultError();
 			LOGGER.debug("System configuration not found, exiting postInit method.");
 			return;
 		}
-
-		SystemConfigurationHolder.setCurrentConfiguration(systemConfiguration);
 
 		Configuration systemConfigFromFile = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
 		if (systemConfigFromFile != null && systemConfigFromFile
@@ -1123,7 +1151,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
         SystemConfigurationTypeUtil.applyOperationResultHandling(systemConfiguration);
+        applyPrismConfiguration(systemConfiguration);
 	}
+	
+	 private void applyPrismConfiguration(SystemConfigurationType configType) {
+	    	PolyStringNormalizerConfigurationType normalizerConfig = null;
+			InternalsConfigurationType internals = configType.getInternals();
+			if (internals != null) {
+				normalizerConfig = internals.getPolyStringNormalizer();
+			}
+			try {
+				prismContext.configurePolyStringNormalizer(normalizerConfig);
+				LOGGER.trace("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+				throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+			}
+		}
 
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(String oid) {

@@ -25,7 +25,9 @@ import java.util.List;
 
 public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
-    @Override
+    private static final long serialVersionUID = 1L;
+
+	@Override
     public Object getDisplayValue(QName qname) {
         if (qname == null) {
             return null;
@@ -43,7 +45,7 @@ public class QNameObjectTypeChoiceRenderer implements IChoiceRenderer<QName> {
 
     @Override
     public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-        if (id == null) {
+        if (id == null || id.trim().equals("")) {
             return null;
         }
 

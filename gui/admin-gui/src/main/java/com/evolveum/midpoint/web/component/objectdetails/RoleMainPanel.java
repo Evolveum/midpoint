@@ -26,7 +26,6 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -101,7 +100,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 
 	@Override
 	public AbstractRoleMemberPanel<RoleType> createMemberPanel(String panelId) {
-		return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()));
+		return new RoleMemberPanel(panelId, new Model<>(getObject().asObjectable()));
 	}
 
 	public AbstractRoleMemberPanel<RoleType> createGovernancePanel(String panelId) {
@@ -110,7 +109,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		relationsList.add(RelationTypes.OWNER);
 		relationsList.add(RelationTypes.MANAGER);
 
-		return new RoleGovernanceRelationsPanel(panelId, new Model<RoleType>(getObject().asObjectable()), relationsList);
+		return new RoleGovernanceRelationsPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
 	}
 
 

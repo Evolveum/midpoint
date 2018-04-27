@@ -60,16 +60,16 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
     }
 
     protected void initLayout() {
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), ID_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<>(getModel(), ID_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PropertyModel<String>(getModel(), ID_DESCRIPTION),
+            new PropertyModel<>(getModel(), ID_DESCRIPTION),
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(description);
 
-        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(ExportType.class, e -> e != ExportType.JXL);
+        IModel choices = WebComponentUtil.createReadonlyValueModelFromEnum(ExportType.class, e -> e != ExportType.JXL);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
                 createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
@@ -82,15 +82,15 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
         //virtualizer.add(new VirtualizerAjaxFormUpdatingBehaviour(virtualizerKickOn));
         add(virtualizer);
 
-        virtualizerKickOn = new TextFormGroup(ID_VIRTUALIZER_KICKON, new PropertyModel<String>(getModel(), ReportDto.F_VIRTUALIZER_KICKON),
+        virtualizerKickOn = new TextFormGroup(ID_VIRTUALIZER_KICKON, new PropertyModel<>(getModel(), ReportDto.F_VIRTUALIZER_KICKON),
                 createStringResource("ReportType.virtualizerKickOn"), ID_LABEL_SIZE, "col-md-4", false);
         add(virtualizerKickOn);
 
-        TextFormGroup maxPages = new TextFormGroup(ID_MAXPAGES, new PropertyModel<String>(getModel(), ReportDto.F_MAXPAGES),
+        TextFormGroup maxPages = new TextFormGroup(ID_MAXPAGES, new PropertyModel<>(getModel(), ReportDto.F_MAXPAGES),
                 createStringResource("ReportType.maxPages"), ID_LABEL_SIZE, "col-md-4", false);
         add(maxPages);
 
-        TextFormGroup timeout = new TextFormGroup(ID_TIMEOUT, new PropertyModel<String>(getModel(), ReportDto.F_TIMEOUT),
+        TextFormGroup timeout = new TextFormGroup(ID_TIMEOUT, new PropertyModel<>(getModel(), ReportDto.F_TIMEOUT),
                 createStringResource("ReportType.timeout"), ID_LABEL_SIZE, "col-md-4", false);
         add(timeout);
     }

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.transform.ResultTransformer;
@@ -146,7 +146,11 @@ public class RootHibernateQuery extends HibernateQuery {
 		this.distinct = distinct;
 	}
 
-	public Condition createIsNull(String propertyPath) {
+    public boolean isDistinct() {
+        return distinct;
+    }
+
+    public Condition createIsNull(String propertyPath) {
         return new IsNullCondition(this, propertyPath);
     }
 
@@ -220,5 +224,13 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public Condition createCompareXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {
         return new PropertyPropertyComparisonCondition(this, leftSidePropertyPath, rightSidePropertyPath, operator, ignoreCase);
+    }
+
+    public Condition createFalse() {
+        return new ConstantCondition(this, false);
+    }
+
+    public boolean isDistinctNotNecessary() {
+        return getPrimaryEntity().getJoins().isEmpty();
     }
 }

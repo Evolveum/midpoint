@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public class SelectorOptions<T> implements Serializable, DebugDumpable {
+public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDumpable {
+	private static final long serialVersionUID = 1L;
 
 	private ObjectSelector selector;
 	private T options;
@@ -54,25 +56,25 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	}
 
 	public static <T> SelectorOptions<T> create(ItemPath path, T options) {
-		return new SelectorOptions<T>(new ObjectSelector(path), options);
+		return new SelectorOptions<>(new ObjectSelector(path), options);
 	}
 
 	public static <T> SelectorOptions<T> create(QName pathQName, T options) {
-		return new SelectorOptions<T>(new ObjectSelector(new ItemPath(pathQName)), options);
+		return new SelectorOptions<>(new ObjectSelector(new ItemPath(pathQName)), options);
 	}
 
 	public static <T> SelectorOptions<T> create(T options) {
-		return new SelectorOptions<T>(options);
+		return new SelectorOptions<>(options);
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(ItemPath path, T options) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(1);
 		optionsCollection.add(create(path, options));
 		return optionsCollection;
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(QName pathQName, T options) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(1);
 		optionsCollection.add(create(pathQName, options));
 		return optionsCollection;
 	}
@@ -84,7 +86,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(T options, ItemPath... paths) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(paths.length);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(paths.length);
 		for (ItemPath path: paths) {
 			optionsCollection.add(create(path, options));
 		}
@@ -92,7 +94,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(T options, QName... pathQNames) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(pathQNames.length);
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(pathQNames.length);
 		for (QName qname: pathQNames) {
 			optionsCollection.add(create(qname, options));
 		}
@@ -374,12 +376,10 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 
     @Override
 	public String toString() {
-		return "ObjectOperationOptions(" + selector + ": " + options + ")";
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
+		StringBuilder sb = new StringBuilder("ObjectOperationOptions(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override
@@ -387,5 +387,21 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 		return toString();
 	}
 
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (selector == null) {
+			sb.append("/");
+		} else {
+			selector.shortDump(sb);
+		}
+		sb.append(":");
+		if (options == null) {
+			sb.append("null");
+		} else if (options instanceof ShortDumpable) {
+			((ShortDumpable)options).shortDump(sb);
+		} else {
+			sb.append(options);
+		}
+	}
 	//endregion
 }

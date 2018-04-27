@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
@@ -317,6 +319,23 @@ public class SchemaDebugUtil {
 		}
 
 		// TODO: Other properties
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ResourceObjectTypeDependencyType depType) {
+		if (depType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ResourceObjectTypeDependencyType(");
+		
+		if (depType.getResourceRef() != null) {
+			sb.append(depType.getResourceRef().getOid());
+			sb.append(":");
+		}
+		sb.append(depType.getKind());
+		sb.append("/");
+		sb.append(depType.getIntent());
 		sb.append(")");
 		return sb.toString();
 	}
@@ -803,18 +822,21 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
-		sb.append(deltaType.getOid()).append(" ");
-		sb.append(deltaType.getChangeType());
-		sb.append(": ");
-		if (deltaType.getObjectToAdd() != null) {
-			sb.append(deltaType.getObjectToAdd());
-		} else {
-			sb.append(deltaType.getItemDelta());
+		sb.append(prettyPrint(deltaType.getObjectType())).append(" ");
+		sb.append(prettyPrint(deltaType.getOid())).append(" ");
+		sb.append(deltaType.getChangeType()).append(": ");
+		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		if (objectToAdd != null) {
+			sb.append(prettyPrint(objectToAdd));
+		}
+		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+		if (itemDelta != null && !itemDelta.isEmpty()) {
+			sb.append(prettyPrint(itemDelta));
 		}
 		sb.append(")");
 		return sb.toString();
 	}
-
+	
 	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
 		if (deltaOpType == null) {
 			return "null";
@@ -829,6 +851,20 @@ public class SchemaDebugUtil {
 			sb.append(result.getStatus());
 		}
 		// object, resource?
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(LoginEventType loginEventType) {
+		if (loginEventType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("LoginEventType(");
+		sb.append(prettyPrint(loginEventType.getTimestamp()));
+		String from = loginEventType.getFrom();
+		if (from != null) {
+			sb.append(" from ").append(from);
+		}
 		sb.append(")");
 		return sb.toString();
 	}
@@ -918,8 +954,48 @@ public class SchemaDebugUtil {
 	}
 
 	public static String prettyPrint(ObjectQuery query){
-
 		return query.toString();
+	}
+	
+	public static void shortDump(StringBuilder sb, ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			sb.append("null");
+			return;
+		}
+		sb.append("delta(");
+		QName objectType = deltaType.getObjectType();
+		if (objectType == null) {
+			sb.append("null");
+		} else {
+			sb.append(objectType.getLocalPart());
+		}
+		sb.append(" ");
+		sb.append(deltaType.getOid()).append(" ");
+		sb.append(deltaType.getChangeType()).append(": ");
+		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		if (objectToAdd != null) {
+			sb.append(prettyPrint(objectToAdd));
+		}
+		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+		if (itemDelta != null && !itemDelta.isEmpty()) {
+			sb.append(prettyPrint(itemDelta));
+		}
+		sb.append(")");
+	}
+	
+	public static void shortDump(StringBuilder sb, ObjectDeltaOperationType deltaOpType) {
+		if (deltaOpType == null) {
+			sb.append("null");
+			return;
+		}
+		shortDump(sb, deltaOpType.getObjectDelta());
+		sb.append(": ");
+		OperationResultType result = deltaOpType.getExecutionResult();
+		if (result == null) {
+			sb.append("null result");
+		} else {
+			sb.append(result.getStatus());
+		}
 	}
 
 	static {

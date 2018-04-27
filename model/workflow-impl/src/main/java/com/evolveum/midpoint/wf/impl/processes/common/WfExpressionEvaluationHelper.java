@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.*;
@@ -45,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getExpressionFactory;
 
@@ -117,5 +114,13 @@ public class WfExpressionEvaluationHelper {
 		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
 				Boolean.class, DOMUtil.XSD_BOOLEAN, null, task, result);
 		return MiscUtil.getSingleValue(values, false, contextDescription);
+	}
+
+	public String evaluateStringExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+			String contextDescription, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Collection<String> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
+				String.class, DOMUtil.XSD_STRING, null, task, result);
+		return MiscUtil.getSingleValue(values, null, contextDescription);
 	}
 }

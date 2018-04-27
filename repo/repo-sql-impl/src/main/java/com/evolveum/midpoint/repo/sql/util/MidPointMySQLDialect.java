@@ -16,17 +16,22 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.dialect.MySQL5InnoDBDialect;
+import org.hibernate.dialect.MySQL57InnoDBDialect;
 
 import java.sql.Types;
 
 /**
  * @author lazyman
  */
-public class MidPointMySQLDialect extends MySQL5InnoDBDialect {
+public class MidPointMySQLDialect extends MySQL57InnoDBDialect {
 
     public MidPointMySQLDialect() {
         registerColumnType(Types.BOOLEAN, "bit");
+    }
+
+    @Override
+    public String getTableTypeString() {
+        return " DEFAULT CHARACTER SET utf8 COLLATE utf8_bin" + super.getTableTypeString();
     }
 }
 

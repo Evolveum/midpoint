@@ -32,7 +32,7 @@
 #
 #  Run as:
 #
-# generate-midpoint-users.pl <template.xml> [ <count> ]
+# generate-midpoint-users.pl <template.xml> [ <start> ] [ <count> ]
 #
 
 use strict;
@@ -41,6 +41,7 @@ my $user_template_filename;
 my $line;
 my $content = '';
 my $cnt_text;
+my $start_users = 1;
 my $max_users = 1;
 my @consonants = (qw(b c d f g h j k l m n p r s t v w x z));
 my @vowels = (qw(a e i o u));
@@ -48,7 +49,11 @@ my @vowels = (qw(a e i o u));
 
 die("Usage: $0 user_template_file [count]\n") unless defined($ARGV[0]);
 if (defined($ARGV[1])) {
-	$max_users = $ARGV[1];
+	$start_users = $ARGV[1];
+}
+
+if (defined($ARGV[2])) {
+	$max_users = $ARGV[2];
 }
 
 $user_template_filename = $ARGV[0];
@@ -70,7 +75,7 @@ print << 'ENDHEADER';
 
 ENDHEADER
 
-foreach (my $counter = 1; $counter <= $max_users; $counter++)
+foreach (my $counter = $start_users + 1; $counter <= $max_users; $counter++)
 {
 	my $loop_content = $content;
 	$cnt_text = sprintf("%05d", $counter);

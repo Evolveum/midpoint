@@ -28,8 +28,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 /**
  * @author mederly
  *

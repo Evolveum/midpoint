@@ -15,10 +15,9 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,6 +45,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_IDENTIFIER = "identifier";
     private final static String ID_RELATION = "relation";
+    private final static String ID_KIND_INTENT = "kindIntent";
     private final static String ID_DESCRIPTION = "description";
 
 	public DisplayNamePanel(String id, IModel<C> model) {
@@ -73,6 +73,12 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
         relation.setOutputMarkupId(true);
         relation.add(new VisibleBehaviour(() -> isRelationVisible()));
         add(relation);
+
+        IModel<String> kindIntentLabelModel = getKindIntentLabelModel();
+        Label kindIntent = new Label(ID_KIND_INTENT, kindIntentLabelModel);
+		kindIntent.setOutputMarkupId(true);
+		kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
+        add(kindIntent);
 
         add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
 	}
@@ -131,6 +137,10 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		return relation != null && !QNameUtil.match(SchemaConstants.ORG_DEFAULT, relation);
 	}
 
+	private boolean isKindIntentVisible(IModel<String> kindIntentLabelModel) {
+		return kindIntentLabelModel != null && StringUtils.isNotEmpty(kindIntentLabelModel.getObject());
+	}
+
 	private String getRelationLabel() {
 		QName relation = getRelation();
 		if (relation == null) {
@@ -138,6 +148,11 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		}
 		// TODO: localization?
 		return relation.getLocalPart();
+	}
+
+	protected IModel<String> getKindIntentLabelModel() {
+		// To be overriden in subclasses
+		return Model.of("");
 	}
 
 	protected QName getRelation() {

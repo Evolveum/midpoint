@@ -35,10 +35,11 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 
 	ComparativeFilter(@NotNull ItemPath path,
 			@Nullable PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule,
 			@Nullable PrismPropertyValue<T> value,
 			@Nullable ExpressionWrapper expression, @Nullable ItemPath rightHandSidePath,
 			@Nullable ItemDefinition rightHandSideDefinition, boolean equals) {
-		super(path, definition, null,
+		super(path, definition, matchingRule,
 				value != null ? Collections.singletonList(value) : null,
 				expression, rightHandSidePath, rightHandSideDefinition);
 		this.equals = equals;

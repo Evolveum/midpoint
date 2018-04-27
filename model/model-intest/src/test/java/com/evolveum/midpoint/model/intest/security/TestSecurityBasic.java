@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -84,7 +83,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCre
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -1745,8 +1743,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertRoleTypes(spec, "application", "nonexistent");
         assertFilter(spec.getFilter(), TypeFilter.class);
 
-        assertAllowRequestItems(USER_JACK_OID, ROLE_APPLICATION_1_OID, null,
-        		AssignmentType.F_TARGET_REF, ActivationType.F_VALID_FROM, ActivationType.F_VALID_TO);
+        assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
+        		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_FROM,
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_TO);
 
         assertGlobalStateUntouched();
 	}
@@ -1797,7 +1797,11 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertRoleTypes(spec);
         assertFilter(spec.getFilter(), TypeFilter.class);
 
-        assertAllowRequestItems(USER_JACK_OID, ROLE_APPLICATION_1_OID, AuthorizationDecisionType.ALLOW);
+        assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
+        		SchemaConstants.PATH_ASSIGNMENT_DESCRIPTION,
+        		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_FROM,
+        		SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_VALID_TO);
 
         assertGlobalStateUntouched();
 	}
@@ -1956,8 +1960,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 	/**
 	 * MID-3636 partially
+	 * MID-4399
 	 */
-	@Test(enabled=false)
+	@Test
 	public void test275bAutzJackAssignRequestableOrgs() throws Exception {
 		final String TEST_NAME = "test275bAutzJackAssignRequestableOrgs";
 		displayTestTitle(TEST_NAME);
@@ -1987,7 +1992,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		ObjectQuery query = new ObjectQuery();
 
 		query.addFilter(spec.getFilter());
-		assertSearch(AbstractRoleType.class, query, 6); // set to 6 with requestable org
+		assertSearch(AbstractRoleType.class, query, 9);
 
 		assertAllow("unassign business role from jack",
         		(task, result) -> unassignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result));
@@ -2171,7 +2176,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-				PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+				PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 				assignmentDelta1.addValueToAdd(cval);
 				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 				targetRef.getValue().setOid(ROLE_BUSINESS_2_OID);

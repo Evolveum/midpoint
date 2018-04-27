@@ -181,6 +181,7 @@ public abstract class BaseHandler implements EventHandler {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl<>(resultName, DOMUtil.XSD_STRING, prismContext);
+        resultDef.setMaxOccurs(-1);
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
@@ -196,7 +197,7 @@ public abstract class BaseHandler implements EventHandler {
 
     protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+        Map<QName, Object> variables = new HashMap<>();
 		event.createExpressionVariables(variables, result);
 		expressionVariables.addVariableDefinitions(variables);
         return expressionVariables;

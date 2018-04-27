@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="box box-danger">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><wicket:message key="PageCaseWorkItem.caseWorkItem"/></h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.originalAssignee"/></td>
+                                <td><div wicket:id="caseWorkItemOriginalAssignee" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.assignees"/></td>
+                                <td><div wicket:id="caseWorkItemAssignees" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.outcome"/></td>
+                                <td><div wicket:id="caseWorkItemOutcome" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.deadline"/></td>
+                                <td><div wicket:id="caseWorkItemDeadline" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.closeTimestamp"/></td>
+                                <td><div wicket:id="caseWorkItemCloseTimestamp" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.evidence"/></td>
+                                <td>
+                                    <div wicket:id="caseWorkItemEvidence"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.comment"/></td>
+                                <td><div wicket:id="caseWorkItemComment" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><wicket:message key="PageCaseWorkItem.caseDetails"/></h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.description"/></td>
+                                <td><div wicket:id="caseDescription" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.resource"/></td>
+                                <td><div wicket:id="caseResource" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.target"/></td>
+                                <td><div wicket:id="caseTarget" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.outcome"/></td>
+                                <td><div wicket:id="caseOutcome" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.openTimestamp"/></td>
+                                <td><div wicket:id="caseOpenTimestamp" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.closeTimestamp"/></td>
+                                <td><div wicket:id="caseCloseTimestamp" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.state"/></td>
+                                <td><div wicket:id="caseState" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div wicket:id="deltaPanel"></div>
+            </div>
+        </div>
+
+        <div  wicket:id="caseWorkItemForm">
+            <h4><wicket:message key="PageCaseWorkItem.caseWorkItem.comment"/></h4>
+            <textarea wicket:id="caseWorkItemFormComment" class="form-control input-sm" rows="2"></textarea>
+            <p/>
+            <h4><wicket:message key="PageCaseWorkItem.caseWorkItem.evidence"/></h4>
+            <input type="file" wicket:id="caseWorkItemFormEvidence" class="input-sm"/>
+            <p/>
+        </div>
+
+        <div class="main-button-bar" style="padding-top: 15px">     <!-- TODO some implicit way of inserting the padding? -->
+            <a class="btn btn-default" wicket:id="backButton" />
+            <a class="btn btn-success" wicket:id="closeCaseButton"/>
+        </div>
+
+    </form>
+
+</wicket:extend>
+</body>
+</html>

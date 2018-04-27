@@ -142,7 +142,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 
 	        } else if (variableValue instanceof PrismProperty<?>) {
 	        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
-	        	final List<Element> elementList = new ArrayList<Element>();
+	        	final List<Element> elementList = new ArrayList<>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
 	        		Element valueElement = prismContext.domSerializer().serialize(value, prismProperty.getElementName());
 	        		elementList.add(valueElement);

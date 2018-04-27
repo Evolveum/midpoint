@@ -94,12 +94,12 @@ public class Migrator {
 			return;
 		}
 
-		List<SynchronizationReactionType> migratedReactions = new ArrayList<SynchronizationReactionType>();
+		List<SynchronizationReactionType> migratedReactions = new ArrayList<>();
 		for (SynchronizationReactionType reaction : sync.getReaction()){
 			if (reaction.getAction() == null){
 				continue;
 			}
-			List<SynchronizationActionType> migratedAction = new ArrayList<SynchronizationActionType>();
+			List<SynchronizationActionType> migratedAction = new ArrayList<>();
 			for (SynchronizationActionType action : reaction.getAction()){
 				migratedAction.add(migrateAction(action));
 			}

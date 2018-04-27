@@ -45,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiFlexibleLabelType;
 
 import org.apache.commons.lang.Validate;
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 

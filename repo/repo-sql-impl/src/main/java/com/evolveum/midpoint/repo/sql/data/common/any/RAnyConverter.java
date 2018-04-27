@@ -20,10 +20,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -32,6 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
+import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -47,6 +50,9 @@ import java.util.*;
  * @author lazyman
  */
 public class RAnyConverter {
+
+    // temporary
+    public static final ThreadLocal<Session> sessionThreadLocal = new ThreadLocal<>();
 
     private enum ValueType {
 
@@ -126,14 +132,49 @@ public class RAnyConverter {
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
+    public RAnyValue convertToRValue(PrismValue value, boolean assignment, @Nullable Session session) throws SchemaException {
+        RAnyValue rValue;
+
+        if (session == null) {
+            session = sessionThreadLocal.get();
+        }
+
+        ItemDefinition definition = value.getParent().getDefinition();
+
+        if (!isIndexed(definition, value.getParent().getElementName(), prismContext)) {
+            return null;
+        }
+
+        if (value instanceof PrismPropertyValue) {
+            PrismPropertyValue propertyValue = (PrismPropertyValue) value;
+
+            rValue = extractAndCreateValue(definition, propertyValue, assignment);
+        } else if (value instanceof PrismReferenceValue) {
+            if (assignment) {
+                PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                rValue = RAExtReference.createReference(referenceValue);
+            } else {
+                PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                rValue = ROExtReference.createReference(referenceValue);
+            }
+        } else {
+            // shouldn't get here because if isIndexed test above
+            throw new AssertionError("Wrong value type: " + value);
+        }
+
+        rValue.setItem(ExtItemDictionary.getInstance().createOrFindItemDefinition(definition, session));
+
+        return rValue;
+    }
+
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws SchemaException, DtoTranslationException {
+    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment, @Nullable Session session) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
         ItemDefinition definition = item.getDefinition();
-        Set<RAnyValue> rValues = new HashSet<>();
-        if (!isIndexed(definition, prismContext)) {
+        Set<RAnyValue<?>> rValues = new HashSet<>();
+        if (!isIndexed(definition, item.getElementName(), prismContext)) {
             return rValues;
         }
 
@@ -145,30 +186,7 @@ public class RAnyConverter {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                if (value instanceof PrismPropertyValue) {
-                    PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-
-                    rValue = extractAndCreateValue(definition, propertyValue, assignment);
-                } else if (value instanceof PrismReferenceValue) {
-                    if (assignment) {
-                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                        rValue = RAExtReference.createReference(referenceValue);
-                    } else {
-                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                        rValue = ROExtReference.createReference(referenceValue);
-                    }
-                } else if (value == null) {
-                    continue;            // shouldn't occur anyway
-                } else {
-                    // shouldn't get here because if isIndexed test above
-                    throw new AssertionError("Wrong value type: " + value);
-                }
-
-                rValue.setName(RUtil.qnameToString(definition.getName()));
-                rValue.setType(RUtil.qnameToString(definition.getTypeName()));
-                rValue.setValueType(getValueType(value.getParent()));
-                rValue.setDynamic(definition.isDynamic());
-
+                rValue = convertToRValue(value, assignment, session);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -182,7 +200,8 @@ public class RAnyConverter {
         return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
     }
 
-    private static boolean isIndexed(ItemDefinition definition, PrismContext prismContext) throws SchemaException {
+    private static boolean isIndexed(ItemDefinition definition, QName elementName, PrismContext prismContext)
+            throws SchemaException {
         if (definition instanceof PrismContainerDefinition) {
             return false;
         }
@@ -191,7 +210,7 @@ public class RAnyConverter {
         }
         if (!(definition instanceof PrismPropertyDefinition)) {
             throw new UnsupportedOperationException("Unknown definition type '"
-                    + definition + "', can't say if it's indexed or not.");
+                    + definition + "', can't say if '" + elementName + "' is indexed or not.");
         }
 
         PrismPropertyDefinition pDefinition = (PrismPropertyDefinition) definition;
@@ -239,15 +258,16 @@ public class RAnyConverter {
         }
     }
 
-    private RValueType getValueType(Itemable itemable) {
-        Validate.notNull(itemable, "Value parent must not be null.");
-        if (!(itemable instanceof Item)) {
-            throw new IllegalArgumentException("Item type '" + itemable.getClass() + "' not supported in 'any' now.");
-        }
+//    private RItemKind getItemKind(Itemable itemable) {
+//        Validate.notNull(itemable, "Value parent must not be null.");
+//        if (itemable instanceof Item) {
+//            return RItemKind.getTypeFromItemClass(((Item) itemable).getClass());
+//        }
+//
+//        return RItemKind.getTypeFromDeltaClass(((ItemDelta) itemable).getClass());
+//    }
 
-        return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
-    }
-
+    @NotNull
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
         ItemDefinition definition = value.getParent().getDefinition();
         //todo raw types
@@ -257,7 +277,7 @@ public class RAnyConverter {
             object = getRealRepoValue(definition, (Element) object);
         } else if (object instanceof RawType) {
             RawType raw = (RawType) object;
-            object = raw.getParsedRealValue(returnType);
+            object = raw.getParsedRealValue(returnType);        // todo this can return null!
         } else {
             object = getAggregatedRepoObject(object);
         }
@@ -293,8 +313,9 @@ public class RAnyConverter {
      */
     public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
             SchemaException, QueryException {
-        if (!isIndexed(definition, prismContext)) {
-            throw new QueryException("Can't query non-indexed value, definition " + definition);
+        if (!isIndexed(definition, definition.getName(), prismContext)) {
+            throw new QueryException("Can't query non-indexed value for '" + definition.getName()
+                    + "', definition " + definition);
         }
         QName typeName = definition.getTypeName();
 
@@ -323,6 +344,7 @@ public class RAnyConverter {
      * @param value
      * @return
      */
+    @NotNull
     public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
         ValueType willBeSaveAs = definition == null ? null : getValueType(definition.getTypeName());
         QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();

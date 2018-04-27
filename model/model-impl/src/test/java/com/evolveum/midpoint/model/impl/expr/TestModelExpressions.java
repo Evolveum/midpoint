@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -163,11 +162,11 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         // THEN
         display("Script output", scriptOutputs);
         assertEquals("Unexpected number of script outputs", 3, scriptOutputs.size());
-        Set<String> oids = new HashSet<String>();
+        Set<String> oids = new HashSet<>();
         oids.add(scriptOutputs.get(0).getValue());
         oids.add(scriptOutputs.get(1).getValue());
         oids.add(scriptOutputs.get(2).getValue());
-        Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID }));
+        Set<String> expectedOids = new HashSet<>(Arrays.asList(new String[]{CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID}));
         assertEquals("Unexpected script output", expectedOids, oids);
     }
 

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -55,7 +54,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	private IModel<ObjectWrapper<O>> wrapperModel;
 
 	public FocusSummaryPanel(String id, Class<O> type, final IModel<ObjectWrapper<O>> model, ModelServiceLocator serviceLocator) {
-		super(id, type, new ReadOnlyPrismObjectFromObjectWrapperModel<O>(model), serviceLocator);
+		super(id, type, new ReadOnlyPrismObjectFromObjectWrapperModel<>(model), serviceLocator);
 
 		this.wrapperModel = model;
 		initLayoutCommon(serviceLocator);	// calls getParentOrgModel that depends on wrapperModel

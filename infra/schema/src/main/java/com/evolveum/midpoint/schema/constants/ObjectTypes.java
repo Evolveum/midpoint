@@ -99,8 +99,8 @@ public enum ObjectTypes {
     SERVICE(ServiceType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SERVICE, ServiceType.class, ObjectManager.MODEL,
             "services"),
 
-    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.EMULATED,
-            "cases"),
+    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.MODEL,
+    		"cases"),
     
     FUNCTION_LIBRARY(FunctionLibraryType.COMPLEX_TYPE, SchemaConstantsGenerated.C_FUNCTION_LIBRARY, FunctionLibraryType.class, ObjectManager.MODEL,
             "functionLibraries"),
@@ -338,6 +338,18 @@ public enum ObjectTypes {
         }
 
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
+    }
+    
+    public static String getRestTypeFromClass(Class<?> clazz) {
+        Validate.notNull(clazz, "Class must not be null.");
+
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (type.getClassDefinition().equals(clazz)) {
+                return type.getRestType();
+            }
+        }
+
+        throw new IllegalArgumentException("Not suitable rest type found for class: " + clazz);
     }
 
     public static List<Class<? extends ObjectType>> getAllObjectTypes() {

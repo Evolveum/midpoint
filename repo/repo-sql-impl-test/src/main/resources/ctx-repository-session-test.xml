@@ -25,17 +25,17 @@
        default-lazy-init="true" default-autowire="byName">
 
     <bean id="testDataSourceFactory" class="com.evolveum.midpoint.repo.sql.DataSourceFactory" destroy-method="destroy">
-        <property name="configuration" value="#{testSqlRepositoryFactory.sqlConfiguration}" />
+        <property name="configuration" value="#{testSqlRepositoryFactory.sqlConfiguration}"/>
     </bean>
 
     <bean id="testDataSource" factory-bean="testDataSourceFactory" factory-method="createDataSource"
           depends-on="testDataSourceFactory"/>
 
     <!-- Hibernate session factory -->
-    <bean id="testSessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+    <bean id="testSessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
           depends-on="testDataSource" lazy-init="true">
 
-        <property name="dataSource" ref="testDataSource" />
+        <property name="dataSource" ref="testDataSource"/>
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
@@ -44,10 +44,17 @@
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
                 <prop key="hibernate.jdbc.batch_size">20</prop>
                 <prop key="javax.persistence.validation.mode">none</prop>
+                <prop key="hibernate.transaction.coordinator_class">jdbc</prop>
+                <prop key="hibernate.hql.bulk_id_strategy">org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy</prop>
+                <!-- Todo implement strategy that will not do select when where clause contains only equals on primary key -->
+                <!--<prop key="hibernate.hql.bulk_id_strategy">com.evolveum.midpoint.repo.sql.util.EmptyMultiTableBulkIdStrategy</prop>-->
             </props>
         </property>
-        <property name="namingStrategy">
-            <bean class="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy"/>
+        <property name="implicitNamingStrategy">
+            <bean class="com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy"/>
+        </property>
+        <property name="physicalNamingStrategy">
+            <bean class="com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy"/>
         </property>
         <property name="annotatedPackages">
             <list>
@@ -68,11 +75,16 @@
             </list>
         </property>
         <property name="entityInterceptor">
-            <bean class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
+            <ref bean="testInterceptor"/>
         </property>
     </bean>
 
-    <context:annotation-config />
-    <context:component-scan base-package="com.evolveum.midpoint.repo.sql.helpers" />
+    <bean id="transactionManager"
+          class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="testSessionFactory"/>
+    </bean>
+
+    <context:annotation-config/>
+    <context:component-scan base-package="com.evolveum.midpoint.repo.sql.helpers"/>
 
 </beans>

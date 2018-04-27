@@ -28,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
-import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
@@ -44,17 +44,21 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.*;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -74,6 +78,7 @@ public class ObjectRetriever {
 
     @Autowired private LookupTableHelper lookupTableHelper;
 	@Autowired private CertificationCaseHelper caseHelper;
+	@Autowired private CaseManagementHelper caseManagementHelper;
 	@Autowired private BaseHelper baseHelper;
 	@Autowired private NameResolutionHelper nameResolutionHelper;
 	@Autowired private PrismContext prismContext;
@@ -132,8 +137,8 @@ public class ObjectRetriever {
 			} else if (getConfiguration().isLockForUpdateViaSql()) {
 				LOGGER.trace("Trying to lock object {} for update (via SQL)", oid);
 				long time = System.currentTimeMillis();
-				SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
-				q.setString(0, oid);
+				NativeQuery q = session.createNativeQuery("select oid from m_object where oid = ? for update");
+				q.setParameter(1, oid);
 				Object result = q.uniqueResult();
 				if (result == null) {
 					return throwObjectNotFoundException(type, oid);
@@ -158,7 +163,7 @@ public class ObjectRetriever {
 		GetObjectResult fullObject = null;
 		if (!lockForUpdate) {
 			Query query = session.getNamedQuery("get.object");
-			query.setString("oid", oid);
+			query.setParameter("oid", oid);
 			query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 			query.setLockOptions(lockOptions);
 
@@ -169,11 +174,16 @@ public class ObjectRetriever {
 			// this just loads object to hibernate session, probably will be removed later. Merge after this get
 			// will be faster. Read and use object only from fullObject column.
 			// todo remove this later [lazyman]
-			Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-			criteria.add(Restrictions.eq("oid", oid));
+            Class clazz = ClassMapper.getHQLTypeClass(type);
 
-			criteria.setLockMode(lockOptions.getLockMode());
-			RObject obj = (RObject) criteria.uniqueResult();
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery cq = cb.createQuery(clazz);
+            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
+
+            Query query = session.createQuery(cq);
+            query.setLockOptions(lockOptions);
+
+            RObject obj = (RObject) query.uniqueResult();
 
 			if (obj != null) {
 				fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
@@ -221,7 +231,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             LOGGER.trace("Selecting account shadow owner for account {}.", shadowOid);
             Query query = session.getNamedQuery("searchShadowOwner.getOwner");
-            query.setString("oid", shadowOid);
+            query.setParameter("oid", shadowOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -257,7 +267,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
-            query.setString("oid", accountOid);
+            query.setParameter("oid", accountOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -299,12 +309,10 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             Number longCount;
             if (query == null || query.getFilter() == null) {
-            	if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))) {
-            		throw new UnsupportedOperationException("Distinct option is not supported here");	// TODO
-				}
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
-                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
+	            // note: distinct can be ignored here, as there is no filter, so no joins
+                NativeQuery sqlQuery = session.createNativeQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType, session));
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
@@ -330,8 +338,9 @@ public class ObjectRetriever {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
 		boolean cases = AccessCertificationCaseType.class.equals(type);
 		boolean workItems = AccessCertificationWorkItemType.class.equals(type);
-		if (!cases && !workItems) {
-			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
+		boolean caseWorkItems = CaseWorkItemType.class.equals(type);
+		if (!cases && !workItems && !caseWorkItems) {
+			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
 		}
 
 		LOGGER_PERFORMANCE.debug("> count containers {}", type.getSimpleName());
@@ -416,8 +425,9 @@ public class ObjectRetriever {
 
     	boolean cases = AccessCertificationCaseType.class.equals(type);
     	boolean workItems = AccessCertificationWorkItemType.class.equals(type);
-        if (!cases && !workItems) {
-            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
+    	boolean caseWorkItems = CaseWorkItemType.class.equals(type);
+        if (!cases && !workItems && !caseWorkItems) {
+            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
         }
 
         LOGGER_PERFORMANCE.debug("> search containers {}", type.getSimpleName());
@@ -439,8 +449,7 @@ public class ObjectRetriever {
 					C value = (C) caseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
 					list.add(value);
 				}
-			} else {
-            	assert workItems;
+			} else if (workItems) {
             	@SuppressWarnings({"unchecked", "raw"})
 				List<GetCertificationWorkItemResult> items = rQuery.list();
 				LOGGER.trace("Found {} work items, translating to JAXB.", items.size());
@@ -452,7 +461,23 @@ public class ObjectRetriever {
 					C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
 					list.add(value);
 				}
-			}
+			} else {
+	            assert caseWorkItems;
+	            @SuppressWarnings({"unchecked", "raw"})
+	            List<GetContainerableIdOnlyResult> items = rQuery.list();
+	            LOGGER.trace("Found {} items (case work items), translating to JAXB.", items.size());
+	            Map<String,PrismObject<CaseType>> casesCache = new HashMap<>();
+
+	            for (GetContainerableIdOnlyResult item : items) {
+		            try {
+			            @SuppressWarnings({ "raw", "unchecked" })
+			            C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, options, session, result);
+			            list.add(value);
+		            } catch (ObjectNotFoundException|DtoTranslationException e) {
+			            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve case work item for {}", e, item);
+		            }
+	            }
+            }
 
 			nameResolutionHelper.resolveNamesIfRequested(session, PrismContainerValue.asPrismContainerValues(list), options);
 
@@ -502,7 +527,7 @@ public class ObjectRetriever {
                 //todo improve, use user.hasPhoto flag and take options into account [lazyman]
                 //this is called only when options contains INCLUDE user/jpegPhoto
                 Query query = session.getNamedQuery("get.focusPhoto");
-                query.setString("oid", prismObject.getOid());
+                query.setParameter("oid", prismObject.getOid());
                 byte[] photo = (byte[]) query.uniqueResult();
                 if (photo != null) {
                     PrismProperty property = prismObject.findOrCreateProperty(FocusType.F_JPEG_PHOTO);
@@ -513,19 +538,24 @@ public class ObjectRetriever {
             //we store it because provisioning now sends it to repo, but it should be transient
             prismObject.removeContainer(ShadowType.F_ASSOCIATION);
 
-            LOGGER.debug("Loading definitions for shadow attributes.");
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+            if (GetOperationOptions.isRaw(rootOptions)) {
+                LOGGER.debug("Loading definitions for shadow attributes.");
 
-            Short[] counts = result.getCountProjection();
-            Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
+                Short[] counts = result.getCountProjection();
+                Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
 
-            for (int i = 0; i < classes.length; i++) {
-                if (counts[i] == null || counts[i] == 0) {
-                    continue;
+                for (int i = 0; i < classes.length; i++) {
+                    if (counts[i] == null || counts[i] == 0) {
+                        continue;
+                    }
+
+                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
                 }
-
-                applyShadowAttributeDefinitions(classes[i], prismObject, session);
+                LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
+            } else {
+                LOGGER.debug("Not loading definitions for shadow attributes, raw=false");
             }
-            LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         } else if (LookupTableType.class.equals(prismObject.getCompileTimeClass())) {
             lookupTableHelper.updateLoadedLookupTable(prismObject, options, session);
         } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
@@ -572,13 +602,13 @@ public class ObjectRetriever {
             // A switch statement used to be here
             // but that caused strange trouble with OpenJDK. This if-then-else works.
             if (item.getDefinition() == null) {
-                RValueType rValType = (RValueType) value[2];
-                if (rValType == RValueType.PROPERTY) {
+                RItemKind rValType = (RItemKind) value[2];
+                if (rValType == RItemKind.PROPERTY) {
                     PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
                     def.setMinOccurs(0);
                     def.setMaxOccurs(-1);
                     item.applyDefinition(def, true);
-                } else if (rValType == RValueType.REFERENCE) {
+                } else if (rValType == RItemKind.REFERENCE) {
                     PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
 	                def.setMinOccurs(0);
 	                def.setMaxOccurs(-1);
@@ -601,7 +631,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listResourceObjectShadows");
-            query.setString("oid", resourceOid);
+            query.setParameter("oid", resourceOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -648,7 +678,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("getVersion");
-            query.setString("oid", oid);
+            query.setParameter("oid", oid);
 
             Number versionLong = (Number) query.uniqueResult();
             if (versionLong == null) {
@@ -841,12 +871,12 @@ main:       for (;;) {
             Query query;
             if (lowerObjectOids.size() == 1) {
                 query = session.getNamedQuery("isAnySubordinateAttempt.oneLowerOid");
-                query.setString("dOid", lowerObjectOids.iterator().next());
+                query.setParameter("dOid", lowerObjectOids.iterator().next());
             } else {
                 query = session.getNamedQuery("isAnySubordinateAttempt.moreLowerOids");
                 query.setParameterList("dOids", lowerObjectOids);
             }
-            query.setString("aOid", upperOrgOid);
+            query.setParameter("aOid", upperOrgOid);
 
             Number number = (Number) query.uniqueResult();
             session.getTransaction().commit();
@@ -870,7 +900,7 @@ main:       for (;;) {
 
 			final String implementationLevelQuery;
 			final Map<String, RepositoryQueryDiagResponse.ParameterValue> implementationLevelQueryParameters;
-			final Query query;
+			final org.hibernate.Query query;
 			final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
 			if (isMidpointQuery) {
 				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);

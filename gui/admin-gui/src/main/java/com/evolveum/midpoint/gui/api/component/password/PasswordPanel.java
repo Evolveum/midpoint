@@ -20,13 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -103,7 +98,7 @@ public class PasswordPanel extends InputPanel {
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
 
-        final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<String>());
+        final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<>());
         password2.setRequired(false);
         password2.setResetPassword(false);
         password2.setOutputMarkupId(true);
@@ -208,7 +203,7 @@ public class PasswordPanel extends InputPanel {
 
     @Override
     public List<FormComponent> getFormComponents() {
-        List<FormComponent> list = new ArrayList<FormComponent>();
+        List<FormComponent> list = new ArrayList<>();
         list.add((FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE));
         list.add((FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_TWO));
         return list;
@@ -261,7 +256,7 @@ public class PasswordPanel extends InputPanel {
         }
     }
 
-    private class PasswordModel implements IModel<String> {
+    private static class PasswordModel implements IModel<String> {
 
     	IModel<ProtectedStringType> psModel;
 
@@ -290,6 +285,8 @@ public class PasswordPanel extends InputPanel {
 			} else {
 				if (psModel.getObject() == null) {
 					psModel.setObject(new ProtectedStringType());
+				} else {
+					psModel.getObject().clear();
 				}
 				psModel.getObject().setClearValue(object);
 			}

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,8 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     public void addDefinition(JpaLinkDefinition definition) {
         JpaLinkDefinition oldDef = findRawLinkDefinition(definition.getItemPath(), JpaDataNodeDefinition.class, true);
         if (oldDef != null) {
-            definitions.remove(oldDef);
+            // we don't replace definitions. E.g. name=>nameCopy for concrete classes with name=>name in RObject
+            return;
         }
         definitions.add(definition);
     }

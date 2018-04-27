@@ -63,7 +63,7 @@ public class StaticExpressionUtil {
 		}
 		if (output == null) {
 			switch (multiplicity) {
-				case MULTI: return new ArrayList<Object>(0);
+				case MULTI: return new ArrayList<>(0);
 				case SINGLE: return null;
 				default: throw new IllegalStateException("Unknown return type "+multiplicity);
 			}

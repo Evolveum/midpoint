@@ -38,9 +38,9 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
@@ -50,6 +50,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -324,7 +325,7 @@ public class AssignmentProcessor {
 
 						if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
 							LOGGER.trace(
-									"Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");    // TODO is this message OK? [med]
+									"Processing of shadow identified by {} will be skipped because of limitation for discovery channel.", context.getChannel());    // TODO is this message OK? [med]
 							processOnlyExistingProjCxts = true;
 						}
 					}
@@ -565,13 +566,13 @@ public class AssignmentProcessor {
                 }
             	iterator.remove();
             	if (!ModelExecuteOptions.isForce(context.getOptions())){
-            		ModelUtils.recordFatalError(result, ex);
+            		ModelImplUtils.recordFatalError(result, ex);
             	}
             } catch (SchemaException ex){
             	if (LOGGER.isTraceEnabled()) {
                 	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
                 }
-            	ModelUtils.recordFatalError(result, ex);
+            	ModelImplUtils.recordFatalError(result, ex);
             	String resourceOid = FocusTypeUtil.determineConstructionResource(evaluatedAssignment.getAssignmentType());
             	if (resourceOid == null) {
             		// This is a role assignment or something like that. Just throw the original exception for now.
@@ -872,8 +873,8 @@ public class AssignmentProcessor {
 		XMLGregorianCalendar nextRecomputeTime = null;
 
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
-			Collection<Mapping<V,D>> focusMappings = (Collection)ea.getFocusMappings();
-			for (Mapping<V,D> mapping: focusMappings) {
+			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
+			for (MappingImpl<V,D> mapping: focusMappings) {
 
 				ItemPath itemPath = mapping.getOutputPath();
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
@@ -968,7 +969,7 @@ public class AssignmentProcessor {
 				}
 			}
 			if (!found) {
-				PrismReferenceValue ref = reference.clone(false);		// using copyObject=false instead of calling canonicalize()
+				PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);		// clone without full object instead of calling canonicalize()
 				if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
 					ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
 				}

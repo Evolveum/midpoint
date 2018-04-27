@@ -60,7 +60,7 @@ public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePa
     private boolean loadingVisible = true;
 
     public AsyncUpdatePanel(String id, IModel<V> callableParameterModel, Duration durationSecs) {
-        super(id, new Model<T>());
+        super(id, new Model<>());
 
         this.callableParameterModel = callableParameterModel;
         this.processModel = new AsyncWebProcessModel<>();

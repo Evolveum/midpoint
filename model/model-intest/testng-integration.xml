@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersona"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersonaPassword"/>
+            <class name="com.evolveum.midpoint.model.intest.TestLifecycle"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
@@ -81,6 +82,7 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitioned"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTaskDeprecated"/>
@@ -125,8 +127,12 @@
     <test name="Manual" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGroupingProposed"/>
             <!--  DISABLED MID-4166 
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/> -->

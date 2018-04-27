@@ -37,7 +37,7 @@ public abstract class SchemaConstants {
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
-	public static final Map<String, String> prefixNsMap = new HashMap<String, String>();
+	public static final Map<String, String> prefixNsMap = new HashMap<>();
 
 	// NAMESPACES
 
@@ -200,9 +200,13 @@ public abstract class SchemaConstants {
 	 */
 	public static final QName ORG_CONSENT = new QName(NS_ORG, "consent");
 
+	public static final ItemPath PATH_NAME = new ItemPath(ObjectType.F_NAME);
+	public static final ItemPath PATH_DESCRIPTION = new ItemPath(ObjectType.F_DESCRIPTION);
 	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_VALUE);
+	public static final ItemPath PATH_PASSWORD_FORCE_CHANGE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
+			PasswordType.F_FORCE_CHANGE);
 	public static final ItemPath PATH_PASSWORD_METADATA = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_METADATA);
 	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
@@ -231,6 +235,10 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ASSIGNMENT = new ItemPath(FocusType.F_ASSIGNMENT);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
+	public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
+	public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
 	public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
@@ -249,6 +257,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
+	public static final String NS_PROVISIONING_TASK = NS_PROVISIONING + "/task";
 
 	// Synchronization constants
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
@@ -257,6 +266,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
+	public static final String CHANGE_CHANNEL_RECOMPUTE_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECOMPUTE);
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
@@ -349,8 +359,10 @@ public abstract class SchemaConstants {
 
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+	public static final QName MODEL_EXTENSION_SEARCH_OPTIONS = new QName(NS_MODEL_EXTENSION, "searchOptions");
 	public static final QName MODEL_EXTENSION_ITERATION_METHOD = new QName(NS_MODEL_EXTENSION, "iterationMethod");
 	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");
+	public static final QName MODEL_EXTENSION_OBJECT_DELTAS = new QName(NS_MODEL_EXTENSION, "objectDeltas");
 	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
 	public static final QName MODEL_EXTENSION_OPTION_RAW = new QName(NS_MODEL_EXTENSION, "optionRaw");
 	public static final QName MODEL_EXTENSION_EXECUTE_OPTIONS = new QName(NS_MODEL_EXTENSION, "executeOptions");
@@ -453,7 +465,12 @@ public abstract class SchemaConstants {
 
 	public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");
 	public static final QName C_FROM = new QName(NS_C, "from");
+	public static final QName C_ENCODED_FROM = new QName(NS_C, "encodedFrom");
 	public static final QName C_TO = new QName(NS_C, "to");
+	public static final QName C_TO_LIST = new QName(NS_C, "toList");
+	public static final QName C_ENCODED_TO = new QName(NS_C, "encodedTo");
+	public static final QName C_ENCODED_TO_LIST = new QName(NS_C, "encodedToList");
+	public static final QName C_MESSAGE_TEXT = new QName(NS_C, "messageText");
 	public static final QName C_ENCODED_MESSAGE_TEXT = new QName(NS_C, "encodedMessageText");
 	public static final QName C_MESSAGE = new QName(NS_C, "message");
 	public static final QName C_WORK_ITEM = new QName(NS_C, "workItem");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -31,7 +34,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,17 +52,24 @@ public class ShadowCacheReconciler extends ShadowCache {
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public String afterAddOnResource(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult)
-					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+	public String afterAddOnResource(ProvisioningContext ctx, 
+			PrismObject<ShadowType> shadowToAdd, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult = opState.getAsyncResult();
+		if (addResult == null) {
+			return opState.getExistingShadowOid();
+		}
 		PrismObject<ShadowType> shadow = addResult.getReturnValue();
 		cleanShadowInRepository(shadow, parentResult);
-
 		return shadow.getOid();
 	}
 
 	@Override
-	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
-			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+			Collection<? extends ItemDelta> modifications,
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {
 			cleanShadowInRepository(shadow, parentResult);
@@ -69,63 +78,28 @@ public class ShadowCacheReconciler extends ShadowCache {
 			throw new SystemException("While modifying object in the repository got exception: " + ex.getMessage(), ex);
 		}
 		LOGGER.trace("Shadow cleaned up successfully.");
-		
 	}
 	
 	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
-		PrismObject<ShadowType> normalizedShadow = shadow.clone();
-		
-		ProvisioningUtil.normalizeShadow(normalizedShadow.asObjectable(), parentResult);
+		PrismObject<ShadowType> repoShadowBefore = getRepositoryService().getObject(ShadowType.class, shadow.getOid(), null, parentResult);
+		List<ItemDelta<?, ?>> itemDeltas =
+				ProvisioningUtil.createShadowCleanupAndReconciliationDeltas(shadow, repoShadowBefore, getPrismContext());
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("normalized shadow {}", normalizedShadow.debugDump(1));
-		}
-		// FIXME: ugly hack, need to be fixed (problem with comparing operation
-		// result, because it was changed and in this call it is different as
-		// one in repo, therefore the following if)
-		PrismObject<ShadowType> oldShadow = shadow.clone();
-		ShadowUtil.getAttributesContainer(oldShadow).clear();
-		PrismObject<ShadowType> repoShadow = getRepositoryService().getObject(ShadowType.class,
-				shadow.getOid(), null, parentResult);
-		ShadowType repoShadowType = repoShadow.asObjectable();
-		if (repoShadowType.getResult() != null) {
-			if (!repoShadowType.getResult().equals(oldShadow.asObjectable().getResult())) {
-				oldShadow.asObjectable().setResult(repoShadowType.getResult());
-			}
-		}
-//		ShadowUtil.getAttributesContainer(repoShadow).clear();
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("origin shadow with failure description {}", oldShadow.debugDump(1));
-		}
-		
-		ObjectDelta delta = oldShadow.diff(normalizedShadow);
-
-		// TODO: remove this ugly hack (problem is in prism - objectChange does not get deleted by delta produced by diff method) - see MID-2174
-		PropertyDelta<ObjectDeltaType> clearObjectChange = PropertyDelta.createModificationReplaceProperty(
-				ShadowType.F_OBJECT_CHANGE, oldShadow.getDefinition());
-		delta.removePropertyModification(ShadowType.F_OBJECT_CHANGE);
-		delta.addModification(clearObjectChange);
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Normalizing shadow: change description: {}", delta.debugDump());
-		}
-
+		LOGGER.trace("Cleaning up repository shadow:\n{}\nThe current object is:\n{}\nAnd computed deltas are:\n{}",
+				repoShadowBefore.debugDumpLazily(), shadow.debugDumpLazily(), DebugUtil.debugDumpLazily(itemDeltas));
 		try {
-			ConstraintsChecker.onShadowModifyOperation(delta.getModifications());
-			getRepositoryService().modifyObject(ShadowType.class, oldShadow.getOid(), delta.getModifications(),
-					parentResult);
+			ConstraintsChecker.onShadowModifyOperation(itemDeltas);
+			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, parentResult);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Couldn't modify shadow: schema violation: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Couldn't clean-up shadow: schema violation: " + ex.getMessage(), ex);
 			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
-			parentResult.recordFatalError("Couldn't modify shadow: shadow already exists: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Couldn't clean-up shadow: shadow already exists: " + ex.getMessage(), ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Couldn't modify shadow: shadow not found: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Couldn't clean-up shadow: shadow not found: " + ex.getMessage(), ex);
 			throw ex;
 		}
-
 	}
 
 	@Override
@@ -155,7 +129,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 		}
 		
 		if (modifications == null){
-			modifications =  new ArrayList<ItemDelta>();
+			modifications = new ArrayList<>();
 		}
 		
 		return modifications;

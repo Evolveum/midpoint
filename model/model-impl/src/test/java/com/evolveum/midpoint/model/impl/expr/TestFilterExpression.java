@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.impl.expr;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.io.IOException;
@@ -294,7 +293,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 		Map<QName, Object> params = new HashMap<>();
 		PrismPropertyValue<String> pval = null;
 		if (input != null) {
-			pval = new PrismPropertyValue<String>(input);
+			pval = new PrismPropertyValue<>(input);
 		}
 		params.put(ExpressionConstants.VAR_INPUT, pval);
 

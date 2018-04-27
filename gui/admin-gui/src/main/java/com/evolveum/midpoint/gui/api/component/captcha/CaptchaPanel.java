@@ -1,16 +1,12 @@
 package com.evolveum.midpoint.gui.api.component.captcha;
 
-import java.util.Random;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -57,7 +53,7 @@ public class CaptchaPanel extends BasePanel<Void> {
 		add(changeCaptchaLink);
 
 		add(new RequiredTextField<String>("text",
-				new PropertyModel<String>(CaptchaPanel.this, "captchaText"), String.class) {
+            new PropertyModel<>(CaptchaPanel.this, "captchaText"), String.class) {
 								private static final long serialVersionUID = 1L;
 
 			@Override

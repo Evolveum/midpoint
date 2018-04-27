@@ -26,9 +26,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
@@ -511,13 +508,8 @@ public class TestQueryBuilder {
                         .item(new ItemPath(UserType.F_NAME), nameDef)
                 .build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(
-                LessFilter.createLess(
-                        new ItemPath(UserType.F_LOCALITY),
-                        localityDef,
-                        new ItemPath(UserType.F_NAME),
-                        nameDef,
-                        true
-                )
+                LessFilter.createLess(new ItemPath(UserType.F_LOCALITY), localityDef, null,
+		                new ItemPath(UserType.F_NAME), nameDef, true)
         );
         compare(actual, expected);
     }

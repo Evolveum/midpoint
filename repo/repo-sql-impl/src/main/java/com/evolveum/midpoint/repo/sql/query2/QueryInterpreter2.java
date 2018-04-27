@@ -37,16 +37,14 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ProperDataSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.restriction.*;
-import com.evolveum.midpoint.repo.sql.util.GetCertificationWorkItemResult;
-import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
-import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
-import com.evolveum.midpoint.repo.sql.util.ResultStyle;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
@@ -111,8 +109,8 @@ public class QueryInterpreter2 {
     public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
 			Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
 			boolean countingObjects, @NotNull Session session) throws QueryException {
-		boolean distinct = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
-        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinct={}), query:\n{}", type, countingObjects, distinct, query);
+		boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
+        LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
         InterpretationContext context = new InterpretationContext(this, type, prismContext, session);
 		interpretQueryFilter(context, query);
@@ -122,6 +120,7 @@ public class QueryInterpreter2 {
 		if (countingObjects) {
 			interpretPagingAndSorting(context, query, true);
         	RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+			boolean distinct = distinctRequested && !hibernateQuery.isDistinctNotNecessary();
 			hibernateQuery.addProjectionElement(new CountProjectionElement(resultStyle.getCountString(rootAlias), distinct));
 			return hibernateQuery;
         }
@@ -137,6 +136,7 @@ public class QueryInterpreter2 {
 		 */
 		boolean distinctBlobCapable = !repoConfiguration.isUsingOracle() && !repoConfiguration.isUsingSQLServer();
 		RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+	    boolean distinct = distinctRequested && !hibernateQuery.isDistinctNotNecessary();
 		hibernateQuery.setDistinct(distinct);
 		hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
 		if (distinct && !distinctBlobCapable) {
@@ -193,6 +193,8 @@ public class QueryInterpreter2 {
 			return GetContainerableResult.RESULT_STYLE;
 		} else if (AccessCertificationWorkItemType.class.equals(context.getType())) {
 			return GetCertificationWorkItemResult.RESULT_STYLE;
+		} else if (CaseWorkItemType.class.equals(context.getType())) {
+			return GetContainerableIdOnlyResult.RESULT_STYLE;
 		} else {
 			throw new QueryException("Unsupported type: " + context.getType());
 		}

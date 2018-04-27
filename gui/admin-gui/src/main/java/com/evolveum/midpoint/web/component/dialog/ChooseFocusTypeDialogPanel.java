@@ -6,19 +6,14 @@ import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import java.util.List;
 
 public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 
@@ -31,8 +26,8 @@ public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 	}
 
 	private void initLayout(){
-		DropDownChoice<QName> type = new DropDownChoice<QName>(ID_OBJECT_TYPE, Model.of(UserType.COMPLEX_TYPE),
-				WebComponentUtil.createFocusTypeList(), new QNameObjectTypeChoiceRenderer());
+		DropDownChoice<QName> type = new DropDownChoice<>(ID_OBJECT_TYPE, Model.of(UserType.COMPLEX_TYPE),
+            WebComponentUtil.createFocusTypeList(), new QNameObjectTypeChoiceRenderer());
 		type.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 	        type.setOutputMarkupId(true);
 	        add(type);

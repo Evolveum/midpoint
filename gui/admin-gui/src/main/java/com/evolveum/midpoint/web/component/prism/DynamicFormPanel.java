@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
@@ -149,8 +148,12 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	}
 
 	public boolean checkRequiredFields(PageBase pageBase) {
-		// TODO - or check only fields present in the form itself? (But other required attributes should be present as well.)
-		return wrapperModel.getObject().checkRequiredFields(pageBase);
+		return getFormFields().checkRequiredFields(pageBase);
+	}
+
+	@SuppressWarnings("unchecked")
+	public DynamicFieldGroupPanel<O> getFormFields() {
+		return (DynamicFieldGroupPanel<O>) get(ID_FORM_FIELDS);
 	}
 
 	public PrismObject<O> getObject() throws SchemaException {
@@ -171,9 +174,9 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	private void collectItemPaths(List<AbstractFormItemType> items, List<ItemPath> paths) {
 		for (AbstractFormItemType aItem : items) {
-			ItemPathType itemPathType = GuiImplUtil.getPathType(aItem);
-			if (itemPathType != null) {
-				paths.add(itemPathType.getItemPath());
+			ItemPath itemPath = GuiImplUtil.getItemPath(aItem);
+			if (itemPath != null) {
+				paths.add(itemPath);
 			}
 			if (aItem instanceof FormFieldGroupType) {
 				collectItemPaths(FormTypeUtil.getFormItems(((FormFieldGroupType) aItem).getFormItems()), paths);

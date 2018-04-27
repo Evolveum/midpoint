@@ -119,20 +119,20 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
 
         InputPanel panel;
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
-            panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(getModel(), baseExpression));
+            panel = new DatePanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-            panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(getModel(), baseExpression));
+            panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-            panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(getModel(), baseExpression));
+            panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
-            panel = new TextPanel<String>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"), String.class);
+            panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression + ".orig"), String.class);
         } else {
             Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
             if (type != null && type.isPrimitive()) {
                 type = ClassUtils.primitiveToWrapper(type);
             }
-            panel = new TextPanel<String>(id, new PropertyModel<String>(getModel(), baseExpression),
-                    type);
+            panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression),
+                type);
 
             if (ObjectType.F_NAME.equals(definition.getName())) {
                 panel.getBaseFormComponent().setRequired(true);

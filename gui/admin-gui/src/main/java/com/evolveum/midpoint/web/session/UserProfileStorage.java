@@ -42,6 +42,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
     public enum TableId {
         PAGE_USER_SELECTION,
         TABLE_ROLES,
+        TABLE_CASES,
         TABLE_USERS,
         TABLE_SERVICES,
         TABLE_RESOURCES,
@@ -75,6 +76,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_CERT_CAMPAIGNS_PANEL,
         PAGE_CERT_DECISIONS_PANEL,
         PAGE_CERT_DEFINITIONS_PANEL,
+        PAGE_CASE_WORK_ITEMS_PANEL,
 		PAGE_WORK_ITEM_HISTORY_PANEL,
 		PAGE_TASK_HISTORY_PANEL,
 		PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
@@ -87,7 +89,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 
     }
 
-    private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();
+    private Map<TableId, Integer> tables = new HashMap<>();
 
     public Integer getPagingSize(TableId key) {
         Validate.notNull(key, "Key must not be null.");

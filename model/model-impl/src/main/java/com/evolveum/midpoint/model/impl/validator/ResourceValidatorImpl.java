@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.model.impl.validator;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.validator.Issue;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -86,7 +85,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 	@Autowired
 	private PrismContext prismContext;
 
-	private class ResourceValidationContext {
+	private static class ResourceValidationContext {
 		@NotNull final PrismObject<ResourceType> resourceObject;
 		@NotNull final ObjectReferenceType resourceRef;
 		@NotNull final Scope scope;

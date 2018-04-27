@@ -19,10 +19,8 @@ import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -140,7 +138,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
 				textWrapper.setOutputMarkupPlaceholderTag(true);
 
-				TextField<String> text = new TextField<String>(ID_TEXT, createTextModel(item.getModel())); //was value
+				TextField<String> text = new TextField<>(ID_TEXT, createTextModel(item.getModel())); //was value
 				text.add(new AjaxFormComponentUpdatingBehavior("blur") {
 					private static final long serialVersionUID = 1L;
 
@@ -243,7 +241,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	protected void addPerformed(AjaxRequestTarget target, List<T> addedValues) {
 		List<T> modelList = getModelObject();
 		if(modelList == null) {
-			modelList = new ArrayList<T>();
+			modelList = new ArrayList<>();
 		}
 		addedValues.removeAll(modelList); // add values not already in
 		modelList.addAll(addedValues);

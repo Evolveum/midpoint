@@ -146,7 +146,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		userNameContainer.setOutputMarkupId(true);
 		staticLayout.add(userNameContainer);
 
-		RequiredTextField<String> userName = new RequiredTextField<String>(ID_USERNAME, new Model<String>());
+		RequiredTextField<String> userName = new RequiredTextField<>(ID_USERNAME, new Model<>());
 		userName.setOutputMarkupId(true);
 		userNameContainer.add(userName);
 		userNameContainer.add(new VisibleEnableBehaviour() {
@@ -161,7 +161,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		WebMarkupContainer emailContainer = new WebMarkupContainer(ID_EMAIL_CONTAINER);
 		emailContainer.setOutputMarkupId(true);
 		staticLayout.add(emailContainer);
-		RequiredTextField<String> email = new RequiredTextField<String>(ID_EMAIL, new Model<String>());
+		RequiredTextField<String> email = new RequiredTextField<>(ID_EMAIL, new Model<>());
 		email.add(RfcCompliantEmailAddressValidator.getInstance());
 		email.setOutputMarkupId(true);
 		emailContainer.add(email);
@@ -429,6 +429,8 @@ public class PageForgotPassword extends PageRegistrationBase {
 	private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
 		return runPrivileged(new Producer<OperationResult>() {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public OperationResult run() {
 				Task task = createAnonymousTask("generateUserNonce");
@@ -440,13 +442,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 					nonceCredentials
 							.setClearValue(generateNonce(noncePolicy, task, user.asPrismObject(), result));
 
-					NonceType nonceType = new NonceType();
-					nonceType.setValue(nonceCredentials);
+//					NonceType nonceType = new NonceType();
+//					nonceType.setValue(nonceCredentials);
 
-					ObjectDelta<UserType> nonceDelta;
-
-					nonceDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, user.getOid(),
-							SchemaConstants.PATH_NONCE, getPrismContext(), nonceType);
+					ObjectDelta<UserType> nonceDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+							SchemaConstants.PATH_NONCE_VALUE, getPrismContext(), nonceCredentials);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
 				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {

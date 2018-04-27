@@ -45,11 +45,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ContextImage;
 import org.apache.wicket.markup.html.image.NonCachingImage;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -82,7 +80,7 @@ public class UserMenuPanel extends BasePanel {
     private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
     private IModel<List<SecurityQuestionDefinitionType>> securityPolicyQuestionsModel;
 //    private PrismObject<UserType> userModel;
-    private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
+    private Model<PrismObject<UserType>> userModel = new Model<>();
 
     private boolean isUserModelLoaded = false;
     private boolean isPasswordModelLoaded = false;
@@ -325,7 +323,7 @@ public class UserMenuPanel extends BasePanel {
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
         if (secQuestAnsList != null) {
-            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
             for (Iterator iterator = secQuestAnsList.iterator(); iterator.hasNext();) {
                 SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
                         .next();
@@ -354,7 +352,7 @@ public class UserMenuPanel extends BasePanel {
 
 
     private List<SecurityQuestionDefinitionType> loadSecurityPloicyQuestionsModel() {
-        List<SecurityQuestionDefinitionType> questionList = new ArrayList<SecurityQuestionDefinitionType>();
+        List<SecurityQuestionDefinitionType> questionList = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
         try {
             Task task = ((PageBase) getPage()).createSimpleTask(OPERATION_LOAD_QUESTION_POLICY);

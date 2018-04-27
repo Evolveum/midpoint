@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,6 +20,21 @@
     <name>Assign Application Roles</name>    
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<phase>request</phase>
+    	<object>
+    		<type>RoleType</type>
+    	</object>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<phase>request</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<phase>execution</phase>
     </authorization>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
@@ -29,7 +44,7 @@
     		<filter>
     			<q:or>
 	    			<q:equal>
-	    				<q:path>roleType</q:path>
+	    				<q:path>subType</q:path>
 	    				<q:value>application</q:value>
 	    			</q:equal>
 	    			<q:equal>
@@ -41,7 +56,7 @@
 	    			<q:equal>
 	    				<!-- This role type does not even exists. 
 	    				     But it does not change the result and it replicates MID-2549 -->
-	    				<q:path>roleType</q:path>
+	    				<q:path>subType</q:path>
 	    				<q:value>nonexistent</q:value>
 	    			</q:equal>
     			</q:or>
@@ -59,7 +74,7 @@
     		<filter>
     			<q:or>
 	    			<q:equal>
-	    				<q:path>roleType</q:path>
+	    				<q:path>subType</q:path>
 	    				<q:value>application</q:value>
 	    			</q:equal>
     			</q:or>
@@ -69,6 +84,7 @@
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
     	<phase>execution</phase>
     </authorization>
 </role>

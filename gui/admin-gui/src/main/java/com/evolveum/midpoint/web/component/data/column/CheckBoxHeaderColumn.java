@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,9 @@ import java.util.List;
  * @author lazyman
  */
 public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
+	private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
 
     public CheckBoxHeaderColumn() {
         super(null);
@@ -52,8 +53,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public Component getHeader(final String componentId) {
-        final IModel<Boolean> model = new Model<Boolean>(false);
-        CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled()) {
+        final IModel<Boolean> model = new Model<>(false);
+        IsolatedCheckBoxPanel panel = new IsolatedCheckBoxPanel(componentId, model, getEnabled(null)) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
@@ -79,7 +80,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public String getCssClass() {
-        return "icon";
+        return "check";
     }
 
     protected boolean isCheckboxVisible(){
@@ -116,7 +117,16 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
         }
 
-        target.add(table.getBody());
+        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+
+        while (iterator.hasNext()) {
+            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
+            if (!row.getOutputMarkupId()) {
+                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+                continue;
+            }
+            target.add(row);
+        }
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {
@@ -152,7 +162,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     @Override
     protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
         //update header checkbox
-        CheckBoxPanel header = findCheckBoxColumnHeader(table);
+        IsolatedCheckBoxPanel header = findCheckBoxColumnHeader(table);
         if (header == null) {
             return;
         }
@@ -161,7 +171,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         target.add(header);
     }
 
-    public CheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
+    public IsolatedCheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
         WebMarkupContainer topToolbars = table.getTopToolbars();
         ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
         if (!iterator.hasNext()) {
@@ -172,14 +182,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         // simple attempt to find checkbox which is header for our column
         // todo: this search will fail if there are more checkbox header columns (which is not supported now,
         // because Selectable.F_SELECTED is hardcoded all over the place...
-        iterator = toolbar.visitChildren(CheckBoxPanel.class);
+        iterator = toolbar.visitChildren(IsolatedCheckBoxPanel.class);
         while (iterator.hasNext()) {
             Component c = iterator.next();
             if (!c.getOutputMarkupId()) {
                 continue;
             }
 
-            return (CheckBoxPanel) c;
+            return (IsolatedCheckBoxPanel) c;
         }
 
         return null;

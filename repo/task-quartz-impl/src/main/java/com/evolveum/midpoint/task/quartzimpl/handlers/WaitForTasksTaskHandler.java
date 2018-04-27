@@ -26,8 +26,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import java.util.List;
-
 /**
  * This is very simple task handler that causes the process to enter WAITING for OTHER_TASKS state.
  *
@@ -43,12 +41,12 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 
 	private WaitForTasksTaskHandler() {}
 	
-	public static void instantiateAndRegister(TaskManager taskManager) {
+	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
 		if (instance == null) {
 			instance = new WaitForTasksTaskHandler();
         }
 		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
+		instance.taskManagerImpl = taskManager;
 	}
 
 	@Override
@@ -87,10 +85,5 @@ public class WaitForTasksTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return null;        // hopefully we will never need to derive category from this handler! (category is filled-in when persisting tasks)
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

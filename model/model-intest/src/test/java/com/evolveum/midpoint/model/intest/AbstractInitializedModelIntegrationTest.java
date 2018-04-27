@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,9 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
-import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
+import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -68,15 +69,13 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
 	private static final int NUMBER_OF_IMPORTED_USERS = 4;
-	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
+	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
-	@Autowired(required = true)
-	protected MappingFactory mappingFactory;
+	@Autowired protected MappingFactory mappingFactory;
+	@Autowired protected Clockwork clockwork;
+	@Autowired protected ClockworkMedic clockworkMedic;
 
-	@Autowired(required = true)
-	protected Clockwork clockwork;
-
-	protected ProfilingLensDebugListener lensDebugListener;
+	protected ProfilingModelInspectorManager profilingModelInspectorManager;
 	protected CheckingProgressListener checkingProgressListener;
 
 	protected UserType userTypeJack;
@@ -126,8 +125,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assumeConflictResolutionAction(getDefaultConflictResolutionAction());
 
 		mappingFactory.setProfiling(true);
-		lensDebugListener = new ProfilingLensDebugListener();
-		clockwork.setDebugListener(lensDebugListener);
+		profilingModelInspectorManager = new ProfilingModelInspectorManager();
+		clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
 		checkingProgressListener = new CheckingProgressListener();
 
 		// Resources
@@ -252,6 +251,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_JUDGE_DEPRECATED_FILE, initResult);
 		repoAddObjectFromFile(ROLE_THIEF_FILE, initResult);
 		repoAddObjectFromFile(ROLE_EMPTY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_USELESS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, initResult);

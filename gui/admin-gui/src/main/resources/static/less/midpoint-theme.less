@@ -501,7 +501,13 @@ body .treeview-menu > li > span:hover {
 	&.without-box-header-top-border {
 		border-top: 0px;
 	}
+	
+	table {
+		// prohibit overflow of the table beyond the bounding box
+		table-layout: fixed;
+	}
 }
+
 
 .boxed-table-footer-button-toolbar {
 	display: inline-block;
@@ -1273,4 +1279,37 @@ dd.stacktrace::before {
 	.box-content {
 		padding: 15px;
 	}
+}
+
+// Tables where the first column is the name of the property/attribute
+// (e.g. audit log item details)
+// see MID-4300
+
+td.prop-name {
+	min-width: 90px;
+	font-weight: bold;
+}
+
+th.icon {
+	// The content of this column is just a single icon.
+	// WARNING: this means both the header and the table data
+	//          have just a single icon. No text.
+	// See com.evolveum.midpoint.web.component.data.column.IconColumn
+	width: 25px;
+}
+
+th.check {
+	// The content of this column is just a single checkbox.
+	// WARNING: this means both the header and the table data
+	//          have just a single checkbox. Nothing else.
+	// See com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn
+	width: 34px;
+}
+
+th.shrink {
+	// We want this column to fit as tightly as possible.
+	// E.g. for columns that have textual label but
+	// the content is just an icon or something much smaller
+	// than the header.
+	width: -moz-min-content;
 }

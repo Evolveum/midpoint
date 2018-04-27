@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.core.JsonParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -106,7 +105,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 	}
 
-	private class IterativeParsingContext {
+	private static class IterativeParsingContext {
 		final RootXNodeHandler handler;
 		boolean dataSent;                      // true if we really found the list of objects and sent it out
 		String defaultNamespace;               // default namespace, if present
@@ -622,7 +621,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
 	//region Serialization implementation
 
-	class JsonSerializationContext {
+	static class JsonSerializationContext {
 		@NotNull final JsonGenerator generator;
 		@NotNull private final SerializationContext prismSerializationContext;
 		private String currentNamespace;

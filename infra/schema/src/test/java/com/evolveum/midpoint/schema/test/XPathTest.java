@@ -50,7 +50,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -313,7 +312,7 @@ public class XPathTest {
     @Test
     public void pureXPathRoundTripTest() {
 
-    	Map<String, String> namespaceMap = new HashMap<String, String>();
+    	Map<String, String> namespaceMap = new HashMap<>();
     	namespaceMap.put("foo", "http://foo");
     	namespaceMap.put("bar", "http://bar");
 

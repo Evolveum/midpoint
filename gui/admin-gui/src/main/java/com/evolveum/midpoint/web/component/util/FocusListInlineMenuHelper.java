@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,17 +30,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +81,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 	public List<InlineMenuItem> createRowActions(boolean isHeader) {
 		List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
@@ -122,8 +114,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 		});
 
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable"),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
@@ -155,7 +147,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			}
 		});
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override

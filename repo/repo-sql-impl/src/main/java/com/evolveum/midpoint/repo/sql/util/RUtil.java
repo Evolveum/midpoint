@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedNamedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -45,31 +43,30 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.Joinable;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import javax.persistence.Table;
 import javax.xml.namespace.QName;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipException;
 
 /**
  * @author lazyman
@@ -87,7 +84,7 @@ public final class RUtil {
      * properly with PostgreSQL, causing TEXT types (clobs) to be saved not in
      * table row but somewhere else and it always messed up UTF-8 encoding
      */
-    public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
+    public static final String LOB_STRING_TYPE = "org.hibernate.type.MaterializedClobType"; //todo is it working correctly with postgresql [lazyman]
 
     public static final int COLUMN_LENGTH_QNAME = 157;
 
@@ -107,6 +104,8 @@ public final class RUtil {
     public static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
 
     private static final Trace LOGGER = TraceManager.getTrace(RUtil.class);
+
+    private static final int DB_OBJECT_NAME_MAX_LENGTH = 30;
 
     private RUtil() {
     }
@@ -249,7 +248,6 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
         for (RObjectType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
@@ -275,11 +273,16 @@ public final class RUtil {
         }
     }
 
-    public static void copyResultFromJAXB(ItemDefinition parentDef, QName itemName, OperationResultType jaxb,
+    public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
                                           OperationResult repo, PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
 
         if (jaxb == null) {
+            repo.setStatus(null);
+            if (repo instanceof OperationResultFull) {
+                ((OperationResultFull) repo).setFullResult(null);
+            }
+
             return;
         }
 
@@ -287,24 +290,29 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                ((OperationResultFull) repo).setFullResult(full);
+                byte[] data = RUtil.getByteArrayFromXml(full, true);
+                ((OperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }
         }
     }
 
-    public static String computeChecksum(Object... objects) {
-        StringBuilder builder = new StringBuilder();
-        for (Object object : objects) {
-            if (object == null) {
-                continue;
+    public static String computeChecksum(byte[]... objects) {
+        try {
+            List<InputStream> list = new ArrayList<>();
+            for (byte[] data : objects) {
+                if (data == null) {
+                    continue;
+                }
+                list.add(new ByteArrayInputStream(data));
             }
+            SequenceInputStream sis = new SequenceInputStream(Collections.enumeration(list));
 
-            builder.append(object.toString());
+            return DigestUtils.md5Hex(sis);
+        } catch (IOException ex) {
+            throw new SystemException(ex);
         }
-
-        return DigestUtils.md5Hex(builder.toString());
     }
 
     public static <T extends SchemaEnum> T getRepoEnumValue(Object object, Class<T> type) {
@@ -323,6 +331,14 @@ public final class RUtil {
                 + "', can't translate to '" + type + "'.");
     }
 
+    /*
+     *  Beware: this method provides results different from QNameUtil.qnameToUri for namespaces ending with "/":
+     *  E.g. for http://x/ plus auditor:
+     *    - this one: http://x/#auditor
+     *    - QNameUtil: http://x/auditor
+     *  Normally it should not be a problem, because repo may use any QName representation it wants ... but it might
+     *  be confusing in some situations.
+     */
     @NotNull
     public static String qnameToString(QName qname) {
         StringBuilder sb = new StringBuilder();
@@ -405,16 +421,23 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static String getTableName(Class hqlType) {
-        Table tableAnnotation = (Table) hqlType.getAnnotation(Table.class);     // TODO what about performance here? (synchronized call)
-        if (tableAnnotation != null && StringUtils.isNotEmpty(tableAnnotation.name())) {
-            return tableAnnotation.name();
+    public static String getTableName(Class hqlType, Session session) {
+        SessionFactory factory = session.getSessionFactory();
+        MetamodelImpl model = (MetamodelImpl) factory.getMetamodel();
+        EntityPersister ep = model.entityPersister(hqlType);
+        if (ep instanceof Joinable) {
+            Joinable joinable = (Joinable) ep;
+            return joinable.getTableName();
         }
-        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
-        return namingStrategy.classToTableName(hqlType.getSimpleName());
+
+        throw new SystemException("Couldn't get table name for class " + hqlType.getName());
     }
 
     public static byte[] getByteArrayFromXml(String xml, boolean compress) {
+        if (xml == null) {
+            return null;
+        }
+
         byte[] array;
 
         GZIPOutputStream gzip = null;
@@ -422,13 +445,13 @@ public final class RUtil {
             if (compress) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 gzip = new GZIPOutputStream(out);
-                gzip.write(xml.getBytes("utf-8"));
+                gzip.write(xml.getBytes(StandardCharsets.UTF_8.name()));
                 gzip.close();
                 out.close();
 
                 array = out.toByteArray();
             } else {
-                array = xml.getBytes("utf-8");
+                array = xml.getBytes(StandardCharsets.UTF_8.name());
             }
         } catch (Exception ex) {
             throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
@@ -440,17 +463,27 @@ public final class RUtil {
     }
 
     public static String getXmlFromByteArray(byte[] array, boolean compressed) {
+        if (array == null) {
+            return null;
+        }
+
         String xml;
 
         GZIPInputStream gzip = null;
         try {
             if (compressed) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                gzip = new GZIPInputStream(new ByteArrayInputStream(array));
-                IOUtils.copy(gzip, out);
-                xml = new String(out.toByteArray(), "utf-8");
+                try {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    gzip = new GZIPInputStream(new ByteArrayInputStream(array));
+                    IOUtils.copy(gzip, out);
+                    xml = new String(out.toByteArray(), StandardCharsets.UTF_8.name());
+                } catch (ZipException ex) {
+                    LOGGER.warn("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
+
+                    xml = new String(array, StandardCharsets.UTF_8.name());
+                }
             } else {
-                xml = new String(array, "utf-8");
+                xml = new String(array, StandardCharsets.UTF_8.name());
             }
         } catch (Exception ex) {
             throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
@@ -488,9 +521,35 @@ public final class RUtil {
     }
 
     public static String trimString(String message, int size) {
-		if (message == null || message.length() <= size) {
-			return message;
-		}
-		return message.substring(0, size - 4) + "...";
-	}
+        if (message == null || message.length() <= size) {
+            return message;
+        }
+        return message.substring(0, size - 4) + "...";
+    }
+
+    public static String fixDBSchemaObjectNameLength(String input) {
+        if (input == null || input.length() <= DB_OBJECT_NAME_MAX_LENGTH) {
+            return input;
+        }
+
+        String result = input;
+        String[] array = input.split("_");
+        for (int i = 0; i < array.length; i++) {
+            int length = array[i].length();
+            String lengthStr = Integer.toString(length);
+
+            if (length < lengthStr.length()) {
+                continue;
+            }
+
+            array[i] = array[i].charAt(0) + lengthStr;
+
+            result = StringUtils.join(array, "_");
+            if (result.length() < DB_OBJECT_NAME_MAX_LENGTH) {
+                break;
+            }
+        }
+
+        return result;
+    }
 }

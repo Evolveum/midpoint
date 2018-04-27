@@ -14,7 +14,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar.
@@ -68,7 +67,7 @@ public class PageAssignmentDetails extends PageBase{
             public void onClick(AjaxRequestTarget target) {
                 RoleCatalogStorage storage = getSessionStorage().getRoleCatalog();
                 if (storage.getAssignmentShoppingCart() == null){
-                    storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+                    storage.setAssignmentShoppingCart(new ArrayList<>());
                 }
                 AssignmentEditorDto dto = assignmentModel.getObject();
                 dto.setMinimized(true);

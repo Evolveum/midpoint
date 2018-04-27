@@ -28,39 +28,48 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericIntervalWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * @author Pavol Mederly
  *
  */
-public class NoOpTaskHandler implements TaskHandler {
+public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
 
 	private static NoOpTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;
 	
 	private NoOpTaskHandler() {}
 	
-	public static void instantiateAndRegister(TaskManager taskManager) {
-		if (instance == null)
+	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
+		if (instance == null) {
 			instance = new NoOpTaskHandler();
-		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
+		}
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_1, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_2, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_3, instance);
+		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_4, instance);
+		instance.taskManagerImpl = taskManager;
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
-		
+	public TaskWorkBucketProcessingResult run(Task task, WorkBucketType workBucket,
+			TaskWorkBucketProcessingResult previousRunResult) {
+
+		String partition = task.getHandlerUri().substring(TaskConstants.NOOP_TASK_HANDLER_URI.length());  // empty or #1..#4
+
 		OperationResult opResult = new OperationResult(NoOpTaskHandler.class.getName()+".run");
-		TaskRunResult runResult = new TaskRunResult();
+		TaskWorkBucketProcessingResult runResult = new TaskWorkBucketProcessingResult();
 		runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
+		runResult.setBucketComplete(false);     // overridden later
+		runResult.setShouldContinue(false);     // overridden later
 
-        PrismContainer taskExtension = task.getExtension();
+		PrismContainer taskExtension = task.getExtension();
 
         PrismProperty<Integer> delayProp = taskExtension != null ? taskExtension.findProperty(SchemaConstants.NOOP_DELAY_QNAME) : null;
         PrismProperty<Integer> stepsProp = taskExtension != null ? taskExtension.findProperty(SchemaConstants.NOOP_STEPS_QNAME) : null;
@@ -68,78 +77,86 @@ public class NoOpTaskHandler implements TaskHandler {
 		PrismPropertyDefinition delayPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_DELAY_QNAME);
 		PrismPropertyDefinition stepsPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_STEPS_QNAME);
 		try {
-			if (delayProp != null)
+			if (delayProp != null) {
 				delayProp.applyDefinition(delayPropDef);
-			if (stepsProp != null)
+			}
+			if (stepsProp != null) {
 				stepsProp.applyDefinition(stepsPropDef);
+			}
 		} catch (SchemaException se) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Cannot apply Prism definition to delay and/or steps property, exiting immediately.", se);
-			opResult.recordFatalError("Cannot apply Prism definition to delay and/or steps property, exiting immediately.", se);
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot apply prism definition to delay and/or steps property, exiting immediately.", se);
+			opResult.recordFatalError("Cannot apply prism definition to delay and/or steps property, exiting immediately.", se);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
 		}
         
         long delay;
-        if (delayProp != null && !delayProp.getValues().isEmpty())
-        	delay = delayProp.getValues().get(0).getValue();
-        else
-        	delay = 0;
+        if (delayProp != null && !delayProp.getValues().isEmpty()) {
+	        delay = delayProp.getValues().get(0).getValue();
+        } else {
+	        delay = 0;
+        }
 
         int steps;
-        if (stepsProp != null && !stepsProp.getValues().isEmpty())
-        	steps = stepsProp.getValues().get(0).getValue();
-        else
-        	steps = 1;
+        if (stepsProp != null && !stepsProp.getValues().isEmpty()) {
+	        steps = stepsProp.getValues().get(0).getValue();
+        } else {
+	        steps = 1;
+        }
 
-        LOGGER.info("NoOpTaskHandler run starting; progress = " + task.getProgress() + ", steps to be executed = " + steps + ", delay for one step = " + delay  + " in task " + task.getName());
-        
-        for (int i = 0; i < steps; i++) {
-        	LOGGER.info("NoOpTaskHandler: executing step " + (i+1) + " of " + steps + " in task " + task.getName());
+        LOGGER.info("NoOpTaskHandler run starting; progress = {}, steps to be executed = {}, delay for one step = {},"
+		        + " partition = '{}', work bucket = {}, in task {}", task.getProgress(), steps, delay, partition, workBucket, task);
 
-            // this strange construction is used to simulate non-interruptible execution of the task
-        	long sleepUntil = System.currentTimeMillis() + delay;
-        	for (;;) {
-        		long delta = sleepUntil - System.currentTimeMillis();
-        		if (delta > 0) {
-                	try {
-            			Thread.sleep(delta);
-                	} catch (InterruptedException e) {
-                	}
-        		} else {
-        			break;		// we have slept enough
-        		}
-			}
+        int objectFrom;
+        int objectTo;
+        if (workBucket.getContent() instanceof NumericIntervalWorkBucketContentType) {
+	        NumericIntervalWorkBucketContentType interval = (NumericIntervalWorkBucketContentType) workBucket.getContent();
+	        objectFrom = interval.getFrom() != null ? interval.getFrom().intValue() : 0;
+	        objectTo = interval.getTo() != null ? interval.getTo().intValue() - 1 : objectFrom;
+        } else {
+        	objectFrom = 0;
+        	objectTo = 0;
+        }
 
-            task.incrementProgressAndStoreStatsIfNeeded();
+outer:  for (int o = objectFrom; o <= objectTo; o++) {
+	        for (int i = 0; i < steps; i++) {
+		        LOGGER.info("NoOpTaskHandler: executing step {} of {} on object {} ({}..{}) in task {}", i + 1, steps, o, objectFrom, objectTo, task);
 
-            if (!task.canRun()) {
-				LOGGER.info("NoOpTaskHandler: got a shutdown request, finishing task " + task.getName());
-				break;
-			}
+		        // this strange construction is used to simulate non-interruptible execution of the task
+		        long sleepUntil = System.currentTimeMillis() + delay;
+		        for (;;) {
+			        long delta = sleepUntil - System.currentTimeMillis();
+			        if (delta > 0) {
+				        try {
+					        Thread.sleep(delta);
+				        } catch (InterruptedException e) {
+					        // ignore
+				        }
+			        } else {
+				        break;        // we have slept enough
+			        }
+		        }
+
+		        task.incrementProgressAndStoreStatsIfNeeded();
+
+		        if (!task.canRun()) {
+			        LOGGER.info("NoOpTaskHandler: got a shutdown request, finishing task {}", task);
+			        break outer;
+		        }
+	        }
         }
 
 		opResult.computeStatusIfUnknown();
 		
-		LOGGER.info("NoOpTaskHandler run finishing; progress = " + task.getProgress() + " in task " + task.getName());
+		LOGGER.info("NoOpTaskHandler run finishing; progress = {} in task {}", task.getProgress(), task);
+
+		runResult.setShouldContinue(task.canRun());
+		runResult.setBucketComplete(task.canRun());
 		return runResult;
-	}
-
-	@Override
-	public Long heartbeat(Task task) {
-		return null;		// not to overwrite progress information!
-	}
-
-	@Override
-	public void refreshStatus(Task task) {
 	}
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.DEMO;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

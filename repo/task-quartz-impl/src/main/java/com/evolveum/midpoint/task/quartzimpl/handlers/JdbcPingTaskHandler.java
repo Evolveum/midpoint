@@ -55,7 +55,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
-	private class Statistics {
+	private static class Statistics {
 		Integer min = null;
 		Integer max = null;
 		int total = 0;
@@ -202,10 +202,4 @@ public class JdbcPingTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
 }

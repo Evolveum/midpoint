@@ -35,17 +35,13 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.report.impl.ReportCreateTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Looks like this test goes directly to Jasper.
@@ -91,7 +87,7 @@ public class TestReportJasper extends AbstractReportIntegrationTest {
 	  JasperReport jr = JasperCompileManager.compileReport(jd);
 
 	  Task task = taskManager.createTaskInstance();
-	  Map<String, Object> params = new HashMap<String, Object>();
+	  Map<String, Object> params = new HashMap<>();
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_MIDPOINT_CONNECTION, modelService);
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_PRISM_CONTEXT, prismContext);
 //	  params.put(MidPointQueryExecutorFactory.PARAMETER_TASK_MANAGER, taskManager);

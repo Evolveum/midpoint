@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -106,7 +105,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
     				continue;
     			}
     			if(objectTypes == null){
-    				objectTypes = new ArrayList<ResourceObjectTypeDto>();
+    				objectTypes = new ArrayList<>();
     			}
     			objectTypes.add(new ResourceObjectTypeDto(definition));
     		}
@@ -171,7 +170,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 
     public List<ResourceObjectTypeDto> getObjectTypes() {
 		if (objectTypes == null) {
-			objectTypes = new ArrayList<ResourceObjectTypeDto>();
+			objectTypes = new ArrayList<>();
 		}
 		return objectTypes;
 	}
@@ -193,7 +192,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
     @Override
     public List<InlineMenuItem> getMenuItems() {
         if (menuItems == null) {
-            menuItems = new ArrayList<InlineMenuItem>();
+            menuItems = new ArrayList<>();
         }
         return menuItems;
     }

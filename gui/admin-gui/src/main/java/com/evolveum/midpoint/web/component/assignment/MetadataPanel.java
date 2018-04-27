@@ -33,7 +33,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -102,8 +101,8 @@ public class MetadataPanel extends BasePanel<MetadataType>{
             AbstractReadOnlyModel<String> metadataFieldModel = new AbstractReadOnlyModel<String>() {
                 @Override
                 public String getObject() {
-                    PropertyModel<Object> tempModel = new PropertyModel<Object>(getModel(),
-                            qname.getLocalPart());
+                    PropertyModel<Object> tempModel = new PropertyModel<>(getModel(),
+                        qname.getLocalPart());
                     if (tempModel.getObject() instanceof XMLGregorianCalendar){
                         return WebComponentUtil.getLocalizedDate((XMLGregorianCalendar)tempModel.getObject(),
                                 DateLabelComponent.MEDIUM_MEDIUM_STYLE);

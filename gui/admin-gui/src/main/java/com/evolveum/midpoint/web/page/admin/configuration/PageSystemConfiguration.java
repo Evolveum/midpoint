@@ -74,7 +74,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 		})
 public class PageSystemConfiguration extends PageAdminConfiguration {
 
+	private static final long serialVersionUID = 1L;
+	
 	public static final String SELECTED_TAB_INDEX = "tab";
+	public static final String SELECTED_SERVER_INDEX = "mailServerIndex";
+	public static final String SERVER_LIST_SIZE = "mailServerListSize";
 
 	public static final int CONFIGURATION_TAB_BASIC = 0;
 	public static final int CONFIGURATION_TAB_NOTIFICATION = 1;
@@ -113,6 +117,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		super(parameters);
 
 		model = new LoadableModel<SystemConfigurationDto>(false) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected SystemConfigurationDto load() {
@@ -160,6 +166,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		List<ITab> tabs = new ArrayList<>();
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.system.title")) {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				systemConfigPanel = new SystemConfigPanel(panelId, model);
@@ -169,36 +177,44 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.notifications.title")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				notificationConfigPanel = new NotificationConfigPanel(panelId,
-						new PropertyModel<NotificationConfigurationDto>(model, "notificationConfig"));
+                    new PropertyModel<>(model, "notificationConfig"), getPageParameters());
 				return notificationConfigPanel;
 			}
 		});
 
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.logging.title")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				loggingConfigPanel = new LoggingConfigPanel(panelId,
-						new PropertyModel<LoggingDto>(model, "loggingConfig"));
+                    new PropertyModel<>(model, "loggingConfig"));
 				return loggingConfigPanel;
 			}
 		});
 
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.profiling.title")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				profilingConfigPanel = new ProfilingConfigPanel(panelId,
-						new PropertyModel<ProfilingDto>(model, "profilingDto"), PageSystemConfiguration.this);
+                    new PropertyModel<>(model, "profilingDto"), PageSystemConfiguration.this);
 				return profilingConfigPanel;
 			}
 		});
 
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.adminGui.title")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
                 adminGuiConfigPanel = new AdminGuiConfigPanel(panelId, model);
@@ -206,8 +222,10 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			}
 		});
 
-		TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
+		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected void onTabChange(int index) {
 				PageParameters params = getPageParameters();
@@ -242,6 +260,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 	private void initButtons(Form mainForm) {
 		AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("PageBase.button.save")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
 					org.apache.wicket.markup.html.form.Form<?> form) {
@@ -249,13 +269,15 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
+			protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
 				target.add(getFeedbackPanel());
 			}
 		};
 		mainForm.add(save);
 
 		AjaxButton cancel = new AjaxButton(ID_CANCEL, createStringResource("PageBase.button.cancel")) {
+			
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -266,23 +288,18 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 	}
 
 
-	private TabbedPanel getTabPanel() {
+	private TabbedPanel<ITab> getTabPanel() {
 		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
 	}
 
 
 	private void savePerformed(AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(TASK_UPDATE_SYSTEM_CONFIG);
-		String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 		Task task = createSimpleTask(TASK_UPDATE_SYSTEM_CONFIG);
 		try {
 
 
 			SystemConfigurationType newObject = model.getObject().getNewObject();
-
-			saveObjectPolicies(newObject);
-            saveAdminGui(newObject);
-
 
 			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(model.getObject().getOldObject(), newObject);
 			delta.normalize();
@@ -306,75 +323,18 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		resetPerformed(target);
 	}
 
-	private void saveObjectPolicies(SystemConfigurationType systemConfig) {
-		if (systemConfigPanel == null) {
-			return;
-		}
-
-		List<ObjectPolicyConfigurationTypeDto> configList = systemConfigPanel.getModel().getObject()
-				.getObjectPolicyList();
-		List<ObjectPolicyConfigurationType> confList = new ArrayList<>();
-
-		ObjectPolicyConfigurationType newObjectPolicyConfig;
-		for (ObjectPolicyConfigurationTypeDto o : configList) {
-			if (o.isEmpty()){
-				continue;
-			}
-			newObjectPolicyConfig = new ObjectPolicyConfigurationType();
-			newObjectPolicyConfig.setType(o.getType());
-			newObjectPolicyConfig.setSubtype(o.getSubtype());
-			newObjectPolicyConfig.setObjectTemplateRef(o.getTemplateRef());
-
-			List<PropertyConstraintType> constraintList = new ArrayList<>();
-			PropertyConstraintType property;
-
-			if (o.getConstraints() != null) {
-				for (PropertyConstraintTypeDto c : o.getConstraints()) {
-					if (StringUtils.isNotEmpty(c.getPropertyPath())) {
-						property = new PropertyConstraintType();
-						property.setOidBound(c.isOidBound());
-						property.setPath(new ItemPathType(c.getPropertyPath()));
-
-						constraintList.add(property);
-					}
-				}
-			}
-
-			newObjectPolicyConfig.getPropertyConstraint().addAll(constraintList);
-			newObjectPolicyConfig.setConflictResolution(o.getConflictResolution());
-
-			confList.add(newObjectPolicyConfig);
-		}
-
-		if (confList.isEmpty()){
-			if (!systemConfig.getDefaultObjectPolicyConfiguration().isEmpty()){
-				systemConfig.getDefaultObjectPolicyConfiguration().clear();
-			}
-			return;
-		}
-
-		systemConfig.getDefaultObjectPolicyConfiguration().clear();
-		systemConfig.getDefaultObjectPolicyConfiguration().addAll(confList);
-	}
-
-	private void saveAdminGui(SystemConfigurationType systemConfig) {
-		if (adminGuiConfigPanel == null) {
-			return;
-		}
-		SystemConfigurationDto linksList = adminGuiConfigPanel.getModel().getObject();
-        //update userDashboardLink list
-        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().clear();
-        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().addAll(linksList.getUserDashboardLink());
-        //update additionalMenu list
-        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().clear();
-        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().addAll(linksList.getAdditionalMenuLink());
-	}
-
-
 	private void resetPerformed(AjaxRequestTarget target) {
 		int index = getTabPanel().getSelectedTab();
 
 		PageParameters params = new PageParameters();
+		StringValue mailServerIndex = target.getPageParameters().get(SELECTED_SERVER_INDEX);
+		StringValue mailServerSize = target.getPageParameters().get(SERVER_LIST_SIZE);
+		if (mailServerIndex != null && mailServerIndex.toString() != null) {
+			params.add(SELECTED_SERVER_INDEX, mailServerIndex);
+		}
+		if (mailServerSize != null && mailServerSize.toString() != null) {
+			params.add(SERVER_LIST_SIZE, mailServerSize);
+		}
 		params.add(SELECTED_TAB_INDEX, index);
 		PageSystemConfiguration page = new PageSystemConfiguration(params);
 		setResponsePage(page);

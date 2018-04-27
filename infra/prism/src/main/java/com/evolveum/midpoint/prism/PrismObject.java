@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,6 +179,10 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 	}
 
+	public <I extends Item> I findExtensionItem(String elementLocalName) {
+		return findExtensionItem(new QName(null, elementLocalName));
+	}
+	
 	public <I extends Item> I findExtensionItem(QName elementName) {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null) {
@@ -229,12 +233,17 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
 	@Override
 	public PrismObject<O> clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+	}
+	
+	@Override
+	public PrismObject<O> cloneComplex(CloneStrategy strategy) {
 		if (prismContext != null && prismContext.getMonitor() != null) {
 			prismContext.getMonitor().beforeObjectClone(this);
 		}
 
 		PrismObject<O> clone = new PrismObject<>(getElementName(), getDefinition(), prismContext);
-		copyValues(clone);
+		copyValues(strategy, clone);
 
 		if (prismContext != null && prismContext.getMonitor() != null) {
 			prismContext.getMonitor().afterObjectClone(this, clone);
@@ -243,8 +252,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return clone;
 	}
 
-	protected void copyValues(PrismObject<O> clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismObject<O> clone) {
+		super.copyValues(strategy, clone);
 	}
 
 	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
@@ -274,6 +283,21 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return objectDelta;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?,?>> modifications) {
+		if (modifications == null) {
+    		return null;
+    	}
+    	Collection narrowedModifications = new ArrayList<>(modifications.size());
+    	for (ItemDelta<?, ?> modification: modifications) {
+    		ItemDelta<?, ?> narrowedModifiacation = modification.narrow(this);
+    		if (narrowedModifiacation != null && !narrowedModifiacation.isEmpty()) {
+    			narrowedModifications.add(narrowedModifiacation);
+    		}
+    	}
+    	return narrowedModifications;
+	}
+	
 	public ObjectDelta<O> createDelta(ChangeType changeType) {
 		ObjectDelta<O> delta = new ObjectDelta<>(getCompileTimeClass(), changeType, getPrismContext());
 		delta.setOid(getOid());

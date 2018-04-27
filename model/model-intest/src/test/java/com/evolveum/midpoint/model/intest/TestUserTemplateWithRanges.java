@@ -35,8 +35,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 /**
  * User template with "mapping range" features.
  *

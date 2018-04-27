@@ -127,7 +127,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
      		}
          }
     }
-
+    
+    @Override
+    protected boolean checkOrderingSettings() {
+        return true;
+    }
 
     @Override
     public Iterator<SelectableBean<O>> internalIterator(long offset, long pageSize) {
@@ -157,7 +161,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
-            if (ResourceType.class.equals(type) && (options == null || options.isEmpty())){
+            if (ResourceType.class.equals(type) && (options == null || options.isEmpty())) {
             	options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
 			Collection<SelectorOptions<GetOperationOptions>> currentOptions = options;
@@ -174,6 +178,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 									(o) -> o.setDefinitionProcessing(FULL));
 				}
 			}
+			currentOptions = GetOperationOptions.merge(currentOptions, getDistinctRelatedOptions());
             List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, currentOptions, task, result);
 
             if (LOGGER.isTraceEnabled()) {
@@ -209,7 +214,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
-    	SelectableBean<O> selectable = new SelectableBean<O>(obj);
+    	SelectableBean<O> selectable = new SelectableBean<>(obj);
     	if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
     		try {
 				selectable.setResult(obj.getFetchResult());
@@ -233,10 +238,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         	return Integer.MAX_VALUE;
         }
         int count = 0;
-        OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
+        Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
+        OperationResult result = task.getResult();
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            Integer counted = getModel().countObjects(type, getQuery(), options, task, result);
+	        Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(options, getDistinctRelatedOptions());
+            Integer counted = getModel().countObjects(type, getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, 0);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
@@ -244,8 +250,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         } finally {
             result.computeStatusIfUnknown();
         }
-
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+        
+        if (!WebComponentUtil.isSuccessOrHandledError(result) && !result.isNotApplicable()) {
             getPage().showResult(result);
             // Let us do nothing. The error will be shown on the page and a count of 0 will be used.
 	        // Redirecting to the error page does more harm than good (see also MID-4306).

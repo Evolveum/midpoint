@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,6 +107,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean isIgnored() {
 		return structuralObjectClassDefinition.isIgnored();
+	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return structuralObjectClassDefinition.getProcessing();
 	}
 
 	@Override
@@ -585,10 +591,25 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public ResourcePasswordDefinitionType getPasswordDefinition() {		// TODO what if there is a conflict?
-		return getRefinedObjectClassDefinitionsStream()
-				.map(def -> def.getPasswordDefinition())
-				.findFirst().orElse(null);
+	public ResourcePasswordDefinitionType getPasswordDefinition() {
+		return findInDefinitions(def -> def.getPasswordDefinition());
+	}
+	
+	private <T> T findInDefinitions(Function<RefinedObjectClassDefinition,T> transform) {
+		if (structuralObjectClassDefinition != null) {
+			T val = transform.apply(structuralObjectClassDefinition);
+			if (val != null) {
+				return val;
+			}
+		}
+		// TODO what if there is a conflict?
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+			T val = transform.apply(auxiliaryObjectClassDefinition);
+			if (val != null) {
+				return val;
+			}
+		}
+		return null;
 	}
 	
     @Override

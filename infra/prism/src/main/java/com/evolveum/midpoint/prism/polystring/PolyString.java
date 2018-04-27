@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
@@ -44,7 +45,7 @@ import javax.xml.namespace.QName;
  *
  * @author Radovan Semancik
  */
-public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, Serializable, Comparable<Object> {
+public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, ShortDumpable, Serializable, Comparable<Object> {
 	private static final long serialVersionUID = -5070443143609226661L;
 
 	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
@@ -163,6 +164,26 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return this.orig.substring(from,to);
 	}
 
+	/**
+	 * Helper function that checks whether this original string begins with the specified value.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	public boolean startsWith(String value) {
+		return this.orig.startsWith(value);
+	}
+
+	/**
+	 * Helper function that checks whether this original string ends with the specified value.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	public boolean endsWith(String value) {
+		return this.orig.endsWith(value);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -217,11 +238,6 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
@@ -233,6 +249,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 		sb.append(")");
 		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(orig);
 	}
 
     public static String getOrig(PolyString s) {

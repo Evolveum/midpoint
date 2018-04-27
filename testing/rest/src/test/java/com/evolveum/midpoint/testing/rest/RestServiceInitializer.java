@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -89,6 +90,10 @@ public abstract class RestServiceInitializer {
 	public static final String USER_SOMEBODY_USERNAME = "somebody";
 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
 
+	// other
+	public static final File USER_JACK_FILE = new File(BASE_REPO_DIR, "user-jack.xml");
+	public static final String USER_JACK_OID = "229487cb-59b6-490b-879d-7a6d925dd08c";
+
 	public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
 	public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
 	public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
@@ -109,7 +114,7 @@ public abstract class RestServiceInitializer {
 
 	private Server server;
 
-	private RepositoryService repositoryService;
+	protected RepositoryService repositoryService;
 	private ProvisioningService provisioning;
 	protected DummyAuditService dummyAuditService;
 
@@ -166,6 +171,7 @@ public abstract class RestServiceInitializer {
 		addObject(USER_NOBODY_FILE, result);
 		addObject(USER_CYCLOPS_FILE, result);
 		addObject(USER_SOMEBODY_FILE, result);
+		addObject(USER_JACK_FILE, result);
 		addObject(VALUE_POLICY_GENERAL, result);
 		addObject(VALUE_POLICY_NUMERIC, result);
 		addObject(VALUE_POLICY_SIMPLE, result);
@@ -192,11 +198,8 @@ public abstract class RestServiceInitializer {
 
 	protected WebClient prepareClient(String username, String password) {
 
-		List providers = new ArrayList<>();
-		providers.add(getProvider());
-		WebClient client = WebClient.create(ENDPOINT_ADDRESS, providers);// ,
+		WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));// ,
 																			// provider);
-
 		ClientConfiguration clientConfig = WebClient.getConfig(client);
 
 		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);

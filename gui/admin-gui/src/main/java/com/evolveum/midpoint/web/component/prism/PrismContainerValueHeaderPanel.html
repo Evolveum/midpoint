@@ -17,14 +17,23 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-		<button wicket:id="showMetadata" class="btn btn-box-tool" ><i class="fa fa-asterisk"></i></button>
-		<button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-box-tool" ><i class="fa fa-sort-alpha-asc"></i></button>
-		<button wicket:id="showEmptyFields" wicket:message="title:PrismObjectPanel.showEmpty" class="btn btn-box-tool" trigger="hover" about="showEmptyFields"><i class="fa fa-arrows-alt"></i></button>
-		<button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
-		<button wicket:id="removeContainer" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
-	<div class="col-md-2 pull-right" wicket:id="childContainersSelectorPanel">
-		<div class="col-xs-8" wicket:id="childContainersList" />
-		<div class="col-xs-2 btn btn-xs btn-success" wicket:id="addButton" />
-	</div>
+    <div class="row">
+        <div class="col-xs-2">
+            <button wicket:id="showMetadata" class="btn btn-box-tool"><i class="fa fa-asterisk"></i></button>
+            <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties"
+                    class="btn btn-box-tool"><i class="fa fa-sort-alpha-asc"></i></button>
+            <button wicket:id="showEmptyFields" wicket:message="title:PrismObjectPanel.showEmpty"
+                    class="btn btn-box-tool" trigger="hover" about="showEmptyFields"><i class="fa fa-arrows-alt"></i>
+            </button>
+            <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer"
+                    class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
+            <button wicket:id="removeContainer" wicket:message="title:PrismObjectPanel.deleteContainer"
+                    class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+        </div>
+        <div class="col-xs-3" wicket:id="childContainersSelectorPanel">
+            <div class="col-xs-8" wicket:id="childContainersList"/>
+            <div class="col-xs-4 btn btn-xs btn-success" wicket:id="addButton"/>
+        </div>
+    </div>
 </wicket:extend>
 </html>

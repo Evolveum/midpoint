@@ -28,9 +28,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -62,11 +59,9 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -209,7 +204,7 @@ public class PageResources extends PageAdminResources {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 
 		menuItems.add(new InlineMenuItem(createStringResource("PageResources.inlineMenuItem.test"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -223,7 +218,7 @@ public class PageResources extends PageAdminResources {
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
-				new Model<Boolean>(true), new Model<Boolean>(true), false,
+            new Model<>(true), new Model<>(true), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -241,8 +236,8 @@ public class PageResources extends PageAdminResources {
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken"),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
 				false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
@@ -255,8 +250,8 @@ public class PageResources extends PageAdminResources {
 				}));
 
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource"),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
 				false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
@@ -267,7 +262,7 @@ public class PageResources extends PageAdminResources {
 					}
 				}));
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.button.editAsXml"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override

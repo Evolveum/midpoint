@@ -186,8 +186,135 @@ Channel: $!event.channel</code>
                 <transport>dummy:simpleUserNotifier-FAILURE</transport>
             </simpleUserNotifier>
         </handler>
+        <handler>
+            <category>customEvent</category>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.subtype == 'get'
+                    </code>
+                </script>
+            </expressionFilter>
+            <customNotifier>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            m = new NotificationMessageType()
+                            m.setFrom("+421999000999")
+                            m.getTo().add("+421905123456")
+                            m.setBody(String.valueOf(event.object))
+                            m
+                        </code>
+                    </script>
+                </expression>
+                <transport>sms:with-get</transport>
+            </customNotifier>
+        </handler>
+        <handler>
+            <category>customEvent</category>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.subtype == 'post'
+                    </code>
+                </script>
+            </expressionFilter>
+            <customNotifier>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            m = new NotificationMessageType()
+                            m.setFrom("+421999000999")
+                            m.getTo().add("+421905123456")
+                            m.setBody(String.valueOf(event.object))
+                            m
+                        </code>
+                    </script>
+                </expression>
+                <transport>sms:with-post</transport>
+            </customNotifier>
+        </handler>
+        <handler>
+            <category>customEvent</category>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.subtype == 'general-post'
+                    </code>
+                </script>
+            </expressionFilter>
+            <generalNotifier>
+                <fromExpression>
+                    <value>from</value>
+                </fromExpression>
+                <recipientExpression>
+                    <value>+123</value>
+                    <value>+456</value>
+                    <value>+789</value>
+                </recipientExpression>
+                <bodyExpression>
+                    <value>body</value>
+                </bodyExpression>
+                <transport>sms:with-post-multi</transport>
+            </generalNotifier>
+        </handler>
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
+        <sms name="with-get">
+            <gateway>
+                <urlExpression>
+                    <script>
+                        <!-- $$port$$ is replaced by actual port on test class initialization -->
+                        <code>"http://127.0.0.1:$$port$$/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
+                    </script>
+                </urlExpression>
+				<logToFile>target/sms.log</logToFile>
+            </gateway>
+        </sms>
+        <sms name="with-post">
+            <gateway>
+				<method>post</method>
+                <urlExpression>
+					<!-- $$port$$ is replaced by actual port on test class initialization -->
+                    <value>http://127.0.0.1:$$port$$/send</value>
+                </urlExpression>
+                <headersExpression>
+                    <value>Content-Type: application/x-www-form-urlencoded</value>
+                    <value>X-Custom: test</value>
+                </headersExpression>
+                <bodyExpression>
+                    <script>
+                        <code>"Body=\"$encodedMessageText\"&amp;To=$encodedTo&amp;From=$encodedFrom".toString()</code>
+                    </script>
+                </bodyExpression>
+                <username>a9038321</username>
+                <password>5ecr3t</password>
+				<logToFile>target/sms.log</logToFile>
+            </gateway>
+        </sms>
+        <sms name="with-post-multi">
+            <gateway>
+				<method>post</method>
+                <urlExpression>
+					<!-- $$port$$ is replaced by actual port on test class initialization -->
+                    <value>http://127.0.0.1:$$port$$/send</value>
+                </urlExpression>
+                <headersExpression>
+                    <value>Content-Type: application/x-www-form-urlencoded</value>
+                    <value>X-Custom: test</value>
+                </headersExpression>
+                <bodyExpression>
+                    <script>
+                        <code>"Body=\"$encodedMessageText\"&amp;To=$encodedToList&amp;From=$encodedFrom".toString()</code>
+                    </script>
+                </bodyExpression>
+                <username>a9038321</username>
+                <password>5ecr3t</password>
+				<logToFile>target/sms.log</logToFile>
+            </gateway>
+        </sms>
     </notificationConfiguration>
 </systemConfiguration>

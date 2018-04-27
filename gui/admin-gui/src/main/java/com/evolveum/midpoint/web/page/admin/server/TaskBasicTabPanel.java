@@ -139,7 +139,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 		// Parent
 		WebMarkupContainer parentContainer = new WebMarkupContainer(ID_PARENT_CONTAINER);
-		final LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<String>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
+		final LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getParentTaskOid();
@@ -156,7 +156,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 		// Owner
 		WebMarkupContainer ownerContainer = new WebMarkupContainer(ID_OWNER_CONTAINER);
-		final LinkPanel owner = new LinkPanel(ID_OWNER, new PropertyModel<String>(taskDtoModel, TaskDto.F_OWNER_NAME)) {
+		final LinkPanel owner = new LinkPanel(ID_OWNER, new PropertyModel<>(taskDtoModel, TaskDto.F_OWNER_NAME)) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getOwnerOid();
@@ -223,7 +223,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 	}
 
 	private void initLayoutHandler() {
-		Panel handlerPanel = HandlerPanelFactory.instance().createPanelForTask(ID_HANDLER_PANEL, new PropertyModel<HandlerDto>(taskDtoModel, TaskDto.F_HANDLER_DTO), parentPage);
+		Panel handlerPanel = HandlerPanelFactory.instance().createPanelForTask(ID_HANDLER_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_HANDLER_DTO), parentPage);
 		add(handlerPanel);
 	}
 

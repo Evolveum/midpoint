@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author Radovan Semancik
  *
  */
+@SuppressWarnings("rawtypes")
 public final class ResourceAttributeContainer extends PrismContainer {
-
     private static final long serialVersionUID = 8878851067509560312L;
 
     /**
@@ -153,13 +153,13 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if resource object has multiple secondary identifiers
 	 */
-	public PrismProperty getSecondaryIdentifier() {
+	public <T> PrismProperty<T> getSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
 		if (secondaryIdentifiers.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
 		for (PrismProperty<?> p : secondaryIdentifiers){
-			return p;
+			return (PrismProperty<T>) p;
 		}
 		return null;
 	}
@@ -187,7 +187,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	}
 
 	private Collection<ResourceAttribute<?>> extractAttributesByDefinitions(Collection<? extends ResourceAttributeDefinition> definitions) {
-		Collection<ResourceAttribute<?>> attributes = new ArrayList<ResourceAttribute<?>>(definitions.size());
+		Collection<ResourceAttribute<?>> attributes = new ArrayList<>(definitions.size());
 		for (ResourceAttributeDefinition attrDef : definitions) {
 			for (ResourceAttribute<?> property : getAttributes()){
 				if (attrDef.getName().equals(property.getElementName())){
@@ -213,7 +213,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public ResourceAttribute getDescriptionAttribute() {
+	public ResourceAttribute<String> getDescriptionAttribute() {
 		if (getDefinition() == null) {
 			return null;
 		}
@@ -395,13 +395,18 @@ public final class ResourceAttributeContainer extends PrismContainer {
 
 	@Override
 	public ResourceAttributeContainer clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+	}
+	
+	@Override
+	public ResourceAttributeContainer cloneComplex(CloneStrategy strategy) {
 		ResourceAttributeContainer clone = new ResourceAttributeContainer(getElementName(), getDefinition(), getPrismContext());
-		copyValues(clone);
+		copyValues(strategy, clone);
 		return clone;
 	}
 
-	protected void copyValues(ResourceAttributeContainer clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, ResourceAttributeContainer clone) {
+		super.copyValues(strategy, clone);
 		// Nothing to copy
 	}
 

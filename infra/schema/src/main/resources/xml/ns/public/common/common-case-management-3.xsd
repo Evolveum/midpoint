@@ -66,7 +66,33 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
-                                <a:experimental>true</a:experimental>
+                                <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                                <a:displayName>CaseType.objectRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Target that the case is associated with. It might be e.g. shadow, if the case
+                                deals with creation of an account on that resource.
+                                EXPERIMENTAL. May change in future.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                                <a:displayName>CaseType.targetRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectChange" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Description of changes that happened to an resource object shadow.
+                                This is still used in midPoint 3.6 for consistency mechanism.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:displayName>CaseType.objectChange</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -75,6 +101,10 @@
                             <xsd:documentation>
                                 TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CaseType.state</a:displayName>
+                                <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000240" type="tns:LookupTableType"/>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
@@ -82,6 +112,9 @@
                             <xsd:documentation>
                                 TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CaseType.outcome</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="closeTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -90,6 +123,9 @@
                                 When was this case closed?
                                 (Note that the creation timestamp is present in the object metadata.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CaseType.closeTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
@@ -97,6 +133,9 @@
 							<xsd:documentation>
 								Events that occurred during lifetime of this process instance.
 							</xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CaseType.event</a:displayName>
+                            </xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
                     <xsd:element name="workItem" type="tns:CaseWorkItemType" minOccurs="0" maxOccurs="unbounded">
@@ -104,6 +143,9 @@
                             <xsd:documentation>
                                 TODO
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CaseType.workItem</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <!-- stage number -->
@@ -153,6 +195,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
+                        <a:displayName>AbstractWorkItemType.deadline</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -164,6 +207,7 @@
                     <!-- TODO allow also roles/orgs here. -->
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:displayName>AbstractWorkItemType.originalAssigneeRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -177,6 +221,7 @@
                     <!-- TODO allow also roles/orgs here. -->
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:displayName>AbstractWorkItemType.assigneeRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -197,6 +242,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:displayName>AbstractWorkItemType.performerRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -219,6 +265,9 @@
                     <xsd:documentation>
                         When was this work item closed. (If null, it is considered open.)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractWorkItemType.closeTimestamp</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -238,6 +287,17 @@
         <xsd:sequence>
             <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
             <xsd:element name="comment" type="xsd:string" minOccurs="0" />
+            <xsd:element name="evidence" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Photo representing evidence for closed work item.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="evidenceFilename" type="xsd:string" minOccurs="0" />
+            <xsd:element name="evidenceContentType" type="xsd:string" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 

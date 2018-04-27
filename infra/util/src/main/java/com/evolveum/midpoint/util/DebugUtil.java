@@ -107,8 +107,12 @@ public class DebugUtil {
 	}
 
 	public static String debugDump(Collection<?> dumpables, int indent) {
+		return debugDump(dumpables, indent, true);
+	}
+	
+	public static String debugDump(Collection<?> dumpables, int indent, boolean openCloseSymbols) {
 		StringBuilder sb = new StringBuilder();
-		debugDump(sb, dumpables, indent, true);
+		debugDump(sb, dumpables, indent, openCloseSymbols);
 		return sb.toString();
 	}
 
@@ -210,7 +214,7 @@ public class DebugUtil {
 		debugDumpWithLabel(sb,label,dd,indent);
 		sb.append("\n");
 	}
-
+	
 	public static void debugDumpWithLabel(StringBuilder sb, String label, DebugDumpable dd, int indent) {
 		debugDumpLabel(sb, label, indent);
 		if (dd == null) {
@@ -218,6 +222,21 @@ public class DebugUtil {
 		} else {
 			sb.append("\n");
 			sb.append(dd.debugDump(indent + 1));
+		}
+	}
+
+	public static void debugDumpShortWithLabelLn(StringBuilder sb, String label, ShortDumpable sd, int indent) {
+		debugDumpShortWithLabel(sb, label, sd, indent);
+		sb.append("\n");
+	}
+
+	public static void debugDumpShortWithLabel(StringBuilder sb, String label, ShortDumpable sd, int indent) {
+		debugDumpLabel(sb, label, indent);
+		if (sd == null) {
+			sb.append(" null");
+		} else {
+			sb.append(" ");
+			sd.shortDump(sb);
 		}
 	}
 
@@ -624,6 +643,40 @@ public class DebugUtil {
 			}
 		};
 	}
+	
+	public static String shortDump(ShortDumpable sd) {
+		if (sd == null) {
+			return null;
+		} else {
+			return sd.shortDump();
+		}
+	}
+	
+	public static void shortDump(StringBuilder sb, ShortDumpable sd) {
+		if (sd != null) {
+			sd.shortDump(sb);
+		}
+	}
+	
+	public static void shortDump(StringBuilder sb, Collection<? extends ShortDumpable> sds) {
+		if (sds == null) {
+			return;
+		}
+		sb.append("[");
+		Iterator<? extends ShortDumpable> iterator = sds.iterator();
+		while (iterator.hasNext()) {
+			ShortDumpable sd = iterator.next();
+			if (sd == null) {
+				sb.append("null");
+			} else {
+				sd.shortDump(sb);
+			}
+			if (iterator.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		sb.append("]");
+	}
 
 	public static Object shortDumpLazily(ShortDumpable dumpable) {
 		if (dumpable == null) {
@@ -645,6 +698,22 @@ public class DebugUtil {
 			return "..."+fullUrl.substring(prefix.length());
 		} else {
 			return fullUrl;
+		}
+	}
+
+	public static void shortDumpAppendProperty(StringBuilder sb, String propName, Object propValue) {
+		if (propValue != null) {
+			sb.append(propName).append("=").append(propValue).append(",");
+		}
+	}
+
+	public static void shortDumpRemoveLastComma(StringBuilder sb) {
+		if (sb.length() == 0) {
+			return;
+		}
+		char lastChar = sb.charAt(sb.length() - 1);
+		if (lastChar == ',') {
+			sb.setLength(sb.length() - 1);
 		}
 	}
 }

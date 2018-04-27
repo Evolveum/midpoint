@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
@@ -53,8 +51,9 @@ import org.apache.wicket.model.Model;
  *
  */
 public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
-
-    private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
+	private static final long serialVersionUID = 1L;
+	
+	private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_ROLES = DOT_CLASS + "searchRoles";
 
     private static final String ID_HEADER = "header";
@@ -92,12 +91,12 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             task.getResult().recordFatalError(e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load roles", e);
             availableRoles = new ArrayList<>();
-            // TODO: better errror reporting
+            // TODO: better error reporting
         }
 
         ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
 
-        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, Model.ofList(assignmentsContainerWrapper.getValues()), availableRoles));
+        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, Model.of(assignmentsContainerWrapper), availableRoles));
     }
 
 }

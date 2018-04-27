@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.model.Model;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
 	private static final long serialVersionUID = 1L;
@@ -42,13 +43,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	 * @param defaultType specifies type of the object that will be selected by default
 	 */
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-		super(id, defaultType, multiselect, parentPage);
+		super(id, defaultType, null, multiselect, parentPage);
 
 	}
 
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
 								boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
-		super(id, defaultType, options, multiselect, parentPage, selectedObjectsList);
+		super(id, defaultType, null, options, multiselect, parentPage, selectedObjectsList);
 
 	}
 
@@ -70,6 +71,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 					onUpdateCheckbox(target);
 				}
 
+				@Override
+				protected IModel<Boolean> getEnabled(IModel<SelectableBean<O>> rowModel) {
+						return PopupObjectListPanel.this.getCheckBoxEnableModel(rowModel);
+				}
 
 				@Override
 				protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<O>> rowModel){
@@ -136,4 +141,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
 	}
 
+	protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
+		return Model.of(true);
+	}
 }

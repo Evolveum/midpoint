@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <div class="box box-primary">
+
+        <form class="search-form" wicket:id="searchFilterForm">
+            <div class="box-body">
+                <div class="col-md-6 form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"><wicket:message key="PageCaseWorkItems.search.resource" /></label>
+                        <span class="col-sm-9" wicket:id="filterResource" />
+                    </div>
+                    <div wicket:id="filterAssigneeContainer" class="form-group">
+                        <label class="col-sm-3 control-label"><wicket:message key="PageCaseWorkItems.search.assignee" /></label>
+                        <span class="col-sm-9" wicket:id="filterAssignee" />
+                    </div>
+                </div>
+                <div class="col-md-6 form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"><wicket:message key="PageCaseWorkItems.search.includeClosedCases" /></label>
+                        <span class="col-sm-9" wicket:id="filterIncludeClosedCases" />
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div wicket:id="caseWorkItemsTable"/>
+
+        <wicket:fragment wicket:id="buttonBar">
+            <a class="btn btn-success" wicket:id="createCaseButton"/>
+        </wicket:fragment>
+    </div>
+</wicket:extend>
+</body>
+</html>

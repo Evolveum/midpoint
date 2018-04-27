@@ -17,25 +17,24 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 public class GreaterFilter<T> extends ComparativeFilter<T> {
 
 	public GreaterFilter(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule,
 			@Nullable PrismPropertyValue<T> prismPropertyValue,
 			@Nullable ExpressionWrapper expression, @Nullable ItemPath rightHandSidePath,
 			@Nullable ItemDefinition rightHandSideDefinition, boolean equals) {
-		super(path, definition, prismPropertyValue, expression, rightHandSidePath, rightHandSideDefinition, equals);
+		super(path, definition, matchingRule, prismPropertyValue, expression, rightHandSidePath, rightHandSideDefinition, equals);
 	}
 
 	// factory methods
@@ -43,41 +42,41 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	// empty (can be filled-in later)
 	@NotNull
 	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition, boolean equals) {
-		return new GreaterFilter<T>(itemPath, definition, null, null, null, null, equals);
+		return new GreaterFilter<>(itemPath, definition, null, null, null, null, null, equals);
 	}
 
 	// value
 	@NotNull
 	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
-			boolean equals, @NotNull PrismContext prismContext, Object anyValue) {
+			QName matchingRule, Object anyValue, boolean equals, @NotNull PrismContext prismContext) {
 		PrismPropertyValue<T> propertyValue = anyValueToPropertyValue(prismContext, anyValue);
-		return new GreaterFilter<T>(itemPath, definition, propertyValue, null, null, null, equals);
+		return new GreaterFilter<>(itemPath, definition, matchingRule, propertyValue, null, null, null, equals);
 	}
 
 	// expression-related
 	@NotNull
-	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
+	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition, QName matchingRule,
 			@NotNull ExpressionWrapper wrapper, boolean equals) {
-		return new GreaterFilter<>(itemPath, definition, null, wrapper, null, null, equals);
+		return new GreaterFilter<>(itemPath, definition, matchingRule, null, wrapper, null, null, equals);
 	}
 
 	// right-side-related
 	@NotNull
-	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath propertyPath, PrismPropertyDefinition<T> definition,
+	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath propertyPath, PrismPropertyDefinition<T> definition, QName matchingRule,
 			@NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
-		return new GreaterFilter<>(propertyPath, definition, null, null, rightSidePath, rightSideDefinition, equals);
+		return new GreaterFilter<>(propertyPath, definition, matchingRule, null, null, rightSidePath, rightSideDefinition, equals);
 	}
 
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public GreaterFilter<T> clone() {
-		return new GreaterFilter<T>(getFullPath(), getDefinition(), getClonedValue(), getExpression(),
-				getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
+		return new GreaterFilter<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValue(), getExpression(),
+            getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
 	}
 
 	@Override
 	protected String getFilterName() {
-		return "GREATER";
+		return isEquals() ? "GREATER-OR-EQUAL" : "GREATER";
 	}
 
 	@Override

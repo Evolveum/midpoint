@@ -1,41 +1,41 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-import java.util.Collection;
+import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_security_policy_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iSecurityPolicyNameOrig", columnList = "name_orig"),
+        }
+)
 @ForeignKey(name = "fk_security_policy")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
         RSecurityPolicy that = (RSecurityPolicy) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null)
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null)
             return false;
         return true;
     }
@@ -54,26 +54,14 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         return result;
     }
 
     public static void copyFromJAXB(SecurityPolicyType jaxb, RSecurityPolicy repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-    }
-
-    @Override
-    public SecurityPolicyType toJAXB(PrismContext prismContext,
-                                     Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        SecurityPolicyType object = new SecurityPolicyType();
-        RUtil.revive(object, prismContext);
-        RSecurityPolicy.copyToJAXB(this, object, prismContext, options);
-
-        return object;
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 }
 

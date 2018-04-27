@@ -20,10 +20,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 

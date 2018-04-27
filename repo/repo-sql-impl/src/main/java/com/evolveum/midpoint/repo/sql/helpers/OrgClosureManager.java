@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -39,12 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableInt;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
-import org.hibernate.tool.hbm2ddl.SchemaUpdate;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +51,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
 /**
@@ -201,7 +195,7 @@ public class OrgClosureManager {
                     "  PRIMARY KEY (descendant_oid, ancestor_oid)\n" +
                     ")";
             long start = System.currentTimeMillis();
-            Query q = session.createSQLQuery(createTableQueryText);
+            NativeQuery q = session.createNativeQuery(createTableQueryText);
             q.executeUpdate();
             LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis()-start);
         }
@@ -218,9 +212,15 @@ public class OrgClosureManager {
         }
         if (isH2()) {
             // beware, this does implicit commit!
-            Query dropQuery = session.createSQLQuery("drop table if exists " + closureContext.temporaryTableName);
-            dropQuery.executeUpdate();
-            closureContext.temporaryTableName = null;
+            try {
+                session.getTransaction().begin();
+                NativeQuery dropQuery = session.createNativeQuery("drop table if exists " + closureContext.temporaryTableName);
+                dropQuery.executeUpdate();
+                closureContext.temporaryTableName = null;
+            } catch (RuntimeException ex) {
+                session.getTransaction().rollback();
+                throw ex;
+            }
         }
     }
 
@@ -237,118 +237,26 @@ public class OrgClosureManager {
             initializeOracleTemporaryTable();
         }
 
-        if (autoUpdateClosureTableStructure()) {
-            // need to rebuild the content of the closure table after re-creating it anew
-            checkAndOrRebuild(false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
-        } else {
-            boolean check, rebuild;
-            switch (repoConfiguration.getOrgClosureStartupAction()) {
-                case NONE:
-                    return;
-                case CHECK:
-                    check = true;
-                    rebuild = false;
-                    break;
-                case REBUILD_IF_NEEDED:
-                    check = true;
-                    rebuild = true;
-                    break;
-                case ALWAYS_REBUILD:
-                    check = false;
-                    rebuild = true;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
-            }
-            checkAndOrRebuild(check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+        boolean check, rebuild;
+        switch (repoConfiguration.getOrgClosureStartupAction()) {
+            case NONE:
+                return;
+            case CHECK:
+                check = true;
+                rebuild = false;
+                break;
+            case REBUILD_IF_NEEDED:
+                check = true;
+                rebuild = true;
+                break;
+            case ALWAYS_REBUILD:
+                check = false;
+                rebuild = true;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
         }
-    }
-
-    // TEMPORARY and quite BRUTAL HACK
-    // Originally in midPoint 3.0, m_org_closure has 5 columns, a non-null ID among them.
-    // In 3.1, it has 3, and no ID. Unfortunately, hibernate's hbm2ddl tool does not automatically remove ID column,
-    // so people can expect quite hard-to-understand error messages when running midPoint after upgrade.
-    //
-    // This code removes and re-creates the m_org_closure table if hbm2ddl is set to "update".
-    //
-    // returns true if the table was re-created
-    private boolean autoUpdateClosureTableStructure() {
-
-        if (baseHelper.getConfiguration().isSkipOrgClosureStructureCheck()) {
-            LOGGER.debug("Skipping org closure structure check.");
-            return false;
-        }
-
-        SessionFactory sf = baseHelper.getSessionFactory();
-        if (sf instanceof SessionFactoryImpl) {
-            SessionFactoryImpl sfi = ((SessionFactoryImpl) sf);
-            LOGGER.debug("SessionFactoryImpl.getSettings() = {}; auto update schema = {}", sfi.getSettings(), sfi.getSettings() != null ? sfi.getSettings().isAutoUpdateSchema() : null);
-            if (sfi.getSettings() != null && sfi.getSettings().isAutoUpdateSchema()) {
-
-                LOGGER.info("Checking the closure table structure.");
-
-                final Session session = baseHelper.getSessionFactory().openSession();
-                final Holder<Boolean> wrongNumberOfColumns = new Holder<>(false);
-                session.doWork(new Work() {
-                    @Override
-                    public void execute(Connection connection) throws SQLException {
-                        DatabaseMetaData meta = connection.getMetaData();
-                        if (meta == null) {
-                            LOGGER.warn("No database metadata found.");
-                        } else {
-                            ResultSet rsColumns = meta.getColumns(null, null, CLOSURE_TABLE_NAME, null);
-                            int columns = 0;
-                            while (rsColumns.next()) {
-                                LOGGER.debug("Column: {} {}", rsColumns.getString("TYPE_NAME"), rsColumns.getString("COLUMN_NAME"));
-                                columns++;
-                            }
-                            if (columns > 0) {
-                                LOGGER.debug("There are {} columns in {} (obtained via DatabaseMetaData)", columns, CLOSURE_TABLE_NAME);
-                                if (columns != 3) {
-                                    wrongNumberOfColumns.setValue(true);
-                                }
-                                return;
-                            }
-                            // perhaps some problem here... let's try another way out
-                            try {
-                                Statement stmt = connection.createStatement();
-                                ResultSet rs = stmt.executeQuery("select * from " + CLOSURE_TABLE_NAME);
-                                int cols = rs.getMetaData().getColumnCount();
-                                if (cols > 0) {
-                                    LOGGER.debug("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
-                                    if (cols != 3) {
-                                        wrongNumberOfColumns.setValue(true);
-                                    }
-                                } else {
-                                    LOGGER.warn("Couldn't determine the number of columns in {}. In case of problems, please fix your database structure manually using DB scripts in 'config' folder.", CLOSURE_TABLE_NAME);
-                                }
-                                rs.close();     // don't care about closing them in case of failure
-                                stmt.close();
-                            } catch (RuntimeException e) {
-                                LoggingUtils.logException(LOGGER, "Couldn't obtain the number of columns in {}. In case of problems running midPoint, please fix your database structure manually using DB scripts in 'config' folder.", e, CLOSURE_TABLE_NAME);
-                            }
-                        }
-                    }
-                });
-                if (wrongNumberOfColumns.getValue()) {
-                    session.getTransaction().begin();
-                    LOGGER.info("Wrong number of columns detected; dropping table " + CLOSURE_TABLE_NAME);
-                    Query q = session.createSQLQuery("drop table " + CLOSURE_TABLE_NAME);
-                    q.executeUpdate();
-                    session.getTransaction().commit();
-
-                    LOGGER.info("Calling hibernate hbm2ddl SchemaUpdate tool to create the table in the necessary form.");
-                    new SchemaUpdate(sfi.getServiceRegistry(), baseHelper.getSessionFactoryBean().getConfiguration()).execute(false, true);
-                    LOGGER.info("Done, table was (hopefully) created. If not, please fix your database structure manually using DB scripts in 'config' folder.");
-                    return true;
-                }
-            } else {
-                // auto schema update is disabled
-            }
-        } else {
-            LOGGER.warn("SessionFactory is not of type SessionFactoryImpl; it is {}", sf != null ? sf.getClass() : "null");
-        }
-        return false;
+        checkAndOrRebuild(check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
     }
 
     public boolean isEnabled() {
@@ -445,7 +353,7 @@ public class OrgClosureManager {
         List existingEntries = null;
         if (check) {
             LOGGER.info("Reading from existing org closure table");
-            Query selectQuery = session.createSQLQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
+            NativeQuery selectQuery = session.createNativeQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
                     .addScalar("descendant_oid", StringType.INSTANCE)
                     .addScalar("ancestor_oid", StringType.INSTANCE)
                     .addScalar("val", IntegerType.INSTANCE);
@@ -455,7 +363,7 @@ public class OrgClosureManager {
 
         LOGGER.info("Computing org closure table from scratch");
 
-        Query deleteQuery = session.createSQLQuery("delete from " + CLOSURE_TABLE_NAME);
+        NativeQuery deleteQuery = session.createNativeQuery("delete from " + CLOSURE_TABLE_NAME);
         deleteQuery.executeUpdate();
         LOGGER.trace("Closure table content deleted");
 
@@ -481,7 +389,7 @@ public class OrgClosureManager {
 
         if (check) {
             LOGGER.info("Reading from recomputed org closure table");
-            Query selectQuery = session.createSQLQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
+            NativeQuery selectQuery = session.createNativeQuery("SELECT descendant_oid, ancestor_oid, val from " + CLOSURE_TABLE_NAME)
                     .addScalar("descendant_oid", StringType.INSTANCE)
                     .addScalar("ancestor_oid", StringType.INSTANCE)
                     .addScalar("val", IntegerType.INSTANCE);
@@ -525,7 +433,7 @@ public class OrgClosureManager {
     }
 
     private int quickCheck(Session session) {
-        Query q = session.createSQLQuery(
+        NativeQuery q = session.createNativeQuery(
                 "select count(m_org.oid) as problems from m_org left join m_org_closure cl " +
                         "on cl.descendant_oid = m_org.oid and cl.ancestor_oid = m_org.oid " +
                         "where cl.descendant_oid is null").addScalar("problems", IntegerType.INSTANCE);
@@ -606,12 +514,12 @@ public class OrgClosureManager {
     private void addEdgeSimple(String oid, String parent, Session session) {
         if (parent != null) {
             long start = System.currentTimeMillis();
-            Query addToClosureQuery = session.createSQLQuery(
+            NativeQuery addToClosureQuery = session.createNativeQuery(
                     "insert into "+ CLOSURE_TABLE_NAME +" (descendant_oid, ancestor_oid, val) " +
                             "select :oid as descendant_oid, CL.ancestor_oid as ancestor_oid, CL.val as val " +
                             "from "+ CLOSURE_TABLE_NAME +" CL " +
                             "where CL.descendant_oid = :parent");
-            addToClosureQuery.setString("oid", oid);
+            addToClosureQuery.setParameter("oid", oid);
             addToClosureQuery.setParameter("parent", parent);
             int count = addToClosureQuery.executeUpdate();
             if (LOGGER.isTraceEnabled())
@@ -661,12 +569,12 @@ public class OrgClosureManager {
         try {
             int count;
 
-            if (isMySQL() || isMariaDb() || isOracle() || isSQLServer()) {
+            if (isMySqlCompatible() || isOracle() || isSQLServer()) {
 
                 long startUpsert = System.currentTimeMillis();
                 String upsertQueryText;
 
-                if (isMySQL() || isMariaDb()) {
+                if (isMySqlCompatible()) {
                     upsertQueryText = "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                             "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
                             "on duplicate key update " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val + values(val)";
@@ -686,7 +594,7 @@ public class OrgClosureManager {
                             "when not matched then insert (closure.descendant_oid, closure.ancestor_oid, closure.val) " +
                             "values (delta.descendant_oid, delta.ancestor_oid, delta.val)";
                 }
-                Query upsertQuery = session.createSQLQuery(upsertQueryText);
+                NativeQuery upsertQuery = session.createNativeQuery(upsertQueryText);
                 int countUpsert = upsertQuery.executeUpdate();
                 if (LOGGER.isTraceEnabled())
                     LOGGER.trace("Added/updated {} records to closure table ({} ms)", countUpsert, System.currentTimeMillis() - startUpsert);
@@ -709,7 +617,7 @@ public class OrgClosureManager {
                 } else {
                     throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
                 }
-                Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+                NativeQuery updateInClosureQuery = session.createNativeQuery(updateInClosureQueryText);
                 int countUpdate = updateInClosureQuery.executeUpdate();
                 if (LOGGER.isTraceEnabled())
                     LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
@@ -729,7 +637,7 @@ public class OrgClosureManager {
                         throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
                     }
                 }
-                Query addToClosureQuery = session.createSQLQuery(addQuery);
+                NativeQuery addToClosureQuery = session.createNativeQuery(addQuery);
                 count = addToClosureQuery.executeUpdate();
                 if (LOGGER.isTraceEnabled())
                     LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
@@ -746,7 +654,7 @@ public class OrgClosureManager {
     // (this would yield a cycle D->A->D in the graph)
     private void checkForCycles(List<Edge> edges, Session session) {
         String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " where " + getWhereClauseForCycleCheck(edges);
-        Query query = session.createSQLQuery(queryText)
+        NativeQuery query = session.createNativeQuery(queryText)
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE);
         long start = System.currentTimeMillis();
@@ -806,12 +714,12 @@ public class OrgClosureManager {
     private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
         // in H2 we delete the table after whole closure operation (after commit)
-        if (isMySQL() || isMariaDb()) {
-            Query dropQuery = session.createSQLQuery("drop temporary table " + deltaTempTableName);
+        if (isMySqlCompatible()) {
+            NativeQuery dropQuery = session.createNativeQuery("drop temporary table " + deltaTempTableName);
             dropQuery.executeUpdate();
         } else if (isSQLServer()) {
             // TODO drop temporary if using SQL Server
-            Query dropQuery = session.createSQLQuery(
+            NativeQuery dropQuery = session.createNativeQuery(
                     "if (exists (" +
                             "select * " +
                             "from sys.tables " +
@@ -842,18 +750,18 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", livingParents.size());
 
         // delete (OID, OID) record
-        Query deleteSelfQuery = session.createSQLQuery("delete from "+ CLOSURE_TABLE_NAME +" " +
+        NativeQuery deleteSelfQuery = session.createNativeQuery("delete from "+ CLOSURE_TABLE_NAME +" " +
                 "where descendant_oid=:oid and ancestor_oid=:oid");
-        deleteSelfQuery.setString("oid", oid);
+        deleteSelfQuery.setParameter("oid", oid);
         int count = deleteSelfQuery.executeUpdate();
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} self-record from closure table.", count);
     }
 
     private void handleDeleteLeaf(String oid, Session session) {
-        Query removeFromClosureQuery = session.createSQLQuery(
+        NativeQuery removeFromClosureQuery = session.createNativeQuery(
                 "delete from " + CLOSURE_TABLE_NAME + " " +
                         "where descendant_oid = :oid");
-        removeFromClosureQuery.setString("oid", oid);
+        removeFromClosureQuery.setParameter("oid", oid);
         int count = removeFromClosureQuery.executeUpdate();
         if (LOGGER.isTraceEnabled()) LOGGER.trace("DeleteLeaf: Removed {} records from closure table.", count);
     }
@@ -927,7 +835,7 @@ public class OrgClosureManager {
                         "inner join " + deltaTempTableName + " td " +
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
                         "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
-            } else if (isMySQL() || isMariaDb()) {
+            } else if (isMySqlCompatible()) {
                 // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
                 // TODO consider this for other databases as well
                 deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
@@ -944,14 +852,14 @@ public class OrgClosureManager {
                 throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
             long startDelete = System.currentTimeMillis();
-            Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
+            NativeQuery deleteFromClosureQuery = session.createNativeQuery(deleteFromClosureQueryText);
             count = deleteFromClosureQuery.executeUpdate();
             if (LOGGER.isTraceEnabled())
                 LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
             if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
 
             long startUpdate = System.currentTimeMillis();
-            Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
+            NativeQuery updateInClosureQuery = session.createNativeQuery(updateInClosureQueryText);
             count = updateInClosureQuery.executeUpdate();
             if (LOGGER.isTraceEnabled())
                 LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
@@ -990,17 +898,17 @@ public class OrgClosureManager {
         long start = System.currentTimeMillis();
         LOGGER.trace("Locking closure table");
         if (isH2()) {
-            Query q = session.createSQLQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+            NativeQuery q = session.createNativeQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
             q.list();
         } else if (isOracle()) {
-            Query q = session.createSQLQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
         } else if (isPostgreSQL()) {
             // currently not used
-            Query q = session.createSQLQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
         } else if (isSQLServer()) {
-            Query q = session.createSQLQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
+            NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
         }
         LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
@@ -1025,7 +933,7 @@ public class OrgClosureManager {
         }
 
         if (COUNT_CLOSURE_RECORDS && LOGGER.isTraceEnabled()) {
-            Query q = session.createSQLQuery("select count(*) from " + CLOSURE_TABLE_NAME);
+            NativeQuery q = session.createNativeQuery("select count(*) from " + CLOSURE_TABLE_NAME);
             List list = q.list();
             LOGGER.trace("OrgClosure has {} rows", list.toString());
         }
@@ -1048,7 +956,7 @@ public class OrgClosureManager {
                     "ancestor_oid NVARCHAR(36) COLLATE database_default, " +
                     "val INT, " +
                     "PRIMARY KEY (descendant_oid, ancestor_oid))";
-//            Query createTableQuery = session.createSQLQuery(createTableSql);
+//            NativeQuery createTableQuery = session.createNativeQuery(createTableSql);
 //            createTableQuery.executeUpdate();  <--- this does not work because the temporary table gets deleted when the command terminates (preparedStatement issue - maybe something like this: https://support.microsoft.com/en-us/kb/280134 ?)
             session.doWork(new Work() {
                 @Override
@@ -1058,7 +966,7 @@ public class OrgClosureManager {
             });
             if (LOGGER.isTraceEnabled()) LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);
 
-            Query insertQuery = session.createSQLQuery("insert into " + deltaTempTableName + " " + selectClause);
+            NativeQuery insertQuery = session.createNativeQuery("insert into " + deltaTempTableName + " " + selectClause);
             start = System.currentTimeMillis();
             count = insertQuery.executeUpdate();
         } else {
@@ -1067,22 +975,22 @@ public class OrgClosureManager {
                 createTablePrefix = "create local temporary table " + deltaTempTableName + " on commit drop as ";
             } else if (isH2()) {
                 // todo skip if this is first in this transaction
-                Query q = session.createSQLQuery("delete from " + deltaTempTableName);
+                NativeQuery q = session.createNativeQuery("delete from " + deltaTempTableName);
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
-            } else if (isMySQL() || isMariaDb()) {
+            } else if (isMySqlCompatible()) {
                 createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";            // engine=memory is questionable because of missing tansactionality (but the transactionality is needed in the main table, not the delta table...)
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
-                Query q = session.createSQLQuery("delete from " + deltaTempTableName);
+                NativeQuery q = session.createNativeQuery("delete from " + deltaTempTableName);
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
             } else {
                 throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
-            Query query1 = session.createSQLQuery(createTablePrefix + selectClause);
+            NativeQuery query1 = session.createNativeQuery(createTablePrefix + selectClause);
             start = System.currentTimeMillis();
             count = query1.executeUpdate();
         }
@@ -1091,7 +999,7 @@ public class OrgClosureManager {
 
         if (isPostgreSQL()) {
             start = System.currentTimeMillis();
-            Query qIndex = session.createSQLQuery("CREATE INDEX " + deltaTempTableName + "_idx " +
+            NativeQuery qIndex = session.createNativeQuery("CREATE INDEX " + deltaTempTableName + "_idx " +
                     "  ON " + deltaTempTableName +
                     "  USING btree " +
                     "  (descendant_oid, ancestor_oid)");
@@ -1135,7 +1043,7 @@ public class OrgClosureManager {
     }
 
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
-        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from " + tableName)
+        NativeQuery q = session.createNativeQuery("select descendant_oid, ancestor_oid, val from " + tableName)
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE)
                 .addScalar("val", IntegerType.INSTANCE);
@@ -1148,11 +1056,11 @@ public class OrgClosureManager {
 
     private void initializeOracleTemporaryTable() {
         Session session = baseHelper.getSessionFactory().openSession();
-        Query qCheck = session.createSQLQuery("select table_name from user_tables where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
+        NativeQuery qCheck = session.createNativeQuery("select table_name from user_tables where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
         if (qCheck.list().isEmpty()) {
             LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
             session.beginTransaction();
-            Query qCreate = session.createSQLQuery("CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE +
+            NativeQuery qCreate = session.createNativeQuery("CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE +
                     "    (descendant_oid VARCHAR2(36 CHAR), " +
                     "     ancestor_oid VARCHAR2(36 CHAR), " +
                     "     val NUMBER (10, 0), " +
@@ -1296,7 +1204,7 @@ public class OrgClosureManager {
 
     private List<String> getParents(String oid, Session session) {
         Query parentsQuery = session.createQuery("select distinct targetOid from RObjectReference where ownerOid=:oid  and referenceType=0");
-        parentsQuery.setString("oid", oid);
+        parentsQuery.setParameter("oid", oid);
         return parentsQuery.list();
     }
 
@@ -1305,7 +1213,7 @@ public class OrgClosureManager {
                 " join parentRef.owner as owner where parentRef.targetOid=:oid and parentRef.referenceType=0" +
                 " and owner.objectTypeClass = :orgType");
         childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
-        childrenQuery.setString("oid", oid);
+        childrenQuery.setParameter("oid", oid);
         return childrenQuery.list();
     }
 
@@ -1315,16 +1223,12 @@ public class OrgClosureManager {
             query.setParameterList("oids", oids);
             return query.list();
         } else {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 
-    private boolean isMariaDb() {
-        return baseHelper.getConfiguration().isUsingMariaDB();
-    }
-
-    private boolean isMySQL() {
-        return baseHelper.getConfiguration().isUsingMySQL();
+    private boolean isMySqlCompatible() {
+        return baseHelper.getConfiguration().isUsingMySqlCompatible();
     }
 
     private boolean isOracle() {
@@ -1433,8 +1337,8 @@ public class OrgClosureManager {
 //        long start = System.currentTimeMillis();
 //        LOGGER.info("Locking closure table");
 //        if (getConfiguration().isUsingH2()) {
-//            //Query q = session.createSQLQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-//            Query q = session.createSQLQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
+//            //NativeQuery q = session.createNativeQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+//            NativeQuery q = session.createNativeQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
 //            q.list();
 //        }
 //        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);

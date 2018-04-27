@@ -41,7 +41,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiFeature;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.FeatureVisibleEnableBehaviour;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -150,11 +149,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
 
 		if (selectable) {
-			columns.add(new CheckBoxHeaderColumn<SelectableBean<OrgType>>());
+			columns.add(new CheckBoxHeaderColumn<>());
 		}
 
-		columns.add(new TreeColumn<SelectableBean<OrgType>, String>(
-				createStringResource("TreeTablePanel.hierarchy")));
+		columns.add(new TreeColumn<>(
+            createStringResource("TreeTablePanel.hierarchy")));
 		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
 
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
@@ -265,7 +264,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {
 		private static final long serialVersionUID = 1L;
 
-		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<SelectableBean<OrgType>>();
+		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<>();
 		private ISortableTreeProvider provider;
 		private OrgTreePanel panel;
 

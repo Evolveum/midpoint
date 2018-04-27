@@ -19,12 +19,10 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -100,8 +98,8 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 	private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
 		PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttribute<T> attr = new ResourceAttribute<T>(
-				dummyResourceCtl.getAttributeQName(attrName), null, prismContext);
+		ResourceAttribute<T> attr = new ResourceAttribute<>(
+            dummyResourceCtl.getAttributeQName(attrName), null, prismContext);
 		attr.setRealValue(val);
 		attrsCont.add(attr);
 	}

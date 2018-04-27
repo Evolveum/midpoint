@@ -638,7 +638,7 @@
             <xsd:element name="executionTasks" minOccurs="0" type="tns:WfExecutionTasksConfigurationType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Configuration related to tasks in which model operations are executed.
 						EXPERIMENTAL
                     </xsd:documentation>
 					<xsd:appinfo>
@@ -647,15 +647,65 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="approverCommentsFormatting" minOccurs="0" type="tns:PerformerCommentsFormattingType">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Instructions how to format approvers comments before storing them into metadata.
+						EXPERIMENTAL
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:since>3.7.1</a:since>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
     </xsd:complexType>
 
+	<xsd:complexType name="PerformerCommentsFormattingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Instructions how to format approvers/reviewers comments before storing them into metadata.
+				Normally midPoint stores comments as they were entered by performers. However, each deployment can
+				tailor these e.g. by including performer name along with the comment.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:experimental>true</a:experimental>
+				<a:since>3.7.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="value" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to construct the comment. For example: performer.fullName + ': ' + output.comment.
+
+						Available variables:
+						- performer (i.e. reviewer or approver),
+						- output (of AbstractWorkItemOutputType),
+						- workItem (of AbstractWorkItemType - only for certification),
+						- event (of WorkItemCompletionEventType - only for approvals).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to include the particular output in comments. For example: output.comment != null.
+						Null or empty values are skipped regardless of the condition.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:complexType name="WfExecutionTasksConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Configuration related to tasks in which model operations are executed.
 				EXPERIMENTAL
 			</xsd:documentation>
 			<xsd:appinfo>
@@ -667,7 +717,7 @@
 			<xsd:element name="serialization" type="tns:WfExecutionTasksSerializationType" minOccurs="0" >
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -687,7 +737,7 @@
 	<xsd:complexType name="WfExecutionTasksSerializationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
 				EXPERIMENTAL
 			</xsd:documentation>
 			<xsd:appinfo>

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -38,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 import static java.util.Collections.emptyMap;
 
@@ -53,9 +53,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ScriptExecutionTaskHandler.class.getName() + ".";
 
-    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3";
-
-    @Autowired private TaskManager taskManager;
+	@Autowired private TaskManager taskManager;
 	@Autowired private ScriptingService scriptingService;
 
 	@NotNull
@@ -81,7 +79,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         try {
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), emptyMap(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
-            LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
+            LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
             result.computeStatus();
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
         } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
@@ -95,30 +93,13 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	@Override
-	public Long heartbeat(Task task) {
-		return null; // null - as *not* to record progress
-	}
-
-	@Override
-	public void refreshStatus(Task task) {
-	}
-
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.BULK_ACTIONS;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
 	@PostConstruct
 	private void initialize() {
-        if (LOGGER.isTraceEnabled()) {
-		    LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
-        }
-		taskManager.registerHandler(HANDLER_URI, this);
+		taskManager.registerHandler(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
 	}
 }

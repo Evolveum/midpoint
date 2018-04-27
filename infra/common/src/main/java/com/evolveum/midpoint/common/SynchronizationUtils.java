@@ -226,7 +226,7 @@ public class SynchronizationUtils {
 		syncSituationDescription.setTimestamp(timestamp);
 		syncSituationDescription.setFull(full);
 
-		List<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
+		List<PropertyDelta<?>> deltas = new ArrayList<>();
 
 		PropertyDelta syncSituationDelta = PropertyDelta.createDelta(
 				new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
@@ -250,14 +250,14 @@ public class SynchronizationUtils {
 		ShadowType target = (ShadowType) prismObject.asObjectable();
 		List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ShadowType) target)
 				.getSynchronizationSituationDescription();
-		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> valuesToDelete = new ArrayList<PrismPropertyValue<SynchronizationSituationDescriptionType>>();
+		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> valuesToDelete = new ArrayList<>();
 		if (syncSituationDescriptions == null || syncSituationDescriptions.isEmpty()) {
 			return null;
 		}
 		for (SynchronizationSituationDescriptionType syncSituationDescription : syncSituationDescriptions) {
 			if (StringUtils.isEmpty(syncSituationDescription.getChannel()) && StringUtils.isEmpty(channel)) {
-				valuesToDelete.add(new PrismPropertyValue<SynchronizationSituationDescriptionType>(
-						syncSituationDescription));
+				valuesToDelete.add(new PrismPropertyValue<>(
+                    syncSituationDescription));
 				continue;
 				// return syncSituationDescription;
 			}
@@ -267,8 +267,8 @@ public class SynchronizationUtils {
 				continue;
 			}
 			if (syncSituationDescription.getChannel().equals(channel)) {
-				valuesToDelete.add(new PrismPropertyValue<SynchronizationSituationDescriptionType>(
-						syncSituationDescription));
+				valuesToDelete.add(new PrismPropertyValue<>(
+                    syncSituationDescription));
 				continue;
 				// return syncSituationDescription;
 			}

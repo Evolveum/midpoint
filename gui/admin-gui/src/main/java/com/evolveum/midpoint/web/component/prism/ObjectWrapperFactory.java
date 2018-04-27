@@ -19,40 +19,26 @@ package com.evolveum.midpoint.web.component.prism;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -66,8 +52,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
@@ -75,11 +59,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntry
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -151,7 +133,7 @@ public class ObjectWrapperFactory {
                 
             }
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                    objectClassDefinitionForEditing, status, result);
+                    objectClassDefinitionForEditing, status, task, result);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
             throw new SystemException(ex);
         }
@@ -159,15 +141,15 @@ public class ObjectWrapperFactory {
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
-			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) {
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, Task task) throws SchemaException {
         return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                objectClassDefinitionForEditing, status, null);
+                objectClassDefinitionForEditing, status, task, null);
     }
 
     private <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
 			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
-			OperationResult result) {
+			Task task, OperationResult result) throws SchemaException {
 
         if (result == null) {
             this.result = new OperationResult(CREATE_OBJECT_WRAPPER);
@@ -179,7 +161,7 @@ public class ObjectWrapperFactory {
 				status);
 
 		List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
-				objectDefinitionForEditing, status, this.result);
+				objectDefinitionForEditing, status, task, this.result);
 		objectWrapper.setContainers(containerWrappers);
 
         this.result.computeStatusIfUnknown();
@@ -194,24 +176,23 @@ public class ObjectWrapperFactory {
     }
 
     private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainerWrappers(ObjectWrapper<O> oWrapper,
-			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, OperationResult pResult) {
+			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, Task task, OperationResult pResult) throws SchemaException {
         OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
         List<ContainerWrapper<? extends Containerable>> containerWrappers = new ArrayList<>();
 
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
         try {
-                ContainerWrapper<O> mainContainerWrapper = cwf.createContainerWrapper(object, oWrapper.getStatus(), cStatus, ItemPath.EMPTY_PATH);
+                ContainerWrapper<O> mainContainerWrapper = cwf.createContainerWrapper(object, oWrapper.getStatus(), cStatus, ItemPath.EMPTY_PATH, task);
                 mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);
 
-                addContainerWrappers(containerWrappers, oWrapper, object, null, result);
+                addContainerWrappers(containerWrappers, oWrapper, object, null, task, result);
         } catch (SchemaException | RuntimeException e) {
-            //TODO: shouldn't be this exception thrown????
-            LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", e);
-            result.recordFatalError("Error occurred during container wrapping, reason: " + e.getMessage(),
-                    e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping" + e.getMessage(), e);
+            result.recordFatalError("Error occurred during container wrapping, reason: " + e.getMessage(), e);
+            throw e;
         }
 
         containerWrappers.sort(new ItemWrapperComparator());
@@ -224,7 +205,7 @@ public class ObjectWrapperFactory {
 
    private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
 			List<ContainerWrapper<? extends Containerable>> containerWrappers, ObjectWrapper<O> oWrapper,
-			PrismContainer<C> parentContainer, ItemPath path, OperationResult result) throws SchemaException {
+			PrismContainer<C> parentContainer, ItemPath path, Task task, OperationResult result) throws SchemaException {
 
 		PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
 
@@ -240,6 +221,11 @@ public class ObjectWrapperFactory {
 			if (isIgnoreContainer(def.getTypeName())) {
 				continue;
 			}
+			
+			if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(task, modelServiceLocator)) {
+				LOGGER.trace("Skipping creating wrapper for container {} because it is experimental a experimental features are not enabled.", def.getName());
+				continue;
+			}
 
 			LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
@@ -251,7 +237,7 @@ public class ObjectWrapperFactory {
 
 			PrismContainer<C> prismContainer = parentContainer.findContainer(def.getName());
 			
-			ContainerWrapper<C>  container = createContainerWrapper(oWrapper.getObject(), oWrapper.getStatus(), prismContainer, containerDef, cwf, newPath);
+			ContainerWrapper<C>  container = createContainerWrapper(oWrapper.getObject(), oWrapper.getStatus(), prismContainer, containerDef, cwf, newPath, task);
 			result.addSubresult(cwf.getResult());
 			if (container != null) {
 				containerWrappers.add(container);
@@ -260,16 +246,17 @@ public class ObjectWrapperFactory {
 		}
 	}
 	
-	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismObject<O> object, ContainerStatus objectStatus, PrismContainer<C> prismContainer, PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath) throws SchemaException{
+	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismObject<O> object, ContainerStatus objectStatus, PrismContainer<C> prismContainer, 
+			PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath, Task task) throws SchemaException{
 		if (ShadowAssociationType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
 			ObjectType objectType = object.asObjectable();
-			ShadowType shadow = null;
+			ShadowType shadow;
 			if (objectType instanceof ShadowType) {
 				shadow = (ShadowType) objectType;
 			} else {
 				throw new SchemaException("Something very strange happenned. Association contianer in the " + objectType.getClass().getSimpleName() + "?");
 			}
-			Task task = modelServiceLocator.createSimpleTask("Load resource ref");
+//			Task task = modelServiceLocator.createSimpleTask("Load resource ref");
 			//TODO: is it safe to case modelServiceLocator to pageBase?
 			PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(shadow.getResourceRef(), modelServiceLocator, task, result);
 			
@@ -289,11 +276,11 @@ public class ObjectWrapperFactory {
 		}
 
 		if (prismContainer != null) {
-			return cwf.createContainerWrapper(prismContainer, objectStatus, ContainerStatus.MODIFYING, newPath);
+			return cwf.createContainerWrapper(prismContainer, objectStatus, ContainerStatus.MODIFYING, newPath, task);
 		}
 		
 		prismContainer = containerDef.instantiate();
-		return cwf.createContainerWrapper(prismContainer, objectStatus, ContainerStatus.ADDING, newPath);
+		return cwf.createContainerWrapper(prismContainer, objectStatus, ContainerStatus.ADDING, newPath, task);
 		
 	}
 	

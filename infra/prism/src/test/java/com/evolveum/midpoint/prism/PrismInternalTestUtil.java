@@ -268,7 +268,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	}
 
 	public static void assertVisitor(Visitable visitable, int expectedVisits) {
-		final List<Visitable> visits = new ArrayList<Visitable>();
+		final List<Visitable> visits = new ArrayList<>();
 		Visitor visitor = new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {
@@ -281,7 +281,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	}
 
 	public static void assertPathVisitor(PathVisitable visitable, final ItemPath path, final boolean recursive, int expectedVisits) {
-		final List<Visitable> visits = new ArrayList<Visitable>();
+		final List<Visitable> visits = new ArrayList<>();
 		Visitor visitor = new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {

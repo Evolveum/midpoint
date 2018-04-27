@@ -49,7 +49,7 @@
         <commons.lang.version>2.6</commons.lang.version>
         <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.2.1</cxf.version>
+        <cxf.version>3.2.4</cxf.version>
         <cxf-xjc.version>3.2.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
@@ -62,28 +62,29 @@
         <quartz.version>2.3.0.e2</quartz.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.1.11</logback.version>
-        <spring.boot.version>1.5.8.e1</spring.boot.version>
-        <spring.version>4.3.12.RELEASE</spring.version>
-        <spring.security.version>4.2.3.RELEASE</spring.security.version>
-        <cas.client.version>3.4.1</cas.client.version>
+        <logback.version>1.2.3</logback.version>
+        <spring.boot.version>1.5.8.e1</spring.boot.version> <!-- can be replaced by a stock version;
+                ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
+        <spring.version>4.3.14.RELEASE</spring.version>
+        <spring.security.version>4.2.4.RELEASE</spring.security.version>
+        <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
-        <hibernate.version>4.3.11.Final</hibernate.version>
+        <hibernate.version>5.2.12.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
         <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
-        <jdbc.mysql>6.0.5</jdbc.mysql>
-        <wicket.version>7.9.0</wicket.version>
-        <groovy.version>2.4.0</groovy.version>
+        <jdbc.mysql>6.0.6</jdbc.mysql>
+        <wicket.version>7.10.0</wicket.version>
+        <groovy.version>2.4.14</groovy.version>
         <activiti-engine.version>5.22.0</activiti-engine.version>
         <activiti-spring.version>5.22.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.6</xmlsec.version>
-        <connid.version>1.4.3.0</connid.version>
-        <jasper.version>6.4.1</jasper.version>
+        <connid.version>1.4.3.11</connid.version>
+        <jasper.version>6.5.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.8.9</jackson.version>
@@ -240,12 +241,11 @@
                         <groupId>xml-apis</groupId>
                         <artifactId>xml-apis</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>jsr250-api</artifactId>
+                    </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-c3p0</artifactId>
-                <version>${hibernate.version}</version>
             </dependency>
             <dependency>
 	            <groupId>org.hibernate.javax.persistence</groupId>
@@ -255,8 +255,13 @@
 	        <dependency>
 	            <groupId>com.mchange</groupId>
 	            <artifactId>c3p0</artifactId>
-	            <version>0.9.2.1</version>
+	            <version>0.9.5.2</version>
 	        </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>2.7.8</version>
+            </dependency>
             <dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>jul-to-slf4j</artifactId>
@@ -686,7 +691,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.1</version>
+                <version>2.2</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
@@ -743,6 +748,10 @@
                     <exclusion>
                         <groupId>com.mchange</groupId>
                         <artifactId>mchange-commons-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.zaxxer</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1161,7 +1170,7 @@
             <dependency>
 				<groupId>org.apache.directory.api</groupId>
 				<artifactId>api-all</artifactId>
-				<version>1.0.0-RC2</version>
+				<version>1.0.0</version>
 				<exclusions>
 	                <exclusion>
 	                    <artifactId>slf4j-api</artifactId>

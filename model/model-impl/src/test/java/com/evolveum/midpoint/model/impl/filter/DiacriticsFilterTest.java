@@ -44,14 +44,14 @@ public class DiacriticsFilterTest {
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>("");
+        PrismPropertyValue<String> value = new PrismPropertyValue<>("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
 
     @Test
     public void testValueTextNode() {
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

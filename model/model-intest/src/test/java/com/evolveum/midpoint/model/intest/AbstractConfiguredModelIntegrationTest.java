@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -38,13 +38,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -61,6 +55,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -259,6 +254,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_EMPTY_FILE = new File(COMMON_DIR, "role-empty.xml");
 	protected static final String ROLE_EMPTY_OID = "12345111-1111-2222-1111-121212111112";
 
+	protected static final File ROLE_USELESS_FILE = new File(COMMON_DIR, "role-useless.xml");
+	protected static final String ROLE_USELESS_OID = "12345111-1111-2222-1111-831209543124";
+
 	protected static final File ROLE_SAILOR_FILE = new File(COMMON_DIR, "role-sailor.xml");
 	protected static final String ROLE_SAILOR_OID = "12345111-1111-2222-1111-121212111113";
 	protected static final String ROLE_SAILOR_DRINK = "grog";
@@ -296,18 +294,18 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
 	protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
 	
-	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
-	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	protected static final String USER_JACK_USERNAME = "jack";
-	protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
-	protected static final String USER_JACK_GIVEN_NAME = "Jack";
-	protected static final String USER_JACK_FAMILY_NAME = "Sparrow";
-	protected static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
-	protected static final String USER_JACK_DESCRIPTION = "Where's the rum?";
-	protected static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
-	protected static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
-	protected static final String USER_JACK_LOCALITY = "Caribbean";
-	protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
+	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	public static final String USER_JACK_USERNAME = "jack";
+	public static final String USER_JACK_FULL_NAME = "Jack Sparrow";
+	public static final String USER_JACK_GIVEN_NAME = "Jack";
+	public static final String USER_JACK_FAMILY_NAME = "Sparrow";
+	public static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
+	public static final String USER_JACK_DESCRIPTION = "Where's the rum?";
+	public static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
+	public static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
+	public static final String USER_JACK_LOCALITY = "Caribbean";
+	public static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
@@ -463,6 +461,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_OID = "10000000-0000-0000-5555-555500000404";
 
 	protected static final String TASK_VALIDITY_SCANNER_FILENAME = COMMON_DIR + "/task-validity-scanner.xml";
+	protected static final String TASK_PARTITIONED_VALIDITY_SCANNER_FILENAME = COMMON_DIR + "/task-partitioned-validity-scanner.xml";
 	protected static final String TASK_VALIDITY_SCANNER_OID = "10000000-0000-0000-5555-555505060400";
 
 	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner.xml");
@@ -522,6 +521,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_DRINK_URL = QNameUtil.qNameToUri(AUTZ_DRINK_QNAME);
 
 	protected static final String NOTIFIER_ACCOUNT_PASSWORD_NAME = "accountPasswordNotifier";
+	protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";
 	protected static final String NOTIFIER_ACCOUNT_ACTIVATION_NAME = "accountActivationNotifier";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
@@ -544,7 +544,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 		// System Configuration
 		try {
-			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+			File systemConfigurationFile = getSystemConfigurationFile();
+			if (systemConfigurationFile != null) {
+				repoAddObjectFromFile(systemConfigurationFile, initResult);
+			} else {
+				addSystemConfigurationObject(initResult);
+			}
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -566,6 +571,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
+	}
+
+	// to be used in very specific cases only (it is invoked when getSystemConfigurationFile returns null).
+	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+			EncryptionException {
 	}
 
 	protected PrismObject<UserType> getDefaultActor() {
@@ -669,19 +679,25 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     	return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_PIRACY);
     }
 
-    protected void assertLastRecomputeTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<TaskType> task = getTask(taskOid);
-		display("Task", task);
-        PrismContainer<?> taskExtension = task.getExtension();
-        assertNotNull("No task extension", taskExtension);
-        PrismProperty<XMLGregorianCalendar> lastRecomputeTimestampProp = taskExtension.findProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
-        assertNotNull("no lastRecomputeTimestamp property", lastRecomputeTimestampProp);
-        XMLGregorianCalendar lastRecomputeTimestamp = lastRecomputeTimestampProp.getRealValue();
-        assertNotNull("null lastRecomputeTimestamp", lastRecomputeTimestamp);
-        TestUtil.assertBetween("lastRecomputeTimestamp", startCal, endCal, lastRecomputeTimestamp);
+    protected void assertLastScanTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	    XMLGregorianCalendar lastScanTimestamp = getLastScanTimestamp(taskOid);
+        assertNotNull("null lastScanTimestamp", lastScanTimestamp);
+        TestUtil.assertBetween("lastScanTimestamp", startCal, endCal, lastScanTimestamp);
 	}
 
-    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+	protected XMLGregorianCalendar getLastScanTimestamp(String taskOid)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+		PrismObject<TaskType> task = getTask(taskOid);
+		display("Task", task);
+		PrismContainer<?> taskExtension = task.getExtension();
+		assertNotNull("No task extension", taskExtension);
+		PrismProperty<XMLGregorianCalendar> lastScanTimestampProp = taskExtension.findProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+		assertNotNull("no lastScanTimestamp property", lastScanTimestampProp);
+		return lastScanTimestampProp.getRealValue();
+	}
+
+	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		assertPasswordMetadata(user, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
 	}
 
@@ -712,31 +728,45 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
 	}
 
-	protected void assertSinglePasswordNotification(String dummyResourceName, String username,
+	protected void assertSingleAccountPasswordNotification(String dummyResourceName, String username,
 			String password) {
-		assertPasswordNotifications(1);
+		assertAccountPasswordNotifications(1);
         assertSingleDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME,
-        		getExpectedPasswordNotificationBody(dummyResourceName, username, password));
+        		getExpectedAccountPasswordNotificationBody(dummyResourceName, username, password));
 	}
 
-	protected void assertPasswordNotifications(int expected) {
+	protected void assertSingleUserPasswordNotification(String username, String password) {
+		assertUserPasswordNotifications(1);
+        assertSingleDummyTransportMessage(NOTIFIER_USER_PASSWORD_NAME,
+        		getExpectedUserPasswordNotificationBody(username, password));
+	}
+
+	protected void assertAccountPasswordNotifications(int expected) {
 		checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, expected);
 	}
 
-	protected void assertNoPasswordNotifications() {
+	protected void assertUserPasswordNotifications(int expected) {
+		checkDummyTransportMessages(NOTIFIER_USER_PASSWORD_NAME, expected);
+	}
+
+	protected void assertNoAccountPasswordNotifications() {
 		checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
 	}
 
-	protected void assertHasPasswordNotification(String dummyResourceName, String username,
-			String password) {
-        assertHasDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME,
-        		getExpectedPasswordNotificationBody(dummyResourceName, username, password));
+	protected void assertNoUserPasswordNotifications() {
+		checkDummyTransportMessages(NOTIFIER_USER_PASSWORD_NAME, 0);
 	}
 
-	protected void assertSinglePasswordNotificationGenerated(String dummyResourceName, String username) {
-		assertPasswordNotifications(1);
+	protected void assertHasAccountPasswordNotification(String dummyResourceName, String username,
+			String password) {
+        assertHasDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME,
+        		getExpectedAccountPasswordNotificationBody(dummyResourceName, username, password));
+	}
+
+	protected void assertSingleAccountPasswordNotificationGenerated(String dummyResourceName, String username) {
+		assertAccountPasswordNotifications(1);
 		String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
-		String expectedPrefix = getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username);
+		String expectedPrefix = getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username);
 		if (!body.startsWith(expectedPrefix)) {
 			fail("Expected that "+dummyResourceName+" dummy password notification message starts with prefix '"+expectedPrefix+"', but it was: "+body);
 		}
@@ -746,20 +776,32 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		}
 	}
 
-	protected String getExpectedPasswordNotificationBody(String dummyResourceName, String username,
+	protected String getExpectedAccountPasswordNotificationBody(String dummyResourceName, String username,
 			String password) {
-		return getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username) + password;
+		return getExpectedAccountPasswordNotificationBodyPrefix(dummyResourceName, username) + password;
 	}
 
-	protected String getExpectedPasswordNotificationBodyPrefix(String dummyResourceName, String username) {
+	protected String getExpectedAccountPasswordNotificationBodyPrefix(String dummyResourceName, String username) {
 		String resourceName = getDummyResourceType(dummyResourceName).getName().getOrig();
 		return "Password for account "+username+" on "+resourceName+" is: ";
 	}
 
-	protected void displayPasswordNotifications() {
+	protected String getExpectedUserPasswordNotificationBody(String username, String password) {
+		return getExpectedUserPasswordNotificationBodyPrefix(username) + password;
+	}
+
+	protected String getExpectedUserPasswordNotificationBodyPrefix(String username) {
+		return "Password for user "+username+" is: ";
+	}
+
+	protected void displayAccountPasswordNotifications() {
 		displayNotifications(NOTIFIER_ACCOUNT_PASSWORD_NAME);
 	}
 	
+	protected void displayUserPasswordNotifications() {
+		displayNotifications(NOTIFIER_USER_PASSWORD_NAME);
+	}
+
 	protected Object getQuote(String description, String fullName) {
 		return description + " -- " + fullName;
 	}

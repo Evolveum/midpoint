@@ -316,7 +316,7 @@ class EntitlementConverter {
 				assocAttrDef.getTypeName());
 		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
-		PrismPropertyValue<TA> normalized = new PrismPropertyValue<TA>(normalizedRealValue);
+		PrismPropertyValue<TA> normalized = new PrismPropertyValue<>(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
@@ -363,7 +363,7 @@ class EntitlementConverter {
 	 */
 	public void collectEntitlementChange(ProvisioningContext ctx, ContainerDelta<ShadowAssociationType> itemDelta,
 			Collection<Operation> operations) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		Map<QName, PropertyModificationOperation> operationsMap = new HashMap<QName, PropertyModificationOperation>();
+		Map<QName, PropertyModificationOperation> operationsMap = new HashMap<>();
 
 		collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToAdd(), ModificationType.ADD);
 		collectEntitlementToAttrsDelta(ctx, operationsMap, itemDelta.getValuesToDelete(), ModificationType.DELETE);

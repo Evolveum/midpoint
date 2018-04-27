@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -40,6 +37,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -52,16 +50,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.NativeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.PersistenceException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.*;
@@ -96,6 +95,9 @@ public class ObjectUpdater {
     private OrgClosureManager closureManager;
 
     @Autowired
+    private ObjectDeltaUpdater objectDeltaUpdater;
+
+    @Autowired
     private PrismContext prismContext;
 
     public <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
@@ -121,10 +123,11 @@ public class ObjectUpdater {
             PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
-
-            RObject rObject = createDataObjectFromJAXB(object, operation);
-
+            PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(operation);
+            
             session = baseHelper.beginTransaction();
+
+            RObject rObject = createDataObjectFromJAXB(object, idGenerator);
 
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
@@ -138,24 +141,31 @@ public class ObjectUpdater {
             LOGGER.trace("Saved object '{}' with oid '{}'", object.getCompileTimeClass().getSimpleName(), oid);
 
             object.setOid(oid);
-        } catch (ConstraintViolationException ex) {
-            handleConstraintViolationException(session, ex, result);
-            baseHelper.rollbackTransaction(session, ex, result, true);
+        } catch (PersistenceException ex) {
+            ConstraintViolationException constEx = findConstraintViolationException(ex);
+            if (constEx == null) {
+                baseHelper.handleGeneralException(ex, session, result);
+                // it wont go here as exception will be thrown
+                return oid;
+            }
 
-            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
+            handleConstraintViolationException(session, constEx, result);
+            baseHelper.rollbackTransaction(session, constEx, result, true);
+
+            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
             // we don't know if it's only name uniqueness violation, or something else,
             // therefore we're throwing it always as ObjectAlreadyExistsException revert
             // to the original oid and prevent of unexpected behaviour (e.g. by import with overwrite option)
             if (StringUtils.isEmpty(originalOid)) {
                 object.setOid(null);
             }
-            String constraintName = ex.getConstraintName();
+            String constraintName = constEx.getConstraintName();
             // Breaker to avoid long unreadable messages
             if (constraintName != null && constraintName.length() > SqlRepositoryServiceImpl.MAX_CONSTRAINT_NAME_LENGTH) {
                 constraintName = null;
             }
             throw new ObjectAlreadyExistsException("Conflicting object already exists"
-                    + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), ex);
+                    + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), constEx);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
@@ -166,6 +176,18 @@ public class ObjectUpdater {
         }
 
         return oid;
+    }
+
+    private ConstraintViolationException findConstraintViolationException(PersistenceException ex) {
+        if (ex instanceof ConstraintViolationException) {
+            return (ConstraintViolationException) ex;
+        }
+
+        if (ex.getCause() instanceof ConstraintViolationException) {
+            return (ConstraintViolationException) ex.getCause();
+        }
+
+        return null;
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
@@ -179,7 +201,7 @@ public class ObjectUpdater {
         if (originalOid != null) {
             try {
                 oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true, result);
-                ObjectDelta<T> delta = object.diff(oldObject);
+                ObjectDelta<T> delta = oldObject.diff(object, false, true);
                 modifications = delta.getModifications();
 
                 LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}", originalOid, modifications);
@@ -197,7 +219,8 @@ public class ObjectUpdater {
         }
 
         updateFullObject(rObject, object);
-        RObject merged = (RObject) session.merge(rObject);
+
+        RObject merged = objectDeltaUpdater.update(object, rObject, session);
         lookupTableHelper.addLookupTableRows(session, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(session, rObject, oldObject != null);
 
@@ -237,7 +260,7 @@ public class ObjectUpdater {
         // Its' because we're removing some properties during save operation and if save fails,
         // overwrite attempt (for example using object importer) might try to delete existing object
         // and then try to save this object one more time.
-        String xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        String xml = prismContext.xmlSerializer().serialize(savedObject);
         savedObject = prismContext.parseObject(xml);
 
         if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
@@ -248,7 +271,7 @@ public class ObjectUpdater {
             savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
         }
 
-        xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        xml = prismContext.xmlSerializer().serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         LOGGER.trace("Storing full object\n{}", xml);
@@ -271,9 +294,9 @@ public class ObjectUpdater {
             LOGGER.trace("Checking oid uniqueness.");
             //todo improve this table name bullshit
             Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
-            SQLQuery query = session.createSQLQuery("select count(*) from " + RUtil.getTableName(hqlType)
-                    + " where oid=:oid");
-            query.setString("oid", object.getOid());
+            NativeQuery query = session.createNativeQuery("select count(*) from "
+                    + RUtil.getTableName(hqlType, session) + " where oid=:oid");
+            query.setParameter("oid", object.getOid());
 
             Number count = (Number) query.uniqueResult();
             if (count != null && count.longValue() > 0) {
@@ -308,8 +331,13 @@ public class ObjectUpdater {
 
             closureContext = closureManager.onBeginTransactionDelete(session, type, oid);
 
-            Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            query.add(Restrictions.eq("oid", oid));
+            Class clazz = ClassMapper.getHQLTypeClass(type);
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery cq = cb.createQuery(clazz);
+            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
+
+            Query query = session.createQuery(cq);
             RObject object = (RObject) query.uniqueResult();
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
@@ -398,21 +426,40 @@ public class ObjectUpdater {
                 if (closureManager.isEnabled()) {
                     originalObject = prismObject.clone();
                 }
-                ItemDelta.applyTo(modifications, prismObject);
+
+                // old implementation start
+//                ItemDelta.applyTo(modifications, prismObject);
+//                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+//                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
+//                // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+//                boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
+//
+//                // merge and update object
+//                LOGGER.trace("Translating JAXB to data type.");
+//                ObjectTypeUtil.normalizeAllRelations(prismObject);
+//                RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+//                rObject.setVersion(rObject.getVersion() + 1);
+//
+//                updateFullObject(rObject, prismObject);
+//                LOGGER.trace("Starting merge.");
+//                session.merge(rObject);
+                // old implementation end
+
+                // new implementation start
+                RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, session);
+
 				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
                 // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                 // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
-                // merge and update object
-                LOGGER.trace("Translating JAXB to data type.");
-				ObjectTypeUtil.normalizeAllRelations(prismObject);
-				RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
-                rObject.setVersion(rObject.getVersion() + 1);
-
                 updateFullObject(rObject, prismObject);
-                LOGGER.trace("Starting merge.");
-                session.merge(rObject);
+
+                LOGGER.trace("Starting save.");
+                session.save(rObject);
+                LOGGER.trace("Save finished.");
+                // new implementation end
+
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
                 }
@@ -495,7 +542,7 @@ public class ObjectUpdater {
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
             LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[]{ex, sqlException, nextException});
-            String[] ok = new String[]{
+            String[] okStrings = new String[] {
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
                     "duplicate key value violates unique constraint \"m_reference_pkey\""
             };
@@ -511,8 +558,8 @@ public class ObjectUpdater {
             } else {
                 msg2 = "";
             }
-            for (int i = 0; i < ok.length; i++) {
-                if (msg1.contains(ok[i]) || msg2.contains(ok[i])) {
+            for (String okString : okStrings) {
+                if (msg1.contains(okString) || msg2.contains(okString)) {
                     baseHelper.rollbackTransaction(session, ex, result, false);
                     throw new SerializationRelatedException(ex);
                 }
@@ -520,12 +567,10 @@ public class ObjectUpdater {
         }
     }
 
-    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject,
-                                                                   PrismIdentifierGenerator.Operation operation)
+    public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)
             throws SchemaException {
 
-        PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-        IdGeneratorResult generatorResult = generator.generate(prismObject, operation);
+        IdGeneratorResult generatorResult = idGenerator.generate(prismObject);
 
         T object = prismObject.asObjectable();
 
@@ -537,6 +582,10 @@ public class ObjectUpdater {
                     RepositoryContext.class, IdGeneratorResult.class);
             method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext), generatorResult);
         } catch (Exception ex) {
+            SerializationRelatedException serializationException = ExceptionUtil.findCause(ex, SerializationRelatedException.class);
+            if (serializationException != null) {
+                throw serializationException;
+            }
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {
                 message = ex.getCause().getMessage();

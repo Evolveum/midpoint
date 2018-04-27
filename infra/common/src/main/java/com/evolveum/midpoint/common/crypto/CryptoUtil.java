@@ -145,7 +145,14 @@ public class CryptoUtil {
     }
 
     private static void encryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName) throws EncryptionException {
-    	if (ps != null && ps.getClearValue() != null) {
+		if (ps == null) {
+			return;
+		}
+
+    	if (ps.isHashed()) {
+    		throw new EncryptionException("Attempt to encrypt hashed value for "+propName);
+    	}
+    	if (ps.getClearValue() != null) {
             try {
                 protector.encrypt(ps);
             } catch (EncryptionException e) {
@@ -274,7 +281,7 @@ public class CryptoUtil {
 				providerResult.addContext("properties", propXml);
 				providerResult.recordSuccess();
 			} catch (Throwable e) {
-				LOGGER.error("Security self test (provider properties) failed: ", e.getMessage() ,e);
+				LOGGER.error("Security self test (provider properties) failed: {}", e.getMessage() ,e);
 				providerResult.recordFatalError(e);
 			}
 		}
@@ -341,11 +348,11 @@ public class CryptoUtil {
 					new Object[] {algorithmName, transformationName, keySize});
 		} catch (Throwable e) {
 			if (critical) {
-				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}",
+				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{}",
 						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
 				subresult.recordFatalError(e);
 			} else {
-				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {} (failure is expected in some cases)",
+				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{} (failure is expected in some cases)",
 						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
 				subresult.recordWarning(e);
 			}

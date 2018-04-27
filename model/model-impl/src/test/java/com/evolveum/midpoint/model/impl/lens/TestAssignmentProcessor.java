@@ -17,7 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,7 +48,6 @@ import java.util.*;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -767,7 +766,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     private <T> Set<T> getAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attributeSet) {
         Set<T> retval = new HashSet<>();
         for (PrismPropertyValue<Construction> constructionPropVal : accountConstructions) {
-            Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = constructionPropVal.getValue().getAttributeMapping(attrName);
+            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = constructionPropVal.getValue().getAttributeMapping(attrName);
             if (mapping != null && mapping.getOutputTriple() != null) {
                 Collection<PrismPropertyValue<T>> values = (Collection) mapping.getOutputTriple().getSet(attributeSet);
                 if (values != null) {
@@ -831,7 +830,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private <T> Collection<T> getMultiValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple,
     		Collection<? extends PrismPropertyValue<?>> set) {
-    	Collection<T> vals = new ArrayList<T>(set.size());
+    	Collection<T> vals = new ArrayList<>(set.size());
     	for (PrismPropertyValue<?> pval: set) {
     		vals.add((T)pval.getValue());
     	}

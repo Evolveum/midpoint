@@ -156,7 +156,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 			if (getDefinition().isSingleValue()) {
 				// Insert first empty value. This simulates empty single-valued container. It the container exists
 		        // it is clear that it has at least one value (and that value is empty).
-				PrismContainerValue<C> pValue = new PrismContainerValue<C>(null, null, this, null, null, prismContext);
+				PrismContainerValue<C> pValue = new PrismContainerValue<>(null, null, this, null, null, prismContext);
 		        try {
 					add(pValue);
 				} catch (SchemaException e) {
@@ -170,7 +170,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		} else {
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
 	        // it is clear that it has at least one value (and that value is empty).
-			PrismContainerValue<C> pValue = new PrismContainerValue<C>(null, null, this, null, null, prismContext);
+			PrismContainerValue<C> pValue = new PrismContainerValue<>(null, null, this, null, null, prismContext);
 	        try {
 				add(pValue);
 			} catch (SchemaException e) {
@@ -245,10 +245,16 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     	return null;
     }
 
-    public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
+    public <T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException {
 		checkMutability();
-    	PrismProperty<?> property = findOrCreateProperty(propertyName);
+    	PrismProperty<T> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
+    }
+    
+    public <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException {
+		checkMutability();
+    	PrismProperty<T> property = findOrCreateProperty(propertyName);
+    	property.setRealValues(realValues);
     }
 
     public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
@@ -421,7 +427,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-    		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>) this, null);
+    		return new PartiallyResolvedItem<>((Item<IV, ID>) this, null);
     	}
 
     	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
@@ -666,12 +672,12 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
     @Override
 	public ContainerDelta<C> createDelta() {
-    	return new ContainerDelta<C>(getPath(), getDefinition(), getPrismContext());
+    	return new ContainerDelta<>(getPath(), getDefinition(), getPrismContext());
 	}
 
     @Override
 	public ContainerDelta<C> createDelta(ItemPath path) {
-    	return new ContainerDelta<C>(path, getDefinition(), getPrismContext());
+    	return new ContainerDelta<>(path, getDefinition(), getPrismContext());
 	}
 
     public boolean isEmpty() {
@@ -747,17 +753,22 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
 	@Override
     public PrismContainer<C> clone() {
-    	PrismContainer<C> clone = new PrismContainer<C>(getElementName(), getDefinition(), prismContext);
-        copyValues(clone);
+		return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismContainer<C> cloneComplex(CloneStrategy strategy) {
+    	PrismContainer<C> clone = new PrismContainer<>(getElementName(), getDefinition(), prismContext);
+        copyValues(strategy, clone);
         return clone;
     }
 
-    protected void copyValues(PrismContainer<C> clone) {
-        super.copyValues(clone);
+    protected void copyValues(CloneStrategy strategy, PrismContainer<C> clone) {
+        super.copyValues(strategy, clone);
         clone.compileTimeClass = this.compileTimeClass;
         for (PrismContainerValue<C> pval : getValues()) {
             try {
-				clone.add(pval.clone());
+				clone.add(pval.cloneComplex(strategy));
 			} catch (SchemaException e) {
 				// This should not happen
 				throw new SystemException("Internal Error: "+e.getMessage(),e);
@@ -781,10 +792,25 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
     @Override
 	public boolean containsEquivalentValue(PrismContainerValue<C> value) {
-    	if (value.getId() == null) {
+    	if (value.isIdOnly()) {
+    		PrismContainerValue<C> myValue = findValue(value.getId());
+    		return myValue != null;
+    	} else if (value.getId() == null) {
     		return super.contains(value, true);
     	} else {
     		return super.contains(value, false);
+    	}
+	}
+    
+    @Override
+	public boolean containsEquivalentValue(PrismContainerValue<C> value, Comparator<PrismContainerValue<C>> comparator) {
+    	if (value.isIdOnly()) {
+    		PrismContainerValue<C> myValue = findValue(value.getId());
+    		return myValue != null;
+    	} else if (value.getId() == null) {
+    		return super.contains(value, true, comparator);
+    	} else {
+    		return super.contains(value, false, comparator);
     	}
 	}
 

@@ -70,7 +70,7 @@ public class ObjectTypeUtil {
 	public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
 		Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
 		if (values == null) {
-			return new ArrayList<T>(0);
+			return new ArrayList<>(0);
 		} else {
 			return values;
 		}
@@ -99,7 +99,7 @@ public class ObjectTypeUtil {
 		if (property == null) {
 			return null;
 		}
-		Collection<Referencable> refs = new ArrayList<Referencable>(property.getValues().size());
+		Collection<Referencable> refs = new ArrayList<>(property.getValues().size());
 		for (PrismReferenceValue refVal : property.getValues()){
 			refs.add(refVal.asReferencable());
 		}
@@ -420,7 +420,7 @@ public class ObjectTypeUtil {
 
     public static ItemPathHolder createXPathHolder(QName property) {
         PathHolderSegment xpathSegment = new PathHolderSegment(property);
-        List<PathHolderSegment> segmentlist = new ArrayList<PathHolderSegment>(1);
+        List<PathHolderSegment> segmentlist = new ArrayList<>(1);
         segmentlist.add(xpathSegment);
         ItemPathHolder xpath = new ItemPathHolder(segmentlist);
         return xpath;
@@ -615,6 +615,7 @@ public class ObjectTypeUtil {
     	return item != null ? (T) item.getRealValue() : null;
 	}
 
+	@NotNull
 	public static QName normalizeRelation(QName name) {
     	if (name == null) {
     		return SchemaConstants.ORG_DEFAULT;

@@ -133,9 +133,10 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 					if (!authorizeUser(AuthorizationConstants.AUTZ_REST_PROXY_URL, user, authorizedUser, enteredUsername, connEnv, requestCtx)){
 		        		return;
 		        	}
-					if (!authorizeUser(authorizedUser.asObjectable(), null, authorizedUser.getName().getOrig(), connEnv, requestCtx)){
-		        		return;
-		        	}
+					authenticateUser(authorizedUser, authorizedUser.getName().getOrig(), connEnv, requestCtx);
+//					if (!authorizeUser(authorizedUser.asObjectable(), null, authorizedUser.getName().getOrig(), connEnv, requestCtx)){
+//		        		return;
+//		        	}
 				} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 						| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					LOGGER.trace("Exception while authenticating user identified with '{}' to REST service: {}", oid, e.getMessage(), e);
@@ -153,22 +154,26 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	    }
 
 	   private boolean authorizeUser(UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
-	    	try {
-	    		securityContextManager.setupPreAuthenticatedSecurityContext(user.asPrismObject());
-	        } catch (SchemaException e) {
-				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
-				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
-				return false;
-			}
-
-	        LOGGER.trace("Authenticated to REST service as {}", user);
-
+	    	authenticateUser(user.asPrismObject(), enteredUsername, connEnv, requestCtx);
 	        return authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, null, enteredUsername, connEnv, requestCtx);
 	    }
 
+	   private void authenticateUser(PrismObject<UserType> user, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+		   try {
+	    		securityContextManager.setupPreAuthenticatedSecurityContext(user);
+	        } catch (SchemaException e) {
+				securityHelper.auditLoginFailure(enteredUsername, user.asObjectable(), connEnv, "Schema error: "+e.getMessage());
+				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
+//				return false;
+			}
+
+	        LOGGER.trace("Authenticated to REST service as {}", user);
+	   }
+	   
 	    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
 	    	Task task = taskManager.createTaskInstance(MidpointRestAuthenticator.class.getName() + ".authorizeUser");
 	    	try {
+	    		// authorize for proxy
 	    		securityEnforcer.authorize(authorization, null, AuthorizationParameters.Builder.buildObject(proxyUser), null, task, task.getResult());
 			} catch (SecurityViolationException e){
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");

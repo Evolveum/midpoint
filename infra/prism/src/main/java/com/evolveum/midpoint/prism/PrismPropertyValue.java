@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -53,6 +55,8 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, Serializable {
+	
+	final static Trace LOGGER = TraceManager.getTrace(PrismPropertyValue.class);
 
     private T value;
 
@@ -97,7 +101,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     }
 
 	public static <T> PrismPropertyValue<T> createRaw(XNode rawElement) {
-		PrismPropertyValue<T> pval = new PrismPropertyValue<T>();
+		PrismPropertyValue<T> pval = new PrismPropertyValue<>();
 		pval.setRawElement(rawElement);
 		return pval;
 	}
@@ -154,7 +158,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     }
 
     public static <T> Collection<T> getValues(Collection<PrismPropertyValue<T>> pvals) {
-    	Collection<T> realValues = new ArrayList<T>(pvals.size());
+    	Collection<T> realValues = new ArrayList<>(pvals.size());
 		for (PrismPropertyValue<T> pval: pvals) {
 			realValues.add(pval.getValue());
 		}
@@ -338,13 +342,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 	@Override
     public PrismPropertyValue<T> clone() {
-        PrismPropertyValue clone = new PrismPropertyValue(getOriginType(), getOriginObject());
-        copyValues(clone);
+        return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismPropertyValue<T> cloneComplex(CloneStrategy strategy) {
+        PrismPropertyValue<T> clone = new PrismPropertyValue<>(getOriginType(), getOriginObject());
+        copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismPropertyValue clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismPropertyValue<T> clone) {
+		super.copyValues(strategy, clone);
 		clone.value = CloneUtil.clone(this.value);
 		if (this.expression != null) {
 			clone.expression = this.expression.clone();
@@ -371,18 +380,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueCollection.size());
+		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
-			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(realValue);
+			PrismPropertyValue<T> pval = new PrismPropertyValue<>(realValue);
 			pvalCol.add(pval);
 		}
 		return pvalCol;
 	}
 
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(T[] realValueArray) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueArray.length);
+		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueArray.length);
 		for (T realValue: realValueArray) {
-			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(realValue);
+			PrismPropertyValue<T> pval = new PrismPropertyValue<>(realValue);
 			pvalCol.add(pval);
 		}
 		return pvalCol;
@@ -396,11 +405,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (definitionSource.getParent() != null && definitionSource.getParent().getDefinition() != null) {
 			T parsedRealValue = (T) parseRawElementToNewRealValue(origValue,
 					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
-			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
+			PrismPropertyValue<T> newPVal = new PrismPropertyValue<>(parsedRealValue);
 			return newPVal;
 		} else if (definitionSource.getRealClass() != null && definitionSource.getPrismContext() != null) {
 			T parsedRealValue = parseRawElementToNewRealValue(origValue, (Class<T>) definitionSource.getRealClass(), definitionSource.getPrismContext());
-			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
+			PrismPropertyValue<T> newPVal = new PrismPropertyValue<>(parsedRealValue);
 			return newPVal;
 		} else {
 			throw new IllegalArgumentException("Attempt to use property " + origValue.getParent() +

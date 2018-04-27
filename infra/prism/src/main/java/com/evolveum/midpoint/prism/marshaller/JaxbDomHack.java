@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ public class JaxbDomHack {
 			}
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
-				PrismProperty<?> property = ((PrismPropertyDefinition<?>)itemDefinition).instantiate();
+				PrismProperty<Object> property = ((PrismPropertyDefinition<Object>)itemDefinition).instantiate();
 				property.setRealValue(jaxbBean);
 				subItem = (Item<IV,ID>) property;
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {

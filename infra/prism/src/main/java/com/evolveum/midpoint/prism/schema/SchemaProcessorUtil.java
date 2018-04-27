@@ -67,7 +67,7 @@ public class SchemaProcessorUtil {
 
 	@NotNull
 	public static List<Element> getAnnotationElements(XSAnnotation annotation, QName qname) {
-		List<Element> elements = new ArrayList<Element>();
+		List<Element> elements = new ArrayList<>();
 		if (annotation == null) {
 			return elements;
 		}

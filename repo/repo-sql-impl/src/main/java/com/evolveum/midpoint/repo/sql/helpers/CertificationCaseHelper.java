@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,14 +49,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.NativeQuery;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import java.util.*;
 
 /**
@@ -107,8 +108,8 @@ public class CertificationCaseHelper {
             }
 
             // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
-            PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-            generator.generate(caseType, PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator generator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
+            generator.generate(caseType);
 
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, createRepositoryContext());
             row.setId(RUtil.toInteger(caseType.getId()));
@@ -198,24 +199,24 @@ public class CertificationCaseHelper {
                         affectedIds.add(id);
                         // TODO couldn't this cascading be done by hibernate itself?
                         Integer integerCaseId = RUtil.toInteger(id);
-//                        Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
+//                        NativeQuery deleteCaseReferences = session.createNativeQuery("delete from " + RCertCaseReference.TABLE +
 //                                " where owner_owner_oid=:oid and owner_id=:id");
-//                        deleteCaseReferences.setString("oid", campaignOid);
-//                        deleteCaseReferences.setInteger("id", integerCaseId);
+//                        deleteCaseReferences.setParameter("oid", campaignOid);
+//                        deleteCaseReferences.setParameter("id", integerCaseId);
 //                        deleteCaseReferences.executeUpdate();
-                        Query deleteWorkItemReferences = session.createSQLQuery("delete from " + RCertWorkItemReference.TABLE +
+                        NativeQuery deleteWorkItemReferences = session.createNativeQuery("delete from " + RCertWorkItemReference.TABLE +
                                 " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
-                        deleteWorkItemReferences.setString("oid", campaignOid);
-                        deleteWorkItemReferences.setInteger("id", integerCaseId);
+                        deleteWorkItemReferences.setParameter("oid", campaignOid);
+                        deleteWorkItemReferences.setParameter("id", integerCaseId);
                         deleteWorkItemReferences.executeUpdate();
-                        Query deleteCaseWorkItems = session.createSQLQuery("delete from " + RAccessCertificationWorkItem.TABLE +
+                        NativeQuery deleteCaseWorkItems = session.createNativeQuery("delete from " + RAccessCertificationWorkItem.TABLE +
                                 " where owner_owner_oid=:oid and owner_id=:id");
-                        deleteCaseWorkItems.setString("oid", campaignOid);
-                        deleteCaseWorkItems.setInteger("id", integerCaseId);
+                        deleteCaseWorkItems.setParameter("oid", campaignOid);
+                        deleteCaseWorkItems.setParameter("id", integerCaseId);
                         deleteCaseWorkItems.executeUpdate();
                         Query deleteCase = session.getNamedQuery("delete.campaignCase");
-                        deleteCase.setString("oid", campaignOid);
-                        deleteCase.setInteger("id", integerCaseId);
+                        deleteCase.setParameter("oid", campaignOid);
+                        deleteCase.setParameter("id", integerCaseId);
                         deleteCase.executeUpdate();
                     }
                 }
@@ -263,8 +264,8 @@ public class CertificationCaseHelper {
                 delta.applyTo(aCase.asPrismContainerValue());
 
                 // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
-                PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-                generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
+                PrismIdentifierGenerator generator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
+                generator.generate(aCase);
 
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
                 session.merge(rCase);
@@ -400,12 +401,15 @@ public class CertificationCaseHelper {
 
         LOGGER.debug("Loading certification campaign cases.");
 
-        Criteria criteria = session.createCriteria(RAccessCertificationCase.class);
-        criteria.add(Restrictions.eq("ownerOid", object.getOid()));
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery cq = cb.createQuery(RAccessCertificationCase.class);
+        cq.where(cb.equal(cq.from(RAccessCertificationCase.class).get("ownerOid"), object.getOid()));
+
+        Query query = session.createQuery(cq);
 
         // TODO fetch only XML representation
 		@SuppressWarnings({"raw", "unchecked"})
-        List<RAccessCertificationCase> cases = criteria.list();
+        List<RAccessCertificationCase> cases = query.list();
         if (cases == null || cases.isEmpty()) {
             return;
         }

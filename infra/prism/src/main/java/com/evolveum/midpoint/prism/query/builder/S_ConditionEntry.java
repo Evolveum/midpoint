@@ -16,10 +16,8 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;

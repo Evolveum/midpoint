@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -120,7 +119,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
 		}
 
-		List<V> pvals = new ArrayList<V>();
+		List<V> pvals = new ArrayList<>();
 		if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
 			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 		}

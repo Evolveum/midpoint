@@ -24,11 +24,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
@@ -37,6 +33,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -379,11 +376,11 @@ public class IntegrationTestTools {
 		return values.iterator().next();
 	}
 
-	public static void waitFor(String message, Checker checker, int timeoutInterval) throws CommonException {
+	public static void waitFor(String message, Checker checker, long timeoutInterval) throws CommonException {
         waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILIS);
     }
 
-	public static void waitFor(String message, Checker checker, int timeoutInterval, long sleepInterval) throws CommonException {
+	public static void waitFor(String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
 		System.out.println(message);
 		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
 		long startTime = System.currentTimeMillis();
@@ -496,9 +493,9 @@ public class IntegrationTestTools {
 
 	public static void display(String title, DebugDumpable dumpable) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(dumpable == null ? "null" : dumpable.debugDump());
+		System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
-				+ (dumpable == null ? "null" : dumpable.debugDump()));
+				+ (dumpable == null ? "null" : dumpable.debugDump(1)));
 	}
 
 	public static void display(String title, String value) {
@@ -526,9 +523,7 @@ public class IntegrationTestTools {
 		String stackTrace = ExceptionUtils.getStackTrace(e);
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title + ": "+e.getClass() + " " + e.getMessage());
 		System.out.println(stackTrace);
-		LOGGER.debug("{}{}: {} {}\n{}", new Object[]{
-				OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(),
-				stackTrace});
+		LOGGER.debug("{}{}: {} {}\n{}", OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(), stackTrace);
 	}
 
 	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
@@ -599,7 +594,7 @@ public class IntegrationTestTools {
 
 		ObjectQuery query = createAllShadowsQuery(resourceType, prismContext);
 
-		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, GetOperationOptions.createRawCollection(), result);
 		LOGGER.trace("Checking {} shadows, query:\n{}", allShadows.size(), query.debugDump());
 
 		for (PrismObject<ShadowType> shadow: allShadows) {

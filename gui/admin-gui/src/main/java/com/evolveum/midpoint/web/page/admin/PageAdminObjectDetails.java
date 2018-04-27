@@ -217,7 +217,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			@Override
 			protected ObjectWrapper<O> load() {
-				return loadObjectWrapper(objectToEdit, isReadonly);
+				ObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
+				wrapper.sort();
+				return wrapper;
 			}
 		};
 
@@ -349,7 +351,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status);
+			try {
+				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
 		}
 		wrapper.setLoadOptions(loadOptions);
 

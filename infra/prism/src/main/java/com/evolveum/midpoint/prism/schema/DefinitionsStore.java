@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.prism.schema;
 
-import com.evolveum.midpoint.prism.*;
-
 /**
  * @author mederly
  */

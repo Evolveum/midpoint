@@ -92,7 +92,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 	}
 
 	private List<IColumn<OperationResult, String>> initResultColumns() {
-		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
+		List<IColumn<OperationResult, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.token"), "token"));
 		columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
 		columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.status"), "status"));

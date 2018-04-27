@@ -45,7 +45,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -58,7 +57,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -75,13 +73,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
@@ -123,7 +119,7 @@ public class PageSecurityQuestions extends PageBase {
 
 	int questionNumber;
 
-	private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+	private final Model<PrismObject<UserType>> principalModel = new Model<>();
 	private PasswordQuestionsDto dto = new PasswordQuestionsDto();
 	private IModel<PasswordQuestionsDto> model;
 	PageBase page = (PageBase) getPage();
@@ -153,7 +149,7 @@ public class PageSecurityQuestions extends PageBase {
 
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 
-		pqPanels = new ArrayList<MyPasswordQuestionsPanel>();
+		pqPanels = new ArrayList<>();
 
 		PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
 		LOGGER.trace("Found security policy: {}", securityPolicy);
@@ -171,7 +167,7 @@ public class PageSecurityQuestions extends PageBase {
 		policyQuestionList = securityPolicy.asObjectable().getCredentials() != null &&
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion() :
-		        new ArrayList<SecurityQuestionDefinitionType>();
+            new ArrayList<>();
 
 		List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
 
@@ -393,7 +389,7 @@ public class PageSecurityQuestions extends PageBase {
 		List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
 		if (secQuestAnsList != null) {
-			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
 			for (Iterator iterator = secQuestAnsList.iterator(); iterator.hasNext();) {
 				SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
 						.next();
@@ -523,7 +519,7 @@ public class PageSecurityQuestions extends PageBase {
 				CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
 
 		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);

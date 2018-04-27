@@ -25,6 +25,7 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 	private static final String ID_UPDATE_INTERNALS_CONFIG = "updateInternalsConfig";
 	private static final String ID_CONSISTENCY_CHECKS = "consistencyChecks";
 	private static final String ID_ENCRYPTION_CHECKS = "encryptionChecks";
+	private static final String ID_MODEL_PROFILING = "modelProfiling";
 	private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
 	private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
 	private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
@@ -49,6 +50,7 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 		form.add(createCheckbox(ID_CONSISTENCY_CHECKS, InternalsConfigDto.F_CONSISTENCY_CHECKS));
 		form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
 		form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
+		form.add(createCheckbox(ID_MODEL_PROFILING, InternalsConfigDto.F_MODEL_PROFILING));
 		form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
 
 		AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
@@ -86,7 +88,7 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 	}
 
 	private CheckFormGroup createCheckbox(String id, String propName) {
-		return new CheckFormGroup(id, new PropertyModel<Boolean>(getModel(), propName),
+		return new CheckFormGroup(id, new PropertyModel<>(getModel(), propName),
 				createStringResource("PageInternals." + propName), LABEL_SIZE, INPUT_SIZE);
 	}
 }

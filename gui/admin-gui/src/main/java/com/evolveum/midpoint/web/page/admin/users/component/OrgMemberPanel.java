@@ -25,7 +25,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -120,6 +118,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private static final String ID_DELETE_MANAGER = "deleteManager";
 	private static final String ID_EDIT_MANAGER = "editManager";
 
+	private RelationTypes relationValue = null;
 	private static final long serialVersionUID = 1L;
 
 	public OrgMemberPanel(String id, IModel<OrgType> model) {
@@ -149,8 +148,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}
 		});
 
-		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE,
-				Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<ObjectTypes>());
+		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<>(ID_SEARCH_BY_TYPE,
+            Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<>());
 		objectType.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -163,9 +162,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		objectType.setOutputMarkupId(true);
 		form.add(objectType);
 
-		DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE,
-				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
-				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
+		DropDownChoice<String> seachScrope = new DropDownChoice<>(ID_SEARCH_SCOPE,
+            Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
+            new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
 		seachScrope.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -177,10 +176,26 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		seachScrope.setOutputMarkupId(true);
 		form.add(seachScrope);
 
-		List<RelationTypes> relationTypes = new ArrayList<RelationTypes>(Arrays.asList(RelationTypes.values()));
-		DropDownChoicePanel<RelationTypes> relationSelector = new DropDownChoicePanel<RelationTypes>(ID_SEARCH_BY_RELATION,
-				Model.of(), Model.ofList(relationTypes),
-				new EnumChoiceRenderer<RelationTypes>(), true);
+		DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_SEARCH_BY_RELATION,
+				WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
+				new IModel<RelationTypes>() {
+					@Override
+					public RelationTypes getObject() {
+						return relationValue;
+					}
+
+					@Override
+					public void setObject(RelationTypes relationTypes) {
+						relationValue = relationTypes;
+					}
+
+					@Override
+					public void detach() {
+
+					}
+				}, this, true,
+				createStringResource("RelationTypes.ANY").getString());
+
 		relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		relationSelector.setOutputMarkupId(true);
 		relationSelector.setOutputMarkupPlaceholderTag(true);
@@ -338,7 +353,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		managerContainer.add(view);
 
 		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU,
-				new Model<Serializable>((Serializable) createManagersHeaderInlineMenu()));
+            new Model<>((Serializable) createManagersHeaderInlineMenu()));
 
 		add(menupanel);
 		menupanel.setOutputMarkupId(true);
@@ -455,20 +470,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return deleteMenuItems;
 	}
 
-	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI)) {
-			return super.createNewMemberInlineMenuItems();
-		}
-		return new ArrayList<>();
-	}
-
-	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI)) {
-			return super.assignNewMemberInlineMenuItems();
-		}
-		return new ArrayList<>();
-	}
-
 	private void deleteMemberPerformed(final QueryScope scope, final QName relation, final AjaxRequestTarget target, String confirmMessageKey) {
 		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource(confirmMessageKey)) {
 			@Override
@@ -494,7 +495,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
 					false, new HeaderMenuAction(this) {
 				private static final long serialVersionUID = 1L;
@@ -506,7 +507,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
 					new HeaderMenuAction(this) {
 						private static final long serialVersionUID = 1L;
@@ -530,7 +531,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems
 					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
 							false, new HeaderMenuAction(this) {
@@ -700,13 +701,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			q = q.type(searchType.getClassDefinition());
 		}
 
-		RelationTypes relation = getSelectedRelation();
-		QName relationValue = null;
-		if (relation == null){
-			relationValue = PrismConstants.Q_ANY;
-		} else {
-			relationValue = relation.getRelation();
-		}
+		QName relationValue = getSelectedRelation();
 		PrismReferenceValue ref = new PrismReferenceValue(oid);
 		ref.setRelation(relationValue);
 		ObjectQuery query;
@@ -723,9 +718,12 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return query;
 	}
 
-	private RelationTypes getSelectedRelation(){
-		DropDownChoicePanel<RelationTypes> relationSelector = (DropDownChoicePanel<RelationTypes>) getFormComponent().get(ID_SEARCH_BY_RELATION);
-		return relationSelector.getBaseFormComponent().getModelObject();
+	private QName getSelectedRelation(){
+		if (relationValue == null){
+			return PrismConstants.Q_ANY;
+		} else {
+			return relationValue.getRelation();
+		}
 	}
 
 	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
@@ -832,15 +830,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 
 		return OBJECT_TYPES_DEFAULT.getClassDefinition();
-	}
-
-	private List<String> getRelationsLocalizedList(){
-		List<String> relationsList = new ArrayList<>();
-		relationsList.add(createStringResource("RelationTypes.ANY").getString());
-		for (RelationTypes relation : RelationTypes.values()){
-			relationsList.add(createStringResource(RelationTypes.class.getSimpleName() + "." + relation.name()).getString());
-		}
-		return relationsList;
 	}
 
 	@Override

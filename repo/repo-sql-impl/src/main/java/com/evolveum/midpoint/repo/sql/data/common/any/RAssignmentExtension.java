@@ -22,8 +22,11 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 
@@ -41,10 +44,13 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@Ignore
 @Entity
 @IdClass(RAssignmentExtensionId.class)
 @Table(name = "m_assignment_extension")
-public class RAssignmentExtension implements Serializable {
+public class RAssignmentExtension implements Serializable, EntityState {
+
+    private Boolean trans;
 
     private RAssignment owner;
     private String ownerOid;
@@ -63,6 +69,17 @@ public class RAssignmentExtension implements Serializable {
     private Set<RAExtReference> references;
     private Set<RAExtPolyString> polys;
     private Set<RAExtBoolean> booleans;
+
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
+    }
 
     @ForeignKey(name = "none")
     @MapsId("owner")
@@ -277,11 +294,11 @@ public class RAssignmentExtension implements Serializable {
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
-        Set<RAnyValue> values = new HashSet<RAnyValue>();
+        Set<RAnyValue> values = new HashSet<>();
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, true));
+                values.addAll(converter.convertToRValue(item, true, null));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -306,11 +323,18 @@ public class RAssignmentExtension implements Serializable {
             }
         }
 
-        repo.setStringsCount((short) repo.getStrings().size());
-        repo.setDatesCount((short) repo.getDates().size());
-        repo.setPolysCount((short) repo.getPolys().size());
-        repo.setReferencesCount((short) repo.getReferences().size());
-        repo.setLongsCount((short) repo.getLongs().size());
-        repo.setBooleansCount((short) repo.getBooleans().size());
+        DeltaUpdaterUtils.updateExtensionCounts(repo);
+    }
+
+    @Override
+    public String toString() {
+        return "RAssignmentExtension{" +
+                "strings#=" + stringsCount +
+                ", longs#=" + longsCount +
+                ", dates#=" + datesCount +
+                ", references#=" + referencesCount +
+                ", polys#=" + polysCount +
+                ", booleans#=" + booleansCount +
+                '}';
     }
 }

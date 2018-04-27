@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,8 +37,9 @@ import javax.xml.namespace.QName;
  * @author semancik
  */
 public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PropertyWrapper<T>,O> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PropertyWrapperFromObjectWrapperModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PropertyWrapperFromObjectWrapperModel.class);
 
     private ItemPath path;
 

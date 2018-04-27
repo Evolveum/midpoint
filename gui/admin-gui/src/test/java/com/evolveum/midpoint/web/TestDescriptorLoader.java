@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.web;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -63,7 +61,6 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
     public void testDescriptorLoader() {
     	final String TEST_NAME = "testDescriptorLoader";
 		TestUtil.displayTestTitle(TEST_NAME);
-
 		MidPointApplication midPointApplication = new MidPointApplication();
 		ServletContext mockServletContext = new ServletContext() {
 

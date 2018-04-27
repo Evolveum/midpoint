@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
  * @author Radovan Semancik
  */
 public class ResourceAttribute<T> extends PrismProperty<T> {
-
     private static final long serialVersionUID = -6149194956029296486L;
 
     public ResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {
@@ -83,13 +83,18 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
 
     @Override
 	public ResourceAttribute<T> clone() {
-    	ResourceAttribute<T> clone = new ResourceAttribute<T>(getElementName(), getDefinition(), getPrismContext());
-    	copyValues(clone);
+    	return cloneComplex(CloneStrategy.LITERAL);
+	}
+    
+    @Override
+	public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
+    	ResourceAttribute<T> clone = new ResourceAttribute<>(getElementName(), getDefinition(), getPrismContext());
+    	copyValues(strategy, clone);
     	return clone;
 	}
 
-	protected void copyValues(ResourceAttribute<T> clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, ResourceAttribute<T> clone) {
+		super.copyValues(strategy, clone);
 		// Nothing to copy
 	}
 

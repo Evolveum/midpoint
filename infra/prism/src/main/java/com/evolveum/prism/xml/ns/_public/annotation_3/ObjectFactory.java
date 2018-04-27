@@ -54,7 +54,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "extension")
     public JAXBElement<QName> createExtension(QName value) {
-        return new JAXBElement<QName>(_Extension_QNAME, QName.class, null, value);
+        return new JAXBElement<>(_Extension_QNAME, QName.class, null, value);
     }
 
     /**
@@ -63,7 +63,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "access")
     public JAXBElement<AccessAnnotationType> createAccess(AccessAnnotationType value) {
-        return new JAXBElement<AccessAnnotationType>(_Access_QNAME, AccessAnnotationType.class, null, value);
+        return new JAXBElement<>(_Access_QNAME, AccessAnnotationType.class, null, value);
     }
 
     /**
@@ -72,7 +72,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "deprecated")
     public JAXBElement<Boolean> createDeprecated(Boolean value) {
-        return new JAXBElement<Boolean>(_Deprecated_QNAME, Boolean.class, null, value);
+        return new JAXBElement<>(_Deprecated_QNAME, Boolean.class, null, value);
     }
 
     /**
@@ -81,7 +81,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "ignore")
     public JAXBElement<Boolean> createIgnore(Boolean value) {
-        return new JAXBElement<Boolean>(_Ignore_QNAME, Boolean.class, null, value);
+        return new JAXBElement<>(_Ignore_QNAME, Boolean.class, null, value);
     }
 
     /**
@@ -90,7 +90,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "indexed")
     public JAXBElement<Boolean> createIndexed(Boolean value) {
-        return new JAXBElement<Boolean>(_Indexed_QNAME, Boolean.class, null, value);
+        return new JAXBElement<>(_Indexed_QNAME, Boolean.class, null, value);
     }
 
     /**
@@ -99,7 +99,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "container")
     public JAXBElement<Object> createContainer(Object value) {
-        return new JAXBElement<Object>(_Container_QNAME, Object.class, null, value);
+        return new JAXBElement<>(_Container_QNAME, Object.class, null, value);
     }
 
     /**
@@ -108,7 +108,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "operational")
     public JAXBElement<Boolean> createOperational(Boolean value) {
-        return new JAXBElement<Boolean>(_Operational_QNAME, Boolean.class, null, value);
+        return new JAXBElement<>(_Operational_QNAME, Boolean.class, null, value);
     }
 
     /**
@@ -117,7 +117,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "composite")
     public JAXBElement<Boolean> createComposite(Boolean value) {
-        return new JAXBElement<Boolean>(_Composite_QNAME, Boolean.class, null, value);
+        return new JAXBElement<>(_Composite_QNAME, Boolean.class, null, value);
     }
 
     /**
@@ -126,7 +126,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "help")
     public JAXBElement<String> createHelp(String value) {
-        return new JAXBElement<String>(_Help_QNAME, String.class, null, value);
+        return new JAXBElement<>(_Help_QNAME, String.class, null, value);
     }
 
     /**
@@ -135,7 +135,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "objectReferenceTargetType")
     public JAXBElement<QName> createObjectReferenceTargetType(QName value) {
-        return new JAXBElement<QName>(_ObjectReferenceTargetType_QNAME, QName.class, null, value);
+        return new JAXBElement<>(_ObjectReferenceTargetType_QNAME, QName.class, null, value);
     }
 
     /**
@@ -144,7 +144,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "displayOrder")
     public JAXBElement<Integer> createDisplayOrder(Integer value) {
-        return new JAXBElement<Integer>(_DisplayOrder_QNAME, Integer.class, null, value);
+        return new JAXBElement<>(_DisplayOrder_QNAME, Integer.class, null, value);
     }
 
     /**
@@ -153,7 +153,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "displayName")
     public JAXBElement<String> createDisplayName(String value) {
-        return new JAXBElement<String>(_DisplayName_QNAME, String.class, null, value);
+        return new JAXBElement<>(_DisplayName_QNAME, String.class, null, value);
     }
 
     /**
@@ -162,7 +162,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "maxOccurs")
     public JAXBElement<String> createMaxOccurs(String value) {
-        return new JAXBElement<String>(_MaxOccurs_QNAME, String.class, null, value);
+        return new JAXBElement<>(_MaxOccurs_QNAME, String.class, null, value);
     }
 
     /**
@@ -171,7 +171,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "object")
     public JAXBElement<Object> createObject(Object value) {
-        return new JAXBElement<Object>(_Object_QNAME, Object.class, null, value);
+        return new JAXBElement<>(_Object_QNAME, Object.class, null, value);
     }
 
     /**
@@ -180,7 +180,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "objectReference")
     public JAXBElement<Object> createObjectReference(Object value) {
-        return new JAXBElement<Object>(_ObjectReference_QNAME, Object.class, null, value);
+        return new JAXBElement<>(_ObjectReference_QNAME, Object.class, null, value);
     }
 
     /**
@@ -189,7 +189,7 @@ public class ObjectFactory {
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "type")
     public JAXBElement<QName> createType(QName value) {
-        return new JAXBElement<QName>(_Type_QNAME, QName.class, null, value);
+        return new JAXBElement<>(_Type_QNAME, QName.class, null, value);
     }
 
 }

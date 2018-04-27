@@ -117,9 +117,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				if (currentAssignees < requiredMultiplicity) {
 					return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
 							constraint.getValue(),
-							getMessage(constraint.getValue(), ctx, result, KEY_MIN, KEY_OBJECT, target,
+							getMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
 									requiredMultiplicity, relationToCheck.getLocalPart()),
-							getShortMessage(constraint.getValue(), ctx, result, KEY_MIN, KEY_OBJECT, target,
+							getShortMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
 									requiredMultiplicity, relationToCheck.getLocalPart()));
 				}
 			}
@@ -137,9 +137,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				if (currentAssigneesExceptMyself >= requiredMultiplicity) {
 					return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
 							constraint.getValue(),
-							getMessage(constraint.getValue(), ctx, result, KEY_MAX, KEY_OBJECT, target,
+							getMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
 									requiredMultiplicity, relationToCheck.getLocalPart()),
-							getShortMessage(constraint.getValue(), ctx, result, KEY_MAX, KEY_OBJECT, target,
+							getShortMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
 									requiredMultiplicity, relationToCheck.getLocalPart()));
 				}
 			}
@@ -192,9 +192,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
 				return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
 						constraint.getValue(),
-						getMessage(constraint.getValue(), ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
+						getMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
 								requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself),
-						getShortMessage(constraint.getValue(), ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
+						getShortMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
 								requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself));
 			} else {
 				return null;
@@ -209,9 +209,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
 				return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
 						constraint.getValue(),
-						getMessage(constraint.getValue(), ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
+						getMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
 								requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself+1),
-						getShortMessage(constraint.getValue(), ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
+						getShortMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
 								requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself+1));
 			}
 		}
@@ -247,7 +247,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 		return repositoryService.countObjects(FocusType.class, query, null, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage getMessage(MultiplicityPolicyConstraintType constraint,
+	private <F extends FocusType> LocalizableMessage getMessage(JAXBElement<MultiplicityPolicyConstraintType> constraintElement,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result, String key1, String key2,
 			PrismObject<?> target, Object... args)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -256,10 +256,10 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				.arg(ObjectTypeUtil.createDisplayInformation(target, true))
 				.args(args)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, rctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraintElement, rctx, builtInMessage, result);
 	}
 
-	private <F extends FocusType> LocalizableMessage getShortMessage(MultiplicityPolicyConstraintType constraint,
+	private <F extends FocusType> LocalizableMessage getShortMessage(JAXBElement<MultiplicityPolicyConstraintType> constraintElement,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result, String key1, String key2,
 			PrismObject<?> target, Object... args)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -268,6 +268,6 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				.arg(ObjectTypeUtil.createDisplayInformation(target, false))
 				.args(args)
 				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraint, rctx, builtInMessage, result);
+		return evaluatorHelper.createLocalizableShortMessage(constraintElement, rctx, builtInMessage, result);
 	}
 }

@@ -17,9 +17,6 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly

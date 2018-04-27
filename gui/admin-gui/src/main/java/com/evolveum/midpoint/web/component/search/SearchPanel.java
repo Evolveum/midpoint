@@ -27,11 +27,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -134,7 +132,7 @@ public class SearchPanel extends BasePanel<Search> {
         add(form);
 
         ListView items = new ListView<SearchItem>(ID_ITEMS,
-                new PropertyModel<List<SearchItem>>(getModel(), Search.F_ITEMS)) {
+            new PropertyModel<>(getModel(), Search.F_ITEMS)) {
 
             @Override
             protected void populateItem(ListItem<SearchItem> item) {
@@ -506,12 +504,12 @@ public class SearchPanel extends BasePanel<Search> {
         popover.add(propList);
 
         ListView properties = new ListView<Property>(ID_PROPERTIES,
-                new PropertyModel<List<Property>>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
+            new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
 
             @Override
             protected void populateItem(final ListItem<Property> item) {
                 CheckBox check = new CheckBox(ID_CHECK,
-                        new PropertyModel<Boolean>(item.getModel(), Property.F_SELECTED));
+                    new PropertyModel<>(item.getModel(), Property.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     @Override

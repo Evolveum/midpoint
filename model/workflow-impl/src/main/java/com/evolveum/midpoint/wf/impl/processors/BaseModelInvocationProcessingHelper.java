@@ -150,17 +150,27 @@ public class BaseModelInvocationProcessingHelper {
      */
     private Task determineParentTaskForRoot(Task taskFromModel) {
 
-        // this is important: if existing task which we have got from model is transient (this is usual case), we create our root task as a task without parent!
-        // however, if the existing task is persistent (perhaps because the model operation executes already in the context of a workflow), we create a subtask
-        // todo think heavily about this; there might be a problem if a transient task from model gets (in the future) persistent
-        // -- in that case, it would not wait for its workflow-related children (but that's its problem, because children could finish even before
-        // that task is switched to background)
+//        // this is important: if existing task which we have got from model is transient (this is usual case), we create our root task as a task without parent!
+//        // however, if the existing task is persistent (perhaps because the model operation executes already in the context of a workflow), we create a subtask
+//        // todo think heavily about this; there might be a problem if a transient task from model gets (in the future) persistent
+//        // -- in that case, it would not wait for its workflow-related children (but that's its problem, because children could finish even before
+//        // that task is switched to background)
+//
+//        if (taskFromModel.isTransient()) {
+//            return null;
+//        } else {
+//            return taskFromModel;
+//        }
 
-        if (taskFromModel.isTransient()) {
-            return null;
-        } else {
-            return taskFromModel;
-        }
+	    /*
+	     *  Let us create all approval tasks as independent ones. This might resolve more issues, for example:
+	     *   - workflow tasks will be displayed on user Tasks tab (MID-4508): currently some of them are not, as they are technically subtasks
+	     *   - background tasks that initiate approvals (e.g. live sync or reconciliation) could end up with lots of subtasks,
+	     *     which makes their displaying take extraordinarily long
+	     *
+	     *  It is to be seen if this will have some negative consequences.
+	     */
+	    return null;
     }
 
     /**

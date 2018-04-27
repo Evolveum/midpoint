@@ -44,7 +44,7 @@
    <postReportScript>
 		<macro>
 			<name>file</name>
-			<asIs/>
+            <asIs/>
 		</macro>
 		<macro>
 			<name>name</name>
@@ -55,6 +55,6 @@
 			</script>
 		</macro>
 		<executionMethod>shell</executionMethod>
-		<code>cp %file% target/%name%.pdf</code>
+		<code>cp %file% "target/%name%.pdf"</code>
 	</postReportScript>
 </report>

@@ -16,15 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -52,6 +51,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -85,7 +85,7 @@ public class PageDebugView extends PageAdminConfiguration {
     final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
     private String dataLanguage;
     private boolean isInitialized = false;
-    private ObjectViewDto objectViewDto = new ObjectViewDto();
+    private IModel<ObjectViewDto> objectViewDtoModel;
 
     public PageDebugView() {
 
@@ -106,7 +106,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-                if (objectViewDto == null) {
+                if (objectViewDtoModel == null || objectViewDtoModel.getObject() == null) {
                     return "";
                 }
 //                ObjectViewDto object;
@@ -120,76 +120,69 @@ public class PageDebugView extends PageAdminConfiguration {
 //                if (object == null) {
 //            		return "";
 //            	} else {
-                    return createStringResource("PageDebugView.title", objectViewDto.getName()).getString();
+                    return createStringResource("PageDebugView.title", objectViewDtoModel.getObject().getName()).getString();
 //                }
             }
         };
     }
 
     private void initObjectViewObject() {
-        StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
-        if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
-            getSession().error(getString("pageDebugView.message.oidNotDefined"));
-            throw new RestartResponseException(PageDebugList.class);
-        }
+        objectViewDtoModel = new LoadableModel<ObjectViewDto>(false) {
+            @Override
+            protected ObjectViewDto load() {
+                ObjectViewDto objectViewDto = new ObjectViewDto();
+                StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
+                if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
+                    getSession().error(getString("pageDebugView.message.oidNotDefined"));
+                    throw new RestartResponseException(PageDebugList.class);
+                }
 
-        Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
-        OperationResult result = task.getResult(); //todo is this result != null ?
-        try {
-            MidPointApplication application = PageDebugView.this.getMidpointApplication();
+                Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
+                OperationResult result = task.getResult(); //todo is this result != null ?
+                try {
+                    MidPointApplication application = PageDebugView.this.getMidpointApplication();
 
-            GetOperationOptions rootOptions = GetOperationOptions.createRaw();
+                    GetOperationOptions rootOptions = GetOperationOptions.createRaw();
 
-            rootOptions.setResolveNames(true);
-			rootOptions.setTolerateRawData(true);
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-            // FIXME: ObjectType.class will not work well here. We need more specific type.
-            //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
-            Class type = ObjectType.class;
-            StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
-            if (objectType != null && StringUtils.isNotBlank(objectType.toString())){
-            	type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
+                    rootOptions.setResolveNames(true);
+                    rootOptions.setTolerateRawData(true);
+                    Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
+                    // FIXME: ObjectType.class will not work well here. We need more specific type.
+                    //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
+                    Class type = ObjectType.class;
+                    StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
+                    if (objectType != null && StringUtils.isNotBlank(objectType.toString())) {
+                        type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
+                    }
+
+                    // TODO make this configurable (or at least do not show campaign cases in production)
+                    WebModelServiceUtils.addIncludeOptionsForExportOrView(options, type);
+                    PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
+
+                    PrismContext context = application.getPrismContext();
+
+                    String lex = context.serializerFor(dataLanguage).serialize(object);
+                    objectViewDto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, lex);
+
+                    result.recomputeStatus();
+                } catch (Exception ex) {
+                    result.recordFatalError("Couldn't load object.", ex);
+                }
+
+                if (objectViewDto == null) {
+                    showResult(result);
+                    throw new RestartResponseException(PageDebugList.class);
+                }
+
+                showResult(result, false);
+
+                if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
+                    showResult(result, false);
+                    throw new RestartResponseException(PageDebugList.class);
+                }
+                return objectViewDto;
             }
-
-            // TODO make this configurable (or at least do not show campaign cases in production)
-            if (UserType.class.isAssignableFrom(type)) {
-                options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-            }
-            if (LookupTableType.class.isAssignableFrom(type)) {
-                options.add(SelectorOptions.create(LookupTableType.F_ROW,
-                        GetOperationOptions.createRetrieve(
-                        		new RelationalValueSearchQuery(
-                        				ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
-            }
-            if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-                options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-            }
-
-            PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
-
-            PrismContext context = application.getPrismContext();
-
-            String lex = context.serializerFor(dataLanguage).serialize(object);
-            objectViewDto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, lex);
-
-            result.recomputeStatus();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't load object.", ex);
-        }
-
-        if (objectViewDto == null) {
-            showResult(result);
-            throw new RestartResponseException(PageDebugList.class);
-        }
-
-        showResult(result, false);
-      
-        if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
-            showResult(result, false);
-            throw new RestartResponseException(PageDebugList.class);
-        }
+        };
     }
 
     private void initLayout() {
@@ -238,7 +231,7 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         });
 
-        plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, getObjectViewXmlModel());
+        plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         plainTextarea.setVisible(false);
 
         mainForm.add(plainTextarea);
@@ -251,7 +244,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void addOrReplaceEditor(){
-        editor = new AceEditor("aceEditor", getObjectViewXmlModel());
+        editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
         editor.add(new AjaxFormComponentUpdatingBehavior("blur") {
             private static final long serialVersionUID = 1L;
@@ -271,14 +264,14 @@ public class PageDebugView extends PageAdminConfiguration {
 	                @Override
 	                protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
 			                String objectString) {
-		                objectViewDto.setXml(objectString);
+		                objectViewDtoModel.getObject().setXml(objectString);
 		                dataLanguage = updatedLanguage;
 		                addOrReplaceEditor();
 		                target.add(mainForm);
 	                }
 	                @Override
 	                protected String getObjectStringRepresentation() {
-		                return objectViewDto.getXml();
+		                return objectViewDtoModel.getObject().getXml();
 	                }
 	                @Override
 	                protected boolean isValidateSchema() {
@@ -331,7 +324,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     public void savePerformed(AjaxRequestTarget target) {
-        if (StringUtils.isEmpty(objectViewDto.getXml())) {
+        if (StringUtils.isEmpty(objectViewDtoModel.getObject().getXml())) {
             error(getString("pageDebugView.message.cantSaveEmpty"));
             target.add(getFeedbackPanel());
             return;
@@ -341,7 +334,7 @@ public class PageDebugView extends PageAdminConfiguration {
         OperationResult result = task.getResult();
         try {
 
-            PrismObject<ObjectType> oldObject = objectViewDto.getObject();
+            PrismObject<ObjectType> oldObject = objectViewDtoModel.getObject().getObject();
             oldObject.revive(getPrismContext());
 
             Holder<Objectable> objectHolder = new Holder<>(null);
@@ -396,25 +389,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
-	    parseObject(objectViewDto.getXml(), objectHolder, dataLanguage, validateSchema.getObject(), false, Objectable.class, result);
+	    parseObject(objectViewDtoModel.getObject().getXml(), objectHolder, dataLanguage, validateSchema.getObject(), false, Objectable.class, result);
     }
 
-    private IModel<String> getObjectViewXmlModel(){
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                return objectViewDto != null ? objectViewDto.getXml() : "";
-            }
-
-            @Override
-            public void setObject(String s) {
-                objectViewDto.setXml(s);
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-    }
 }

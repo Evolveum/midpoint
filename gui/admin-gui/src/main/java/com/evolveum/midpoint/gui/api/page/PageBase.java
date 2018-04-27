@@ -18,7 +18,6 @@ package com.evolveum.midpoint.gui.api.page;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -33,9 +32,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -43,6 +39,8 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -79,12 +77,17 @@ import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
+import com.evolveum.midpoint.web.page.admin.cases.PageCasesAll;
+import com.evolveum.midpoint.web.page.admin.cases.PageCasesAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
@@ -124,7 +127,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -163,7 +165,6 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import java.io.Serializable;
 import java.util.*;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -268,6 +269,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelController")
     private AccessCertificationService certficationService;
+    
+    @SpringBean(name = "modelController")
+    private CaseManagementService caseManagementService;
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
@@ -283,6 +287,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean
     private LocalizationService localizationService;
+    
+    @SpringBean
+    private CacheDispatcher cacheDispatcher;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -484,6 +491,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AccessCertificationService getCertificationService() {
         return certficationService;
     }
+    
+    public CaseManagementService getCaseManagementService() {
+		return caseManagementService;
+    }
 
     @Override
     public ModelService getModelService() {
@@ -520,6 +531,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
+    }
+    
+    public CacheDispatcher getCacheDispatcher() {
+    		return cacheDispatcher;
     }
 
     @NotNull
@@ -688,7 +703,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
             environmentName = deploymentInfoModel.getObject().getName();
         }
-        Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
+        Model<String> deploymentNameModel = new Model<>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
         Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
         deploymentName.add(new VisibleEnableBehaviour() {
             public boolean isVisible() {
@@ -1400,14 +1415,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
             items.add(createResourcesItems());
         }
-// TODO uncomment after ValuePolicies pages are finished
-//        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
+ //TODO uncomment after ValuePolicies pages are finished
+//        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 //                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 //            items.add(createValuePolicieItems());
 //        }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
@@ -1465,7 +1482,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
         addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
-        if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
             addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
         }
         addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);
@@ -1525,6 +1542,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.list", PageCasesAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCasesAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", PageCaseWorkItemsAll.class);
+
+        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
+
+        addMenuItem(item, "PageAdmin.menu.top.case.new", PageCase.class);
 
         return item;
     }
@@ -1907,14 +1932,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (breadcrumbs.size() > 2) {
             return true;
         }
-        if (breadcrumbs.size() == 2) {
-            BreadcrumbPageClass breadcrumb = null;
-            if ((breadcrumbs.get(breadcrumbs.size() - 2)) instanceof BreadcrumbPageClass) {
-                breadcrumb = (BreadcrumbPageClass) breadcrumbs.get(breadcrumbs.size() - 2);
-            }
-            if (breadcrumb != null && breadcrumb.getPage() != null) {
+        if (breadcrumbs.size() == 2 && (breadcrumbs.get(breadcrumbs.size() - 2)) != null) {
                 return true;
-            }
         }
 
         return false;

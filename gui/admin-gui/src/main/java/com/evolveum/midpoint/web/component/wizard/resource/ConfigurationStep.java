@@ -16,12 +16,10 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -55,7 +52,6 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -137,11 +133,12 @@ public class ConfigurationStep extends WizardStep {
 
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
 			ContainerWrapper containerWrapper;
+			Task task = getPageBase().createSimpleTask("Creting configuration container");
 			if (container != null) {
-				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly());
+				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly(), task);
 			} else {
 				container = containerDef.instantiate();
-				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly());
+				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly(), task);
 				containerWrapper.setShowEmpty(true, true);
 			}
 			containerWrappers.add(containerWrapper);
@@ -178,7 +175,7 @@ public class ConfigurationStep extends WizardStep {
         form.setOutputMarkupId(true);
         add(form);
 
-		form.add(WebComponentUtil.createTabPanel(ID_CONFIGURATION, parentPage, new ArrayList<ITab>(), null));
+		form.add(WebComponentUtil.createTabPanel(ID_CONFIGURATION, parentPage, new ArrayList<>(), null));
 
 		AjaxSubmitButton testConnection = new AjaxSubmitButton(ID_TEST_CONNECTION,
                 createStringResource("ConfigurationStep.button.testConnection")) {

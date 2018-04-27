@@ -16,33 +16,38 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import org.hibernate.annotations.ForeignKey;
 
+@Ignore
 @Entity
 @IdClass(RAuditItemId.class)
 @Table(name = RAuditItem.TABLE_NAME, indexes = {
 		@Index(name = "iChangedItemPath", columnList = "changedItemPath")})
-public class RAuditItem {
+public class RAuditItem implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_item";
 	public static final String COLUMN_RECORD_ID = "record_id";
 
+    private Boolean trans;
+
     private RAuditEventRecord record;
     private Long recordId;
-    private String changedItemPath;
+        private String changedItemPath;
 
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
+    }
 
     @ForeignKey(name = "none")
     @MapsId("record")
@@ -64,13 +69,13 @@ public class RAuditItem {
     }
 
     @Id
-    @Column(name = "changedItemPath", length=900)
+    @Column(name = "changedItemPath")
     public String getChangedItemPath() {
-		return changedItemPath;
-	}
+        return changedItemPath;
+    }
 
     public void setRecord(RAuditEventRecord record) {
-		if (record.getId() != 0) {
+        if (record.getId() != 0) {
 			this.recordId = record.getId();
 		}
     	this.record = record;

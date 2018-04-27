@@ -20,10 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -32,7 +29,9 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -40,9 +39,7 @@ import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
@@ -62,6 +59,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -94,10 +92,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author semancik
@@ -189,7 +188,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return null;
 		}
 
-		List<ProtectedStringType> passwords = new ArrayList<ProtectedStringType>();
+		List<ProtectedStringType> passwords = new ArrayList<>();
 		for (ItemDelta itemDelta : delta.getModifications()) {
 			takePasswordsFromItemDelta(passwords, itemDelta);
 		}
@@ -241,7 +240,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> objectDeltas) throws EncryptionException {
 
-		List<ProtectedStringType> passwords = new ArrayList<ProtectedStringType>();
+		List<ProtectedStringType> passwords = new ArrayList<>();
 
 		for (ObjectDelta<UserType> delta : objectDeltas) {
 
@@ -413,6 +412,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public boolean isDirectlyAssigned(ObjectType target) {
 		return isDirectlyAssigned(target.getOid());
+	}
+
+	// EXPERIMENTAL!!
+	@Experimental
+	public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
+		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext == null) {
+			throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with model context");
+		}
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
+		}
+		Collection<EvaluatedAssignmentImpl<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
+		if (nonNegativeEvaluatedAssignments == null) {
+			return false;
+		}
+		for (EvaluatedAssignmentImpl<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+			PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
+			if (target == null) {
+				continue;
+			}
+			Collection<String> targetSubtypes = ObjectTypeUtil.getSubtypeValues((PrismObject) target);
+			if (targetSubtypes.contains(roleSubtype)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -691,7 +718,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
 		}
 
-		final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
+		final Holder<Boolean> isUniqueHolder = new Holder<>(true);
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
@@ -849,8 +876,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throw new SchemaException("No definition for type " + type);
 		}
 		return modelService.getObject(
-				objectDefinition.getCompileTimeClass(), reference.getOid(), null, getCurrentTask(), getCurrentResult())
-				.asObjectable();
+				objectDefinition.getCompileTimeClass(), reference.getOid(), 
+				SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase()), getCurrentTask(), getCurrentResult())
+			.asObjectable();
 	}
 
 	@Override
@@ -877,7 +905,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		PrismObject<T> prismObject = modelService.getObject(type, oid, null, getCurrentTask(), getCurrentResult());
+		PrismObject<T> prismObject = modelService.getObject(type, oid, 
+				getDefaultGetOptionCollection(),
+				getCurrentTask(), getCurrentResult());
 		return prismObject.asObjectable();
 	}
 
@@ -1029,7 +1059,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ObjectNotFoundException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return MiscSchemaUtil.toObjectableList(
-				modelService.searchObjects(type, query, null, getCurrentTask(), getCurrentResult()));
+				modelService.searchObjects(type, query, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
 	}
 
 	@Override
@@ -1048,7 +1079,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		modelService.searchObjectsIterative(type, query, handler, null, getCurrentTask(), getCurrentResult());
+		modelService.searchObjectsIterative(type, query, handler, 
+				getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
@@ -1057,7 +1089,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+				.searchObjects(type, nameQuery, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
 		}
@@ -1073,7 +1106,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+				.searchObjects(type, nameQuery, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
 		}
@@ -1089,7 +1123,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+				.searchObjects(type, nameQuery, 
+						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
 		}
@@ -1114,7 +1149,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ObjectQuery query) throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, ConfigurationException,
 			CommunicationException, ExpressionEvaluationException {
-		return modelService.countObjects(type, query, null, getCurrentTask(), getCurrentResult());
+		return modelService.countObjects(type, query,
+				getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
@@ -1270,7 +1306,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public Map<String, String> parseXmlToMap(String xml) {
-		Map<String, String> resultingMap = new HashMap<String, String>();
+		Map<String, String> resultingMap = new HashMap<>();
 		if (xml != null && !xml.isEmpty()) {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			String value = "";
@@ -1315,7 +1351,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 								value = null;
 							}
 						} else {
-							LOGGER.trace("No value between xml tags, tag name : {0}", endName);
+							LOGGER.trace("No value between xml tags, tag name : {}", endName);
 						}
 
 					} else if (code == XMLStreamConstants.END_DOCUMENT) {
@@ -1531,6 +1567,60 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ConfigurationException, ExpressionEvaluationException {
 		return AssignmentPath.collectExtensions(path, startAt, modelService, getCurrentTask(), getCurrentResult());
 	}
+	@Override
+	public TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
+			String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		return executeChangesAsynchronously(deltas, options, templateTaskOid, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
+			String templateTaskOid, Task opTask, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
+		if (principal == null) {
+			throw new SecurityViolationException("No current user");
+		}
+		TaskType newTask;
+		if (templateTaskOid != null) {
+			newTask = modelService.getObject(TaskType.class, templateTaskOid,
+					getDefaultGetOptionCollection(), opTask, result).asObjectable();
+		} else {
+			newTask = new TaskType(prismContext);
+			newTask.setName(PolyStringType.fromOrig("Execute changes"));
+			newTask.setRecurrence(TaskRecurrenceType.SINGLE);
+		}
+		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
+		newTask.setOid(null);
+		newTask.setTaskIdentifier(null);
+		newTask.setOwnerRef(createObjectRef(principal.getUser()));
+		newTask.setExecutionStatus(RUNNABLE);
+		newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
+		if (deltas.isEmpty()) {
+			throw new IllegalArgumentException("No deltas to execute");
+		}
+		List<ObjectDeltaType> deltasBeans = new ArrayList<>();
+		for (ObjectDelta<?> delta : deltas) {
+			//noinspection unchecked
+			deltasBeans.add(DeltaConvertor.toObjectDeltaType((ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType>) delta));
+		}
+		//noinspection unchecked
+		PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = prismContext.getSchemaRegistry()
+				.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+		PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
+		deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
+		newTask.asPrismObject().addExtensionItem(deltasProperty);
+		if (options != null) {
+			//noinspection unchecked
+			PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
+					.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+			PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
+			optionsProperty.setRealValue(options.toModelExecutionOptionsType());
+			newTask.asPrismObject().addExtensionItem(optionsProperty);
+		}
+		ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+		return newTask;
+	}
 
 	@Override
 	public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
@@ -1542,7 +1632,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (principal == null) {
 			throw new SecurityViolationException("No current user");
 		}
-		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid, null, opTask, result).asObjectable();
+		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
+				getDefaultGetOptionCollection(), opTask, result).asObjectable();
 		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
 		newTask.setOid(null);
 		newTask.setTaskIdentifier(null);
@@ -1585,5 +1676,82 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public String translate(LocalizableMessageType message) {
 		return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
+	}
+	
+	@Override
+	public Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException {
+		return executeAdHocProvisioningScript(resource.getOid(), language, code);
+	}
+	
+	@Override
+	public Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+					throws SchemaException, ObjectNotFoundException,
+					ExpressionEvaluationException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ObjectAlreadyExistsException {
+		OperationProvisioningScriptType script = new OperationProvisioningScriptType();
+		script.setCode(code);
+		script.setLanguage(language);
+		script.setHost(ProvisioningScriptHostType.RESOURCE);
+		
+		return provisioningService.executeScript(resourceOid, script, getCurrentTask(), getCurrentResult());
+	}
+	
+	@Override
+	public Boolean isEvaluateNew() {
+		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+		if (scriptContext == null) {
+			return null;
+		}
+		return scriptContext.isEvaluateNew();
+	}
+
+	@Override
+	@NotNull
+	public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
+		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext == null) {
+			throw new IllegalStateException("No lensContext");
+		}
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			return emptySet();
+		}
+		Collection<PrismValue> rv = new HashSet<>();
+		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+			if (evaluatedAssignment.isValid()) {
+				for (MappingImpl<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
+					if (path.equivalent(mapping.getOutputPath())) {
+						PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+						if (outputTriple != null) {
+							rv.addAll(outputTriple.getNonNegativeValues());
+						}
+					}
+				}
+			}
+		}
+		// Ugly hack - MID-4452 - When having an assignment giving focusMapping, and the assignment is being deleted, the
+		// focus mapping is evaluated in wave 0 (results correctly being pushed to the minus set), but also in wave 1.
+		// The results are sent to zero set; and they are not applied only because they are already part of a priori delta.
+		// This causes problems here.
+		//
+		// Until MID-4452 is fixed, here we manually delete the values from the result.
+		LensFocusContext<ObjectType> focusContext = lensContext.getFocusContext();
+		if (focusContext != null) {
+			ObjectDelta<ObjectType> delta = focusContext.getDelta();
+			if (delta != null) {
+				ItemDelta<PrismValue, ItemDefinition> targetItemDelta = delta.findItemDelta(path);
+				if (targetItemDelta != null) {
+					rv.removeAll(emptyIfNull(targetItemDelta.getValuesToDelete()));
+				}
+			}
+		}
+		return rv;
+	}
+	
+	private Collection<SelectorOptions<GetOperationOptions>> getDefaultGetOptionCollection() {
+		return SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
 	}
 }

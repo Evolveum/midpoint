@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  */
 package com.evolveum.midpoint.model.impl.util.mock;
 
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.api.context.Mapping;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensDebugListener;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -26,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class MockLensDebugListener implements LensDebugListener {
+public class MockLensDebugListener implements ClockworkInspector {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MockLensDebugListener.class);
 
@@ -38,15 +41,15 @@ public class MockLensDebugListener implements LensDebugListener {
 		return lastSyncContext;
 	}
 
-	public <F extends ObjectType> void setLastSyncContext(LensContext<F> lastSyncContext) {
-		this.lastSyncContext = lastSyncContext;
+	public <F extends ObjectType> void setLastSyncContext(ModelContext<F> lastSyncContext) {
+		this.lastSyncContext = (LensContext) lastSyncContext;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType> void beforeSync(LensContext<F> context) {
+	public <F extends ObjectType> void clockworkStart(ModelContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.debugDump());
 	}
 
@@ -54,28 +57,55 @@ public class MockLensDebugListener implements LensDebugListener {
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType> void afterSync(LensContext<F> context) {
+	public <F extends ObjectType> void clockworkFinish(ModelContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.debugDump());
-		lastSyncContext = context;
+		lastSyncContext = (LensContext) context;
 	}
 
 	@Override
-	public <F extends ObjectType> void beforeProjection(
-			LensContext<F> context) {
-
-	}
-
-	@Override
-	public <F extends ObjectType> void afterProjection(
-			LensContext<F> context) {
+	public <F extends ObjectType> void projectorStart(ModelContext<F> context) {
 
 	}
 
 	@Override
-	public <F extends ObjectType> void afterMappingEvaluation(
-			LensContext<F> context,
-			Mapping<?,?> evaluatedMapping) {
+	public <F extends ObjectType> void projectorFinish(ModelContext<F> context) {
 
+	}
+
+	@Override
+	public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
+
+	}
+
+	@Override
+	public <F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void projectorComponentSkip(String componentName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void projectorComponentStart(String componentName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void projectorComponentFinish(String componentName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MockLensDebugListener.class, indent);
+		DebugUtil.debugDumpWithLabelToString(sb, "lastSyncContext", lastSyncContext, indent + 1);
+		return sb.toString();
 	}
 
 

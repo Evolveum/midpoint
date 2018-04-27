@@ -32,7 +32,6 @@ import javax.xml.namespace.QName;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -211,7 +210,7 @@ public final class PrismForJAXBUtil {
 	        		// This value is already part of another prism. We need to clone it to add it here.
 	        		fieldContainerValue = fieldContainerValue.clone();
 	        	}
-	            fieldContainer = new PrismContainer<T>(fieldName, parent.getPrismContext());
+	            fieldContainer = new PrismContainer<>(fieldName, parent.getPrismContext());
 	            fieldContainer.add(fieldContainerValue);
                 parent.addReplaceExisting(fieldContainer);
 	        }

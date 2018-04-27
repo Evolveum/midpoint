@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -33,9 +32,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -67,7 +64,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     public ChooseTypePanel(String id, ObjectReferenceType ref){
-    	super(id, Model.of(new ObjectViewDto<T>(ref != null ? ref.getOid() : null, ref !=null ?  WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
+    	super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
         initLayout();
     }
 
@@ -77,7 +74,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         inputContainer.add(getInputStyleClass());
         add(inputContainer);
 
-        final TextField<String> name = new TextField<String>(ID_OBJECT_NAME, new PropertyModel<String>(getModel(), ObjectViewDto.F_NAME));
+        final TextField<String> name = new TextField<>(ID_OBJECT_NAME, new PropertyModel<>(getModel(), ObjectViewDto.F_NAME));
 
 
 //        		new Model<String>(){
@@ -183,7 +180,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     private void setToDefault(AjaxRequestTarget target){
-        ObjectViewDto<T> dto = new ObjectViewDto<T>();
+        ObjectViewDto<T> dto = new ObjectViewDto<>();
         dto.setType(getObjectTypeClass());
         getModel().setObject(dto);
         executeCustomRemoveAction(target);

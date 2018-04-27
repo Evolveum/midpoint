@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionTaskHandler;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -56,6 +56,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -98,12 +100,16 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_FILE = new File(TEST_DIR, "scripting-users-in-background.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_ASSIGN_FILE = new File(TEST_DIR, "scripting-users-in-background-assign.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE = new File(TEST_DIR, "scripting-users-in-background-task.xml");
+	private static final File SCRIPTING_USERS_IN_BACKGROUND_ITERATIVE_TASK_FILE = new File(TEST_DIR, "scripting-users-in-background-iterative-task.xml");
 	private static final File START_TASKS_FROM_TEMPLATE_FILE = new File(TEST_DIR, "start-tasks-from-template.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
 	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
 	private static final File GENERATE_PASSWORDS_3_FILE = new File(TEST_DIR, "generate-passwords-3.xml");
 	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
 	private static final File USE_VARIABLES_FILE = new File(TEST_DIR, "use-variables.xml");
+	private static final File TASK_TO_RESUME_FILE = new File(TEST_DIR, "task-to-resume.xml");
+	private static final File TASK_TO_KEEP_SUSPENDED_FILE = new File(TEST_DIR, "task-to-keep-suspended.xml");
+	private static final File RESUME_SUSPENDED_TASKS_FILE = new File(TEST_DIR, "resume-suspended-tasks.xml");
 	private static final QName USER_NAME_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userName");
 	private static final QName USER_DESCRIPTION_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userDescription");
 	private static final QName STUDY_GROUP_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "studyGroup");
@@ -770,7 +776,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 			    .findContainer(TaskType.F_EXTENSION)
 			    .findOrCreateProperty(USER_DESCRIPTION_TASK_EXTENSION_PROPERTY)
 			    .addRealValue("admin description");
-	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+	    task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
 
 	    dummyTransport.clearMessages();
 	    boolean notificationsDisabled = notificationManager.isDisabled();
@@ -809,7 +815,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		// WHEN
 
 	    task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
-	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+	    task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
 
 	    dummyTransport.clearMessages();
 	    boolean notificationsDisabled = notificationManager.isDisabled();
@@ -1074,6 +1080,60 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		assertNoObject(TaskType.class, oid2, task, result);
 
 		taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 10000L, result);
+	}
+
+	@Test
+	public void test570IterativeScriptingTask() throws Exception {
+		final String TEST_NAME = "test570IterativeScriptingTask";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+		String taskOid = repoAddObjectFromFile(SCRIPTING_USERS_IN_BACKGROUND_ITERATIVE_TASK_FILE, result).getOid();
+
+		// WHEN
+		waitForTaskFinish(taskOid, false);
+
+		// THEN
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		PrismObject<UserType> administrator = getUser(USER_ADMINISTRATOR_OID);
+		display("jack", jack);
+		display("administrator", administrator);
+		assertEquals("Wrong jack description", "hello jack", jack.asObjectable().getDescription());
+		assertEquals("Wrong administrator description", "hello administrator", administrator.asObjectable().getDescription());
+	}
+
+	@Test
+	public void test575ResumeTask() throws Exception {
+		final String TEST_NAME = "test570ResumeTask";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		OperationResult result = task.getResult();
+
+		addObject(TASK_TO_KEEP_SUSPENDED_FILE);
+
+		PrismObject<TaskType> taskToResume = prismContext.parseObject(TASK_TO_RESUME_FILE);
+		taskToResume.asObjectable().getWorkflowContext().setEndTimestamp(fromNow(createDuration(-1000L)));
+		addObject(taskToResume);
+		display("task to resume", taskToResume);
+
+		ExecuteScriptType exec = prismContext.parserFor(RESUME_SUSPENDED_TASKS_FILE).parseRealValue();
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), task, result);
+
+		// THEN
+		dumpOutput(output, result);
+		result.computeStatus();
+		// the task should be there
+		assertEquals("Unexpected # of items in output", 1, output.getFinalOutput().getData().size());
+
+		PrismObject<TaskType> taskAfter = getObject(TaskType.class, taskToResume.getOid());
+		assertTrue("Task is still suspended", taskAfter.asObjectable().getExecutionStatus() != TaskExecutionStatusType.SUSPENDED);
 	}
 
 	private void assertNoOutputData(ExecutionContext output) {

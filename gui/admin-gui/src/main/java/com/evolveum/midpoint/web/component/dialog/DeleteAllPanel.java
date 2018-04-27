@@ -3,7 +3,6 @@ package com.evolveum.midpoint.web.component.dialog;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -85,7 +84,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
 
     private void initLayout(WebMarkupContainer content){
 
-        CheckBox deleteUsersCheckbox = new CheckBox(ID_CHB_USERS, new PropertyModel<Boolean>(model, DeleteAllDto.F_USERS));
+        CheckBox deleteUsersCheckbox = new CheckBox(ID_CHB_USERS, new PropertyModel<>(model, DeleteAllDto.F_USERS));
         deleteUsersCheckbox.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -95,7 +94,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         });
         content.add(deleteUsersCheckbox);
 
-        CheckBox deleteOrgsCheckbox = new CheckBox(ID_CHB_ORG, new PropertyModel<Boolean>(model, DeleteAllDto.F_ORGS));
+        CheckBox deleteOrgsCheckbox = new CheckBox(ID_CHB_ORG, new PropertyModel<>(model, DeleteAllDto.F_ORGS));
         deleteOrgsCheckbox.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -106,7 +105,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         content.add(deleteOrgsCheckbox);
 
         CheckBox deleteAccountShadowsCheckbox = new CheckBox(ID_CHB_ACCOUNT_SHADOW,
-                new PropertyModel<Boolean>(model, DeleteAllDto.F_ACC_SHADOW));
+            new PropertyModel<>(model, DeleteAllDto.F_ACC_SHADOW));
         deleteAccountShadowsCheckbox.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -117,7 +116,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         content.add(deleteAccountShadowsCheckbox);
 
         CheckBox deleteNonAccountShadowsCheckbox = new CheckBox(ID_CHB_NON_ACCOUNT_SHADOW,
-                new PropertyModel<Boolean>(model, DeleteAllDto.F_NON_ACC_SHADOW));
+            new PropertyModel<>(model, DeleteAllDto.F_NON_ACC_SHADOW));
         deleteNonAccountShadowsCheckbox.add(new OnChangeAjaxBehavior() {
 
             @Override

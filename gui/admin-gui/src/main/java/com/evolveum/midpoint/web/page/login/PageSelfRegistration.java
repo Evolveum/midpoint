@@ -23,10 +23,8 @@ import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -342,8 +339,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					}
 					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 
-					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
-							userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
+					return new DynamicFormPanel<>(ID_DYNAMIC_FORM_PANEL,
+                        userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
 				});
 
 		if (dynamicForm != null) {
@@ -355,7 +352,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
 		// ProtectedStringType initialPassword = null;
 		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-				new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true);
+            new PropertyModel<>(userModel, "credentials.password.value"), false, true);
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		password.getBaseFormComponent().setRequired(true);
 		staticRegistrationForm.add(password);
@@ -688,9 +685,13 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
 			PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(ValuePolicyType.class,
 					noncePolicy.getValuePolicyRef().getOid(), PageSelfRegistration.this, task, result);
+			if (valuePolicy == null) {
+				LOGGER.error("Nonce cannot be generated, as value policy {} cannot be fetched", noncePolicy.getValuePolicyRef().getOid());
+				throw new ObjectNotFoundException("Nonce cannot be generated");         // no more information (security); TODO implement more correctly
+			}
 			policy = valuePolicy.asObjectable();
 		}
-
+		
 		return getModelInteractionService().generateValue(policy,
 				24, false, user, "nonce generation (registration)", task, result);
 	}

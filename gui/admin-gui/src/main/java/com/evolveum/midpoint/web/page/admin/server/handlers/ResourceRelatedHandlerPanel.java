@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -127,13 +126,13 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		add(resourceRefContainer);
 
 		final DropDownChoice<TaskAddResourcesDto> resourceRef = new DropDownChoice<>(ID_RESOURCE_REF,
-				new PropertyModel<TaskAddResourcesDto>(getModel(), ResourceRelatedHandlerDto.F_RESOURCE_REFERENCE),
+            new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_RESOURCE_REFERENCE),
 				new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
 					@Override
 					public List<TaskAddResourcesDto> getObject() {
 						return createResourceList();
 					}
-				}, new ChoiceableChoiceRenderer<TaskAddResourcesDto>());
+				}, new ChoiceableChoiceRenderer<>());
 		resourceRef.setOutputMarkupId(true);
 		resourceRef.add(enabledIfEdit);
 		resourceRef.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -175,8 +174,8 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		add(kindContainer);
 
 		final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
-				new PropertyModel<ShadowKindType>(getModel(), ResourceRelatedHandlerDto.F_KIND),
-				WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
+            new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_KIND),
+				WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<>());
 		kind.setOutputMarkupId(true);
 		kind.setNullValid(true);
 		kindContainer.add(kind);
@@ -197,7 +196,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
 		autoCompleteSettings.setShowListOnEmptyInput(true);
 		final AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_OBJECT_CLASS,
-				new PropertyModel<String>(getModel(), ResourceRelatedHandlerDto.F_OBJECT_CLASS), autoCompleteSettings) {
+            new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_OBJECT_CLASS), autoCompleteSettings) {
 
 			@Override
 			protected Iterator<String> getChoices(String input) {
@@ -225,7 +224,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 			}
 		});
 		optionsContainer.add(dryRunContainer);
-		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
+		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
 		dryRun.add(enabledIfEdit);
 		dryRunContainer.add(dryRun);
 	}

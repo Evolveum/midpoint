@@ -16,26 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Collection;
-import java.util.Objects;
-
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
+
+import javax.persistence.*;
+import java.util.Objects;
 
 /**
  *
@@ -43,19 +35,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
  */
 @Entity
 @ForeignKey(name = "fk_function_library")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_function_library_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_function_library_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iFunctionLibraryNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RFunctionLibrary extends RObject<FunctionLibraryType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Override
@@ -67,22 +68,16 @@ public class RFunctionLibrary extends RObject<FunctionLibraryType> {
         if (!super.equals(o))
             return false;
         RFunctionLibrary rForm = (RFunctionLibrary) o;
-        return Objects.equals(name, rForm.name);
+        return Objects.equals(nameCopy, rForm.nameCopy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name);
+        return Objects.hash(super.hashCode(), nameCopy);
     }
 
     public static void copyFromJAXB(FunctionLibraryType jaxb, RFunctionLibrary repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 	}
-
-    @Override
-    public FunctionLibraryType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        throw new UnsupportedOperationException("Shouldn't be needed anymore.");
-    }
 }

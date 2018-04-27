@@ -18,8 +18,6 @@ package com.evolveum.midpoint.web.util.validation;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.springframework.stereotype.Component;
-
 /**
  * @author semancik
  *

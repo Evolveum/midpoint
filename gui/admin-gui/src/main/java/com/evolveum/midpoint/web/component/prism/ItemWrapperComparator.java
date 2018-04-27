@@ -45,7 +45,7 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializa
         	return 1;
         }
         
-        if (def1 instanceof PrismContainerDefinition) {
+        if (def2 instanceof PrismContainerDefinition) {
         	return 1;
         }
         

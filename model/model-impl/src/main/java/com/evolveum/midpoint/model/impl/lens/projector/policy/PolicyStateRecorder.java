@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -130,7 +129,7 @@ public class PolicyStateRecorder {
 		return cr;
 	}
 
-	private class ComputationResult {
+	private static class ComputationResult {
 		final Set<String> oldPolicySituations = new HashSet<>();
 		final Set<String> newPolicySituations = new HashSet<>();
 		final Set<EvaluatedPolicyRuleType> oldTriggeredRules = new HashSet<>();

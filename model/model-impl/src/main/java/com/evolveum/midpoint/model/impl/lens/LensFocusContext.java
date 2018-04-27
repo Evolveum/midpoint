@@ -25,8 +25,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -152,6 +150,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return secondaryDeltas.get(wave);
     }
 
+    // preliminary implementation - deletes all secondary deltas
+	@Override
+	public void deleteSecondaryDeltas() {
+		secondaryDeltas.deleteDeltas();
+	}
+
 	@Override
 	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
 		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew());
@@ -175,7 +179,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
 
 		if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+            secondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(getOid());
             setProjectionWaveSecondaryDelta(secondaryDelta);
         } else if (secondaryDelta.containsModification(propDelta, true, true)) {
@@ -188,7 +192,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+            secondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(getOid());
             setSecondaryDelta(secondaryDelta, 0);
         } else if (secondaryDelta.containsModification(propDelta, true, true)) {
@@ -319,7 +323,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 			if (itemDelta != null && !itemDelta.isEmpty()) {
 				if (wavePrimaryDelta == null || !wavePrimaryDelta.containsModification(itemDelta)) {
 					if (waveSecondaryDelta == null) {
-						waveSecondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+						waveSecondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
 						if (getObjectNew() != null && getObjectNew().getOid() != null){
 							waveSecondaryDelta.setOid(getObjectNew().getOid());
 						}

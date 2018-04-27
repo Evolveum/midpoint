@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ public enum InternalCounters {
 
 	RESOURCE_SCHEMA_FETCH_COUNT("resourceSchemaFetchCount", "resource schema fetch count", InternalOperationClasses.REPOSITORY_OPERATIONS),
 	
-	RESOURCE_REPOSITORY_READ_COUNT("resourceRepositoryReadCount", "resource repository read count", null),
+	RESOURCE_REPOSITORY_READ_COUNT("resourceRepositoryReadCount", "resource repository read count", InternalOperationClasses.REPOSITORY_OPERATIONS),
+	
+	RESOURCE_REPOSITORY_MODIFY_COUNT("resourceRepositoryModifyCount", "resource repository modify count", InternalOperationClasses.REPOSITORY_OPERATIONS),
 
 	CONNECTOR_INSTANCE_INITIALIZATION_COUNT("connectorInstanceInitializationCount", "connector instance initialization count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
@@ -37,6 +39,8 @@ public enum InternalCounters {
 	SCRIPT_EXECUTION_COUNT("scriptExecutionCount", "script execution count", null),
 
 	CONNECTOR_OPERATION_COUNT("connectorOperationCount", "connector operation count", InternalOperationClasses.CONNECTOR_OPERATIONS),
+	
+	CONNECTOR_MODIFICATION_COUNT("connectorModificationCount", "connector modification count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
 	CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT("connectorSimulatedPagingSearchCount", "connector simulated paging search count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 

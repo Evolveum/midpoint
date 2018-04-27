@@ -57,7 +57,7 @@ public class EntityDefinition extends Definition {
 
     public List<Definition> getDefinitions() {
         if (definitions == null) {
-            definitions = new ArrayList<Definition>();
+            definitions = new ArrayList<>();
         }
 
         return Collections.unmodifiableList(definitions);
@@ -65,7 +65,7 @@ public class EntityDefinition extends Definition {
 
     public void addDefinition(Definition definition) {
         if (definitions == null) {
-            definitions = new ArrayList<Definition>();
+            definitions = new ArrayList<>();
         }
 
         Definition oldDef = findDefinition(definition.getJaxbName(), Definition.class);

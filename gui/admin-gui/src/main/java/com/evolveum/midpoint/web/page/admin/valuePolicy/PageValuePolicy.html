@@ -19,11 +19,17 @@
 <body>
 <wicket:extend>
     <div wicket:id="summaryPanel"/>
-  <wicket:remove>
-  <!--  <form wicket:id="mainForm" class="clearfix form-horizontal">
-        <div wicket:id="basicPanel"/>
-    </form> -->
-  </wicket:remove>
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
+
+        <div class="main-button-bar">
+            <span class="button-group">
+            <a class="btn btn-default" wicket:id="backButton" />
+
+            <a class="btn btn-primary" wicket:id="saveButton"/>
+            </span>
+        </div>
+    </form>
 </wicket:extend>
 </body>
 </html>

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -67,6 +70,8 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
     @Autowired private AccCertGeneralHelper helper;
     @Autowired private PrismContext prismContext;
     @Autowired private AccCertQueryHelper queryHelper;
+    @Autowired private SystemObjectCache objectCache;
+    @Autowired private WorkflowManager workflowManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationClosingTaskHandler.class);
@@ -105,9 +110,11 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 
 		AccessCertificationCampaignType campaign;
 		List<AccessCertificationCaseType> caseList;
+		PrismObject<SystemConfigurationType> systemConfigurationObject;
 		try {
 			campaign = helper.getCampaign(campaignOid, null, task, opResult);
 			caseList = queryHelper.searchCases(campaignOid, null, null, opResult);
+			systemConfigurationObject = objectCache.getSystemConfiguration(opResult);
 		} catch (ObjectNotFoundException|SchemaException e) {
 			opResult.computeStatus();
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
@@ -115,7 +122,11 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 			return runResult;
 		}
 
-		RunContext runContext = new RunContext(task);
+		PerformerCommentsFormattingType formatting = systemConfigurationObject != null &&
+				systemConfigurationObject.asObjectable().getAccessCertification() != null ?
+				systemConfigurationObject.asObjectable().getAccessCertification().getReviewerCommentsFormatting() : null;
+		PerformerCommentsFormatter commentsFormatter = workflowManager.createPerformerCommentsFormatter(formatting);
+		RunContext runContext = new RunContext(task, commentsFormatter);
 		caseList.forEach(aCase -> prepareMetadataDeltas(aCase, campaign, runContext, opResult));
 		runContext.objectContextMap.forEach((oid, ctx) -> applyMetadataDeltas(ctx, runContext, opResult));
 
@@ -193,14 +204,15 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		}
 
 		try {
-			objectCtx.modifications.addAll(createMetadataDeltas(aCase, campaign, objectCtx.object.getClass(), pathPrefix));
+			objectCtx.modifications.addAll(createMetadataDeltas(aCase, campaign, objectCtx.object.getClass(), pathPrefix, runContext, result));
 		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create certification metadata for {} {}", e, toShortString(objectCtx.object));
 		}
 	}
 
-	private List<ItemDelta<?, ?>> createMetadataDeltas(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
-			Class<? extends ObjectType> objectClass, ItemPath pathPrefix) throws SchemaException {
+	private List<ItemDelta<?, ?>> createMetadataDeltas(AccessCertificationCaseType aCase,
+			AccessCertificationCampaignType campaign, Class<? extends ObjectType> objectClass, ItemPath pathPrefix,
+			RunContext runContext, OperationResult result) throws SchemaException {
 		String outcome = aCase.getOutcome();
 		if (OutcomeUtils.isNoneOrNotDecided(outcome)) {
 			return emptyList();
@@ -215,8 +227,9 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 			boolean commentNotEmpty = StringUtils.isNotEmpty(output.getComment());
 			if (commentNotEmpty || !OutcomeUtils.isNoneOrNotDecided(output.getOutcome())) {
 				certifiers.add(workItem.getPerformerRef().clone());
-				if (commentNotEmpty) {
-					comments.add(output.getComment());
+				String formattedComment = runContext.commentsFormatter.formatComment(workItem, runContext.task, result);
+				if (StringUtils.isNotEmpty(formattedComment)) {
+					comments.add(formattedComment);
 				}
 			}
 		}
@@ -243,11 +256,6 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         return TaskCategory.ACCESS_CERTIFICATION;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
-
     public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.debug("Launching closing task handler for campaign {} as asynchronous task", toShortString(campaign));
@@ -269,7 +277,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         LOGGER.trace("Closing task for {} switched to background, control thread returning with task {}", toShortString(campaign), task);
     }
 
-    private class ObjectContext {
+    private static class ObjectContext {
 		@NotNull final ObjectType object;
 	    @NotNull final List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
@@ -278,12 +286,14 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 	    }
     }
 
-    private class RunContext {
+    private static class RunContext {
 		final Task task;
 	    final Map<String, ObjectContext> objectContextMap = new HashMap<>();
+	    final PerformerCommentsFormatter commentsFormatter;
 
-	    RunContext(Task task) {
+	    RunContext(Task task, PerformerCommentsFormatter commentsFormatter) {
 		    this.task = task;
+		    this.commentsFormatter = commentsFormatter;
 	    }
     }
 }

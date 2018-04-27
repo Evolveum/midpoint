@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
@@ -240,8 +241,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return asynchronousOperationReference;
 	}
 
-	public void setAsynchronousOperationReference(String asyncronousOperationReference) {
-		this.asynchronousOperationReference = asyncronousOperationReference;
+	public void setAsynchronousOperationReference(String asynchronousOperationReference) {
+		this.asynchronousOperationReference = asynchronousOperationReference;
 	}
 
 	/**
@@ -344,6 +345,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 *
 	 * @return never returns null
 	 */
+	@NotNull
 	public List<OperationResult> getSubresults() {
 		if (subresults == null) {
 			subresults = new ArrayList<>();
@@ -1474,6 +1476,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return similar;
 	}
 
+	// experimental/temporary
+	public void cleanupResultDeeply() {
+		cleanupResult();
+		emptyIfNull(subresults).forEach(OperationResult::cleanupResultDeeply);
+	}
+
 	/**
 	 * Removes all the successful minor results. Also checks if the result is roughly consistent
 	 * and complete. (e.g. does not have unknown operation status, etc.)
@@ -1552,7 +1560,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		if (asynchronousOperationReference != null) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "asyncronousOperationReference", asynchronousOperationReference, indent + 2);
+			DebugUtil.debugDumpWithLabel(sb, "asynchronousOperationReference", asynchronousOperationReference, indent + 2);
 		}
 		sb.append("\n");
 

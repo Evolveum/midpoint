@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.valuePolicy;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -46,17 +47,17 @@ import java.util.List;
  */
 
 @PageDescriptor(
-       urls = {
-               @Url(mountUrl = "/admin/valuepolicies", matchUrlForSecurity = "/admin/valuepolicies" )
-       },
+        urls = {
+                @Url(mountUrl = "/admin/valuepolicies", matchUrlForSecurity = "/admin/valuepolicies" )
+        },
         action = {
-        @AuthorizationAction(actionUri = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL,
-                label = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_LABEL,
-                description = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
-                label = "PageValuePolicies.auth.valuePolicies.label",
-                description = "PageValuePolicies.auth.valuePolicies.description")
-})
+                @AuthorizationAction(actionUri = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL,
+                        label = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_LABEL,
+                        description = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
+                        label = "PageValuePolicies.auth.valuePolicies.label",
+                        description = "PageValuePolicies.auth.valuePolicies.description")
+        })
 
 public class PageValuePolicies extends PageAdminValuePolicies {
 
@@ -84,7 +85,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
 
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target) {
-                navigateToNext(PageValuePolicies.class);
+                navigateToNext(PageValuePolicy.class);
             }
 
             @Override
@@ -101,6 +102,13 @@ public class PageValuePolicies extends PageAdminValuePolicies {
             protected IColumn<SelectableBean<ValuePolicyType>, String> createActionsColumn() {
                 return PageValuePolicies.this.createActionsColumn();
             }
+
+            @Override
+            protected PrismObject<ValuePolicyType> getNewObjectListObject() {
+                return (new ValuePolicyType()).asPrismObject();
+            }
+
+
         };
         valuePolicyPanel.setOutputMarkupId(true);
         mainForm.add(valuePolicyPanel);
@@ -110,11 +118,11 @@ public class PageValuePolicies extends PageAdminValuePolicies {
     private void valuePolicyDetailsPerformed(AjaxRequestTarget target, ValuePolicyType valuePolicy) {
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, valuePolicy.getOid());
-        navigateToNext(PageValuePolicies.class, pageParameters);
+        navigateToNext(PageValuePolicy.class, pageParameters);
     }
 
     private List<IColumn<SelectableBean<ValuePolicyType>, String>> initColumns() {
-        List<IColumn<SelectableBean<ValuePolicyType>, String>> columns = new ArrayList<IColumn<SelectableBean<ValuePolicyType>, String>>();
+        List<IColumn<SelectableBean<ValuePolicyType>, String>> columns = new ArrayList<>();
 
         IColumn column = new PropertyColumn(createStringResource("pageValuePolicies.table.description"), "value.description");
         columns.add(column);
@@ -140,7 +148,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
     private List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> menu = new ArrayList<>();
         menu.add(new InlineMenuItem(createStringResource("pageValuePolicies.button.delete"),
-                new Model<Boolean>(true), new Model<Boolean>(true), false,
+            new Model<>(true), new Model<>(true), false,
                 new ColumnMenuAction<SelectableBean<ReportType>>() {
 
                     @Override

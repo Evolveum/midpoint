@@ -16,17 +16,15 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -34,7 +32,6 @@ import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,11 +40,15 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_object_template")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_object_template_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_object_template_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iObjectTemplateNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private RObjectTemplateType type;
     private Set<RObjectReference<RObjectTemplate>> includeRef;
 
@@ -71,17 +72,22 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         this.type = type;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setIncludeRef(Set<RObjectReference<RObjectTemplate>> includeRef) {
         this.includeRef = includeRef;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     @Override
@@ -92,7 +98,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
         RObjectTemplate that = (RObjectTemplate) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null)
             return false;
         if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
@@ -105,7 +111,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
@@ -115,19 +121,9 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
                 jaxb.getIncludeRef(), repositoryContext.prismContext, repo, RReferenceOwner.INCLUDE));
-    }
-
-    @Override
-    public ObjectTemplateType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        ObjectTemplateType object = new ObjectTemplateType();
-        RUtil.revive(object, prismContext);
-        RObjectTemplate.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

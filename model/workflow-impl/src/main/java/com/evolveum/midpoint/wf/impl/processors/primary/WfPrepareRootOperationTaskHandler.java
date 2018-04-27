@@ -153,6 +153,9 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
             if (changed) {
+            	if (rootContext != null) {  // deltas should be deleted before; so this is redundant
+            		rootContext.deleteSecondaryDeltas();
+	            }
                 rootWfTask.storeModelContext(rootContext, true);
                 rootWfTask.commitChanges(result);
             }
@@ -184,11 +187,6 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.WORKFLOW;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
     //endregion
 

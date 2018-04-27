@@ -62,18 +62,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
-	@Autowired(required = true)
-	private transient ProvisioningService provisioning;
+	@Autowired private transient ProvisioningService provisioning;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired(required = true)
-	private transient PrismContext prismContext;
+	@Autowired private transient PrismContext prismContext;
 
-    @Autowired
-    private transient TaskManager taskManager;
+    @Autowired private transient TaskManager taskManager;
 
 	@Autowired(required = false)
 	private transient WorkflowManager workflowManager;
@@ -194,7 +191,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (RuntimeException | Error ex) {
-			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
+			LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
 					oid, clazz);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		} finally {
@@ -247,7 +244,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			return null;
 		}
 		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
-		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+		List<PrismObject<OrgType>> orgs = new ArrayList<>();
 		PrismObject<R> resultObject = null;
 
 		for (PrismReferenceValue orgRefValue : orgRefValues) {
@@ -309,7 +306,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			return null;
 		}
 		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
-		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+		List<PrismObject<OrgType>> orgs = new ArrayList<>();
 
 		for (PrismReferenceValue orgRefValue : orgRefValues) {
 			if (orgRefValue != null) {

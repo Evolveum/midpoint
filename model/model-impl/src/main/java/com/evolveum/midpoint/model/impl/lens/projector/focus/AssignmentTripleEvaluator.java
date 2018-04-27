@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentCollection;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentElement;
@@ -396,16 +396,25 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	            } else {
 	                // No change in assignment
 	            	if (LOGGER.isTraceEnabled()) {
-	            		LOGGER.trace("Processing unchanged assignment {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
+	            		LOGGER.trace("Processing unchanged assignment ({}) {}",
+	            				presentInCurrent ? "present" : "not present",
+	            				SchemaDebugUtil.prettyPrint(assignmentCVal));
 	            	}
 	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                if (evaluatedAssignment == null) {
 	                	return;
 	                }
+	                // NOTE: unchanged may mean both:
+	                //   * was there before, is there now
+	                //   * was not there before, is not there now
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
 					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+					if (presentInCurrent) {
+						collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+					} else {
+						collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+					}
 	            }
         	}
         }
@@ -526,14 +535,14 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         		result.recordHandledError(ex);
         		return null;
         	}
-        	ModelUtils.recordFatalError(result, ex);
+        	ModelImplUtils.recordFatalError(result, ex);
         	return null;
         } catch (SchemaException ex) {
         	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
             }
-        	ModelUtils.recordFatalError(result, ex);
+        	ModelImplUtils.recordFatalError(result, ex);
         	String resourceOid = FocusTypeUtil.determineConstructionResource(assignmentType);
         	if (resourceOid == null) {
         		// This is a role assignment or something like that. Just throw the original exception for now.

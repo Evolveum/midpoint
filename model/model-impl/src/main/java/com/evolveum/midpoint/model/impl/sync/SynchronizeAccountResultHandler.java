@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -170,8 +169,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			// We should provide shadow in the state before the change. But we are
 			// pretending that it has
 			// not existed before, so we will not provide it.
-			ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<ShadowType>(
-					ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
+			ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<>(
+                ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
 			//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
 			PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
 			shadowDelta.setObjectToAdd(shadowToAdd);

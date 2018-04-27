@@ -23,7 +23,10 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Single assignment in an assignment path. In addition to the AssignmentType, it contains resolved target:
@@ -77,4 +80,13 @@ public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable {
 
 	@NotNull
 	AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent);
+
+	/**
+	 * Returns true if the path segment matches specified order constraints. All of them must match.
+	 * Although there are some defaults, it is recommended to specify constraints explicitly.
+	 */
+	boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+
+	// Preliminary limited implementation. Use with care.
+	boolean equivalent(AssignmentPathSegment otherSegment);
 }

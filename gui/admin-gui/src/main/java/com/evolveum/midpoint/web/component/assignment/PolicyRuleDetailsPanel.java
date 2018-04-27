@@ -26,6 +26,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
+import org.apache.wicket.model.Model;
 
 /**
  * Created by honchar.
@@ -36,27 +37,6 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
     public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model){
         super(id, form, model);
     }
-
-	protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
-		ContainerWrapperFromObjectWrapperModel<PolicyRuleType, F> policyRuleModel =
-				new ContainerWrapperFromObjectWrapperModel<PolicyRuleType, F>(pageBase.getObjectModel(),
-						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));
-
-		ContainerWrapper<PolicyRuleType> policyRules = policyRuleModel.getObject();
-		if (policyRules.getValues() != null){
-			policyRules.getValues().forEach(policyRuleContainerValueWrapper -> {
-				policyRuleContainerValueWrapper.setShowEmpty(true, false);
-			});
-		}
-		policyRules.setShowEmpty(true, false);
-		setRemoveContainerButtonVisibility(policyRules);
-		setAddContainerButtonVisibility(policyRules);
-
-		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS, policyRuleModel,
-				false, form, null, pageBase);
-		constraintsContainerPanel.setOutputMarkupId(true);
-		add(constraintsContainerPanel);
-	}
 
 	private void setRemoveContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
 		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
@@ -79,11 +59,15 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 	}
 
 	@Override
-	protected List<ItemPath> collectContainersToShow() {
-		List<ItemPath> containersToShow = new ArrayList<>();
-		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_RULE));
-		
-		return containersToShow;
+	protected IModel<ContainerWrapper> getSpecificContainerModel() {
+		ContainerWrapper<PolicyRuleType> policyRuleWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(), AssignmentType.F_POLICY_RULE));
+		if (policyRuleWrapper != null && policyRuleWrapper.getValues() != null) {
+			policyRuleWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
+		}
+		setRemoveContainerButtonVisibility(policyRuleWrapper);
+		setAddContainerButtonVisibility(policyRuleWrapper);
+
+		return Model.of(policyRuleWrapper);
 	}
 
 }

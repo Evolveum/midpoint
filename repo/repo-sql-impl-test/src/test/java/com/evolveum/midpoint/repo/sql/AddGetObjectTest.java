@@ -22,8 +22,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
@@ -127,12 +127,24 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void simpleAddGetTest() throws Exception {
         LOGGER.info("===[ simpleAddGetTest ]===");
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
-        addGetCompare(OBJECTS_FILE);
+        List<PrismObject<?>> objects = addGetCompare(OBJECTS_FILE);
+
+        boolean foundAtestuserX00003 = false;
+        for (PrismObject<?> object : objects) {
+            // adhoc check whether reference.targetName is preserved
+            if ("atestuserX00003".equals(PolyString.getOrig(object.getName()))) {
+                String personaName = PolyString.getOrig(((UserType) object.asObjectable()).getPersonaRef().get(0).getTargetName());
+                assertEquals("Wrong personaRef.targetName on atestuserX00003", null, personaName);
+                foundAtestuserX00003 = true;
+                break;
+            }
+        }
+        assertTrue("User atestuserX00003 was not found", foundAtestuserX00003);
     }
 
-    private void addGetCompare(File file) throws Exception {
+    private List<PrismObject<?>> addGetCompare(File file) throws Exception {
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
-        List<String> oids = new ArrayList<String>();
+        List<String> oids = new ArrayList<>();
 
         OperationResult result = new OperationResult("Simple Add Get Test");
         long time = System.currentTimeMillis();
@@ -142,9 +154,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     object.getCompileTimeClass().getSimpleName()});
             oids.add(repositoryService.addObject(object, null, result));
         }
-        LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(),
-                (System.currentTimeMillis() - time),});
+        LOGGER.info("Time to add objects ({}): {}", elements.size(), System.currentTimeMillis() - time);
 
+        List<PrismObject<?>> objectsRead = new ArrayList<>();
         int count = 0;
         elements = prismContext.parserFor(file).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
@@ -172,10 +184,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
                 System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
 
+                objectsRead.add(newObject);
                 ObjectDelta delta = object.diff(newObject);
-                if (delta == null) {
-                    continue;
-                }
 
                 count += delta.getModifications().size();
                 if (delta.getModifications().size() > 0) {
@@ -187,21 +197,21 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                             continue;
                         }
                     }
-                    LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1),
-                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
+                    LOGGER.error(">>> {} Found {} changes for {}\n{}", (i + 1),
+                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3));
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
                     if (id.isReplace()) {
                         LOGGER.debug("{}", id.getValuesToReplace().iterator().next());
                     }
-                    LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
+                    LOGGER.error("{}", prismContext.serializerFor(PrismContext.LANG_XML).serialize(newObject));
                 }
             } catch (Throwable ex) {
                 LOGGER.error("Exception occurred for {}", object, ex);
                 throw new RuntimeException("Exception during processing of "+object+": "+ex.getMessage(), ex);
             }
         }
-
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
+        return objectsRead;
     }
 
     private Integer size(PrismContainerValue value) {
@@ -216,7 +226,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         LOGGER.info("Checking: " + parentName);
         AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id="+newValue.getId(), size(oldValue), size(newValue));
 
-        List<QName> checked = new ArrayList<QName>();
+        List<QName> checked = new ArrayList<>();
 
         for (Item item : (List<Item>) newValue.getItems()) {
             if (!(item instanceof PrismContainer)) {
@@ -252,7 +262,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         	// Comparison item-by-item is not reliable
         	return;
         }
-        List<Long> checked = new ArrayList<Long>();
+        List<Long> checked = new ArrayList<>();
         List<PrismContainerValue> newValues = newContainer.getValues();
         for (PrismContainerValue value : newValues) {
             PrismContainerValue oldValue = oldContainer.getValue(value.getId());
@@ -360,7 +370,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
                 SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
                 PrismReferenceValue.createFromTarget(repoPasswordPolicy));
-        List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+        List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
         repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
@@ -496,7 +506,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void test() throws Exception {
         OperationResult result = new OperationResult("asdf");
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
         ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
 
             @Override
@@ -566,8 +576,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            Query query = session.createSQLQuery("select id from m_assignment where owner_oid=:oid");
-            query.setString("oid", OID);
+            Query query = session.createNativeQuery("select id from m_assignment where owner_oid=:oid");
+            query.setParameter("oid", OID);
             List<Short> dbShorts = new ArrayList<>();
             for (Number n : (List<Number>) query.list()) {
                 dbShorts.add(n.shortValue());

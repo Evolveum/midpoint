@@ -66,8 +66,8 @@ public class Log {
         ple.setContext(lc);
         ple.start();
 
-        ConsoleAppender out = setupAppender("System.out", lc, ple);
-        ConsoleAppender err = setupAppender("System.err", lc, ple);
+        ConsoleAppender out = setupAppender("STDOUT","System.out", lc, setupEncoder(lc));
+        ConsoleAppender err = setupAppender("STDERR","System.err", lc, setupEncoder(lc));
 
         Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         if (LogTarget.SYSTEM_OUT.equals(target)) {
@@ -99,8 +99,24 @@ public class Log {
         return logger;
     }
 
-    private ConsoleAppender setupAppender(String target, LoggerContext ctx, Encoder enc) {
+    private Encoder setupEncoder(LoggerContext ctx) {
+        PatternLayoutEncoder ple = new PatternLayoutEncoder();
+
+        if (opts.isVerbose()) {
+            ple.setPattern("%date [%thread] %-5level \\(%logger{46}\\): %message%n");
+        } else {
+            ple.setPattern("%msg%n");
+        }
+
+        ple.setContext(ctx);
+        ple.start();
+
+        return ple;
+    }
+
+    private ConsoleAppender setupAppender(String name, String target, LoggerContext ctx, Encoder enc) {
         ConsoleAppender appender = new ConsoleAppender();
+        appender.setName(name);
         appender.setTarget(target);
         appender.setContext(ctx);
         appender.setEncoder(enc);

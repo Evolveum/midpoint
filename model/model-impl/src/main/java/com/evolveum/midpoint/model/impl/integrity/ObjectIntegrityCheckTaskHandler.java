@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Task handler for "Object integrity check" task.
@@ -48,7 +47,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeTaskHandler<ObjectType, ObjectIntegrityCheckResultHandler> {
+public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ObjectIntegrityCheckResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
@@ -79,12 +78,6 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
                 repositoryService, systemObjectCache, opResult);
 	}
 
-	@Override
-	protected boolean initializeRun(ObjectIntegrityCheckResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
         return ObjectType.class;
@@ -98,9 +91,12 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
 	}
 
 	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(ObjectIntegrityCheckResultHandler resultHandler,
+	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
+			ObjectIntegrityCheckResultHandler resultHandler,
 			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-		return SelectorOptions.createCollection(GetOperationOptions.createAttachDiagData());
+		Collection<SelectorOptions<GetOperationOptions>> optionsFromTask = createSearchOptionsFromTask(resultHandler,
+				runResult, coordinatorTask, opResult);
+		return SelectorOptions.updateRootOptions(optionsFromTask, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
 	}
 
 	@Override
@@ -111,10 +107,5 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

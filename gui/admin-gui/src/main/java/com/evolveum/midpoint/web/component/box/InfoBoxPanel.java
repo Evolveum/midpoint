@@ -89,7 +89,7 @@ public class InfoBoxPanel extends Panel{
 				return model.getObject().getProgress() != null;
 			}
         });
-        ProgressbarPanel progressBar = new ProgressbarPanel(ID_PROGRESS_BAR, new PropertyModel<Integer>(model, InfoBoxType.PROGRESS));
+        ProgressbarPanel progressBar = new ProgressbarPanel(ID_PROGRESS_BAR, new PropertyModel<>(model, InfoBoxType.PROGRESS));
         progress.add(progressBar);
 
         Label description = new Label(ID_DESCRIPTION, new PropertyModel<String>(model, InfoBoxType.DESCRIPTION));

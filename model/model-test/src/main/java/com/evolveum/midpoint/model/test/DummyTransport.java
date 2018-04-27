@@ -37,8 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author mederly
@@ -73,7 +71,7 @@ public class DummyTransport implements Transport, DebugDumpable {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
 
         if (!messages.containsKey(name)) {
-            messages.put(name, new ArrayList<Message>());
+            messages.put(name, new ArrayList<>());
         }
         messages.get(name).add(message);
 

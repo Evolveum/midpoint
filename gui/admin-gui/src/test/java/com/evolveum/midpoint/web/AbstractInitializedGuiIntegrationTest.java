@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web;
 
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import org.testng.annotations.Test;
@@ -26,12 +26,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
-import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -73,10 +71,9 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
 
-		importObjectFromFile(ROLE_MAPMAKER_FILE);
+		importObjectFromFile(ROLE_MAPMAKER_FILE);	
 		
-		MidPointApplication application = new MidPointApplication();
-		new DescriptorLoader().loadData(application);
+		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
 	}
 
 	@Test

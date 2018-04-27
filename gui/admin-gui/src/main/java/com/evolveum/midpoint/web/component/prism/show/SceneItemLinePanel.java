@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -91,7 +90,7 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 			sivp = new Label(ID_OLD_VALUE, createStringResource("SceneItemLinePanel.unknownLabel"));
 		} else {
 			sivp = new SceneItemValuePanel(ID_OLD_VALUE,
-					new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_OLD_VALUE));
+                new PropertyModel<>(getModel(), SceneItemLineDto.F_OLD_VALUE));
 		}
 		sivp.setRenderBodyOnly(true);
 		oldValueCell.add(sivp);
@@ -139,7 +138,7 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
 		WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
 		sivp = new SceneItemValuePanel(ID_NEW_VALUE,
-				new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_NEW_VALUE));
+            new PropertyModel<>(getModel(), SceneItemLineDto.F_NEW_VALUE));
 		sivp.setRenderBodyOnly(true);
 		newValueCell.add(sivp);
 		newValueCell.add(new AttributeModifier("colspan", new AbstractReadOnlyModel<Integer>() {

@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import com.evolveum.midpoint.repo.sql.util.EntityState;
+
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public interface RAnyValue<T> extends Serializable {
+public interface RAnyValue<T> extends Serializable, EntityState {
 
     String F_VALUE = "value";
 
@@ -29,21 +31,15 @@ public interface RAnyValue<T> extends Serializable {
 
     String F_TYPE = "type";
 
+    String F_ITEM = "item";
+
     String getName();
 
     String getType();
 
-    RValueType getValueType();
-
-    boolean isDynamic();
-
     T getValue();
 
-    void setName(String name);
+    RExtItem getItem();
 
-    void setType(String type);
-
-    void setValueType(RValueType valueType);
-
-    void setDynamic(boolean dynamic);
+    void setItem(RExtItem item);
 }

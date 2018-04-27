@@ -21,6 +21,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -29,16 +31,14 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -46,21 +46,18 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -90,23 +87,26 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private final static String ID_TARGET_SEARCH_VALUE_INPUT = "targetSearchValueInput";
 
     ConstructionType construction;
+    PageBase pageBase;
 
-    public ExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction){
+    public ExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction, PageBase pageBase){
         super(id, model);
         this.construction = construction;
-    }
-
-    @Override
-    protected void onInitialize(){
-        super.onInitialize();
+        this.pageBase = pageBase;
         initLayout();
     }
+
+//    @Override
+//    protected void onInitialize(){
+//        super.onInitialize();
+//        initLayout();
+//    }
 
     private void initLayout(){
         setOutputMarkupId(true);
 
         DropdownButtonDto addValueButtonDto = new DropdownButtonDto("", "",
-                getPageBase().createStringResource("ExpressionValuePanel.specifyExpression").getString(),
+                createStringResource("ExpressionValuePanel.specifyExpression").getString(),
                 createAddButtonInlineMenuItems());
 
         DropdownButtonPanel addValueButtonPanel = new DropdownButtonPanel(ID_ADD_EXPRESSION_VALUE_BUTTON, addValueButtonDto){
@@ -128,7 +128,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 MapXNode associationTargetSearchNode = ExpressionUtil.getAssociationTargetSearchFilterValuesMap(getModelObject());
                 boolean isAssociationTargetSearchNull = associationTargetSearchNode == null || associationTargetSearchNode.isEmpty();
 
-                boolean isLiteralValueNull = getLiteralValue() == null;
+                List<String> literalValues = getLiteralValues();
+                boolean isLiteralValueNull = literalValues == null || literalValues.isEmpty();
                 return isShadowRefValueNull && isAssociationTargetSearchNull &&  isLiteralValueNull;
 
             }
@@ -148,22 +149,50 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public boolean isVisible(){
-                return getLiteralValue() != null;
+                List<String> literalValues = getLiteralValues();
+                return literalValues != null && !literalValues.isEmpty();
+
             }
         });
         add(literalValueContainer);
 
-        TextPanel<String> literalValueInput = new TextPanel<String>(ID_LITERAL_VALUE_INPUT, Model.of(getLiteralValue()));
-        literalValueInput.setOutputMarkupId(true);
-        literalValueInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
+        MultiValueTextPanel<String> literalValueInput = new MultiValueTextPanel<String>(ID_LITERAL_VALUE_INPUT,
+                new IModel<List<String>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public List<String> getObject() {
+                        return getLiteralValues();
+                    }
+
+                    @Override
+                    public void setObject(List<String> strings) {
+                        ExpressionUtil.updateLiteralExpressionValue(getModelObject(), strings, pageBase.getPrismContext());
+                    }
+
+                    @Override
+                    public void detach() {
+
+                    }
+                },
+                new NonEmptyLoadableModel<Boolean>(false) {
+                    @NotNull
+                    @Override
+                    protected Boolean load() {
+                        return false;
+                    }
+                },
+                false){
+
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdate(AjaxRequestTarget target){
-                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), literalValueInput.getBaseFormComponent().getValue(),
-                        getPageBase().getPrismContext());
+            protected void modelObjectUpdatePerformed(AjaxRequestTarget target, List<String> modelObject) {
+                ExpressionUtil.updateLiteralExpressionValue(ExpressionValuePanel.this.getModelObject(),
+                        modelObject, pageBase.getPrismContext());
             }
-        });
+        };
+        literalValueInput.setOutputMarkupId(true);
         literalValueContainer.add(literalValueInput);
 
         AjaxLink removeButton = new AjaxLink(ID_DELETE_LITERAL_VALUE_BUTTON) {
@@ -200,7 +229,12 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             @Override
             protected void executeCustomAction(AjaxRequestTarget target, ShadowType object) {
                 ExpressionUtil.createShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), object == null ? null : object.getOid(),
-                        getPageBase().getPrismContext());
+                        pageBase.getPrismContext());
+            }
+
+            @Override
+            protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
             }
 
             @Override
@@ -219,10 +253,13 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 try {
                     RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
                     RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+                    if (oc == null){
+                        return new ObjectQuery();
+                    }
                     Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 
                     for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
-                        S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, getPageBase().getPrismContext());
+                        S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
                         List<ObjectFilter> orFilterClauses = new ArrayList<>();
                         refinedAssociationDefinition.getIntents()
                                 .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
@@ -234,7 +271,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                         query.setFilter(filter);
                     }
                 } catch (SchemaException ex) {
-                    LOGGER.error("Couldn't create query filter for ShadowType popup list" , ex.getErrorTypeMessage());
+                    LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
                 }
                 return query;
             }
@@ -283,7 +320,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         };
         targetSearchContainer.add(removeButton);
 
-        TextPanel<String> targetSearchFilterPathInput = new TextPanel<String>(ID_TARGET_SEARCH_PATH_INPUT, Model.of(ExpressionUtil.getTargetSearchExpPathValue(getModelObject())));
+        TextPanel<String> targetSearchFilterPathInput = new TextPanel<>(ID_TARGET_SEARCH_PATH_INPUT, Model.of(ExpressionUtil.getTargetSearchExpPathValue(getModelObject())));
         targetSearchFilterPathInput.setOutputMarkupId(true);
         targetSearchFilterPathInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             private static final long serialVersionUID = 1L;
@@ -297,15 +334,15 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 try {
                     ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue));
                 } catch (Exception ex){
-                    getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
+                    pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
                             ex.getLocalizedMessage(), 0));
-                    target.add(getPageBase().getFeedbackPanel());
+                    target.add(pageBase.getFeedbackPanel());
                 }
             }
         });
         targetSearchContainer.add(targetSearchFilterPathInput);
 
-        TextPanel<String> targetSearchFilterValueInput = new TextPanel<String>(ID_TARGET_SEARCH_VALUE_INPUT, Model.of(ExpressionUtil.getTargetSearchExpValue(getModelObject())));
+        TextPanel<String> targetSearchFilterValueInput = new TextPanel<>(ID_TARGET_SEARCH_VALUE_INPUT, Model.of(ExpressionUtil.getTargetSearchExpValue(getModelObject())));
         targetSearchFilterValueInput.setOutputMarkupId(true);
         targetSearchFilterValueInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             private static final long serialVersionUID = 1L;
@@ -318,10 +355,10 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     getModel().setObject(new ExpressionType());
                 }
                 try {
-                    ExpressionUtil.updateAssociationTargetSearchValue(getModelObject(), path, value, getPageBase().getPrismContext());
+                    ExpressionUtil.updateAssociationTargetSearchValue(getModelObject(), path, value, pageBase.getPrismContext());
                 } catch (SchemaException ex){
-                    getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this, ex.getErrorTypeMessage(), 0));
-                    target.add(getPageBase().getFeedbackPanel());
+                    pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this, ex.getErrorTypeMessage(), 0));
+                    target.add(pageBase.getFeedbackPanel());
                 }
             }
         });
@@ -334,14 +371,14 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         if (shadowRef == null || shadowRef.getOid() == null){
             return null;
         }
-        PolyStringType shadowName = new PolyStringType(WebModelServiceUtils.resolveReferenceName(shadowRef, getPageBase()));
+        PolyStringType shadowName = new PolyStringType(WebModelServiceUtils.resolveReferenceName(shadowRef, pageBase));
         shadowRef.setTargetName(shadowName);
         return shadowRef;
     }
 
        private List<InlineMenuItem> createAddButtonInlineMenuItems(){
         List<InlineMenuItem> menuList = new ArrayList<>();
-        menuList.add(new InlineMenuItem(getPageBase().createStringResource("ExpressionValuePanel.addValueButtonDefaultTitle"),
+        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonDefaultTitle"),
                 new InlineMenuItemAction(){
                     private static final long serialVersionUID = 1L;
 
@@ -350,11 +387,11 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 if (getModelObject() == null){
                     getModel().setObject(new ExpressionType());
                 }
-                ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), null, getPageBase().getPrismContext());
+                ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), null, pageBase.getPrismContext());
                 target.add(ExpressionValuePanel.this);
             }
                 }));
-        menuList.add(new InlineMenuItem(getPageBase().createStringResource("ExpressionValuePanel.addValueButtonTargetSearchTitle"),
+        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonTargetSearchTitle"),
                 new InlineMenuItemAction(){
                     private static final long serialVersionUID = 1L;
 
@@ -369,7 +406,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             }
                 }));
-        menuList.add(new InlineMenuItem(getPageBase().createStringResource("ExpressionValuePanel.addLiteralValueButton"),
+        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addLiteralValueButton"),
                 new InlineMenuItemAction(){
                     private static final long serialVersionUID = 1L;
 
@@ -378,7 +415,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 if (getModelObject() == null){
                     getModel().setObject(new ExpressionType());
                 }
-                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), "", getPageBase().getPrismContext());
+                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), Arrays.asList(""), pageBase.getPrismContext());
                 target.add(ExpressionValuePanel.this);
 
             }
@@ -393,17 +430,17 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         }
         ObjectReferenceType resourceRef = construction.getResourceRef();
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE);
-        return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, getPageBase(), task, result);
+        Task task = pageBase.createSimpleTask(OPERATION_LOAD_RESOURCE);
+        return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
     }
 
-    private String getLiteralValue(){
-        String literalValue = null;
+    private List<String> getLiteralValues(){
+        List<String> literalValueList = new ArrayList<>();
         try{
-            return ExpressionUtil.getLiteralExpressionValue(getModelObject());
+            return ExpressionUtil.getLiteralExpressionValues(getModelObject());
         } catch (SchemaException ex){
-            LOGGER.error("Couldn't get literal expression value, ", ex.getLocalizedMessage());
+            LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
         }
-        return literalValue;
+        return literalValueList;
     }
 }

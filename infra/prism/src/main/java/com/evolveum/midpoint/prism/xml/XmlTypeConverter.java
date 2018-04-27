@@ -377,7 +377,7 @@ public class XmlTypeConverter {
         if (type.equals(Object.class)) {
             if (DOMUtil.hasXsiType(valueElement)) {
                 Object scalarValue = convertValueElementAsScalar(valueElement, DOMUtil.resolveXsiType(valueElement));
-                List<Object> list = new ArrayList<Object>(1);
+                List<Object> list = new ArrayList<>(1);
                 list.add(scalarValue);
                 return (List<T>) list;
             }
@@ -395,7 +395,7 @@ public class XmlTypeConverter {
         // no XML elements = single (primitive) value
         // XML elements = multi value
 
-        List<T> values = new ArrayList<T>();
+        List<T> values = new ArrayList<>();
         if (valueNodes == null) {
             return values;
         }
@@ -651,5 +651,10 @@ public class XmlTypeConverter {
 
 	public static boolean isBeforeNow(XMLGregorianCalendar time) {
 		return toMillis(time) < System.currentTimeMillis();
+	}
+	
+	public static boolean isAfterInterval(XMLGregorianCalendar reference, Duration interval, XMLGregorianCalendar now) {
+		XMLGregorianCalendar endOfInterval = addDuration(reference, interval);
+		return endOfInterval.compare(now) == DatatypeConstants.LESSER;
 	}
 }

@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressio
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -137,9 +138,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 				    }
 				    JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
 				    try {
-					    outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression(
+					    PipelineData expressionResult = scriptingExpressionEvaluator.evaluateExpression(
 							    (ScriptingExpressionType) childExpression.getValue(),
-							    PipelineData.create(object.getValue(), item.getVariables()), context, globalResult));
+							    PipelineData.create(object.getValue(), item.getVariables()), context, globalResult);
+					    if (!BooleanUtils.isFalse(searchExpression.isAggregateOutput())) {
+						    outputData.addAllFrom(expressionResult);
+					    }
 					    globalResult.setSummarizeSuccesses(true);
 					    globalResult.summarize();
 				    } catch (ScriptExecutionException e) {

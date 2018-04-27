@@ -16,15 +16,14 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 
 /**
  * Abstract definition in the schema.
@@ -52,7 +51,7 @@ public abstract class DefinitionImpl implements Definition {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	@NotNull protected QName typeName;
-	protected boolean ignored = false;
+	protected ItemProcessing processing;
     protected boolean isAbstract = false;
 	protected String displayName;
 	protected Integer displayOrder;
@@ -102,11 +101,16 @@ public abstract class DefinitionImpl implements Definition {
 
 	@Override
 	public boolean isIgnored() {
-		return ignored;
+		return processing == ItemProcessing.IGNORE;
 	}
 
-	public void setIgnored(boolean ignored) {
-		this.ignored = ignored;
+	@Override
+	public ItemProcessing getProcessing() {
+		return processing;
+	}
+
+	public void setProcessing(ItemProcessing processing) {
+		this.processing = processing;
 	}
 
     @Override
@@ -243,7 +247,7 @@ public abstract class DefinitionImpl implements Definition {
 	public abstract void revive(PrismContext prismContext);
 
 	protected void copyDefinitionData(DefinitionImpl clone) {
-		clone.ignored = this.ignored;
+		clone.processing = this.processing;
 		clone.typeName = this.typeName;
 		clone.displayName = this.displayName;
 		clone.displayOrder = this.displayOrder;
@@ -263,7 +267,7 @@ public abstract class DefinitionImpl implements Definition {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (ignored ? 1231 : 1237);
+		result = prime * result + ((processing == null) ? 0 : processing.hashCode());
 		result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
 		return result;
 	}
@@ -278,7 +282,7 @@ public abstract class DefinitionImpl implements Definition {
 		if (getClass() != obj.getClass())
 			return false;
 		DefinitionImpl other = (DefinitionImpl) obj;
-		if (ignored != other.ignored)
+		if (processing != other.processing)
 			return false;
 		if (typeName == null) {
 			if (other.typeName != null)
@@ -294,16 +298,8 @@ public abstract class DefinitionImpl implements Definition {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<indent; i++) {
-			sb.append(DebugDumpable.INDENT_STRING);
-		}
+		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
 		sb.append(toString());
 		return sb.toString();
 	}

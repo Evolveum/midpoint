@@ -33,7 +33,7 @@ public class ProfilingConfigurationManager {
     private static final Trace LOGGER = TraceManager.getTrace(ProfilingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
-    private static final String SUBSYSTEM_PROFILING_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
+    private static final String SUBSYSTEM_PROFILING_LOGGER = ProfilingDataManager.class.getName();
     private static final String APPENDER_IDM_PROFILE = "MIDPOINT_PROFILE_LOG";
 
     /**

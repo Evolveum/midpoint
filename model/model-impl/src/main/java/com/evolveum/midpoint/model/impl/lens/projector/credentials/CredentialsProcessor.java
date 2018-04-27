@@ -29,9 +29,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -176,7 +174,7 @@ public class CredentialsProcessor {
 			return focusDelta;
 		}
 		ObjectDelta<O> transformedDelta = focusDelta.clone();
-		transformFocusExecutionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta);
+		transformFocusExecutionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta, "password");
 		// TODO: nonce and others
 
 		return transformedDelta;
@@ -184,20 +182,23 @@ public class CredentialsProcessor {
 
 	private <O extends ObjectType> void transformFocusExecutionDeltaCredential(LensContext<O> context,
 			CredentialsPolicyType credsType, CredentialPolicyType credPolicyType,
-			ItemPath valuePropertyPath, ObjectDelta<O> delta) throws SchemaException, EncryptionException {
+			ItemPath valuePropertyPath, ObjectDelta<O> delta, String credentialName) throws SchemaException, EncryptionException {
 		if (delta.isDelete()) {
 			return;
 		}
 		CredentialPolicyType defaltCredPolicyType = credsType.getDefault();
 		CredentialsStorageMethodType storageMethod =
 				SecurityUtil.getCredPolicyItem(defaltCredPolicyType, credPolicyType, pol -> pol.getStorageMethod());
+		LOGGER.trace("Credential {}, processing storage method: {}", credentialName, storageMethod);
 		if (storageMethod == null) {
 			return;
 		}
 		CredentialsStorageTypeType storageType = storageMethod.getStorageType();
 		if (storageType == null || storageType == CredentialsStorageTypeType.ENCRYPTION) {
+			LOGGER.trace("Credential {} should be encrypted, nothing to do", credentialName);
 			return;
 		} else if (storageType == CredentialsStorageTypeType.HASHING) {
+			LOGGER.trace("Hashing credential", credentialName);
 			if (delta.isAdd()) {
 				PrismProperty<ProtectedStringType> prop = delta.getObjectToAdd().findProperty(valuePropertyPath);
 				if (prop != null) {
@@ -212,6 +213,7 @@ public class CredentialsProcessor {
 				}
 			}
 		} else if (storageType == CredentialsStorageTypeType.NONE) {
+			LOGGER.trace("Removing credential", credentialName);
 			if (delta.isAdd()) {
 				delta.getObjectToAdd().removeProperty(valuePropertyPath);
 			} else {

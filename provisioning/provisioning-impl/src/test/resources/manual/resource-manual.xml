@@ -81,5 +81,10 @@
 	<consistency>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 	</consistency>
+
+	<business>
+		<operatorRef oid="operator1-oid" type="UserType"/>
+		<operatorRef oid="operator2-oid" type="UserType"/>
+	</business>
 	
 </resource>

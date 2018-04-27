@@ -45,6 +45,9 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_POLICY_RULES = new QName(NS_COMPONENTS_PREFIX, "focusTabPolicyRules");
     public static final String UI_FOCUS_TAB_POLICY_RULES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_RULES);
 
+    public static final QName UI_FOCUS_TAB_APPLICABLE_POLICIES = new QName(NS_COMPONENTS_PREFIX, "focusTabApplicablePolicies");
+    public static final String UI_FOCUS_TAB_APPLICABLE_POLICIES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_APPLICABLE_POLICIES);
+
     public static final QName UI_FOCUS_TAB_CONSENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabConsents");
     public static final String UI_FOCUS_TAB_CONSENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_CONSENTS);
 

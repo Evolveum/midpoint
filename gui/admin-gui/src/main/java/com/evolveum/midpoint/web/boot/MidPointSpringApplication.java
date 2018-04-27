@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,22 @@
 package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
+import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
+
+import org.apache.catalina.Valve;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
+import org.springframework.boot.ExitCodeGenerator;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -35,11 +41,13 @@ import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfigu
 import org.springframework.boot.autoconfigure.web.*;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.http.HttpStatus;
@@ -48,6 +56,9 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
+
+import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,7 +89,7 @@ import java.util.concurrent.TimeUnit;
         "classpath:ctx-webapp.xml"
 })
 @ImportAutoConfiguration(classes = {
-        EmbeddedServletContainerAutoConfiguration.class,
+		EmbeddedTomcatAutoConfiguration.class,
         DispatcherServletAutoConfiguration.class,
         WebMvcAutoConfiguration.class,
         HttpMessageConvertersAutoConfiguration.class,
@@ -95,11 +106,40 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
     private static final String USER_HOME_PROPERTY_NAME = "user.home";
+    private static ConfigurableApplicationContext applicationContext = null;
+    
+    @Autowired StartupConfiguration startupConfiguration;
 
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
+        String mode = args != null && args.length > 0 ? args[0] : null;
+        
+        if(LOGGER.isDebugEnabled()){
+            LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                    " Application mode:" + mode + " context:" + applicationContext);
+        }
+        
+        if (applicationContext != null && mode != null && "stop".equals(mode)) {
+            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
+                
+                @Override
+                public int getExitCode() {
+                    
+                    return 0;
+                }
+            }));
+            
+        } else {
+            
+            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+            
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                             " Application started context:" + applicationContext);
+            }
+            
+        }
 
-        configureApplication(new SpringApplicationBuilder()).run(args);
     }
 
     @Override
@@ -189,6 +229,16 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
         return registration;
     }
+    
+    @Bean
+    public ServletRegistrationBean staticWebServlet() {
+        ServletRegistrationBean registration = new ServletRegistrationBean();
+        StaticWebServlet servlet = new StaticWebServlet(
+        		new File(startupConfiguration.getMidpointHome(), "static-web"));
+        registration.setServlet(servlet);
+        registration.addUrlMappings("/static-web/*");
+        return registration;
+    }
 
     @Bean
     public ServerProperties serverProperties() {
@@ -216,6 +266,17 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                     "/error"));
 
             container.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
+            
+            if (container instanceof TomcatEmbeddedServletContainerFactory) {
+                customizeTomcat((TomcatEmbeddedServletContainerFactory) container);
+            }            
         }
+
+		private void customizeTomcat(TomcatEmbeddedServletContainerFactory tomcatFactory) {
+			// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
+			// See comments in TomcatRootValve
+			Valve rootValve = new TomcatRootValve();
+			tomcatFactory.addEngineValves(rootValve);
+		}
     }
 }

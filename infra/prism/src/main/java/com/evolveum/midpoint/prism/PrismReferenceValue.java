@@ -20,12 +20,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Radovan Semancik
  */
-public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable {
+public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable, ShortDumpable {
 	private static final long serialVersionUID = 1L;
 
 	private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
@@ -284,9 +284,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), null);
+			return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), null);
 		}
-		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), path);
+		return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), path);
 	}
 
 	private boolean compareLocalPart(QName a, QName b) {
@@ -613,19 +613,20 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
     @Override
     public PrismReferenceValue clone() {
-		return clone(true);
+    	return cloneComplex(CloneStrategy.LITERAL);
 	}
-
-    public PrismReferenceValue clone(boolean copyFullObject) {
+    
+    @Override
+    public PrismReferenceValue cloneComplex(CloneStrategy strategy) {
         PrismReferenceValue clone = new PrismReferenceValue(getOid(), getOriginType(), getOriginObject());
-        copyValues(clone, copyFullObject);
+        copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismReferenceValue clone, boolean copyFullObject) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismReferenceValue clone) {
+		super.copyValues(strategy, clone);
 		clone.targetType = this.targetType;
-		if (this.object != null && copyFullObject) {
+		if (this.object != null && strategy == CloneStrategy.LITERAL) {
 			clone.object = this.object.clone();
 		}
 		clone.description = this.description;
@@ -646,23 +647,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public String toHumanReadableString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("oid=").append(oid);
-		if (getTargetType() != null) {
-			sb.append("(");
-			sb.append(DebugUtil.formatElementName(getTargetType()));
-			sb.append(")");
-		}
-		if (targetName != null) {
-			sb.append("('").append(targetName).append("')");
-		}
-        if (getRelation() != null) {
-            sb.append("[");
-            sb.append(getRelation().getLocalPart());
-            sb.append("]");
-        }
-		if (getObject() != null) {
-			sb.append('*');
-		}
+		sb.append("oid=");
+		shortDump(sb);
 		return sb.toString();
 	}
 
@@ -687,6 +673,27 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		super.revive(prismContext);
 		if (object != null) {
 			object.revive(prismContext);
+		}
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(oid);
+		if (getTargetType() != null) {
+			sb.append("(");
+			sb.append(DebugUtil.formatElementName(getTargetType()));
+			sb.append(")");
+		}
+		if (targetName != null) {
+			sb.append("('").append(targetName).append("')");
+		}
+        if (getRelation() != null) {
+            sb.append("[");
+            sb.append(getRelation().getLocalPart());
+            sb.append("]");
+        }
+		if (getObject() != null) {
+			sb.append('*');
 		}
 	}
 

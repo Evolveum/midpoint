@@ -266,7 +266,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (primaryDelta == null) {
-        	primaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+        	primaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
         	primaryDelta.setOid(oid);
         }
         primaryDelta.swallow(itemDelta);
@@ -277,7 +277,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	// TODO deduplicate with swallowToSecondaryDelta in LensFocusContext
 	public ObjectDelta<O> swallowToDelta(ObjectDelta<O> originalDelta, ItemDelta<?,?> propDelta) throws SchemaException {
 		if (originalDelta == null) {
-			originalDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+			originalDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
 			originalDelta.setOid(getOid());
 		} else if (originalDelta.containsModification(propDelta, true, true)) {
 			return originalDelta;
@@ -371,7 +371,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (audited == null) {
 			return executedDeltas;
 		}
-		List<LensObjectDeltaOperation<O>> deltas = new ArrayList<LensObjectDeltaOperation<O>>();
+		List<LensObjectDeltaOperation<O>> deltas = new ArrayList<>();
 		for (LensObjectDeltaOperation<O> delta: executedDeltas) {
 			if (delta.isAudited() == audited) {
 				deltas.add(delta);
@@ -796,4 +796,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		PrismObject<O> object = getObjectAny();
 		return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
 	}
+
+	public abstract void deleteSecondaryDeltas();
 }

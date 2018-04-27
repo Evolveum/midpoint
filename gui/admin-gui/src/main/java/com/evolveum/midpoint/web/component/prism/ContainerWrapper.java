@@ -22,19 +22,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -44,6 +37,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 /**
  * @author lazyman
@@ -116,7 +110,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return container.getDefinition();
 	}
 	
-		public ContainerStatus getStatus() {
+	public ContainerStatus getStatus() {
 		return status;
 	}
 
@@ -191,17 +185,21 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			}
 	}
 
+	// TODO: unify with PropertyOrReferenceWrapper.getDisplayName()
 	@Override
 	public String getDisplayName() {
-		if (StringUtils.isNotEmpty(displayName)) {
-			return displayName;
+		if (displayName == null) {
+			// Lazy loading of a localized name.
+			// We really want to remember a processed name in the wrapper.
+			// getDisplatName() method may be called many times, e.g. during sorting.
+			displayName = getDisplayNameFromItem(container);
 		}
-		return getDisplayNameFromItem(container);
+		return displayName;
 	}
-
+	
 	@Override
-	public void setDisplayName(String name) {
-		this.displayName = name;
+	public void setDisplayName(String displayName) {
+		this.displayName = localizeName(displayName);
 	}
 
 	@Override
@@ -217,16 +215,23 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		Validate.notNull(item, "Item must not be null.");
 
 		String displayName = item.getDisplayName();
-		if (StringUtils.isEmpty(displayName)) {
-			QName name = item.getElementName();
-			if (name != null) {
-				displayName = name.getLocalPart();
-			} else {
-				displayName = item.getDefinition().getTypeName().getLocalPart();
-			}
+		if (!StringUtils.isEmpty(displayName)) {
+			return localizeName(displayName);
 		}
+		
+		QName name = item.getElementName();
+		if (name != null) {
+			displayName = name.getLocalPart();
+		} else {
+			displayName = item.getDefinition().getTypeName().getLocalPart();
+		}
+		
+		return localizeName(displayName);
+	}
 
-		return displayName;
+	static String localizeName(String nameKey) {
+		Validate.notNull(nameKey, "Null localization key");
+		return ColumnUtils.createStringResource(nameKey).getString();
 	}
 
 	public boolean hasChanged() {
@@ -243,10 +248,18 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("ContainerWrapper(");
-		builder.append(getDisplayNameFromItem(container));
-		builder.append(" (");
+		if (displayName == null) {
+			if (container == null) {
+				builder.append("null");
+			} else {
+				builder.append(container.getElementName());
+			}
+		} else {
+			builder.append(displayName);
+		}
+		builder.append(" [");
 		builder.append(status);
-		builder.append(") ");
+		builder.append("] ");
 		builder.append(getValues() == null ? null : getValues().size());
 		builder.append(" items)");
 		return builder.toString();
@@ -261,7 +274,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	 */
 	@Deprecated
 	private boolean skipProperty(PrismPropertyDefinition def) {
-		final List<QName> names = new ArrayList<QName>();
+		final List<QName> names = new ArrayList<>();
 		names.add(PasswordType.F_FAILED_LOGINS);
 		names.add(PasswordType.F_LAST_FAILED_LOGIN);
 		names.add(PasswordType.F_LAST_SUCCESSFUL_LOGIN);
@@ -307,6 +320,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public void addValue(ContainerValueWrapper<C> newValue) {
 		getValues().add(newValue);
 	}
+	
+	@Override
+	public void addValue(boolean showEmpty) {
+		// TODO: but fist need to clean up relaition between wrapper and factory.
+		throw new UnsupportedOperationException("Not implemented yet");
+	}
 
 //	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
 //		PrismContainerValue<C> pcv = container.createNewValue();
@@ -315,15 +334,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 //		return wrapper;
 //	}
 
-	public void sort(final PageBase pageBase) {
+	public void sort() {
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
-			valueWrapper.sort(pageBase);
+			valueWrapper.sort();
 		}
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override
@@ -363,7 +377,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	@Override
 	public void setStripe(boolean isStripe) {
-		// Does not make much sense, but it is given by the interface
+		for (ContainerValueWrapper value : values) {
+			value.computeStripes();
+		}
 	}
 
 	public PrismContainer<C> createContainerAddDelta() throws SchemaException {
@@ -415,7 +431,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 					containerValueWrapper.collectModifications(delta);
 					break;
 				case DELETED:
-					delta.addModificationDeleteContainer(getPath(), containerValueWrapper.getContainerValue().clone());
+					PrismContainerValue clonedValue = containerValueWrapper.getContainerValue().clone();
+					clonedValue.clear();
+					delta.addModificationDeleteContainer(getPath(), clonedValue);
 					break;
 			}
 		}
@@ -424,9 +442,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		boolean rv = true;
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (!itemWrapper.checkRequired(pageBase)) {
-				rv = false;
+		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
+			if (!valueWrapper.checkRequired(pageBase)) {
+				rv = false;     // not returning directly as we want to go through all the values
 			}
 		}
 		return rv;
@@ -463,7 +481,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public boolean isVisible() {
 		PrismContainerDefinition<C> def = getItemDefinition();
 
-		if (def.isIgnored() || (def.isOperational()) && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+		if (def.getProcessing() != null && def.getProcessing() != ItemProcessing.AUTO) {
+			return false;
+			
+		}
+		
+		if (def.isOperational() && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
 			return false;
 		}
 		
@@ -486,6 +509,11 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 		return false;
 	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return getItemDefinition().getProcessing();
+	}
 
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
 		return def.canRead();// && def.canModify();
@@ -503,12 +531,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return def.canAdd() && def.isEmphasized();
 	}
 
-	@Override
-	public void addValue(boolean showEmpty) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	@Override
 	public boolean isDeprecated() {
 		return getItemDefinition().isDeprecated();
@@ -533,5 +555,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
 		this.addContainerButtonVisible = addContainerButtonVisible;
+	}
+
+	@Override
+	public boolean isExperimental() {
+		return getItemDefinition().isExperimental();
 	}
 }

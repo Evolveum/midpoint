@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -225,6 +223,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		assertObject(role);
 	}
 
+	/**
+	 * Attempt to add account (red) that already exists, but it is not linked.
+	 * Account is added using linkRef with account object.
+	 */
 	@Test
     public void test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict() throws Exception {
 		final String TEST_NAME = "test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict";
@@ -234,34 +236,53 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE);
         // Remove the attributes. This will allow outbound mapping to take place instead.
         account.removeContainer(ShadowType.F_ATTRIBUTES);
+        display("New account", account);
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
+		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
 		dummyAuditService.clear();
 
 		try {
-
-			// WHEN
-			modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
-
-			AssertJUnit.fail("Unexpected executeChanges success");
+			 // WHEN
+			 modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
+			 
+			 AssertJUnit.fail("Unexpected executeChanges success");
 		} catch (ObjectAlreadyExistsException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
-
+		
+		//TODO: this is not yet expected.. there is a checking code in the ProjectionValueProcessor.. 
+		// the situation is that the account which should be created has the same ICFS_NAME as the on already existing in resource
+		// as the resource-dummy-red doesn't contain synchronization configuration part, we don't know the rule according to
+		// which to try to match newly created account and the old one, therefore it will now ended in this ProjectionValuesProcessor with the error
+		// this is not a trivial fix, so it has to be designed first.. (the same problem in TestAssignmentError.test222UserAssignAccountDeletedShadowRecomputeNoSync()
+//		//WHEN
+//		displayWhen(TEST_NAME);
+//		modelService.executeChanges(MiscUtil.createCollection(userDelta), null, task, getCheckingProgressListenerCollection(), result);
+//
+//		// THEN
+//		displayThen(TEST_NAME);
+//		assertPartialError(result);
+		// end of TODO:
+		
 		// Check accountRef
-		PrismObject<UserType> userGuybrush = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-        UserType userGuybrushType = userGuybrush.asObjectable();
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+        UserType userGuybrushType = userAfter.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userGuybrushType.getLinkRef().size());
         ObjectReferenceType accountRefType = userGuybrushType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
@@ -280,20 +301,33 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-
+        
         result.computeStatus();
         display("executeChanges result", result);
         TestUtil.assertFailure("executeChanges result", result);
-
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
+        
         Collection<ObjectDeltaOperation<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
         assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-
+        
+        
+        //TODO: enable after fixing the above mentioned problem in ProjectionValueProcessor
+//        // Strictly speaking, there should be just 2 records, not 3.
+//        // But this is a strange case, not a common one. Midpoint does two attempts. 
+//        // We do not really mind about extra provisioning attempts.
+//        assertEquals("Wrong number of execution deltas", 3, auditExecution0Deltas.size());
+//        // SUCCESS because there is a handled error. Real error is in next audit record.
+//        dummyAuditService.assertExecutionOutcome(0, OperationResultStatus.SUCCESS);
+//        
+//        auditExecution0Deltas = dummyAuditService.getExecutionDeltas(1);
+//        assertEquals("Wrong number of execution deltas", 2, auditExecution0Deltas.size());
+//        dummyAuditService.assertExecutionOutcome(1, OperationResultStatus.PARTIAL_ERROR);
 	}
 
 	@Test
@@ -1452,7 +1486,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 

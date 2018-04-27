@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -1068,11 +1067,11 @@ public class TestProjector extends AbstractLensTest {
 
     	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_GLOBAL_FILE);
     	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
-    	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+    	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
     	deltas.add(delta);
     	modelService.executeChanges(deltas, null, task, result);
 
-    	deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+    	deltas = new ArrayList<>();
     	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
     	// We need to execute this using repo. Otherwise logging config will be ruined
     	repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, refDelta.getModifications(), result);

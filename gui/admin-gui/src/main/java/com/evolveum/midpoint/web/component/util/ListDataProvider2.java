@@ -32,7 +32,6 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
@@ -71,7 +70,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 	}
 
 	protected W createObjectWrapper(T object) {
-		return (W) new SelectableBean<T>(object);
+		return (W) new SelectableBean<>(object);
 	}
 
 	@Override
@@ -85,7 +84,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 	}
 
 	public List<W> getSelectedObjects() {
-		List<W> allSelected = new ArrayList<W>();
+		List<W> allSelected = new ArrayList<>();
 		for (Serializable s : super.getAvailableData()) {
 			if (s instanceof Selectable) {
 				Selectable<W> selectable = (Selectable<W>) s;

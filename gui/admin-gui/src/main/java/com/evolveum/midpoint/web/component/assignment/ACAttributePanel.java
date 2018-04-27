@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -76,7 +75,7 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
 
 
         ListView<ACValueConstructionDto> values = new ListView<ACValueConstructionDto>(ID_VALUES,
-                new PropertyModel<List<ACValueConstructionDto>>(getModel(), ACAttributeDto.F_VALUES)) {
+            new PropertyModel<>(getModel(), ACAttributeDto.F_VALUES)) {
 
             @Override
             protected void populateItem(ListItem<ACValueConstructionDto> listItem) {

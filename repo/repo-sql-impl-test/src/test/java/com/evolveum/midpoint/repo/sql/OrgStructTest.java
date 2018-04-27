@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -45,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -327,7 +326,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             }
             AssertJUnit.assertEquals(4, orgClosure.size());
 
-            List<String> ancestors = new ArrayList<String>();
+            List<String> ancestors = new ArrayList<>();
             ancestors.add(MODIFY_ORG_ADD_REF_OID);
             ancestors.add(ORG_F003_OID);
             ancestors.add(ORG_F001_OID);
@@ -348,14 +347,14 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     private List<ROrgClosure> getOrgClosure(String ancestorOid, String descendantOid, Session session) {
         Query query = session.createQuery("from ROrgClosure where ancestorOid=:aOid and descendantOid=:dOid");
-        query.setString("aOid", ancestorOid);
-        query.setString("dOid", descendantOid);
+        query.setParameter("aOid", ancestorOid);
+        query.setParameter("dOid", descendantOid);
         return query.list();
     }
 
     private List<ROrgClosure> getOrgClosureByDescendant(String descendantOid, Session session) {
         Query query = session.createQuery("from ROrgClosure where descendantOid=:oid");
-        query.setString("oid", descendantOid);
+        query.setParameter("oid", descendantOid);
         return query.list();
     }
 
@@ -381,7 +380,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             }
             AssertJUnit.assertEquals(5, orgClosure.size());
 
-            List<String> ancestors = new ArrayList<String>();
+            List<String> ancestors = new ArrayList<>();
             ancestors.add(MODIFY_ORG_INCORRECT_ADD_REF_OID);
             ancestors.add(ORG_F001_OID);
             ancestors.add(ORG_F002_OID);

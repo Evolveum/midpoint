@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,6 +58,10 @@ public class PrismTestUtil {
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
+    
+    private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
+	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
+	private static final String LOG_MESSAGE_PREFIX = "";
 
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
@@ -97,6 +103,10 @@ public class PrismTestUtil {
     	}
     	return prismContext;
     }
+    
+    public static void setPrismContext(PrismContext prismContext) {
+		PrismTestUtil.prismContext = prismContext;
+	}
 
     public static SchemaRegistry getSchemaRegistry() {
     	return prismContext.getSchemaRegistry();
@@ -200,6 +210,16 @@ public class PrismTestUtil {
 		System.out.println("\n\n===[ "+testName+" ]===\n");
 		LOGGER.info("===[ {} ]===",testName);
 	}
+	
+	public static void displayWhen(String testName) {
+		System.out.println("\n\n---[ "+testName+" WHEN ]---\n");
+		LOGGER.info("---[ {} WHEN ]---",testName);
+	}
+	
+	public static void displayThen(String testName) {
+		System.out.println("\n\n---[ "+testName+" THEN ]---\n");
+		LOGGER.info("---[ {} THEN ]---",testName);
+	}
 
 	public static SearchFilterType unmarshalFilter(File file) throws Exception {
 		return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
@@ -212,6 +232,27 @@ public class PrismTestUtil {
 		return ((LogicalFilter) filter).getConditions().get(index);
 	}
 
+	public static void display(String title, String value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(value);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ value);
+	}
+
+	public static void display(String title, DebugDumpable dumpable) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
+				+ (dumpable == null ? "null" : dumpable.debugDump(1)));
+	}
+	
+	public static void display(String title, Object value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(PrettyPrinter.prettyPrint(value));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ PrettyPrinter.prettyPrint(value));
+	}
+	
 	public static void displayQuery(ObjectQuery query) {
 		LOGGER.trace("object query:\n{}\n", query);
 		System.out.println("object query:\n" + query + "\n");

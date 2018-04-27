@@ -37,6 +37,7 @@
     <import resource="ctx-model-unit-test.xml"/>
     <import resource="ctx-model-common.xml"/>
     <import resource="ctx-configuration-test-no-repo.xml"/>
+    <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-repo-common.xml"/>
     <import resource="ctx-task.xml"/>
     <import resource="ctx-audit.xml"/>

@@ -50,6 +50,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.bag.TreeBag;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -60,12 +61,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeCollection;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
@@ -2355,7 +2352,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	private String getStringRepresentation(EvaluationOrder order) {
 		List<String> names = new ArrayList<>();
-		for (QName relation : order.getRelations()) {
+		for (@NotNull QName relation : order.getRelations()) {
 			int count = order.getMatchingRelationOrder(relation);
 			if (count == 0) {
 				continue;

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -166,7 +167,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	/**
 	 * Used mostly in unit tests.
 	 */
-	transient private LensDebugListener debugListener;
+	transient private ClockworkInspector inspector;
 
 	/**
 	 * User feedback.
@@ -479,12 +480,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.requestMetadata = requestMetadata;
 	}
 
-	public LensDebugListener getDebugListener() {
-		return debugListener;
+	public ClockworkInspector getInspector() {
+		return inspector;
 	}
 
-	public void setDebugListener(LensDebugListener debugListener) {
-		this.debugListener = debugListener;
+	public void setInspector(ClockworkInspector inspector) {
+		this.inspector = inspector;
 	}
 
 	/**
@@ -1227,11 +1228,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return lensContext;
 	}
 
-	protected void fixProvisioningTypeInDelta(ObjectDelta delta, Task task, OperationResult result)
+	private void fixProvisioningTypeInDelta(ObjectDelta delta, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (delta != null && delta.getObjectTypeClass() != null
 				&& (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
 						|| ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+			// TODO exception can be thrown here (MID-4391) e.g. if resource does not exist any more; consider what to do
+			// Currently we are on the safe side by making whole conversion fail
 			getProvisioningService().applyDefinition(delta, task, result);
 		}
 	}
@@ -1392,5 +1395,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			}
 		}
 		return false;
+	}
+	
+	public void deleteSecondaryDeltas() {
+		if (focusContext != null) {
+			focusContext.deleteSecondaryDeltas();
+		}
+		for (LensProjectionContext projectionContext : projectionContexts) {
+			projectionContext.deleteSecondaryDeltas();
+		}
 	}
 }

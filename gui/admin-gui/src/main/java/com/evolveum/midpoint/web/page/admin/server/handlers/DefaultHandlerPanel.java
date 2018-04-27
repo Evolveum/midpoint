@@ -51,7 +51,7 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
 			}
 		});
 
-		final LinkPanel objectRef = new LinkPanel(ID_OBJECT_REF, new PropertyModel<String>(getModel(), HandlerDto.F_OBJECT_REF_NAME)) {
+		final LinkPanel objectRef = new LinkPanel(ID_OBJECT_REF, new PropertyModel<>(getModel(), HandlerDto.F_OBJECT_REF_NAME)) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				ObjectReferenceType ref = getModelObject().getObjectRef();

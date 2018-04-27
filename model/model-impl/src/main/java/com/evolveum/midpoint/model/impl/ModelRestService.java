@@ -34,8 +34,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -68,10 +73,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.namespace.QName;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author katkav
@@ -105,6 +110,8 @@ public class ModelRestService {
 	public static final String OPERATION_VALIDATE_VALUE_RPC = CLASS_DOT +  "validateValueRpc";
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
+	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
+	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -120,6 +127,8 @@ public class ModelRestService {
 	@Autowired private TaskManager taskManager;
 	@Autowired private Protector protector;
 	@Autowired private ResourceValidator resourceValidator;
+	
+	@Autowired private CacheDispatcher cacheDispatcher;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 
@@ -167,7 +176,10 @@ public class ModelRestService {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE_RPC);
 
-		return generateValue(null, policyItemsDefinition, task, parentResult);
+		Response response = generateValue(null, policyItemsDefinition, task, parentResult);
+		finishRequest(task);
+		
+		return response;
 	}
 	
 	private <O extends ObjectType> Response generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult){
@@ -178,7 +190,6 @@ public class ModelRestService {
 			try {
 				modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
 				parentResult.computeStatusIfUnknown();
-
 				if (parentResult.isSuccess()) {
 					response = RestServiceUtil.createResponse(Response.Status.OK, policyItemsDefinition, parentResult, true);
 				} else {
@@ -186,7 +197,7 @@ public class ModelRestService {
 				}
 
 			} catch (Exception ex) {
-				parentResult.computeStatus();
+				parentResult.recordFatalError("Failed to generate value, " + ex.getMessage(), ex);
 				response = RestServiceUtil.handleException(parentResult, ex);
 			}
 		}
@@ -321,7 +332,7 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
-		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
+		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 		Response response;
 
 		try {
@@ -450,14 +461,22 @@ public class ModelRestService {
 		Response response;
 		try {
 
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null);
-			List<PrismObject<T>> objects = model.searchObjects(clazz, null, searchOptions, task, parentResult);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null, DefinitionProcessingOption.ONLY_IF_EXISTS);
+			
+			
+			List<T> objects = new ArrayList<>();
+			ResultHandler<T> handler = new ResultHandler<T>() {
+				
+				@Override
+				public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+					return objects.add(object.asObjectable());
+				}
+			};
+			
+			SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
-			if (objects != null){
-				List<ObjectType> list = objects.stream().map(o -> convert(clazz, o, parentResult.createOperationResultType())).collect(Collectors.toList());
-				listType.getObject().addAll(list);
-			}
+			listType.getObject().addAll(objects);
 
 			response = RestServiceUtil.createResponse(Response.Status.OK, listType, parentResult, true);
 //			response = Response.ok().entity(listType).build();
@@ -696,7 +715,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
@@ -898,7 +917,7 @@ public class ModelRestService {
 	@POST
 	@Path("/rpc/executeScript")
 	//	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml" })
+	@Consumes({"application/xml", MediaType.APPLICATION_JSON, "application/yaml" })
 	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
 			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
@@ -946,7 +965,7 @@ public class ModelRestService {
 		try {
 			ResponseBuilder builder;
 			List<ItemPath> ignoreItemPaths = ItemPath.fromStringList(restIgnoreItems);
-			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions);
+			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			Collection<SelectorOptions<GetOperationOptions>> readOptions =
 					getOpOptions != null ? SelectorOptions.createCollection(getOpOptions) : null;
 			ModelCompareOptions compareOptions = ModelCompareOptions.fromRestOptions(restCompareOptions);
@@ -1021,6 +1040,48 @@ public class ModelRestService {
 		return response;
 	}
 
+	@POST
+	@Path("/users/{oid}/credential")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CREDENTIAL_RESET);
+
+		Response response;
+		try {
+			PrismObject<UserType> user = modelService.getObject(UserType.class, oid, null, task, result);
+			
+			ExecuteCredentialResetResponseType executeCredentialResetResponse = modelInteraction.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, executeCredentialResetResponse, result);
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(result, ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+
+	}
+	
+	@POST
+	@Path("/event/{type}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
+		//TODO: task??
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_EVENT);
+		String oid = "";
+		Class clazz = ObjectTypes.getClassFromRestType(type);
+		cacheDispatcher.dispatch(clazz, oid);
+		
+		result.recordSuccess();
+		Response response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		finishRequest(task);
+		return response;
+
+	}
 
 	//    @GET
 //    @Path("tasks/{oid}")

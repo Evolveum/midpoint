@@ -84,6 +84,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-cache</artifactId>
+			<version>3.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>audit-api</artifactId>
 			<version>3.8-SNAPSHOT</version>
 		</dependency>
@@ -95,6 +100,11 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-impl</artifactId>
+			<version>3.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-common</artifactId>
 			<version>3.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -287,6 +297,11 @@
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+         <dependency>
+            <groupId>org.apache.directory.api</groupId>
+            <artifactId>api-all</artifactId>
             <scope>test</scope>
         </dependency>
 	</dependencies>

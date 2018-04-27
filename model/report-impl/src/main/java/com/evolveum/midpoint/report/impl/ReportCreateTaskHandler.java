@@ -33,14 +33,12 @@ import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
 import net.sf.jasperreports.export.Exporter;
-import net.sf.jasperreports.export.ExporterInput;
 import net.sf.jasperreports.export.ExporterOutput;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +83,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.fill.JRAbstractLRUVirtualizer;
@@ -257,7 +254,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
 
     private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
 
         if (subReport != null && StringUtils.isNotBlank(subReportName)) {
             params.put(subReportName, subReport);
@@ -303,7 +300,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 //
 //	}
     private Map<String, Object> prepareReportParameters(ReportType reportType, OperationResult parentResult) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         if (reportType.getTemplateStyle() != null) {
             byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
             byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
@@ -330,7 +327,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
 
     private Map<String, Object> processSubreportParameters(ReportType reportType, Task task, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException {
-        Map<String, Object> subreportParameters = new HashMap<String, Object>();
+        Map<String, Object> subreportParameters = new HashMap<>();
         for (SubreportType subreport : reportType.getSubreport()) {
             Map<String, Object> subreportParam = getSubreportParameters(subreport, task, subreportResult);
             LOGGER.trace("create subreport params : {}", subreportParam);
@@ -342,7 +339,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     private Map<String, Object> getSubreportParameters(SubreportType subreportType, Task task, OperationResult subResult)
             throws SchemaException, ObjectNotFoundException {
-        Map<String, Object> reportParams = new HashMap<String, Object>();
+        Map<String, Object> reportParams = new HashMap<>();
         ReportType reportType = objectResolver.resolve(subreportType.getReportRef(), ReportType.class, null,
                 "resolve subreport", task, subResult);
 
@@ -502,7 +499,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next()));
 
         ObjectDelta<ReportOutputType> objectDelta = null;
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         OperationResult subResult = null;
 
         objectDelta = ObjectDelta.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
@@ -558,11 +555,4 @@ public class ReportCreateTaskHandler implements TaskHandler {
     public String getCategoryName(Task task) {
         return TaskCategory.REPORT;
     }
-
-    @Override
-    public List<String> getCategoryNames() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 }

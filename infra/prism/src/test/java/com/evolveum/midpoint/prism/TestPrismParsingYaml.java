@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.prism;
 
-import org.testng.annotations.Test;
-
 public class TestPrismParsingYaml extends TestPrismParsing {
 
 	@Override

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;

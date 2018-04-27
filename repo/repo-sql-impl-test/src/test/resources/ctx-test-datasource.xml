@@ -25,43 +25,31 @@ It fakes JNDI context with simple H2 file DataSource.
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="dataSourceTestBeanPostprocessor" class="com.evolveum.midpoint.repo.sql.util.DataSourceTestBeanPostprocessor"
-          lazy-init="false"/>
-
-    <bean id="sampleJNDIDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
-          lazy-init="false">
-        <property name="driverClass" value="org.h2.Driver"/>
-        <property name="jdbcUrl"
-                  value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
-        <property name="user" value="sa"/>
+     <bean id="sampleJNDIDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
+           lazy-init="false">
+        <property name="driverClassName" value="org.h2.Driver"/>
+        <property name="jdbcUrl" value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
+        <property name="username" value="sa"/>
         <property name="password" value=""/>
 
-        <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="8"/>
-        <property name="maxPoolSize" value="20"/>
-        <property name="idleConnectionTestPeriod" value="1800"/>
-        <property name="connectionTesterClassName"
-                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>
-        <property name="connectionCustomizerClassName"
-                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer"/>
+        <property name="minimumIdle" value="3"/>
+        <property name="maximumPoolSize" value="8"/>
+        <!--<property name="connectionTesterClassName"-->
+                  <!--value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>-->
     </bean>
 
 
-    <bean id="sampleJNDIDataSourceFromConfig" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
-            lazy-init="false">
-        <property name="driverClass" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
+    <bean id="sampleJNDIDataSourceFromConfig" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
+            lazy-init="true">
+        <property name="driverClassName" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
         <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="user" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
+        <property name="username" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
         <property name="password" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
 
-        <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="8"/>
-        <property name="maxPoolSize" value="20"/>
-        <property name="idleConnectionTestPeriod" value="1800"/>
-        <property name="connectionTesterClassName"
-                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>
-        <property name="connectionCustomizerClassName"
-                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer"/>
+        <property name="minimumIdle" value="3"/>
+        <property name="maximumPoolSize" value="8"/>
+        <!--<property name="connectionTesterClassName"-->
+                  <!--value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester"/>-->
     </bean>
 
     <bean id="jndiMock" class="com.evolveum.midpoint.repo.sql.util.JNDIMock" lazy-init="false">
@@ -79,7 +67,6 @@ It fakes JNDI context with simple H2 file DataSource.
     </bean>
 
     <import resource="ctx-repository-test.xml" />
-    <import resource="classpath:ctx-repo-cache.xml" />
     <import resource="classpath:ctx-common.xml" />
     <import resource="ctx-configuration-sql-test.xml" />
 

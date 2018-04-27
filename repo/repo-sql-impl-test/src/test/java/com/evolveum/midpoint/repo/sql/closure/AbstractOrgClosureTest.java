@@ -27,9 +27,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -47,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.type.LongType;
 import org.hibernate.type.StringType;
@@ -202,7 +200,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
         if (DUMP_TC_MATRIX_DETAILS) LOGGER.info("TC matrix expected = {}", result);
 
-        Query q = session.createSQLQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
+        Query q = session.createNativeQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE)
                 .addScalar("val", LongType.INSTANCE);
@@ -282,7 +280,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected Set<String> getActualChildrenOf(String ancestor) {
         List<ROrgClosure> descendantRecords = getOrgClosureByAncestor(ancestor);
-        Set<String> rv = new HashSet<String>();
+        Set<String> rv = new HashSet<>();
         for (ROrgClosure c : descendantRecords) {
             rv.add(c.getDescendantOid());
         }
@@ -291,13 +289,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     private List<ROrgClosure> getOrgClosureByDescendant(String descendantOid) {
         Query query = getSession().createQuery("from ROrgClosure where descendantOid=:oid");
-        query.setString("oid", descendantOid);
+        query.setParameter("oid", descendantOid);
         return query.list();
     }
 
     private List<ROrgClosure> getOrgClosureByAncestor(String ancestorOid) {
         Query query = getSession().createQuery("from ROrgClosure where ancestorOid=:oid");
-        query.setString("oid", ancestorOid);
+        query.setParameter("oid", ancestorOid);
         return query.list();
     }
 
@@ -433,14 +431,14 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected List<String> getUsersAtThisLevelSafe(int level) {
         while (usersByLevels.size() <= level) {
-            usersByLevels.add(new ArrayList<String>());
+            usersByLevels.add(new ArrayList<>());
         }
         return usersByLevels.get(level);
     }
 
     protected List<String> getOrgsAtThisLevelSafe(int level) {
         while (orgsByLevels.size() <= level) {
-            orgsByLevels.add(new ArrayList<String>());
+            orgsByLevels.add(new ArrayList<>());
         }
         return orgsByLevels.get(level);
     }
@@ -562,7 +560,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected Collection<String> getParentsOids(PrismObject<? extends ObjectType> object) {
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for(ObjectReferenceType objectReferenceType : object.asObjectable().getParentOrgRef()) {
             retval.add(objectReferenceType.getOid());
         }
@@ -574,7 +572,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         if (totalParents == 0) {
             return rv;
         }
-        List<String> potentialParents = level > 0 ? new ArrayList<String>(orgsByLevels.get(level-1)) : new ArrayList<String>();
+        List<String> potentialParents = level > 0 ? new ArrayList<>(orgsByLevels.get(level - 1)) : new ArrayList<>();
         if (explicitParentOid != null) {
             rv.add(explicitParentOid);
             potentialParents.remove(explicitParentOid);
@@ -626,7 +624,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected List<String> getChildren(String oid) {
         Query childrenQuery = getSession().createQuery("select distinct ownerOid from RObjectReference where targetOid=:oid and referenceType=0");
-        childrenQuery.setString("oid", oid);
+        childrenQuery.setParameter("oid", oid);
         return childrenQuery.list();
     }
 
@@ -635,7 +633,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 " join parentRef.owner as owner where parentRef.targetOid=:oid and parentRef.referenceType=0" +
                 " and owner.objectTypeClass = :orgType");
         childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
-        childrenQuery.setString("oid", oid);
+        childrenQuery.setParameter("oid", oid);
         return childrenQuery.list();
     }
 
@@ -814,7 +812,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         long start = System.currentTimeMillis();
         loadOrgStructure(0, null, "", opResult);
         System.out.println("Loaded " + allOrgCreated.size() + " orgs and " + (objectCount - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
-        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        Query q = getSession().createNativeQuery("select count(*) from m_org_closure");
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
         closureSize = Long.parseLong(q.list().get(0).toString());
     }
@@ -825,7 +823,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         long start = System.currentTimeMillis();
         scanOrgStructure(opResult);
         System.out.println("Found " + allOrgCreated.size() + " orgs and " + (objectCount - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
-        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        Query q = getSession().createNativeQuery("select count(*) from m_org_closure");
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
         closureSize = Long.parseLong(q.list().get(0).toString());
     }
@@ -1042,7 +1040,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         removeOrgStructure(opResult);
         System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
 
-        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        Query q = getSession().createNativeQuery("select count(*) from m_org_closure");
         System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
 
         LOGGER.info("Finish.");
@@ -1054,7 +1052,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         randomRemoveOrgStructure(opResult);
         System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
 
-        Query q = getSession().createSQLQuery("select count(*) from m_org_closure");
+        Query q = getSession().createNativeQuery("select count(*) from m_org_closure");
         Object count = q.list().get(0);
         System.out.println("OrgClosure table has " + count + " rows");
         assertEquals("Closure is not empty", "0", count.toString());

@@ -41,6 +41,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -55,13 +57,13 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.PropertyConstraintTypeDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 
 
 /**
@@ -88,6 +90,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	private static final String ID_BUTTON_CANCEL = "cancelButton";
 	private static final String ID_OID_BOUND = "oidBound";
 	private static final String ID_PROPERTY = "property";
+	private static final String ID_PROPERTY_PATH = "propertyPath";
 	private static final String ID_REPEATER = "repeater";
 	private static final String ID_TEXT_WRAPPER = "textWrapper";
 	private static final String ID_BUTTON_GROUP = "buttonGroup";
@@ -101,13 +104,13 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	private static final String CLASS_MULTI_VALUE = "multivalue-form";
 	private static final String OFFSET_CLASS = "col-md-offset-4";
 
-	private boolean initialized;
 	private IModel<ObjectPolicyDialogDto> model;
 
-	public ObjectPolicyPanel(String id, final ObjectPolicyConfigurationTypeDto config) {
+	public ObjectPolicyPanel(String id, final ObjectPolicyConfigurationType config) {
 		super(id);
 
 		model = new LoadableModel<ObjectPolicyDialogDto>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected ObjectPolicyDialogDto load() {
@@ -118,63 +121,36 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		initLayout(config);
 
 		setOutputMarkupId(true);
-//		setTitle(createStringResource("ObjectPolicyDialog.label"));
-//		showUnloadConfirmation(false);
-//		setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-//		setCookieName(ObjectPolicyPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
-//		setInitialWidth(625);
-//		setInitialHeight(400);
-//		setWidthUnit("px");
-//
-//		WebMarkupContainer content = new WebMarkupContainer(getContentId());
-//		content.setOutputMarkupId(true);
-//		setContent(content);
 	}
 
-	private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationTypeDto config) {
-		ObjectPolicyDialogDto dto;
-
-		if (config == null) {
-			dto = new ObjectPolicyDialogDto(new ObjectPolicyConfigurationTypeDto(), getPageBase());
-		} else {
-			dto = new ObjectPolicyDialogDto(config, getPageBase());
-		}
-
+	private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationType config) {
+		ObjectPolicyDialogDto dto = new ObjectPolicyDialogDto(config, getPageBase());
 		return dto;
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
-		// return new StringResourceModel(resourceKey, this, null, resourceKey,
-		// objects);
 	}
 
-
-//	public void updateModel(AjaxRequestTarget target, ObjectPolicyConfigurationTypeDto config) {
-//		model.setObject(new ObjectPolicyDialogDto(config, getPageBase()));
-//		target.add(getContent());
-//	}
-
-	public void initLayout(ObjectPolicyConfigurationTypeDto config) {
-		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+	public void initLayout(ObjectPolicyConfigurationType config) {
+		Form<?> form = new Form<>(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 
-		DropDownFormGroup type = new DropDownFormGroup<>(ID_TYPE,
-				new PropertyModel<QName>(model, ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
-				new QNameChoiceRenderer(), createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE,
+		DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_TYPE,
+            new PropertyModel<>(model, ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
+				new QNameObjectTypeChoiceRenderer(), createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE,
 				ID_INPUT_SIZE, false);
 		form.add(type);
 		type.getInput().setNullValid(config.getConflictResolution() != null);
 		type.getInput().setRequired(config.getConflictResolution() == null);           // traditional template entries still require object type
-
 		TextField<String> fieldSubtype = new TextField<>(ID_SUBTYPE, new PropertyModel<String>(model, ObjectPolicyDialogDto.F_SUBTYPE));
 		form.add(fieldSubtype);
 		form.add(fieldSubtype);
 
-		DropDownFormGroup template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE,
-				new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
-				createObjectTemplateList(), new ChoiceableChoiceRenderer<ObjectTemplateConfigTypeReferenceDto>(),
+		DropDownFormGroup<ObjectTemplateConfigTypeReferenceDto> template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE,
+            new PropertyModel<>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),
+				createObjectTemplateList(), new ChoiceableChoiceRenderer<>(),
 				createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		form.add(template);
 		template.getInput().setNullValid(config.getConflictResolution() != null);
@@ -184,14 +160,17 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		conflictResolutionContainer.setVisible(config.getConflictResolution() != null);
 		form.add(conflictResolutionContainer);
 
-		ListView repeater = new ListView<PropertyConstraintTypeDto>(ID_REPEATER,
-				new PropertyModel<List<PropertyConstraintTypeDto>>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {
+		ListView<PropertyConstraintType> repeater = new ListView<PropertyConstraintType>(ID_REPEATER,
+            new PropertyModel<>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(final ListItem item) {
+			protected void populateItem(final ListItem<PropertyConstraintType> item) {
 				WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
 				textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>() {
 
+					private static final long serialVersionUID = 1L;
 					@Override
 					public String getObject() {
 						if (item.getIndex() > 0) {
@@ -202,10 +181,11 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 					}
 				}));
 				item.add(textWrapper);
-
-				TextField property = new TextField<>(ID_PROPERTY,
-						new PropertyModel<String>(item.getModel(), PropertyConstraintTypeDto.F_PROPERTY_PATH));
+				
+				TextField<String> property = new TextField<>(ID_PROPERTY,
+						new PropertyModel<>(item.getModel(), PropertyConstraintType.F_PATH.getLocalPart()));
 				property.add(new AjaxFormComponentUpdatingBehavior("blur") {
+					private static final long serialVersionUID = 1L;
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
 					}
@@ -215,7 +195,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				textWrapper.add(property);
 
 				CheckBox oidBound = new CheckBox(ID_OID_BOUND,
-						new PropertyModel<Boolean>(item.getModel(), PropertyConstraintTypeDto.F_OID_BOUND));
+                    new PropertyModel<>(item.getModel(), PropertyConstraintType.F_OID_BOUND.getLocalPart()));
 				oidBound.add(AttributeModifier.replace("title",
 						createStringResource("ObjectPolicyDialog.label.oidBound.help")));
 				textWrapper.add(oidBound);
@@ -223,6 +203,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
 				buttonGroup.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
 
+					private static final long serialVersionUID = 1L;
 					@Override
 					public String getObject() {
 						if (item.getIndex() > 0) {
@@ -242,6 +223,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
 				createStringResource("ObjectPolicyDialog.button.cancel")) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				cancelPerformed(target);
@@ -257,6 +239,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
 				createStringResource("ObjectPolicyDialog.button.save")) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				savePerformed(target);
@@ -270,9 +253,10 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		form.add(save);
 	}
 
-	private void initButtons(WebMarkupContainer buttonGroup, final ListItem item) {
+	private void initButtons(WebMarkupContainer buttonGroup, final ListItem<PropertyConstraintType> item) {
 		AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				addPerformed(target);
@@ -280,6 +264,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		};
 		add.add(new VisibleEnableBehaviour() {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
 				return isAddButtonVisible(item);
@@ -289,6 +274,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 		AjaxLink remove = new AjaxLink(ID_BUTTON_REMOVE) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				removePerformed(target, item);
@@ -296,6 +282,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		};
 		remove.add(new VisibleEnableBehaviour() {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
 				return isRemoveButtonVisible();
@@ -305,18 +292,16 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	}
 
 	private void addPerformed(AjaxRequestTarget target) {
-		List<PropertyConstraintTypeDto> list = model.getObject().getPropertyConstraintsList();
-		list.add(new PropertyConstraintTypeDto(null));
-
-//		target.add(getContent());
+		List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
+		list.add(new PropertyConstraintType());
 	}
 
-	private void removePerformed(AjaxRequestTarget target, ListItem item) {
-		List<PropertyConstraintTypeDto> list = model.getObject().getPropertyConstraintsList();
-		Iterator<PropertyConstraintTypeDto> iterator = list.iterator();
+	private void removePerformed(AjaxRequestTarget target, ListItem<PropertyConstraintType> item) {
+		List<PropertyConstraintType> list = model.getObject().getPropertyConstraintsList();
+		Iterator<PropertyConstraintType> iterator = list.iterator();
 
 		while (iterator.hasNext()) {
-			PropertyConstraintTypeDto object = iterator.next();
+			PropertyConstraintType object = iterator.next();
 
 			if (object.equals(item.getModelObject())) {
 				iterator.remove();
@@ -325,13 +310,11 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		}
 
 		if (list.size() == 0) {
-			list.add(new PropertyConstraintTypeDto(null));
+			list.add(new PropertyConstraintType());
 		}
-
-//		target.add(getContent());
 	}
 
-	protected boolean isAddButtonVisible(ListItem item) {
+	protected boolean isAddButtonVisible(ListItem<PropertyConstraintType> item) {
 		int size = model.getObject().getPropertyConstraintsList().size();
 		if (size <= 1) {
 			return true;
@@ -355,6 +338,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	protected IModel<List<ObjectTemplateConfigTypeReferenceDto>> createObjectTemplateList() {
 		return new AbstractReadOnlyModel<List<ObjectTemplateConfigTypeReferenceDto>>() {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public List<ObjectTemplateConfigTypeReferenceDto> getObject() {
 				List<PrismObject<ObjectTemplateType>> templateList = null;
@@ -389,6 +373,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	private IModel<List<QName>> createTypeChoiceList() {
 		return new AbstractReadOnlyModel<List<QName>>() {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public List<QName> getObject() {
 				return WebComponentUtil.createFocusTypeList();
@@ -403,10 +388,6 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	protected void savePerformed(AjaxRequestTarget target) {
 		getPageBase().hideMainPopup(target);
 	}
-
-//	private PageBase getPageBase() {
-//		return (PageBase) getPage();
-//	}
 
 	public IModel<ObjectPolicyDialogDto> getModel() {
 		return model;

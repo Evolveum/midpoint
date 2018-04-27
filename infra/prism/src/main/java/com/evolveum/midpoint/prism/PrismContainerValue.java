@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * @return set of properties that the property container contains.
      */
     public Set<PrismProperty<?>> getProperties() {
-        Set<PrismProperty<?>> properties = new HashSet<PrismProperty<?>>();
+        Set<PrismProperty<?>> properties = new HashSet<>();
         if (items != null) {
             for (Item<?,?> item : getItems()) {
                 if (item instanceof PrismProperty) {
@@ -266,6 +266,22 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			throw new IllegalStateException("Cannot represent container value without a parent and complex type definition as containerable; value: " + this);
 		}
         return asContainerableInternal(resolveClass(null));
+	}
+	
+	public Class<C> getCompileTimeClass() {
+		if (containerable != null) {
+			return (Class<C>) containerable.getClass();
+		} else {
+			return resolveClass(null);
+		}
+	}
+	
+	public boolean canRepresent(Class<?> clazz) {
+		Class<C> compileTimeClass = getCompileTimeClass();
+		if (compileTimeClass == null) {
+			return false;
+		}
+		return clazz.isAssignableFrom(compileTimeClass);
 	}
 
 	// returned class must be of type 'requiredClass' (or any of its subtypes)
@@ -607,6 +623,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
     }
 
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(String itemName) {
+    	return findItem(new QName(null, itemName));
+    }
+    
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(QName itemName) {
     	try {
 			return findCreateItem(itemName, Item.class, null, false);
@@ -856,7 +876,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         PrismProperty<X> property;
         if (propertyDefinition == null) {
-        	property = new PrismProperty<X>(propertyName, prismContext);		// Definitionless
+        	property = new PrismProperty<>(propertyName, prismContext);		// Definitionless
         } else {
         	property = propertyDefinition.instantiate();
         }
@@ -925,9 +945,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
     }
 
-    public void setPropertyRealValue(QName propertyName, Object realValue, PrismContext prismContext) throws SchemaException {
+    public <T> void setPropertyRealValue(QName propertyName, T realValue, PrismContext prismContext) throws SchemaException {
 		checkMutability();
-    	PrismProperty<?> property = findOrCreateProperty(propertyName);
+    	PrismProperty<T> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
         if (property.getPrismContext() == null) {
             property.setPrismContext(prismContext);
@@ -1276,6 +1296,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         return items.isEmpty();
     }
+	
+	public boolean isIdOnly() {
+		if (id == null) {
+			return false;
+		}
+		if (items == null || items.isEmpty()) {
+			return true;
+		}
+		return false;
+	}
 
     @Override
 	public void normalize() {
@@ -1325,19 +1355,27 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 	}
 
-	public PrismContainerValue<C> clone() {	// TODO resolve also the definition?
-    	PrismContainerValue<C> clone = new PrismContainerValue<>(getOriginType(), getOriginObject(), getParent(), getId(),
+	@Override
+	public PrismContainerValue<C> clone() {
+		return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+	public PrismContainerValue<C> cloneComplex(CloneStrategy strategy) {	// TODO resolve also the definition?
+    	PrismContainerValue<C> clone = new PrismContainerValue<>(getOriginType(), getOriginObject(), getParent(), null,
 				this.complexTypeDefinition, this.prismContext);
-    	copyValues(clone);
+    	copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismContainerValue<C> clone) {
-		super.copyValues(clone);
-		clone.id = this.id;
+	protected void copyValues(CloneStrategy strategy, PrismContainerValue<C> clone) {
+		super.copyValues(strategy, clone);
+		if (strategy == CloneStrategy.LITERAL) {
+			clone.id = this.id;
+		}
 		if (this.items != null) {
 			for (Item<?,?> item : this.items) {
-				Item<?,?> clonedItem = item.clone();
+				Item<?,?> clonedItem = item.cloneComplex(strategy);
 				clonedItem.setParent(clone);
 				if (clone.items == null) {
 					clone.items = new ArrayList<>(this.items.size());
@@ -1346,7 +1384,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-
+	
 	protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef, Consumer<ItemDefinition> postCloneAction) {
 		// special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
 		PrismContainerable parent = getParent();
@@ -1413,7 +1451,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	boolean equalsItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
 			boolean ignoreMetadata, boolean isLiteral) {
-		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<ItemDelta<?,?>>();
+		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
 		diffItems(thisValue, other, deltas, ignoreMetadata, isLiteral);

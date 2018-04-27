@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
@@ -25,15 +29,20 @@ import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
@@ -56,18 +65,12 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
-    @Autowired
-    protected LocalSessionFactoryBean sessionFactoryBean;
-    @Autowired
-    protected RepositoryService repositoryService;
-	@Autowired
-	protected BaseHelper baseHelper;
-    @Autowired
-    protected AuditService auditService;
-    @Autowired
-    protected PrismContext prismContext;
-    @Autowired
-    protected SessionFactory factory;
+    @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
+    @Autowired protected RepositoryService repositoryService;
+	@Autowired protected BaseHelper baseHelper;
+    @Autowired protected AuditService auditService;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected SessionFactory factory;
 
     protected static Set<Class> initializedClasses = new HashSet<>();
 
@@ -160,4 +163,37 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         return HibernateToSqlTranslator.toSql(factory, hql);
     }
 
+    protected void assertSuccess(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertSuccess(result);
+	}
+
+	protected void assertSuccess(String message, OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertSuccess(message, result);
+	}
+	
+	protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getObject");
+        PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
+        assertSuccess(result);
+        return object;
+	}
+	
+	protected OperationResult createResult(String testName) {
+		return new OperationResult(testName);
+	}
+    
+	// TODO: merge with similat methods in AbstractIntegrationTest
+	protected <O extends ObjectType> void display(String message, PrismObject<O> object) {
+		System.out.println("\n"+message+"\n"+object.debugDump(1));
+	}
+	
+	protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return DeltaBuilder.deltaFor(objectClass, prismContext);
+	}
 }

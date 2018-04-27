@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,7 +118,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         			evaluatedExpression = evaluatedExpressionNodeList.item(0);
         		}
         	}
-        	propertyValues = new ArrayList<V>(1);
+        	propertyValues = new ArrayList<>(1);
         	V pval = convertScalar(type, returnType, evaluatedExpression, contextDescription);
         	if (pval instanceof PrismPropertyValue && !isNothing(((PrismPropertyValue<T>)pval).getValue())) {
         		propertyValues.add(pval);
@@ -347,7 +346,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         }
 
     	if (type.isAssignableFrom(value.getClass())) {
-            return (V) new PrismPropertyValue<T>((T) value);
+            return (V) new PrismPropertyValue<>((T) value);
         }
         try {
         	T resultValue = null;
@@ -365,7 +364,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             }
             PrismUtil.recomputeRealValue(resultValue, prismContext);
 
-            return (V) new PrismPropertyValue<T>(resultValue);
+            return (V) new PrismPropertyValue<>(resultValue);
         } catch (SchemaException e) {
             throw new ExpressionEvaluationException("Error converting result of "
                     + contextDescription + ": " + e.getMessage(), e);
@@ -377,7 +376,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 
     private <T, V extends PrismValue> List<V> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
             ExpressionEvaluationException {
-        List<V> values = new ArrayList<V>();
+        List<V> values = new ArrayList<>();
         if (valueNodes == null) {
             return values;
         }
@@ -391,7 +390,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
                 if (isNothing(item)) {
                     continue;
                 }
-                values.add((V) new PrismPropertyValue<T>(item));
+                values.add((V) new PrismPropertyValue<>(item));
             }
             return values;
         } catch (SchemaException e) {

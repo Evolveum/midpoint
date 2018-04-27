@@ -167,12 +167,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         	uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
         resource.setMonsterization(this.configuration.isMonsterized());
-
         if (connected) {
 			throw new IllegalStateException("Double connect in "+this);
 		}
 		connected = true;
-
         resource.connect();
 
         if (staticVal == null) {
@@ -395,7 +393,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -597,7 +595,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -782,7 +780,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -1158,14 +1156,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
 
         try {
-			resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
+			return resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
         } catch (IllegalArgumentException e) {
         	throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			throw new ConnectorIOException(e.getMessage(), e);
 		}
-
-        return null;
     }
 
     /**

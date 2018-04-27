@@ -16,24 +16,20 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import java.util.List;
-
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
-import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
+import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 /**
@@ -84,16 +80,16 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
     }
 
     protected void initLayout() {
-        ChooseTypePanel<SecurityPolicyType> securityPolicyChoosePanel = new ChooseTypePanel<SecurityPolicyType>(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto<SecurityPolicyType>>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
+        ChooseTypePanel<SecurityPolicyType> securityPolicyChoosePanel = new ChooseTypePanel<>(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
+            new PropertyModel<>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
 
         add(securityPolicyChoosePanel);
 
         ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,
-                new PropertyModel<List<ObjectPolicyConfigurationTypeDto>>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
+            new PropertyModel<>(getModel(), SystemConfigurationDto.F_OBJECT_POLICY_LIST));
         add(objectPolicyEditor);
 
-        DropDownFormGroup assignmentPolicyEnforcementLevel = new DropDownFormGroup(ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT,
+        DropDownFormGroup<AEPlevel> assignmentPolicyEnforcementLevel = new DropDownFormGroup<>(ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT,
                 new PropertyModel<AEPlevel>(getModel(), SystemConfigurationDto.F_ASSIGNMENTPOLICYENFORCEMENT_LEVEL),
                 WebComponentUtil.createReadonlyModelFromEnum(AEPlevel.class), new EnumChoiceRenderer<AEPlevel>(SystemConfigPanel.this),
                 createStringResource("SystemConfigPanel.assignmentPolicyEnforcement"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
@@ -144,18 +140,18 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
                 null, true, CLEANUP_LABEL_SIZE, CLEANUP_INPUT_SIZE, false, false);
         add(resultsRecordsField);
 
-        TextFormGroup deploymentInfoName = new TextFormGroup(ID_DEPLOYMENT_INFO_NAME, new PropertyModel<String>(getModel(), "deploymentInformation.name"), createStringResource("SystemConfigPanel.deploymentInformation.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        TextAreaFormGroup deploymentInfoDescription = new TextAreaFormGroup(ID_DEPLOYMENT_INFO_DESCRIPTION, new PropertyModel<String>(getModel(), "deploymentInformation.description"), createStringResource("SystemConfigPanel.deploymentInformation.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        TextFormGroup deploymentInfoHeaderColor = new TextFormGroup(ID_DEPLOYMENT_INFO_HEADER_COLOR, new PropertyModel<String>(getModel(), "deploymentInformation.headerColor"), createStringResource("SystemConfigPanel.deploymentInformation.headerColor"),"SystemConfigPanel.tooltip.color", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false , false); // TODO change to a more user friendly solution
+        TextFormGroup deploymentInfoName = new TextFormGroup(ID_DEPLOYMENT_INFO_NAME, new PropertyModel<>(getModel(), "deploymentInformation.name"), createStringResource("SystemConfigPanel.deploymentInformation.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextAreaFormGroup deploymentInfoDescription = new TextAreaFormGroup(ID_DEPLOYMENT_INFO_DESCRIPTION, new PropertyModel<>(getModel(), "deploymentInformation.description"), createStringResource("SystemConfigPanel.deploymentInformation.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoHeaderColor = new TextFormGroup(ID_DEPLOYMENT_INFO_HEADER_COLOR, new PropertyModel<>(getModel(), "deploymentInformation.headerColor"), createStringResource("SystemConfigPanel.deploymentInformation.headerColor"),"SystemConfigPanel.tooltip.color", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false , false); // TODO change to a more user friendly solution
 
-        TextFormGroup deploymentInfoImageUrl = new TextFormGroup(ID_DEPLOYMENT_INFO_LOGO_IMAGEURL, new PropertyModel<String>(getModel(), "deploymentInformation.logo.imageUrl"), createStringResource("SystemConfigPanel.deploymentInformation.logoImageUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        TextFormGroup deploymentInfoCssClass = new TextFormGroup(ID_DEPLOYMENT_INFO_LOGO_CSS, new PropertyModel<String>(getModel(), "deploymentInformation.logo.cssClass"), createStringResource("SystemConfigPanel.deploymentInformation.logoCssClass"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoImageUrl = new TextFormGroup(ID_DEPLOYMENT_INFO_LOGO_IMAGEURL, new PropertyModel<>(getModel(), "deploymentInformation.logo.imageUrl"), createStringResource("SystemConfigPanel.deploymentInformation.logoImageUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoCssClass = new TextFormGroup(ID_DEPLOYMENT_INFO_LOGO_CSS, new PropertyModel<>(getModel(), "deploymentInformation.logo.cssClass"), createStringResource("SystemConfigPanel.deploymentInformation.logoCssClass"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 
 
-        TextFormGroup deploymentInfoSkin = new TextFormGroup(ID_DEPLOYMENT_INFO_SKIN, new PropertyModel<String>(getModel(), "deploymentInformation.skin"), createStringResource("SystemConfigPanel.deploymentInformation.skin"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        TextFormGroup deploymentInfoCustomerUrl = new TextFormGroup(ID_DEPLOYMENT_INFO_CUSTOMER_URL, new PropertyModel<String>(getModel(), "deploymentInformation.customerUrl"), createStringResource("SystemConfigPanel.deploymentInformation.customerUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        TextFormGroup deploymentInfoPartnerName = new TextFormGroup(ID_DEPLOYMENT_INFO_PARTNER_NAME, new PropertyModel<String>(getModel(), "deploymentInformation.partnerName"), createStringResource("SystemConfigPanel.deploymentInformation.partnerName"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        TextFormGroup deploymentInfoSubscriptionId = new TextFormGroup(ID_DEPLOYMENT_INFO_SUBSCRIPTION_ID, new PropertyModel<String>(getModel(), "deploymentInformation.subscriptionIdentifier"), createStringResource("SystemConfigPanel.deploymentInformation.subscriptionIdentifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoSkin = new TextFormGroup(ID_DEPLOYMENT_INFO_SKIN, new PropertyModel<>(getModel(), "deploymentInformation.skin"), createStringResource("SystemConfigPanel.deploymentInformation.skin"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoCustomerUrl = new TextFormGroup(ID_DEPLOYMENT_INFO_CUSTOMER_URL, new PropertyModel<>(getModel(), "deploymentInformation.customerUrl"), createStringResource("SystemConfigPanel.deploymentInformation.customerUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoPartnerName = new TextFormGroup(ID_DEPLOYMENT_INFO_PARTNER_NAME, new PropertyModel<>(getModel(), "deploymentInformation.partnerName"), createStringResource("SystemConfigPanel.deploymentInformation.partnerName"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoSubscriptionId = new TextFormGroup(ID_DEPLOYMENT_INFO_SUBSCRIPTION_ID, new PropertyModel<>(getModel(), "deploymentInformation.subscriptionIdentifier"), createStringResource("SystemConfigPanel.deploymentInformation.subscriptionIdentifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 
         WebMarkupContainer deploymentInfoContainer = new WebMarkupContainer(ID_DEPLOYMENT_INFO_CONTAINER);
 
@@ -174,7 +170,7 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
         add(deploymentInfoContainer);
 
 
-        CheckFormGroup experimentalCodeCheck = new CheckFormGroup(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<Boolean>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE), createStringResource("SystemConfigPanel.misc.enableExperimentalCode"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        CheckFormGroup experimentalCodeCheck = new CheckFormGroup(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE), createStringResource("SystemConfigPanel.misc.enableExperimentalCode"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         add(experimentalCodeCheck);
 
     }

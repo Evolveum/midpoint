@@ -16,7 +16,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.wicket.model.Model;
@@ -120,9 +124,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
         	@Override
             public void onClick(AjaxRequestTarget target) {
-        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
-        		containerValueWrapper.sort(getPageBase());
+	        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+	        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
+	        		containerValueWrapper.sort();
+	        		containerValueWrapper.computeStripes();
 
                 onButtonClick(target);
             }
@@ -175,27 +180,27 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		add(childContainersSelectorPanel);
 
 		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
-		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<QName>(ID_CHILD_CONTAINERS_LIST,
-				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-				new IChoiceRenderer<QName>() {
-					@Override
-					public Object getDisplayValue(QName qName) {
-						return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
-					}
+		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
+            Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
+            new IChoiceRenderer<QName>() {
+                @Override
+                public Object getDisplayValue(QName qName) {
+                    return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
+                }
 
-					@Override
-					public String getIdValue(QName qName, int i) {
-						return Integer.toString(i);
-					}
+                @Override
+                public String getIdValue(QName qName, int i) {
+                    return Integer.toString(i);
+                }
 
-					@Override
-					public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-						if (StringUtils.isBlank(id)) {
-							return null;
-						}
-						return choices.getObject().get(Integer.parseInt(id));
-					}
-				});
+                @Override
+                public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+                    if (StringUtils.isBlank(id)) {
+                        return null;
+                    }
+                    return choices.getObject().get(Integer.parseInt(id));
+                }
+            });
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
@@ -260,7 +265,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
 		isChildContainersSelectorPanelVisible = false;
 		getModelObject().setShowEmpty(true, false);
-		getModelObject().addNewChildContainerValue(getSelectedContainerQName(), getPageBase());
+		createNewContainerValue(getModelObject(), getSelectedContainerQName());
 		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
 	}
 
@@ -274,7 +279,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 
 	@Override
-	protected String getLabel() {
+	public String getLabel() {
 		return getModel().getObject().getDisplayName();
 	}
 	
@@ -283,9 +288,35 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 		wrapper.setShowEmpty(!wrapper.isShowEmpty(), false);
 			
+		wrapper.computeStripes();
 		onButtonClick(target);
 		
 	}
+	
+	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
+		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(new ItemPath(containerValueWrapper.getPath(),
+				path));
+		if (childContainerWrapper == null){
+			return;
+		}
+		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
+		if (isSingleValue){
+			return;
+		}
+		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
+		
+		Task task = getPageBase().createSimpleTask("Creating new container value wrapper");
+		
+		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+		ContainerValueWrapper<C> newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
+				newContainerValue, containerValueWrapper.getObjectStatus(),
+				ValueStatus.ADDED, new ItemPath(path), task);
+		newValueWrapper.setShowEmpty(true, false);
+		newValueWrapper.computeStripes();
+		childContainerWrapper.getValues().add(newValueWrapper);
+
+	}
+
 
 
 }

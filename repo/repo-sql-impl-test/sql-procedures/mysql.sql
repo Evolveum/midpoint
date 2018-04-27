@@ -38,7 +38,6 @@ DETERMINISTIC
     DELETE FROM m_assignment_reference;
     DELETE FROM m_assignment_policy_situation;
     DELETE FROM m_assignment;
-    DELETE FROM m_exclusion;
     DELETE FROM m_connector_target_system;
     DELETE FROM m_connector;
     DELETE FROM m_connector_host;
@@ -74,9 +73,9 @@ DETERMINISTIC
     DELETE FROM m_form;
     DELETE FROM m_case;
     DELETE FROM m_function_library;
+    DELETE FROM m_ext_item;
+    DELETE FROM m_object_subtype;
     DELETE FROM m_object;
-
-    UPDATE hibernate_sequence SET next_val = 1;
 
     RETURN run;
   END$$

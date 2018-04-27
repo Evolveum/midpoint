@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.ObjectUtils;
@@ -147,8 +148,14 @@ public class ItemPathResolver {
             if (anyLinkDef.getOwnerType() != null) {        // null for assignment extensions
                 conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", anyLinkDef.getOwnerType()));
             }
-            conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_NAME,
-                    RUtil.qnameToString(anyLinkDef.getItemName())));
+            RExtItem extItemDefinition = ExtItemDictionary.getInstance().findItemByDefinition(anyLinkDef.getItemDefinition(), context.getSession());
+            if (extItemDefinition != null) {
+                conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_ITEM + "." + RExtItem.F_ID,
+                        extItemDefinition.getId()));
+            } else {
+                // there are no rows referencing this item, because it does not exist in RExtItem (yet)
+                conjunction.add(hibernateQuery.createFalse());
+            }
             condition = conjunction;
         }
         else if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {

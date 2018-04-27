@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.common;
 
-import java.io.File;
-
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

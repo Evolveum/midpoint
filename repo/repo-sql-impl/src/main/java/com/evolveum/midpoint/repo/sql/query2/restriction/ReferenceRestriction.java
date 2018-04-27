@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,31 +135,42 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         AndCondition conjunction = hibernateQuery.createAnd();
         conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
 
-		if (ObjectTypeUtil.isDefaultRelation(relation)) {
-			// Return references without relation or with "member" relation
-			conjunction.add(hibernateQuery.createIn(hqlPath + "." + RELATION_HQL_PROPERTY,
-					Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT))));
-		} else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
-			// Return all relations => no restriction
-		} else {
-			// return references with specific relation
-			List<String> relationsToTest = new ArrayList<>();
-			relationsToTest.add(qnameToString(relation));
-			if (QNameUtil.noNamespace(relation)) {
-				relationsToTest.add(qnameToString(QNameUtil.setNamespaceIfMissing(relation, SchemaConstants.NS_ORG, null)));
-			} else if (SchemaConstants.NS_ORG.equals(relation.getNamespaceURI())) {
-				relationsToTest.add(qnameToString(new QName(relation.getLocalPart())));
-			} else {
-				// non-empty non-standard NS => nothing to add
-			}
-			conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + RELATION_HQL_PROPERTY, relationsToTest));
-		}
-
+        List<String> relationsToTest = getRelationsToTest(relation);
+        if (!relationsToTest.isEmpty()) {
+	        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + RELATION_HQL_PROPERTY, relationsToTest));
+        }
 		if (targetType != null) {
 			conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + TARGET_TYPE_HQL_PROPERTY,
 					ClassMapper.getHQLTypeForQName(targetType)));
 		}
         return conjunction;
+    }
+
+    // Beware: the value of relation = null is interpreted as "default" (because of 'ref' clause semantics).
+	// If the caller want to interpret it as "any", it has to cater for this itself.
+	//
+    // Return: empty list means "nothing to test".
+	@NotNull
+    static List<String> getRelationsToTest(QName relation) {
+	    if (ObjectTypeUtil.isDefaultRelation(relation)) {
+		    // Return references without relation or with "default" relation
+		    return Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT));
+	    } else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
+		    // Return all relations => no restriction
+		    return Collections.emptyList();
+	    } else {
+		    // return references with specific relation
+		    List<String> rv = new ArrayList<>();
+		    rv.add(qnameToString(relation));
+		    if (QNameUtil.noNamespace(relation)) {
+			    rv.add(qnameToString(QNameUtil.setNamespaceIfMissing(relation, SchemaConstants.NS_ORG, null)));
+		    } else if (SchemaConstants.NS_ORG.equals(relation.getNamespaceURI())) {
+			    rv.add(qnameToString(new QName(relation.getLocalPart())));
+		    } else {
+			    // non-empty non-standard NS => nothing to add
+		    }
+		    return rv;
+	    }
     }
 
 	private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {

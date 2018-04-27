@@ -20,8 +20,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -86,7 +84,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
         return new TaskErrorDto(object, taskDtoModel.getObject().getOid());
     }
     private List<IColumn<TaskErrorDto, String>> initColumns() {
-        List<IColumn<TaskErrorDto, String>> columns = new ArrayList<IColumn<TaskErrorDto, String>>();
+        List<IColumn<TaskErrorDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME));
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorDto.F_MESSAGE));

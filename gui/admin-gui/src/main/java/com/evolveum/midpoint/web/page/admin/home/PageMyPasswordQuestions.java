@@ -1,3 +1,18 @@
+/*
+ * Portions Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.home;
 
 import java.util.ArrayList;
@@ -29,10 +44,14 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -41,6 +60,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
+import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -52,9 +72,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
-@PageDescriptor(url = "/PasswordQuestions")
+@PageDescriptor(url = "/PasswordQuestions", action = {
+        @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
+                label = PageSelf.AUTH_SELF_ALL_LABEL,
+                description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
+                label = "PageSelfCredentials.auth.credentials.label",
+                description = "PageSelfCredentials.auth.credentials.description")})
 public class PageMyPasswordQuestions extends PageAdminHome {
-
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageMyPasswordQuestions.class);
 
@@ -148,7 +174,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
             if (secQuestAnsList != null) {
 
                 LOGGER.debug("User SecurityQuestion ANswer List is Not null");
-                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
                 for (Iterator iterator = secQuestAnsList.iterator(); iterator
                         .hasNext(); ) {
                     SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
@@ -182,7 +208,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 
 		//question panel list
-		pqPanels = new ArrayList<MyPasswordQuestionsPanel>();
+		pqPanels = new ArrayList<>();
 		OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
 		try{
 
@@ -205,7 +231,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
                     policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
                 } else {
                     questionNumber = 0;
-                    policyQuestionList = new ArrayList<SecurityQuestionDefinitionType>();
+                    policyQuestionList = new ArrayList<>();
                 }
 			}catch(Exception ex){
 				ex.printStackTrace();
@@ -479,7 +505,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		} catch (Exception ex){
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
-			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status);
+			try {
+				wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, task);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
 		}
 		//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
 			showResult(wrapper.getResult(), false);

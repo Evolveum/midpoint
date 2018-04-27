@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,23 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanelChainedModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author lazyman
@@ -58,11 +58,22 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
         //TODO: visible behaviour??
         add( new VisibleEnableBehaviour() {
-        	
-        	@Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
         	public boolean isVisible() {
-        		if (isPanelVisible != null && model.getObject() != null && !isPanelVisible.isVisible(model.getObject())) {
-        			return false;
+        		if (isPanelVisible != null && model.getObject() != null) {
+        			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
+        			if (visible != null) {
+        				switch (visible) {
+            				case VISIBLE:
+            					return true;
+            				case HIDDEN:
+            					return false;
+            				default:
+            					// automatic, go on ...
+            			}
+        			}
         		}
                 return model.getObject() != null && model.getObject().isVisible();
         	}
@@ -123,11 +134,10 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-				ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
-				containerPanel.setOutputMarkupId(true);
-				item.add(containerPanel);
-				
-				
+                    ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
+                    containerPanel.setOutputMarkupId(true);
+                    item.add(containerPanel);
+
 			}
 			
 		};

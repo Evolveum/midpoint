@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -111,7 +110,7 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
                 item.add(icon);
 
                 ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS,
-                        new PropertyModel<List<MainMenuItem>>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
+                    new PropertyModel<>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
 
                     @Override
                     protected void populateItem(final ListItem<MainMenuItem> listItem) {

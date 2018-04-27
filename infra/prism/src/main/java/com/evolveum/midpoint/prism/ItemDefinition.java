@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -66,12 +65,18 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 
 	/**
 	 * Returns true if this item can be read (displayed).
-	 * In case of containers this means that the container itself can be read, e.g. that the container
-	 * label or block should be displayed. This usually happens if the container contains at least one
-	 * readable item.
+	 * In case of containers this flag is, strictly speaking, not applicable. Container is an
+	 * empty shell. What matters is access to individual sub-item. However, for containers this
+	 * value has a "hint" meaning.  It means that the container itself contains something that is
+	 * readable. Which can be used as a hint by the presentation to display container label or block.
+	 * This usually happens if the container contains at least one readable item.
 	 * This does NOT mean that also all the container items can be displayed. The sub-item permissions
 	 * are controlled by similar properties on the items. This property only applies to the container
 	 * itself: the "shell" of the container.
+	 * 
+	 * Note: It was considered to use a different meaning for this flag - a meaning that would allow
+	 * canRead()=false containers to have readable items. However, this was found not to be very useful.
+	 * Therefore the "something readable inside" meaning was confirmed instead.
 	 */
 	boolean canRead();
 	

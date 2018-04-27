@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,20 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -109,7 +100,18 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 					return null;
 				}
 			}
-    	};
+
+			@Override
+			protected IModel<String> getKindIntentLabelModel() {
+				AssignmentType assignment = AbstractAssignmentDetailsPanel.this.getModelObject().getContainerValue().getValue();
+				if (assignment.getConstruction() != null){
+					return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
+							assignment.getConstruction().getIntent());
+				}
+				return Model.of();
+			}
+
+		};
 
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
@@ -129,55 +131,46 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		add(assignmentPanel);
 
 
-		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, F>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
+		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
 		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), pageBase);
 		add(acitvationContainer);
 		
 		initContainersPanel(form, pageBase);
     }
 
-    protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
-		ContainerWrapperListFromObjectWrapperModel<Containerable, F> containerModel =
-				new ContainerWrapperListFromObjectWrapperModel<Containerable, F>(pageBase.getObjectModel(), collectContainersToShow());
+    protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase) {
 		ItemPath assignmentPath = getModelObject().getPath();
-		if (containerModel != null && containerModel.getObject() != null){
-			containerModel.getObject().forEach(container -> {
-				if (container.getName().equals(AssignmentType.F_CONSTRUCTION)) {
-					container.setAddContainerButtonVisible(true);
-					container.setShowEmpty(true, false);
-
-					ContainerWrapper associationWrapper = container.findContainerWrapper(container.getPath().append(ConstructionType.F_ASSOCIATION));
-					if (associationWrapper != null) {
-						associationWrapper.setRemoveContainerButtonVisible(true);
-					}
-				}
-			});
-		}
-
-		PrismPanel<Containerable> containers = new PrismPanel<Containerable>(ID_SPECIFIC_CONTAINERS, containerModel,
-				null, form,
-				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase) ;
-		add(containers);
+		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS,
+				getSpecificContainerModel(), false, form,
+				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), pageBase);
+		constraintsContainerPanel.setOutputMarkupId(true);
+		add(constraintsContainerPanel);
 	}
     
     protected ItemPath getAssignmentPath() {
     	return getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
     }
     
-    protected abstract List<ItemPath> collectContainersToShow();
+    protected abstract IModel<ContainerWrapper> getSpecificContainerModel();
     
-    protected boolean getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
-			return true;
+			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF));
-		return PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath());
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS));
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_STRENGTH));
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+			return ItemVisibility.AUTO;
+		} else {
+			return ItemVisibility.HIDDEN;
+		}
 	}
 
-    private boolean getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
     	if (itemWrapper.getPath().equals(getAssignmentPath().append(AssignmentType.F_METADATA))){
-    		return true;
+    		return ItemVisibility.AUTO;
 		}
     	AssignmentType assignment = getModelObject().getContainerValue().getValue();
 		ObjectReferenceType targetRef = assignment.getTargetRef();
@@ -203,20 +196,24 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_POLICY_RULE));
 		
 		
-    	return PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath()); 
+    	if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+    		return ItemVisibility.AUTO;
+    	} else {
+    		return ItemVisibility.HIDDEN;
+    	}
     }
     
 
-    private boolean getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
-    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)){
-    		return false;
+    private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
+    		return ItemVisibility.HIDDEN;
     	}
     	
-    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)){
-    		return false;
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
+    		return ItemVisibility.HIDDEN;
     	}
     	
-    	return true;
+    	return ItemVisibility.AUTO;
     }
 
 

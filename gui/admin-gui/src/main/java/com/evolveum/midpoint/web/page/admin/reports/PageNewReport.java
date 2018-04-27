@@ -90,7 +90,7 @@ public class PageNewReport extends PageAdminReports {
     private Model<String> xmlEditorModel;
 
     public PageNewReport() {
-    	xmlEditorModel = new Model<String>(null);
+    	xmlEditorModel = new Model<>(null);
 
     	initLayout();
 	}
@@ -107,7 +107,7 @@ public class PageNewReport extends PageAdminReports {
         buttonBar.setOutputMarkupId(true);
         mainForm.add(buttonBar);
 
-        final IModel<Integer> groupModel = new Model<Integer>(INPUT_FILE);
+        final IModel<Integer> groupModel = new Model<>(INPUT_FILE);
         RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
         importRadioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 

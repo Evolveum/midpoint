@@ -19,7 +19,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Task handler for "Shadow integrity check" task.
@@ -57,7 +56,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, ShadowIntegrityCheckResultHandler> {
+public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ShadowType, ShadowIntegrityCheckResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
@@ -98,23 +97,10 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
                 matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);
 	}
 
-	@Override
-	protected boolean initializeRun(ShadowIntegrityCheckResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
-	}
-
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
         return ShadowType.class;
     }
-
-    @Override
-	protected ObjectQuery createQuery(ShadowIntegrityCheckResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
-        LOGGER.info("Using query:\n{}", query.debugDump());
-        return query;
-	}
 
     @Override
     protected boolean useRepositoryDirectly(ShadowIntegrityCheckResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
@@ -124,10 +110,5 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

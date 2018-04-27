@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -72,7 +71,7 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 
     }
     
-    protected abstract String getLabel();
+    public abstract String getLabel();
 
     public boolean isButtonsVisible() {
     	return true;

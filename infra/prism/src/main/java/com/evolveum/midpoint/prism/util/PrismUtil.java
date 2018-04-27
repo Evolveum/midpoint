@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -102,7 +101,7 @@ public class PrismUtil {
 	}
 
 	public static void unfortifyNamespaceDeclarations(Element definitionElement) {
-		Map<String,String> namespaces = new HashMap<String,String>();
+		Map<String,String> namespaces = new HashMap<>();
 		for(Element childElement: DOMUtil.listChildElements(definitionElement)) {
 			if (PrismConstants.A_NAMESPACE.equals(DOMUtil.getQName(childElement))) {
 				String prefix = childElement.getAttribute(PrismConstants.A_NAMESPACE_PREFIX);
@@ -111,7 +110,7 @@ public class PrismUtil {
 				definitionElement.removeChild(childElement);
 			} else {
 				unfortifyNamespaceDeclarations(definitionElement, childElement, namespaces);
-				namespaces = new HashMap<String,String>();
+				namespaces = new HashMap<>();
 			}
 		}
 	}
@@ -158,7 +157,7 @@ public class PrismUtil {
 		} else {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcVal.getValue());
-			return new PrismPropertyValue<X>(convertedRealValue);
+			return new PrismPropertyValue<>(convertedRealValue);
 		}
 	}
 
@@ -170,7 +169,7 @@ public class PrismUtil {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			for (PrismPropertyValue<T> srcPVal: srcProp.getValues()) {
 				X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcPVal.getValue());
-				targetProp.add(new PrismPropertyValue<X>(convertedRealValue));
+				targetProp.add(new PrismPropertyValue<>(convertedRealValue));
 			}
 			return targetProp;
 		}

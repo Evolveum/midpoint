@@ -20,9 +20,7 @@ import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -121,7 +119,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 
     private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanaleVisible, boolean isToBeReplaced){
         ListView<IW> properties = new ListView<IW>("properties",
-                new PropertyModel<List<IW>>(model, "properties")) {
+            new PropertyModel<>(model, "properties")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

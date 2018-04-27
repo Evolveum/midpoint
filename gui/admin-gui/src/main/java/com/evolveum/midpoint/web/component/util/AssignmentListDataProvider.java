@@ -17,13 +17,10 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -34,7 +31,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -120,7 +116,7 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Contain
     	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
-    private List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
+    protected List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
     	List<ContainerValueWrapper<AssignmentType>> list = model.getObject();
 
     	if (list == null || list.isEmpty()) {

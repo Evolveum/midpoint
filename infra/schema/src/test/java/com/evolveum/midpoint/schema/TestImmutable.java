@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class TestImmutable {
 
 		// THEN
 		try {
-			datePP.setRealValue(yesterday);
+			datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(yesterday));
 			AssertJUnit.fail("Value was changed when immutable!");
 		} catch (RuntimeException e) {
 			System.out.println("Got (expected) exception of " + e);

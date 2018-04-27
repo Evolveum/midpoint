@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -148,7 +147,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
     @Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		return new PropertyDelta<T>(path, this, prismContext);
+		return new PropertyDelta<>(path, this, prismContext);
 	}
 
 	@Override
@@ -174,7 +173,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	@NotNull
 	@Override
 	public PrismPropertyDefinition<T> clone() {
-		PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<T>(getName(), getTypeName(), getPrismContext());
+		PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<>(getName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}

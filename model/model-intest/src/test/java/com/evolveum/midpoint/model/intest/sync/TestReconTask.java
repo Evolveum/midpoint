@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import java.io.FileNotFoundException;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,7 +51,11 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.NONE);
 
 		allwaysCheckTimestamp = true;
+	}
 
+	@Override
+	protected String getExpectedChannel() {
+		return SchemaConstants.CHANGE_CHANNEL_RECON_URI;
 	}
 
 	@Override

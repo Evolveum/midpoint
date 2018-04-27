@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -85,42 +86,24 @@ public class FocusProcessor {
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 
-	@Autowired
-    private InboundProcessor inboundProcessor;
-
-	@Autowired
-    private AssignmentProcessor assignmentProcessor;
-
-	@Autowired
-	private ObjectTemplateProcessor objectTemplateProcessor;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private CredentialsProcessor credentialsProcessor;
-
-	@Autowired
-	private ModelObjectResolver modelObjectResolver;
-
-	@Autowired
-	private ActivationComputer activationComputer;
-
-	@Autowired
-	private ExpressionFactory expressionFactory;
+	@Autowired private InboundProcessor inboundProcessor;
+	@Autowired private AssignmentProcessor assignmentProcessor;
+	@Autowired private ObjectTemplateProcessor objectTemplateProcessor;
+	@Autowired private PrismContext prismContext;
+	@Autowired private CredentialsProcessor credentialsProcessor;
+	@Autowired private ModelObjectResolver modelObjectResolver;
+	@Autowired private ActivationComputer activationComputer;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private MappingEvaluator mappingHelper;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private PolicyRuleProcessor policyRuleProcessor;
+	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
+	@Autowired private ClockworkMedic medic;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired
-    private MappingEvaluator mappingHelper;
-
-	@Autowired
-    private OperationalDataManager metadataManager;
-
-	@Autowired
-	private PolicyRuleProcessor policyRuleProcessor;
 
 	public <O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) 
@@ -204,13 +187,13 @@ public class FocusProcessor {
 
 				if (consistencyChecks) context.checkConsistence();
 
-				LensUtil.partialExecute("inbound",
+				medic.partialExecute("inbound",
 						() -> {
 							// Loop through the account changes, apply inbound expressions
 					        inboundProcessor.processInbound(context, now, task, result);
 					        if (consistencyChecks) context.checkConsistence();
 					        context.recomputeFocus();
-					        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
+					        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
 						},
 						partialProcessingOptions::getInbound);
@@ -218,14 +201,14 @@ public class FocusProcessor {
 
 		        // ACTIVATION
 
-				LensUtil.partialExecute("focusActivation",
+				medic.partialExecute("focusActivation",
 						() -> processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 
 		        // OBJECT TEMPLATE (before assignments)
 
-				LensUtil.partialExecute("objectTemplateBeforeAssignments",
+				medic.partialExecute("objectTemplateBeforeAssignments",
 						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result),
 						partialProcessingOptions::getObjectTemplateBeforeAssignments);
@@ -233,7 +216,7 @@ public class FocusProcessor {
 
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
-		        LensUtil.partialExecute("focusActivation",
+		        medic.partialExecute("focusActivation",
 						() -> processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
@@ -242,28 +225,32 @@ public class FocusProcessor {
 				focusContext.clearPendingObjectPolicyStateModifications();
 				focusContext.clearPendingAssignmentPolicyStateModifications();
 
-				LensUtil.partialExecute("assignments",
+				medic.partialExecute("assignments",
 						() -> assignmentProcessor.processAssignmentsProjections(context, now, task, result),
 						partialProcessingOptions::getAssignments);
 
-		        LensUtil.partialExecute("assignmentsOrg",
+				medic.partialExecute("assignmentsOrg",
 						() -> assignmentProcessor.processOrgAssignments(context, result),
 						partialProcessingOptions::getAssignmentsOrg);
 
 
-		        LensUtil.partialExecute("assignmentsMembershipAndDelegate",
+				medic.partialExecute("assignmentsMembershipAndDelegate",
 						() -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result),
 						partialProcessingOptions::getAssignmentsMembershipAndDelegate);
 
 		        context.recompute();
 
-		        LensUtil.partialExecute("assignmentsConflicts",
+		        medic.partialExecute("assignmentsConflicts",
 						() -> assignmentProcessor.checkForAssignmentConflicts(context, result),
 						partialProcessingOptions::getAssignmentsConflicts);
+		        
+		        medic.partialExecute("focusLifecycle",
+						() -> focusLifecycleProcessor.processLifecycle(context, now, task, result),
+						partialProcessingOptions::getFocusLifecycle);
 
 		        // OBJECT TEMPLATE (after assignments)
 
-				LensUtil.partialExecute("objectTemplateAfterAssignments",
+		        medic.partialExecute("objectTemplateAfterAssignments",
 						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result),
 						partialProcessingOptions::getObjectTemplateBeforeAssignments);
@@ -273,20 +260,20 @@ public class FocusProcessor {
 		        // process activation again. Second pass through object template might have changed it.
 		        // We also need to apply assignment activation if needed
 		        context.recomputeFocus();
-		        LensUtil.partialExecute("focusActivation",
+		        medic.partialExecute("focusActivation",
 						() -> processActivationAfterAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 
 		        // CREDENTIALS (including PASSWORD POLICY)
 
-		        LensUtil.partialExecute("focusCredentials",
+		        medic.partialExecute("focusCredentials",
 						() -> credentialsProcessor.processFocusCredentials(context, now, task, result),
 						partialProcessingOptions::getFocusCredentials);
 
 		        // We need to evaluate this as a last step. We need to make sure we have all the
 		        // focus deltas so we can properly trigger the rules.
 
-		        LensUtil.partialExecute("focusPolicyRules",
+		        medic.partialExecute("focusPolicyRules",
 						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
 						partialProcessingOptions::getFocusPolicyRules);
 
@@ -448,9 +435,9 @@ public class FocusProcessor {
 					}
 					PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
 					if (String.class.isAssignableFrom(propDef.getTypeClass())) {
-						propDelta.setValueToReplace(new PrismPropertyValue<Object>(newValue, OriginType.USER_POLICY, null));
+						propDelta.setValueToReplace(new PrismPropertyValue<>(newValue, OriginType.USER_POLICY, null));
 					} else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
-						propDelta.setValueToReplace(new PrismPropertyValue<Object>(new PolyString(newValue), OriginType.USER_POLICY, null));
+						propDelta.setValueToReplace(new PrismPropertyValue<>(new PolyString(newValue), OriginType.USER_POLICY, null));
 					} else {
 						throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
 					}
@@ -473,7 +460,7 @@ public class FocusProcessor {
 				PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
 				PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
 				PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
-				nameDelta.setValueToReplace(new PrismPropertyValue<PolyString>(new PolyString(newValue), OriginType.USER_POLICY, null));
+				nameDelta.setValueToReplace(new PrismPropertyValue<>(new PolyString(newValue), OriginType.USER_POLICY, null));
 				focusContext.swallowToSecondaryDelta(nameDelta);
 				focusContext.recompute();
 			}
@@ -702,7 +689,7 @@ public class FocusProcessor {
 			if (failedLogins != null && failedLogins != 0) {
 				PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
 				PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
-				failedLoginsDelta.setValueToReplace(new PrismPropertyValue<Integer>(0, OriginType.USER_POLICY, null));
+				failedLoginsDelta.setValueToReplace(new PrismPropertyValue<>(0, OriginType.USER_POLICY, null));
 				focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
 			}
 		}
@@ -742,7 +729,7 @@ public class FocusProcessor {
 		PrismPropertyDefinition<ActivationStatusType> effectiveStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_EFFECTIVE_STATUS);
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta
 				= effectiveStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-		effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(effectiveStatusNew, OriginType.USER_POLICY, null));
+		effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<>(effectiveStatusNew, OriginType.USER_POLICY, null));
 		if (!focusContext.alreadyHasDelta(effectiveStatusDelta)){
 			focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
 		}
@@ -799,13 +786,13 @@ public class FocusProcessor {
 		}
 		PrismObjectDefinition<F> objDef = focusContext.getObjectDefinition();
 
-		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<Integer>(iteration);
+		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<>(iteration);
 		iterationVal.setOriginType(OriginType.USER_POLICY);
 		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(objDef,
 				FocusType.F_ITERATION, iterationVal);
 		focusContext.swallowToSecondaryDelta(iterationDelta);
 
-		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<String>(iterationToken);
+		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<>(iterationToken);
 		iterationTokenVal.setOriginType(OriginType.USER_POLICY);
 		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(objDef,
 				FocusType.F_ITERATION_TOKEN, iterationTokenVal);
@@ -853,7 +840,7 @@ public class FocusProcessor {
 								new NameItemPathSegment(AssignmentType.F_ACTIVATION),
 								new NameItemPathSegment(ActivationType.F_EFFECTIVE_STATUS)
 							));
-					effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(expectedEffectiveStatus));
+					effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<>(expectedEffectiveStatus));
 					focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
 				}
 			}

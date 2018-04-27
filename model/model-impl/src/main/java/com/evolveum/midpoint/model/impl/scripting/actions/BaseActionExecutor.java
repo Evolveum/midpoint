@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -70,6 +71,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Autowired protected ModelService modelService;
 	@Autowired protected SecurityEnforcer securityEnforcer;
 	@Autowired protected SecurityContextManager securityContextManager;
+	@Autowired protected TaskService taskService;
 
     // todo move to some helper?
 

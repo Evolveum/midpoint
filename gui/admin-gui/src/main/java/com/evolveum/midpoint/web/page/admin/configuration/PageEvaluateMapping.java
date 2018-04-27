@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -96,13 +95,13 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
         add(mainForm);
 
 		AceEditor editorMapping = new AceEditor(
-				ID_EDITOR_MAPPING, new PropertyModel<String>(model, ExecuteMappingDto.F_MAPPING));
+				ID_EDITOR_MAPPING, new PropertyModel<>(model, ExecuteMappingDto.F_MAPPING));
 		editorMapping.setHeight(400);
 		editorMapping.setResizeToMaxHeight(false);
         mainForm.add(editorMapping);
 
 		AceEditor editorRequest = new AceEditor(
-				ID_EDITOR_REQUEST, new PropertyModel<String>(model, ExecuteMappingDto.F_REQUEST));
+				ID_EDITOR_REQUEST, new PropertyModel<>(model, ExecuteMappingDto.F_REQUEST));
 		editorRequest.setHeight(430);
 		editorRequest.setResizeToMaxHeight(false);
 		mainForm.add(editorRequest);
@@ -161,7 +160,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
 		});
 		mainForm.add(sampleChoice);
 
-		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<String>(model, ExecuteMappingDto.F_RESULT_TEXT));
+		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<>(model, ExecuteMappingDto.F_RESULT_TEXT));
 		resultText.setReadonly(true);
 		resultText.setHeight(300);
 		resultText.setResizeToMaxHeight(false);

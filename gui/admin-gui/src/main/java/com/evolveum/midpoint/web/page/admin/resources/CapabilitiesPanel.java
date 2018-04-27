@@ -76,7 +76,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
 	}
 
 	private void createCapabilityButton(String id) {
-		AjaxLink<Boolean> button = new AjaxLink<Boolean>(id, new PropertyModel<Boolean>(getModel(), id)) {
+		AjaxLink<Boolean> button = new AjaxLink<Boolean>(id, new PropertyModel<>(getModel(), id)) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {

@@ -50,7 +50,7 @@ public class StringPolicyUtils {
 			LimitationsType sl = new LimitationsType();
 			sl.setCheckAgainstDictionary(false);
 			sl.setCheckPattern("");
-			sl.setMaxLength(-1);
+			sl.setMaxLength(Integer.MAX_VALUE);
 			sl.setMinLength(0);
 			sl.setMinUniqueChars(0);
 			sp.setLimitations(sl);
@@ -92,7 +92,7 @@ public class StringPolicyUtils {
 			}
 		}
 		// Remove duplicity in return;
-		HashSet<String> h = new HashSet<String>();
+		HashSet<String> h = new HashSet<>();
 		for (String s : l.toString().split("")) {
 			h.add(s);
 		}

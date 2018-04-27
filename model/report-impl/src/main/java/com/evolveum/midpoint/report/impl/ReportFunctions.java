@@ -196,7 +196,7 @@ public class ReportFunctions {
                 LOGGER.debug("Could not resolve assignment for type {}. No target type defined.", type);
             }
 
-            if (!clazz.equals(type)) {
+            if (clazz == null || !clazz.equals(type)) {
                 continue;
             }
 
@@ -225,7 +225,7 @@ public class ReportFunctions {
             return new ArrayList<>();
         }
 
-        Map<String, Object> resultSet = new HashMap<String, Object>();
+        Map<String, Object> resultSet = new HashMap<>();
         Set<Entry<String, Object>> paramSet = params.entrySet();
         for (Entry<String, Object> p : paramSet) {
             if (p.getValue() instanceof AuditEventTypeType) {

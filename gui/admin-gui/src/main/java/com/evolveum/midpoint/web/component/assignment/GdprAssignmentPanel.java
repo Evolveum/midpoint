@@ -64,7 +64,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<Boolean> getEnabled() {
+			protected IModel<Boolean> getEnabled(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 				return Model.of(Boolean.FALSE);
 			}
 
@@ -102,8 +102,8 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 	@Override
 	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
-			QName relation) {
-		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT);
+			QName relation, ShadowKindType kind, String intent) {
+		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
 	}
 
 	protected ObjectQuery createObjectQuery() {

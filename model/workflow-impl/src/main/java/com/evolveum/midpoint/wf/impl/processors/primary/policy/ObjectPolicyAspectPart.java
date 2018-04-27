@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -149,7 +148,7 @@ public class ObjectPolicyAspectPart {
 	private <T extends ObjectType> List<ObjectDelta<T>> extractDeltasToApprove(ObjectDelta<T> focusDelta, WfProcessSpecificationType processSpecification)
 			throws SchemaException {
 		List<ObjectDelta<T>> rv = new ArrayList<>();
-		if (processSpecification == null || processSpecification.getDeltaFrom().isEmpty()) {
+		if (focusDelta.isDelete() || processSpecification == null || processSpecification.getDeltaFrom().isEmpty()) {
 			return takeWholeDelta(focusDelta, rv);
 		}
 		for (DeltaSourceSpecificationType sourceSpec : processSpecification.getDeltaFrom()) {

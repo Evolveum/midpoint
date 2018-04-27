@@ -17,11 +17,9 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.RepositoryFactory;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
@@ -112,7 +110,6 @@ public class WfConfiguration implements BeanFactoryAware {
 
         // activiti properties related to database connection will be taken from SQL repository
         SqlRepositoryConfiguration sqlConfig = null;
-        String defaultJdbcUrlPrefix = null;
         dropDatabase = false;
         try {
             RepositoryFactory repositoryFactory = (RepositoryFactory) beanFactory.getBean("repositoryFactory");
@@ -124,22 +121,17 @@ public class WfConfiguration implements BeanFactoryAware {
             } else {
                 SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) repositoryFactory.getFactory();
                 sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
-                if (sqlConfig.isEmbedded()) {
-                    defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
-                }
                 dropDatabase = sqlConfig.isDropIfExists();
             }
-        } catch(NoSuchBeanDefinitionException e) {
+        } catch (NoSuchBeanDefinitionException e) {
             LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");
             LOGGER.trace("Reason is", e);
-        } catch (RepositoryServiceFactoryException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
         }
 
         String explicitJdbcUrl = c.getString(KEY_JDBC_URL, null);
-        if (explicitJdbcUrl == null) {
-            if (sqlConfig == null || sqlConfig.isEmbedded()) {
-                jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE;MVCC=FALSE";
+        if (explicitJdbcUrl == null && sqlConfig != null) {
+            if (sqlConfig.isEmbedded()) {
+                jdbcUrl = sqlConfig.getDefaultEmbeddedJdbcUrlPrefix() + "-activiti;DB_CLOSE_ON_EXIT=FALSE;MVCC=FALSE";
             } else {
                 jdbcUrl = sqlConfig.getJdbcUrl();
             }

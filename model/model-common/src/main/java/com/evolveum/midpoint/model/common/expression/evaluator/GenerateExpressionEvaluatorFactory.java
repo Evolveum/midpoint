@@ -86,7 +86,7 @@ public class GenerateExpressionEvaluatorFactory extends AbstractObjectResolvable
 
         GenerateExpressionEvaluatorType generateEvaluatorType = (GenerateExpressionEvaluatorType)evaluatorTypeObject;
 
-		return new GenerateExpressionEvaluator<V,D>(generateEvaluatorType, outputDefinition, protector, getObjectResolver(), valuePolicyGenerator, prismContext);
+		return new GenerateExpressionEvaluator<>(generateEvaluatorType, outputDefinition, protector, getObjectResolver(), valuePolicyGenerator, prismContext);
 	}
 
 }

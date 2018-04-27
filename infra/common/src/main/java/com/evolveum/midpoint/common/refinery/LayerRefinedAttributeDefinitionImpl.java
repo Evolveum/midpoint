@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		if (rAttrDef == null) {
 			return null;
 		}
-		return new LayerRefinedAttributeDefinitionImpl<T>(rAttrDef, layer);
+		return new LayerRefinedAttributeDefinitionImpl<>(rAttrDef, layer);
 	}
 
 	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
@@ -150,6 +150,16 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public boolean isIgnored(LayerType layer) {
 		return refinedAttributeDefinition.isIgnored(layer);
+	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return refinedAttributeDefinition.getProcessing(layer);
+	}
+	
+	@Override
+	public ItemProcessing getProcessing(LayerType layer) {
+		return refinedAttributeDefinition.getProcessing(layer);
 	}
 
 	@Override

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+
+	<org oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0">
+        <name>policy-meta-approval</name>
+        <subType>policy</subType>
+        <description>Group of approval polices. This group contains policies that deal with assignment approvals and lifecycle approvals.</description>
+        <displayName>Approval policies</displayName>
+    </org>
+
+    <role oid="834bf178-30fc-11e8-addd-1fc1464266f5">
+	    <name>meta-role-policy-assignment-approval-manager</name>
+	    <subType>policy</subType>
+	    <displayName>Assignment approval by user's manager</displayName>
+	    <assignment>
+	        <!-- Assignment so this meta-role is part of the policy group -->
+	        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
+	    </assignment>
+	    <inducement>
+	        <policyRule>
+	            <policyConstraints>
+	                <assignment>
+	                	<operation>add</operation>
+	                </assignment>
+	            </policyConstraints>
+	            <policyActions>
+	                <approval>
+	                    <compositionStrategy>
+	                        <order>100</order>
+	                    </compositionStrategy>
+	                    <approvalSchema>
+	                        <level>
+	                            <name>User's manager</name>
+	                            <approverExpression>
+	                                <script>
+	                                    <code>midpoint.getManagersOidsExceptUser(object)</code>
+	                                </script>
+	                            </approverExpression>
+	                            <evaluationStrategy>firstDecides</evaluationStrategy>
+	                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+	                        </level>
+	                    </approvalSchema>
+	                </approval>
+	            </policyActions>
+	        </policyRule>
+	    </inducement>
+    </role>
+        
+    <role oid="0851dd7a-30fc-11e8-88fe-3796232f0574">
+	    <name>meta-role-policy-assignment-approval-role-approver</name>
+	    <subType>policy</subType>
+	    <displayName>Assignment approval by any role approver</displayName>
+	    <assignment>
+	        <!-- Assignment so this meta-role is part of the policy group -->
+	        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
+	    </assignment>
+	    <inducement>
+	        <policyRule>
+	            <policyConstraints>
+	                <assignment>
+	                	<operation>add</operation>
+	                </assignment>
+	            </policyConstraints>
+	            <policyActions>
+	                <approval>
+	                    <compositionStrategy>
+	                        <order>200</order>
+	                    </compositionStrategy>
+	                    <approvalSchema>
+	                        <level>
+	                            <name>Role approver</name>
+	                            <approverRelation>approver</approverRelation>
+	                            <evaluationStrategy>firstDecides</evaluationStrategy>
+	                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+	                        </level>
+	                    </approvalSchema>
+	                </approval>
+	            </policyActions>
+	        </policyRule>
+	    </inducement>
+    </role>
+
+    <role oid="a38b7eec-23a3-11e8-9f81-f7fb91a9d52a">
+	    <name>meta-role-policy-assignment-approval-role-owners</name>
+	    <subType>policy</subType>
+	    <displayName>Assignment approval by all role owners</displayName>
+	    <assignment>
+	        <!-- Assignment so this meta-role is part of the policy group -->
+	        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
+	    </assignment>
+	    <inducement>
+	        <policyRule>
+	            <policyConstraints>
+	                <assignment>
+	                	<operation>add</operation>
+	                </assignment>
+	            </policyConstraints>
+	            <policyActions>
+	                <approval>
+	                    <compositionStrategy>
+	                        <order>300</order>
+	                    </compositionStrategy>
+	                    <approvalSchema>
+	                        <level>
+	                            <name>Role owners (all)</name>
+	                            <approverRelation>owner</approverRelation>
+	                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+	                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+	                        </level>
+	                    </approvalSchema>
+	                </approval>
+	            </policyActions>
+	        </policyRule>
+	    </inducement>
+    </role>
+	
+</objects>

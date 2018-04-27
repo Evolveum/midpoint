@@ -118,7 +118,7 @@ public class ProcessInstancesPanel extends BasePanel {
 			columns.add(createTargetNameColumn("pageProcessInstances.item.target"));
 			columns.add(createStageColumn());
 			//columns.add(createStateColumn());
-			columns.add(new PropertyColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
+			columns.add(new PropertyColumn<>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
 			columns.add(createOutcomeColumn());
 			columns.add(createFinishedColumn());
 		} else {
@@ -203,6 +203,13 @@ public class ProcessInstancesPanel extends BasePanel {
 					}
 				};
 			}
+			
+			// Cannot have the default "icon" class here. This column has text label in the header.
+			// Having class "icon" would shrink the column to 25px and the text will overflow.
+			@Override
+		    public String getCssClass() {
+		        return "shrink";
+		    }
 
 			private String choose(IModel<ProcessInstanceDto> rowModel, String noReply, String inProgress, String approved, String rejected) {
 				ProcessInstanceDto dto = rowModel.getObject();

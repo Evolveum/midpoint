@@ -108,7 +108,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
 		subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
 		add(subtasksLabel);
-		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled());
+		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled(), parentPage);
 		subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
 		add(subtasksPanel);
 
@@ -125,7 +125,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		add(workerThreadsTableLabel);
 		List<IColumn<WorkerThreadDto, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskName"), WorkerThreadDto.F_NAME));
-		columns.add(new EnumPropertyColumn<WorkerThreadDto>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
+		columns.add(new EnumPropertyColumn<>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
 		columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskObjectsProcessed"), WorkerThreadDto.F_PROGRESS));
 		ISortableDataProvider<WorkerThreadDto, String> threadsProvider = new ListDataProvider<>(this,
 				new AbstractReadOnlyModel<List<WorkerThreadDto>>() {

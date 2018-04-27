@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.L2Container;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
@@ -34,7 +34,7 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     private static final Trace LOGGER = TraceManager.getTrace(ContainerIdGenerator.class);
 
     @Override
-    public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
+    public Serializable generate(SharedSessionContractImplementor session, Object object) throws HibernateException {
         if (object instanceof Container) {
             return generate((Container) object);
         } else if (object instanceof L2Container) {

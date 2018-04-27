@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,14 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -74,6 +68,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	private PrismContainerValue<C> containerValue;
 	private ValueStatus status;
 	private ItemPath path;
+	// WARNING!!! This field has to be called "properties" even if the right name should be "items".
+	// But some Wicket reflection magic is looking for "properties" field. So, let it be properties for now.
 	private List<ItemWrapper> properties;
 	private boolean readonly;
 	private boolean selected;
@@ -161,15 +157,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		int visibleProperties = 0;
 
-		for (ItemWrapper item : properties) {
+ 		for (ItemWrapper item : properties) {
 			if (item.isVisible()) {
 				visibleProperties++;
 			}
+			
 			if (visibleProperties % 2 == 0) {
 				item.setStripe(true);
 			} else {
 				item.setStripe(false);
 			}
+			
 		}
 	}
 
@@ -235,7 +233,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	 */
 	@Deprecated
 	private boolean skipProperty(PrismPropertyDefinition def) {
-		final List<QName> names = new ArrayList<QName>();
+		final List<QName> names = new ArrayList<>();
 		names.add(PasswordType.F_FAILED_LOGINS);
 		names.add(PasswordType.F_LAST_FAILED_LOGIN);
 		names.add(PasswordType.F_LAST_SUCCESSFUL_LOGIN);
@@ -281,61 +279,91 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		this.selected = selected;
 	}
 
-	public void sort(final PageBase pageBase) {
+	public void sort() {
+		Locale locale = WebModelServiceUtils.getLocale();
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		Collator collator = Collator.getInstance(locale);
 		if (isSorted()) {
-			Collator collator = Collator.getInstance(pageBase.getLocale());
 			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
+			
+//			List<ItemWrapper> containerWrappers = new ArrayList<>();
+//			List<ItemWrapper> propertyOrReferenceWrapper = new ArrayList<>();
+//			for(ItemWrapper w : properties) {
+//				if (w instanceof ContainerWrapper) {
+//					containerWrappers.add(w);
+//					continue;
+//				}
+//				
+//				if (PropertyOrReferenceWrapper.class.isAssignableFrom(w.getClass())) {
+//					propertyOrReferenceWrapper.add(w);
+//				}
+//			}
+			
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
-					ItemDefinition id1 = pw1.getItemDefinition();
-					ItemDefinition id2 = pw2.getItemDefinition();
-					String str1 = (id1 != null ? (id1.getDisplayName() != null
-							? (pageBase.createStringResource(id1.getDisplayName()) != null
-									&& StringUtils.isNotEmpty(pageBase.createStringResource(id1.getDisplayName()).getString())
-											? pageBase.createStringResource(id1.getDisplayName()).getString()
-											: id1.getDisplayName())
-							: (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : ""))
-							: "");
-					String str2 = (id2 != null ? (id2.getDisplayName() != null
-							? (pageBase.createStringResource(id2.getDisplayName()) != null
-									&& StringUtils.isNotEmpty(pageBase.createStringResource(id2.getDisplayName()).getString())
-											? pageBase.createStringResource(id2.getDisplayName()).getString()
-											: id2.getDisplayName())
-							: (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : ""))
-							: "");
-					//return str1.compareToIgnoreCase(str2);
-					return collator.compare(str1, str2);
+					
+					if (pw1 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw1).sort();
+					}
+					
+					if (pw2 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw2).sort();
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapper) {
+						return -1;
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapper) {
+						return 1;
+					}
+//					
+					return compareByDisplayNames(pw1, pw2, collator);
 				}
 			});
 		} else {
-			final int[] maxOrderArray = new int[3];
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+					
+					if (pw1 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw1).sort();
+					}
+					
+					if (pw2 instanceof ContainerWrapper) {
+						((ContainerWrapper) pw2).sort();
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw1.getClass()) && pw2 instanceof ContainerWrapper) {
+						return -1;
+					}
+					
+					if (PropertyOrReferenceWrapper.class.isAssignableFrom(pw2.getClass()) && pw1 instanceof ContainerWrapper) {
+						return 1;
+					}
+					
 					ItemDefinition id1 = pw1.getItemDefinition();
 					ItemDefinition id2 = pw2.getItemDefinition();
 
-					// we need to find out the value of the biggest displayOrder
-					// to put
-					// properties with null display order to the end of the list
-					int displayOrder1 = (id1 != null && id1.getDisplayOrder() != null) ? id1.getDisplayOrder() : 0;
-					int displayOrder2 = (id2 != null && id2.getDisplayOrder() != null) ? id2.getDisplayOrder() : 0;
-					if (maxOrderArray[0] == 0) {
-						maxOrderArray[0] = displayOrder1 > displayOrder2 ? displayOrder1 + 1 : displayOrder2 + 1;
+					int displayOrder1 = (id1 == null || id1.getDisplayOrder() == null) ? Integer.MAX_VALUE : id1.getDisplayOrder();
+					int displayOrder2 = (id2 == null || id2.getDisplayOrder() == null) ? Integer.MAX_VALUE : id2.getDisplayOrder();
+					if (displayOrder1 == displayOrder2){
+						return compareByDisplayNames(pw1, pw2, collator);
+					} else {
+						return Integer.compare(displayOrder1, displayOrder2);
 					}
-					maxOrderArray[1] = displayOrder1;
-					maxOrderArray[2] = displayOrder2;
-
-					int maxDisplayOrder = NumberUtils.max(maxOrderArray);
-					maxOrderArray[0] = maxDisplayOrder + 1;
-
-					return Integer.compare(id1 != null && id1.getDisplayOrder() != null ? id1.getDisplayOrder() : maxDisplayOrder,
-							id2 != null && id2.getDisplayOrder() != null ? id2.getDisplayOrder() : maxDisplayOrder);
 				}
 			});
 		}
+
+	}
+
+	private int compareByDisplayNames(ItemWrapper pw1, ItemWrapper pw2, Collator collator) {
+		return collator.compare(pw1.getDisplayName(), pw2.getDisplayName());
 	}
 
 	@Override
@@ -355,8 +383,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		DebugUtil.debugDumpWithLabelLn(sb, "path", path == null ? null : path.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "containerDefinition", getDefinition() == null ? null : getDefinition().toString(),
 				indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "container", containerValue == null ? null : containerValue.toString(), indent + 1);
-		DebugUtil.debugDumpLabelLn(sb, "properties", indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "containerValue", containerValue == null ? null : containerValue.toString(), indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "items", indent + 1);
 		DebugUtil.debugDump(sb, properties, indent + 2, false);
 		return sb.toString();
 	}
@@ -382,42 +410,27 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public Collection<Item> getUpdatedContainerValueItems(PrismContext prismContext) throws SchemaException {
 		Collection<Item> updatedItems = new ArrayList<>();
-		getItems().stream().forEach(item -> {
+		for (ItemWrapper item : getItems()) {
 			try {
 				if (!item.hasChanged()) {
-					return;
+					continue;
 				}
 
 				if (item instanceof ContainerWrapper) {
 					PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
 					updatedItems.add(containerToAdd);
+					
 				} else {
 
 					PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
 					Item updatedItem = propOrRef.getUpdatedItem(prismContext);
-
-					if (item.getPath().containsName(ObjectType.F_EXTENSION)) {
-						PrismContainer extensionContainer;
-						try {
-							extensionContainer = containerValue.findOrCreateContainer(ObjectType.F_EXTENSION);
-						} catch (SchemaException e) {
-							LoggingUtils.logException(LOGGER, "Could not handle extension deltas item " + item.getItem(), e);
-							return;
-						}
-						if (extensionContainer == null) {
-							return;
-						}
-						extensionContainer.getValue().addReplaceExisting(updatedItem);
-						updatedItems.add(extensionContainer.clone());
-					} else {
-						updatedItems.add(updatedItem);
-					}
+					updatedItems.add(updatedItem);
 
 				}
 			} catch (SchemaException ex) {
 				throw new TunnelException("Cannot create add delta for container value: " + containerValue, ex);
 			}
-		});
+		}
 		return updatedItems;
 	}
 
@@ -573,25 +586,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 	}
 
-	public void addNewChildContainerValue(QName path, PageBase pageBase){
-		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
-		if (childContainerWrapper == null){
-			return;
-		}
-		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
-		if (isSingleValue){
-			return;
-		}
-		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
-		ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
-		ContainerValueWrapper newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
-				newContainerValue, objectStatus,
-				ValueStatus.ADDED, new ItemPath(path));
-		newValueWrapper.setShowEmpty(true, false);
-		childContainerWrapper.getValues().add(newValueWrapper);
-
-	}
-
+	
 	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {
 		List<PrismValue> prismValues = new ArrayList<>();
 		for (Object vWrapper : itemWrapper.getValues()) {
@@ -698,7 +693,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		boolean rv = true;
 		for (ItemWrapper itemWrapper : getItems()) {
 			if (!itemWrapper.checkRequired(pageBase)) {
-				rv = false;
+				rv = false;     // not returning directly as we want to go through all the values
 			}
 		}
 		return rv;
@@ -717,6 +712,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
+		return findContainerWrapper(new ItemPath(qname));
+	}
+	
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {

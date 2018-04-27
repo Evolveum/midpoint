@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -532,6 +533,27 @@ public class TestQueryConvertor {
 		displayTestTitle(TEST_NAME);
 		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
 				.item(UserType.F_COST_CENTER).gt("100000")
+				.build();
+		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+	}
+
+	@Test
+	public void test305GreaterLesserMatchingNorm() throws Exception {
+		final String TEST_NAME = "test305GreaterLesserMatchingNorm";
+		displayTestTitle(TEST_NAME);
+		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_NAME).ge(new PolyString("00", "00")).matchingNorm()
+				.and().item(UserType.F_NAME).lt(new PolyString("0a", "0a")).matchingNorm()
+				.build();
+		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+	}
+
+	@Test
+	public void test305GreaterOrEqual() throws Exception {
+		final String TEST_NAME = "test305GreaterOrEqual";
+		displayTestTitle(TEST_NAME);
+		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_COST_CENTER).ge("100000")
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
 	}

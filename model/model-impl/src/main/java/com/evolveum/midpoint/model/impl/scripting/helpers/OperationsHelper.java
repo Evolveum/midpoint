@@ -19,7 +19,6 @@ package com.evolveum.midpoint.model.impl.scripting.helpers;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -56,14 +55,9 @@ public class OperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationsHelper.class);
 
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private ModelInteractionService modelInteractionService;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private ModelService modelService;
+    @Autowired private ModelInteractionService modelInteractionService;
+    @Autowired private PrismContext prismContext;
 
     public void applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         applyDelta(delta, null, context, result);
@@ -122,32 +116,36 @@ public class OperationsHelper {
 
     public long recordStart(ExecutionContext context, ObjectType objectType) {
         long started = System.currentTimeMillis();
-        if (context.getTask() != null && objectType != null) {
-            context.getTask().recordIterativeOperationStart(PolyString.getOrig(objectType.getName()),
-                    StatisticsUtil.getDisplayName(objectType.asPrismObject()),
-                    StatisticsUtil.getObjectType(objectType, prismContext),
-                    objectType.getOid());
-        } else {
-            LOGGER.warn("Couldn't record operation start in script execution; task = {}, objectType = {}",
-                    context.getTask(), objectType);
+        if (context.isRecordProgressAndIterationStatistics()) {
+            if (context.getTask() != null && objectType != null) {
+                context.getTask().recordIterativeOperationStart(PolyString.getOrig(objectType.getName()),
+                        StatisticsUtil.getDisplayName(objectType.asPrismObject()),
+                        StatisticsUtil.getObjectType(objectType, prismContext),
+                        objectType.getOid());
+            } else {
+                LOGGER.warn("Couldn't record operation start in script execution; task = {}, objectType = {}",
+                        context.getTask(), objectType);
+            }
         }
         return started;
     }
 
     public void recordEnd(ExecutionContext context, ObjectType objectType, long started, Throwable ex) {
-        if (context.getTask() != null && objectType != null) {
-            context.getTask().recordIterativeOperationEnd(
-                    PolyString.getOrig(objectType.getName()),
-                    StatisticsUtil.getDisplayName(objectType.asPrismObject()),
-                    StatisticsUtil.getObjectType(objectType, prismContext),
-                    objectType.getOid(),
-                    started, ex);
-        } else {
-            LOGGER.warn("Couldn't record operation end in script execution; task = {}, objectType = {}",
-                    context.getTask(), objectType);
-        }
-        if (context.getTask() != null) {
-            context.getTask().setProgress(context.getTask().getProgress() + 1);
+        if (context.isRecordProgressAndIterationStatistics()) {
+            if (context.getTask() != null && objectType != null) {
+                context.getTask().recordIterativeOperationEnd(
+                        PolyString.getOrig(objectType.getName()),
+                        StatisticsUtil.getDisplayName(objectType.asPrismObject()),
+                        StatisticsUtil.getObjectType(objectType, prismContext),
+                        objectType.getOid(),
+                        started, ex);
+            } else {
+                LOGGER.warn("Couldn't record operation end in script execution; task = {}, objectType = {}",
+                        context.getTask(), objectType);
+            }
+            if (context.getTask() != null) {
+                context.getTask().setProgress(context.getTask().getProgress() + 1);
+            }
         }
     }
 

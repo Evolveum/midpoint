@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -104,10 +105,14 @@ public class DependencyProcessor {
 		}
 		if (projectionContext.isDelete()) {
 			// When deprovisioning (deleting) the dependencies needs to be processed in reverse
-			LOGGER.trace("Determining wave for (deprovision): {}", projectionContext);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Determining wave for (deprovision): {}", projectionContext.getHumanReadableName());
+			}
 			return determineProjectionWaveDeprovision(context, projectionContext, inDependency, depPath);
 		} else {
-			LOGGER.trace("Determining wave for (provision): {}", projectionContext);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Determining wave for (provision): {}", projectionContext.getHumanReadableName());
+			}
 			return determineProjectionWaveProvision(context, projectionContext, inDependency, depPath);
 		}
 	}
@@ -115,37 +120,43 @@ public class DependencyProcessor {
 	private <F extends ObjectType> LensProjectionContext determineProjectionWaveProvision(LensContext<F> context,
 			LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (depPath == null) {
-			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
+			depPath = new ArrayList<>();
 		}
 		int determinedWave = 0;
 		int determinedOrder = 0;
 		for (ResourceObjectTypeDependencyType outDependency: projectionContext.getDependencies()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("DEP: {}", outDependency);
-			}
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("  processing dependency: {}: ignore (higher order)", PrettyPrinter.prettyPrint(outDependency));
+				}
 				continue;
 			}
-			checkForCircular(depPath, outDependency);
+			checkForCircular(depPath, outDependency, projectionContext);
 			depPath.add(outDependency);
 			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency,
 					projectionContext.getResource().getOid(), projectionContext.getKind());
 			LensProjectionContext dependencyProjectionContext = findDependencyTargetContext(context, projectionContext, outDependency);
-//			if (LOGGER.isTraceEnabled()) {
-//				LOGGER.trace("DEP: {} -> {}", refDiscr, dependencyProjectionContext);
-//			}
 			if (dependencyProjectionContext == null || dependencyProjectionContext.isDelete()) {
 				ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
 				if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("  processing dependency: {}: unsatisfied strict dependency", PrettyPrinter.prettyPrint(outDependency));
+					}
 					throw new PolicyViolationException("Unsatisfied strict dependency of account "+projectionContext.getResourceShadowDiscriminator()+
 						" dependent on "+refDiscr+": Account not provisioned");
 				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("  processing dependency: {}: unsatisfied lax dependency", PrettyPrinter.prettyPrint(outDependency));
+					}
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied lax dependency of account "+projectionContext.getResourceShadowDiscriminator()+
 						" dependent on "+refDiscr+"; dependency skipped");
 				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("  processing dependency: {}: unsatisfied relaxed dependency", PrettyPrinter.prettyPrint(outDependency));
+					}
 					// independent object not in the context, just ignore it
 					LOGGER.debug("Unsatisfied relaxed dependency of account "+projectionContext.getResourceShadowDiscriminator()+
 						" dependent on "+refDiscr+"; dependency skipped");
@@ -153,7 +164,11 @@ public class DependencyProcessor {
 					throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+refDiscr);
 				}
 			} else {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("  processing dependency: {}: satisfied dependency", PrettyPrinter.prettyPrint(outDependency));
+				}
 				dependencyProjectionContext = determineProjectionWave(context, dependencyProjectionContext, outDependency, depPath);
+				LOGGER.trace("    dependency projection wave: {}", dependencyProjectionContext.getWave());
 				if (dependencyProjectionContext.getWave() + 1 > determinedWave) {
 					determinedWave = dependencyProjectionContext.getWave() + 1;
 					if (outDependency.getOrder() == null) {
@@ -162,6 +177,7 @@ public class DependencyProcessor {
 						determinedOrder = outDependency.getOrder();
 					}
 				}
+				LOGGER.trace("    determined dependency wave: {} (order={})", determinedWave, determinedOrder);
 			}
 			depPath.remove(outDependency);
 		}
@@ -185,7 +201,7 @@ public class DependencyProcessor {
 	private <F extends ObjectType> LensProjectionContext determineProjectionWaveDeprovision(LensContext<F> context,
 				LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (depPath == null) {
-			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
+			depPath = new ArrayList<>();
 		}
 		int determinedWave = 0;
 		int determinedOrder = 0;
@@ -194,28 +210,61 @@ public class DependencyProcessor {
 		for (DependencyAndSource ds: findReverseDependecies(context, projectionContext)) {
 			LensProjectionContext dependencySourceContext = ds.sourceProjectionContext;
 			ResourceObjectTypeDependencyType outDependency = ds.dependency;
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("DEP(rev): {}", outDependency);
-				}
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("  processing (reversed) dependency: {}: ignore (higher order)", PrettyPrinter.prettyPrint(outDependency));
+				}
 				continue;
 			}
-			checkForCircular(depPath, outDependency);
-			depPath.add(outDependency);
-			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency,
-					projectionContext.getResource().getOid(), projectionContext.getKind());
-			dependencySourceContext = determineProjectionWave(context, dependencySourceContext, outDependency, depPath);
-			if (dependencySourceContext.getWave() + 1 > determinedWave) {
-				determinedWave = dependencySourceContext.getWave() + 1;
-				if (outDependency.getOrder() == null) {
-					determinedOrder = 0;
+			
+			if (!dependencySourceContext.isDelete()) {
+				ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
+				if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied strict dependency", PrettyPrinter.prettyPrint(outDependency));
+					}
+					throw new PolicyViolationException("Unsatisfied strict reverse dependency of account " + dependencySourceContext.getResourceShadowDiscriminator()+
+						" dependent on " + projectionContext.getResourceShadowDiscriminator() + ": Account is provisioned, but the account that it depends on is going to be deprovisioned");
+				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied lax dependency", PrettyPrinter.prettyPrint(outDependency));
+					}
+					// independent object not in the context, just ignore it
+					LOGGER.debug("Unsatisfied lax reversed dependency of account " + dependencySourceContext.getResourceShadowDiscriminator()+
+							" dependent on " + projectionContext.getResourceShadowDiscriminator() + "; dependency skipped");
+				} else if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("  processing (reversed) dependency: {}: unsatisfied relaxed dependency", PrettyPrinter.prettyPrint(outDependency));
+					}
+					// independent object not in the context, just ignore it
+					LOGGER.debug("Unsatisfied relaxed dependency of account " + dependencySourceContext.getResourceShadowDiscriminator()+
+							" dependent on " + projectionContext.getResourceShadowDiscriminator() + "; dependency skipped");
 				} else {
-					determinedOrder = outDependency.getOrder();
+					throw new IllegalArgumentException("Unknown dependency strictness "+outDependency.getStrictness()+" in "+dependencySourceContext.getResourceShadowDiscriminator());
 				}
+			} else {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("  processing (reversed) dependency: {}: satisfied", PrettyPrinter.prettyPrint(outDependency));
+				}
+				checkForCircular(depPath, outDependency, projectionContext);
+				depPath.add(outDependency);
+				ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency,
+						projectionContext.getResource().getOid(), projectionContext.getKind());
+				dependencySourceContext = determineProjectionWave(context, dependencySourceContext, outDependency, depPath);
+				LOGGER.trace("    dependency projection wave: {}", dependencySourceContext.getWave());
+				if (dependencySourceContext.getWave() + 1 > determinedWave) {
+					determinedWave = dependencySourceContext.getWave() + 1;
+					if (outDependency.getOrder() == null) {
+						determinedOrder = 0;
+					} else {
+						determinedOrder = outDependency.getOrder();
+					}
+				}
+				LOGGER.trace("    determined dependency wave: {} (order={})", determinedWave, determinedOrder);
+				depPath.remove(outDependency);
 			}
-			depPath.remove(outDependency);
 		}
 
 		LensProjectionContext resultAccountContext = projectionContext;
@@ -250,7 +299,7 @@ public class DependencyProcessor {
 
 
 	private void checkForCircular(List<ResourceObjectTypeDependencyType> depPath,
-			ResourceObjectTypeDependencyType outDependency) throws PolicyViolationException {
+			ResourceObjectTypeDependencyType outDependency, LensProjectionContext projectionContext) throws PolicyViolationException {
 		for (ResourceObjectTypeDependencyType pathElement: depPath) {
 			if (pathElement.equals(outDependency)) {
 				StringBuilder sb = new StringBuilder();
@@ -267,7 +316,7 @@ public class DependencyProcessor {
 						sb.append("->");
 					}
 				}
-				throw new PolicyViolationException("Circular dependency, path: "+sb.toString());
+				throw new PolicyViolationException("Circular dependency in "+projectionContext.getHumanReadableName()+", path: "+sb.toString());
 			}
 		}
 	}
@@ -567,7 +616,7 @@ public class DependencyProcessor {
 		return true;
 	}
 
-	class DependencyAndSource {
+	static class DependencyAndSource {
 		ResourceObjectTypeDependencyType dependency;
 		LensProjectionContext sourceProjectionContext;
 	}

@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 
 	// We want to maintain ordering, hence the List
-	private List<Entry> subnodes = new ArrayList<Entry>();
+	private List<Entry> subnodes = new ArrayList<>();
 
 	public int size() {
 		return subnodes.size();
@@ -109,7 +109,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	}
 
 	public Set<QName> keySet() {
-		Set<QName> keySet = new HashSet<QName>();
+		Set<QName> keySet = new HashSet<>();
 		for (Entry entry: subnodes) {
 			keySet.add(entry.getKey());
 		}
@@ -117,7 +117,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	}
 
 	public Collection<XNode> values() {
-		Collection<XNode> values = new ArrayList<XNode>(subnodes.size());
+		Collection<XNode> values = new ArrayList<>(subnodes.size());
 		for (Entry entry: subnodes) {
 			values.add(entry.getValue());
 		}
@@ -395,7 +395,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return new RootXNode(key, get(key));
 	}
 
-	private class Entry implements Map.Entry<QName, XNode>, Serializable {
+	private static class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;
 		private XNode value;

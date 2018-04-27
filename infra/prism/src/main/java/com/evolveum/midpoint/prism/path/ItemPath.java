@@ -401,7 +401,7 @@ public class ItemPath implements Serializable, Cloneable {
 	/**
 	 * Alternative to normalization: reads the same sequence of segments of 'path' as segments of 'path.normalize()'
 	 */
-	private class ItemPathNormalizingIterator implements Iterator<ItemPathSegment> {
+	private static class ItemPathNormalizingIterator implements Iterator<ItemPathSegment> {
 		final ItemPath path;
 		private int i = 0;
 		private boolean nextIsArtificialId = false;
@@ -487,7 +487,12 @@ public class ItemPath implements Serializable, Cloneable {
 	 *  - path = X -&gt; false
 	 */
     public static boolean containsSuperpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
-    	return paths.stream().anyMatch(p -> p.isSuperPathOrEquivalent(pathToBeFound));
+    	for (ItemPath path : paths) {
+    		if (path.isSuperPathOrEquivalent(pathToBeFound)) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 
 	/**
@@ -500,7 +505,12 @@ public class ItemPath implements Serializable, Cloneable {
 	 *  - path = X -&gt; false
 	 */
 	public static boolean containsSuperpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
-		return paths.stream().anyMatch(p -> p.isSuperPath(pathToBeFound));
+		for (ItemPath path : paths) {
+    		if (path.isSuperPath(pathToBeFound)) {
+    			return true;
+    		}
+    	}
+    	return false;
 	}
 
 	/**
@@ -513,7 +523,12 @@ public class ItemPath implements Serializable, Cloneable {
 	 *  - path = X -&gt; false
 	 */
     public static boolean containsSubpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
-    	return paths.stream().anyMatch(p -> p.isSubPathOrEquivalent(pathToBeFound));
+    	for (ItemPath path : paths) {
+    		if (path.isSubPathOrEquivalent(pathToBeFound)) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 
 	/**
@@ -526,7 +541,12 @@ public class ItemPath implements Serializable, Cloneable {
 	 *  - path = X -&gt; false
 	 */
 	public static boolean containsSubpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
-		return paths.stream().anyMatch(p -> p.isSubPath(pathToBeFound));
+		for (ItemPath path : paths) {
+    		if (path.isSubPath(pathToBeFound)) {
+    			return true;
+    		}
+    	}
+    	return false;
 	}
 
     public ItemPath namedSegmentsOnly() {
@@ -836,11 +856,21 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public boolean containsSpecialSymbols() {
-		return segments.stream().anyMatch(s -> s instanceof IdentifierPathSegment || s instanceof ReferencePathSegment);
+		for (ItemPathSegment segment : segments) {
+			if (segment instanceof IdentifierPathSegment || segment instanceof ReferencePathSegment) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean containsSpecialSymbolsExceptParent() {
-		return segments.stream().anyMatch(s -> s instanceof IdentifierPathSegment || s instanceof ObjectReferencePathSegment);
+		for (ItemPathSegment segment : segments) {
+			if (segment instanceof IdentifierPathSegment || segment instanceof ObjectReferencePathSegment) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static void checkNoSpecialSymbols(ItemPath path) {

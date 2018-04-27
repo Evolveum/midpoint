@@ -39,7 +39,7 @@ public class WsFaultListener implements FaultListener {
 
     @Override
 	public boolean faultOccurred(Exception exception, String description, Message message) {
-    	LOGGER.trace("Handling fault: {}: {} - {}", new Object[]{exception, description, message, exception});
+    	LOGGER.trace("Handling fault: {}: {} - {}-{}", new Object[]{exception, description, message, exception});
     	Object audited = message.getContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME);
     	if (audited != null && ((Boolean)audited)) {
     		return true;

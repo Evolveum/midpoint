@@ -141,6 +141,20 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:element name="searchOptions" type="c:SelectorQualifiedGetOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options to be used for object search (if supported by particular task handler).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Search options</a:displayName>
+                <!--<a:displayOrder>120</a:displayOrder>-->
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="objectType" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>
@@ -174,6 +188,17 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="objectDeltas" type="t:ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>unbounded</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

@@ -41,6 +41,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -58,7 +59,6 @@ import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
@@ -78,8 +78,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
  * @author lazyman
  * @author katkav
  */
-public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
+public class LoggingConfigPanel extends BasePanel<LoggingDto> {
 
+	private static final long serialVersionUID = 1L;
+	
     private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
 
@@ -98,8 +100,9 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     @Override
-    protected void initLayout() {
-        initLoggers();
+    protected void onInitialize() {
+    		super.onInitialize();
+    	    initLoggers();
         initAudit();
         initAppenders();
     }
@@ -117,6 +120,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         AjaxButton addStandardLogger = new AjaxButton(ID_BUTTON_ADD_STANDARD_LOGGER,
                 createStringResource("LoggingConfigPanel.button.addStandardLogger")) {
 
+        		private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addStandardLoggerPerformed(target);
@@ -126,6 +130,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
         AjaxButton addComponentLogger = new AjaxButton("addComponentLogger",
                 createStringResource("LoggingConfigPanel.button.addComponentLogger")) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -137,6 +143,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         AjaxButton addClassLogger = new AjaxButton("addClassLogger",
                 createStringResource("LoggingConfigPanel.button.addClassLogger")) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addClassLoggerPerformed(target);
@@ -147,6 +155,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         AjaxButton deleteLogger = new AjaxButton("deleteLogger",
                 createStringResource("LoggingConfigPanel.button.deleteLogger")) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                 deleteLoggerPerformed(target);
@@ -157,15 +167,17 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private void initRoot() {
         DropDownChoice<LoggingLevelType> rootLevel = new DropDownChoice<>(ID_ROOT_LEVEL,
-                new PropertyModel<LoggingLevelType>(getModel(), LoggingDto.F_ROOT_LEVEL),
+            new PropertyModel<>(getModel(), LoggingDto.F_ROOT_LEVEL),
                 WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
         rootLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(rootLevel);
 
         DropDownChoice<String> rootAppender = new DropDownChoice<>(ID_ROOT_APPENDER,
-                new PropertyModel<String>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
+            new PropertyModel<>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
         rootAppender.setNullValid(true);
         rootAppender.add(new OnChangeAjaxBehavior() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -177,14 +189,14 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     }
 
     private void initAudit(){
-        CheckBox auditLog = WebComponentUtil.createAjaxCheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
+        CheckBox auditLog = WebComponentUtil.createAjaxCheckBox("auditLog", new PropertyModel<>(getModel(), "auditLog"));
         add(auditLog);
 
-        CheckBox auditDetails = WebComponentUtil.createAjaxCheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
+        CheckBox auditDetails = WebComponentUtil.createAjaxCheckBox("auditDetails", new PropertyModel<>(getModel(), "auditDetails"));
         add(auditDetails);
 
-        DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<String>(
-                getModel(), "auditAppender"), createAppendersListModel());
+        DropDownChoice<String> auditAppender = new DropDownChoice<>("auditAppender", new PropertyModel<>(
+            getModel(), "auditAppender"), createAppendersListModel());
         auditAppender.setNullValid(true);
         auditAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(auditAppender);
@@ -245,43 +257,44 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private List<IColumn<LoggerConfiguration, String>> initLoggerColumns() {
         List<IColumn<LoggerConfiguration, String>> columns = new ArrayList<>();
-        IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
+        IColumn<LoggerConfiguration, String> column = new CheckBoxHeaderColumn<LoggerConfiguration>();
         columns.add(column);
 
         //name editing column
         columns.add(new EditableLinkColumn<LoggerConfiguration>(
                 createStringResource("LoggingConfigPanel.logger"), "name") {
 
+        	private static final long serialVersionUID = 1L;
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
                 if(model.getObject() instanceof StandardLogger){
-                    DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                            new PropertyModel(model, "logger"),
+                    DropDownChoicePanel<StandardLoggerType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
+                            new PropertyModel<>(model, "logger"),
                             WebComponentUtil.createReadonlyModelFromEnum(StandardLoggerType.class),
                             new EnumChoiceRenderer<StandardLoggerType>());
 
                     FormComponent<StandardLoggerType> input = dropDownChoicePanel.getBaseFormComponent();
-                    input.add(new NotNullValidator<StandardLoggerType>("logger.emptyLogger"));
+                    input.add(new NotNullValidator<>("logger.emptyLogger"));
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     addAjaxFormComponentUpdatingBehavior(input);
                     return dropDownChoicePanel;
 
                 } else if (model.getObject() instanceof ComponentLogger) {
-                    DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                            new PropertyModel(model, "component"),
+                    DropDownChoicePanel<LoggingComponentType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
+                            new PropertyModel<>(model, "component"),
                             WebComponentUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
                             new EnumChoiceRenderer<LoggingComponentType>());
 
                     FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
-                    input.add(new NotNullValidator<LoggingComponentType>("logger.emptyLogger"));
+                    input.add(new NotNullValidator<>("logger.emptyLogger"));
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     addAjaxFormComponentUpdatingBehavior(input);
                     return dropDownChoicePanel;
 
                 } else {
-                    TextPanel textPanel = new TextPanel<>(componentId, new PropertyModel<String>(model, getPropertyExpression()));
+                    TextPanel<String> textPanel = new TextPanel<>(componentId, new PropertyModel<String>(model, getPropertyExpression()));
                     FormComponent input = textPanel.getBaseFormComponent();
                     addAjaxFormComponentUpdatingBehavior(input);
                     input.add(new AttributeAppender("style", "width: 100%"));
@@ -300,14 +313,16 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         //level editing column
         columns.add(new EditableLinkColumn<LoggerConfiguration>(createStringResource("LoggingConfigPanel.loggersLevel"), "level") {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
-                DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                        new PropertyModel(model, getPropertyExpression()),
+                DropDownChoicePanel<LoggingLevelType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
+                        new PropertyModel<>(model, getPropertyExpression()),
                         WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
                 FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
                 input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                input.add(new NotNullValidator<LoggingLevelType>("message.emptyLevel"));
+                input.add(new NotNullValidator<>("message.emptyLevel"));
                 addAjaxFormComponentUpdatingBehavior(input);
                 return dropDownChoicePanel;
             }
@@ -327,6 +342,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         //appender editing column
         columns.add(new EditableLinkColumn<LoggerConfiguration>(createStringResource("LoggingConfigPanel.loggersAppender"),
                 "appenders") {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<LoggerConfiguration> rowModel){
@@ -336,6 +353,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     return createStringResource("LoggingConfigPanel.appenders.Inherit");
                 } else{
                     return new LoadableModel<String>() {
+                    	
+                    	private static final long serialVersionUID = 1L;
 
                         @Override
                         protected String load() {
@@ -356,11 +375,11 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             @Override
             protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 IModel<Map<String, String>> options = new Model(null);
-                Map<String, String> optionsMap = new HashMap<String, String>();
+                Map<String, String> optionsMap = new HashMap<>();
                 optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
                 options.setObject(optionsMap);
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
-                        new PropertyModel<List<String>>(model, getPropertyExpression()),
+                    new PropertyModel<>(model, getPropertyExpression()),
                         createNewLoggerAppendersListModel(), StringChoiceRenderer.simple(), options);
 
                 FormComponent<AppenderConfigurationType> input = panel.getBaseFormComponent();
@@ -384,6 +403,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private IModel<List<String>> createNewLoggerAppendersListModel(){
         return new AbstractReadOnlyModel<List<String>>() {
 
+        	private static final long serialVersionUID = 1L;
             @Override
             public List<String> getObject() {
                 List<String> list = new ArrayList<>();
@@ -401,6 +421,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private IModel<List<String>> createAppendersListModel() {
         return new AbstractReadOnlyModel<List<String>>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public List<String> getObject() {
@@ -438,6 +460,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
         AjaxButton addConsoleAppender = new AjaxButton(ID_BUTTON_ADD_CONSOLE_APPENDER,
                 createStringResource("LoggingConfigPanel.button.addConsoleAppender")) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -449,6 +473,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         AjaxButton addFileAppender = new AjaxButton(ID_BUTTON_ADD_FILE_APPENDER,
                 createStringResource("LoggingConfigPanel.button.addFileAppender")) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addFileAppenderPerformed(target);
@@ -458,6 +484,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
         AjaxButton deleteAppender = new AjaxButton(ID_BUTTON_DELETE_APPENDER,
                 createStringResource("LoggingConfigPanel.button.deleteAppender")) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -470,11 +498,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private List<IColumn<AppenderConfiguration, String>> initAppenderColumns(){
         List<IColumn<AppenderConfiguration, String>> columns = new ArrayList<>();
 
-        IColumn column = new CheckBoxHeaderColumn<AppenderConfiguration>();
+        IColumn<AppenderConfiguration, String> column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
         //name columns (editable)
         column = new EditableLinkColumn<AppenderConfiguration>(createStringResource("LoggingConfigPanel.appenders.name"), "name"){
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AppenderConfiguration> rowModel){
@@ -485,7 +515,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             protected Component createInputPanel(String componentId, IModel<AppenderConfiguration> model){
                 TextPanel<String> panel = new TextPanel<String>(componentId, new PropertyModel(model, getPropertyExpression()));
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                panel.getBaseFormComponent().add(new NotNullValidator<String>("message.emptyString"));
+                panel.getBaseFormComponent().add(new NotNullValidator<>("message.emptyString"));
                 addAjaxFormComponentUpdatingBehavior(panel.getBaseFormComponent());
                 return panel;
             }
@@ -496,6 +526,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         //pattern column (editable)
         column = new EditablePropertyColumn(createStringResource("LoggingConfigPanel.appenders.pattern"),
                 "pattern") {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected InputPanel createInputPanel(String componentId, IModel model) {
@@ -520,6 +552,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         //max history column (editable)
         column = new FileAppenderColumn(createStringResource("LoggingConfigPanel.appenders.maxHistory"),
                 "maxHistory") {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected InputPanel createInputPanel(String componentId, IModel model) {
@@ -536,6 +570,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         //max file size column (editable)
         column = new FileAppenderColumn(createStringResource("LoggingConfigPanel.appenders.maxFileSize"),
                 "maxFileSize") {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected InputPanel createInputPanel(String componentId, IModel model) {
@@ -554,6 +590,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         CheckBoxColumn check = new EditableCheckboxColumn(createStringResource("LoggingConfigPanel.appenders.appending"),
                 "appending") {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected InputPanel createInputPanel(String componentId, IModel model) {
                 InputPanel panel = super.createInputPanel(componentId, model);
@@ -572,6 +610,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private IModel<LoggingComponentType> createFilterModel(final IModel<FilterConfiguration> model) {
         return new Model<LoggingComponentType>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public LoggingComponentType getObject() {

@@ -16,12 +16,9 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -41,7 +38,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -105,17 +102,17 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return getPageBase().getPrismContext();
 	}
 
-		private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
+	private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
 			IChoiceRenderer<V> renderer) {
-		DropDownChoice<V> listSelect = new DropDownChoice<V>(id, defaultModel,
-				new AbstractReadOnlyModel<List<V>>() {
-					private static final long serialVersionUID = 1L;
+		DropDownChoice<V> listSelect = new DropDownChoice<>(id, defaultModel,
+            new AbstractReadOnlyModel<List<V>>() {
+                private static final long serialVersionUID = 1L;
 
-					@Override
-					public List<V> getObject() {
-						return values;
-					}
-				}, renderer);
+                @Override
+                public List<V> getObject() {
+                    return values;
+                }
+            }, renderer);
 
 		listSelect.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -256,7 +253,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		indirectMembersContainer.add(new VisibleBehaviour(this::indirectMembersContainerVisibility));
 		add(indirectMembersContainer);
 
-		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
+		IsolatedCheckBoxPanel includeIndirectMembers = new IsolatedCheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<>(false)) {
 			private static final long serialVersionUID = 1L;
 
 			public void onUpdate(AjaxRequestTarget target) {
@@ -390,7 +387,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	@Override
 	protected ObjectQuery createContentQuery() {
-		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
+		boolean indirect = ((IsolatedCheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
 
 		List<QName> relationList = new ArrayList<>();
 		if (relations != null) {

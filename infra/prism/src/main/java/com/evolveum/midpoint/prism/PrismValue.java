@@ -289,16 +289,25 @@ public abstract class PrismValue implements IPrismValue {
 	}
 
 	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
-		Collection<X> clonedCollection = new ArrayList<X>(values.size());
+		Collection<X> clonedCollection = new ArrayList<>(values.size());
 		for (X val: values) {
 			clonedCollection.add((X) val.clone());
 		}
 		return clonedCollection;
 	}
+	
+	/**
+     * Literal clone.
+     */
+    public abstract PrismValue clone();
 
-	public abstract PrismValue clone();
+    /**
+     * Complex clone with different cloning strategies.
+     * @see CloneStrategy
+     */
+    public abstract PrismValue cloneComplex(CloneStrategy strategy);
 
-	protected void copyValues(PrismValue clone) {
+	protected void copyValues(CloneStrategy strategy, PrismValue clone) {
 		clone.originType = this.originType;
 		clone.originObject = this.originObject;
 		// Do not clone parent. The clone will most likely go to a different prism
@@ -312,10 +321,15 @@ public abstract class PrismValue implements IPrismValue {
 
 	@NotNull
 	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
-		Collection<T> clones = new ArrayList<T>();
+		return cloneCollectionComplex(CloneStrategy.LITERAL, values);
+	}
+
+	@NotNull
+	public static <T extends PrismValue> Collection<T> cloneCollectionComplex(CloneStrategy strategy, Collection<T> values) {
+		Collection<T> clones = new ArrayList<>();
 		if (values != null) {
 			for (T value : values) {
-				clones.add((T) value.clone());
+				clones.add((T) value.cloneComplex(strategy));
 			}
 		}
 		return clones;
@@ -409,7 +423,7 @@ public abstract class PrismValue implements IPrismValue {
 	 */
 	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral) {
-		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
+		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
 		diffMatchingRepresentation(otherValue, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
 	}
@@ -431,7 +445,7 @@ public abstract class PrismValue implements IPrismValue {
 	}
 
     public static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
-        Set<T> retval = new HashSet<T>(collection.size());
+        Set<T> retval = new HashSet<>(collection.size());
         for (PrismValue value : collection) {
             retval.add(value.getRealValue());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +33,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -57,6 +54,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -120,6 +120,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	@Autowired private Clockwork clockwork;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private SystemObjectCache systemObjectCache;
+	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -175,6 +176,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 						+ applicableShadow.asObjectable().getObjectClass() + ") " + " on " + resourceType
 						+ ", ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, null);
+				executeShadowModifications(applicableShadow, modifications, task, subResult);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				eventInfo.setNoSynchronizationPolicy();
 				eventInfo.record(task);
@@ -185,6 +188,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				String message = "SYNCHRONIZATION is not enabled for " + resourceType
 						+ " ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, synchronizationPolicy.getIntent());
+				executeShadowModifications(applicableShadow, modifications, task, subResult);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				eventInfo.setSynchronizationNotEnabled();
 				eventInfo.record(task);
@@ -197,6 +202,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				LOGGER.trace(
 						"SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",
 						new Object[] { applicableShadow });
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, synchronizationPolicy.getIntent());
+				executeShadowModifications(currentShadow, modifications, task, subResult);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 						"Skipped because it does not match objectClass/kind/intent");
 				eventInfo.setDoesNotMatchTaskSpecification();
@@ -205,18 +212,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 
 			if (isProtected(currentShadow)) {
-				if (StringUtils.isNotBlank(synchronizationPolicy.getIntent())) {
-					List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(currentShadow);
-					PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(
-							ShadowType.F_INTENT, currentShadow.getDefinition(),
-							synchronizationPolicy.getIntent());
-					modifications.add(intentDelta);
-
-					executeShadowModifications(currentShadow, modifications, task, subResult);
-				}
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, synchronizationPolicy.getIntent());
+				executeShadowModifications(applicableShadow, modifications, task, subResult);
 				subResult.recordSuccess();
 				eventInfo.record(task);
-				LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for protected shadow {}", currentShadow);
+				LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for protected shadow {}", applicableShadow);
 				return;
 			}
 
@@ -296,6 +296,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			task.markObjectActionExecutedBoundary();
 		}
 		LOGGER.debug("SYNCHRONIZATION: DONE for {}", currentShadow);
+	}
+
+	private List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(PrismObject<ShadowType> currentShadow, String intent) {
+		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(currentShadow);
+		if (StringUtils.isNotBlank(intent)) {
+			PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(
+					ShadowType.F_INTENT, currentShadow.getDefinition(),
+					intent);
+			modifications.add(intentDelta);
+		}
+		return modifications;
 	}
 
 	private void executeShadowModifications(PrismObject<? extends ShadowType> object, List<PropertyDelta<?>> modifications,
@@ -1200,4 +1211,5 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 		}
 	}
+	
 }

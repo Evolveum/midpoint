@@ -49,11 +49,11 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
 	private WaitForSubtasksByPollingTaskHandler() {}
 	
-	public static void instantiateAndRegister(TaskManager taskManager) {
+	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
 		if (instance == null)
 			instance = new WaitForSubtasksByPollingTaskHandler();
 		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
+		instance.taskManagerImpl = taskManager;
 	}
 
 	@Override
@@ -106,10 +106,5 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return null;        // hopefully we will never need to derive category from this handler! (category is filled-in when persisting tasks)
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

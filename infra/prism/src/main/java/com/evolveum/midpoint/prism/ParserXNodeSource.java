@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
 
 import java.io.IOException;
 import java.io.InputStream;

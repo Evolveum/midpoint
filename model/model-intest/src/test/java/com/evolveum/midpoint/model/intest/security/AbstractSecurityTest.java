@@ -15,11 +15,11 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -68,16 +67,19 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -93,6 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -341,12 +344,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE = new File(TEST_DIR, "role-assign-self-requestable-any-approver.xml");
 	protected static final String ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID = "d3e83cce-bb25-11e7-ae7c-b73d2208bf2a";
 	
-	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
-	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
-	
-	protected static final File ROLE_EXCLUSION_PIRATE_FILE = new File(TEST_DIR, "role-exclusion-pirate.xml");
-	protected static final String ROLE_EXCLUSION_PIRATE_OID = "cf60ec66-e5a8-11e7-a997-ab32b7ec5fdb";
-
+	protected static final File ROLE_UNASSIGN_SELF_REQUESTABLE_FILE = new File(TEST_DIR, "role-unassign-self-requestable.xml");
+	protected static final String ROLE_UNASSIGN_SELF_REQUESTABLE_OID = "7c903f28-04ed-11e8-bb7a-df31e8679d27";
+		
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 
@@ -383,6 +383,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final ItemPath PASSWORD_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
+	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
 	protected static final int NUMBER_OF_IMPORTED_ROLES = 70;
@@ -469,7 +470,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_UNASSIGN_SELF_REQUESTABLE_FILE, initResult);
 		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
@@ -498,6 +499,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assignOrg(userCobbOid, ORG_SCUMM_BAR_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, initTask, initResult);
+		
+		InternalsConfig.setDetailedAuhotizationLog(true);
 	}
 
 	protected int getNumberOfRoles() {
@@ -631,6 +634,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result  /* no value */);
+        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result  /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
 
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
@@ -645,6 +649,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupDelete(TaskType.class, TASK_T4_OID, task, result);
         cleanupDelete(TaskType.class, TASK_T5_OID, task, result);
         cleanupDelete(TaskType.class, TASK_T6_OID, task, result);
+        
+        cleanupDelete(RoleType.class, ROLE_EMPTY_OID, task, result);
+        cleanupAdd(ROLE_EMPTY_FILE, task, result);
         
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
@@ -1365,6 +1372,40 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		String msg = LOG_PREFIX_DENY+"Error "+action+" of "+type.getSimpleName()+":"+desc + "("+e+")";
 		System.out.println(msg);
 		LOGGER.info(msg);
+	}
+	
+	protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
+        OperationResult result = task.getResult();
+        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
+        assertTrue("Expected isAuthorized for "+QNameUtil.uriToQName(operationUrl).getLocalPart()+" with "+params+", but we are not authorized", authorized);
+        result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected <O extends ObjectType, T extends ObjectType> void assertIsNotAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
+        OperationResult result = task.getResult();
+        boolean authorized = securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
+        assertFalse("Expected not isAuthorized for "+QNameUtil.uriToQName(operationUrl).getLocalPart()+" with "+params+", but we are authorized", authorized);
+        result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+		
+	protected <O extends ObjectType> void asAdministrator(Attempt attempt) throws Exception {
+		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".asAdministrator");
+        OperationResult result = task.getResult();
+        MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
+        login(USER_ADMINISTRATOR_USERNAME);
+        try {
+        	attempt.run(task, result);
+        } catch (Throwable e) {
+        	login(origPrincipal);
+        	throw e;
+		}
+        login(origPrincipal);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 
 	protected <O extends ObjectType> void assertDeny(String opname, Attempt attempt) throws Exception {

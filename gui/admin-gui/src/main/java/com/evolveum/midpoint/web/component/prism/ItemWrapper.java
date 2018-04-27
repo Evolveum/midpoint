@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -35,8 +37,16 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 
 	QName getName();
 
+	/**
+	 * Returns (localized) display name.
+	 * First invocation of this method will look for proper display name. Subsequent invocations will return
+	 * the determined name.
+	 */
     String getDisplayName();
 
+    /**
+     * Display name override. Setting custom (localized) display name.
+     */
     void setDisplayName(String name);
 
     I getItem();
@@ -67,6 +77,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
      * should be displayed or not.
      */
 	boolean isVisible();
+	
+	ItemProcessing getProcessing();
 
     /**
      * Used to display the form elements with stripe in every other line.
@@ -74,6 +86,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	boolean isStripe();
 	
 	boolean isDeprecated();
+	
+	boolean isExperimental();
 	
 	String getDeprecatedSince();
 
@@ -90,7 +104,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	    ContainerWrapper cw = getParent();
 	    return cw == null || cw.isEnforceRequiredFields();
     }
-	
+
+    @Nullable
 	ContainerWrapper getParent();
 	
 	boolean isShowEmpty();
