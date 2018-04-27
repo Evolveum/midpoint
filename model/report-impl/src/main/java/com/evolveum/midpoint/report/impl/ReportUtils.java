@@ -45,10 +45,14 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +62,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.stream.Collectors;
+import org.apache.commons.lang.WordUtils;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
@@ -759,4 +764,111 @@ public class ReportUtils {
         }
         return getPropertyString(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + typeName.getLocalPart(), typeName.getLocalPart());
     }
+    
+    public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key) {
+		return getEventProperty(properties, key, "empty");
+	}
+	
+	public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key, String defaultValue) {
+		if(properties != null) {
+			return properties.stream()
+				.filter(property -> key.equals(property.getName()))
+				.findFirst()
+				.map(AuditEventRecordPropertyType::getValue)
+				.map(it -> printProperty(it, defaultValue))
+				.orElse(defaultValue);
+		} else {
+			return defaultValue;
+		}
+	}
+
+	public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key) {
+		return getEventReferenceOrig(references, key, "empty");
+	}
+	public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key, String defaultValue) {
+		if(references != null) {
+			return references.stream()
+				.filter(ref -> key.equals(ref.getName()))
+				.findFirst()
+				.map(AuditEventRecordReferenceType::getValue)
+				.map(it -> printReference(it, defaultValue))
+				.orElse(defaultValue);
+		} else {
+			return defaultValue;
+		}
+	}
+	
+	/**
+	 * Returns delta items modification types.
+	 * @param delta
+	 * @return
+	 */
+	public static String getDeltaNature(List<ObjectDeltaOperationType> delta) {
+		if(delta == null) {
+			return "";
+		} else {
+			String result = String.join(
+					"/", 
+					delta.stream()
+					.map(ObjectDeltaOperationType::getObjectDelta)
+					.filter(java.util.Objects::nonNull)
+					.map(ObjectDeltaType::getItemDelta)
+					.flatMap(Collection::stream)
+					.map(ItemDeltaType::getModificationType)
+					.map(ModificationTypeType::name)
+					.map(String::toLowerCase)
+					.map(WordUtils::capitalize)
+					.collect(Collectors.toList()));
+			return result;
+		}
+	}
+        
+        public static String getObjectDeltaNature(List<ObjectDeltaOperationType> delta) {
+		if(delta == null) {
+			return "";
+		} else {
+			String result = String.join(
+					"/", 
+					delta.stream()
+					.map(ObjectDeltaOperationType::getObjectDelta)
+					.filter(java.util.Objects::nonNull)
+					.map(ObjectDeltaType::getChangeType)
+					.map(Enum::toString)
+					.collect(Collectors.toList()));
+			return result;
+		}
+	}
+        
+	public static String getDeltaForWFReport(List<ObjectDeltaOperationType> delta) {
+		if(delta == null) {
+			return "";
+		} else {
+			String result = String.join(
+					", ", 
+					delta.stream()
+					.map(ObjectDeltaOperationType::getObjectDelta)
+					.filter(java.util.Objects::nonNull)
+					.map(ObjectDeltaType::getItemDelta)
+					.flatMap(Collection::stream)
+					.map(ItemDeltaType::getPath)
+					.map(ItemPathType::toString)
+					.collect(Collectors.toList()));
+			return result;
+		}
+	}
+	
+	public static String printReference(List<AuditEventRecordReferenceValueType> reference, String defaultValue) {
+		return reference != null ?
+						reference.stream()
+						.map(AuditEventRecordReferenceValueType::getTargetName)
+						.map(PolyStringType::getOrig)
+						.collect(Collectors.joining(",")) 
+						: defaultValue;
+	}
+	
+	public static String printProperty(List<String> property, String defaultValue) {
+		return property != null ? 
+					String.join(",", property)
+					: defaultValue;
+	}
 }
