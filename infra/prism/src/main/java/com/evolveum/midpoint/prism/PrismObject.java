@@ -179,6 +179,10 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 	}
 
+	public <I extends Item> I findExtensionItem(String elementLocalName) {
+		return findExtensionItem(new QName(null, elementLocalName));
+	}
+	
 	public <I extends Item> I findExtensionItem(QName elementName) {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null) {

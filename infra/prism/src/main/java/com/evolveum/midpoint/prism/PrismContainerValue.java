@@ -623,6 +623,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
     }
 
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(String itemName) {
+    	return findItem(new QName(null, itemName));
+    }
+    
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(QName itemName) {
     	try {
 			return findCreateItem(itemName, Item.class, null, false);
