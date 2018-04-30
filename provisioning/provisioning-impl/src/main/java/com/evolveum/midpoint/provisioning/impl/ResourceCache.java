@@ -101,6 +101,8 @@ public class ResourceCache {
 			} catch (IllegalStateException ex) {
 				LOGGER.error("Failed immutability test", ex);
 				// todo still need proper fix https://jira.evolveum.com/browse/MID-4574
+				cache.remove(oid);
+				
 				return null;
 			}
 
