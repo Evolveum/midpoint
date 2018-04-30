@@ -236,7 +236,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                 BasePanel panel;
                 ItemWrapper itemWrapper = item.getModelObject().getItem();
                 if (itemWrapper.getPath().containsName(AssignmentType.F_CONSTRUCTION) &&
-                        itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) &&
+                        (itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
+                                itemWrapper.getPath().containsName(ConstructionType.F_ATTRIBUTE))&&
                         itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
                         itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
                     ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
