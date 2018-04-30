@@ -100,6 +100,8 @@ public class ResourceCache {
 				cachedResource.checkImmutability();
 			} catch (IllegalStateException ex) {
 				LOGGER.error("Failed immutability test", ex);
+				cache.remove(oid);
+
 				return null;
 			}
 			return cachedResource;
