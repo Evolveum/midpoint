@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -183,7 +184,7 @@ public class SchemaProcessorTest {
 		//containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
 		// ... ignored attribute
 		ResourceAttributeDefinitionImpl xSepDef = containerDefinition.createAttributeDefinition("sep", DOMUtil.XSD_STRING);
-		xSepDef.setIgnored(true);
+		xSepDef.setProcessing(ItemProcessing.IGNORE);
 
 		System.out.println("Resource schema before serializing to XSD: ");
 		System.out.println(schema.debugDump());

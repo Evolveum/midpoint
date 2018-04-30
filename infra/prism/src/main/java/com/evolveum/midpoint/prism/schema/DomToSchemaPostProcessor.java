@@ -1040,7 +1040,12 @@ class DomToSchemaPostProcessor {
 		// ignore
 		Boolean ignore = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_IGNORE);
 		if (ignore != null) {
-			itemDef.setIgnored(ignore);
+			itemDef.setProcessing(ItemProcessing.IGNORE);
+		}
+		
+		Element processing = SchemaProcessorUtil.getAnnotationElement(annotation, A_PROCESSING);
+		if (processing != null) {
+			itemDef.setProcessing(ItemProcessing.findByValue(processing.getTextContent()));
 		}
 
 		// deprecated

@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.schrodinger.component.user;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Table;
+import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import org.openqa.selenium.By;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -27,4 +31,13 @@ public class UsersTable<T> extends Table<T> {
     public UsersTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
+
+    @Override
+    public NewUserPage clickByName(String name) {
+        getParentElement().$(By.xpath("//span[@data-s-id=\"label\"][text()=\"" + name + "\"]/.."))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        return new NewUserPage();
+    }
+
 }

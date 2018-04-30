@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 				//noinspection unchecked
 				ContainerWrapper<Containerable> containerWrapper = (ContainerWrapper<Containerable>) itemWrapper;
 				PrismContainerPanel<?> containerPanel = new PrismContainerPanel<>(itemView.newChildId(),
-						Model.of(containerWrapper), true, mainForm, w -> true, getPageBase());
+						Model.of(containerWrapper), true, mainForm, w -> ItemVisibility.AUTO, getPageBase());
 				containerPanel.setOutputMarkupId(true);
 				itemView.add(containerPanel);
 			} else {

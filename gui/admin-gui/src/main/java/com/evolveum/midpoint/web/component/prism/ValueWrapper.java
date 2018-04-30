@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,16 +53,16 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
         this(property, value, ValueStatus.NOT_CHANGED);
     }
 
-    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, ValueStatus status) {
-        this(property, value, null, status);
+    public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue prismValue, ValueStatus status) {
+        this(propertyWrapper, prismValue, null, status);
     }
 
-    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, PrismValue oldValue,
+    public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue value, PrismValue oldValue,
             ValueStatus status) {
-        Validate.notNull(property, "Property wrapper must not be null.");
+        Validate.notNull(propertyWrapper, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
 
-        this.item = property;
+        this.item = propertyWrapper;
         this.status = status;
 
 		if (value != null) {
@@ -88,19 +88,19 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 			}
 		}
 
-		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == property.getStatus()) {
+		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
 			oldValue = new PrismPropertyValue<T>(null);
 		}
 		
-		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == property.getStatus()) {
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
 			oldValue = new PrismReferenceValue();
 		}
 		
-		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != property.getStatus()) {
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
 			oldValue = value.clone();
 		}
 		
-        if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED != property.getStatus()) {
+        if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
             T val = ((PrismPropertyValue<T>) this.value).getValue();
             if (val instanceof PolyString) {
                 PolyString poly = (PolyString)val;

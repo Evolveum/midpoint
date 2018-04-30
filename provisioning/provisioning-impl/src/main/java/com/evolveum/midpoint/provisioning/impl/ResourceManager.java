@@ -1036,10 +1036,8 @@ public class ResourceManager {
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition
 							.findAttributeDefinition(attributeName);
 					if (attributeDefinition != null) {
-						if (ignore != null && !ignore.booleanValue()) {
-							((ResourceAttributeDefinitionImpl) attributeDefinition).setIgnored(false);
-						} else {
-							((ResourceAttributeDefinitionImpl) attributeDefinition).setIgnored(true);
+						if (ignore == null || ignore.booleanValue()) {
+							((ResourceAttributeDefinitionImpl) attributeDefinition).setProcessing(ItemProcessing.IGNORE);
 						}
 					} else {
 						// simulated activation attribute points to something that is not in the schema

@@ -22,13 +22,13 @@ public class Popover<T> extends Component<T> {
     public T updateSearch() {
         getParentElement().$(Schrodinger.byDataId("update")).click();
 
-        return getParent();
+        return this.getParent();
     }
 
     public T close() {
         getParentElement().$(Schrodinger.byDataId("close")).click();
 
-        return getParent();
+        return this.getParent();
     }
 
     public Popover addAnotherValue() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,11 +58,22 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
         //TODO: visible behaviour??
         add( new VisibleEnableBehaviour() {
-        	
-        	@Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
         	public boolean isVisible() {
-        		if (isPanelVisible != null && model.getObject() != null && !isPanelVisible.isVisible(model.getObject())) {
-        			return false;
+        		if (isPanelVisible != null && model.getObject() != null) {
+        			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
+        			if (visible != null) {
+        				switch (visible) {
+            				case VISIBLE:
+            					return true;
+            				case HIDDEN:
+            					return false;
+            				default:
+            					// automatic, go on ...
+            			}
+        			}
         		}
                 return model.getObject() != null && model.getObject().isVisible();
         	}

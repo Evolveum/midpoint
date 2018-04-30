@@ -320,6 +320,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public void addValue(ContainerValueWrapper<C> newValue) {
 		getValues().add(newValue);
 	}
+	
+	@Override
+	public void addValue(boolean showEmpty) {
+		// TODO: but fist need to clean up relaition between wrapper and factory.
+		throw new UnsupportedOperationException("Not implemented yet");
+	}
 
 //	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
 //		PrismContainerValue<C> pcv = container.createNewValue();
@@ -332,11 +338,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
 			valueWrapper.sort();
 		}
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override
@@ -480,7 +481,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public boolean isVisible() {
 		PrismContainerDefinition<C> def = getItemDefinition();
 
-		if (def.isIgnored() || (def.isOperational()) && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+		if (def.getProcessing() != null && def.getProcessing() != ItemProcessing.AUTO) {
+			return false;
+			
+		}
+		
+		if (def.isOperational() && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
 			return false;
 		}
 		
@@ -503,6 +509,11 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 		return false;
 	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return getItemDefinition().getProcessing();
+	}
 
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
 		return def.canRead();// && def.canModify();
@@ -520,12 +531,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return def.canAdd() && def.isEmphasized();
 	}
 
-	@Override
-	public void addValue(boolean showEmpty) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	@Override
 	public boolean isDeprecated() {
 		return getItemDefinition().isDeprecated();

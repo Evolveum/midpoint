@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -119,6 +120,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //		} else {
 			return true;
 //		}
+	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return getItemDefinition().getProcessing();
 	}
 	
 	private boolean canAddAndShowEmpty() {

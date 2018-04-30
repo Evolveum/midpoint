@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,15 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -70,6 +73,27 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 	public void setObject(ContainerWrapper<C> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
+	}
+
+	public IModel<? extends List<ContainerValueWrapper<C>>> getValuesModel() {
+		return new IModel<List<ContainerValueWrapper<C>>>() {
+
+			@Override
+			public void detach() {
+				
+			}
+
+			@Override
+			public List<ContainerValueWrapper<C>> getObject() {
+				return ContainerWrapperFromObjectWrapperModel.this.getObject().getValues();
+			}
+
+			@Override
+			public void setObject(List<ContainerValueWrapper<C>> object) {
+				throw new UnsupportedOperationException();
+			}
+			
+		};
 	}
 
 }
