@@ -257,6 +257,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		}
 		IColumn<SelectableBean<O>, String> column;
 		for (GuiObjectColumnType customColumn : customColumns){
+			if (customColumn.getPath() == null || customColumn.getPath().getItemPath() == null){
+				continue;
+			}
+			ItemDefinition itemDefinition = parentPage.getPrismContext().getSchemaRegistry()
+					.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(customColumn.getPath().getItemPath());
+			if (itemDefinition == null){
+				continue;
+			}
+
 			if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
 				if (customColumns.indexOf(customColumn) == 0) {
 					column = createNameColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
@@ -599,8 +608,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private String getItemDisplayName(GuiObjectColumnType column){
-		return parentPage.getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath()).getDisplayName();
+		ItemDefinition itemDefinition = parentPage.getPrismContext().getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath());
+		return itemDefinition == null ? "" : itemDefinition.getDisplayName();
 	}
 
 	public ObjectPaging getCurrentTablePaging(){
