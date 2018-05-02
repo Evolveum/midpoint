@@ -1343,9 +1343,60 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="workAllocationMaxRetries" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many retries for allocation of a work bucket should be attempted? The default is specified
+						in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationRetryIntervalBase" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The base for exponential growth of the retry interval window. The actual delay is computed as
+
+						random() * retryIntervalBase * 2 ^ (min(retryNumber, exponentialThreshold) - 1)
+
+						Where retryNumber goes from 1 upwards.
+
+						The default is specified in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationRetryExponentialThreshold" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The retry number from which the retry delay window starts to be constant (instead of exponentially
+						dependent on retry number). The default is specified in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationRetryIntervalLimit" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Alternative way of limiting the retry delay growth. If specified, this is an absolute limit on the
+						delay window size (i.e. the factor that multiplies the random number of 0..1).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationInitialDelay" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Size of random interval for the initial delay. The default is specified in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationFreeBucketWaitInterval" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If specified, overrides the time used to wait for free bucket(s) reclamation. This is applied when
+						no free buckets are available but the work is not completely done.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-
 
 	<xsd:complexType name="AbstractWorkSegmentationType">
 		<xsd:annotation>
