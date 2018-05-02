@@ -21,17 +21,24 @@ package com.evolveum.midpoint.util.backoff;
  */
 public class ExponentialBackoffComputer extends RetryLimitedBackoffComputer {
 
-	private long delayStep;
+	private long baseDelayInterval;
 	private int exponentialThreshold;
+	private Long delayIntervalLimit;
 
-	public ExponentialBackoffComputer(int maxRetries, long delayStep, int exponentialThreshold) {
+	public ExponentialBackoffComputer(int maxRetries, long baseDelayInterval, int exponentialThreshold, Long delayIntervalLimit) {
 		super(maxRetries);
-		this.delayStep = delayStep;
+		this.baseDelayInterval = baseDelayInterval;
 		this.exponentialThreshold = exponentialThreshold;
+		this.delayIntervalLimit = delayIntervalLimit;
 	}
 
 	@Override
 	public long computeDelayWithinLimits(int retryNumber) {
-		return Math.round(Math.random() * delayStep * Math.pow(2, Math.min(retryNumber, exponentialThreshold) - 1));
+		//System.out.println("baseDelayInterval = " + baseDelayInterval + ", limits: " + exponentialThreshold + "/" + delayIntervalLimit + " (retry " + retryNumber + ")");
+		double delayInterval = baseDelayInterval * Math.pow(2, Math.min(retryNumber, exponentialThreshold) - 1);
+		if (delayIntervalLimit != null && delayInterval > delayIntervalLimit) {
+			delayInterval = delayIntervalLimit;
+		}
+		return Math.round(Math.random() * delayInterval);
 	}
 }

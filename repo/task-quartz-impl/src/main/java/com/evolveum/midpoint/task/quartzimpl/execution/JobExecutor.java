@@ -689,30 +689,26 @@ mainCycle:
 			}
 		}
 
-		try {
-			workStateManager.executeInitialDelay(task);
-		} catch (InterruptedException e) {
-			return createInterruptedTaskRunResult();
-		}
-
+		boolean initialBucket = true;
 		TaskWorkBucketProcessingResult runResult = null;
 		for (;;) {
 			WorkBucketType bucket;
 			try {
 				try {
-					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), executionResult);
+					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
 				} catch (InterruptedException e) {
 					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
 					if (task.canRun()) {
-						throw new IllegalStateException("Unexpected InterruptedException", e);
+						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
 					} else {
 						return createInterruptedTaskRunResult();
 					}
 				}
 			} catch (Throwable t) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
-				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", t);
+				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
 			}
+			initialBucket = false;
 			if (bucket == null) {
 				LOGGER.trace("No (next) work bucket within {}, exiting", task);
 				runResult = handler.onNoMoreBuckets(task, runResult);
