@@ -32,6 +32,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -284,6 +285,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean
     private LocalizationService localizationService;
 
+    @SpringBean
+    private MidpointFunctions midpointFunctions;
+
     private List<Breadcrumb> breadcrumbs;
 
     private boolean initialized = false;
@@ -442,6 +446,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public LocalizationService getLocalizationService() {
         return localizationService;
+    }
+
+    public MidpointFunctions getMidpointFunctions() {
+        return midpointFunctions;
     }
 
     public PrismContext getPrismContext() {
