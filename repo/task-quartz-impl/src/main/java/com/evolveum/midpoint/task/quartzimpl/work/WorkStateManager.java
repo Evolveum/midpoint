@@ -36,7 +36,6 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategy;
@@ -126,19 +125,25 @@ public class WorkStateManager {
 		return canRunSupplier == null || BooleanUtils.isTrue(canRunSupplier.get());
 	}
 
-	/**
-	 * Allocates work bucket. If no free work buckets are currently present it tries to create one.
-	 * If there is already allocated work bucket for given worker task, it is returned.
-	 *
-	 * Finding/creation of free bucket is delegated to the work state management strategy.
-	 * This method implements mainly the act of allocation - i.e. modification of the task work state in repository.
-	 *
-	 * WE ASSUME THIS METHOD IS CALLED FROM THE WORKER TASK; SO IT IS NOT NECESSARY TO SYNCHRONIZE ACCESS TO THIS TASK WORK STATE.
-	 *
-	 * @pre task is persistent and has work state management configured
-	 */
 	public WorkBucketType getWorkBucket(@NotNull String workerTaskOid, long freeBucketWaitTime,
 			Supplier<Boolean> canRun, @NotNull OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
+		return getWorkBucket(workerTaskOid, freeBucketWaitTime, canRun, false, result);
+	}
+
+		/**
+		 * Allocates work bucket. If no free work buckets are currently present it tries to create one.
+		 * If there is already allocated work bucket for given worker task, it is returned.
+		 *
+		 * Finding/creation of free bucket is delegated to the work state management strategy.
+		 * This method implements mainly the act of allocation - i.e. modification of the task work state in repository.
+		 *
+		 * WE ASSUME THIS METHOD IS CALLED FROM THE WORKER TASK; SO IT IS NOT NECESSARY TO SYNCHRONIZE ACCESS TO THIS TASK WORK STATE.
+		 *
+		 * @pre task is persistent and has work state management configured
+		 */
+	public WorkBucketType getWorkBucket(@NotNull String workerTaskOid, long freeBucketWaitTime,
+			Supplier<Boolean> canRun, boolean executeInitialWait, @NotNull OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, InterruptedException {
 		Context ctx = createContext(workerTaskOid, canRun, result);
 		WorkBucketType bucket = findSelfAllocatedBucket(ctx);
@@ -149,6 +154,9 @@ public class WorkStateManager {
 		if (ctx.isStandalone()) {
 			return getWorkBucketStandalone(ctx, result);
 		} else {
+			if (executeInitialWait) {
+				executeInitialDelayForMultiNode(ctx);
+			}
 			return getWorkBucketMultiNode(ctx, freeBucketWaitTime, result);
 		}
 	}
@@ -172,12 +180,13 @@ public class WorkStateManager {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, InterruptedException {
 		long start = System.currentTimeMillis();
 		int globalAttempt = 0;      // just for statistics
-		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(ctx.coordinatorTask.getWorkManagement());
+		TaskWorkManagementType workManagement = ctx.coordinatorTask.getWorkManagement();
+		WorkSegmentationStrategy workStateStrategy = strategyFactory.createStrategy(workManagement);
 		setOrUpdateEstimatedNumberOfBuckets(ctx.coordinatorTask, workStateStrategy, result);
 
 waitForAvailableBucket:    // this cycle exits when something is found OR when a definite 'no more buckets' answer is received
 	    for (;;) {
-		    BackoffComputer backoffComputer = createBackoffComputer();
+		    BackoffComputer backoffComputer = createBackoffComputer(workManagement);
 		    int retry = 0;
 waitForConflictLessUpdate: // this cycle exits when coordinator task update succeeds
 			for (;;) {
@@ -228,7 +237,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 								return null;
 							}
 							//System.out.println("*** No free work bucket -- waiting ***");
-							long sleepFor = Math.min(toWait, getFreeBucketWaitInterval());
+							long sleepFor = Math.min(toWait, getFreeBucketWaitInterval(workManagement));
 							CONTENTION_LOGGER.trace("Entering waiting for free bucket (waiting for {}) - after {} ms (attempt #{}) in {}",
 									sleepFor, System.currentTimeMillis() - start, globalAttempt, ctx.workerTask);
 							dynamicSleep(sleepFor, ctx);
@@ -270,19 +279,37 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 	}
 
-	private BackoffComputer createBackoffComputer() {
+	private BackoffComputer createBackoffComputer(TaskWorkManagementType workManagement) {
+		WorkAllocationConfigurationType ac = workManagement != null && workManagement.getBuckets() != null ?
+				workManagement.getBuckets().getAllocation() : null;
 		TaskManagerConfiguration c = configuration;
-		return new ExponentialBackoffComputer(c.getWorkAllocationMaxRetries(), c.getWorkAllocationRetryInterval(),
-				c.getWorkAllocationRetryExponentialThreshold());
+		int workAllocationMaxRetries = ac != null && ac.getWorkAllocationMaxRetries() != null ?
+				ac.getWorkAllocationMaxRetries() : c.getWorkAllocationMaxRetries();
+		long workAllocationRetryIntervalBase = ac != null && ac.getWorkAllocationRetryIntervalBase() != null ?
+				ac.getWorkAllocationRetryIntervalBase() : c.getWorkAllocationRetryIntervalBase();
+		int workAllocationRetryExponentialThreshold = ac != null && ac.getWorkAllocationRetryExponentialThreshold() != null ?
+				ac.getWorkAllocationRetryExponentialThreshold() : c.getWorkAllocationRetryExponentialThreshold();
+		Long workAllocationRetryIntervalLimit = ac != null && ac.getWorkAllocationRetryIntervalLimit() != null ?
+				ac.getWorkAllocationRetryIntervalLimit() : c.getWorkAllocationRetryIntervalLimit();
+		return new ExponentialBackoffComputer(workAllocationMaxRetries, workAllocationRetryIntervalBase, workAllocationRetryExponentialThreshold, workAllocationRetryIntervalLimit);
 	}
 
-	private long getFreeBucketWaitInterval() {
-		return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
-				configuration.getWorkAllocationDefaultFreeBucketWaitInterval();
+	private long getFreeBucketWaitInterval(TaskWorkManagementType workManagement) {
+		WorkAllocationConfigurationType ac = workManagement != null && workManagement.getBuckets() != null ?
+				workManagement.getBuckets().getAllocation() : null;
+		if (ac != null && ac.getWorkAllocationFreeBucketWaitInterval() != null) {
+			return ac.getWorkAllocationFreeBucketWaitInterval();
+		} else {
+			return freeBucketWaitIntervalOverride != null ? freeBucketWaitIntervalOverride :
+					configuration.getWorkAllocationDefaultFreeBucketWaitInterval();
+		}
 	}
 
-	private long getInitialDelay() {
-		return configuration.getWorkAllocationInitialDelay();
+	private long getInitialDelay(TaskWorkManagementType workManagement) {
+		WorkAllocationConfigurationType ac = workManagement != null && workManagement.getBuckets() != null ?
+				workManagement.getBuckets().getAllocation() : null;
+		return ac != null && ac.getWorkAllocationInitialDelay() != null ?
+				ac.getWorkAllocationInitialDelay() : configuration.getWorkAllocationInitialDelay();
 	}
 
 	private void setOrUpdateEstimatedNumberOfBuckets(Task task, WorkSegmentationStrategy workStateStrategy, OperationResult result)
@@ -637,14 +664,12 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		return updatedQuery;
 	}
 
-	public void executeInitialDelay(TaskQuartzImpl task) throws InterruptedException {
-		if (task.getWorkManagement() != null && task.getWorkManagement().getTaskKind() == TaskKindType.WORKER) {
-			long delay = (long) (Math.random() * getInitialDelay());
-			if (delay != 0) {
-				// temporary info level logging
-				LOGGER.info("executeInitialDelay: waiting {} ms in {}", delay, task);
-				dynamicSleep(delay, task::canRun);
-			}
+	private void executeInitialDelayForMultiNode(Context ctx) throws InterruptedException {
+		long delay = (long) (Math.random() * getInitialDelay(ctx.coordinatorTask.getWorkManagement()));
+		if (delay != 0) {
+			// temporary info level logging
+			LOGGER.info("executeInitialDelayForMultiNode: waiting {} ms in {}", delay, ctx.workerTask);
+			dynamicSleep(delay, ctx.canRunSupplier);
 		}
 	}
 }

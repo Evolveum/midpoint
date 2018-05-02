@@ -32,8 +32,8 @@ public class SqlBaseService {
     // pessimistic, optimistic exception
 	public static final int LOCKING_MAX_RETRIES = 40;
 
-    // timeout will be a random number between 0 and LOCKING_TIMEOUT_STEP * 2^exp where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser)
-    public static final long LOCKING_TIMEOUT_STEP = 50;
+    // timeout will be a random number between 0 and LOCKING_DELAY_INTERVAL_BASE * 2^exp where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser)
+    public static final long LOCKING_DELAY_INTERVAL_BASE = 50;
 	public static final int LOCKING_EXP_THRESHOLD = 7;       // i.e. up to 6400 msec wait time
 
     @Autowired

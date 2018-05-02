@@ -78,7 +78,8 @@ public class TaskManagerConfiguration {
     private static final String SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY = "schedulerInitiallyStopped";
 
     private static final String WORK_ALLOCATION_MAX_RETRIES_ENTRY = "workAllocationMaxRetries";
-    private static final String WORK_ALLOCATION_RETRY_INTERVAL_ENTRY = "workAllocationRetryInterval";
+    private static final String WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY = "workAllocationRetryIntervalBase";
+    private static final String WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY = "workAllocationRetryIntervalLimit";
     private static final String WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY = "workAllocationRetryExponentialThreshold";
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
@@ -132,7 +133,8 @@ public class TaskManagerConfiguration {
     private boolean schedulerInitiallyStopped;
 
     private int workAllocationMaxRetries;
-    private long workAllocationRetryInterval;
+    private long workAllocationRetryIntervalBase;
+    private Long workAllocationRetryIntervalLimit;
     private int workAllocationRetryExponentialThreshold;
     private long workAllocationInitialDelay;
     private long workAllocationDefaultFreeBucketWaitInterval;
@@ -200,7 +202,8 @@ public class TaskManagerConfiguration {
             RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
 			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
 		    WORK_ALLOCATION_MAX_RETRIES_ENTRY,
-            WORK_ALLOCATION_RETRY_INTERVAL_ENTRY,
+            WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
+            WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
             WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
             WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
             WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY
@@ -296,7 +299,8 @@ public class TaskManagerConfiguration {
         schedulerInitiallyStopped = c.getBoolean(SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY, false);
 
         workAllocationMaxRetries = c.getInt(WORK_ALLOCATION_MAX_RETRIES_ENTRY, WORK_ALLOCATION_MAX_RETRIES_DEFAULT);
-        workAllocationRetryInterval = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_ENTRY, WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT);
+        workAllocationRetryIntervalBase = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY, WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT);
+        workAllocationRetryIntervalLimit = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY, null);
         workAllocationRetryExponentialThreshold = c.getInt(WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY, WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT);
         workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
         workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
@@ -560,11 +564,15 @@ public class TaskManagerConfiguration {
         return workAllocationMaxRetries;
     }
 
-    public long getWorkAllocationRetryInterval() {
-        return workAllocationRetryInterval;
+    public long getWorkAllocationRetryIntervalBase() {
+        return workAllocationRetryIntervalBase;
     }
 
-	public int getWorkAllocationRetryExponentialThreshold() {
+    public Long getWorkAllocationRetryIntervalLimit() {
+        return workAllocationRetryIntervalLimit;
+    }
+
+    public int getWorkAllocationRetryExponentialThreshold() {
 		return workAllocationRetryExponentialThreshold;
 	}
 

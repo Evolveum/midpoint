@@ -15,25 +15,23 @@
   ~ limitations under the License.
   -->
 
-<task oid="44444444-2222-2222-2222-130c00000000"
+<task oid="44444444-2222-2222-2222-107000000000"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<name>task-130-c-single</name>
-    <taskIdentifier>44444444-2222-2222-2222-130c00000000</taskIdentifier>
+	<name>task-105-0-single</name>
+    <taskIdentifier>44444444-2222-2222-2222-107000000000</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
+    <executionStatus>suspended</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<workManagement>
-		<taskKind>coordinator</taskKind>
 		<buckets>
 			<numericSegmentation>
-				<numberOfBuckets>5</numberOfBuckets>
-				<bucketSize>1</bucketSize>
+				<numberOfBuckets>1000</numberOfBuckets>
+				<bucketSize>100</bucketSize>
 			</numericSegmentation>
 			<allocation>
-				<bucketCreationBatch>3</bucketCreationBatch>
-				<allocateFirst>true</allocateFirst>
+				<bucketCreationBatch>7</bucketCreationBatch>
 			</allocation>
 		</buckets>
 	</workManagement>
