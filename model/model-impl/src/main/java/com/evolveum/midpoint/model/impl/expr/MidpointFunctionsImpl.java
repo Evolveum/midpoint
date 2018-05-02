@@ -1575,7 +1575,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		TaskType newTask;
 		if (templateTaskOid != null) {
 			newTask = modelService.getObject(TaskType.class, templateTaskOid,
-					getDefaultGetOptionCollection(), opTask, result).asObjectable();
+					null, opTask, result).asObjectable();
 		} else {
 			newTask = new TaskType(prismContext);
 			newTask.setName(PolyStringType.fromOrig("Execute changes"));
@@ -1599,7 +1599,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		PrismPropertyDefinition<ObjectDeltaType> deltasDefinition = prismContext.getSchemaRegistry()
 				.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
 		PrismProperty<ObjectDeltaType> deltasProperty = deltasDefinition.instantiate();
-		deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
+		deltasProperty.addRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
 		newTask.asPrismObject().addExtensionItem(deltasProperty);
 		if (options != null) {
 			//noinspection unchecked

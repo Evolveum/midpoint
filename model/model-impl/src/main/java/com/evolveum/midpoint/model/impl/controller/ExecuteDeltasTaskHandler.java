@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Temporary/experimental implementation.
@@ -98,10 +99,24 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-    @Override
+	@Override
+	public Long heartbeat(Task task) {
+		return null;
+	}
+
+	@Override
+	public void refreshStatus(Task task) {
+	}
+
+	@Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
+
+	@Override
+	public List<String> getCategoryNames() {
+		return null;
+	}
 
 	@PostConstruct
 	private void initialize() {
