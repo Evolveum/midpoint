@@ -179,6 +179,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 } else if (AccessCertificationCampaignType.class.equals(clazz)) {
                     o = SelectorOptions.createCollection(AccessCertificationCampaignType.F_CASE,
                             GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                } else if (TaskType.class.equals(clazz)) {
+                    o = SelectorOptions.createCollection(TaskType.F_RESULT,
+                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 }
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
 

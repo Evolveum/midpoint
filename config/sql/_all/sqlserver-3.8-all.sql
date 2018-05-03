@@ -450,6 +450,7 @@ CREATE TABLE m_task (
   category                 NVARCHAR(255) COLLATE database_default,
   completionTimestamp      DATETIME2,
   executionStatus          INT,
+  fullResult               VARBINARY(MAX),
   handlerUri               NVARCHAR(255) COLLATE database_default,
   lastRunFinishTimestamp   DATETIME2,
   lastRunStartTimestamp    DATETIME2,

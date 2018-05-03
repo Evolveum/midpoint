@@ -575,6 +575,7 @@ CREATE TABLE m_task (
   category                 VARCHAR(255),
   completionTimestamp      DATETIME(6),
   executionStatus          INTEGER,
+  fullResult               LONGBLOB,
   handlerUri               VARCHAR(255),
   lastRunFinishTimestamp   DATETIME(6),
   lastRunStartTimestamp    DATETIME(6),
