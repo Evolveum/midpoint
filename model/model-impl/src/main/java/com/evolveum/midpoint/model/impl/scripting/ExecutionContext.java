@@ -51,13 +51,13 @@ public class ExecutionContext {
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            boolean privileged, Map<String, Object> initialVariables) {
+            boolean privileged, boolean recordProgressAndIterationStatistics, Map<String, Object> initialVariables) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
         this.privileged = privileged;
         this.initialVariables = initialVariables;
-        this.recordProgressAndIterationStatistics = !ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI.equals(task.getHandlerUri());        // todo fix this hack
+        this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
     }
 
 	public Task getTask() {
