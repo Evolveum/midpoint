@@ -29,10 +29,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.WorkersReconciliationOptions;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.TemplateUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -75,7 +72,7 @@ public class WorkersManager {
 		if (coordinatorTask.getKind() != TaskKindType.COORDINATOR) {
 			throw new IllegalArgumentException("Task is not a coordinator task: " + coordinatorTask);
 		}
-		List<Task> currentWorkers = new ArrayList<>(coordinatorTask.listSubtasks(result));
+		List<Task> currentWorkers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
 		Map<WorkerKey, WorkerTasksPerNodeConfigurationType> perNodeConfigurationMap = new HashMap<>();
 		MultiValuedMap<String, WorkerKey> shouldBeWorkers = createWorkerKeys(coordinatorTask, perNodeConfigurationMap, result);
 
@@ -126,7 +123,7 @@ public class WorkersManager {
 
 	private Integer closeAllWorkers(Task coordinatorTask, OperationResult result) throws SchemaException {
 		int count = 0;
-		List<Task> workers = new ArrayList<>(coordinatorTask.listSubtasks(result));
+		List<Task> workers = new ArrayList<>(coordinatorTask.listSubtasks(true, result));
 		for (Task worker : workers) {
 			if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
 				LOGGER.info("Closing worker because the work is done: {}", worker);
@@ -408,6 +405,31 @@ public class WorkersManager {
 					.filter(n -> n.asObjectable().getExecutionStatus() == NodeExecutionStatusType.RUNNING)
 					.map(n -> n.asObjectable().getNodeIdentifier())
 					.collect(Collectors.toSet());
+		}
+	}
+
+	public void deleteWorkersAndWorkState(String coordinatorTaskOid, long subtasksWaitTime, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
+		if (coordinatorTask.getKind() != TaskKindType.COORDINATOR) {
+			throw new IllegalArgumentException("Task is not a coordinator task: " + coordinatorTask);
+		}
+		if (coordinatorTask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+			throw new IllegalStateException("Couldn't delete workers and work state while operation is in progress (coordinator state is WAITING): " + coordinatorTask);
+		}
+		if (coordinatorTask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && coordinatorTask.getNodeAsObserved() != null) {
+			throw new IllegalStateException("Couldn't delete workers and work state while operation is in progress (coordinator "
+					+ "state is RUNNABLE and it is executing on " + coordinatorTask.getNodeAsObserved() + "): " + coordinatorTask);
+		}
+		List<Task> subtasks = coordinatorTask.listSubtasks(true, result);
+		taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), subtasksWaitTime, true, result);
+		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				.item(TaskType.F_WORK_STATE).replace()
+				.asItemDeltas();
+		try {
+			taskManager.modifyTask(coordinatorTaskOid, itemDeltas, result);
+		} catch (ObjectAlreadyExistsException e) {
+			throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
 		}
 	}
 }

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -66,7 +65,7 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
         List<PrismObject<TaskType>> subtasks = null;
         try {
-            subtasks = ((TaskQuartzImpl) task).listSubtasksRaw(opResult);
+            subtasks = ((TaskQuartzImpl) task).listPersistentSubtasksRaw(opResult);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't list subtasks of " + task + " due to schema exception", e);
         }
