@@ -195,6 +195,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     // TODO find a better way to specify this
     private static final Set<ItemPath> PATHS_NOT_RETURNED_BY_DEFAULT = new HashSet<>(Arrays.asList(
             new ItemPath(UserType.F_JPEG_PHOTO),
+            new ItemPath(TaskType.F_RESULT),
             new ItemPath(TaskType.F_SUBTASK),
             new ItemPath(TaskType.F_NODE_AS_OBSERVED),
             new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP),

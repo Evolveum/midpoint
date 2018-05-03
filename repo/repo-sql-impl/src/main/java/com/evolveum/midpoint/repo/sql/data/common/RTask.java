@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -53,7 +54,7 @@ import java.util.Set;
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = {"taskIdentifier"}))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RTask extends RObject<TaskType> implements OperationResult {
+public class RTask extends RObject<TaskType> implements OperationResultFull {
 
     private RPolyString nameCopy;
     private String taskIdentifier;
@@ -62,6 +63,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     private String category;
     private String handlerUri;
     //operation result
+    private byte[] fullResult;
     private ROperationResultStatus status;
     //end of operation result
     private XMLGregorianCalendar lastRunStartTimestamp;
@@ -200,6 +202,18 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "endTimestamp") })
     public XMLGregorianCalendar getWfEndTimestamp() {
         return wfEndTimestamp;
+    }
+
+    @Lob
+    @NotQueryable
+    @Override
+    public byte[] getFullResult() {
+        return fullResult;
+    }
+
+    @Override
+    public void setFullResult(byte[] fullResult) {
+        this.fullResult = fullResult;
     }
 
     public void setCanRunOnNode(String canRunOnNode) {
@@ -371,6 +385,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         if (wfProcessInstanceId != null ? !wfProcessInstanceId.equals(rTask.wfProcessInstanceId) : rTask.wfProcessInstanceId != null) return false;
         if (wfStartTimestamp != null ? !wfStartTimestamp.equals(rTask.wfStartTimestamp) : rTask.wfStartTimestamp != null) return false;
         if (wfEndTimestamp != null ? !wfEndTimestamp.equals(rTask.wfEndTimestamp) : rTask.wfEndTimestamp != null) return false;
+        if (fullResult != null ? !fullResult.equals(rTask.wfEndTimestamp) : rTask.fullResult != null) return false;
 
         return true;
     }
@@ -394,6 +409,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
         result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
 
         return result1;
     }

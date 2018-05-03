@@ -25,7 +25,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -806,6 +809,67 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void test950AddBinary() throws Exception {
         final File user = new File(FOLDER_BASE, "./get/user-binary.xml");
         addGetCompare(user);
+    }
+
+    @Test
+    public void test400AddModifyTask() throws Exception {
+        File file = new File(FOLDER_BASIC, "task.xml");
+        PrismObject<TaskType> task = PrismTestUtil.parseObject(file);
+        TaskType taskType = task.asObjectable();
+        AssertJUnit.assertNotNull(taskType.getResult());
+
+        OperationResult result = new OperationResult("test400AddTask");
+        String oid = repositoryService.addObject(task, null, result);
+
+        Session session = null;
+        try {
+            session = open();
+
+            RTask rTask = session.createQuery("from RTask t where t.oid=:oid", RTask.class)
+                    .setParameter("oid", oid).getSingleResult();
+            AssertJUnit.assertNotNull(rTask.getFullResult());
+            AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
+
+            String xml = RUtil.getXmlFromByteArray(rTask.getFullObject(), true);
+            PrismObject<TaskType> obj = PrismTestUtil.parseObject(xml);
+            TaskType objType = obj.asObjectable();
+            AssertJUnit.assertNull(objType.getResult());
+        } finally {
+            close(session);
+        }
+
+        task = repositoryService.getObject(TaskType.class, oid, null, result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.IN_PROGRESS, taskType.getResultStatus());
+
+        task = repositoryService.getObject(TaskType.class, oid, SelectorOptions.createCollection(TaskType.F_RESULT,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)), result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNotNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.IN_PROGRESS, taskType.getResultStatus());
+
+        OperationResultType res = new OperationResultType();
+        res.setOperation("asdf");
+        res.setStatus(OperationResultStatusType.FATAL_ERROR);
+        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(TaskType.class, oid, TaskType.F_RESULT, prismContext, res);
+        repositoryService.modifyObject(TaskType.class, oid, delta.getModifications(), result);
+
+
+        task = repositoryService.getObject(TaskType.class, oid, null, result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, taskType.getResultStatus());
+
+        task = repositoryService.getObject(TaskType.class, oid, SelectorOptions.createCollection(TaskType.F_RESULT,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)), result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNotNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, taskType.getResultStatus());
+
+        OperationResultType r = taskType.getResult();
+        AssertJUnit.assertEquals("asdf", r.getOperation());
+        AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, r.getStatus());
     }
 }
 
