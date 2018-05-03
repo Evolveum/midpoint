@@ -35,7 +35,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -931,7 +930,8 @@ public class ModelRestService {
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
 				response = RestServiceUtil.createResponse(Response.Status.CREATED, resourceUri, result);
 			} else {
-				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, Collections.emptyMap(), task, result);
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, Collections.emptyMap(),
+						false, task, result);
 				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
 						.result(result.createOperationResultType())
 						.output(new ExecuteScriptOutputType()

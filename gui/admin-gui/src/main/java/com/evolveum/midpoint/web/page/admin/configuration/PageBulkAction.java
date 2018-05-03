@@ -144,7 +144,8 @@ public class PageBulkAction extends PageAdminConfiguration {
                     //noinspection ConstantConditions
                     ScriptExecutionResult executionResult =
                             parsed instanceof ExecuteScriptType ?
-                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(), task, result) :
+                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(),
+                                            false, task, result) :
                                     getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
                     result.addReturn("console", executionResult.getConsoleOutput());

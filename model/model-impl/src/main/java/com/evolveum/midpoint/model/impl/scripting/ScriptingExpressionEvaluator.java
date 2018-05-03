@@ -143,8 +143,9 @@ public class ScriptingExpressionEvaluator {
 	/**
 	 * Main entry point.
 	 */
-	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
-		return evaluateExpression(executeScript, initialVariables, false, task, result);
+	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables,
+			boolean recordProgressAndIterationStatistics, Task task, OperationResult result) throws ScriptExecutionException {
+		return evaluateExpression(executeScript, initialVariables, false, recordProgressAndIterationStatistics, task, result);
     }
 
 	/**
@@ -152,22 +153,24 @@ public class ScriptingExpressionEvaluator {
 	 * Note that privileged execution means
 	 */
 	public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
-		return evaluateExpression(executeScript, initialVariables, true, task, result);
+		return evaluateExpression(executeScript, initialVariables, true, false, task, result);
 	}
 
 	/**
 	 * Convenience method (if we don't have full ExecuteScriptType).
 	 */
 	public ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
-		return evaluateExpression(createExecuteScriptCommand(expression), emptyMap(), task, result);
+		return evaluateExpression(createExecuteScriptCommand(expression), emptyMap(), false, task, result);
 	}
 
-	private ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables, boolean privileged, Task task, OperationResult result) throws ScriptExecutionException {
+	private ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables,
+            boolean privileged, boolean recordProgressAndIterationStatistics, Task task, OperationResult result) throws ScriptExecutionException {
 		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
 		try {
 			Map<String, Object> frozenVariables = VariablesUtil.initialPreparation(initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext, task, result);
 			PipelineData pipelineData = PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext);
-			ExecutionContext context = new ExecutionContext(executeScript.getOptions(), task, this, privileged, frozenVariables);
+			ExecutionContext context = new ExecutionContext(executeScript.getOptions(), task, this,
+                    privileged, recordProgressAndIterationStatistics, frozenVariables);
 			PipelineData output = evaluateExpression(executeScript.getScriptingExpression().getValue(), pipelineData, context, result);
 			context.setFinalOutput(output);
 			result.computeStatusIfUnknown();

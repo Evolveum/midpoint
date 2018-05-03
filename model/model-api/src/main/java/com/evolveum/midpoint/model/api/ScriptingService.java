@@ -88,7 +88,8 @@ public interface ScriptingService {
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType executeScriptCommand,
-			@NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
+			@NotNull Map<String, Object> initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+			@NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 }
