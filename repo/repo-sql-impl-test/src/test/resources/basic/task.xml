@@ -20,7 +20,7 @@
     <description>
         Definition of a live sychnronization task. It will poll changelog and pull in changes
     </description>
-    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d31234</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>suspended</executionStatus>
 
