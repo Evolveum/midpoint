@@ -33,14 +33,14 @@ public class TabPanel<T> extends Component<T> {
 
     public SelenideElement clickTab(String resourceKey) {
         SelenideElement link = getParentElement().$(Schrodinger.bySchrodingerDataResourceKey(resourceKey)).parent();
-        link.shouldBe(Condition.visible);
 
-        link.click();
+        return verifyAndFetchActiveTab(link);
+    }
 
-        SelenideElement li = link.parent();
-        li.shouldHave(Condition.cssClass("active"));
+    public SelenideElement clickTabWithName(String tabName) {
+        SelenideElement link = getParentElement().$(Schrodinger.byElementValue("a", tabName));
 
-        return li.parent().parent().$(By.cssSelector(".tab-pane.active"));
+        return verifyAndFetchActiveTab(link);
     }
 
     public String getTabBadgeText(String resourceKey) {
@@ -51,5 +51,16 @@ public class TabPanel<T> extends Component<T> {
         badge.shouldBe(Condition.visible);
 
         return badge.getValue();
+    }
+
+    private SelenideElement verifyAndFetchActiveTab(SelenideElement link) {
+        link.shouldBe(Condition.visible);
+
+        link.click();
+
+        SelenideElement li = link.parent();
+        li.shouldHave(Condition.cssClass("active"));
+
+        return li.parent().parent().$(By.cssSelector(".tab-pane.active"));
     }
 }

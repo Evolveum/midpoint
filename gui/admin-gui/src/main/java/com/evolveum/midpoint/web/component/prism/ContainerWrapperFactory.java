@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ public class ContainerWrapperFactory {
 
     private ModelServiceLocator modelServiceLocator;
 
+    // Why do we need result here?
     private OperationResult result;
 
     public ContainerWrapperFactory(ModelServiceLocator modelServiceLocator) {
@@ -96,6 +97,9 @@ public class ContainerWrapperFactory {
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
         cWrapper.computeStripes();
+        
+        result.computeStatus();
+		result.recordSuccessIfUnknown();
         
        return cWrapper;
     }
@@ -206,6 +210,7 @@ public class ContainerWrapperFactory {
 		associationWrapper.setProperties(Arrays.asList(shadowValueWrapper));
 		
 		result.computeStatus();
+		result.recordSuccessIfUnknown();
 		return associationWrapper;
 		
     }
@@ -300,8 +305,8 @@ public class ContainerWrapperFactory {
 
 			LOGGER.trace("Creating wrapper for {}", itemDef);
 			try {
-			createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
-			createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty, task);
+				createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
+				createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty, task);
 			} catch (Exception e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "something strange happened: " + e.getMessage(), e);
 				System.out.println(e.getMessage());
@@ -317,6 +322,7 @@ public class ContainerWrapperFactory {
 		properties.addAll(containerWrappers);
 
 		result.recomputeStatus();
+		result.recordSuccessIfUnknown();
 
 		return properties;
 	}

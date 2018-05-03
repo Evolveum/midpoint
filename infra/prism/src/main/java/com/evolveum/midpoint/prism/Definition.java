@@ -92,7 +92,10 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	 *
 	 * Semantics of this flag for complex type definitions is to be defined yet.
 	 */
+	@Deprecated
 	boolean isIgnored();
+	
+	ItemProcessing getProcessing();
 
 	boolean isAbstract();
 

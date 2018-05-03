@@ -563,7 +563,7 @@ public class SimpleTaskAdapter implements Task {
 
     @NotNull
     @Override
-    public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
+    public List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -649,7 +649,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
+    public List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

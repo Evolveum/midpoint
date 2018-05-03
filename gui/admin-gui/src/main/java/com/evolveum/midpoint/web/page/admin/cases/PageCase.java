@@ -21,10 +21,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PrismPanel;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -142,6 +139,18 @@ public class PageCase  extends PageAdminCases {
         }
 
         wrapper.setShowEmpty(emptyCase);
+
+        //for now decided to make targetRef readonly
+        wrapper.getContainers().forEach(containerWrapper -> {
+            if (containerWrapper.isMain()){
+                containerWrapper.getValues().forEach(containerValueWrapper -> {
+                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapper(CaseType.F_TARGET_REF);
+                    if (itemWrapper != null){
+                        itemWrapper.setReadonly(true);
+                    }
+                });
+            }
+        });
 
         return wrapper;
     }

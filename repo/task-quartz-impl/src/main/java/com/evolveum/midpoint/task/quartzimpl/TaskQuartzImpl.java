@@ -2659,8 +2659,8 @@ public class TaskQuartzImpl implements Task {
 	//        return true;
 	//    }
 
-	public List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listSubtasksRaw");
+	public List<PrismObject<TaskType>> listPersistentSubtasksRaw(OperationResult parentResult) throws SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listPersistentSubtasksRaw");
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
@@ -2669,7 +2669,7 @@ public class TaskQuartzImpl implements Task {
 			return new ArrayList<>(0);
 		}
 
-		return taskManager.listSubtasksForTask(getTaskIdentifier(), result);
+		return taskManager.listPersistentSubtasksForTask(getTaskIdentifier(), result);
 	}
 
 	public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
@@ -2688,41 +2688,42 @@ public class TaskQuartzImpl implements Task {
 
 	@NotNull
 	@Override
-	public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
-
+	public List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listSubtasks");
+		result.addParam("persistentOnly", persistentOnly);
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
-
-		return listSubtasksInternal(result);
+		return listSubtasksInternal(persistentOnly, result);
 	}
 
 	@NotNull
-	private List<Task> listSubtasksInternal(OperationResult result) throws SchemaException {
-		List<Task> retval = new ArrayList<>();
+	private List<Task> listSubtasksInternal(boolean persistentOnly, OperationResult result) throws SchemaException {
 		// persistent subtasks
-		retval.addAll(taskManager.resolveTasksFromTaskTypes(listSubtasksRaw(result), result));
+		List<Task> retval = new ArrayList<>(taskManager.resolveTasksFromTaskTypes(listPersistentSubtasksRaw(result), result));
 		// transient asynchronous subtasks - must be taken from the running task instance!
-		retval.addAll(taskManager.getTransientSubtasks(this));
+		if (!persistentOnly) {
+			retval.addAll(taskManager.getTransientSubtasks(this));
+		}
 		return retval;
 	}
 
 	@Override
-	public List<Task> listSubtasksDeeply(OperationResult parentResult) throws SchemaException {
+	public List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult parentResult) throws SchemaException {
 
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listSubtasksDeeply");
+		result.addParam("persistentOnly", persistentOnly);
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
 		ArrayList<Task> retval = new ArrayList<>();
-		addSubtasks(retval, this, result);
+		addSubtasks(retval, this, persistentOnly, result);
 		return retval;
 	}
 
-	private void addSubtasks(ArrayList<Task> tasks, TaskQuartzImpl taskToProcess, OperationResult result) throws SchemaException {
-		for (Task task : taskToProcess.listSubtasksInternal(result)) {
+	private void addSubtasks(ArrayList<Task> tasks, TaskQuartzImpl taskToProcess, boolean persistentOnly, OperationResult result) throws SchemaException {
+		for (Task task : taskToProcess.listSubtasksInternal(persistentOnly, result)) {
 			tasks.add(task);
-			addSubtasks(tasks, (TaskQuartzImpl) task, result);
+			addSubtasks(tasks, (TaskQuartzImpl) task, persistentOnly, result);
 		}
 	}
 

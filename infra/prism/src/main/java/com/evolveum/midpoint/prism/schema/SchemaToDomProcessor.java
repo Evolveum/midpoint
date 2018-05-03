@@ -463,8 +463,8 @@ public class SchemaToDomProcessor {
 	}
 
 	private void addCommonDefinitionAnnotations(Definition definition, Element appinfoElement) {
-		if (definition.isIgnored()) {
-			addAnnotation(A_IGNORE, "true", appinfoElement);
+		if (definition.getProcessing() != null) {
+			addAnnotation(A_PROCESSING, definition.getProcessing().getValue(), appinfoElement);
 		}
 
 		if ((definition instanceof ItemDefinition) && ((ItemDefinition)definition).isOperational()) {

@@ -96,16 +96,14 @@ public class ResourceCache {
 		}
 
 		if (GetOperationOptions.isReadOnly(options)) {
-			try {
+			try {	// MID-4574
 				cachedResource.checkImmutability();
 			} catch (IllegalStateException ex) {
 				LOGGER.error("Failed immutability test", ex);
-				// todo still need proper fix https://jira.evolveum.com/browse/MID-4574
 				cache.remove(oid);
-				
+
 				return null;
 			}
-
 			return cachedResource;
 		} else {
 			return cachedResource.clone();

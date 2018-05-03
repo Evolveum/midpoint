@@ -71,6 +71,15 @@ public class Schrodinger {
         return By.xpath("//" + element + "[" + function + "(@" + attr + ",'" + value + "')]");
     }
 
+    public static By byElementEnclosedTextValue(String element, String attr, String attrValue, String enclosedText) {
+
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\"][text()=\"" + enclosedText + "\"]/..");
+    }
+
     public static By byElementValue(String elementName, String value) {
         if (elementName == null) {
             elementName = "*";
@@ -86,4 +95,6 @@ public class Schrodinger {
 
         return StringUtils.join(new Object[]{qname.getNamespaceURI(), qname.getLocalPart()}, "#");
     }
+
+
 }

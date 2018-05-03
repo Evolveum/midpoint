@@ -31,7 +31,7 @@ public class NewUserPage extends BasicPage {
     }
 
     public NewUserPage checkKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", true);
+        setOptionChecked("executeOptions:keepDisplayingResultsContainer:container:check", true);
         return this;
     }
 

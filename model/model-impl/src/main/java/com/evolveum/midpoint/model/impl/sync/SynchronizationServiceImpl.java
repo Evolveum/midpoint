@@ -176,6 +176,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 						+ applicableShadow.asObjectable().getObjectClass() + ") " + " on " + resourceType
 						+ ", ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, null);
+				executeShadowModifications(applicableShadow, modifications, task, subResult);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				eventInfo.setNoSynchronizationPolicy();
 				eventInfo.record(task);
@@ -186,6 +188,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				String message = "SYNCHRONIZATION is not enabled for " + resourceType
 						+ " ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, synchronizationPolicy.getIntent());
+				executeShadowModifications(applicableShadow, modifications, task, subResult);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				eventInfo.setSynchronizationNotEnabled();
 				eventInfo.record(task);
@@ -198,6 +202,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				LOGGER.trace(
 						"SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",
 						new Object[] { applicableShadow });
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, synchronizationPolicy.getIntent());
+				executeShadowModifications(currentShadow, modifications, task, subResult);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 						"Skipped because it does not match objectClass/kind/intent");
 				eventInfo.setDoesNotMatchTaskSpecification();
@@ -206,18 +212,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 
 			if (isProtected(currentShadow)) {
-				if (StringUtils.isNotBlank(synchronizationPolicy.getIntent())) {
-					List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(currentShadow);
-					PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(
-							ShadowType.F_INTENT, currentShadow.getDefinition(),
-							synchronizationPolicy.getIntent());
-					modifications.add(intentDelta);
-
-					executeShadowModifications(currentShadow, modifications, task, subResult);
-				}
+				List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(applicableShadow, synchronizationPolicy.getIntent());
+				executeShadowModifications(applicableShadow, modifications, task, subResult);
 				subResult.recordSuccess();
 				eventInfo.record(task);
-				LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for protected shadow {}", currentShadow);
+				LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for protected shadow {}", applicableShadow);
 				return;
 			}
 
@@ -297,6 +296,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			task.markObjectActionExecutedBoundary();
 		}
 		LOGGER.debug("SYNCHRONIZATION: DONE for {}", currentShadow);
+	}
+
+	private List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(PrismObject<ShadowType> currentShadow, String intent) {
+		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(currentShadow);
+		if (StringUtils.isNotBlank(intent)) {
+			PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(
+					ShadowType.F_INTENT, currentShadow.getDefinition(),
+					intent);
+			modifications.add(intentDelta);
+		}
+		return modifications;
 	}
 
 	private void executeShadowModifications(PrismObject<? extends ShadowType> object, List<PropertyDelta<?>> modifications,

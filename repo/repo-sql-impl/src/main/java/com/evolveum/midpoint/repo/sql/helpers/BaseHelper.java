@@ -39,7 +39,7 @@ import java.sql.SQLException;
 
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_EXP_THRESHOLD;
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_MAX_RETRIES;
-import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_TIMEOUT_STEP;
+import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_DELAY_INTERVAL_BASE;
 
 /**
  * Core functionality needed in all members of SQL service family.
@@ -198,7 +198,7 @@ public class BaseHelper {
 			throw ex;
 		}
 
-		BackoffComputer backoffComputer = new ExponentialBackoffComputer(LOCKING_MAX_RETRIES, LOCKING_TIMEOUT_STEP, LOCKING_EXP_THRESHOLD);
+		BackoffComputer backoffComputer = new ExponentialBackoffComputer(LOCKING_MAX_RETRIES, LOCKING_DELAY_INTERVAL_BASE, LOCKING_EXP_THRESHOLD, null);
 		long waitTime;
 		try {
 			waitTime = backoffComputer.computeDelay(attempt);

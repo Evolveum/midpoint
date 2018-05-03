@@ -23,11 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-
 /**
  * TODO
  *
@@ -35,26 +30,21 @@ import static java.util.Collections.singletonList;
  */
 public class ExplicitWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
-	@NotNull private final TaskWorkManagementType configuration;
 	@NotNull private final ExplicitWorkSegmentationType bucketsConfiguration;
 
-	public ExplicitWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration,
-			PrismContext prismContext) {
-		super(prismContext);
-		this.configuration = configuration;
+	public ExplicitWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
+		super(configuration, prismContext);
 		this.bucketsConfiguration = (ExplicitWorkSegmentationType)
 				TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
 	}
 
-	@NotNull
 	@Override
-	protected List<AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
-		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
-		int nextSequentialNumber = lastBucket != null ? lastBucket.getSequentialNumber() + 1 : 1;
-		if (nextSequentialNumber > bucketsConfiguration.getContent().size()) {
-			return emptyList();
+	protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
+		int currentBucketNumber = lastBucketSequentialNumber != null ? lastBucketSequentialNumber : 0;
+		if (currentBucketNumber < bucketsConfiguration.getContent().size()) {
+			return bucketsConfiguration.getContent().get(currentBucketNumber);
 		} else {
-			return singletonList(bucketsConfiguration.getContent().get(nextSequentialNumber-1));
+			return null;
 		}
 	}
 

@@ -84,8 +84,18 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             public boolean isVisible() {
             	IW propertyWrapper = model.getObject();
             	
-            	if (visibilityHandler != null && !visibilityHandler.isVisible(propertyWrapper)) {
-            		return false;
+            	if (visibilityHandler != null) {
+            		ItemVisibility visible = visibilityHandler.isVisible(propertyWrapper);
+            		if (visible != null) {
+            			switch (visible) {
+            				case VISIBLE:
+            					return true;
+            				case HIDDEN:
+            					return false;
+            				default:
+            					// automatic, go on ...
+            			}
+            		}
             	}
                 boolean visible = propertyWrapper.isVisible();
                 LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
@@ -260,8 +270,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             protected void populateItem(final ListItem<ValueWrapper> item) {
                 BasePanel panel;
                 ItemWrapper itemWrapper = item.getModelObject().getItem();
-                if (itemWrapper.getPath().containsName(AssignmentType.F_CONSTRUCTION) &&
-                        itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) &&
+                if ((itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
+                                itemWrapper.getPath().containsName(ConstructionType.F_ATTRIBUTE))&&
                         itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
                         itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
                     ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();

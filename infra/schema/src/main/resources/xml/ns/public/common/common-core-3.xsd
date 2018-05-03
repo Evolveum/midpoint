@@ -1299,6 +1299,13 @@
 					</xsd:annotation>
 				</xsd:element>
 			</xsd:choice>
+			<xsd:element name="allocation" type="tns:WorkAllocationConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Parameters related to buckets allocation process.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<!--<xsd:element name="progressMarking" type="tns:WorkBucketsProgressMarkingType" minOccurs="0">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->
@@ -1306,6 +1313,88 @@
 					<!--</xsd:documentation>-->
 				<!--</xsd:annotation>-->
 			<!--</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkAllocationConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Parameters related to buckets allocation process.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.8</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="bucketCreationBatch" type="xsd:int" minOccurs="0" default="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many buckets are to be created at once (when needed)?
+						EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO bucket allocation batch -->
+			<xsd:element name="allocateFirst" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Should the first available bucket be always allocated?
+						EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationMaxRetries" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many retries for allocation of a work bucket should be attempted? The default is specified
+						in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationRetryIntervalBase" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The base for exponential growth of the retry interval window. The actual delay is computed as
+
+						random() * retryIntervalBase * 2 ^ (min(retryNumber, exponentialThreshold) - 1)
+
+						Where retryNumber goes from 1 upwards.
+
+						The default is specified in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationRetryExponentialThreshold" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The retry number from which the retry delay window starts to be constant (instead of exponentially
+						dependent on retry number). The default is specified in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationRetryIntervalLimit" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Alternative way of limiting the retry delay growth. If specified, this is an absolute limit on the
+						delay window size (i.e. the factor that multiplies the random number of 0..1).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationInitialDelay" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Size of random interval for the initial delay. The default is specified in the system configuration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workAllocationFreeBucketWaitInterval" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If specified, overrides the time used to wait for free bucket(s) reclamation. This is applied when
+						no free buckets are available but the work is not completely done.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -6733,7 +6822,30 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-    		<xsd:element ref="tns:ignore" minOccurs="0"/>
+    		<xsd:element ref="tns:ignore" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					DEPRECATED. Use "processing" element instead.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:deprecated>true</a:deprecated>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="processing" type="tns:ItemProcessingType" minOccurs="0" default="auto">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specifies the "depth" of item processing - whether the item is ignored,
+            			there is minimal processing or full automatic processing.
+            			In midPoint 3.8 this is only supported by the user interface
+            			(presentation layer) and only as an experimental feature.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.8</a:since>
+            			<a:experimental>true</a:experimental>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
     		<xsd:element name="access" type="tns:PropertyAccessType" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
@@ -6802,6 +6914,60 @@
     		<!-- delete does not make sense here -->
     	</xsd:sequence>
     </xsd:complexType>
+    
+    <!-- TODO: somehow align with ItemProcessingType in annotation-3.xsd -->
+    <xsd:simpleType name="ItemProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the "depth" of item processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Item is ignored. No processing is done at all.
+                		The item will behave in the same way as it is does not
+                		exists at all.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="minimal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Only very minimal item processing is done. This usually means
+                		that basic data structures about the item is maintained.
+                		The item values may be logged. But all automatic processing,
+                		presentation, transformation or any similar processing is
+                		skipped. This type of processing is designed to support
+                		item processing by custom code. The underlying data structures
+                		will be present and they can be manipulated by custom code.
+                		But any built-in automatic processing will be skipped.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auto">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All usual processing of the item is applied. Or automated presentation,
+                		transformation or any other processing will take place. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:simpleType name="AttributeFetchStrategyType">
         <xsd:annotation>

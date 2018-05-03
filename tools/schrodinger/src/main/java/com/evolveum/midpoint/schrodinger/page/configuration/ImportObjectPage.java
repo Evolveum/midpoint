@@ -1,7 +1,10 @@
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import org.openqa.selenium.By;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.File;
 
@@ -120,7 +123,8 @@ public class ImportObjectPage extends BasicPage {
     }
 
     public ImportObjectPage chooseFile(File file) {
-        $(By.name("input:inputFile:fileInput")).sendKeys(file.getAbsolutePath());
+
+        $(By.name("input:inputFile:fileInput")).uploadFile(file);
         //todo implement
         return this;
     }
@@ -149,5 +153,11 @@ public class ImportObjectPage extends BasicPage {
     public ImportObjectPage clickImport() {
         $(".main-button-bar").$x("//a[@about='importFileButton']").click();
         return this;
+    }
+
+    public FeedbackBox<ImportObjectPage> feedback() {
+        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
+
+        return new FeedbackBox<>(this, feedback);
     }
 }

@@ -573,8 +573,8 @@ public class SchemaTransformer {
 				if (limitationsType.getMaxOccurs() != null) {
 					((ItemDefinitionImpl) itemDef).setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
 				}
-				if (limitationsType.isIgnore() != null) {
-					((ItemDefinitionImpl) itemDef).setIgnored(limitationsType.isIgnore());
+				if (limitationsType.getProcessing() != null) {
+					((ItemDefinitionImpl) itemDef).setProcessing(MiscSchemaUtil.toItemProcessing(limitationsType.getProcessing()));
 				}
 				PropertyAccessType accessType = limitationsType.getAccess();
 				if (accessType != null) {

@@ -456,8 +456,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 			sb.append(",ext:");
 			sb.append(PrettyPrinter.prettyPrint(extensionForType));
 		}
-		if (ignored) {
-			sb.append(",ignored");
+		if (processing != null) {
+			sb.append(",").append(processing);
 		}
 		if (containerMarker) {
 			sb.append(",Mc");

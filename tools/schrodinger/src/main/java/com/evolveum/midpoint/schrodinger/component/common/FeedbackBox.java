@@ -47,14 +47,14 @@ public class FeedbackBox<T> extends Component<T> {
 
     }
 
-    public FeedbackBox clickShowAll() {
+    public FeedbackBox<T> clickShowAll() {
 
         $(Schrodinger.byDataId("showAll")).click();
 
         return this;
     }
 
-    public FeedbackBox clickClose() {
+    public FeedbackBox<T> clickClose() {
 
         $(Schrodinger.byDataId("close")).click();
 

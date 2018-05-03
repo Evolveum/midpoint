@@ -24,10 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * Implements work state management strategy based on numeric identifier intervals.
@@ -42,42 +38,39 @@ public class NumericWorkSegmentationStrategy extends BaseWorkSegmentationStrateg
 
 	public NumericWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration,
 			PrismContext prismContext) {
-		super(prismContext);
+		super(configuration, prismContext);
 		this.configuration = configuration;
 		this.bucketsConfiguration = (NumericWorkSegmentationType)
 				TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
 	}
 
-	@NotNull
 	@Override
-	protected List<NumericIntervalWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
+	protected NumericIntervalWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent,
+			Integer lastBucketSequentialNumber) {
 		BigInteger bucketSize = getOrComputeBucketSize();
 		BigInteger from = getFrom();
 		BigInteger to = getOrComputeTo();
 
-		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
-		NumericIntervalWorkBucketContentType newContent;
-		if (lastBucket != null) {
-			if (!(lastBucket.getContent() instanceof NumericIntervalWorkBucketContentType)) {
-				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucket.getContent());
+		if (lastBucketSequentialNumber != null) {
+			if (!(lastBucketContent instanceof NumericIntervalWorkBucketContentType)) {
+				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucketContent);
 			}
-			NumericIntervalWorkBucketContentType lastContent = (NumericIntervalWorkBucketContentType) lastBucket.getContent();
+			NumericIntervalWorkBucketContentType lastContent = (NumericIntervalWorkBucketContentType) lastBucketContent;
 			if (lastContent.getTo() == null || lastContent.getTo().compareTo(to) >= 0) {
-				return emptyList();            // no more buckets
+				return null;            // no more buckets
 			}
 			BigInteger newEnd = lastContent.getTo().add(bucketSize);
 			if (newEnd.compareTo(to) > 0) {
 				newEnd = to;
 			}
-			newContent = new NumericIntervalWorkBucketContentType()
+			return new NumericIntervalWorkBucketContentType()
 					.from(lastContent.getTo())
 					.to(newEnd);
 		} else {
-			newContent = new NumericIntervalWorkBucketContentType()
+			return new NumericIntervalWorkBucketContentType()
 					.from(from)
 					.to(from.add(bucketSize));
 		}
-		return singletonList(newContent);
 	}
 
 	@NotNull

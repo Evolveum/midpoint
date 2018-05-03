@@ -66,7 +66,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
-                                <a:experimental>true</a:experimental>
                                 <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
                                 <a:displayName>CaseType.objectRef</a:displayName>
                             </xsd:appinfo>
