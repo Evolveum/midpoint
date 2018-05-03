@@ -343,7 +343,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	 */
 	private boolean reclaimWronglyAllocatedBuckets(Task coordinatorTask, OperationResult result)
 			throws SchemaException, PreconditionViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		List<Task> workers = coordinatorTask.listSubtasks(result);
+		List<Task> workers = coordinatorTask.listSubtasks(true, result);
 		if (coordinatorTask.getWorkState() == null) {
 			return false;
 		}

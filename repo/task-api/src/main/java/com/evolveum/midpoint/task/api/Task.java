@@ -838,7 +838,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @throws SchemaException
      */
 	@NotNull
-    List<Task> listSubtasks(OperationResult parentResult) throws SchemaException;
+    default List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
+		return listSubtasks(false, parentResult);
+	}
+
+	@NotNull
+    List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
 
     /**
      * List all the subtasks of a given task, i.e. whole task tree rooted at the current task.
@@ -848,7 +853,11 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @return
      * @throws SchemaException
      */
-    List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException;
+    default List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
+    	return listSubtasksDeeply(false, result);
+    }
+
+    List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException;
 
     /**
      * Lists all explicit dependents, i.e. tasks that wait for the completion of this tasks (that depend on it).

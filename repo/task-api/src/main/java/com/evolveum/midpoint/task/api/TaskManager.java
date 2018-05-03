@@ -418,6 +418,9 @@ public interface TaskManager {
 	void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
+	void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException;
+
 	/**
 	 * TODO is this method really necessary?
 	 */
