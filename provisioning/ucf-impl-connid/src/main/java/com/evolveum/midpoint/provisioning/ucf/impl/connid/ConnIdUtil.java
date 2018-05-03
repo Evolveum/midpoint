@@ -241,7 +241,7 @@ public class ConnIdUtil {
 			return newEx;
 		}
 
-        LOGGER.error("FALLBACK: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
+		LOGGER.error("FALLBACK: {} -> {}", connIdException.getClass().getName(), (knownCause != null ? knownCause.getClass().getName() : null));
 
 		// Fallback
 		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException));
