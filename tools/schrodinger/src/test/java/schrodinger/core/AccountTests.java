@@ -9,6 +9,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import schrodinger.TestBase;
 
@@ -30,11 +31,17 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
     private static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
     private static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
     private static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
+    private static final String ADD_ACCOUNT_DEPENDENCY= "addAccount";
+
 
     private static final String CSV_RESOURCE_NAME= "Test CSV: username";
 
+    private static final String TEST_USER_MIKE_NAME= "michelangelo";
+    private static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
+    private static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
 
-    @BeforeMethod
+
+    @BeforeSuite
     private void init() throws IOException {
         FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
     }
@@ -45,15 +52,15 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
 
         Assert.assertTrue(user.selectTabBasic()
                     .form()
-                        .addAttributeValue("name", "michelangelo")
+                        .addAttributeValue("name", TEST_USER_MIKE_NAME)
                         .addAttributeValue(UserType.F_GIVEN_NAME, "Michelangelo")
                         .addAttributeValue(UserType.F_FAMILY_NAME, "di Lodovico Buonarroti Simoni")
                         .and()
                     .and()
                 .checkKeepDisplayingResults()
-                .clickSave()
-                .feedback()
-                .isSuccess()
+                    .clickSave()
+                    .feedback()
+                    .isSuccess()
         );
     }
 
@@ -96,10 +103,10 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                 .table()
                     .search()
                     .byName()
-                    .inputValue("michelangelo")
+                    .inputValue(TEST_USER_MIKE_NAME)
                     .updateSearch()
                 .and()
-                .clickByName("michelangelo")
+                .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
                     .clickCog()
                     .addProjection()
@@ -109,11 +116,34 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                         .clickAdd()
                     .and()
                     .checkKeepDisplayingResults()
-                    .clickSave()
-                    .feedback()
-                    .isSuccess()
+                        .clickSave()
+                        .feedback()
+                        .isSuccess()
         );
     }
 
-    public void modifyAccountAttribute(){}
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    public void modifyAccountAttribute(){
+        ListUsersPage users = basicPage.listUsers();
+                users
+                    .table()
+                        .search()
+                        .byName()
+                        .inputValue(TEST_USER_MIKE_NAME)
+                        .updateSearch()
+                    .and()
+                    .clickByName(TEST_USER_MIKE_NAME)
+                        .selectTabProjections()
+                            .table()
+                            .clickByName(CSV_RESOURCE_NAME)
+                                .changeAttributeValue("lastname",TEST_USER_MIKE_LAST_NAME_OLD,TEST_USER_MIKE_LAST_NAME_NEW)
+                            .and()
+                        .and()
+                    .and()
+                    .checkKeepDisplayingResults()
+                        .clickSave()
+                        .feedback()
+            ;
+
+    }
 }
