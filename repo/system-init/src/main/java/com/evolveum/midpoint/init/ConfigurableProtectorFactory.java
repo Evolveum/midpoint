@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.crypto.KeyGenerator;
@@ -56,7 +55,7 @@ public class ConfigurableProtectorFactory {
         }
 
         String keyStorePath = protectorConfig.getKeyStorePath();
-        if (StringUtils.isEmpty(keyStorePath)) {
+        if (keyStorePath == null) {
             throw new SystemException("Keystore path not defined");
         }
 
