@@ -2030,10 +2030,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
-		    @NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
+		    @NotNull Map<String, Object> initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+		    @NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, result);
-        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables, task, result);
+        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables,
+		        recordProgressAndIterationStatistics, task, result);
         return executionContext.toExecutionResult();
     }
 

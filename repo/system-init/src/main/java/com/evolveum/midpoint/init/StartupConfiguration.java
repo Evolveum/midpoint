@@ -208,8 +208,17 @@ public class StartupConfiguration implements MidpointConfiguration {
                         printToSysout(message);
                         throw new SystemException(message);
                     }
+
+                    try {
+                        SystemUtil.setPrivateFilePermissions(configFile.getPath());
+                    } catch (IOException ex) {
+                        String message = "Unable to set permissions for configuration file [" + configFile + "]: " + ex.getMessage();
+                        LOGGER.warn(message);
+                        printToSysout(message);
+                        // Non-critical, continue
+                    }
                 }
-                SystemUtil.setPrivateFilePermissions(configFile.getPath());
+
                 //Load and parse properties
                 config.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
                 createXmlConfiguration(documentBuilder, configFile.getPath());
@@ -218,13 +227,7 @@ public class StartupConfiguration implements MidpointConfiguration {
                 LOGGER.error(message);
                 printToSysout(message);
                 throw new SystemException(message, e);      // there's no point in continuing with midpoint initialization
-            } catch (IOException e) {
-            	String message = "Unable to set permissions for configuration file [" + configFile + "]: " + e.getMessage();
-                LOGGER.warn(message);
-                printToSysout(message);
-                // Non-critical, continue
-			}
-
+            }
         } else {
             // Load from current directory
             try {

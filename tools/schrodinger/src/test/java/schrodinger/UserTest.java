@@ -17,7 +17,7 @@
 package schrodinger;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.annotations.Test;
 
@@ -32,7 +32,7 @@ public class UserTest extends TestBase {
     public void createUser() {
 
         //@formatter:off
-        NewUserPage user = basicPage.newUser();
+        UserPage user = basicPage.newUser();
         user.selectTabBasic()
                 .form()
                     .addAttributeValue("name", "jdoe222323")

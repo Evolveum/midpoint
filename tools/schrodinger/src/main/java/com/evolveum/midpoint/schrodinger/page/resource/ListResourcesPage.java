@@ -1,8 +1,7 @@
 package com.evolveum.midpoint.schrodinger.page.resource;
 
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.component.Resource.ResourcesTable;
-import com.evolveum.midpoint.schrodinger.component.common.Table;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourcesTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import org.openqa.selenium.By;
 

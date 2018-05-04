@@ -89,7 +89,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 				try {
 					ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
 					executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
-					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, emptyMap(), workerTask, result);
+					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, emptyMap(),
+							false, workerTask, result);
 					LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
 					LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
 					result.computeStatus();

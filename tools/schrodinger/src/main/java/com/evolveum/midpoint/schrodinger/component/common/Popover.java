@@ -13,7 +13,7 @@ public class Popover<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public Popover inputValue(String input) {
+    public Popover<T> inputValue(String input) {
         getParentElement().$(By.cssSelector("input.form-control.input-sm")).setValue(input);
 
         return this;

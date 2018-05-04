@@ -137,10 +137,10 @@ public class ExistsFilter extends ObjectFilter implements ItemFilter {
         } else {
             sb.append("null");
         }
+        sb.append("\n");
         if (filter != null) {
             sb.append(filter.debugDump(indent + 1));
         }
-
         return sb.toString();
     }
 
