@@ -50,6 +50,8 @@ import org.springframework.security.core.Authentication;
 import javax.xml.datatype.Duration;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
+
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
 
@@ -95,7 +97,7 @@ public class JobExecutor implements InterruptableJob {
 		// get the task instance
 		String oid = context.getJobDetail().getKey().getName();
         try {
-			task = taskManagerImpl.getTask(oid, executionResult);
+			task = taskManagerImpl.getTask(oid, retrieveItemsNamed(TaskType.F_RESULT), executionResult);
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -832,7 +834,7 @@ mainCycle:
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
-		LOGGER.debug("Task cycle run FINISHED " + task + ", handler = " + handler);
+		LOGGER.debug("Task cycle run FINISHED {}, handler = {}", task, handler);
         taskManagerImpl.notifyTaskFinish(task, runResult);
 		try {
 			if (runResult.getProgress() != null) {
@@ -844,6 +846,7 @@ mainCycle:
 					OperationResult taskResult = runResult.getOperationResult().clone();
                     taskResult.cleanupResult();
 					taskResult.summarize(true);
+//	                System.out.println("Setting task result to " + taskResult);
 					task.setResult(taskResult);
                 } catch (Throwable ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);

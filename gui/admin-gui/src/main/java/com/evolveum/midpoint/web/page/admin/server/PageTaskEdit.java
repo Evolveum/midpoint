@@ -186,6 +186,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					TaskType.F_NODE_AS_OBSERVED,
 					TaskType.F_NEXT_RUN_START_TIMESTAMP,
 					TaskType.F_NEXT_RETRY_TIMESTAMP,
+					TaskType.F_RESULT,          // todo maybe only when it is to be displayed
 					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
 			options.addAll(GetOperationOptions.resolveItemsNamed(
 					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF)
@@ -204,7 +205,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 
 	protected void initLayout() {
-		refreshModel = new Model(new AutoRefreshDto());
+		refreshModel = new Model<>(new AutoRefreshDto());
 		refreshModel.getObject().setInterval(getRefreshInterval());
 
 		IModel<PrismObject<TaskType>> prismObjectModel = new AbstractReadOnlyModel<PrismObject<TaskType>>() {

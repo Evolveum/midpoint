@@ -707,6 +707,10 @@ public class WebModelServiceUtils {
 			options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
 					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		}
+		if (all || TaskType.class.isAssignableFrom(type)) {
+			options.add(SelectorOptions.create(TaskType.F_RESULT,
+					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+		}
 		if (all || LookupTableType.class.isAssignableFrom(type)) {
 			options.add(SelectorOptions.create(LookupTableType.F_ROW,
 					GetOperationOptions.createRetrieve(

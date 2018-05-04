@@ -450,6 +450,6 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
             repo.setWfEndTimestamp(wfc.getEndTimestamp());
         }
 
-        RUtil.copyResultFromJAXB(jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
+        RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
     }
 }

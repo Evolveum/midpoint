@@ -54,6 +54,7 @@
 	
 	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
 	<logger name="com.evolveum.polygon.connector.ldap.schema" level="DEBUG" />
+	<!-- <logger name="org.apache.http.impl.auth.CredSspScheme" level="TRACE" /> -->
 	
 	<logger name="PROFILING" level="INFO" />
 	

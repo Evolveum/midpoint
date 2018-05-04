@@ -834,7 +834,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public OperationResultStatus getStatus() {
-        return taskOperationResult != null ? taskOperationResult.getStatus() : null;
+        if (taskOperationResult != null) {
+        	return taskOperationResult.getStatus();
+        } else if (taskType.getResultStatus() != null) {
+        	return OperationResultStatus.parseStatusType(taskType.getResultStatus());
+        } else {
+        	return null;
+        }
     }
 
     private boolean isRunNotFinished() {

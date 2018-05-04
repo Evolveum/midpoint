@@ -154,4 +154,14 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
         }
         return changed;
     }
+
+    @Override
+    public String toString() {
+        String stringValue = super.toString();
+        if (stringValue != null && stringValue.startsWith("[") && stringValue.endsWith("]")){
+            stringValue = stringValue.substring(1, stringValue.length());
+            stringValue = stringValue.substring(0, stringValue.length() - 1);
+        }
+        return stringValue;
+    }
 }
