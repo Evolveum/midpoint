@@ -29,7 +29,7 @@ import org.openqa.selenium.By;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTable<T> extends Table<T> implements TableWithClickableElements {
+public class UsersTable<T> extends TableWithClickableElements<T> {
 
     public UsersTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
