@@ -2989,6 +2989,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 			aggregateResult.getSubresults().clear();
 			List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
+			for (Task subtask : subtasks) {
+				subtask.refresh(waitResult);        // quick hack to get operation results
+			}
 			Task failedTask = null;
 			for (Task subtask : subtasks) {
 				if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
