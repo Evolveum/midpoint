@@ -11,7 +11,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by matus on 4/25/2018.
  */
-public class ResourcesTable<T> extends Table<T> implements TableWithClickableElements {
+public class ResourcesTable<T> extends TableWithClickableElements<T> {
     public ResourcesTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }

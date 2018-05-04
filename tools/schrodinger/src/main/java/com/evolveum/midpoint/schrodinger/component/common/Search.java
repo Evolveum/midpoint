@@ -34,7 +34,7 @@ public class Search<T> extends Component<T> {
     }
 
     public Popover<Search<T>> byName() {
-        getParentElement().$(By.partialLinkText("Name: All")).click();
+        getParentElement().$(By.partialLinkText("Name:")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
         SelenideElement popover = getParentElement().$(Schrodinger.byDataId("popover")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
 
         return new Popover<>(this, popover);
