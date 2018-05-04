@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.crypto.KeyGenerator;
@@ -54,7 +55,12 @@ public class ConfigurableProtectorFactory {
             return;
         }
 
-        File ks = new File(protectorConfig.getKeyStorePath());
+        String keyStorePath = protectorConfig.getKeyStorePath();
+        if (StringUtils.isEmpty(keyStorePath)) {
+            throw new SystemException("Keystore path not defined");
+        }
+
+        File ks = new File(keyStorePath);
         if (ks.exists()) {
             return;
         }
@@ -73,12 +79,12 @@ public class ConfigurableProtectorFactory {
 
             keystore.setKeyEntry("default", secretKey, "midpoint".toCharArray(), null);
 
-            fos = new FileOutputStream(protectorConfig.getKeyStorePath());
+            fos = new FileOutputStream(keyStorePath);
             try {
-            	SystemUtil.setPrivateFilePermissions(protectorConfig.getKeyStorePath());
+                SystemUtil.setPrivateFilePermissions(keyStorePath);
             } catch (IOException e) {
-            	LOGGER.warn("Unable to set file permissions for keystore {}: {}", protectorConfig.getKeyStorePath(), e.getMessage(), e);
-            	// Non-critical, continue
+                LOGGER.warn("Unable to set file permissions for keystore {}: {}", keyStorePath, e.getMessage(), e);
+                // Non-critical, continue
             }
             keystore.store(fos, password);
             fos.close();
