@@ -80,6 +80,7 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static java.util.Collections.emptyMap;
@@ -227,7 +228,7 @@ public class TaskQuartzImpl implements Task {
 	 */
 	private void replaceTaskPrism(PrismObject<TaskType> taskPrism) {
 		this.taskPrism = taskPrism;
-		updateTaskResult();
+		createOrUpdateTaskResult(null);
 		setDefaults();
 	}
 
@@ -243,10 +244,6 @@ public class TaskQuartzImpl implements Task {
 		if (getBinding() == null) {
 			setBindingTransient(DEFAULT_BINDING_TYPE);
 		}
-	}
-
-	private void updateTaskResult() {
-		createOrUpdateTaskResult(null);
 	}
 
 	private void createOrUpdateTaskResult(String operationName) {
@@ -2482,7 +2479,9 @@ public class TaskQuartzImpl implements Task {
 
 		PrismObject<TaskType> repoObj;
 		try {
-			repoObj = repositoryService.getObject(TaskType.class, getOid(), null, result);
+			// Here we conservatively fetch the result. In the future we could optimize this a bit, avoiding result
+			// fetching when not strictly necessary. But it seems that it needs to be fetched most of the time.
+			repoObj = repositoryService.getObject(TaskType.class, getOid(), retrieveItemsNamed(TaskType.F_RESULT), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;

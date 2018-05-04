@@ -1167,7 +1167,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
 
-        Task task = getTask(oid, result);
+        Task task = getTask(oid, options, result);
         addTransientTaskInformation(task.getTaskPrismObject(),
                 clusterStatusInformation,
                 SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options),
