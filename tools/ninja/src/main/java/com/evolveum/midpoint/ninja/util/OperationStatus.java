@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.ninja.util;
 
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +30,8 @@ public class OperationStatus {
     public enum State {
         NOT_STARTED, STARTED, PRODUCER_FINISHED, FINISHED;
     }
+
+    private NinjaContext context;
 
     private State state = State.NOT_STARTED;
 
@@ -43,7 +47,8 @@ public class OperationStatus {
 
     private OperationResult result;
 
-    public OperationStatus(OperationResult result) {
+    public OperationStatus(NinjaContext context, OperationResult result) {
+        this.context = context;
         this.result = result;
     }
 
@@ -56,18 +61,36 @@ public class OperationStatus {
     }
 
     public void start() {
+        if (state != State.NOT_STARTED) {
+            throw new NinjaException("Can't start operation, previous state is was not " + State.NOT_STARTED);
+        }
+
+        debug("Operation: started");
+
         startTime = System.currentTimeMillis();
 
         state = State.STARTED;
     }
 
     public void finish() {
+        if (state == State.NOT_STARTED) {
+            throw new NinjaException("Can't finish operation, previous state was " + State.NOT_STARTED);
+        }
+
+        debug("Operation: finished");
+
         finishTime = System.currentTimeMillis();
 
         state = State.FINISHED;
     }
 
     public void producerFinish() {
+        if (state != State.STARTED) {
+            throw new NinjaException("Can't set state " + State.PRODUCER_FINISHED + " for operation, previous state is was not " + State.STARTED);
+        }
+
+        debug("Operation: producer finished");
+
         state = State.PRODUCER_FINISHED;
     }
 
@@ -145,5 +168,10 @@ public class OperationStatus {
     public void lastPrintoutNow() {
         this.lastPrintoutTime = System.currentTimeMillis();
         this.lastPrintoutCount = totalCount.get() - lastPrintoutCount;
+    }
+
+    private void debug(String message) {
+        Log log = context.getLog();
+        log.debug(message);
     }
 }

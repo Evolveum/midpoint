@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
@@ -70,6 +71,8 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
             finalizeWriter(writer);
         } catch (IOException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
+        } catch (NinjaException ex) {
+            log.error(ex.getMessage(), ex);
         } finally {
             markDone();
 

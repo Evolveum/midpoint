@@ -47,7 +47,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
     @Override
     public void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_EXPORT);
-        OperationStatus operation = new OperationStatus(result);
+        OperationStatus operation = new OperationStatus(context, result);
 
         // "+ 2" will be used for consumer and progress reporter
         ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
@@ -83,7 +83,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
     }
 
     @Override
-    protected LogTarget getInfoLogTarget() {
+    public LogTarget getInfoLogTarget() {
         if (options.getOutput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

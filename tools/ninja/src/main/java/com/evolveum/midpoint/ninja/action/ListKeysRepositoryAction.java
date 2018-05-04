@@ -22,7 +22,7 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
     @Override
-    protected LogTarget getInfoLogTarget() {
+    public LogTarget getInfoLogTarget() {
         return LogTarget.SYSTEM_ERR;
     }
 

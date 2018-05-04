@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
@@ -77,11 +78,15 @@ public class ExportProducerWorker extends BaseWorker<ExportOptions, PrismObject>
             repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, false, operation.getResult());
         } catch (SchemaException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
+        } catch (NinjaException ex) {
+            log.error(ex.getMessage(), ex);
         } finally {
             markDone();
 
             if (isWorkersDone()) {
-                operation.producerFinish();
+                if (!operation.isFinished()) {
+                    operation.producerFinish();
+                }
             }
         }
     }
