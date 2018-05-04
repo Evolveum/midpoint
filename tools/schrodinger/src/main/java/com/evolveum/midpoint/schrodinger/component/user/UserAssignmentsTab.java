@@ -18,14 +18,14 @@ package com.evolveum.midpoint.schrodinger.component.user;
 
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserAssignmentsTab  extends Component<NewUserPage> {
+public class UserAssignmentsTab  extends Component<UserPage> {
 
-    public UserAssignmentsTab(NewUserPage parent, SelenideElement parentElement) {
+    public UserAssignmentsTab(UserPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 }

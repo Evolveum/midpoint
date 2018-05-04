@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.schrodinger.page.user;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.user.UsersTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import org.openqa.selenium.By;
@@ -17,6 +15,6 @@ public class ListUsersPage extends BasicPage {
     public UsersTable<ListUsersPage> table() {
         SelenideElement box = $(By.cssSelector(".box.boxed-table.object-user-box"));
 
-        return new UsersTable(this, box);
+        return new UsersTable<>(this, box);
     }
 }

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.page.workitems.*;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -73,9 +73,9 @@ public class BasicPage {
         return new ListUsersPage();
     }
 
-    public NewUserPage newUser() {
+    public UserPage newUser() {
         clickAdministrationMenu("PageAdmin.menu.top.users", "PageAdmin.menu.top.users.new");
-        return new NewUserPage();
+        return new UserPage();
     }
 
     public OrgTreePage orgStructure() {

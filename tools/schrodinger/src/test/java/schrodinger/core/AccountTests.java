@@ -4,7 +4,7 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
@@ -27,14 +27,21 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
 
     private static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
 
+    private static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
+    private static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
+    private static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
+
+    private static final String CSV_RESOURCE_NAME= "Test CSV: username";
+
+
     @BeforeMethod
     private void init() throws IOException {
         FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
     }
 
-    @Test
+    @Test(priority = 1)
     public void createMidpointUser(){
-        NewUserPage user = basicPage.newUser();
+        UserPage user = basicPage.newUser();
 
         Assert.assertTrue(user.selectTabBasic()
                     .form()
@@ -49,46 +56,64 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                 .isSuccess()
         );
     }
-    @Test
-    public void listMidpointUser() {
-        ListUsersPage users = basicPage.listUsers();
-            users
-                .table()
-                .search()
-                .byName()
-                .inputValue("michelangelo")
-                .updateSearch();
-
-    }
 
     @Test
     public void importCsvResource(){
         ImportObjectPage importPage = basicPage.importObject();
-            importPage
-                    .getObjectsFromFile()
-                    .chooseFile(CSV_RESOURCE_MEDIUM)
-                    .clickImport()
-                    .feedback()
-                    .isSuccess();
 
+        Assert.assertTrue(importPage
+                .getObjectsFromFile()
+                .chooseFile(CSV_RESOURCE_MEDIUM)
+                .clickImport()
+                .feedback()
+                .isSuccess()
+        );
     }
-    @Test
-    public void changeResourceFilePath(){
 
+
+    @Test (dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY})
+    public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
-            listResourcesPage
-                    .table()
-                    .clickByName("Test CSV: username")
+
+        Assert.assertTrue(listResourcesPage
+                .table()
+                .clickByName("Test CSV: username")
                     .clickEditResourceConfiguration()
-                    .form()
-                    .changeAttributeValue("File path",CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .form()
+                        .changeAttributeValue("File path",CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
                 .isTestSuccess()
-            ;
-
-            Selenide.sleep(5000);
-
+        );
     }
+
+    @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY})
+    public void addAccount() {
+        ListUsersPage users = basicPage.listUsers();
+
+        Assert.assertTrue(users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue("michelangelo")
+                    .updateSearch()
+                .and()
+                .clickByName("michelangelo")
+                    .selectTabProjections()
+                    .clickCog()
+                    .addProjection()
+                            .projectionsTable()
+                            .selectCheckboxByName(CSV_RESOURCE_NAME)
+                        .and()
+                        .clickAdd()
+                    .and()
+                    .checkKeepDisplayingResults()
+                    .clickSave()
+                    .feedback()
+                    .isSuccess()
+        );
+    }
+
+    public void modifyAccountAttribute(){}
 }

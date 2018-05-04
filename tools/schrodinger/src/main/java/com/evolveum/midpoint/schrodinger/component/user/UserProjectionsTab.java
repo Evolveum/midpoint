@@ -16,16 +16,30 @@
 
 package com.evolveum.midpoint.schrodinger.component.user;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserProjectionsTab extends Component<NewUserPage> {
-
-    public UserProjectionsTab(NewUserPage parent, SelenideElement parentElement) {
+public class UserProjectionsTab extends Component<UserPage> {
+    public UserProjectionsTab(UserPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    public UserProjectionsCog<UserProjectionsTab> clickCog() {
+
+        $(Schrodinger.byElementAttributeValue("a", "about", "dropdownMenu"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        SelenideElement dropDownMenu = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"));
+
+        return new UserProjectionsCog<>(this, dropDownMenu);
     }
 }

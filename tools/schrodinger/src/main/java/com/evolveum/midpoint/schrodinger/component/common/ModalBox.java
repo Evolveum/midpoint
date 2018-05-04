@@ -9,8 +9,8 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by matus on 4/26/2018.
  */
-public class ModalBox<T> extends Component {
-    public ModalBox(Object parent, SelenideElement parentElement) {
+public class ModalBox<T> extends Component<T> {
+    public ModalBox(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 }

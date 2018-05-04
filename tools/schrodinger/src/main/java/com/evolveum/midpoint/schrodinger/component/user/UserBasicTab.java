@@ -19,14 +19,14 @@ package com.evolveum.midpoint.schrodinger.component.user;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.page.user.NewUserPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserBasicTab extends Component<NewUserPage> {
+public class UserBasicTab extends Component<UserPage> {
 
-    public UserBasicTab(NewUserPage parent, SelenideElement parentElement) {
+    public UserBasicTab(UserPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 

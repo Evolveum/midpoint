@@ -13,44 +13,44 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class NewUserPage extends BasicPage {
+public class UserPage extends BasicPage {
 
-    public NewUserPage checkForce() {
+    public UserPage checkForce() {
         setOptionChecked("executeOptions:force", true);
         return this;
     }
 
-    public NewUserPage checkReconcile() {
+    public UserPage checkReconcile() {
         setOptionChecked("executeOptions:reconcileLabel:reconcile", true);
         return this;
     }
 
-    public NewUserPage checkExecuteAfterAllApprovals() {
+    public UserPage checkExecuteAfterAllApprovals() {
         setOptionChecked("executeOptions:executeAfterAllApprovals", true);
         return this;
     }
 
-    public NewUserPage checkKeepDisplayingResults() {
+    public UserPage checkKeepDisplayingResults() {
         setOptionChecked("executeOptions:keepDisplayingResultsContainer:container:check", true);
         return this;
     }
 
-    public NewUserPage uncheckForce() {
+    public UserPage uncheckForce() {
         setOptionChecked("executeOptions:force", false);
         return this;
     }
 
-    public NewUserPage uncheckReconcile() {
+    public UserPage uncheckReconcile() {
         setOptionChecked("executeOptions:reconcileLabel:reconcile", false);
         return this;
     }
 
-    public NewUserPage uncheckExecuteAfterAllApprovals() {
+    public UserPage uncheckExecuteAfterAllApprovals() {
         setOptionChecked("executeOptions:executeAfterAllApprovals", false);
         return this;
     }
 
-    public NewUserPage uncheckKeepDisplayingResults() {
+    public UserPage uncheckKeepDisplayingResults() {
         setOptionChecked("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", false);
         return this;
     }
