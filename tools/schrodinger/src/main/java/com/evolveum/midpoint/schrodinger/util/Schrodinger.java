@@ -71,7 +71,7 @@ public class Schrodinger {
         return By.xpath("//" + element + "[" + function + "(@" + attr + ",'" + value + "')]");
     }
 
-    public static By byElementEnclosedTextValue(String element, String attr, String attrValue, String enclosedText) {
+    public static By byElementValue(String element, String attr, String attrValue, String enclosedText) {
 
         if (element == null) {
             element = "*";
@@ -86,6 +86,14 @@ public class Schrodinger {
         }
 
         return By.xpath("//" + elementName + "[text()='" + value + "']");
+    }
+
+    public static By bySelfOrAncestorElementAttributeValue(String childElement, String childAttr, String childAttrValue, String ancestorAttr, String ancestorAttrValue) {
+        if (childElement == null) {
+            childElement = "*";
+        }
+
+        return By.xpath("//" + childElement + "[@" + childAttr + "=\"" + childAttrValue + "\" and ancestor-or-self::*[@" + ancestorAttr + "=\"" + ancestorAttrValue + "\"]]");
     }
 
     public static String qnameToString(QName qname) {

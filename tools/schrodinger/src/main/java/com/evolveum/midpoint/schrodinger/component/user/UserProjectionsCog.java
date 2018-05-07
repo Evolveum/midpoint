@@ -48,7 +48,7 @@ public class UserProjectionsCog<T> extends CogDropDown<T> {
 
     public FocusSetProjectionModal<T> addProjection() {
 
-        $(Schrodinger.byElementEnclosedTextValue("a", "data-s-id", "menuItemLink", "\n" +
+        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
                 "        Add projection")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
         SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"));

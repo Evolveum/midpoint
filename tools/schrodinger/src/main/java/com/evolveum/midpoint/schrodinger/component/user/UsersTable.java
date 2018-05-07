@@ -20,7 +20,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
-import com.evolveum.midpoint.schrodinger.component.common.table.Table;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithClickableElements;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -38,7 +37,7 @@ public class UsersTable<T> extends TableWithClickableElements<T> {
     @Override
     public UserPage clickByName(String name) {
 
-        getParentElement().$(Schrodinger.byElementEnclosedTextValue("span", "data-s-id", "label", name))
+        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
         return new UserPage();

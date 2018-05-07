@@ -6,9 +6,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import schrodinger.TestBase;
@@ -43,7 +41,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
 
     @BeforeSuite
     private void init() throws IOException {
-        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
+       // FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
     }
 
     @Test(priority = 1)
@@ -144,6 +142,33 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                         .clickSave()
                         .feedback()
             ;
+
+    }
+    @Test
+    public void modifyAccountPassword(){
+        ListUsersPage users = basicPage.listUsers();
+            users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(TEST_USER_MIKE_NAME)
+                    .updateSearch()
+                .and()
+                .clickByName(TEST_USER_MIKE_NAME)
+                    .selectTabProjections()
+                        .table()
+                        .clickByName(CSV_RESOURCE_NAME)
+                            .showEmptyAttributes("Password")
+                            .addProtectedAttributeValue("Value","5ecr3t")
+                        .and()
+                    .and()
+                .and()
+                .checkKeepDisplayingResults()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
+
+            Selenide.sleep(5000);
 
     }
 }

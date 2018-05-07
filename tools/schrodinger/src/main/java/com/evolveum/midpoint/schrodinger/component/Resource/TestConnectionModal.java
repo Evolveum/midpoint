@@ -25,7 +25,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     }
 
     public FeedbackBox<TestConnectionModal> feedbackConnectorInitialization() {
-        SelenideElement feedback = $(Schrodinger.byElementEnclosedTextValue("b", "data-s-id", "messageLabel", CONNECTOR_INITIALIZATION_LABEL))
+        SelenideElement feedback = $(Schrodinger.byElementValue("b", "data-s-id", "messageLabel", CONNECTOR_INITIALIZATION_LABEL))
                 .parent()
                 .parent()
                 .parent();
@@ -34,7 +34,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     }
 
     public FeedbackBox<TestConnectionModal> feedbackConnectorConfiguration() {
-        SelenideElement feedback = $(Schrodinger.byElementEnclosedTextValue("b", "data-s-id", "messageLabel", CONNECTOR_CONFIGURATION_LABEL))
+        SelenideElement feedback = $(Schrodinger.byElementValue("b", "data-s-id", "messageLabel", CONNECTOR_CONFIGURATION_LABEL))
                 .parent()
                 .parent()
                 .parent();
@@ -43,7 +43,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     }
 
     public FeedbackBox<TestConnectionModal> feedbackConnectorConnection() {
-        SelenideElement feedback = $(Schrodinger.byElementEnclosedTextValue("b", "data-s-id", "messageLabel", CONNECTOR_CONNECTION_LABEL))
+        SelenideElement feedback = $(Schrodinger.byElementValue("b", "data-s-id", "messageLabel", CONNECTOR_CONNECTION_LABEL))
                 .parent()
                 .parent()
                 .parent();
@@ -52,7 +52,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     }
 
     public FeedbackBox<TestConnectionModal> feedbackConnectorCapabilities() {
-        SelenideElement feedback = $(Schrodinger.byElementEnclosedTextValue("b", "data-s-id", "messageLabel", CONNECTOR_CAPABILITIES_LABEL))
+        SelenideElement feedback = $(Schrodinger.byElementValue("b", "data-s-id", "messageLabel", CONNECTOR_CAPABILITIES_LABEL))
                 .parent()
                 .parent()
                 .parent();
@@ -61,7 +61,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     }
 
     public FeedbackBox<TestConnectionModal> feedbackResourceSchema() {
-        SelenideElement feedback = $(Schrodinger.byElementEnclosedTextValue("b", "data-s-id", "messageLabel", RESOURCE_SCHEMA_LABEL))
+        SelenideElement feedback = $(Schrodinger.byElementValue("b", "data-s-id", "messageLabel", RESOURCE_SCHEMA_LABEL))
                 .parent()
                 .parent()
                 .parent();

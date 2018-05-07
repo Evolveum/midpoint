@@ -13,6 +13,7 @@ public class MidPoint {
     private EnvironmentConfiguration environment;
 
     public static long TIMEOUT_DEFAULT = 2000;
+    public static long TIMEOUT_LONG = 60000;
 
     public MidPoint(EnvironmentConfiguration environment) {
         Validate.notNull(environment, "Environment configuration must not be null");

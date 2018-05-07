@@ -51,7 +51,7 @@ public class Table<T> extends Component<T> {
 
 
     public Table<T> selectCheckboxByName(String name) {
-        SelenideElement parent = $(Schrodinger.byElementEnclosedTextValue(null, "data-s-id", "cell", name))
+        SelenideElement parent = $(Schrodinger.byElementValue(null, "data-s-id", "cell", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
         ;
 
