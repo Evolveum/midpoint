@@ -142,4 +142,14 @@ public class PrismForm<T> extends Component<T> {
         String name = Schrodinger.qnameToString(qname);
         return $(Schrodinger.byDataQName(name));
     }
+
+    public PrismForm<T> selectOption(String attributeName, String option) {
+
+        SelenideElement property = findProperty(attributeName);
+
+        property.$(By.xpath(".//select[contains(@class,\"form-control\")]"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).selectOption(option);
+
+        return this;
+    }
 }

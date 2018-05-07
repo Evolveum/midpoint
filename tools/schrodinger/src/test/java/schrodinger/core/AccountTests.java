@@ -6,6 +6,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -41,7 +42,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
 
     @BeforeSuite
     private void init() throws IOException {
-       // FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
     }
 
     @Test(priority = 1)
@@ -144,7 +145,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
             ;
 
     }
-    @Test
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
     public void modifyAccountPassword(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -168,7 +169,32 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                     .feedback()
                     .isSuccess();
 
-            Selenide.sleep(5000);
 
+
+    }
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    public void disableAccount(){
+        ListUsersPage users = basicPage.listUsers();
+            users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(TEST_USER_MIKE_NAME)
+                    .updateSearch()
+                .and()
+                .clickByName(TEST_USER_MIKE_NAME)
+                    .selectTabProjections()
+                        .table()
+                        .clickByName(CSV_RESOURCE_NAME)
+                            .selectOption("Administrative status","Disabled")
+                        .and()
+                    .and()
+                .and()
+                .checkKeepDisplayingResults()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
+            ;
+        Selenide.sleep(5000);
     }
 }
