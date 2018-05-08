@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -35,7 +36,8 @@ public class IconColumn<T> extends AbstractColumn<T, String> implements IExporta
 
     @Override
     public String getCssClass() {
-        return "icon";
+        IModel<String> display = getDisplayModel();
+        return StringUtils.isNoneEmpty(display.getObject()) ? null : "icon";
     }
 
     @Override

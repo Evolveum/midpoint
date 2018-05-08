@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -72,7 +73,8 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
 
     @Override
     public String getCssClass() {
-        return "icon";
+        IModel<String> display = getDisplayModel();
+        return StringUtils.isNoneEmpty(display.getObject()) ? null : "icon";
     }
 
     protected IModel<Boolean> getEnabled(IModel<T> rowModel) {
