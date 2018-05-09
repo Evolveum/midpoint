@@ -450,6 +450,7 @@ CREATE TABLE m_task (
   category                 VARCHAR(255),
   completionTimestamp      TIMESTAMP,
   executionStatus          INT4,
+  fullResult               BYTEA,
   handlerUri               VARCHAR(255),
   lastRunFinishTimestamp   TIMESTAMP,
   lastRunStartTimestamp    TIMESTAMP,

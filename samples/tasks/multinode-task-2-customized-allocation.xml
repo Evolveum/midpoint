@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<task oid="0ce0ce48-ff0b-48db-aefe-a3adec0ed25b"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	  xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3">
+	<name>1000 objects in 20 buckets, 4 workers per node</name>
+	<extension>
+		<!-- 1 second per object -->
+		<noop:delay xsi:type="xsd:int">1000</noop:delay>
+		<noop:steps xsi:type="xsd:int">1</noop:steps>
+	</extension>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+	<category>Demo</category>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
+	<workManagement>
+		<taskKind>coordinator</taskKind>
+		<buckets>
+			<numericSegmentation>
+				<to>10000</to>
+				<numberOfBuckets>200</numberOfBuckets>
+			</numericSegmentation>
+			<allocation>
+				<!-- not quite sensible values, used for illustration purposes only -->
+				<workAllocationMaxRetries>5</workAllocationMaxRetries>
+				<workAllocationRetryIntervalBase>400</workAllocationRetryIntervalBase>
+				<workAllocationRetryIntervalLimit>10000</workAllocationRetryIntervalLimit>
+				<workAllocationRetryExponentialThreshold>10</workAllocationRetryExponentialThreshold>
+				<workAllocationInitialDelay>40000</workAllocationInitialDelay>
+				<workAllocationFreeBucketWaitInterval>1000</workAllocationFreeBucketWaitInterval>
+			</allocation>
+		</buckets>
+		<workers>
+			<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
+			<workersPerNode>
+				<count>40</count>
+			</workersPerNode>
+		</workers>
+	</workManagement>
+	<recurrence>single</recurrence>
+	<binding>loose</binding>
+</task>

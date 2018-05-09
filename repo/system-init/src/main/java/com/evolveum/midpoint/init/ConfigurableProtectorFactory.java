@@ -54,7 +54,12 @@ public class ConfigurableProtectorFactory {
             return;
         }
 
-        File ks = new File(protectorConfig.getKeyStorePath());
+        String keyStorePath = protectorConfig.getKeyStorePath();
+        if (keyStorePath == null) {
+            throw new SystemException("Keystore path not defined");
+        }
+
+        File ks = new File(keyStorePath);
         if (ks.exists()) {
             return;
         }
@@ -73,12 +78,12 @@ public class ConfigurableProtectorFactory {
 
             keystore.setKeyEntry("default", secretKey, "midpoint".toCharArray(), null);
 
-            fos = new FileOutputStream(protectorConfig.getKeyStorePath());
+            fos = new FileOutputStream(keyStorePath);
             try {
-            	SystemUtil.setPrivateFilePermissions(protectorConfig.getKeyStorePath());
+                SystemUtil.setPrivateFilePermissions(keyStorePath);
             } catch (IOException e) {
-            	LOGGER.warn("Unable to set file permissions for keystore {}: {}", protectorConfig.getKeyStorePath(), e.getMessage(), e);
-            	// Non-critical, continue
+                LOGGER.warn("Unable to set file permissions for keystore {}: {}", keyStorePath, e.getMessage(), e);
+                // Non-critical, continue
             }
             keystore.store(fos, password);
             fos.close();

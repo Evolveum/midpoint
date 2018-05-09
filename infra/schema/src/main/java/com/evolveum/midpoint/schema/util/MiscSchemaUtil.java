@@ -460,4 +460,20 @@ public class MiscSchemaUtil {
 		messages.forEach(s -> rv.getPart().add(new InformationPartType().localizableText(s)));
 		return rv;
 	}
+	
+	public static ItemProcessing toItemProcessing(ItemProcessingType type) {
+		if (type == null) {
+			return null;
+		}
+		switch (type) {
+			case IGNORE:
+				return ItemProcessing.IGNORE;
+			case MINIMAL:
+				return ItemProcessing.MINIMAL;
+			case AUTO:
+				return ItemProcessing.AUTO;
+			default:
+				throw new IllegalArgumentException("Unknown processing "+type);
+		}
+	}
 }

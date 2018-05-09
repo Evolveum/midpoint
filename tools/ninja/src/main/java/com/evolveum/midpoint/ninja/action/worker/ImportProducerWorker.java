@@ -64,10 +64,10 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
     public void run() {
         Log log = context.getLog();
 
-        try (InputStream input = openInputStream()) {
-            log.info("Starting import");
-            operation.start();
+        log.info("Starting import");
+        operation.start();
 
+        try (InputStream input = openInputStream()) {
             if (!options.isZip()) {
                 processStream(input);
             } else {
@@ -88,10 +88,15 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
             }
         } catch (IOException ex) {
             log.error("Unexpected error occurred, reason: {}", ex, ex.getMessage());
+        } catch (NinjaException ex) {
+            log.error(ex.getMessage(), ex);
         } finally {
             markDone();
+
             if (isWorkersDone()) {
-                operation.producerFinish();
+                if (!operation.isFinished()) {
+                    operation.producerFinish();
+                }
             }
         }
     }

@@ -789,6 +789,9 @@ public class ShadowManager {
 		// e.g. recording the error in the shadow.
 		// Anyway, if this is alreadyExistsException we need to remove the shadow otherwise it will
 		// lead to duplicities.
+		if (proposedShadowOid == null) {
+			return;
+		}
 		try {
 			repositoryService.deleteObject(ShadowType.class, proposedShadowOid, parentResult);
 		} catch (ObjectNotFoundException e) {

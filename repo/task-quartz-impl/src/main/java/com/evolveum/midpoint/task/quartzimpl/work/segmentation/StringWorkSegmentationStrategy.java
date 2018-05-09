@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.INTERVAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.PREFIX;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -49,59 +48,54 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 	private static final String OID_BOUNDARIES = "0-9a-f";
 
 	public StringWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
-		super(prismContext);
+		super(configuration, prismContext);
 		this.bucketsConfiguration = (StringWorkSegmentationType)
 				TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
 		this.marking = defaultIfNull(bucketsConfiguration.getComparisonMethod(), INTERVAL);
 		this.boundaries = processBoundaries();
 	}
 
-	@NotNull
 	@Override
-	protected List<? extends AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
+	protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
 		if (marking == INTERVAL) {
-			return createAdditionalIntervalBuckets(workState);
+			return createAdditionalIntervalBucket(lastBucketContent, lastBucketSequentialNumber);
 		} else if (marking == PREFIX) {
-			return createAdditionalPrefixBuckets(workState);
+			return createAdditionalPrefixBucket(lastBucketContent, lastBucketSequentialNumber);
 		} else {
 			throw new AssertionError("unsupported marking: " + marking);
 		}
 	}
 
-	private List<? extends AbstractWorkBucketContentType> createAdditionalIntervalBuckets(TaskWorkStateType workState) {
-		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
+	private AbstractWorkBucketContentType createAdditionalIntervalBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
 		String lastBoundary;
-		if (lastBucket != null) {
-			if (!(lastBucket.getContent() instanceof StringIntervalWorkBucketContentType)) {
-				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucket.getContent());
+		if (lastBucketSequentialNumber != null) {
+			if (!(lastBucketContent instanceof StringIntervalWorkBucketContentType)) {
+				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucketContent);
 			}
-			StringIntervalWorkBucketContentType lastContent = (StringIntervalWorkBucketContentType) lastBucket.getContent();
+			StringIntervalWorkBucketContentType lastContent = (StringIntervalWorkBucketContentType) lastBucketContent;
 			if (lastContent.getTo() == null) {
-				return emptyList();
+				return null;
 			}
 			lastBoundary = lastContent.getTo();
 		} else {
 			lastBoundary = null;
 		}
-		StringIntervalWorkBucketContentType nextBucket =
-				new StringIntervalWorkBucketContentType()
-						.from(lastBoundary)
-						.to(computeNextBoundary(lastBoundary));
-		return singletonList(nextBucket);
+		return new StringIntervalWorkBucketContentType()
+				.from(lastBoundary)
+				.to(computeNextBoundary(lastBoundary));
 	}
 
-	private List<? extends AbstractWorkBucketContentType> createAdditionalPrefixBuckets(TaskWorkStateType workState) {
-		WorkBucketType lastBucket = TaskWorkStateTypeUtil.getLastBucket(workState.getBucket());
+	private AbstractWorkBucketContentType createAdditionalPrefixBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
 		String lastBoundary;
-		if (lastBucket != null) {
-			if (!(lastBucket.getContent() instanceof StringPrefixWorkBucketContentType)) {
-				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucket.getContent());
+		if (lastBucketSequentialNumber != null) {
+			if (!(lastBucketContent instanceof StringPrefixWorkBucketContentType)) {
+				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucketContent);
 			}
-			StringPrefixWorkBucketContentType lastContent = (StringPrefixWorkBucketContentType) lastBucket.getContent();
+			StringPrefixWorkBucketContentType lastContent = (StringPrefixWorkBucketContentType) lastBucketContent;
 			if (lastContent.getPrefix().size() > 1) {
 				throw new IllegalStateException("Multiple prefixes are not supported now: " + lastContent);
 			} else if (lastContent.getPrefix().isEmpty()) {
-				return emptyList();
+				return null;
 			} else {
 				lastBoundary = lastContent.getPrefix().get(0);
 			}
@@ -110,12 +104,10 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 		}
 		String nextBoundary = computeNextBoundary(lastBoundary);
 		if (nextBoundary != null) {
-			StringPrefixWorkBucketContentType nextBucket =
-					new StringPrefixWorkBucketContentType()
-							.prefix(nextBoundary);
-			return singletonList(nextBucket);
+			return new StringPrefixWorkBucketContentType()
+					.prefix(nextBoundary);
 		} else {
-			return emptyList();
+			return null;
 		}
 	}
 

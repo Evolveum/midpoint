@@ -66,7 +66,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 
 		try {
 			setOrCheckTaskKind(task, opResult);
-			List<Task> workers = task.listSubtasks(opResult);
+			List<Task> workers = task.listSubtasks(true, opResult);
 			boolean clean = task.getWorkState() == null || Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete());
 			// todo consider checking that the subtask is really a worker (workStateConfiguration.taskKind)
 			if (clean) {
@@ -98,7 +98,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 			taskManager.reconcileWorkers(task.getOid(), options, opResult);
 			task.makeWaiting(TaskWaitingReason.OTHER_TASKS, TaskUnpauseActionType.RESCHEDULE);  // i.e. close for single-run tasks
 			task.savePendingModifications(opResult);
-			taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(opResult)), opResult);
+			taskManager.resumeTasks(TaskUtil.tasksToOids(task.listSubtasks(true, opResult)), opResult);
 			LOGGER.info("Worker tasks were successfully created for coordinator {}", task);
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't (re)create workers for {}", e, task);
@@ -133,7 +133,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 		deleteWorkState(task, opResult);
 		for (Task worker : workers) {
 			try {
-				List<Task> workerSubtasks = worker.listSubtasks(opResult);
+				List<Task> workerSubtasks = worker.listSubtasks(true, opResult);
 				if (!workerSubtasks.isEmpty()) {
 					LOGGER.warn("Couldn't recreate worker task {} because it has its own subtasks: {}", worker, workerSubtasks);
 					opResult.recordFatalError("Couldn't recreate worker task " + worker + " because it has its own subtasks: " + workerSubtasks);

@@ -178,7 +178,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -259,7 +259,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	    variables.put("value2", "jack");
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, variables, task, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, variables, false, task, result);
 
         // THEN
         dumpOutput(output, result);
@@ -893,7 +893,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -919,7 +919,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -1021,7 +1021,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 				.addRealValues("group1", "group2", "group3");
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -1046,7 +1046,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType exec = prismContext.parserFor(START_TASKS_FROM_TEMPLATE_FILE).parseRealValue();
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -1124,7 +1124,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType exec = prismContext.parserFor(RESUME_SUSPENDED_TASKS_FILE).parseRealValue();
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), false, task, result);
 
 		// THEN
 		dumpOutput(output, result);

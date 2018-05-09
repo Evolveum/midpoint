@@ -50,6 +50,8 @@ import org.springframework.security.core.Authentication;
 import javax.xml.datatype.Duration;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
+
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
 
@@ -95,7 +97,7 @@ public class JobExecutor implements InterruptableJob {
 		// get the task instance
 		String oid = context.getJobDetail().getKey().getName();
         try {
-			task = taskManagerImpl.getTask(oid, executionResult);
+			task = taskManagerImpl.getTask(oid, retrieveItemsNamed(TaskType.F_RESULT), executionResult);
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -689,30 +691,26 @@ mainCycle:
 			}
 		}
 
-		try {
-			workStateManager.executeInitialDelay(task);
-		} catch (InterruptedException e) {
-			return createInterruptedTaskRunResult();
-		}
-
+		boolean initialBucket = true;
 		TaskWorkBucketProcessingResult runResult = null;
 		for (;;) {
 			WorkBucketType bucket;
 			try {
 				try {
-					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), executionResult);
+					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
 				} catch (InterruptedException e) {
 					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
 					if (task.canRun()) {
-						throw new IllegalStateException("Unexpected InterruptedException", e);
+						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
 					} else {
 						return createInterruptedTaskRunResult();
 					}
 				}
 			} catch (Throwable t) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
-				return createFailureTaskRunResult("Couldn't allocate a work bucket for task", t);
+				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
 			}
+			initialBucket = false;
 			if (bucket == null) {
 				LOGGER.trace("No (next) work bucket within {}, exiting", task);
 				runResult = handler.onNoMoreBuckets(task, runResult);
@@ -836,7 +834,7 @@ mainCycle:
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
-		LOGGER.debug("Task cycle run FINISHED " + task + ", handler = " + handler);
+		LOGGER.debug("Task cycle run FINISHED {}, handler = {}", task, handler);
         taskManagerImpl.notifyTaskFinish(task, runResult);
 		try {
 			if (runResult.getProgress() != null) {
@@ -848,6 +846,7 @@ mainCycle:
 					OperationResult taskResult = runResult.getOperationResult().clone();
                     taskResult.cleanupResult();
 					taskResult.summarize(true);
+//	                System.out.println("Setting task result to " + taskResult);
 					task.setResult(taskResult);
                 } catch (Throwable ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);

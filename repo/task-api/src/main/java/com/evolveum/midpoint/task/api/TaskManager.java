@@ -258,6 +258,11 @@ public interface TaskManager {
 	Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	@NotNull
+	default Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		return getTask(taskOid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT), parentResult);
+	}
+
+	@NotNull
 	Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
@@ -417,6 +422,9 @@ public interface TaskManager {
 
 	void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+
+	void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException;
 
 	/**
 	 * TODO is this method really necessary?

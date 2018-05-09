@@ -71,12 +71,45 @@ public class Schrodinger {
         return By.xpath("//" + element + "[" + function + "(@" + attr + ",'" + value + "')]");
     }
 
+    public static By byElementValue(String element, String attr, String attrValue, String enclosedText) {
+
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\"][text()=\"" + enclosedText + "\"]/..");
+    }
+
     public static By byElementValue(String elementName, String value) {
         if (elementName == null) {
             elementName = "*";
         }
 
         return By.xpath("//" + elementName + "[text()='" + value + "']");
+    }
+
+    public static By bySelfOrAncestorElementAttributeValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue) {
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and ancestor-or-self::*[@" + ancestorAttr + "=\"" + ancestorAttrValue + "\"]]");
+    }
+
+    public static By bySelfOrDescendantElementAttributeValue(String element, String attr, String attrValue, String descendantAttr, String descendantAttrValue) {
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and descendant-or-self::*[@" + descendantAttr + "=\"" + descendantAttrValue + "\"]]");
+    }
+
+    public static By byFollowingSiblingElementValue(String element, String attr, String attrValue, String siblingAttr, String siblingAttrValue, String siblingEnclosedText) {
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and following-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant::*[text()=\"" + siblingEnclosedText + "\"]]]");
     }
 
     public static String qnameToString(QName qname) {
@@ -86,4 +119,6 @@ public class Schrodinger {
 
         return StringUtils.join(new Object[]{qname.getNamespaceURI(), qname.getLocalPart()}, "#");
     }
+
+
 }

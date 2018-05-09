@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -120,6 +121,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
 	private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
 	private static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
+	private static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
 	private static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
 	private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
 	private static final String OPERATION_DELETE_NODES = DOT_CLASS + "deleteNodes";
@@ -254,7 +256,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Task task = createSimpleTask("load task");
 						OperationResult result = task.getResult();
 						PrismObject<TaskType> taskType = WebModelServiceUtils
-								.loadObject(TaskType.class, oid, PageTasks.this, task, result);
+								.loadObject(TaskType.class, oid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT),
+										PageTasks.this, task, result);
 						if (taskType == null) {
 							return null;
 						}
@@ -953,6 +956,33 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 					@Override
 					public IModel<String> getConfirmationMessageModel() {
 						String actionName = createStringResource("pageTasks.message.resumeAction").getString();
+						return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+					}
+				});
+				items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkersAndWorkState"), false,
+						new ColumnMenuAction<TaskDto>() {
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								if (getRowModel() == null) {
+									throw new UnsupportedOperationException();
+								} else {
+									TaskDto rowDto = getRowModel().getObject();
+									deleteWorkersAndWorkState(target, rowDto);
+								}
+							}
+						}) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public boolean isShowConfirmationDialog() {
+						return PageTasks.this.isTaskShowConfirmationDialog((ColumnMenuAction) getAction());
+					}
+
+					@Override
+					public IModel<String> getConfirmationMessageModel() {
+						String actionName = createStringResource("pageTasks.message.deleteWorkersAndWorkState").getString();
 						return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 					}
 				});
@@ -1786,6 +1816,22 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             result.computeStatus();
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't resume the coordinator", e);  // todo i18n
+        }
+	    showResult(result);
+
+        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+        provider.clearCache();
+        refreshTables(target);
+    }
+
+    private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull TaskDto task) {
+        Task opTask = createSimpleTask(OPERATION_DELETE_WORKERS_AND_WORK_STATE);
+        OperationResult result = opTask.getResult();
+        try {
+            getTaskService().deleteWorkersAndWorkState(task.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
+            result.computeStatus();
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+            result.recordFatalError("Couldn't delete workers and the work state of the coordinator", e);  // todo i18n
         }
 	    showResult(result);
 

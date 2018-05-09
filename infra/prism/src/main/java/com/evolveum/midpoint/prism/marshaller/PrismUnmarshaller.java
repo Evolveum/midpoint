@@ -386,7 +386,7 @@ public class PrismUnmarshaller {
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {
-        	pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + ": " + node.debugDump());
+        	pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + " because bean unmarshaller cannot process it (generated bean classes are missing?): " + node.debugDump());
 			return createRawPrismPropertyValue(node);
         }
     }

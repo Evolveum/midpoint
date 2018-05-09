@@ -77,8 +77,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 				executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
 			throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
 		}
-		ExecuteScriptType executeScriptRequest = executeScriptProperty.getRealValue();
-		if (executeScriptRequest.getInput() != null && !executeScriptRequest.getInput().getValue().isEmpty()) {
+		ExecuteScriptType executeScriptRequestTemplate = executeScriptProperty.getRealValue();
+		if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
 			LOGGER.warn("Ignoring input values in executeScript data in task {}", coordinatorTask);
 		}
 
@@ -87,8 +87,10 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 			@Override
 			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) {
 				try {
+					ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
 					executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
-					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, emptyMap(), workerTask, result);
+					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, emptyMap(),
+							false, workerTask, result);
 					LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
 					LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
 					result.computeStatus();
@@ -96,7 +98,6 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 					result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
 				}
-				executeScriptRequest.setInput(null);            // to avoid warnings above (during next bucket processing)
 				return true;
 			}
 		};

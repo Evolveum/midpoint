@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schrodinger.component.common;
+package com.evolveum.midpoint.schrodinger.component.common.table;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.Paging;
+import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -29,10 +36,11 @@ public class Table<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public Search<T> search() {
+
+    public Search<? extends Table> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
-        return new Search(this, searchElement);
+        return new Search<>(this, searchElement);
     }
 
     public Paging<T> paging() {
@@ -40,4 +48,5 @@ public class Table<T> extends Component<T> {
 
         return new Paging(this, pagingElement);
     }
+
 }

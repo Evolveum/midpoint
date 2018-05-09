@@ -13,7 +13,7 @@ public class Popover<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public Popover inputValue(String input) {
+    public Popover<T> inputValue(String input) {
         getParentElement().$(By.cssSelector("input.form-control.input-sm")).setValue(input);
 
         return this;
@@ -22,13 +22,13 @@ public class Popover<T> extends Component<T> {
     public T updateSearch() {
         getParentElement().$(Schrodinger.byDataId("update")).click();
 
-        return getParent();
+        return this.getParent();
     }
 
     public T close() {
         getParentElement().$(Schrodinger.byDataId("close")).click();
 
-        return getParent();
+        return this.getParent();
     }
 
     public Popover addAnotherValue() {

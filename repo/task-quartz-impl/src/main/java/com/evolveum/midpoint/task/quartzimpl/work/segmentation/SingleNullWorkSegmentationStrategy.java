@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.quartzimpl.work.BaseWorkSegmentationStrategy;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
@@ -39,7 +40,7 @@ public class SingleNullWorkSegmentationStrategy extends BaseWorkSegmentationStra
 	@SuppressWarnings("unused")
 	public SingleNullWorkSegmentationStrategy(TaskWorkManagementType configuration,
 			PrismContext prismContext) {
-		super(prismContext);
+		super(configuration, prismContext);
 	}
 
 	@NotNull
@@ -50,6 +51,12 @@ public class SingleNullWorkSegmentationStrategy extends BaseWorkSegmentationStra
 		} else {
 			return emptyList();
 		}
+	}
+
+	@Override
+	protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent,
+			Integer lastBucketSequentialNumber) throws SchemaException {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

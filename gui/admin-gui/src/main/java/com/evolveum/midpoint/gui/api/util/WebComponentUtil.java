@@ -1017,32 +1017,34 @@ public final class WebComponentUtil {
 			return "ContainerPanel.containerProperties";
 		}
 
-		C containerable = prismContainerValue.asContainerable();
-		if (containerable instanceof AssignmentType) {
-			if (((AssignmentType) containerable).getTargetRef() != null){
-				ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
+		
+		if (prismContainerValue.canRepresent(AssignmentType.class)) {
+			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
+			if (assignmentType.getTargetRef() != null){
+				ObjectReferenceType assignemntTargetRef = assignmentType.getTargetRef();
 				return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
 			} else {
 				return "AssignmentTypeDetailsPanel.containerTitle";
 			}
 		}
 
-		if (containerable instanceof ExclusionPolicyConstraintType){
-			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) containerable;
+		if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)){
+			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) prismContainerValue.asContainerable();
 			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
 					exclusionConstraint.asPrismContainerValue().getParent().getPath().last())  + " - "
 					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
 			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
 		}
-		if (containerable instanceof AbstractPolicyConstraintType){
-			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
+		if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)){
+			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
 			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getParent().getPath().last())
 					: constraint.getName())
 					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
 			return displayName;
 		}
-		if (containerable.getClass() != null){
-			return containerable.getClass().getSimpleName() + ".details";
+		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
+		if (cvalClass != null){
+			return cvalClass.getSimpleName() + ".details";
 		}
 		return "ContainerPanel.containerProperties";
 	}
@@ -2307,7 +2309,7 @@ public final class WebComponentUtil {
 				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
 	}
 
-	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
+	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
 																	 IModel<ObjectWrapper<ShadowType>> shadowModel) {
 		
 		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
@@ -2317,30 +2319,50 @@ public final class WebComponentUtil {
 		ResourceType resource = shadowType.getResource();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
-			return true;
+			return ItemVisibility.AUTO;
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath()) || SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
-			return ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
+			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
 		}
 		
-		return true;
+		return ItemVisibility.AUTO;
 		
 	}
 

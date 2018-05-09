@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
@@ -560,6 +561,29 @@ public class ObjectRetriever {
             lookupTableHelper.updateLoadedLookupTable(prismObject, options, session);
         } else if (AccessCertificationCampaignType.class.equals(prismObject.getCompileTimeClass())) {
             caseHelper.updateLoadedCampaign(prismObject, options, session);
+        } else if (TaskType.class.equals(prismObject.getCompileTimeClass())) {
+            if (SelectorOptions.hasToLoadPath(TaskType.F_RESULT, options)) {
+                Query query = session.getNamedQuery("get.taskResult");
+                query.setParameter("oid", prismObject.getOid());
+                byte[] opResult = (byte[]) query.uniqueResult();
+                if (opResult != null) {
+                    String xmlResult = RUtil.getXmlFromByteArray(opResult, true);
+                    OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+
+                    PrismProperty property = prismObject.findOrCreateProperty(TaskType.F_RESULT);
+                    property.setRealValue(resultType);  //OperationResult.createOperationResult(resultType)
+
+                    prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, resultType.getStatus());
+                }
+
+
+            } else {
+                Query<ROperationResultStatus> query = session.getNamedQuery("get.taskStatus");
+                query.setParameter("oid", prismObject.getOid());
+
+                ROperationResultStatus status = query.uniqueResult();
+                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
+            }
         }
 
         if (partialValueHolder != null) {

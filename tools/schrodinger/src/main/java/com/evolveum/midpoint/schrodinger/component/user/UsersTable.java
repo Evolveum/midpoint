@@ -16,15 +16,42 @@
 
 package com.evolveum.midpoint.schrodinger.component.user;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.component.common.Table;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithRedirectElements;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTable<T> extends Table<T> {
+public class UsersTable<T> extends TableWithRedirectElements<T> {
 
     public UsersTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    @Override
+    public TableWithRedirectElements<T> selectCheckboxByName(String name) {
+        return null;
+    }
+
+    @Override
+    public UserPage clickByName(String name) {
+
+        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        return new UserPage();
+    }
+
+    @Override
+    public Search<UsersTable<T>> search() {
+        SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
+
+        return new Search<>(this, searchElement);
     }
 }

@@ -15,6 +15,6 @@ public class ListUsersPage extends BasicPage {
     public UsersTable<ListUsersPage> table() {
         SelenideElement box = $(By.cssSelector(".box.boxed-table.object-user-box"));
 
-        return new UsersTable(this, box);
+        return new UsersTable<>(this, box);
     }
 }

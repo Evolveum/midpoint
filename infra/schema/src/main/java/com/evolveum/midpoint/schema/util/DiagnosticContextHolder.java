@@ -37,7 +37,7 @@ public class DiagnosticContextHolder {
 
 	public static DiagnosticContext pop() {
 		Deque<DiagnosticContext> stack = diagStack.get();
-		if (stack == null) {
+		if (stack == null || stack.isEmpty()) {
 			return null;
 		}
 		return stack.pop();

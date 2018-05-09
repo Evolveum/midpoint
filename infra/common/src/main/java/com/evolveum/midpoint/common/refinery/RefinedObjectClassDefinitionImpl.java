@@ -747,6 +747,13 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public boolean isIgnored() {
 		return originalObjectClassDefinition.isIgnored();
 	}
+	
+	
+
+	@Override
+	public ItemProcessing getProcessing() {
+		return originalObjectClassDefinition.getProcessing();
+	}
 
 	@Override
 	public boolean isAbstract() {

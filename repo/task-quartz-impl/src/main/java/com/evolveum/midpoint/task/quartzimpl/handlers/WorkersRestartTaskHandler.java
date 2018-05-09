@@ -67,7 +67,7 @@ public class WorkersRestartTaskHandler implements TaskHandler {
 		runResult.setOperationResult(opResult);
 
 		try {
-			List<Task> workers = task.listSubtasks(opResult);
+			List<Task> workers = task.listSubtasks(true, opResult);
 			List<Task> workersNotClosed = workers.stream()
 					.filter(w -> w.getExecutionStatus() != TaskExecutionStatus.CLOSED)
 					.collect(Collectors.toList());

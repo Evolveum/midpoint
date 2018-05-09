@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -39,10 +41,22 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement property = findProperty(name);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
+        System.out.println("Value size: " + values.size());
         if (values.size() == 1) {
             values.first().$(By.className("form-control")).setValue(value);
         }
+
         // todo implement
+        return this;
+    }
+
+    public PrismForm<T> addProtectedAttributeValue(String protectedAttributeName, String value) {
+        SelenideElement property = findProperty(protectedAttributeName);
+        ElementsCollection values = property.$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        for (SelenideElement valueElemen : values) {
+            valueElemen.setValue(value);
+        }
+
         return this;
     }
 
@@ -52,12 +66,21 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() == 1) {
+            values.first().$(By.className("form-control")).setValue(newValue);
+        }
+
         // todo implement
         return this;
     }
 
-    public PrismForm<T> showEmptyAttributes(String containerName, String value) {
-        // todo implement
+    public PrismForm<T> showEmptyAttributes(String containerName) {
+        $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-s-id", "showEmptyFields", "data-s-resource-key", containerName))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
         return this;
     }
 
@@ -97,12 +120,36 @@ public class PrismForm<T> extends Component<T> {
     }
 
     private SelenideElement findProperty(String name) {
-        return $(Schrodinger.byElementAttributeValue(null, "contains",
-                Schrodinger.DATA_S_QNAME, "#" + name));
+
+        SelenideElement element = null;
+
+        boolean doesElementAttrValueExist = $(Schrodinger.byElementAttributeValue(null, "contains",
+                Schrodinger.DATA_S_QNAME, "#" + name)).exists();
+
+        if (doesElementAttrValueExist) {
+            element = $(Schrodinger.byElementAttributeValue(null, "contains",
+                    Schrodinger.DATA_S_QNAME, "#" + name));
+
+        } else {
+            element = $(By.xpath("//span[@data-s-id=\"label\"][text()=\"" + name + "\"]/.."))
+                    .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
+        }
+
+        return element;
     }
 
     private SelenideElement findProperty(QName qname) {
         String name = Schrodinger.qnameToString(qname);
         return $(Schrodinger.byDataQName(name));
+    }
+
+    public PrismForm<T> selectOption(String attributeName, String option) {
+
+        SelenideElement property = findProperty(attributeName);
+
+        property.$(By.xpath(".//select[contains(@class,\"form-control\")]"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).selectOption(option);
+
+        return this;
     }
 }

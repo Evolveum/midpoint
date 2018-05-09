@@ -46,17 +46,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.ConfigurationException;
-import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
-import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
-import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
-import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
-import org.identityconnectors.framework.common.exceptions.PermissionDeniedException;
-import org.identityconnectors.framework.common.exceptions.RetryableException;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
+import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -211,13 +201,23 @@ public class ConnIdUtil {
 			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ConnId exception",connIdException));
 		}
 
+		Exception knownCause;
+		if (connIdException instanceof ConnectorException && !connIdException.getClass().equals(ConnectorException.class)) {
+        	// we have non generic connector exception
+			knownCause = processConnectorException((ConnectorException) connIdException, connIdResult);
+			LOGGER.error("LOOK FOR CONN ID EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
+			if (knownCause != null) {
+				return knownCause;
+			}
+		}
+
 		// Introspect the inner exceptions and look for known causes
-		Exception knownCause = lookForKnownCause(connIdException, connIdException, connIdResult);
+		knownCause = lookForKnownCause(connIdException, connIdException, connIdResult);
 		if (knownCause != null) {
+			LOGGER.error("LOOK FOR KNOWN EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
 			connIdResult.recordFatalError(knownCause);
 			return knownCause;
 		}
-
 
 		// ########
 		// TODO: handle javax.naming.NoPermissionException
@@ -230,64 +230,74 @@ public class ConnIdUtil {
 			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (connIdException instanceof ConfigurationException) {
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
-			connIdResult.recordFatalError("Configuration error: "+connIdException.getMessage(), newEx);
-			return newEx;
-
-		} else if (connIdException instanceof AlreadyExistsException) {
-			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, connIdException));
-			connIdResult.recordFatalError("Object already exists: "+connIdException.getMessage(), newEx);
-			return newEx;
-
-		} else if (connIdException instanceof PermissionDeniedException) {
-			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, connIdException));
-			connIdResult.recordFatalError("Security violation: "+connIdException.getMessage(), newEx);
-			return newEx;
-
-		} else if (connIdException instanceof ConnectionBrokenException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", connIdException));
-			connIdResult.recordFatalError("Connection broken: "+connIdException.getMessage(), newEx);
-			return newEx;
-
-		} else if (connIdException instanceof ConnectionFailedException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", connIdException));
-			connIdResult.recordFatalError("Connection failed: "+connIdException.getMessage(), newEx);
-			return newEx;
-
 		} else if (connIdException instanceof UnknownHostException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Unknown host", connIdException));
 			connIdResult.recordFatalError("Unknown host: "+connIdException.getMessage(), newEx);
 			return newEx;
 
+		}  else if (connIdException instanceof InvalidAttributeValueException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
+			return newEx;
+		}
+
+		LOGGER.error("FALLBACK: {} -> {}", connIdException.getClass().getName(), (knownCause != null ? knownCause.getClass().getName() : null));
+
+		// Fallback
+		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException));
+		connIdResult.recordFatalError(newEx);
+		return newEx;
+	}
+
+	private static Exception processConnectorException(ConnectorException connIdException, OperationResult connIdResult) {
+		if (connIdException instanceof ConfigurationException) {
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
+			connIdResult.recordFatalError("Configuration error: " + connIdException.getMessage(), newEx);
+			return newEx;
+
+		} else if (connIdException instanceof AlreadyExistsException) {
+			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Object already exists: " + connIdException.getMessage(), newEx);
+			return newEx;
+
+		} else if (connIdException instanceof PermissionDeniedException) {
+			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Security violation: " + connIdException.getMessage(), newEx);
+			return newEx;
+
+		} else if (connIdException instanceof ConnectionBrokenException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", connIdException));
+			connIdResult.recordFatalError("Connection broken: " + connIdException.getMessage(), newEx);
+			return newEx;
+
+		} else if (connIdException instanceof ConnectionFailedException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", connIdException));
+			connIdResult.recordFatalError("Connection failed: " + connIdException.getMessage(), newEx);
+			return newEx;
+
 		} else if (connIdException instanceof ConnectorIOException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("IO error", connIdException));
-			connIdResult.recordFatalError("IO error: "+connIdException.getMessage(), newEx);
-			return newEx;
-
-		} else if (connIdException instanceof InvalidCredentialException) {
-			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", connIdException));
-			connIdResult.recordFatalError("Invalid credentials: "+connIdException.getMessage(), newEx);
-			return newEx;
-
-		} else if (connIdException instanceof OperationTimeoutException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", connIdException));
-			connIdResult.recordFatalError("Operation timed out: "+connIdException.getMessage(), newEx);
+			connIdResult.recordFatalError("IO error: " + connIdException.getMessage(), newEx);
 			return newEx;
 
 		} else if (connIdException instanceof UnknownUidException) {
 			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, connIdException));
-			connIdResult.recordFatalError("Unknown UID: "+connIdException.getMessage(), newEx);
+			connIdResult.recordFatalError("Unknown UID: " + connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (connIdException instanceof InvalidAttributeValueException) {
-			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, connIdException));
-			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
+		} else if (connIdException instanceof InvalidCredentialException) {
+			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", connIdException));
+			connIdResult.recordFatalError("Invalid credentials: " + connIdException.getMessage(), newEx);
+			return newEx;
+
+		} else if (connIdException instanceof OperationTimeoutException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", connIdException));
+			connIdResult.recordFatalError("Operation timed out: " + connIdException.getMessage(), newEx);
 			return newEx;
 
 		} else if (connIdException instanceof RetryableException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions(null, connIdException));
-			connIdResult.recordFatalError("Retryable errror: "+connIdException.getMessage(), newEx);
+			connIdResult.recordFatalError("Retryable errror: " + connIdException.getMessage(), newEx);
 			return newEx;
 
 		} else if (connIdException instanceof ConnectorSecurityException) {
@@ -296,17 +306,17 @@ public class ConnIdUtil {
 			// lookForKnownCause(..) before
 
 			// Maybe we need special exception for security?
-			Exception newEx =  new SecurityViolationException(createMessageFromAllExceptions("Security violation",connIdException));
+			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions("Security violation", connIdException));
 			connIdResult.recordFatalError(
 					"Security violation: " + connIdException.getMessage(), newEx);
 			return newEx;
-
+		} else if (connIdException instanceof org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", connIdException));
+			connIdResult.recordFatalError("Invalid attribute: " + connIdException.getMessage(), newEx);
+			return newEx;
 		}
 
-		// Fallback
-		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException));
-		connIdResult.recordFatalError(newEx);
-		return newEx;
+		return null;
 	}
 
     private static Exception lookForKnownCause(Throwable ex,
@@ -334,25 +344,13 @@ public class ConnIdUtil {
             Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
             parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
             return newEx;
-           } else if (ex instanceof ConnectionBrokenException) {
-                Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
-                parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
-                return newEx;
-            } else if (ex instanceof ConnectionFailedException) {
-                Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
-                parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
-                return newEx;
-        } else if (ex instanceof SchemaViolationException) {
+	   } else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex));
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
-        } else if (ex instanceof org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException) {
-            Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
-            parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
-            return newEx;
-		} else if (ex instanceof InvalidAttributeValueException) {
+        } else if (ex instanceof InvalidAttributeValueException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
 			InvalidAttributeValueException e = (InvalidAttributeValueException) ex;
@@ -383,11 +381,6 @@ public class ConnIdUtil {
 			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("DB error", ex));
 			parentResult.recordFatalError("DB error: " + ex.getMessage(), newEx);
 			return newEx;
-		} else if (ex instanceof UnknownUidException) {
-			// Object not found
-			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null,ex));
-			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
-			return newEx;
 		} else if (ex instanceof NoPermissionException){
 			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null,ex));
 			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
@@ -401,7 +394,14 @@ public class ConnIdUtil {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("No such attribute: "+ex.getMessage(), newEx);
 			return newEx;
+		} else if (ex instanceof ConnectorException && !ex.getClass().equals(ConnectorException.class)) {
+			// we have non generic connector exception
+			Exception newEx = processConnectorException((ConnectorException) ex, parentResult);
+			if (newEx != null) {
+				return newEx;
+			}
 		}
+
 		if (ex.getCause() == null) {
 			// found nothing
 			return null;

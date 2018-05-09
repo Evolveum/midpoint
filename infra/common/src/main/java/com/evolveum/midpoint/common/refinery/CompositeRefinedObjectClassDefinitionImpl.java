@@ -108,6 +108,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isIgnored() {
 		return structuralObjectClassDefinition.isIgnored();
 	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return structuralObjectClassDefinition.getProcessing();
+	}
 
 	@Override
 	public boolean isEmphasized() {

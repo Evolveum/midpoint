@@ -72,6 +72,7 @@ public class PrismConstants {
 	public static final String A_ACCESS_READ = "read";
 	public static final QName A_INDEXED = new QName(NS_ANNOTATION, "indexed");
 	public static final QName A_IGNORE = new QName(NS_ANNOTATION, "ignore");
+	public static final QName A_PROCESSING = new QName(NS_ANNOTATION, "processing");
 	public static final QName A_OPERATIONAL = new QName(NS_ANNOTATION, "operational");
 	public static final QName A_EXTENSION = new QName(NS_ANNOTATION, "extension");
 	public static final QName A_EXTENSION_REF = new QName(NS_ANNOTATION, "ref");

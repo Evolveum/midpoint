@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,20 +153,24 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     
     protected abstract IModel<ContainerWrapper> getSpecificContainerModel();
     
-    protected boolean getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
-			return true;
+			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF));
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS));
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_STRENGTH));
-		return PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath());
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+			return ItemVisibility.AUTO;
+		} else {
+			return ItemVisibility.HIDDEN;
+		}
 	}
 
-    private boolean getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
     	if (itemWrapper.getPath().equals(getAssignmentPath().append(AssignmentType.F_METADATA))){
-    		return true;
+    		return ItemVisibility.AUTO;
 		}
     	AssignmentType assignment = getModelObject().getContainerValue().getValue();
 		ObjectReferenceType targetRef = assignment.getTargetRef();
@@ -192,20 +196,24 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_POLICY_RULE));
 		
 		
-    	return PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath()); 
+    	if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+    		return ItemVisibility.AUTO;
+    	} else {
+    		return ItemVisibility.HIDDEN;
+    	}
     }
     
 
-    private boolean getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
-    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)){
-    		return false;
+    private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
+    		return ItemVisibility.HIDDEN;
     	}
     	
-    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)){
-    		return false;
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
+    		return ItemVisibility.HIDDEN;
     	}
     	
-    	return true;
+    	return ItemVisibility.AUTO;
     }
 
 

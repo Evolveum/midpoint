@@ -673,6 +673,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR;
 	}
 
+	public boolean isCoordinatedWorker() {
+		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
+	}
+
 	public boolean hasBuckets() {
 		if (taskType.getWorkState() == null) {
 			return false;
@@ -690,14 +694,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 	}
 
-	public boolean isBucketed() {
-		return isCoordinator() || hasBuckets();
+	public boolean isWorkStateHolder() {
+		return (isCoordinator() || hasBuckets()) && !isCoordinatedWorker();
 	}
 
 	private String getRealProgressDescription() {
 		if (isPartitionedMaster()) {
 			return getPartitionedTaskProgressDescription();
-		} else if (isBucketed()) {
+		} else if (isWorkStateHolder()) {
 			return getBucketedTaskProgressDescription();
 		} else {
 			return getPlainTaskProgressDescription();
@@ -830,7 +834,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public OperationResultStatus getStatus() {
-        return taskOperationResult != null ? taskOperationResult.getStatus() : null;
+        if (taskOperationResult != null) {
+        	return taskOperationResult.getStatus();
+        } else if (taskType.getResultStatus() != null) {
+        	return OperationResultStatus.parseStatusType(taskType.getResultStatus());
+        } else {
+        	return null;
+        }
     }
 
     private boolean isRunNotFinished() {

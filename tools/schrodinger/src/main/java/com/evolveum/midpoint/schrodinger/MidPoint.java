@@ -13,6 +13,7 @@ public class MidPoint {
     private EnvironmentConfiguration environment;
 
     public static long TIMEOUT_DEFAULT = 2000;
+    public static long TIMEOUT_LONG = 60000;
 
     public MidPoint(EnvironmentConfiguration environment) {
         Validate.notNull(environment, "Environment configuration must not be null");
@@ -24,6 +25,7 @@ public class MidPoint {
 
     private void init() {
         environment.validate();
+        //System.setProperty("webdriver.chrome.driver","C:\\Users\\matus\\chromedriver\\chromedriver.exe"); // TODO workaround, find proper way how to resolve
         System.setProperty("selenide.browser", environment.getDriver().name().toLowerCase());
         System.setProperty("selenide.baseUrl", environment.getBaseUrl());
 

@@ -1904,6 +1904,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
+	public void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
+			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
+		taskManager.deleteWorkersAndWorkState(coordinatorOid, subtasksWaitTime, parentResult);
+	}
+
+	@Override
     public List<String> getAllTaskCategories() {
         return taskManager.getAllTaskCategories();
     }
@@ -2022,10 +2030,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
-		    @NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
+		    @NotNull Map<String, Object> initialVariables, boolean recordProgressAndIterationStatistics, @NotNull Task task,
+		    @NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, result);
-        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables, task, result);
+        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables,
+		        recordProgressAndIterationStatistics, task, result);
         return executionContext.toExecutionResult();
     }
 

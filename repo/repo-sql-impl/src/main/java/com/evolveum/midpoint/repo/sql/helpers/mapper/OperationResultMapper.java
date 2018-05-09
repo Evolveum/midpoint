@@ -20,9 +20,11 @@ import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -34,7 +36,7 @@ public class OperationResultMapper implements Mapper<OperationResultType, Operat
         OperationResult repo = (OperationResult) context.getOwner();
 
         try {
-            RUtil.copyResultFromJAXB(ShadowType.F_RESULT, input, repo, context.getPrismContext());
+            RUtil.copyResultFromJAXB(new QName(SchemaConstantsGenerated.NS_COMMON, "result"), input, repo, context.getPrismContext());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate operation result to entity", ex);
         }

@@ -375,7 +375,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	    try {
 		    TaskQuartzImpl root = getTask(rootTaskOid, result);
-		    List<Task> subtasks = root.listSubtasksDeeply(parentResult);
+		    List<Task> subtasks = root.listSubtasksDeeply(true, parentResult);
 		    List<String> oidsToSuspend = new ArrayList<>(subtasks.size() + 1);
 		    oidsToSuspend.add(rootTaskOid);
 		    for (Task subtask : subtasks) {
@@ -397,7 +397,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	    try {
 		    TaskQuartzImpl root = getTask(rootTaskOid, result);
-		    List<Task> subtasks = root.listSubtasks(parentResult);
+		    List<Task> subtasks = root.listSubtasks(true, parentResult);
 		    List<String> oidsToResume = new ArrayList<>(subtasks.size() + 1);
 		    if (root.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
 			    oidsToResume.add(rootTaskOid);
@@ -426,6 +426,22 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			workersManager.reconcileWorkers(coordinatorTaskOid, options, result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't reconcile workers", t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	@Override
+	public void deleteWorkersAndWorkState(String coordinatorTaskOid, long subtasksWaitTime, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteWorkersAndWorkState");
+		result.addParam("coordinatorTaskOid", coordinatorTaskOid);
+		result.addParam("subtasksWaitTime", subtasksWaitTime);
+		try {
+			workersManager.deleteWorkersAndWorkState(coordinatorTaskOid, subtasksWaitTime, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't delete workers and work state", t);
 			throw t;
 		} finally {
 			result.computeStatusIfUnknown();
@@ -921,7 +937,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 Task task = getTask(oid, result);
                 tasksToBeDeleted.add(task);
                 if (alsoSubtasks) {
-                    tasksToBeDeleted.addAll(task.listSubtasksDeeply(result));
+                    tasksToBeDeleted.addAll(task.listSubtasksDeeply(true, result));
                 }
             } catch (ObjectNotFoundException e) {
                 // just skip suspending/deleting this task. As for the error, it should be already put into result.
@@ -1151,7 +1167,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
 
-        Task task = getTask(oid, result);
+        Task task = getTask(oid, options, result);
         addTransientTaskInformation(task.getTaskPrismObject(),
                 clusterStatusInformation,
                 SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options),
@@ -1231,7 +1247,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
-        List<PrismObject<TaskType>> subtasks = listSubtasksForTask(task.getTaskIdentifier(), result);
+        List<PrismObject<TaskType>> subtasks = listPersistentSubtasksForTask(task.getTaskIdentifier(), result);
 
         for (PrismObject<TaskType> subtask : subtasks) {
 
@@ -1249,7 +1265,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
-	public List<PrismObject<TaskType>> listSubtasksForTask(String taskIdentifier, OperationResult result) throws SchemaException {
+	public List<PrismObject<TaskType>> listPersistentSubtasksForTask(String taskIdentifier, OperationResult result) throws SchemaException {
 
 		if (StringUtils.isEmpty(taskIdentifier)) {
 			return new ArrayList<>();
@@ -2007,7 +2023,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             try {
                 // get whole tree
                 Task rootTask = createTaskInstance(rootTaskPrism, result);
-                List<Task> taskTreeMembers = rootTask.listSubtasksDeeply(result);
+                List<Task> taskTreeMembers = rootTask.listSubtasksDeeply(true, result);
                 taskTreeMembers.add(rootTask);
 
                 LOGGER.trace("Removing task {} along with its {} children.", rootTask, taskTreeMembers.size() - 1);

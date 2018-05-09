@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -76,6 +77,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
      * should be displayed or not.
      */
 	boolean isVisible();
+	
+	ItemProcessing getProcessing();
 
     /**
      * Used to display the form elements with stripe in every other line.

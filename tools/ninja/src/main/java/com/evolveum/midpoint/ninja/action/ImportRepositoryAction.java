@@ -31,7 +31,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     @Override
     public void execute() throws Exception {
         OperationResult result = new OperationResult(OPERATION_IMPORT);
-        OperationStatus progress = new OperationStatus(result);
+        OperationStatus progress = new OperationStatus(context, result);
 
         BlockingQueue<PrismObject> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
@@ -63,7 +63,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     }
 
     @Override
-    protected LogTarget getInfoLogTarget() {
+    public LogTarget getInfoLogTarget() {
         if (options.getInput() != null) {
             return LogTarget.SYSTEM_OUT;
         }

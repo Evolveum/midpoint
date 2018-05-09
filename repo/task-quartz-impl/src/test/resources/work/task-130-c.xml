@@ -31,6 +31,10 @@
 				<numberOfBuckets>5</numberOfBuckets>
 				<bucketSize>1</bucketSize>
 			</numericSegmentation>
+			<allocation>
+				<bucketCreationBatch>3</bucketCreationBatch>
+				<allocateFirst>true</allocateFirst>
+			</allocation>
 		</buckets>
 	</workManagement>
 	<recurrence>single</recurrence>
