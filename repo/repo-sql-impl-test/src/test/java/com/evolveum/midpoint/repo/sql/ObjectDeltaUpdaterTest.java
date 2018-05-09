@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
@@ -601,6 +602,87 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .getSingleResult();
 
             AssertJUnit.assertEquals(expectedSize, rUser.getOperationExecutions().size());
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
+    public void test280AddPhoto() throws Exception {
+        OperationResult result = new OperationResult("test280AddPhoto");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        delta.addModificationAddProperty(new ItemPath(UserType.F_JPEG_PHOTO), new byte[]{1, 2, 3});
+
+        queryCountInterceptor.startCounter();
+
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+
+        LOGGER.info("test280AddPhoto check");
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            Set<RFocusPhoto> p = u.getJpegPhoto();
+            AssertJUnit.assertEquals(1, p.size());
+
+            RFocusPhoto photo = p.iterator().next();
+            AssertJUnit.assertTrue(Arrays.equals(new byte[]{1,2,3}, photo.getPhoto()));
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
+    public void test290ReplacePhoto() throws Exception {
+        OperationResult result = new OperationResult("test290ReplacePhoto");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        delta.addModificationReplaceProperty(new ItemPath(UserType.F_JPEG_PHOTO), new byte[]{4,5,6});
+
+        queryCountInterceptor.startCounter();
+
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+
+        LOGGER.info("test290ReplacePhoto check");
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            Set<RFocusPhoto> p = u.getJpegPhoto();
+            AssertJUnit.assertEquals(1, p.size());
+
+            RFocusPhoto photo = p.iterator().next();
+            AssertJUnit.assertTrue(Arrays.equals(new byte[]{4,5,6}, photo.getPhoto()));
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
+    public void test300DeletePhoto() throws Exception {
+        OperationResult result = new OperationResult("test300DeletePhoto");
+
+        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        delta.addModificationDeleteProperty(new ItemPath(UserType.F_JPEG_PHOTO), new byte[]{4,5,6});
+
+        queryCountInterceptor.startCounter();
+
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+
+        AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+
+        LOGGER.info("test300DeletePhoto check");
+        Session session = factory.openSession();
+        try {
+            RUser u = session.get(RUser.class, userOid);
+
+            Set<RFocusPhoto> p = u.getJpegPhoto();
+            AssertJUnit.assertEquals(0, p.size());
         } finally {
             session.close();
         }

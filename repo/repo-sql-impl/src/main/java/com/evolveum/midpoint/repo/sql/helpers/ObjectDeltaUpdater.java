@@ -24,10 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.Metadata;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
@@ -171,6 +168,11 @@ public class ObjectDeltaUpdater {
                     handleMetadata(attributeStep.bean, delta);
                 }
 
+                if (isFocusPhoto(delta)) {
+                    handlePhoto(attributeStep.bean, delta);
+                    continue;
+                }
+
                 Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, nameSegment);
                 if (attribute == null) {
                     // there's no table/column that needs update
@@ -198,6 +200,51 @@ public class ObjectDeltaUpdater {
         LOGGER.debug("Entity changes applied");
 
         return object;
+    }
+
+    private boolean isFocusPhoto(ItemDelta delta) {
+        return new ItemPath(FocusType.F_JPEG_PHOTO).equals(delta.getPath());
+    }
+
+    private void handlePhoto(Object bean, ItemDelta delta) throws SchemaException {
+        if (!(bean instanceof RFocus)) {
+            throw new SystemException("Bean is not instance of " + RFocus.class + ", shouldn't happen");
+        }
+
+        RFocus focus = (RFocus) bean;
+        Set<RFocusPhoto> photos = focus.getJpegPhoto();
+
+        if (delta.isDelete()) {
+            photos.clear();
+            return;
+        }
+
+        MapperContext context = new MapperContext();
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setDelta(delta);
+        context.setOwner(bean);
+
+        PrismValue value = delta.getAnyValue();
+        RFocusPhoto photo = prismEntityMapper.map(value.getRealValue(), RFocusPhoto.class, context);
+
+        if (delta.isAdd()) {
+            if (!photos.isEmpty()) {
+                throw new SchemaException("Object '" + focus.getOid() + "' already contains photo");
+            }
+
+            photo.setTransient(true);
+            photos.add(photo);
+            return;
+        }
+
+        if (photos.isEmpty()) {
+            photo.setTransient(true);
+            photos.add(photo);
+            return;
+        }
+
+        RFocusPhoto oldPhoto = photos.iterator().next();
+        oldPhoto.setPhoto(photo.getPhoto());
     }
 
     private boolean isMetadata(ItemDelta delta) {
