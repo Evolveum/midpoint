@@ -21,7 +21,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPrismContainers;
+import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTable;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -46,13 +46,13 @@ public class UserProjectionsTab extends Component<UserPage> {
         return new UserProjectionsCog<>(this, dropDownMenu);
     }
 
-    public TableWithPrismContainers<UserProjectionsTab> table() {
+    public AbstractTable<UserProjectionsTab> table() {
 
         SelenideElement tableBox = $(By.cssSelector(".box.projection"));
 
-        return new TableWithPrismContainers<UserProjectionsTab>(this, tableBox) {
+        return new AbstractTable<UserProjectionsTab>(this, tableBox) {
             @Override
-            public PrismForm<TableWithPrismContainers<UserProjectionsTab>> clickByName(String name) {
+            public PrismForm<AbstractTable<UserProjectionsTab>> clickByName(String name) {
 
                 $(Schrodinger.byElementValue("span", "data-s-id", "name", name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
@@ -61,6 +61,15 @@ public class UserProjectionsTab extends Component<UserPage> {
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
 
                 return new PrismForm<>(this, prismElement);
+            }
+
+            @Override
+            public AbstractTable<UserProjectionsTab> selectCheckboxByName(String name) {
+
+                $(Schrodinger.byFollowingSiblingElementValue("input", "type", "checkbox", "class", "check-table-label", name))
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+                return this;
             }
         };
     }

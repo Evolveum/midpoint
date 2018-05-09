@@ -4,8 +4,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.ModalBox;
-import com.evolveum.midpoint.schrodinger.component.common.table.Table;
-import com.evolveum.midpoint.schrodinger.component.user.UserProjectionsTab;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -19,10 +17,10 @@ public class FocusSetProjectionModal<T> extends ModalBox<T> {
         super(parent, parentElement);
     }
 
-    public Table<FocusSetProjectionModal<T>> projectionsTable() {
+    public FocusTableWithChoosableElements<FocusSetProjectionModal<T>> projectionsTable() {
         SelenideElement resourcesBox = $(By.cssSelector("box boxed-table"));
 
-        return new Table<>(this, resourcesBox);
+        return new FocusTableWithChoosableElements<>(this, resourcesBox);
     }
 
     public T clickAdd() {

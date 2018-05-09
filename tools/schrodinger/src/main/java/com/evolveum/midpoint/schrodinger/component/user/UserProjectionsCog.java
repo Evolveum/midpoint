@@ -5,6 +5,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.FocusSetProjectionModal;
 import com.evolveum.midpoint.schrodinger.component.common.CogDropDown;
+import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -47,12 +48,21 @@ public class UserProjectionsCog<T> extends CogDropDown<T> {
     }
 
     public FocusSetProjectionModal<T> addProjection() {
-
         $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
                 "        Add projection")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
         SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"));
 
         return new FocusSetProjectionModal<>(this.getParent(), actualModal);
+    }
+
+    public ConfirmationModal<UserProjectionsCog<T>> delete() {
+        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+                "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm deletion"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+
+        return new ConfirmationModal<>(this, actualModal);
     }
 }

@@ -49,24 +49,4 @@ public class Table<T> extends Component<T> {
         return new Paging(this, pagingElement);
     }
 
-
-    public Table<T> selectCheckboxByName(String name) {
-        SelenideElement parent = $(Schrodinger.byElementValue(null, "data-s-id", "cell", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
-        ;
-
-        String row = parent.getAttribute("data-s-id").toString();
-
-        parent.$(Schrodinger.byElementAttributeValue("input", "name", constructCheckBoxIdBasedOnRow(row)))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
-
-        return this;
-    }
-
-    private String constructCheckBoxIdBasedOnRow(String row) {
-        StringBuilder constructCheckboxName = new StringBuilder("table:box:tableContainer:table:body:rows:")
-                .append(row).append(":cells:1:cell:check");
-
-        return constructCheckboxName.toString();
-    }
 }

@@ -31,7 +31,8 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
     private static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
     private static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
     private static final String ADD_ACCOUNT_DEPENDENCY= "addAccount";
-
+    private static final String DISABLE_ACCOUNT_DEPENDENCY= "disableAccount";
+    private static final String ENABLE_ACCOUNT_DEPENDENCY= "enableAccount";
 
     private static final String CSV_RESOURCE_NAME= "Test CSV: username";
 
@@ -194,7 +195,55 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                 .clickSave()
                     .feedback()
                     .isSuccess();
-            ;
-        Selenide.sleep(5000);
+    }
+
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY})
+    public void enableAccount(){
+        ListUsersPage users = basicPage.listUsers();
+            users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(TEST_USER_MIKE_NAME)
+                    .updateSearch()
+                .and()
+                .clickByName(TEST_USER_MIKE_NAME)
+                    .selectTabProjections()
+                        .table()
+                        .clickByName(CSV_RESOURCE_NAME)
+                            .selectOption("Administrative status","Enabled")
+                        .and()
+                    .and()
+                .and()
+                .checkKeepDisplayingResults()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
+    }
+
+    @Test(dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY})
+    public void deleteAccount(){
+        ListUsersPage users = basicPage.listUsers();
+                users
+                    .table()
+                        .search()
+                        .byName()
+                        .inputValue(TEST_USER_MIKE_NAME)
+                        .updateSearch()
+                    .and()
+                    .clickByName(TEST_USER_MIKE_NAME)
+                        .selectTabProjections()
+                            .table()
+                            .selectCheckboxByName(CSV_RESOURCE_NAME)
+                        .and()
+                            .clickCog()
+                            .delete()
+                                .clickYes()
+                        .and()
+                    .and()
+                    .checkKeepDisplayingResults()
+                    .clickSave()
+                        .feedback()
+                        .isSuccess();
     }
 }
