@@ -74,7 +74,11 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
     @Override
     public String getCssClass() {
         IModel<String> display = getDisplayModel();
-        return StringUtils.isNoneEmpty(display.getObject()) ? null : "icon";
+        if (display != null && StringUtils.isNotEmpty(display.getObject())) {
+            return null;
+        }
+
+        return "icon";
     }
 
     protected IModel<Boolean> getEnabled(IModel<T> rowModel) {

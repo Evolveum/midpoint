@@ -37,7 +37,11 @@ public class IconColumn<T> extends AbstractColumn<T, String> implements IExporta
     @Override
     public String getCssClass() {
         IModel<String> display = getDisplayModel();
-        return StringUtils.isNoneEmpty(display.getObject()) ? null : "icon";
+        if (display != null && StringUtils.isNotEmpty(display.getObject())) {
+            return null;
+        }
+
+        return "icon";
     }
 
     @Override
