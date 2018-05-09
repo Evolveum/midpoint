@@ -91,6 +91,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD = "policy-validate-implicit-password";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT = "policy-validate-password-history-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI = "policy-validate-implicit-multi";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT = "policy-validate-implicit-multi-conflict";
 
@@ -957,12 +958,26 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		//TODO assert changed items
 	}
 
-	private OperationResult traceResponse(Response response) throws SchemaException {
+	private OperationResult traceResponse(Response response) { //throws SchemaException {
 		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
+			LOGGER.info("coverting result");
 			OperationResultType result = response.readEntity(OperationResultType.class);
+<<<<<<< HEAD
 			LOGGER.info("####RESULT");
 			OperationResult opResult = OperationResult.createOperationResult(result);
 			LOGGER.info(opResult.debugDump());
+=======
+			LOGGER.info("tracing result");
+			OperationResult opResult = null;
+			try {
+				opResult = OperationResult.createOperationResult(result);
+			} catch (Exception e) {
+				LOGGER.info("Failed to create operation result. Reason: " + e.getMessage(), e);
+				return null;
+			}
+			LOGGER.info("REST resutl {}", opResult.debugDump());
+			display("REST result", opResult);
+>>>>>>> 9aeb9b6f9d... implementing MID-4603 and MID-4602
 			return opResult;
 		}
 
@@ -1094,6 +1109,31 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	@Test
 	public void test515validateValueImplicitPassword() throws Exception {
 		final String TEST_NAME = "test515validateValueImplicitPassword";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test516validatePasswordHistoryConflict() throws Exception {
+		final String TEST_NAME = "test516validatePasswordHistoryConflict";
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();

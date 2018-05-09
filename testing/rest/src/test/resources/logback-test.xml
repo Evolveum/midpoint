@@ -30,15 +30,16 @@
 	<logger name="org.springframework" level="WARN" />
 	<logger name="com.evolveum.midpoint" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler" level="TRACE" />
 	<logger name="org.apache.cxf" level="FINE" />
 	<!--<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />-->
-	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
+<!-- 	<logger name="com.evolveum.midpoint.common" level="TRACE" /> -->
 	
 	<!-- Silencing some chatty packages -->
 	<logger name="com.evolveum.midpoint.model.repo.sql.query" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.schema" level="TRACE" />
 	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
 	<logger name="com.evolveum.midpoint.model.sync.action" level="DEBUG" />
 	

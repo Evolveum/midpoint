@@ -133,6 +133,10 @@ public class ObjectValuePolicyEvaluator {
 	public void setSecurityPolicy(SecurityPolicyType securityPolicy) {
 		this.securityPolicy = securityPolicy;
 	}
+	
+	public void setValuePolicy(ValuePolicyType valuePolicy) {
+		this.valuePolicy = valuePolicy;
+	}
 
 	public XMLGregorianCalendar getNow() {
 		return now;
@@ -236,6 +240,9 @@ public class ObjectValuePolicyEvaluator {
 	}
 
 	private void prepareValuePolicy() {
+		if (valuePolicy != null) {
+			return;
+		}
 		if (credentialPolicy != null) {
 			ObjectReferenceType valuePolicyRef = credentialPolicy.getValuePolicyRef();
 			if (valuePolicyRef != null) {
@@ -249,6 +256,11 @@ public class ObjectValuePolicyEvaluator {
 	}
 
 	private void preparePassword() {
+		
+		if (valueItemPath == null) {
+			return;
+		}
+		
 		if (!QNameUtil.match(UserType.F_CREDENTIALS, valueItemPath.getFirstName())) {
 			return;
 		}
@@ -260,12 +272,20 @@ public class ObjectValuePolicyEvaluator {
 		if (!QNameUtil.match(CredentialsType.F_PASSWORD, credentialQName)) {
 			return;
 		}
-
+		
+		if (securityPolicy == null) {
+			return;
+		}
+		
 		credentialPolicy = SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 	}
 
 	private void prepareNonce() throws SchemaException {
 		if (!QNameUtil.match(CredentialsType.F_NONCE, credentialQName)) {
+			return;
+		}
+		
+		if (securityPolicy == null) {
 			return;
 		}
 
