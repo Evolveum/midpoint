@@ -77,7 +77,7 @@ public class LocalizationUtil {
 	@NotNull
 	private static LocalizableMessageListType createLocalizableMessageType(@NotNull LocalizableMessageList messageList, Function<LocalizableMessage, String> resolveKeys) {
 		LocalizableMessageListType rv = new LocalizableMessageListType();
-		messageList.getMessages().forEach(message -> rv.getMessage().add(createLocalizableMessageType(message, resolveKeys)));
+		messageList.getMessages().forEach(message -> {if (rv.getMessage() != null) rv.getMessage().add(createLocalizableMessageType(message, resolveKeys));});
 		rv.setSeparator(createLocalizableMessageType(messageList.getSeparator(), resolveKeys));
 		rv.setPrefix(createLocalizableMessageType(messageList.getPrefix(), resolveKeys));
 		rv.setPostfix(createLocalizableMessageType(messageList.getPostfix(), resolveKeys));
@@ -151,12 +151,23 @@ public class LocalizationUtil {
 
 	private static LocalizableMessage toLocalizableMessage(@NotNull LocalizableMessageListType messageList) {
 		LocalizableMessageListBuilder builder = new LocalizableMessageListBuilder();
-		messageList.getMessage().forEach(m -> builder.addMessage(toLocalizableMessage(m)));
-		return builder
-				.separator(toLocalizableMessage(messageList.getSeparator()))
-				.prefix(toLocalizableMessage(messageList.getPrefix()))
-				.postfix(toLocalizableMessage(messageList.getPostfix()))
-				.build();
+		for (LocalizableMessageType m : messageList.getMessage()) {
+			builder.addMessage(toLocalizableMessage(m));
+		}
+		
+		if (messageList.getSeparator() != null) {
+			builder = builder.separator(toLocalizableMessage(messageList.getSeparator()));
+		}
+		
+		if (messageList.getPostfix() != null) {
+			builder = builder.postfix(toLocalizableMessage(messageList.getPostfix()));
+		}
+		
+		if (messageList.getPrefix() != null) {
+			builder = builder.postfix(toLocalizableMessage(messageList.getPostfix()));
+		}
+		return builder.build();
+		
 	}
 
 	private static List<Object> convertLocalizableMessageArguments(List<LocalizableMessageArgumentType> arguments) {

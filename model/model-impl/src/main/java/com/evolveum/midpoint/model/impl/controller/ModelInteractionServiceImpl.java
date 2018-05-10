@@ -1321,10 +1321,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
 			if (path != null ) result.addParam("path", path.toString());
 			result.addParam("valueToValidate", newValue);
-			if (stringPolicy == null) {
-				stringPolicy = new ValuePolicyType();
-				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
-			}
+//			if (stringPolicy == null) {
+//				stringPolicy = new ValuePolicyType();
+//				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
+//			}
 			
 			ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator();
 			evaluator.setValuePolicy(stringPolicy);
@@ -1345,16 +1345,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				evaluator.setOldCredentialType(passwordType);
 			}
 			evaluator.setNow(clock.currentTimeXMLGregorianCalendar());
-			try { 
-				LOGGER.trace("Validating value started");
-				OperationResult subResult = evaluator.validateStringValue(newValue);
-				LOGGER.trace("Validating value finished");
-				result.addSubresult(subResult);
-//				result.recomputeStatus();
-			} catch(Exception e) {
-				result.recordFatalError("Cannot validate value. " + e.getMessage());
-			}
-			
+			LOGGER.trace("Validating value started");
+			OperationResult subResult = evaluator.validateStringValue(newValue);
+			LOGGER.trace("Validating value finished");
+			result.addSubresult(subResult);
+//			
 			result.computeStatus();
 			
 //			if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {

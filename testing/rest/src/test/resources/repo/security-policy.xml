@@ -24,7 +24,7 @@
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
-			<passwordHistoryLength>3</passwordHistoryLength>
+			<historyLength>3</historyLength>
 		</password>
 		<nonce>
 			<maxAge>P30D</maxAge>
