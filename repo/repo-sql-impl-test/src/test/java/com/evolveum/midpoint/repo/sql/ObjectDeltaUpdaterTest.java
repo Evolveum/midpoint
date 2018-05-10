@@ -618,7 +618,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
-        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+        }
 
         LOGGER.info("test280AddPhoto check");
         Session session = factory.openSession();
@@ -646,7 +648,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
-        AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+        }
 
         LOGGER.info("test290ReplacePhoto check");
         Session session = factory.openSession();
@@ -674,7 +678,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
-        AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+        }
 
         LOGGER.info("test300DeletePhoto check");
         Session session = factory.openSession();
