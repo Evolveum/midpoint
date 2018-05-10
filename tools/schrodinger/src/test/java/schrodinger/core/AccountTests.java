@@ -36,7 +36,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
 
     private static final String CSV_RESOURCE_NAME= "Test CSV: username";
 
-    private static final String TEST_USER_MIKE_NAME= "michelangelo";
+    protected static final String TEST_USER_MIKE_NAME= "michelangelo";
     private static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
     private static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
 
@@ -246,4 +246,5 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                         .feedback()
                         .isSuccess();
     }
+
 }

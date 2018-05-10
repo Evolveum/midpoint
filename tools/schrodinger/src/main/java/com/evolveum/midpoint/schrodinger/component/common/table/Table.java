@@ -20,6 +20,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -49,4 +50,16 @@ public class Table<T> extends Component<T> {
         return new Paging(this, pagingElement);
     }
 
+    public Table<T> selectAll() {
+
+        $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        return this;
+    }
+
+    public boolean currentTableContains(String name) {
+
+        return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).is(Condition.visible);
+    }
 }
