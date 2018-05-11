@@ -471,6 +471,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="reiteration" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which reiteration this campaign is in. Zero means the regular (first) run;
+                                1 means first reiteration, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="state" type="tns:AccessCertificationCampaignStateType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -518,7 +529,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="number" type="xsd:int" minOccurs="1">
+            <xsd:element name="reiteration" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which reiteration this stage is part of. Zero means the first (i.e. regular) run.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="number" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -829,7 +850,7 @@
             <xsd:element name="workItem" type="tns:AccessCertificationWorkItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work items for this stage. Some might be completed; however, they remains here until the stage is closed.
+                        Work items for this stage. Some might be completed; however, they remain here until the stage is closed.
                     </xsd:documentation>
                     <xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -918,11 +939,21 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkItemType">
                 <xsd:sequence>
-                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the decision was made or changed.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reiteration" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which reiteration this work item is part of. Zero means the first (i.e. regular) run.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
