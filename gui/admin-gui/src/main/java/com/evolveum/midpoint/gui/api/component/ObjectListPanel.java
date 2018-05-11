@@ -16,22 +16,24 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -252,65 +254,59 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns){
 		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-		if (customColumns == null || customColumns.size() == 0){
+		if (customColumns == null || customColumns.isEmpty()) {
 			return columns;
 		}
 		IColumn<SelectableBean<O>, String> column;
-		for (GuiObjectColumnType customColumn : customColumns){
-			if (customColumn.getPath() == null || customColumn.getPath().getItemPath() == null){
+		for (GuiObjectColumnType customColumn : customColumns) {
+			if (customColumn.getPath() == null) {
 				continue;
 			}
+			ItemPath columnPath = customColumn.getPath().getItemPath();
+			// TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
 			ItemDefinition itemDefinition = parentPage.getPrismContext().getSchemaRegistry()
-					.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(customColumn.getPath().getItemPath());
-			if (itemDefinition == null){
+					.findObjectDefinitionByCompileTimeClass(type.getClassDefinition())
+					.findItemDefinition(columnPath);
+			if (itemDefinition == null) {
+				LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
 				continue;
 			}
 
 			if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
+				IModel<String> columnDisplayModel =
+						customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
+								Model.of(customColumn.getDisplay().getLabel()) :
+								createStringResource(getItemDisplayName(customColumn));
 				if (customColumns.indexOf(customColumn) == 0) {
-					column = createNameColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-									Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)),
-							customColumn.getPath().toString());
+					// TODO what if a complex path is provided here?
+					column = createNameColumn(columnDisplayModel, customColumn.getPath().toString());
 				} else {
-					column = new PropertyColumn<SelectableBean<O>, String>(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-							Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)), null,
-							SelectableBean.F_VALUE + "." + customColumn.getPath().toString().replaceAll("/", ".")){
+					column = new AbstractColumn<SelectableBean<O>, String>(columnDisplayModel, null) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-						public IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
-							ItemPathType itemPathType = customColumn.getPath();
-							if (itemPathType != null
-							 		&& itemPathType.getItemPath() != null) {
-                                if (itemPathType.getItemPath().toString().contains(ObjectType.F_EXTENSION.getLocalPart() + "/")) {
-
-                                    O rowModelObject = rowModel.getObject().getValue();
-                                    if (rowModelObject.getExtension() != null) {
-                                        ExtensionType extensionType = rowModelObject.getExtension();
-                                        Item item = extensionType.asPrismContainerValue().findItem(itemPathType.getItemPath().lastNamed().getName());
-                                        if (item != null && item.getValues() != null) {
-                                            StringBuilder sb = new StringBuilder();
-                                            item.getValues().forEach(itemValue -> {
-                                                if (StringUtils.isNotEmpty(sb.toString())) {
-                                                    sb.append(", ");
-                                                }
-                                                if (itemValue instanceof PrismPropertyValue) {
-                                                    sb.append(((PrismPropertyValue) itemValue).getValue().toString());
-                                                } else {
-                                                    sb.append(itemValue.toString() + " ");
-                                                }
-                                            });
-                                            return Model.of(sb.toString());
-                                        }
-                                    }
-                                } else {
-                                    return super.getDataModel(rowModel);
-                                }
-                            }
-							return Model.of("");
-
+						public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<SelectableBean<O>>> item,
+								String componentId, IModel<SelectableBean<O>> rowModel) {
+							item.add(new Label(componentId, getDataModel(rowModel)));
 						}
 
+						private IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
+							Item<?, ?> item = rowModel.getObject().getValue().asPrismContainerValue().findItem(columnPath);
+							if (item != null) {
+								return Model.of(item.getValues().stream()
+										.filter(Objects::nonNull)
+										.map(itemValue -> {
+											if (itemValue instanceof PrismPropertyValue) {
+												return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
+											} else {
+												return itemValue.toString() + " ";      // TODO why + " "?
+											}
+										})
+										.collect(Collectors.joining(", ")));
+							} else {
+								return Model.of("");
+							}
+						}
 					};
 				}
 				columns.add(column);
