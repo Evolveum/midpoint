@@ -148,7 +148,8 @@ public class ItemPathResolver {
             if (anyLinkDef.getOwnerType() != null) {        // null for assignment extensions
                 conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", anyLinkDef.getOwnerType()));
             }
-            RExtItem extItemDefinition = ExtItemDictionary.getInstance().findItemByDefinition(anyLinkDef.getItemDefinition(), context.getSession());
+            ExtItemDictionary dictionary = context.getExtItemDictionary();
+            RExtItem extItemDefinition = dictionary.findItemByDefinition(anyLinkDef.getItemDefinition(), context.getSession());
             if (extItemDefinition != null) {
                 conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_ITEM + "." + RExtItem.F_ID,
                         extItemDefinition.getId()));

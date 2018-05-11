@@ -39,4 +39,6 @@
     <import resource="ctx-repository-session-test.xml"/>
 
     <alias name="testSessionFactory" alias="sessionFactory"/>
+
+    <bean id="extItemDictionary" class="com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary"/>
 </beans>

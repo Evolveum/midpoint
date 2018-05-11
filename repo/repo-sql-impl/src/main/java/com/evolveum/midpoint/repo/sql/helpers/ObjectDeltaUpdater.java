@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
@@ -79,6 +80,8 @@ public class ObjectDeltaUpdater {
     private EntityRegistry entityRegistry;
     @Autowired
     private PrismEntityMapper prismEntityMapper;
+    @Autowired
+    private ExtItemDictionary extItemDictionary;
 
     /**
      * modify
@@ -220,7 +223,7 @@ public class ObjectDeltaUpdater {
         }
 
         MapperContext context = new MapperContext();
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
         context.setDelta(delta);
         context.setOwner(bean);
 
@@ -263,7 +266,7 @@ public class ObjectDeltaUpdater {
         }
 
         MapperContext context = new MapperContext();
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
         context.setDelta(delta);
         context.setOwner(bean);
 
@@ -296,7 +299,7 @@ public class ObjectDeltaUpdater {
         }
 
         MapperContext context = new MapperContext();
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
         context.setDelta(delta);
         context.setOwner(bean);
 
@@ -362,7 +365,7 @@ public class ObjectDeltaUpdater {
         }
 
         Set<RObjectTextInfo> infos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
-                new RepositoryContext(repositoryService, prismContext));
+                new RepositoryContext(repositoryService, prismContext, extItemDictionary));
 
         if (infos == null || infos.isEmpty()) {
             object.getTextInfoItems().clear();
@@ -413,7 +416,7 @@ public class ObjectDeltaUpdater {
                                                 RAssignmentExtensionType assignmentExtensionType,
                                                 BiConsumer<Collection<? extends RAnyValue>, Collection<PrismEntityPair<RAnyValue>>> processObjectValues) {
 
-        RAnyConverter converter = new RAnyConverter(prismContext);
+        RAnyConverter converter = new RAnyConverter(prismContext, extItemDictionary);
 
         if (values == null || values.isEmpty()) {
             return;
@@ -875,7 +878,7 @@ public class ObjectDeltaUpdater {
         Collection<PrismEntityPair> results = new ArrayList();
         for (PrismValue value : values) {
             MapperContext context = new MapperContext();
-            context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+            context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
             context.setDelta(delta);
             context.setOwner(bean);
 

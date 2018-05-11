@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
@@ -80,6 +81,7 @@ public class CertificationCaseHelper {
     @Autowired private NameResolutionHelper nameResolutionHelper;
     @Autowired private ObjectRetriever objectRetriever;
     @Autowired private RepositoryService repositoryService;
+    @Autowired private ExtItemDictionary extItemDictionary;
 
     public void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RAccessCertificationCampaign)) {
@@ -120,7 +122,7 @@ public class CertificationCaseHelper {
 
     @NotNull
     private RepositoryContext createRepositoryContext() {
-        return new RepositoryContext(repositoryService, prismContext);
+        return new RepositoryContext(repositoryService, prismContext, extItemDictionary);
     }
 
     public void deleteCertificationCampaignCases(Session session, String oid) {

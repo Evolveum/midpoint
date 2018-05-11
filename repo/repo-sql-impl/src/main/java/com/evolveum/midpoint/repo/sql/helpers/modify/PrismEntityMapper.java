@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
@@ -71,6 +72,8 @@ public class PrismEntityMapper {
     private RepositoryService repositoryService;
     @Autowired
     private PrismContext prismContext;
+    @Autowired
+    private ExtItemDictionary extItemDictionary;
 
     public boolean supports(Class inputType, Class outputType) {
         Key key = buildKey(inputType, outputType);
@@ -104,7 +107,7 @@ public class PrismEntityMapper {
         if (context == null) {
             context = new MapperContext();
         }
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
 
         Key key = buildKey(input.getClass(), outputType);
         Mapper<I, O> mapper = mappers.get(key);

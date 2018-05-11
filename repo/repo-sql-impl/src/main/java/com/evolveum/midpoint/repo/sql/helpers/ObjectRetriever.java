@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -83,6 +84,7 @@ public class ObjectRetriever {
 	@Autowired private BaseHelper baseHelper;
 	@Autowired private NameResolutionHelper nameResolutionHelper;
 	@Autowired private PrismContext prismContext;
+	@Autowired private ExtItemDictionary extItemDictionary;
 	@Autowired
 	@Qualifier("repositoryService")
 	private RepositoryService repositoryService;
@@ -317,7 +319,7 @@ public class ObjectRetriever {
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
-				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+				QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 				rQuery = engine.interpret(query, type, options, true, session);
 
                 longCount = (Number) rQuery.uniqueResult();
@@ -349,7 +351,7 @@ public class ObjectRetriever {
 		try {
 			session = baseHelper.beginReadOnlyTransaction();
 
-			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 			RQuery rQuery = engine.interpret(query, type, options, true, session);
 			Number longCount = (Number) rQuery.uniqueResult();
 			LOGGER.trace("Found {} objects.", longCount);
@@ -373,7 +375,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
 
-			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 			rQuery = engine.interpret(query, type, options, false, session);
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -437,7 +439,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
 
-            QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+            QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             if (cases) {
@@ -728,7 +730,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
-			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 			rQuery = engine.interpret(query, type, options, false, session);
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
@@ -927,7 +929,7 @@ main:       for (;;) {
 			final org.hibernate.Query query;
 			final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
 			if (isMidpointQuery) {
-				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+				QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 				RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), null, false, session);
 				query = rQuery.getQuery();
 				implementationLevelQuery = query.getQueryString();

@@ -225,7 +225,7 @@ public class SqlPerformanceMonitor {
         outstandingOperations.remove(threadId);
     }
 
-    void registerOperationNewAttempt(long opHandle, int attempt) {
+    public void registerOperationNewAttempt(long opHandle, int attempt) {
 
         if (level <= LEVEL_NONE) {
             return;

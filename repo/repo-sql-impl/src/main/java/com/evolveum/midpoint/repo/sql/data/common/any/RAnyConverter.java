@@ -102,6 +102,7 @@ public class RAnyConverter {
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
     private static final Map<QName, ValueType> TYPE_MAP = new HashMap<>();
     private PrismContext prismContext;
+    private ExtItemDictionary extItemDictionary;
 
     static {
         TYPE_MAP.put(DOMUtil.XSD_BOOLEAN, ValueType.BOOLEAN);
@@ -120,8 +121,9 @@ public class RAnyConverter {
         TYPE_MAP.put(PolyStringType.COMPLEX_TYPE, ValueType.POLY_STRING);
     }
 
-    public RAnyConverter(PrismContext prismContext) {
+    public RAnyConverter(PrismContext prismContext, ExtItemDictionary extItemDictionary) {
         this.prismContext = prismContext;
+        this.extItemDictionary = extItemDictionary;
     }
 
     private RAnyValue extractAndCreateValue(ItemDefinition def, PrismPropertyValue propertyValue, boolean assignment)
@@ -162,7 +164,7 @@ public class RAnyConverter {
             throw new AssertionError("Wrong value type: " + value);
         }
 
-        rValue.setItem(ExtItemDictionary.getInstance().createOrFindItemDefinition(definition, session));
+        rValue.setItem(extItemDictionary.createOrFindItemDefinition(definition, session));
 
         return rValue;
     }
