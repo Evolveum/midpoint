@@ -6,8 +6,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 /**
  * Created by matus on 5/2/2018.
  */
-public class CogDropDown<T> extends Component<T> {
-    public CogDropDown(T parent, SelenideElement parentElement) {
+public class DropDown<T> extends Component<T> {
+    public DropDown(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 }

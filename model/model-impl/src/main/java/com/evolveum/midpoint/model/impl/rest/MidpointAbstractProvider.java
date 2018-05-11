@@ -23,7 +23,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -32,6 +34,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
@@ -39,6 +42,7 @@ import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,10 +53,10 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 
 	private static transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
 
-	@Autowired
-	protected PrismContext prismContext;
+	@Autowired protected PrismContext prismContext;
+	@Autowired protected LocalizationService localizationService;
 
-//	@Override
+	@Override
     public void init(List<ClassResourceInfo> cris) {
         setEnableStreaming(true);
     }
@@ -91,7 +95,9 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			if (object instanceof PrismObject) {
 				xml = serializer.serialize((PrismObject<?>) object);
 			} else if (object instanceof OperationResult) {
-				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+//				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+				Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
+				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
 				xml = serializer.serializeAnyData(operationResultType, fakeQName);
 			} else {
 				xml = serializer.serializeAnyData(object, fakeQName);
