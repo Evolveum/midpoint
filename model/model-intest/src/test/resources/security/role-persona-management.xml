@@ -65,7 +65,7 @@
     		<type>RoleType</type>
     		<filter>
     			<q:equal>
-    				<q:path>subType</q:path>
+    				<q:path>subtype</q:path>
     				<q:value>personaRole</q:value>
     			</q:equal>
     		</filter>
@@ -79,7 +79,7 @@
     		<type>UserType</type>
     		<filter>
     			<q:equal>
-    				<q:path>subType</q:path>
+    				<q:path>subtype</q:path>
     				<q:value>admin</q:value>
     			</q:equal>
     		</filter>
@@ -95,7 +95,7 @@
     		<type>UserType</type>
     		<filter>
     			<q:equal>
-    				<q:path>subType</q:path>
+    				<q:path>subtype</q:path>
     				<q:value>admin</q:value>
     			</q:equal>
     		</filter>
