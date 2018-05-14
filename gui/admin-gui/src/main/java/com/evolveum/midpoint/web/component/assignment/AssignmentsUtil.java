@@ -10,6 +10,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -233,7 +234,20 @@ public class AssignmentsUtil {
 
 		if (assignment.getPolicyRule() != null){
 			PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
-			return policyRuleContainer.getName();
+			if (StringUtils.isNotEmpty(policyRuleContainer.getName())){
+                return policyRuleContainer.getName();
+            } else {
+			    StringBuilder sb = new StringBuilder("");
+			    PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
+			    if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
+			        sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString() + ": ");
+                    constraints.getExclusion().forEach(exclusion -> {
+                        sb.append(WebComponentUtil.getName(exclusion.getTargetRef()));
+                        sb.append("; ");
+                    });
+                }
+                return sb.toString();
+            }
 
 		}
 		StringBuilder sb = new StringBuilder();
