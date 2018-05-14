@@ -30,7 +30,7 @@
     		<filter>
     			<q:not>
 	    			<q:equal>
-	    				<q:path>subType</q:path>
+	    				<q:path>subtype</q:path>
 	    				<q:value>application</q:value>
 	    			</q:equal>
 	    		</q:not>

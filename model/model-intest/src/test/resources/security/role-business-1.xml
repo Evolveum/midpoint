@@ -20,5 +20,5 @@
     <name>Business Role One</name>
     <requestable>true</requestable>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
-    <subType>business</subType>
+    <subtype>business</subtype>
 </role>

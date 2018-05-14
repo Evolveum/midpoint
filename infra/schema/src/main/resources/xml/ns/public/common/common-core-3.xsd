@@ -192,7 +192,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-			<xsd:element name="subType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="subtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						<p>
@@ -202,7 +202,7 @@
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
-						<a:displayName>ObjectType.subType</a:displayName>
+						<a:displayName>ObjectType.subtype</a:displayName>
 						<a:displayOrder>15</a:displayOrder>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -4154,7 +4154,7 @@
                                 	Therefore it can be used to distinguish employees from customers, etc.
                                 </p>
 								<p>
-									DEPRECATED: Use ObjectType.subType
+									DEPRECATED: Use ObjectType.subtype
 								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -12263,7 +12263,7 @@
                                     </ul>
                                 </p>
 								<p>
-									DEPRECATED: use ObjectType.subType
+									DEPRECATED: use ObjectType.subtype
 								</p>
                     		</xsd:documentation>
                             <xsd:appinfo>
@@ -12721,7 +12721,7 @@
                                     </ul>
                                 </p>
 								<p>
-									DEPRECATED: Use ObjectType.subType
+									DEPRECATED: Use ObjectType.subtype
 								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -12855,7 +12855,7 @@
                                     </ul>
                                 </p>
 								<p>
-									DEPRECATED: Use ObjectType.subType
+									DEPRECATED: Use ObjectType.subtype
 								</p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -14397,7 +14397,7 @@
 					<xsd:documentation>
 						Specification of the subtype of the object to apply this template to.
 						If no subtype is specified then this definition will be applied to all subtypes.
-						The subtype is compared against the subType property but it is also compared to the
+						The subtype is compared against the subtype property but it is also compared to the
 						deprecated employeeType, roleType, orgType and serviceType properties.
 					</xsd:documentation>
 				</xsd:annotation>

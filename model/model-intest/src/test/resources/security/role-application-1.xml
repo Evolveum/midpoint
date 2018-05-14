@@ -19,5 +19,5 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Application Role One</name>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
-    <subType>application</subType>
+    <subtype>application</subtype>
 </role>
