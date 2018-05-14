@@ -35,7 +35,7 @@
     	</object>
     	<item>name</item>
     	<item>description</item>
-    	<item>subType</item>
+    	<item>subtype</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
     	<item>delegable</item>
@@ -57,7 +57,7 @@
     	</object>
 		<item>name</item>
     	<item>description</item>
-    	<item>subType</item>
+    	<item>subtype</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
     	<item>delegable</item>
@@ -71,7 +71,7 @@
     	</object>
     	<item>name</item>
     	<item>description</item>
-    	<item>subType</item>
+    	<item>subtype</item>
     	<item>lifecycleState</item>
     	<item>requestable</item>
     	<item>delegable</item>

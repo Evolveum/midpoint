@@ -1295,7 +1295,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUB_TYPE, task, result, SUBTYPE_MAROONED);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1324,7 +1324,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUB_TYPE, task, result);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

@@ -678,7 +678,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         jaxb.setVersion(Integer.toString(repo.getVersion()));
         jaxb.setLifecycleState(repo.getLifecycleState());
         if (repo.getSubType() != null) {
-            jaxb.getSubType().addAll(repo.getSubType());
+            jaxb.getSubtype().addAll(repo.getSubType());
         }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
@@ -702,7 +702,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setLifecycleState(jaxb.getLifecycleState());
 
-        repo.setSubType(RUtil.listToSet(jaxb.getSubType()));
+        repo.setSubType(RUtil.listToSet(jaxb.getSubtype()));
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb

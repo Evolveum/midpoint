@@ -24,7 +24,7 @@
     		<type>RoleType</type>
     		<filter>
     			<q:equal>
-    				<q:path>subType</q:path>
+    				<q:path>subtype</q:path>
     				<expression>
     					<!-- Make sure empty value of costCenter does not allow any access. -->
     					<queryInterpretationOfNoValue>filterNone</queryInterpretationOfNoValue>

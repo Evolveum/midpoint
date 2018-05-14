@@ -19,5 +19,5 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Business Role Three</name>
     <requestable>true</requestable>
-    <subType>business</subType>
+    <subtype>business</subtype>
 </role>

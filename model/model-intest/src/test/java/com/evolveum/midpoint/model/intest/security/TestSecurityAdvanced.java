@@ -1304,10 +1304,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertSearchDeny(RoleType.class, null, null);
         assertSearchDeny(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("business").build(),
+        		queryFor(RoleType.class).item(RoleType.F_SUBTYPE).eq("business").build(),
         		null);
         assertSearchDeny(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("application").build(),
+        		queryFor(RoleType.class).item(RoleType.F_SUBTYPE).eq("application").build(),
         		null);
         
         assertGlobalStateUntouched();
@@ -1348,9 +1348,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertSearch(RoleType.class, null, 3);
         assertSearch(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("business").build(), 3);
+        		queryFor(RoleType.class).item(RoleType.F_SUBTYPE).eq("business").build(), 3);
         assertSearchDeny(RoleType.class, 
-        		queryFor(RoleType.class).item(RoleType.F_SUB_TYPE).eq("application").build(),
+        		queryFor(RoleType.class).item(RoleType.F_SUBTYPE).eq("application").build(),
         		null);
         
         assertGlobalStateUntouched();
@@ -1958,7 +1958,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		display("Exclusion role edit schema", roleExclusionEditSchema);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_NAME, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_DESCRIPTION, true, true, true);
-		assertItemFlags(roleExclusionEditSchema, RoleType.F_SUB_TYPE, true, true, true);
+		assertItemFlags(roleExclusionEditSchema, RoleType.F_SUBTYPE, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_METADATA, false, false, false);
 		
@@ -2219,7 +2219,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		display("Exclusion role edit schema", roleEmptyEditSchema);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_NAME, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_DESCRIPTION, true, true, true);
-		assertItemFlags(roleEmptyEditSchema, RoleType.F_SUB_TYPE, true, true, true);
+		assertItemFlags(roleEmptyEditSchema, RoleType.F_SUBTYPE, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_LIFECYCLE_STATE, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_METADATA, false, false, false);
 		
