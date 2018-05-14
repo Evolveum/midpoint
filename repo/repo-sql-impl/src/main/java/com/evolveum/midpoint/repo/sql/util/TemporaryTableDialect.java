@@ -146,7 +146,7 @@ public abstract class TemporaryTableDialect {
 
         @Override
         public String getCreateTemporaryTableString() {
-            return "create temporary table";
+            return "create temporary table if not exists";
         }
 
         @Override
