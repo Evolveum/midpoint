@@ -20,6 +20,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -49,24 +50,16 @@ public class Table<T> extends Component<T> {
         return new Paging(this, pagingElement);
     }
 
+    public Table<T> selectAll() {
 
-    public Table<T> selectCheckboxByName(String name) {
-        SelenideElement parent = $(Schrodinger.byElementEnclosedTextValue(null, "data-s-id", "cell", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
-        ;
-
-        String row = parent.getAttribute("data-s-id").toString();
-
-        parent.$(Schrodinger.byElementAttributeValue("input", "name", constructCheckBoxIdBasedOnRow(row)))
+        $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
         return this;
     }
 
-    private String constructCheckBoxIdBasedOnRow(String row) {
-        StringBuilder constructCheckboxName = new StringBuilder("table:box:tableContainer:table:body:rows:")
-                .append(row).append(":cells:1:cell:check");
+    public boolean currentTableContains(String name) {
 
-        return constructCheckboxName.toString();
+        return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).is(Condition.visible);
     }
 }

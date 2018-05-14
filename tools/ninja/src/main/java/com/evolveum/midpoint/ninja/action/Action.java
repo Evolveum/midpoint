@@ -32,7 +32,7 @@ public abstract class Action<T> {
         this.context.init(connection);
     }
 
-    protected LogTarget getInfoLogTarget() {
+    public LogTarget getInfoLogTarget() {
         return LogTarget.SYSTEM_OUT;
     }
 

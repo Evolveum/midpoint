@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
@@ -33,7 +34,9 @@ import java.util.Arrays;
 @IdClass(RFocusPhotoId.class)
 @Entity
 @Table(name = "m_focus_photo")
-public class RFocusPhoto implements Serializable {
+public class RFocusPhoto implements Serializable, EntityState {
+
+    private Boolean trans;
 
     private RFocus owner;
     private String ownerOid;
@@ -64,6 +67,15 @@ public class RFocusPhoto implements Serializable {
         return photo;
     }
 
+    @Transient
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
+    }
+
     public void setOwner(RFocus owner) {
         this.owner = owner;
     }
@@ -81,15 +93,13 @@ public class RFocusPhoto implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RFocusPhoto that = (RFocusPhoto) o;
+        RFocusPhoto photo = (RFocusPhoto) o;
 
-        if (!Arrays.equals(photo, that.photo)) return false;
-
-        return true;
+        return getOwnerOid() != null ? getOwnerOid().equals(photo.getOwnerOid()) : photo.getOwnerOid() == null;
     }
 
     @Override
     public int hashCode() {
-        return photo != null ? Arrays.hashCode(photo) : 0;
+        return getOwnerOid() != null ? getOwnerOid().hashCode() : 0;
     }
 }

@@ -8,7 +8,6 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import schrodinger.TestBase;
@@ -32,11 +31,12 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
     private static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
     private static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
     private static final String ADD_ACCOUNT_DEPENDENCY= "addAccount";
-
+    private static final String DISABLE_ACCOUNT_DEPENDENCY= "disableAccount";
+    private static final String ENABLE_ACCOUNT_DEPENDENCY= "enableAccount";
 
     private static final String CSV_RESOURCE_NAME= "Test CSV: username";
 
-    private static final String TEST_USER_MIKE_NAME= "michelangelo";
+    protected static final String TEST_USER_MIKE_NAME= "michelangelo";
     private static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
     private static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
 
@@ -146,4 +146,105 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
             ;
 
     }
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    public void modifyAccountPassword(){
+        ListUsersPage users = basicPage.listUsers();
+            users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(TEST_USER_MIKE_NAME)
+                    .updateSearch()
+                .and()
+                .clickByName(TEST_USER_MIKE_NAME)
+                    .selectTabProjections()
+                        .table()
+                        .clickByName(CSV_RESOURCE_NAME)
+                            .showEmptyAttributes("Password")
+                            .addProtectedAttributeValue("Value","5ecr3t")
+                        .and()
+                    .and()
+                .and()
+                .checkKeepDisplayingResults()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
+
+
+
+    }
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    public void disableAccount(){
+        ListUsersPage users = basicPage.listUsers();
+            users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(TEST_USER_MIKE_NAME)
+                    .updateSearch()
+                .and()
+                .clickByName(TEST_USER_MIKE_NAME)
+                    .selectTabProjections()
+                        .table()
+                        .clickByName(CSV_RESOURCE_NAME)
+                            .selectOption("Administrative status","Disabled")
+                        .and()
+                    .and()
+                .and()
+                .checkKeepDisplayingResults()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
+    }
+
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY})
+    public void enableAccount(){
+        ListUsersPage users = basicPage.listUsers();
+            users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(TEST_USER_MIKE_NAME)
+                    .updateSearch()
+                .and()
+                .clickByName(TEST_USER_MIKE_NAME)
+                    .selectTabProjections()
+                        .table()
+                        .clickByName(CSV_RESOURCE_NAME)
+                            .selectOption("Administrative status","Enabled")
+                        .and()
+                    .and()
+                .and()
+                .checkKeepDisplayingResults()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
+    }
+
+    @Test(dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY})
+    public void deleteAccount(){
+        ListUsersPage users = basicPage.listUsers();
+                users
+                    .table()
+                        .search()
+                        .byName()
+                        .inputValue(TEST_USER_MIKE_NAME)
+                        .updateSearch()
+                    .and()
+                    .clickByName(TEST_USER_MIKE_NAME)
+                        .selectTabProjections()
+                            .table()
+                            .selectCheckboxByName(CSV_RESOURCE_NAME)
+                        .and()
+                            .clickCog()
+                            .delete()
+                                .clickYes()
+                        .and()
+                    .and()
+                    .checkKeepDisplayingResults()
+                    .clickSave()
+                        .feedback()
+                        .isSuccess();
+    }
+
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import java.util.Properties;
 
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,11 @@ public class SqlRepositoryBeanConfig {
 
     @Autowired
     private SqlRepositoryFactory sqlRepositoryFactory;
+
+    @Bean
+    public ExtItemDictionary extItemDictionary() {
+        return new ExtItemDictionary();
+    }
 
     @Bean
     public DataSourceFactory dataSourceFactory() {

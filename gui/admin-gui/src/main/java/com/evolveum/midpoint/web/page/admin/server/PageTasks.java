@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -255,7 +256,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Task task = createSimpleTask("load task");
 						OperationResult result = task.getResult();
 						PrismObject<TaskType> taskType = WebModelServiceUtils
-								.loadObject(TaskType.class, oid, PageTasks.this, task, result);
+								.loadObject(TaskType.class, oid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT),
+										PageTasks.this, task, result);
 						if (taskType == null) {
 							return null;
 						}

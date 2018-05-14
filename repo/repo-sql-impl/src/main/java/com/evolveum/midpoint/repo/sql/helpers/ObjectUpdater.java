@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -96,6 +97,9 @@ public class ObjectUpdater {
 
     @Autowired
     private PrismContext prismContext;
+
+    @Autowired
+    private ExtItemDictionary extItemDictionary;
 
     public <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
             OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
@@ -579,7 +583,7 @@ public class ObjectUpdater {
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,
                     RepositoryContext.class, IdGeneratorResult.class);
-            method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext), generatorResult);
+            method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext, extItemDictionary), generatorResult);
         } catch (Exception ex) {
             SerializationRelatedException serializationException = ExceptionUtil.findCause(ex, SerializationRelatedException.class);
             if (serializationException != null) {

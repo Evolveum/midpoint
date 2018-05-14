@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -71,6 +72,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired protected AuditService auditService;
     @Autowired protected PrismContext prismContext;
     @Autowired protected SessionFactory factory;
+    @Autowired protected ExtItemDictionary extItemDictionary;
 
     protected static Set<Class> initializedClasses = new HashSet<>();
 
@@ -155,7 +157,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     }
 
     protected void close(Session session) {
-        session.getTransaction().commit();
+        if (!session.getTransaction().getRollbackOnly()) {
+            session.getTransaction().commit();
+        }
         session.close();
     }
 

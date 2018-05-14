@@ -62,6 +62,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
@@ -72,8 +73,11 @@ import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.PasswordPolicyEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
@@ -188,6 +192,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -238,6 +243,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired UserProfileService userProfileService;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private CacheRegistry cacheRegistry;
+	@Autowired private OperationalDataManager metadataManager;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1308,17 +1314,44 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		for (String newValue : valuesToValidate) {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
-			if (path != null ) result.addArbitraryObjectAsParam("path", path);
+			if (path != null ) result.addParam("path", path.toString());
 			result.addParam("valueToValidate", newValue);
-			if (stringPolicy == null) {
-				stringPolicy = new ValuePolicyType();
-				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
+//			if (stringPolicy == null) {
+//				stringPolicy = new ValuePolicyType();
+//				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
+//			}
+			
+			ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator();
+			evaluator.setValuePolicy(stringPolicy);
+			evaluator.setValuePolicyProcessor(policyProcessor);
+			evaluator.setProtector(protector);
+			evaluator.setValueItemPath(path);
+			evaluator.setOriginResolver(getOriginResolver(object));
+			evaluator.setTask(task);
+			evaluator.setShortDesc(" rest validate ");
+			if (object != null && path != null && SchemaConstants.PATH_PASSWORD.isSuperPathOrEquivalent(path)) {
+				evaluator.setSecurityPolicy(getSecurityPolicy((PrismObject<UserType>) object, task, parentResult));
+				PrismContainer<PasswordType> password = object.findContainer(SchemaConstants.PATH_PASSWORD);
+				PasswordType passwordType = null;
+				if (password != null) {
+					PrismContainerValue<PasswordType> passwordPcv = password.getValue();
+					passwordType = passwordPcv != null ? passwordPcv.asContainerable() : null;
+				}
+				evaluator.setOldCredentialType(passwordType);
 			}
-			if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
-				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
-				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
-			}
-			result.computeStatusIfUnknown();
+			evaluator.setNow(clock.currentTimeXMLGregorianCalendar());
+			LOGGER.trace("Validating value started");
+			OperationResult subResult = evaluator.validateStringValue(newValue);
+			LOGGER.trace("Validating value finished");
+			result.addSubresult(subResult);
+//			
+			result.computeStatus();
+			
+//			if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
+//				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
+//				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
+//			}
+			
 		}
 
 		parentResult.computeStatus();
@@ -1328,6 +1361,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	}
 
+	private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> getOriginResolver(PrismObject<O> object) {
+		if (object != null && UserType.class.equals(object.getCompileTimeClass())) {
+			new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
+		}
+		
+		//TODO not supported yet
+		return null;
+	}
+	
 	private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> createOriginResolver(PrismObject<O> object, OperationResult result) throws SchemaException {
 		if (object == null) {
 			return null;

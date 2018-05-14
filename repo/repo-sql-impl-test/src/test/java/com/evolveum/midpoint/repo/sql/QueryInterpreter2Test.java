@@ -152,22 +152,16 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     private void prepareItemDefinitions() {
-        Session session = open();
-        try {
-            ExtItemDictionary d = ExtItemDictionary.getInstance();
-            fooDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(FOO_QNAME, DOMUtil.XSD_STRING, prismContext), session);
-            shoeSizeDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(SHOE_SIZE_QNAME, DOMUtil.XSD_INT, prismContext), session);
-            a1Definition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(A1_QNAME, DOMUtil.XSD_STRING, prismContext), session);
-            stringTypeDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(STRING_TYPE_QNAME, DOMUtil.XSD_STRING, prismContext), session);
-            intTypeDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(INT_TYPE_QNAME, DOMUtil.XSD_INT, prismContext), session);
-            longTypeDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Long>(LONG_TYPE_QNAME, DOMUtil.XSD_LONG, prismContext), session);
-            weaponDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(WEAPON_QNAME, DOMUtil.XSD_STRING, prismContext), session);
-            overrideActivationDefinition = d.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<ActivationStatusType>(OVERRIDE_ACTIVATION_QNAME,
-                    ACTIVATION_STATUS_TYPE_QNAME, prismContext), session);
-            skipAutogenerationDefinition = d.findItemByDefinition(new PrismPropertyDefinitionImpl<Boolean>(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN, prismContext), session);
-        } finally {
-            close(session);
-        }
+        fooDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(FOO_QNAME, DOMUtil.XSD_STRING, prismContext), null);
+        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(SHOE_SIZE_QNAME, DOMUtil.XSD_INT, prismContext), null);
+        a1Definition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(A1_QNAME, DOMUtil.XSD_STRING, prismContext), null);
+        stringTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(STRING_TYPE_QNAME, DOMUtil.XSD_STRING, prismContext), null);
+        intTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(INT_TYPE_QNAME, DOMUtil.XSD_INT, prismContext), null);
+        longTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Long>(LONG_TYPE_QNAME, DOMUtil.XSD_LONG, prismContext), null);
+        weaponDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(WEAPON_QNAME, DOMUtil.XSD_STRING, prismContext), null);
+        overrideActivationDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<ActivationStatusType>(OVERRIDE_ACTIVATION_QNAME,
+                ACTIVATION_STATUS_TYPE_QNAME, prismContext), null);
+        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Boolean>(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN, prismContext), null);
     }
 
     @Test
@@ -5134,7 +5128,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 		}
 
-		QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), prismContext);
+		QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), extItemDictionary, prismContext);
 		RQuery rQuery = engine.interpret(query, type, options, interpretCount, session);
 		//just test if DB will handle it or throws some exception
 		if (interpretCount) {

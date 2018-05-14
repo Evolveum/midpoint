@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.CountOptions;
 import com.evolveum.midpoint.ninja.util.FileReference;
@@ -39,6 +40,11 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
     private static final String DOT_CLASS = CountRepositoryAction.class.getName() + ".";
 
     private static final String OPERATION_COUNT = DOT_CLASS + "count";
+
+    @Override
+    public LogTarget getInfoLogTarget() {
+        return LogTarget.SYSTEM_ERR;
+    }
 
     @Override
     public void execute() throws Exception {

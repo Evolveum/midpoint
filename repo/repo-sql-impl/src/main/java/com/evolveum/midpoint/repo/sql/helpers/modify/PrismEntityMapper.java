@@ -22,10 +22,12 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
@@ -62,12 +64,16 @@ public class PrismEntityMapper {
 
         mappers.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
         mappers.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
+
+        mappers.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
     }
 
     @Autowired
     private RepositoryService repositoryService;
     @Autowired
     private PrismContext prismContext;
+    @Autowired
+    private ExtItemDictionary extItemDictionary;
 
     public boolean supports(Class inputType, Class outputType) {
         Key key = buildKey(inputType, outputType);
@@ -101,7 +107,7 @@ public class PrismEntityMapper {
         if (context == null) {
             context = new MapperContext();
         }
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
 
         Key key = buildKey(input.getClass(), outputType);
         Mapper<I, O> mapper = mappers.get(key);

@@ -19,26 +19,34 @@ package com.evolveum.midpoint.schrodinger.component.user;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.Table;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithClickableElements;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithRedirectElements;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
+import static com.codeborne.selenide.Selenide.$;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTable<T> extends TableWithClickableElements<T> {
+public class UsersTable<T> extends TableWithRedirectElements<T> {
 
     public UsersTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
     @Override
+    public TableWithRedirectElements<T> selectCheckboxByName(String name) {
+        return null;
+    }
+
+    @Override
     public UserPage clickByName(String name) {
 
-        getParentElement().$(Schrodinger.byElementEnclosedTextValue("span", "data-s-id", "label", name))
+        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
         return new UserPage();
@@ -49,5 +57,39 @@ public class UsersTable<T> extends TableWithClickableElements<T> {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
         return new Search<>(this, searchElement);
+    }
+
+
+    public ConfirmationModal<UsersTable<T>> clickEnable() {
+
+        $(Schrodinger.bySelfOrAncestorElementAttributeValue("i", "class", "fa fa-user fa-fw", "data-s-id", "topToolbars"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+
+        return new ConfirmationModal<>(this, actualModal);
+    }
+
+
+    @Override
+    public UsersTable<T> selectAll() {
+
+        $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        return this;
+    }
+
+    public UsersTableDropDown<UsersTable<T>> clickActionDropDown() {
+
+        $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        SelenideElement dropDown = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+
+        return new UsersTableDropDown<>(this, dropDown);
+
     }
 }

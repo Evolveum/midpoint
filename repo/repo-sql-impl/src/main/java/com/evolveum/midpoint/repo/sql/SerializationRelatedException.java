@@ -21,6 +21,10 @@ package com.evolveum.midpoint.repo.sql;
  */
 public class SerializationRelatedException extends RuntimeException {
 
+    public SerializationRelatedException(String message) {
+        super(message);
+    }
+
     public SerializationRelatedException(Throwable ex) {
         super(ex);
     }

@@ -60,7 +60,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     private void deleteByFilter(ObjectQuery query) throws SchemaException, IOException {
         OperationResult result = new OperationResult(OPERATION_DELETE);
 
-        OperationStatus operation = new OperationStatus(result);
+        OperationStatus operation = new OperationStatus(context, result);
         operation.start();
 
         log.info("Starting delete");

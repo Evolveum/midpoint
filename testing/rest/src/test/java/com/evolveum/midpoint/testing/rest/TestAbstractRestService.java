@@ -40,6 +40,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -97,6 +99,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD = "policy-validate-implicit-password";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT = "policy-validate-password-history-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI = "policy-validate-implicit-multi";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT = "policy-validate-implicit-multi-conflict";
 
@@ -968,15 +971,43 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	}
 
 	private OperationResult traceResponse(Response response) throws SchemaException {
+		return traceResponse(response, false);
+	}
+	
+	private OperationResult traceResponse(Response response, boolean assertMessages) throws SchemaException {
 		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
+			LOGGER.info("coverting result");
 			OperationResultType result = response.readEntity(OperationResultType.class);
+			if (assertMessages) {
+				LocalizableMessageType localizableMessage = result.getUserFriendlyMessage();
+				assertLocalizableMessage(localizableMessage);
+				
+			}
+			LOGGER.info("tracing result");
 			OperationResult opResult = OperationResult.createOperationResult(result);
+			LOGGER.info("REST resutl {}", opResult.debugDump());
 			display("REST result", opResult);
 			return opResult;
 		}
 
 		return null;
 	}
+	
+	private void assertLocalizableMessage(LocalizableMessageType localizableMessage) {
+		if (localizableMessage instanceof LocalizableMessageListType) {
+			List<LocalizableMessageType> localizableMessages = ((LocalizableMessageListType) localizableMessage).getMessage();
+			for (LocalizableMessageType subLocalizableMessage : localizableMessages) {
+				assertLocalizableMessage(subLocalizableMessage);
+			}
+		} else if (localizableMessage instanceof SingleLocalizableMessageType) {
+			SingleLocalizableMessageType singelLocalizableMessage = (SingleLocalizableMessageType) localizableMessage;
+			assertNotNull("Expected localized message for single localizable message, but no one present", singelLocalizableMessage.getFallbackMessage());
+			assertNotNull("Expected key in single localizable message, but no one present", singelLocalizableMessage.getKey());
+		}
+		
+		LOGGER.info("localizable message: " + localizableMessage);
+	}
+	
 
 	@Test
 	public void test510validateValueExplicit() throws Exception {
@@ -1018,7 +1049,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
-		traceResponse(response);
+		traceResponse(response, true);
 
 		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
@@ -1119,6 +1150,49 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test516validatePasswordHistoryConflict() throws Exception {
+		final String TEST_NAME = "test516validatePasswordHistoryConflict";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		traceResponse(response, true);
+
+		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
+		
+//		
+//		
+//		PolicyItemsDefinitionType policyItemsDefinitionType = response.readEntity(PolicyItemsDefinitionType.class);
+//		List<PolicyItemDefinitionType> policyItemDefinitions = policyItemsDefinitionType.getPolicyItemDefinition();
+//		for (PolicyItemDefinitionType policyItemDefinition : policyItemDefinitions) {
+//			OperationResultType result = policyItemDefinition.getResult();
+//			OperationResult opResult = OperationResult.createOperationResult(result);
+//			LOGGER.info("opresult: {}", opResult.debugDump());
+//			assertNotNull("Expected localized message, but no one present", result.getMessage());
+//			LocalizableMessageType localizableMessage = result.getUserFriendlyMessage();
+//			assertTrue("Not a single localiable message", localizableMessage instanceof SingleLocalizableMessageType);
+//			SingleLocalizableMessageType singelLocalizableMessage = (SingleLocalizableMessageType) localizableMessage;
+//			assertNotNull("Expected localized message for single localizable message, but no one present", singelLocalizableMessage.getFallbackMessage());
+//			assertNotNull("Expected key in single localizable message, but no one present", singelLocalizableMessage.getKey());
+//			
+//		}
+//
 
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);

@@ -105,6 +105,11 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			@Override
 			public String getObject() {
 				UserType requester = dtoModel.getObject().getRequester();
+				if (requester == null) {
+					// MID-4539 if we don't have authorization to see requester
+					return getString("TaskSummaryPanel.requestedBy", getString("TaskSummaryPanel.unknown"));
+				}
+
 				String displayName = WebComponentUtil.getDisplayName(requester.asPrismObject());
 				String name = WebComponentUtil.getName(requester.asPrismObject());
 				if (displayName != null) {

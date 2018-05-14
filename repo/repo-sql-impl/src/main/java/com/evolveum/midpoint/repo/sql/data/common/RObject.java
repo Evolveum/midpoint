@@ -741,7 +741,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     public static void copyFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo, RepositoryContext repositoryContext,
 			RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
+        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);
 
         Set<RAnyValue<?>> values = new HashSet<>();
         try {

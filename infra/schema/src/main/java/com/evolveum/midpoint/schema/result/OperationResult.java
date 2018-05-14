@@ -18,10 +18,13 @@ package com.evolveum.midpoint.schema.result;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -43,6 +46,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
+
 import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -1264,10 +1269,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public OperationResultType createOperationResultType() {
-		return createOperationResultType(this);
+		return createOperationResultType(null);
+	}
+	
+	public OperationResultType createOperationResultType(Function<LocalizableMessage, String> resolveKeys) {
+		return createOperationResultType(this, resolveKeys);
 	}
 
-	private OperationResultType createOperationResultType(OperationResult opResult) {
+	private OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
 		OperationResultType resultType = new OperationResultType();
 		resultType.setToken(opResult.getToken());
 		resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
@@ -1313,7 +1322,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 
 		if (opResult.getUserFriendlyMessage() != null) {
-			LocalizableMessageType msg = LocalizationUtil.createLocalizableMessageType(opResult.getUserFriendlyMessage());
+			LocalizableMessageType msg = LocalizationUtil.createLocalizableMessageType(opResult.getUserFriendlyMessage(), resolveKeys);
 			resultType.setUserFriendlyMessage(msg);
 		}
 
@@ -1322,7 +1331,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
 
 		for (OperationResult subResult : opResult.getSubresults()) {
-			resultType.getPartialResults().add(opResult.createOperationResultType(subResult));
+			resultType.getPartialResults().add(opResult.createOperationResultType(subResult, resolveKeys));
 		}
 
 		return resultType;
@@ -1915,5 +1924,4 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public String toString() {
 		return "R(" + operation + " " + status + " " + message + ")";
 	}
-
 }
