@@ -875,7 +875,7 @@ public class Clockwork {
 			}
 		}
 		// delete all surplus executions
-		if (recordsToKeep != null && object.asObjectable().getOperationExecution().size() > recordsToKeep - 1) {
+		if (recordsToKeep != null && executions.size() > recordsToKeep - 1) {
 			if (keepNoExecutions) {
 				executionsToDelete.addAll(executions);
 			} else {

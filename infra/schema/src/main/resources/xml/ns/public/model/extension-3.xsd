@@ -178,6 +178,17 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="objectDeltas" type="t:ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>unbounded</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="executeOptions" type="c:ModelExecuteOptionsType">
         <xsd:annotation>
             <xsd:documentation>
