@@ -635,6 +635,13 @@ public interface TaskManager {
      */
     void registerHandler(String uri, TaskHandler handler);
 
+	/**
+	 * Registers additional handler URI for a given handler.
+	 * The difference from registerHandler() is that these additional URIs are not returned when searching for a handler
+	 * matching a given task category.
+	 */
+	void registerAdditionalHandlerUri(String uri, TaskHandler handler);
+
 	void registerTaskDeletionListener(TaskDeletionListener listener);
 
 	//endregion

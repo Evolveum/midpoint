@@ -131,6 +131,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<>();
 
+    // primary handlers URIs - these will be taken into account when searching for handler matching a given task category
+    private Map<String,TaskHandler> primaryHandlersUris = new HashMap<>();
+
 	private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
 
     // cached task prism definition
@@ -1507,6 +1510,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public void registerHandler(String uri, TaskHandler handler) {
         LOGGER.trace("Registering task handler for URI {}", uri);
 		handlers.put(uri, handler);
+		primaryHandlersUris.put(uri, handler);
+	}
+
+	@Override
+	public void registerAdditionalHandlerUri(String uri, TaskHandler handler) {
+		LOGGER.trace("Registering additional URI for a task handler: {}", uri);
+		handlers.put(uri, handler);
 	}
 
 	public TaskHandler getHandler(String uri) {
@@ -1518,9 +1528,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public List<String> getAllTaskCategories() {
-
         Set<String> categories = new HashSet<>();
-        for (TaskHandler h : handlers.values()) {
+        for (TaskHandler h : primaryHandlersUris.values()) {
             List<String> cat = h.getCategoryNames();
             if (cat != null) {
                 categories.addAll(cat);
@@ -1536,20 +1545,28 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public String getHandlerUriForCategory(String category) {
-        for (Map.Entry<String,TaskHandler> h : handlers.entrySet()) {
+		Set<String> found = new HashSet<>();
+        for (Map.Entry<String,TaskHandler> h : primaryHandlersUris.entrySet()) {
             List<String> cats = h.getValue().getCategoryNames();
             if (cats != null) {
 				if (cats.contains(category)) {
-					return h.getKey();
+					found.add(h.getKey());
 				}
             } else {
                 String cat = h.getValue().getCategoryName(null);
                 if (category.equals(cat)) {
-                    return h.getKey();
+                    found.add(h.getKey());
                 }
             }
         }
-        return null;
+        if (found.isEmpty()) {
+        	return null;
+        } else if (found.size() == 1) {
+        	return found.iterator().next();
+        } else {
+        	LOGGER.warn("More task handlers found for category {}; returning none.", category);
+        	return null;
+        }
     }
     //endregion
 

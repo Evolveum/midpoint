@@ -49,10 +49,10 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 			instance = new NoOpTaskHandler();
 		}
 		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI, instance);
-		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_1, instance);
-		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_2, instance);
-		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_3, instance);
-		taskManager.registerHandler(TaskConstants.NOOP_TASK_HANDLER_URI_4, instance);
+		taskManager.registerAdditionalHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI_1, instance);
+		taskManager.registerAdditionalHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI_2, instance);
+		taskManager.registerAdditionalHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI_3, instance);
+		taskManager.registerAdditionalHandlerUri(TaskConstants.NOOP_TASK_HANDLER_URI_4, instance);
 		instance.taskManagerImpl = taskManager;
 	}
 
