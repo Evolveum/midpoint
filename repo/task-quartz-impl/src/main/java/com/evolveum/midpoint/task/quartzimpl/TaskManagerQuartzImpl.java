@@ -36,6 +36,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -864,7 +865,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 
 		try {
-			addTaskToRepositoryAndQuartz(taskImpl, parentResult);
+			addTaskToRepositoryAndQuartz(taskImpl, null, parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
 			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);
@@ -875,18 +876,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+	public String addTask(PrismObject<TaskType> taskPrism, RepoAddOptions options, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "addTask");
 		Task task = createTaskInstance(taskPrism, result);			// perhaps redundant, but it's more convenient to work with Task than with Task prism
         if (task.getTaskIdentifier() == null) {
             task.getTaskPrismObject().asObjectable().setTaskIdentifier(generateTaskIdentifier().toString());
         }
-		String oid = addTaskToRepositoryAndQuartz(task, result);
+		String oid = addTaskToRepositoryAndQuartz(task, options, result);
         result.computeStatus();
         return oid;
 	}
 
-	private String addTaskToRepositoryAndQuartz(Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+	private String addTaskToRepositoryAndQuartz(Task task, RepoAddOptions options,
+			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
 
         if (task.isLightweightAsynchronousTask()) {
             throw new IllegalStateException("A task with lightweight task handler cannot be made persistent; task = " + task);
@@ -900,7 +902,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
         String oid;
         try {
-		     oid = repositoryService.addObject(taskPrism, null, result);
+		     oid = repositoryService.addObject(taskPrism, options, result);
         } catch (ObjectAlreadyExistsException | SchemaException e) {
             result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
             throw e;
