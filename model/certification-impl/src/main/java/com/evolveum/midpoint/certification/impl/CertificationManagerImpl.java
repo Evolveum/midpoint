@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +102,8 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
     public static final String OPERATION_CLEANUP_CAMPAIGNS = INTERFACE_DOT + "cleanupCampaigns";
+
+    private static final int CASES_DELTAS_BATCH_SIZE = 60;          // there are 6 deltas for single case modification (TODO)
 
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -256,8 +259,13 @@ public class CertificationManagerImpl implements CertificationManager {
             } else {
                 final CertificationHandler handler = findCertificationHandler(campaign);
                 final AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
-                final List<ItemDelta<?,?>> deltas = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
-                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+                final AccCertUpdateHelper.StageOpenDeltas deltas = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
+                // TODO rollback in case of error
+                List<List<ItemDelta<?, ?>>> batches = ListUtils.partition(deltas.casesDeltas, CASES_DELTAS_BATCH_SIZE);
+	            for (List<ItemDelta<?, ?>> batch : batches) {
+		            updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
+	            }
+                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas.campaignDeltas, task, result);
                 updateHelper.afterStageOpen(campaignOid, stage, task, result);
             }
         } catch (RuntimeException e) {

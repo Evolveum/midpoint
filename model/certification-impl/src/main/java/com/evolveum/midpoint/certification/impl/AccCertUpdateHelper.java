@@ -207,7 +207,12 @@ public class AccCertUpdateHelper {
 
     //region ================================ Stage open ================================
 
-    public List<ItemDelta<?,?>> getDeltasForStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, CertificationHandler handler, final Task task, OperationResult result)
+	public static class StageOpenDeltas {
+    	public final List<ItemDelta<?,?>> casesDeltas = new ArrayList<>();
+    	public final List<ItemDelta<?,?>> campaignDeltas = new ArrayList<>();
+	}
+
+    public StageOpenDeltas getDeltasForStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, CertificationHandler handler, final Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
@@ -220,26 +225,28 @@ public class AccCertUpdateHelper {
                     ObjectTypeUtil.toShortString(campaign), stageNumber);
         }
 
-        List<ItemDelta<?,?>> rv = new ArrayList<>();
+	    StageOpenDeltas rv = new StageOpenDeltas();
         if (stageNumber == 0) {
-            rv.addAll(caseHelper.getDeltasToCreateCases(campaign, stage, handler, task, result));
+            rv.casesDeltas.addAll(caseHelper.getDeltasToCreateCases(campaign, stage, handler, task, result));
         } else {
-            rv.addAll(caseHelper.getDeltasToAdvanceCases(campaign, stage, task, result));
+            rv.casesDeltas.addAll(caseHelper.getDeltasToAdvanceCases(campaign, stage, task, result));
         }
 
-        rv.add(createStageAddDelta(stage));
-        rv.addAll(createDeltasToRecordStageOpen(campaign, stage));
-		rv.addAll(createTriggersForTimedActions(campaign.getOid(), 0,
+        rv.campaignDeltas.add(createStageAddDelta(stage));
+        rv.campaignDeltas.addAll(createDeltasToRecordStageOpen(campaign, stage));
+		rv.campaignDeltas.addAll(createTriggersForTimedActions(campaign.getOid(), 0,
 				XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()),
 				CertCampaignTypeUtil.findStageDefinition(campaign, newStageNumber).getTimedActions()));
 
-		LOGGER.trace("getDeltasForStageOpen finishing, returning {} deltas:\n{}", rv.size(), DebugUtil.debugDumpLazily(rv));
+		LOGGER.trace("getDeltasForStageOpen finishing, returning {} cases deltas and {} campaign deltas:\n{}\n{}",
+				rv.casesDeltas.size(), rv.campaignDeltas.size(), DebugUtil.debugDumpLazily(rv.casesDeltas),
+				DebugUtil.debugDumpLazily(rv.campaignDeltas));
         return rv;
     }
 
     // some bureaucracy... stage#, state, start time, triggers
-    List<ItemDelta<?,?>> createDeltasToRecordStageOpen(AccessCertificationCampaignType campaign,
-			AccessCertificationStageType newStage) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private List<ItemDelta<?,?>> createDeltasToRecordStageOpen(AccessCertificationCampaignType campaign,
+		    AccessCertificationStageType newStage) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
         final List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
 
