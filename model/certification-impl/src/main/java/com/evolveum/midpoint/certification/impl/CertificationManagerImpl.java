@@ -42,7 +42,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -259,13 +258,8 @@ public class CertificationManagerImpl implements CertificationManager {
             } else {
                 final CertificationHandler handler = findCertificationHandler(campaign);
                 final AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
-                final AccCertUpdateHelper.StageOpenDeltas deltas = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
-                // TODO rollback in case of error
-                List<List<ItemDelta<?, ?>>> batches = ListUtils.partition(deltas.casesDeltas, CASES_DELTAS_BATCH_SIZE);
-	            for (List<ItemDelta<?, ?>> batch : batches) {
-		            updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
-	            }
-                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas.campaignDeltas, task, result);
+                final ModificationsToExecute modifications = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
+                updateHelper.modifyCampaignViaModel(campaignOid, modifications, task, result);
                 updateHelper.afterStageOpen(campaignOid, stage, task, result);
             }
         } catch (RuntimeException e) {
@@ -307,8 +301,8 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                List<ItemDelta<?,?>> deltas = updateHelper.getDeltasForStageClose(campaign, result);
-                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+                ModificationsToExecute modifications = updateHelper.getDeltasForStageClose(campaign, result);
+                updateHelper.modifyCampaignViaModel(campaignOid, modifications, task, result);
                 updateHelper.afterStageClose(campaignOid, task, result);
             }
         } catch (RuntimeException e) {
@@ -319,7 +313,7 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    @Override
+	@Override
     public void startRemediation(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
