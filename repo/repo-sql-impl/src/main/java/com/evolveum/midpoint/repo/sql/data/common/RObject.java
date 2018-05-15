@@ -155,7 +155,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private RObjectType objectTypeClass;
     //ObjectType searchable fields
     private RPolyString name;
-    private Set<String> subType;
+    private Set<String> subtype;
     private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
     private REmbeddedReference tenantRef;
@@ -426,12 +426,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             @JoinColumn(name = "object_oid", referencedColumnName = "oid", foreignKey = @javax.persistence.ForeignKey(name = "fk_object_subtype"))
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getSubType() {
-        return subType;
+    public Set<String> getSubtype() {
+        return subtype;
     }
 
-    public void setSubType(Set<String> subType) {
-        this.subType = subType;
+    public void setSubtype(Set<String> subtype) {
+        this.subtype = subtype;
     }
 
     @Transient
@@ -646,7 +646,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (textInfoItems != null ? !textInfoItems.equals(rObject.textInfoItems) : rObject.textInfoItems != null) return false;
         if (operationExecutions != null ? !operationExecutions.equals(rObject.operationExecutions) : rObject.operationExecutions != null) return false;
-        if (subType != null ? !subType.equals(rObject.subType) : rObject.subType != null) return false;
+        if (subtype != null ? !subtype.equals(rObject.subtype) : rObject.subtype != null) return false;
 
         return true;
     }
@@ -677,8 +677,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
         jaxb.setLifecycleState(repo.getLifecycleState());
-        if (repo.getSubType() != null) {
-            jaxb.getSubtype().addAll(repo.getSubType());
+        if (repo.getSubtype() != null) {
+            jaxb.getSubtype().addAll(repo.getSubtype());
         }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
@@ -702,7 +702,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setLifecycleState(jaxb.getLifecycleState());
 
-        repo.setSubType(RUtil.listToSet(jaxb.getSubtype()));
+        repo.setSubtype(RUtil.listToSet(jaxb.getSubtype()));
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
