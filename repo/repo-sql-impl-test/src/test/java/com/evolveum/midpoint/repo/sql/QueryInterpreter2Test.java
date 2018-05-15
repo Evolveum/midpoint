@@ -152,16 +152,16 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     private void prepareItemDefinitions() {
-        fooDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(FOO_QNAME, DOMUtil.XSD_STRING, prismContext), null);
-        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(SHOE_SIZE_QNAME, DOMUtil.XSD_INT, prismContext), null);
-        a1Definition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(A1_QNAME, DOMUtil.XSD_STRING, prismContext), null);
-        stringTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(STRING_TYPE_QNAME, DOMUtil.XSD_STRING, prismContext), null);
-        intTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(INT_TYPE_QNAME, DOMUtil.XSD_INT, prismContext), null);
-        longTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Long>(LONG_TYPE_QNAME, DOMUtil.XSD_LONG, prismContext), null);
-        weaponDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(WEAPON_QNAME, DOMUtil.XSD_STRING, prismContext), null);
+        fooDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(FOO_QNAME, DOMUtil.XSD_STRING, prismContext), false);
+        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(SHOE_SIZE_QNAME, DOMUtil.XSD_INT, prismContext), false);
+        a1Definition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(A1_QNAME, DOMUtil.XSD_STRING, prismContext), false);
+        stringTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(STRING_TYPE_QNAME, DOMUtil.XSD_STRING, prismContext));
+        intTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(INT_TYPE_QNAME, DOMUtil.XSD_INT, prismContext));
+        longTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Long>(LONG_TYPE_QNAME, DOMUtil.XSD_LONG, prismContext));
+        weaponDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(WEAPON_QNAME, DOMUtil.XSD_STRING, prismContext), false);
         overrideActivationDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<ActivationStatusType>(OVERRIDE_ACTIVATION_QNAME,
-                ACTIVATION_STATUS_TYPE_QNAME, prismContext), null);
-        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Boolean>(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN, prismContext), null);
+                ACTIVATION_STATUS_TYPE_QNAME, prismContext), false);
+        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Boolean>(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN, prismContext));
     }
 
     @Test

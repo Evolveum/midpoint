@@ -119,9 +119,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
-		taskManager.registerHandler(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1, this);
-		taskManager.registerHandler(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2, this);
-		taskManager.registerHandler(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
+		taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1, this);
+		taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2, this);
+		taskManager.registerAdditionalHandlerUri(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
 	}
 
 	@Override

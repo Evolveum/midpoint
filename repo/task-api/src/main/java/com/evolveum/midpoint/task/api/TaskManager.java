@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -127,7 +128,12 @@ public interface TaskManager {
      * @throws IllegalArgumentException
      *             wrong OID format, etc.
      */
-    String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult)
+    default String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, SchemaException {
+    	return addTask(taskPrism, null, parentResult);
+    }
+
+    String addTask(PrismObject<TaskType> taskPrism, RepoAddOptions options, OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException;
 
     /**
@@ -634,6 +640,13 @@ public interface TaskManager {
      * @param handler instance of the handler
      */
     void registerHandler(String uri, TaskHandler handler);
+
+	/**
+	 * Registers additional handler URI for a given handler.
+	 * The difference from registerHandler() is that these additional URIs are not returned when searching for a handler
+	 * matching a given task category.
+	 */
+	void registerAdditionalHandlerUri(String uri, TaskHandler handler);
 
 	void registerTaskDeletionListener(TaskDeletionListener listener);
 

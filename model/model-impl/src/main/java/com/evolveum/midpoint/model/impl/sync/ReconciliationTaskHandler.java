@@ -127,9 +127,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
-		taskManager.registerHandler(FIRST_STAGE_HANDLER_URI, this);
-		taskManager.registerHandler(SECOND_STAGE_HANDLER_URI, this);
-		taskManager.registerHandler(THIRD_STAGE_HANDLER_URI, this);
+		taskManager.registerAdditionalHandlerUri(FIRST_STAGE_HANDLER_URI, this);
+		taskManager.registerAdditionalHandlerUri(SECOND_STAGE_HANDLER_URI, this);
+		taskManager.registerAdditionalHandlerUri(THIRD_STAGE_HANDLER_URI, this);
 	}
 
 	enum Stage {

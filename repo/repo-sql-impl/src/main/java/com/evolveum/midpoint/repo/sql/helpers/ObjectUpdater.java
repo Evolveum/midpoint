@@ -254,7 +254,7 @@ public class ObjectUpdater {
 
     public <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject)
             throws DtoTranslationException, SchemaException {
-        LOGGER.debug("Updating full object xml column start.");
+        LOGGER.trace("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
         // Deep cloning for object transformation - we don't want to return object "changed" by save.
@@ -277,11 +277,11 @@ public class ObjectUpdater {
         xml = prismContext.xmlSerializer().serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
-        LOGGER.trace("Storing full object\n{}", xml);
-
         object.setFullObject(fullObject);
 
-        LOGGER.debug("Updating full object xml column finish.");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
+        }
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {

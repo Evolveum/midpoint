@@ -54,10 +54,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.util.*;
+import java.util.Date;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 
@@ -620,14 +619,18 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 	private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
 		session.doWork(connection -> {
 			// check if table exists
-			try {
-				Statement s = connection.createStatement();
-				s.execute("select id from " + tempTable + " where id = 1");
-				// table already exists
-				return;
-			} catch (Exception ex) {
-				// we expect this on the first time
-			}
+            if (!getConfiguration().isUsingPostgreSQL()) {
+                try {
+                    Statement s = connection.createStatement();
+                    s.execute("select id from " + tempTable + " where id = 1");
+
+                    s.close();
+                    // table already exists
+                    return;
+                } catch (Exception ex) {
+                    // we expect this on the first time
+                }
+            }
 
             TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
 
@@ -638,8 +641,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			sb.append(" not null)");
 			sb.append(ttDialect.getCreateTemporaryTablePostfix());
 
-			Statement s = connection.createStatement();
-			s.execute(sb.toString());
+            Statement s = connection.createStatement();
+            s.execute(sb.toString());
+            s.close();
 		});
 	}
 
