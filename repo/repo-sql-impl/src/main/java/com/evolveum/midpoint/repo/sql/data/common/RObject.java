@@ -749,7 +749,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             //TODO: is this enough? should we try items without definitions?
             if (items != null) {
                 for (Item<?,?> item : items) {
-                    Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, null);
+                    Set<RAnyValue<?>> converted = converter.convertToRValue(item, false);
                     if (generatorResult.isGeneratedOid()) {
                         converted.stream().forEach(v -> v.setTransient(true));
                     }

@@ -103,7 +103,6 @@ public class BaseHelper {
 			LOGGER.trace("Marking transaction as read only.");
 			session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION READ ONLY"));
 		}
-		RAnyConverter.sessionThreadLocal.set(session);      // TODO fix this hack
 		return session;
 	}
 
@@ -146,7 +145,6 @@ public class BaseHelper {
 		if (result != null && result.isUnknown()) {
 			result.computeStatus();
 		}
-		RAnyConverter.sessionThreadLocal.set(null);  // TODO fix this hack
 	}
 
 	public void handleGeneralException(Exception ex, Session session, OperationResult result) {

@@ -280,7 +280,7 @@ public class ObjectUpdater {
         object.setFullObject(fullObject);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating full object xml column finished. Xml:\n", xml);
+            LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
         }
     }
 

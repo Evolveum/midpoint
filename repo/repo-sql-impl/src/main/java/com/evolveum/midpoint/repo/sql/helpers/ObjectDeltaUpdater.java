@@ -425,7 +425,7 @@ public class ObjectDeltaUpdater {
         try {
             Collection<PrismEntityPair<RAnyValue>> extValues = new ArrayList<>();
             for (PrismValue value : values) {
-                RAnyValue extValue = converter.convertToRValue(value, object == null, null);
+                RAnyValue extValue = converter.convertToRValue(value, object == null);
                 if (extValue == null) {
                     continue;
                 }
