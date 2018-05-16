@@ -405,7 +405,7 @@ public class SqlRepositoryConfiguration {
 
     private void computeDefaultConcurrencyParameters() {
         if (isUsingH2()) {
-            defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
+            defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
