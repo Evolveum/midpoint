@@ -176,4 +176,14 @@ public class ExtItemDictionary {
             pm.registerOperationFinish(opHandle, attempt);
         }
     }
+
+    public RExtItem getItemById(Integer extItemId) {
+        boolean fresh = fetchItemsIfNeeded();
+        RExtItem extItem = itemsById.get(extItemId);
+        if (extItem != null || fresh) {
+            return extItem;
+        }
+        fetchItems();
+        return itemsById.get(extItemId);
+    }
 }

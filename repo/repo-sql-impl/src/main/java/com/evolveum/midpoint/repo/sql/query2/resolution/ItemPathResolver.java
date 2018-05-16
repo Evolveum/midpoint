@@ -151,7 +151,7 @@ public class ItemPathResolver {
             ExtItemDictionary dictionary = context.getExtItemDictionary();
             RExtItem extItemDefinition = dictionary.findItemByDefinition(anyLinkDef.getItemDefinition());
             if (extItemDefinition != null) {
-                conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_ITEM + "." + RExtItem.F_ID,
+                conjunction.add(hibernateQuery.createEq(joinedItemAlias + "." + RAnyValue.F_ITEM_ID,
                         extItemDefinition.getId()));
             } else {
                 // there are no rows referencing this item, because it does not exist in RExtItem (yet)
