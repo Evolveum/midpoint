@@ -1631,9 +1631,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void displayWhen(String testName) {
 		TestUtil.displayWhen(testName);
 	}
+	
+	protected void displayWhen(String testName, String stage) {
+		TestUtil.displayWhen(testName + " ("+stage+")");
+	}
 
 	protected void displayThen(String testName) {
 		TestUtil.displayThen(testName);
+	}
+	
+	protected void displayThen(String testName, String stage) {
+		TestUtil.displayThen(testName + " ("+stage+")");
 	}
 
 	protected void displayCleanup(String testName) {

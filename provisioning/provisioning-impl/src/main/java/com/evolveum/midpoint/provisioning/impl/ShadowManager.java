@@ -783,7 +783,7 @@ public class ShadowManager {
 	}
 	
 	// Called when there is an provisioing error and proposed shadow is already created
-	public void handlePropesedShadowError(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+	public void handleProposedShadowError(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
 			String proposedShadowOid, Exception cause, Task task, OperationResult parentResult) {
 		// For now just remove the proposed shadow. Maybe later we can figure out something smarter,
 		// e.g. recording the error in the shadow.
@@ -1228,7 +1228,7 @@ public class ShadowManager {
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Updating pending operations in {}\n:{}", shadow, DebugUtil.debugDump(repoDeltas, 1));
+			LOGGER.trace("Updating pending operations in {}:\n{}\nbased on opstate: {}", shadow, DebugUtil.debugDump(repoDeltas, 1), opState.shortDump());
 		}
 		
 		try {
