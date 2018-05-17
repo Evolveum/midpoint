@@ -115,7 +115,7 @@ abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> 
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + "{" +
-				"item=" + getItem() +
+				"item id=" + getItemId() +
 				", value=" + getValue() +
 				'}';
 	}

@@ -81,6 +81,6 @@ abstract public class ROExtBase extends RAnyBase implements ROExtValue {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), getOwnerOid(), getOwnerType(), getItem());
+		return Objects.hash(super.hashCode(), getOwnerOid(), getOwnerType());
 	}
 }
