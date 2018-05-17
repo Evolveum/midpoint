@@ -53,6 +53,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -71,6 +72,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -103,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -122,6 +126,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
 	protected static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
 
+	protected static final File USER_PHANTOM_FILE = new File(TEST_DIR, "user-phantom.xml");
+	protected static final String USER_PHANTOM_OID = "5b12cc6e-575c-11e8-bc16-3744f9bfcac8";
+	public static final String USER_PHANTOM_USERNAME = "phantom";
+	public static final String USER_PHANTOM_FULL_NAME = "Thomas Phantom";
+	public static final String USER_PHANTOM_FULL_NAME_WRONG = "Tom Funtom";
+	public static final String ACCOUNT_PHANTOM_DESCRIPTION_MANUAL = "Phantom menace of the opera";
+	public static final String ACCOUNT_PHANTOM_PASSWORD_MANUAL = "PhanthomaS";
+	
 	protected static final String USER_WILL_NAME = "will";
 	protected static final String USER_WILL_GIVEN_NAME = "Will";
 	protected static final String USER_WILL_FAMILY_NAME = "Turner";
@@ -1321,6 +1333,84 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertSteadyResources();
 	}
 	
+	/**
+	 * Create phantom account in the backing store. MidPoint does not know anything about it.
+	 * At the same time, there is phantom user that has the account assigned. But it is not yet
+	 * provisioned. MidPoint should find existing account and it it should figure out that
+	 * there is nothing to do. Just to link the account.
+	 * related to MID-4614
+	 */
+	@Test
+	public void test400PhantomAccount() throws Exception {
+		final String TEST_NAME = "test400PhantomAccount";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		setupPhantom(TEST_NAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHANTOM_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		result.computeStatus();
+		// This should theoretically always return IN_PROGRESS, as there is
+		// reconciliation operation going on. But due to various "peculiarities"
+		// of a consistency mechanism this sometimes returns in progress and
+		// sometimes it is just success.
+		OperationResultStatus status = result.getStatus();
+		if (status != OperationResultStatus.IN_PROGRESS && status != OperationResultStatus.SUCCESS) {
+			fail("Unexpected result status in "+result);
+		}
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHANTOM_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME);
+		if (supportsBackingStore()) {
+			assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME_WRONG);
+		} else {
+			assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME);
+		}
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHANTOM_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModel);
+
+		if (isDirect()) {
+			assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		} else {
+			assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTION_PENDING, null);
+		}
+
+		assertSteadyResources();
+	}
+	
+	protected void setupPhantom(final String TEST_NAME) throws Exception {
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		addObject(USER_PHANTOM_FILE);
+		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_PHANTOM_OID, getResourceOid(), null, true);
+		repositoryService.modifyObject(UserType.class, USER_PHANTOM_OID, userDelta.getModifications(), result);
+		PrismObject<UserType> userBefore = getUser(USER_PHANTOM_OID);
+		display("User before", userBefore);
+
+		backingStoreAddPhantom();
+	}
+	
 	protected boolean are9xxTestsEnabled() {
 		// Disabled by default. These are intense parallel tests and they will fail for resources
 		// that do not have extra consistency checks and do not use proposed shadows.
@@ -1664,6 +1754,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			backingStore.deleteJack();
 		}
 	}
+	
+	protected void backingStoreAddPhantom() throws IOException {
+		if (backingStore != null) {
+			backingStore.addPhantom();
+		}
+	}
 
 	protected void assignWillRoleOne(final String TEST_NAME, String expectedFullName, PendingOperationExecutionStatusType executionStage) throws Exception {
 		displayTestTitle(TEST_NAME);
@@ -1862,6 +1958,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		return assertSinglePendingOperation(shadow, requestStart, requestEnd,
 				OperationResultStatusType.IN_PROGRESS, null, null);
 	}
+	
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResultStatus) {
+		assertPendingOperationDeltas(shadow, 1);
+		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0), 
+				null, null, expectedExecutionStatus, expectedResultStatus, null, null);
+	}
 
 	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
 			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
@@ -1876,6 +1979,19 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
 			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
 		return assertPendingOperation(shadow, pendingOperation, requestStart, requestEnd,
+				OperationResultStatusType.IN_PROGRESS, null, null);
+	}
+	
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
+			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResultStatus) {
+		return assertPendingOperation(shadow, pendingOperation, null, null,
+				expectedExecutionStatus, expectedResultStatus, null, null);
+	}
+	
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation) {
+		return assertPendingOperation(shadow, pendingOperation, null, null,
 				OperationResultStatusType.IN_PROGRESS, null, null);
 	}
 	
@@ -2036,6 +2152,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	protected void runPropagation() throws Exception {
+		runPropagation(null);
+	}
+	
+	protected void runPropagation(OperationResultStatusType expectedStatus) throws Exception {
 		// nothing by default
 	}
 	
@@ -2061,6 +2181,15 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			throw new RuntimeException(e.getMessage(), e);
 		}
 		assertEquals("Resource version mismatch", lastResourceVersion, currentResourceVersion);
+	}
+	
+	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {
+		for (ItemDeltaType itemDelta: deltaType.getItemDelta()) {
+			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
+				return;
+			}
+		}
+		fail("No modification for "+itemPath+" in delta");
 	}
 
 }

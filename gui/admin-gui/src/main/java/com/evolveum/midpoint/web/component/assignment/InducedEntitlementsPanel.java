@@ -194,6 +194,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     @Override
     protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
         List<ContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
+        if (assignments == null){
+            return filteredAssignments;
+        }
         assignments.forEach(assignmentWrapper -> {
                 AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
                 if (assignment.getConstruction() != null && assignment.getConstruction().getAssociation() != null) {

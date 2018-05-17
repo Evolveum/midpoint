@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -347,7 +348,6 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		if (coordinatorTask.getWorkState() == null) {
 			return false;
 		}
-		TaskWorkStateType originalState = coordinatorTask.getWorkState().clone();
 		TaskWorkStateType newState = coordinatorTask.getWorkState().clone();
 		int reclaiming = 0;
 		for (WorkBucketType bucket : newState.getBucket()) {
@@ -364,9 +364,15 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		LOGGER.trace("Reclaiming wrongly allocated buckets found {} buckets to reclaim in {}", reclaiming, coordinatorTask);
 		if (reclaiming > 0) {
 			CONTENTION_LOGGER.debug("Reclaiming wrongly allocated buckets found {} buckets to reclaim in {}", reclaiming, coordinatorTask);
+			// As for the precondition we use the whole task state (reflected by version). The reason is that if the work
+			// state originally contains (wrongly) DELEGATED bucket plus e.g. last COMPLETE one, and this bucket is reclaimed
+			// by two subtasks at once, each of them see the same state afterwards: DELEGATED + COMPLETE. The solution would
+			// be either to enhance the delegated bucket with some information (like to whom it is delegated), or this one.
+			// In the future we might go the former way; as it would make reclaiming much efficient - not requiring to read
+			// the whole task tree.
 			repositoryService.modifyObject(TaskType.class, coordinatorTask.getOid(),
 					bucketsReplaceDeltas(newState.getBucket()),
-					bucketsReplacePrecondition(originalState.getBucket()), null, result);
+					new VersionPrecondition<>(coordinatorTask.getTaskPrismObject().getVersion()), null, result);
 		}
 		return reclaiming > 0;
 	}
