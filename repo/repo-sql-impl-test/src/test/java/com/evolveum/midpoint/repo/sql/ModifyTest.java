@@ -68,6 +68,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -746,6 +748,90 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("unexpected version change", Integer.parseInt(versionBefore)+1, Integer.parseInt(versionAfter));
         String description = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable().getDescription();
         assertEquals("description was not set", "123456", description);
+    }
+
+    @Test
+    public void test200ReplaceAttributes() throws Exception {
+        final String TEST_NAME = "test200ReplaceAttributes";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
+        account.setOid(null);
+        repositoryService.addObject(account, null, result);
+        accountOid = account.getOid();
+
+        QName ATTR1_QNAME = new QName(MidPointConstants.NS_RI, "attr1");
+        PrismPropertyDefinition<String> def1 = new PrismPropertyDefinitionImpl<>(ATTR1_QNAME, DOMUtil.XSD_STRING, prismContext);
+        ShadowAttributesType attributes = new ShadowAttributesType(prismContext);
+        PrismProperty<String> attr1 = def1.instantiate();
+        attr1.setRealValue("value1");
+        attributes.asPrismContainerValue().add(attr1);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .replace(attributes)
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        Session session = open();
+        List shadows = session.createQuery("from RShadow").list();
+        LOGGER.info("shadows:\n{}", shadows);
+        //noinspection unchecked
+        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.value from ROExtString e").list();
+        for (Object[] extString : extStrings) {
+            LOGGER.info("-> {}", Arrays.asList(extString));
+        }
+        close(session);
+
+        ObjectQuery query1 = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
+                .build();
+        List list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
+        LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
+        assertEquals("Wrong # of query1 results", 1, list1.size());
+
+        session = open();
+        RObject obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).uniqueResult();
+        assertEquals(1, obj.getStrings().size());
+        close(session);
+
+        // delete
+        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .delete(attributes.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        session = open();
+        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).uniqueResult();
+        assertEquals(0, obj.getStrings().size());
+        close(session);
+
+        // add
+        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .add(attributes.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        session = open();
+        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).uniqueResult();
+        assertEquals(1, obj.getStrings().size());
+        close(session);
+
+        // now test the "export" serialization option
+
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, accountOid, createRawCollection(), result);
+        String xml = prismContext.xmlSerializer().options(createSerializeForExport()).serialize(shadow);
+        System.out.println("Serialized for export:\n" + xml);
+        PrismObject<Objectable> shadowReparsed = prismContext.parseObject(xml);
+        System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
+        Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
+        assertNotNull(attr1Reparsed);
+        assertFalse("Reparsed attribute is raw", attr1Reparsed.getValue(0).isRaw());
     }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
