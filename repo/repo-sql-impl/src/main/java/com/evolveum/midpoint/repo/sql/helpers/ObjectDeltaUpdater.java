@@ -473,12 +473,17 @@ public class ObjectDeltaUpdater {
                                                    RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
 
         Collection<RAnyValue> filtered = new ArrayList<>();
+        RExtItem extItemDefinition = extItemDictionary.findItemByDefinition(def);
+        if (extItemDefinition == null) {
+            return filtered;
+        }
         for (RAnyValue value : existing) {
-            if (!value.getName().equals(RUtil.qnameToString(def.getName()))
-                    || !value.getType().equals(RUtil.qnameToString(def.getTypeName()))) {
+            if (value.getItemId() == null) {
+                continue;       // suspicious
+            }
+            if (!value.getItemId().equals(extItemDefinition.getId())) {
                 continue;
             }
-
             if (value instanceof ROExtValue) {
                 ROExtValue oValue = (ROExtValue) value;
                 if (!objectOwnerType.equals(oValue.getOwnerType())) {

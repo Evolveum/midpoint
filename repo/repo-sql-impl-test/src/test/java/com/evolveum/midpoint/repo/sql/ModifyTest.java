@@ -863,7 +863,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         List shadows = session.createQuery("from RShadow").list();
         LOGGER.info("shadows:\n{}", shadows);
         //noinspection unchecked
-        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.item.id, e.value from ROExtString e").list();
+        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").list();
         for (Object[] extString : extStrings) {
             LOGGER.info("-> {}", Arrays.asList(extString));
         }

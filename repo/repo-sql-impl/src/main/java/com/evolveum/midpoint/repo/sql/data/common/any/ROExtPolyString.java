@@ -76,15 +76,8 @@ public class ROExtPolyString extends ROExtBase {
         return super.getOwnerType();
     }
 
-    @MapsId("item")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_o_ext_poly_item"))
-    public RExtItem getItem() {
-        return super.getItem();
-    }
-
     @Id
-    @Column(name = "item_id", insertable = false, updatable = false)
+    @Column(name = "item_id")
     public Integer getItemId() {
         return super.getItemId();
     }

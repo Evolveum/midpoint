@@ -532,13 +532,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.id = :id )\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.itemId = :itemId )\n" +
                     "where\n" +
                     "  ( g.nameCopy.norm = :norm and l.value = :value )\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
 
-			assertEquals("Wrong property ID for 'intType'", intTypeDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
+			assertEquals("Wrong property ID for 'intType'", intTypeDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId").getValue());
         } finally {
             close(session);
         }
@@ -563,8 +563,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.longs l with ( l.ownerType = :ownerType and l.item.id = :id )\n" +
-                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.item.id = :id2 )\n" +
+                    "    left join g.longs l with ( l.ownerType = :ownerType and l.itemId = :itemId )\n" +
+                    "    left join g.longs l2 with ( l2.ownerType = :ownerType2 and l2.itemId = :itemId2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    g.nameCopy.norm = :norm and\n" +
@@ -576,8 +576,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             // note l and l2 cannot be merged as they point to different extension properties (intType, longType)
             assertEqualsIgnoreWhitespace(expected, real);
 
-			assertEquals("Wrong property ID for 'intType'", intTypeDefinition.getId(), source.getParameters().get("id").getValue());
-			assertEquals("Wrong property ID for 'longType'", longTypeDefinition.getId(), source.getParameters().get("id2").getValue());
+			assertEquals("Wrong property ID for 'intType'", intTypeDefinition.getId(), source.getParameters().get("itemId").getValue());
+			assertEquals("Wrong property ID for 'longType'", longTypeDefinition.getId(), source.getParameters().get("itemId2").getValue());
         } finally {
             close(session);
         }
@@ -612,7 +612,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
                     "where\n" +
                     "  s2.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -632,8 +632,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
-                    "    left join s.longs l with ( l.ownerType = :ownerType2 and l.item.id = :id2 )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
+                    "    left join s.longs l with ( l.ownerType = :ownerType2 and l.itemId = :itemId2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    s2.value = :value and\n" +
@@ -641,8 +641,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  )";
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
 
-			assertEquals("Wrong property ID for 'a1'", a1Definition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
-			assertEquals("Wrong property ID for 'shoeSize'", shoeSizeDefinition.getId(), realQuery.getQuerySource().getParameters().get("id2").getValue());
+			assertEquals("Wrong property ID for 'a1'", a1Definition.getId(), realQuery.getQuerySource().getParameters().get("itemId").getValue());
+			assertEquals("Wrong property ID for 'shoeSize'", shoeSizeDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId2").getValue());
         } finally {
             close(session);
         }
@@ -675,8 +675,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
-                    "    left join s.strings s3 with ( s3.ownerType = :ownerType2 and s3.item.id = :id2 )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
+                    "    left join s.strings s3 with ( s3.ownerType = :ownerType2 and s3.itemId = :itemId2 )\n" +
                     "where\n" +
                     "  (\n" +
                     "    s.intent = :intent or\n" +
@@ -701,8 +701,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
-			assertEquals("Wrong property ID for 'foo'", fooDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
-			assertEquals("Wrong property ID for 'stringType'", stringTypeDefinition.getId(), realQuery.getQuerySource().getParameters().get("id2").getValue());
+			assertEquals("Wrong property ID for 'foo'", fooDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId").getValue());
+			assertEquals("Wrong property ID for 'stringType'", stringTypeDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId2").getValue());
 
             System.out.println("Query parameters: " + realQuery.getQuerySource().getParameters());
         } finally {
@@ -1152,7 +1152,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  s.booleansCount\n" +
                     "from\n" +
                     "  RShadow s\n" +
-                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.item.id = :id )\n" +
+                    "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
@@ -2745,14 +2745,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  o.booleansCount\n" +
                     "from\n" +
                     "  RObject o\n" +
-                    "    left join o.strings s with ( s.ownerType = :ownerType and s.item.id = :id )\n" +
+                    "    left join o.strings s with ( s.ownerType = :ownerType and s.itemId = :itemId )\n" +
                     "where\n" +
                     "  (\n" +
                     "    o.objectTypeClass = :objectTypeClass and\n" +
                     "    s.value = :value\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
-			assertEquals("Wrong property ID for 'weapon'", weaponDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
+			assertEquals("Wrong property ID for 'weapon'", weaponDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId").getValue());
 
 		} finally {
             close(session);
@@ -3016,7 +3016,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.strings s with ( s.ownerType = :ownerType and s.item.id = :id )\n" +
+                    "    left join g.strings s with ( s.ownerType = :ownerType and s.itemId = :itemId )\n" +
                     "where\n" +
                     "  s.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -3089,12 +3089,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  g.booleansCount\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
-                    "    left join g.booleans b with ( b.ownerType = :ownerType and b.item.id = :id )\n" +
+                    "    left join g.booleans b with ( b.ownerType = :ownerType and b.itemId = :itemId )\n" +
                     "where\n" +
                     "  b.value = :value\n";
 
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
-			assertEquals("Wrong property ID for 'skipAutogeneration'", skipAutogenerationDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
+			assertEquals("Wrong property ID for 'skipAutogeneration'", skipAutogenerationDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId").getValue());
 
 			OperationResult result = new OperationResult("search");
             List<PrismObject<GenericObjectType>> objects = repositoryService.searchObjects(GenericObjectType.class,
@@ -3146,7 +3146,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
                     "    left join a.extension e\n" +
-                    "    left join e.booleans b with b.item.id = :id\n" +
+                    "    left join e.booleans b with b.itemId = :itemId\n" +
                     "where\n" +
                     "  b.value = :value";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -3210,12 +3210,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  RUser u\n"
 					+ "    left join u.strings s with (\n"
 					+ "	      s.ownerType = :ownerType and\n"
-					+ "	      s.item.id = :id\n"
+					+ "	      s.itemId = :itemId\n"
 					+ ")\n"
 					+ "where\n"
 					+ "  s.value = :value\n";
             assertEqualsIgnoreWhitespace(expected, real);
-            assertEquals("Wrong property ID for 'overrideActivation'", overrideActivationDefinition.getId(), realQuery.getQuerySource().getParameters().get("id").getValue());
+            assertEquals("Wrong property ID for 'overrideActivation'", overrideActivationDefinition.getId(), realQuery.getQuerySource().getParameters().get("itemId").getValue());
         } finally {
             close(session);
         }
@@ -3242,7 +3242,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  RGenericObject g\n"
 					+ "    left join g.references r with (\n"
 					+ "       r.ownerType = :ownerType and\n"
-					+ "       r.item.id = :id\n"
+					+ "       r.itemId = :itemId\n"
 					+ "    )\n"
 					+ "where\n"
 					+ "  (\n"

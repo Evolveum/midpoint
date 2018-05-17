@@ -35,12 +35,12 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -64,6 +64,7 @@ import java.util.*;
 import java.util.Objects;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -173,7 +174,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     public void test110ReplaceNonIndexedExtensionProperty() throws Exception {
         OperationResult result = new OperationResult("test110ReplaceExtensionProperty");
 
-        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        ObjectDelta<?> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         delta.addModificationReplaceProperty(new ItemPath(UserType.F_EXTENSION, LOOT), 34);
 
         queryCountInterceptor.startCounter();
@@ -185,20 +186,21 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         Session session = factory.openSession();
         try {
-            RUser u = session.get(RUser.class, userOid);
-
-            assertAnyValues(u.getLongs(), LOOT);
+            //RUser u = session.get(RUser.class, userOid);
+            RExtItem extItemDef = extItemDictionary
+                    .findItemByDefinition(delta.getModifications().iterator().next().getDefinition());
+            assertNull("ext item definition for loot exists", extItemDef);
         } finally {
             session.close();
         }
     }
 
-    private void assertAnyValues(Collection<? extends RAnyValue> collection, QName name, Object... values) {
-        Collection<RAnyValue> filtered = new ArrayList();
+    private void assertAnyValues(Collection<? extends RAnyValue> collection, Integer extItemId, Object... values) {
+        Collection<RAnyValue> filtered = new ArrayList<>();
 
         if (collection != null) {
             for (RAnyValue v : collection) {
-                if (RUtil.qnameToString(name).equals(v.getName())) {
+                if (extItemId.equals(v.getItemId())) {
                     filtered.add(v);
                 }
             }
@@ -225,21 +227,22 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     public void test120AddExtensionProperty() throws Exception {
         OperationResult result = new OperationResult("test120AddExtensionProperty");
 
-        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        ObjectDelta<?> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         delta.addModificationReplaceProperty(new ItemPath(UserType.F_EXTENSION, WEAPON), "weapon1", "weapon2");
 
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
         try {
             RUser u = session.get(RUser.class, userOid);
 
-            assertAnyValues(u.getStrings(), WEAPON, "weapon1", "weapon2");
+            RExtItem extItemDef = extItemDictionary.findItemByDefinition(delta.getModifications().iterator().next().getDefinition());
+            assertAnyValues(u.getStrings(), extItemDef.getId(), "weapon1", "weapon2");
         } finally {
             session.close();
         }
