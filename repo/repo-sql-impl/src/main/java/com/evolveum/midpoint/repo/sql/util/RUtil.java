@@ -478,7 +478,7 @@ public final class RUtil {
                     IOUtils.copy(gzip, out);
                     xml = new String(out.toByteArray(), StandardCharsets.UTF_8.name());
                 } catch (ZipException ex) {
-                    LOGGER.warn("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
+                    LOGGER.debug("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
 
                     xml = new String(array, StandardCharsets.UTF_8.name());
                 }
