@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -117,8 +118,8 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 	}
 	
 	@Override
-	protected void assertFinishedPropagationTask(Task finishedTask) {
-		display("Propagation task (finished)", finishedTask);
+	protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
+		super.assertFinishedPropagationTask(finishedTask, expectedStatus);
 		SearchFilterType filterType = finishedTask.getTaskType().getObjectRef().getFilter();
 		display("Propagation task filter", filterType);
 		
