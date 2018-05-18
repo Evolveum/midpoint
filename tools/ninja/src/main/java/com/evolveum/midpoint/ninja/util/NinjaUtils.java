@@ -33,10 +33,7 @@ import java.io.*;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -180,11 +177,11 @@ public class NinjaUtils {
         }
     }
 
-    public static List<ObjectTypes> getTypes(ObjectTypes selected) {
+    public static List<ObjectTypes> getTypes(Set<ObjectTypes> selected) {
         List<ObjectTypes> types = new ArrayList<>();
 
-        if (selected != null) {
-            types.add(selected);
+        if (selected != null && !   selected.isEmpty()) {
+            types.addAll(selected);
         } else {
             for (ObjectTypes type : ObjectTypes.values()) {
                 Class<? extends ObjectType> clazz = type.getClassDefinition();

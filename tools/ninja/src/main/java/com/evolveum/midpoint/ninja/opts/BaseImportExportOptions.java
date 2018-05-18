@@ -1,10 +1,13 @@
 package com.evolveum.midpoint.ninja.opts;
 
 import com.beust.jcommander.Parameter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.FileReferenceConverter;
 import com.evolveum.midpoint.ninja.util.ObjectTypesConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,7 +40,7 @@ public class BaseImportExportOptions {
 
     @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "baseImportExport.type",
             validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
-    private ObjectTypes type;
+    private Set<ObjectTypes> type = new HashSet<>();
 
     @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "baseImportExport.filter",
             converter = FileReferenceConverter.class, validateWith = FileReferenceConverter.class)
@@ -53,7 +56,7 @@ public class BaseImportExportOptions {
         return raw;
     }
 
-    public ObjectTypes getType() {
+    public Set<ObjectTypes> getType() {
         return type;
     }
 
