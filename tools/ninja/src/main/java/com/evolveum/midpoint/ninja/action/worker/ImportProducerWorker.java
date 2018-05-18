@@ -146,8 +146,8 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
                         }
                     }
 
-                    ObjectTypes type = options.getType();
-                    if (type != null && !type.getClassDefinition().equals(object.getCompileTimeClass())) {
+                    ObjectTypes type = options.getType().iterator().next();
+                    if (!matchSelectedType(object.getCompileTimeClass())) {
                         operation.incrementSkipped();
 
                         return EventResult.skipObject("Type doesn't match");
@@ -175,5 +175,19 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
         Charset charset = context.getCharset();
         Reader reader = new InputStreamReader(input, charset);
         validator.validate(new ReaderInputStream(reader, charset), result, result.getOperation());
+    }
+
+    private boolean matchSelectedType(Class clazz) {
+        if (options.getType().isEmpty()) {
+            return true;
+        }
+
+        for (ObjectTypes type : options.getType()) {
+            if (type.getClassDefinition().equals(clazz)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

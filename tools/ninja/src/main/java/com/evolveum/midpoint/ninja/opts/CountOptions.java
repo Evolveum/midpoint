@@ -23,6 +23,9 @@ import com.evolveum.midpoint.ninja.util.FileReferenceConverter;
 import com.evolveum.midpoint.ninja.util.ObjectTypesConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -37,13 +40,13 @@ public class CountOptions {
 
     @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "count.type",
             validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
-    private ObjectTypes type;
+    private Set<ObjectTypes> type = new HashSet<>();
 
     @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "count.filter",
             converter = FileReferenceConverter.class, validateWith = FileReferenceConverter.class)
     private FileReference filter;
 
-    public ObjectTypes getType() {
+    public Set<ObjectTypes> getType() {
         return type;
     }
 
