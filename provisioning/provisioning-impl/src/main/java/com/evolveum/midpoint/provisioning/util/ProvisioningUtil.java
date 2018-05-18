@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
@@ -77,6 +78,7 @@ import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -595,4 +597,40 @@ public class ProvisioningUtil {
 		return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
 				QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	}
+	
+	public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
+		if (shadow == null) {
+			return "null";
+		}
+		PolyString name = shadow.getName();
+		if (name != null) {
+			return shadow.toString();
+		}
+		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
+			return shortDumpShadowIdentifiers(shadow, primaryIdentifiers);
+		}
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
+			return shortDumpShadowIdentifiers(shadow, secondaryIdentifiers);
+		}
+		return shadow.toString();
+	}
+
+	private static String shortDumpShadowIdentifiers(PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
+		StringBuilder sb = new StringBuilder("shadow:");
+		sb.append(shadow.getOid()).append("(");
+		Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
+		while (iterator.hasNext()) {
+			ResourceAttribute<?> identifier = iterator.next();
+			sb.append(identifier.getElementName().getLocalPart());
+			sb.append("=");
+			sb.append(identifier.getRealValue());
+			if (iterator.hasNext()) {
+				sb.append(";");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
+	};
 }

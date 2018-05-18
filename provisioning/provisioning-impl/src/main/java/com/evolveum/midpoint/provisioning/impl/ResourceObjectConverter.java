@@ -351,7 +351,8 @@ public class ResourceObjectConverter {
 			throw e;
 		}
 		if (existingObject != null) {
-			ObjectAlreadyExistsException e = new ObjectAlreadyExistsException("Object "+shadow+" already exists in the backing store of resource "+ctx.getResource());
+			ObjectAlreadyExistsException e = new ObjectAlreadyExistsException("Object " + ProvisioningUtil.shortDumpShadow(shadow) +
+					" already exists in the backing store of " + ctx.getResource() + " as " + ProvisioningUtil.shortDumpShadow(existingObject));
 			result.recordFatalError(e);
 			throw e;
 		}

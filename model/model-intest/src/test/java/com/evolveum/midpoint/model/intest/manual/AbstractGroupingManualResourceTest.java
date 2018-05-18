@@ -107,7 +107,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 	}
 	
 	@Override
-	protected void runPropagation() throws Exception {
+	protected void runPropagation(OperationResultStatusType expectedStatus) throws Exception {
 		if (propagationTaskOid == null) {
 			addTask(getPropagationTaskFile());
 			propagationTaskOid = getPropagationTaskOid();
@@ -117,15 +117,23 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 			restartTask(propagationTaskOid);
 		}
 		Task finishedTask = waitForTaskFinish(propagationTaskOid, true);
-		assertFinishedPropagationTask(finishedTask);
+		assertFinishedPropagationTask(finishedTask, expectedStatus);
 	}
 
 	protected void assertNewPropagationTask() throws Exception {
 		
 	}
 	
-	protected void assertFinishedPropagationTask(Task finishedTask) {
-		
+	protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
+		display("Finished propagation task", finishedTask);
+		OperationResultStatusType resultStatus = finishedTask.getResultStatus();
+		if (expectedStatus == null) {
+			if ( resultStatus != OperationResultStatusType.SUCCESS && resultStatus != OperationResultStatusType.IN_PROGRESS ) {
+				fail("Unexpected propagation task result " + resultStatus);
+			}
+		} else {
+			assertEquals("Unexpected propagation task result", expectedStatus, resultStatus);
+		}
 	}
 	
 	protected abstract String getPropagationTaskOid();
