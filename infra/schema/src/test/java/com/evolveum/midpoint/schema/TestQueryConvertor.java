@@ -359,6 +359,10 @@ public class TestQueryConvertor {
 		return PrismTestUtil.parseAtomicValue(xml, QueryType.COMPLEX_TYPE);
 	}
 
+	private QueryType toQueryTypeCompat(String xml) throws SchemaException {
+		return PrismTestUtil.parseAtomicValueCompat(xml, QueryType.COMPLEX_TYPE);
+	}
+
 	private String toXml(QueryType q1jaxb) throws SchemaException {
 		return getPrismContext().xmlSerializer().serializeRealValue(q1jaxb, SchemaConstantsGenerated.Q_QUERY);
 	}
@@ -780,7 +784,19 @@ public class TestQueryConvertor {
 	public void test900TypeWrong() throws Exception {
 		final String TEST_NAME = "test900TypeWrong";
 		String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
-		QueryType jaxb = toQueryType(FileUtils.readFileToString(new File(fileName)));
+		try {
+			toQueryType(FileUtils.readFileToString(new File(fileName)));
+			fail("Unexpected success!");
+		} catch (SchemaException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+		}
+	}
+
+	@Test
+	public void test910TypeWrongCompat() throws Exception {
+		final String TEST_NAME = "test900TypeWrong";
+		String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
+		QueryType jaxb = toQueryTypeCompat(FileUtils.readFileToString(new File(fileName)));
 		displayQueryType(jaxb);
 		try {
 			ObjectQuery query = toObjectQuery(ObjectType.class, jaxb);

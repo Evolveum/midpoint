@@ -515,7 +515,7 @@ public class PrismUnmarshaller {
 
         refVal.setDescription(map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
-        refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER)));
+        refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER), pc));
 
         String resolutionTimeString = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RESOLUTION_TIME, DOMUtil.XSD_STRING);
         if (resolutionTimeString != null) {
@@ -598,14 +598,14 @@ public class PrismUnmarshaller {
         return refVal;
     }
 
-    private SearchFilterType parseFilter(XNode xnode) throws SchemaException {
+    private SearchFilterType parseFilter(XNode xnode, ParsingContext pc) throws SchemaException {
         if (xnode == null) {
             return null;
         }
         if (xnode.isEmpty()) {
             return null;
         }
-        return SearchFilterType.createFromXNode(xnode, prismContext);
+        return SearchFilterType.createFromParsedXNode(xnode, pc, prismContext);
     }
 
     private ItemDefinition locateItemDefinition(@NotNull QName itemName,
