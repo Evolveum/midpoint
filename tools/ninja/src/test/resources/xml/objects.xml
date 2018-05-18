@@ -1,0 +1,366 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objects  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <user oid="00000000-0000-0000-0000-000000000002"
+          version="2">
+        <name>administrator</name>
+        <metadata>
+            <requestTimestamp>2018-03-16T12:11:36.324+01:00</requestTimestamp>
+            <createTimestamp>2018-03-16T12:11:36.404+01:00</createTimestamp>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+        </metadata>
+        <operationExecution id="2">
+            <timestamp>2018-03-16T12:11:36.467+01:00</timestamp>
+            <operation>
+                <objectDelta>
+                    <t:changeType>add</t:changeType>
+                    <t:objectType>c:UserType</t:objectType>
+                </objectDelta>
+                <executionResult>
+                    <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                    <status>success</status>
+                    <token>1000000000000000073</token>
+                </executionResult>
+                <objectName>administrator</objectName>
+            </operation>
+            <status>success</status>
+            <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</channel>
+        </operationExecution>
+        <assignment id="1">
+            <metadata>
+                <requestTimestamp>2018-03-16T12:11:36.324+01:00</requestTimestamp>
+                <createTimestamp>2018-03-16T12:11:36.404+01:00</createTimestamp>
+                <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+            </metadata>
+            <targetRef oid="00000000-0000-0000-0000-000000000004"
+                       relation="org:default"
+                       type="c:RoleType"><!-- Superuser --></targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+            <effectiveStatus>enabled</effectiveStatus>
+            <enableTimestamp>2018-03-16T12:11:36.339+01:00</enableTimestamp>
+            <lockoutStatus>normal</lockoutStatus>
+        </activation>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <roleMembershipRef oid="00000000-0000-0000-0000-000000000004"
+                           relation="org:default"
+                           type="c:RoleType"><!-- Superuser --></roleMembershipRef>
+        <fullName>midPoint Administrator</fullName>
+        <givenName>midPoint</givenName>
+        <familyName>Administrator</familyName>
+        <credentials>
+            <password>
+                <lastSuccessfulLogin>
+                    <timestamp>2018-03-16T12:13:11.568+01:00</timestamp>
+                    <from>0:0:0:0:0:0:0:1</from>
+                </lastSuccessfulLogin>
+                <metadata>
+                    <createTimestamp>2018-03-16T12:11:36.339+01:00</createTimestamp>
+                    <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+                </metadata>
+                <value>
+                    <t:encryptedData>
+                        <t:encryptionMethod>
+                            <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+                        </t:encryptionMethod>
+                        <t:keyInfo>
+                            <t:keyName>+mxcqWGq06+9barnqdM60ksKkn8=</t:keyName>
+                        </t:keyInfo>
+                        <t:cipherData>
+                            <t:cipherValue>dRMtv7m/8ji6hNeyk81YJAHn7yj5i0BX3Fudi5MI+H4=</t:cipherValue>
+                        </t:cipherData>
+                    </t:encryptedData>
+                </value>
+            </password>
+        </credentials>
+    </user>
+
+    <user oid="00000000-0000-0000-0000-111100000002"
+          version="2">
+        <name>clear password value user</name>
+        <metadata>
+            <requestTimestamp>2018-03-16T12:11:36.324+01:00</requestTimestamp>
+            <createTimestamp>2018-03-16T12:11:36.404+01:00</createTimestamp>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+        </metadata>
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+            <effectiveStatus>enabled</effectiveStatus>
+            <enableTimestamp>2018-03-16T12:11:36.339+01:00</enableTimestamp>
+            <lockoutStatus>normal</lockoutStatus>
+        </activation>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <fullName>clear password</fullName>
+        <givenName>clear</givenName>
+        <familyName>password</familyName>
+        <credentials>
+            <password>
+                <metadata>
+                    <createTimestamp>2018-03-16T12:11:36.339+01:00</createTimestamp>
+                    <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+                </metadata>
+                <value>
+                    <t:clearValue>qwe123</t:clearValue>
+                </value>
+            </password>
+        </credentials>
+    </user>
+
+    <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+                         version="1">
+        <name>SystemConfiguration</name>
+        <metadata>
+            <requestTimestamp>2018-03-16T12:11:34.746+01:00</requestTimestamp>
+            <createTimestamp>2018-03-16T12:11:34.827+01:00</createTimestamp>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+        </metadata>
+        <operationExecution id="1">
+            <timestamp>2018-03-16T12:11:35.046+01:00</timestamp>
+            <operation>
+                <objectDelta>
+                    <t:changeType>add</t:changeType>
+                    <t:objectType>c:SystemConfigurationType</t:objectType>
+                </objectDelta>
+                <executionResult>
+                    <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                    <status>handled_error</status>
+                    <token>1000000000000000009</token>
+                    <message>Object of type 'SystemConfigurationType' with oid '00000000-0000-0000-0000-000000000001' was not found.</message>
+                </executionResult>
+                <objectName>SystemConfiguration</objectName>
+            </operation>
+            <status>handled_error</status>
+            <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</channel>
+        </operationExecution>
+        <globalSecurityPolicyRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                 oid="00000000-0000-0000-0000-000000000120"
+                                 relation="org:default"
+                                 type="tns:SecurityPolicyType"><!-- Default Security Policy --></globalSecurityPolicyRef>
+        <logging>
+            <classLogger>
+                <level>INFO</level>
+                <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
+            </classLogger>
+            <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      name="MIDPOINT_LOG"
+                      xsi:type="c:FileAppenderConfigurationType">
+                <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+                <fileName>${midpoint.home}/log/midpoint.log</fileName>
+                <filePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</filePattern>
+                <maxHistory>10</maxHistory>
+                <maxFileSize>100MB</maxFileSize>
+                <append>true</append>
+            </appender>
+            <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      name="MIDPOINT_PROFILE_LOG"
+                      xsi:type="c:FileAppenderConfigurationType">
+                <pattern>%date %level: %msg%n</pattern>
+                <fileName>${midpoint.home}/log/midpoint-profile.log</fileName>
+                <filePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
+                <maxHistory>10</maxHistory>
+                <maxFileSize>100MB</maxFileSize>
+                <append>true</append>
+            </appender>
+            <rootLoggerAppender>MIDPOINT_LOG</rootLoggerAppender>
+            <rootLoggerLevel>INFO</rootLoggerLevel>
+            <auditing>
+                <enabled>false</enabled>
+                <details>false</details>
+            </auditing>
+        </logging>
+        <cleanupPolicy>
+            <auditRecords>
+                <maxAge>P3M</maxAge>
+            </auditRecords>
+            <closedTasks>
+                <maxAge>P1M</maxAge>
+            </closedTasks>
+        </cleanupPolicy>
+        <adminGuiConfiguration>
+            <userDashboardLink>
+                <targetUrl>/self/profile</targetUrl>
+                <label>Profile</label>
+                <description>View/edit your profile</description>
+                <icon>
+                    <cssClass>fa fa-user</cssClass>
+                </icon>
+                <color>green</color>
+                <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
+                <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
+            </userDashboardLink>
+    </systemConfiguration>
+
+    <valuePolicy oid="00000000-0000-0000-0000-000000000003"
+                 version="1">
+        <name>Default Password Policy</name>
+        <description>Default password policy</description>
+        <metadata>
+            <requestTimestamp>2018-03-16T12:11:35.171+01:00</requestTimestamp>
+            <createTimestamp>2018-03-16T12:11:35.182+01:00</createTimestamp>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+        </metadata>
+        <operationExecution id="1">
+            <timestamp>2018-03-16T12:11:35.234+01:00</timestamp>
+            <operation>
+                <objectDelta>
+                    <t:changeType>add</t:changeType>
+                    <t:objectType>c:ValuePolicyType</t:objectType>
+                </objectDelta>
+                <executionResult>
+                    <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                    <status>success</status>
+                    <token>1000000000000000017</token>
+                </executionResult>
+                <objectName>Default Password Policy</objectName>
+            </operation>
+            <status>success</status>
+            <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</channel>
+        </operationExecution>
+        <stringPolicy>
+            <description>Testing string policy</description>
+            <limitations>
+                <minLength>5</minLength>
+                <minUniqueChars>3</minUniqueChars>
+                <checkAgainstDictionary>true</checkAgainstDictionary>
+                <checkPattern/>
+            </limitations>
+        </stringPolicy>
+        <minOccurs>0</minOccurs>
+    </valuePolicy>
+
+    <lookupTable oid="00000000-0000-0000-0000-000000000210"
+                 version="1">
+        <name>Locales</name>
+        <metadata>
+            <requestTimestamp>2018-03-16T12:11:37.314+01:00</requestTimestamp>
+            <createTimestamp>2018-03-16T12:11:37.331+01:00</createTimestamp>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+        </metadata>
+        <operationExecution id="1">
+            <timestamp>2018-03-16T12:11:37.379+01:00</timestamp>
+            <operation>
+                <objectDelta>
+                    <t:changeType>add</t:changeType>
+                    <t:objectType>c:LookupTableType</t:objectType>
+                </objectDelta>
+                <executionResult>
+                    <operation>com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta</operation>
+                    <status>success</status>
+                    <token>1000000000000000187</token>
+                </executionResult>
+                <objectName>Locales</objectName>
+            </operation>
+            <status>success</status>
+            <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</channel>
+        </operationExecution>
+        <row id="1">
+            <key>cs</key>
+            <label>Čeština</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="2">
+            <key>de</key>
+            <label>Deutsch</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="3">
+            <key>et</key>
+            <label>Eesti</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="4">
+            <key>en</key>
+            <label>English</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="5">
+            <key>es</key>
+            <label>Español</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="6">
+            <key>fi</key>
+            <label>Suomi</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="7">
+            <key>hu</key>
+            <label>Magyar</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="8">
+            <key>pl</key>
+            <label>Język polski</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="9">
+            <key>pt_BR</key>
+            <label>Português (Brasil)</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.333+01:00</lastChangeTimestamp>
+        </row>
+        <row id="10">
+            <key>ru</key>
+            <label>Русский</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.334+01:00</lastChangeTimestamp>
+        </row>
+        <row id="11">
+            <key>sk</key>
+            <label>Slovenčina</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.334+01:00</lastChangeTimestamp>
+        </row>
+        <row id="12">
+            <key>tr</key>
+            <label>Türkçe</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.334+01:00</lastChangeTimestamp>
+        </row>
+        <row id="13">
+            <key>zh_CN</key>
+            <label>中文</label>
+            <lastChangeTimestamp>2018-03-16T12:11:37.334+01:00</lastChangeTimestamp>
+        </row>
+    </lookupTable>
+
+    <org oid="00000000-8888-6666-0000-100000000001"
+         version="0">
+        <name>F0001</name>
+        <description>The office of the most respectful Governor.</description>
+        <metadata>
+            <createTimestamp>2018-03-16T12:13:40.904+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002"
+                        relation="org:default"
+                        type="c:UserType"><!-- administrator --></creatorRef>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+        </metadata>
+        <costCenter>CC0</costCenter>
+        <locality>The Governor's Mansion</locality>
+        <displayName>Governor Office</displayName>
+        <identifier>0001</identifier>
+        <orgType>functional</orgType>
+    </org>
+</objects>

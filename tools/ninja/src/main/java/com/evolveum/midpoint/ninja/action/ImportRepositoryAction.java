@@ -1,61 +1,69 @@
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.ninja.action.worker.ImportConsumerWorker;
+import com.evolveum.midpoint.ninja.action.worker.ImportProducerWorker;
+import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ImportOptions;
-import com.evolveum.midpoint.ninja.util.CountStatus;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.springframework.context.ApplicationContext;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import java.io.*;
-import java.nio.charset.Charset;
-import java.util.zip.ZipInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
-    private static final String DOT_CLASS = ImportRepositoryAction.class.getName() + ".";
+    private static final String DOT_CLASS = ImportProducerWorker.class.getName() + ".";
 
     private static final String OPERATION_IMPORT = DOT_CLASS + "import";
 
+    private static final int QUEUE_CAPACITY_PER_THREAD = 100;
+    private static final long CONSUMERS_WAIT_FOR_START = 2000L;
+
     @Override
     public void execute() throws Exception {
-        try (Reader reader = createReader()) {
+        OperationResult result = new OperationResult(OPERATION_IMPORT);
+        OperationStatus progress = new OperationStatus(context, result);
 
-            String oid = options.getOid();
+        BlockingQueue<PrismObject> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
-            if (oid != null) {
-                importByOid(reader);
-            } else {
-                importByFilter(reader);
-            }
+        // "+ 2" will be used for producer and progress reporter
+        ExecutorService executor = Executors.newFixedThreadPool(options.getMultiThread() + 2);
+
+        ImportProducerWorker producer;
+        if (options.getOid() != null) {
+            InOidFilter filter = InOidFilter.createInOid(options.getOid());
+            producer = importByFilter(filter, true, queue, progress);
+        } else {
+            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
+            producer = importByFilter(filter, false, queue, progress);
         }
+
+        executor.execute(producer);
+
+        Thread.sleep(CONSUMERS_WAIT_FOR_START);
+
+        executor.execute(new ProgressReporterWorker(context, options, queue, progress));
+
+        List<ImportConsumerWorker> consumers = createConsumers(queue, progress);
+        consumers.stream().forEach(c -> executor.execute(c));
+
+        executor.shutdown();
+        executor.awaitTermination(NinjaUtils.WAIT_FOR_EXECUTOR_FINISH, TimeUnit.DAYS);
+
+        handleResultOnFinish(progress, "Import finished");
     }
 
     @Override
-    protected LogTarget getInfoLogTarget() {
+    public LogTarget getInfoLogTarget() {
         if (options.getInput() != null) {
             return LogTarget.SYSTEM_OUT;
         }
@@ -63,120 +71,18 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         return LogTarget.SYSTEM_ERR;
     }
 
-    private Reader createReader() throws IOException {
-        Charset charset = context.getCharset();
+    private ImportProducerWorker importByFilter(ObjectFilter filter, boolean stopAfterFound,
+                                                BlockingQueue<PrismObject> queue, OperationStatus status) {
+        return new ImportProducerWorker(context, options, queue, status, filter, stopAfterFound);
+    }
 
-        File input = options.getInput();
+    private List<ImportConsumerWorker> createConsumers(BlockingQueue<PrismObject> queue, OperationStatus operation) {
+        List<ImportConsumerWorker> consumers = new ArrayList<>();
 
-        InputStream is;
-        if (input != null) {
-            if (!input.exists()) {
-                throw new NinjaException("Import file '" + input.getPath() + "' doesn't exist");
-            }
-
-            is = new FileInputStream(input);
-        } else {
-            is = System.in;
+        for (int i = 0; i < options.getMultiThread(); i++) {
+            consumers.add(new ImportConsumerWorker(context, options, queue, operation, consumers));
         }
 
-        if (options.isZip()) {
-            is = new ZipInputStream(is);
-        }
-
-        return new InputStreamReader(is, charset);
-    }
-
-    private void importByOid(Reader reader) throws SchemaException, ObjectNotFoundException, IOException {
-        InOidFilter filter = InOidFilter.createInOid(options.getOid());
-
-        importByFilter(filter, true, reader);
-    }
-
-    private void importByFilter(Reader reader) throws SchemaException, IOException {
-        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
-
-        importByFilter(filter, false, reader);
-    }
-
-    private void importByFilter(ObjectFilter filter, boolean stopAfterFound, Reader reader) {
-        ApplicationContext appContext = context.getApplicationContext();
-        PrismContext prismContext = appContext.getBean(PrismContext.class);
-        MatchingRuleRegistry matchingRuleRegistry = appContext.getBean(MatchingRuleRegistry.class);
-
-        CountStatus status = new CountStatus();
-        status.start();
-
-        OperationResult result = new OperationResult(OPERATION_IMPORT);
-
-        EventHandler handler = new EventHandler() {
-
-            @Override
-            public EventResult preMarshall(Element objectElement, Node postValidationTree,
-                                           OperationResult objectResult) {
-                return EventResult.cont();
-            }
-
-            @Override
-            public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-                                                                   OperationResult objectResult) {
-
-                try {
-                    if (filter != null) {
-                        boolean match = ObjectQuery.match(object, filter, matchingRuleRegistry);
-
-                        if (!match) {
-                            status.incrementSkipped();
-
-                            return EventResult.skipObject("Object doesn't match filter");
-                        }
-                    }
-
-                    ObjectTypes type = options.getType();
-                    if (type != null && !type.getClassDefinition().equals(object.getCompileTimeClass())) {
-                        status.incrementSkipped();
-
-                        return EventResult.skipObject("Type doesn't match");
-                    }
-
-                    importObject(object, objectResult);
-
-                    status.incrementCount();
-
-                    logCountProgress(status);
-                } catch (Exception ex) {
-                    throw new NinjaException("Couldn't import object, reason: " + ex.getMessage(), ex);
-                }
-
-                return stopAfterFound ? EventResult.stop() : EventResult.cont();
-            }
-
-            @Override
-            public void handleGlobalError(OperationResult currentResult) {
-            }
-        };
-
-        log.info("Starting import");
-
-        Validator validator = new Validator(prismContext, handler);
-        validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
-
-        handleResultOnFinish(result, status, "Import finished");
-    }
-
-    private String importObject(PrismObject object, OperationResult result)
-            throws ObjectAlreadyExistsException, SchemaException {
-
-        RepositoryService repository = context.getRepository();
-        RepoAddOptions opts = createRepoAddOptions();
-
-        return repository.addObject(object, opts, result);
-    }
-
-    private RepoAddOptions createRepoAddOptions() {
-        RepoAddOptions opts = new RepoAddOptions();
-        opts.setOverwrite(options.isOverwrite());
-        opts.setAllowUnencryptedValues(options.isAllowUnencryptedValues());
-
-        return opts;
+        return consumers;
     }
 }

@@ -6,20 +6,34 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -38,6 +52,8 @@ public class NinjaUtils {
 
     public static final long COUNT_STATUS_LOG_INTERVAL = 2 * 1000; // two seconds
 
+    public static final long WAIT_FOR_EXECUTOR_FINISH = 365;
+
     public static JCommander setupCommandLineParser() {
         BaseOptions base = new BaseOptions();
         ConnectionOptions connection = new ConnectionOptions();
@@ -51,7 +67,7 @@ public class NinjaUtils {
         }
 
         JCommander jc = builder.build();
-        jc.setProgramName("java [-cp <jdbc_driver_jar>] -jar ninja.jar");
+        jc.setProgramName("java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar");
         jc.setColumnSize(150);
         jc.setAtFileCharset(Charset.forName(base.getCharset()));
 
@@ -135,5 +151,50 @@ public class NinjaUtils {
         }
 
         return new OutputStreamWriter(os, charset);
+    }
+
+    public static void addIncludeOptionsForExport(Collection<SelectorOptions<GetOperationOptions>> options,
+                                                  Class<? extends ObjectType> type) {
+        // todo fix this brutal hack (related to checking whether to include particular options)
+        boolean all = type == null
+                || Objectable.class.equals(type)
+                || com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(type)
+                || ObjectType.class.equals(type);
+
+        if (all || UserType.class.isAssignableFrom(type)) {
+            options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
+                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        }
+        if (all || LookupTableType.class.isAssignableFrom(type)) {
+            options.add(SelectorOptions.create(LookupTableType.F_ROW,
+                    GetOperationOptions.createRetrieve(
+                            new RelationalValueSearchQuery(
+                                    ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
+        }
+        if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
+            options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
+                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        }
+    }
+
+    public static List<ObjectTypes> getTypes(Set<ObjectTypes> selected) {
+        List<ObjectTypes> types = new ArrayList<>();
+
+        if (selected != null && !   selected.isEmpty()) {
+            types.addAll(selected);
+        } else {
+            for (ObjectTypes type : ObjectTypes.values()) {
+                Class<? extends ObjectType> clazz = type.getClassDefinition();
+                if (Modifier.isAbstract(clazz.getModifiers())) {
+                    continue;
+                }
+
+                types.add(type);
+            }
+        }
+
+        Collections.sort(types);
+
+        return types;
     }
 }

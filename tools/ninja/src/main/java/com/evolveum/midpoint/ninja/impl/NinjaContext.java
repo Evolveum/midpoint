@@ -188,4 +188,8 @@ public class NinjaContext {
 
         return prismContext;
     }
+
+    public Log getLog() {
+        return log;
+    }
 }

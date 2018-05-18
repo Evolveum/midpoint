@@ -4,11 +4,15 @@ import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ObjectTypesConverter implements IStringConverter<ObjectTypes>, IParameterValidator {
+public class ObjectTypesConverter implements IStringConverter<Set<ObjectTypes>>, IParameterValidator {
 
     @Override
     public void validate(String name, String value) throws ParameterException {
@@ -16,36 +20,55 @@ public class ObjectTypesConverter implements IStringConverter<ObjectTypes>, IPar
             return;
         }
 
-        ObjectTypes type = getType(value);
+        Set<ObjectTypes> types = getType(value);
 
-        if (type == null) {
+        if (types.isEmpty()) {
             throw new ParameterException("Unknown value " + value + " for option " + name);
         }
     }
 
     @Override
-    public ObjectTypes convert(String value) {
+    public Set<ObjectTypes> convert(String value) {
         if (value == null) {
-            return null;
+            return new HashSet<>();
         }
 
-        ObjectTypes type = getType(value);
+        Set<ObjectTypes> types = getType(value);
 
-        if (type == null) {
+        if (types.isEmpty()) {
             throw new IllegalArgumentException("Unknown object type " + value);
         }
 
-        return type;
+        return types;
     }
 
-    private ObjectTypes getType(String value) {
-        for (ObjectTypes o : ObjectTypes.values()) {
-            if (o.name().toLowerCase().equals(value.toLowerCase())
-                    || o.getRestType().equals(value)) {
-                return o;
+    private Set<ObjectTypes> getType(String value) {
+        Set<ObjectTypes> set = new HashSet<>();
+
+        if (StringUtils.isEmpty(value)) {
+            return set;
+        }
+
+        String[] items = value.split(",");
+        for (String item : items) {
+            if (StringUtils.isEmpty(item)) {
+                continue;
+            }
+
+            boolean found = false;
+            for (ObjectTypes o : ObjectTypes.values()) {
+                if (o.name().equalsIgnoreCase(item) || o.getRestType().equalsIgnoreCase(value)) {
+                    set.add(o);
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                throw new IllegalArgumentException("Unknown object type " + item);
             }
         }
 
-        return null;
+
+        return set;
     }
 }
