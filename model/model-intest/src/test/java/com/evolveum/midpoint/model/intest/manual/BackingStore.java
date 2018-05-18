@@ -37,6 +37,8 @@ public interface BackingStore {
 	
 	void deleteJack() throws IOException;
 	
+	void addPhantom()  throws IOException;
+	
 	void deleteAccount(String username) throws IOException;
 	
 	void displayContent() throws IOException;

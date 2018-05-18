@@ -598,7 +598,7 @@ public abstract class ShadowCache {
 			} catch (Exception ex) {
 				if (proposedShadowOid != null) {
 					// TODO: maybe integrate with consistency mechanism?
-					shadowManager.handlePropesedShadowError(ctx, shadowToAdd, proposedShadowOid, ex, task, parentResult);
+					shadowManager.handleProposedShadowError(ctx, shadowToAdd, proposedShadowOid, ex, task, parentResult);
 				}
 				
 				addedShadow = handleError(ctx, ex, shadowToAdd, FailedOperation.ADD, null,
@@ -637,7 +637,7 @@ public abstract class ShadowCache {
 	 * Mostly copy&paste from addShadow(). But as consistency (handleError()) branch expects to return immediately
 	 * I could not find a more elegant way to structure this without complicating the code too much.
 	 */
-	private ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> executeResourceAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> executeResourceAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, boolean compensate, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
 		opState.setExistingShadowOid(shadowToAdd.getOid());
 		try {
@@ -649,10 +649,13 @@ public abstract class ShadowCache {
 			return opState;
 	
 		} catch (Exception ex) {
-			shadowManager.handlePropesedShadowError(ctx, shadowToAdd, shadowToAdd.getOid(), ex, task, parentResult);
+			OperationResult originalOperationResult = parentResult.getLastSubresult();
+			shadowManager.handleProposedShadowError(ctx, shadowToAdd, shadowToAdd.getOid(), ex, task, parentResult);
 			PrismObject<ShadowType> addedShadow = handleError(ctx, ex, shadowToAdd, FailedOperation.ADD, null,
-					isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
-			AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = AsynchronousOperationReturnValue.wrap(addedShadow, parentResult.getLastSubresult());
+					isDoDiscovery(ctx.getResource(), options), compensate, parentResult);
+			OperationResult handledOperationResult = parentResult.getLastSubresult();
+			originalOperationResult.muteError();
+			AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = AsynchronousOperationReturnValue.wrap(addedShadow, originalOperationResult);
 			opState.setAsyncResult(asyncReturnValue);
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
 			return opState;
@@ -2905,8 +2908,11 @@ public abstract class ShadowCache {
 		
 		if (operationDelta.isAdd()) {
 			PrismObject<ShadowType> shadowToAdd = operationDelta.getObjectToAdd();
+			// Do not "compensate" here. Compensate actually means that an exception will be re-throws from operation
+			// TODO: This really needs consistency mechanism cleanup
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState =
-					executeResourceAdd(ctx, shadowToAdd, null, null, task, result);
+					executeResourceAdd(ctx, shadowToAdd, null, null, false, task, result);
+			LOGGER.trace("OPSTATE: {}", opState.shortDump());
 			opState.determineExecutionStatusFromResult();
 			
 			shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, result);
