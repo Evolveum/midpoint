@@ -146,6 +146,30 @@
                </expression>
             </outbound>
          </attribute>
+          <attribute>
+            <c:ref>ri:carLicense</c:ref>
+            <limitations>
+               <maxOccurs>1</maxOccurs>
+            </limitations>
+            <outbound>
+            	<strength>normal</strength>
+            	<source>
+            		<path>credentials/password/value</path>
+            	</source>
+               <expression>
+               	  <trace>true</trace>
+                  <script>
+                  	<code>
+                  		if (midpoint.isEvaluateNew()) {
+                  			return System.currentTimeMillis()
+                  		}
+                  		
+                  		return null
+                  	</code>
+                  </script>
+               </expression>
+            </outbound>
+         </attribute>
          <association>
             <ref>ri:group</ref>
             <tolerant>true</tolerant>
@@ -239,6 +263,7 @@
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
             <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+            <objectTemplateRef oid="10000000-0000-0000-0000-000000000222"/>
          </reaction>
       </objectSynchronization>
    </synchronization>
