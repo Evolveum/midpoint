@@ -19,7 +19,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Vault Dweller</name>
-    <subType>application</subType>
+    <subtype>application</subtype>
     <inducement>
 	    <construction>
 	    		<resourceRef oid="84a420cc-2904-11e8-862b-0fc0d7ab7174" type="c:ResourceType"/> <!-- Vault -->
@@ -34,11 +34,11 @@
     		<filter>
     			<q:or>
 					<q:equal>
-						<q:path>subType</q:path>
+						<q:path>subtype</q:path>
 						<q:value>application</q:value>
 					</q:equal>
 					<q:equal>
-						<q:path>subType</q:path>
+						<q:path>subtype</q:path>
 						<q:value>business</q:value>
 					</q:equal>
 				</q:or>

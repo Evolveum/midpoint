@@ -420,7 +420,7 @@ public class SqlRepositoryConfiguration {
 	        defaultLockForUpdateViaSql = true;
 	        defaultUseReadOnlyTransactions = true;
         } else if (isUsingPostgreSQL()) {
-	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
+	        defaultTransactionIsolation = TransactionIsolation.REPEATABLE_READ;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = false;
 	        defaultUseReadOnlyTransactions = true;

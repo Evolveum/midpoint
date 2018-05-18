@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.springframework.stereotype.Component;
@@ -76,6 +78,15 @@ public class ModifyExecutor extends BaseActionExecutor {
                 try {
                     ObjectDelta<? extends ObjectType> delta = createDelta(objectType, deltaData);
                     result.addParam("delta", delta);
+                    // This is only a preliminary solution for MID-4138. There are few things to improve:
+                    // 1. References could be resolved earlier (before the main cycle); however it would require much more
+                    //    coding, as we have only skeleton of ObjectDeltaType there - we don't know the specific object type
+                    //    the delta will be applied to. It is not a big problem, but still a bit of work.
+                    // 2. If the evaluation time is IMPORT, and the bulk action is part of a task that is being imported into
+                    //    repository, it should be perhaps resolved at that time. But again, it is a lot of work and it does
+                    //    not cover bulk actions which are not part of a task.
+                    // We consider this solution to be adequate for now.
+                    Utils.resolveReferences(delta, cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
                     operationsHelper.applyDelta(delta, executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {

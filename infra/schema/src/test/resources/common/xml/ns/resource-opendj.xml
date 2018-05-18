@@ -75,11 +75,11 @@
         <!-- Configuration specific for the LDAP connector -->
         <icfc:configurationProperties>
 
-            <icfcldap:port>10389</icfcldap:port>
-            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:port xsi:type="xsd:int">10389</icfcldap:port>				<!-- xsi:type is here just for fun; to see if serialization-parsing cycle works correctly also in such cases -->
+            <icfcldap:host xsi:type="xsd:string">localhost</icfcldap:host>
             <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
             <icfcldap:principal>cn=directory manager</icfcldap:principal>
-            <icfcldap:credentials>
+            <icfcldap:credentials xsi:type="t:ProtectedStringType">
                 <t:clearValue>secret</t:clearValue>
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>

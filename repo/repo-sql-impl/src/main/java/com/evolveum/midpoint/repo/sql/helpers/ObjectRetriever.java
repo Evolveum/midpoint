@@ -28,7 +28,9 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -83,6 +85,7 @@ public class ObjectRetriever {
 	@Autowired private BaseHelper baseHelper;
 	@Autowired private NameResolutionHelper nameResolutionHelper;
 	@Autowired private PrismContext prismContext;
+	@Autowired private ExtItemDictionary extItemDictionary;
 	@Autowired
 	@Qualifier("repositoryService")
 	private RepositoryService repositoryService;
@@ -317,7 +320,7 @@ public class ObjectRetriever {
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
-				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+				QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 				rQuery = engine.interpret(query, type, options, true, session);
 
                 longCount = (Number) rQuery.uniqueResult();
@@ -349,7 +352,7 @@ public class ObjectRetriever {
 		try {
 			session = baseHelper.beginReadOnlyTransaction();
 
-			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 			RQuery rQuery = engine.interpret(query, type, options, true, session);
 			Number longCount = (Number) rQuery.uniqueResult();
 			LOGGER.trace("Found {} objects.", longCount);
@@ -373,7 +376,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
 
-			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 			rQuery = engine.interpret(query, type, options, false, session);
 
 			@SuppressWarnings({"unchecked", "raw"})
@@ -437,7 +440,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
 
-            QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+            QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             if (cases) {
@@ -607,35 +610,44 @@ public class ObjectRetriever {
         query.setParameter("ownerType", RObjectExtensionType.ATTRIBUTES);
 
 		@SuppressWarnings({"unchecked", "raw"})
-		List<Object[]> values = query.list();
-        if (values == null || values.isEmpty()) {
+		List<Integer> identifiers = query.list();
+        if (identifiers == null || identifiers.isEmpty()) {
             return;
         }
 
-        for (Object[] value : values) {
-            QName name = RUtil.stringToQName((String) value[0]);
-            QName type = RUtil.stringToQName((String) value[1]);
+        for (Integer extItemId : identifiers) {
+	        if (extItemId == null) {
+		        // Just skip. Cannot throw exceptions here. Otherwise we
+		        // could break raw reading.
+	        	continue;
+	        }
+	        RExtItem extItem = extItemDictionary.getItemById(extItemId);
+	        if (extItem == null) {
+	        	continue;
+	        }
+	        QName name = RUtil.stringToQName(extItem.getName());
+            QName type = RUtil.stringToQName(extItem.getType());
             Item item = attributes.findItem(name);
 
             if (item == null) {
-            	// Just skip. Cannot throw exceptions here. Otherwise we
-            	// could break raw reading.
             	continue;
             }
 
             // A switch statement used to be here
             // but that caused strange trouble with OpenJDK. This if-then-else works.
             if (item.getDefinition() == null) {
-                RItemKind rValType = (RItemKind) value[2];
+                RItemKind rValType = extItem.getKind();
                 if (rValType == RItemKind.PROPERTY) {
                     PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
                     def.setMinOccurs(0);
                     def.setMaxOccurs(-1);
+                    def.setRuntimeSchema(true);
                     item.applyDefinition(def, true);
                 } else if (rValType == RItemKind.REFERENCE) {
                     PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
 	                def.setMinOccurs(0);
 	                def.setMaxOccurs(-1);
+	                def.setRuntimeSchema(true);
                     item.applyDefinition(def, true);
                 } else {
                     throw new UnsupportedOperationException("Unsupported value type " + rValType);
@@ -728,7 +740,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
-			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 			rQuery = engine.interpret(query, type, options, false, session);
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
@@ -927,7 +939,7 @@ main:       for (;;) {
 			final org.hibernate.Query query;
 			final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
 			if (isMidpointQuery) {
-				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+				QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext);
 				RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), null, false, session);
 				query = rQuery.getQuery();
 				implementationLevelQuery = query.getQueryString();

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -124,7 +123,7 @@ public class PageTaskAdd extends PageAdminTasks {
     private static final String ID_NAME = "name";
     private static final String ID_CATEGORY = "category";
     private static final String ID_RESOURCE = "resource";
-    private static final String ID_RUN_UNTIL_NODW_DOWN = "runUntilNodeDown";
+    private static final String ID_RUN_UNTIL_NODE_DOWN = "runUntilNodeDown";
     private static final String ID_CREATE_SUSPENDED = "createSuspended";
     private static final String ID_THREAD_STOP = "threadStop";
     private static final String ID_MISFIRE_ACTION = "misfireAction";
@@ -206,7 +205,7 @@ public class PageTaskAdd extends PageAdminTasks {
 	    		taskAdd.setObjectClass(objectClass.getLocalPart());
 	    	}
 		} catch (SchemaException e) {
-			warn("Could not set obejctClass for new task : " + e.getMessage());
+			warn("Could not set objectClass for new task : " + e.getMessage());
 		}
 
 
@@ -526,7 +525,7 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private void initAdvanced(Form mainForm) {
-        CheckBox runUntilNodeDown = new CheckBox(ID_RUN_UNTIL_NODW_DOWN, new PropertyModel<>(model,
+        CheckBox runUntilNodeDown = new CheckBox(ID_RUN_UNTIL_NODE_DOWN, new PropertyModel<>(model,
             TaskAddDto.F_RUN_UNTIL_NODW_DOWN));
         mainForm.add(runUntilNodeDown);
 

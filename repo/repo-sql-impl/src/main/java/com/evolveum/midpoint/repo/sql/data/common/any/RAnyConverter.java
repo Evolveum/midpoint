@@ -51,9 +51,6 @@ import java.util.*;
  */
 public class RAnyConverter {
 
-    // temporary
-    public static final ThreadLocal<Session> sessionThreadLocal = new ThreadLocal<>();
-
     private enum ValueType {
 
         BOOLEAN(Boolean.class, ROExtBoolean.class, RAExtBoolean.class),
@@ -102,6 +99,7 @@ public class RAnyConverter {
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
     private static final Map<QName, ValueType> TYPE_MAP = new HashMap<>();
     private PrismContext prismContext;
+    private ExtItemDictionary extItemDictionary;
 
     static {
         TYPE_MAP.put(DOMUtil.XSD_BOOLEAN, ValueType.BOOLEAN);
@@ -120,8 +118,9 @@ public class RAnyConverter {
         TYPE_MAP.put(PolyStringType.COMPLEX_TYPE, ValueType.POLY_STRING);
     }
 
-    public RAnyConverter(PrismContext prismContext) {
+    public RAnyConverter(PrismContext prismContext, ExtItemDictionary extItemDictionary) {
         this.prismContext = prismContext;
+        this.extItemDictionary = extItemDictionary;
     }
 
     private RAnyValue extractAndCreateValue(ItemDefinition def, PrismPropertyValue propertyValue, boolean assignment)
@@ -132,12 +131,8 @@ public class RAnyConverter {
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
-    public RAnyValue convertToRValue(PrismValue value, boolean assignment, @Nullable Session session) throws SchemaException {
+    public RAnyValue convertToRValue(PrismValue value, boolean assignment) throws SchemaException {
         RAnyValue rValue;
-
-        if (session == null) {
-            session = sessionThreadLocal.get();
-        }
 
         ItemDefinition definition = value.getParent().getDefinition();
 
@@ -162,13 +157,13 @@ public class RAnyConverter {
             throw new AssertionError("Wrong value type: " + value);
         }
 
-        rValue.setItem(ExtItemDictionary.getInstance().createOrFindItemDefinition(definition, session));
+        rValue.setItemId(extItemDictionary.createOrFindItemDefinition(definition).getId());
 
         return rValue;
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment, @Nullable Session session) throws SchemaException, DtoTranslationException {
+    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
@@ -186,7 +181,7 @@ public class RAnyConverter {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                rValue = convertToRValue(value, assignment, session);
+                rValue = convertToRValue(value, assignment);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -257,15 +252,6 @@ public class RAnyConverter {
             return false;
         }
     }
-
-//    private RItemKind getItemKind(Itemable itemable) {
-//        Validate.notNull(itemable, "Value parent must not be null.");
-//        if (itemable instanceof Item) {
-//            return RItemKind.getTypeFromItemClass(((Item) itemable).getClass());
-//        }
-//
-//        return RItemKind.getTypeFromDeltaClass(((ItemDelta) itemable).getClass());
-//    }
 
     @NotNull
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {

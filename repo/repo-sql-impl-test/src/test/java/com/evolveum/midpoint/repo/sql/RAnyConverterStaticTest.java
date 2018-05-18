@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -195,14 +196,21 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         ((ItemDefinitionImpl) def).setName(valueName);
 
 
-        RAnyConverter converter = new RAnyConverter(prismContext);
-        Set<RAnyValue<?>> values = converter.convertToRValue(item, false, session);
+        RAnyConverter converter = new RAnyConverter(prismContext, extItemDictionary);
+        Set<RAnyValue<?>> values;
+        try {
+            values = converter.convertToRValue(item, false);
+            AssertJUnit.fail("Should have throw serialization related exception after creating ext item");
+        } catch (DtoTranslationException ex) {
+            AssertJUnit.assertTrue(SerializationRelatedException.class.equals(ex.getCause().getClass()));
+        }
+
+        values = converter.convertToRValue(item, false);
 
         AssertJUnit.assertEquals("Expected only one enum value, but was " + values.size(), 1, values.size());
 
         RAnyValue value = values.iterator().next();
         AssertJUnit.assertEquals("after", value.getValue());
-
 
         session.close();
     }

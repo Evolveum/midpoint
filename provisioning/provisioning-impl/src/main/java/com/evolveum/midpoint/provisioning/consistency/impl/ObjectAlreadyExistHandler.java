@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			}
 		}
 		
-		LOGGER.trace("Start to hanlde ObjectAlreadyExitsException.");
+		LOGGER.trace("Start to hanlde ObjectAlreadyExitsException", ex);
 		
 		OperationResult operationResult = parentResult
 				.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ObjectAlreadyExistHandler.handleError." + op.name());
@@ -91,19 +91,21 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		ObjectQuery query = createQueryByIcfName(shadow);
 		final List<PrismObject<ShadowType>> foundAccount = getExistingAccount(query, task, operationResult);
 
-		PrismObject<ShadowType> resourceAccount = null;
+		PrismObject<ShadowType> conflictingShadow = null;
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
-			resourceAccount = foundAccount.get(0);
+			conflictingShadow = foundAccount.get(0);
 		}
 		
-		LOGGER.trace("Found conflicting resource object: {}", resourceAccount);
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Processing \"already exists\" error for shadow:\n{}\nConflicting shadow:\n{}", shadow.asPrismObject().debugDump(1), conflictingShadow==null?"  null":conflictingShadow.debugDump(1));
+		}
 
 		try{
-		if (resourceAccount != null) {
+		if (conflictingShadow != null) {
 			// Original object and found object share the same object class, therefore they must
 			// also share a kind. We can use this short-cut.
-			resourceAccount.asObjectable().setKind(shadow.getKind());
-			change.setCurrentShadow(resourceAccount);
+			conflictingShadow.asObjectable().setKind(shadow.getKind());
+			change.setCurrentShadow(conflictingShadow);
 			// TODO: task initialization
 //			Task task = taskManager.createTaskInstance();
 			changeNotificationDispatcher.notifyChange(change, task, operationResult);
@@ -114,9 +116,12 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		if (operationResult.isSuccess()) {
 			parentResult.recordSuccess();
 			parentResult.muteLastSubresultError();
+		} else if (operationResult.isInProgress()) {
+			parentResult.recordInProgress();
+			parentResult.muteLastSubresultError();
 		}
 		
-		if (compensate){
+		if (compensate) {
 			throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
 		}
 	

@@ -71,6 +71,8 @@ DETERMINISTIC
     DELETE FROM m_focus;
     DELETE FROM m_security_policy;
     DELETE FROM m_form;
+    DELETE FROM m_case_wi_reference;
+    DELETE FROM m_case_wi;
     DELETE FROM m_case;
     DELETE FROM m_function_library;
     DELETE FROM m_ext_item;

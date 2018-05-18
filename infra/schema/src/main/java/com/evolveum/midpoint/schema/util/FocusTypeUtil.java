@@ -176,7 +176,7 @@ public class FocusTypeUtil {
 			return null;
 		}
 		
-		List<String> subtypes = object.asObjectable().getSubType();
+		List<String> subtypes = object.asObjectable().getSubtype();
 		if (!subtypes.isEmpty()) {
 			return subtypes;
 		}
@@ -208,7 +208,7 @@ public class FocusTypeUtil {
 
 	public static <O extends ObjectType>  void setSubtype(PrismObject<O> object, List<String> subtypes) {
 
-		List<String> objSubtypes = object.asObjectable().getSubType();
+		List<String> objSubtypes = object.asObjectable().getSubtype();
 		if (!objSubtypes.isEmpty()) {
 			objSubtypes.clear();
 		}

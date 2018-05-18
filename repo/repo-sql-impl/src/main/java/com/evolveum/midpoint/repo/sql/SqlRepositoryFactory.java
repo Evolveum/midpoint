@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -136,8 +135,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         performanceMonitor = new SqlPerformanceMonitor();
         performanceMonitor.initialize(this);
-
-        ExtItemDictionary.getInstance().initialize();
 
         LOGGER.info("Repository initialization finished.");
 

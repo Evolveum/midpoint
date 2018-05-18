@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.*;
@@ -97,9 +98,11 @@ public class QueryInterpreter2 {
     }
 
     private SqlRepositoryConfiguration repoConfiguration;
+    private ExtItemDictionary extItemDictionary;
 
-    public QueryInterpreter2(SqlRepositoryConfiguration repoConfiguration) {
+    public QueryInterpreter2(SqlRepositoryConfiguration repoConfiguration, ExtItemDictionary extItemDictionary) {
         this.repoConfiguration = repoConfiguration;
+        this.extItemDictionary = extItemDictionary;
     }
 
     public SqlRepositoryConfiguration getRepoConfiguration() {
@@ -112,7 +115,7 @@ public class QueryInterpreter2 {
 		boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
         LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
-        InterpretationContext context = new InterpretationContext(this, type, prismContext, session);
+        InterpretationContext context = new InterpretationContext(this, type, prismContext, extItemDictionary, session);
 		interpretQueryFilter(context, query);
 		String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
 		ResultStyle resultStyle = getResultStyle(context);
@@ -141,7 +144,7 @@ public class QueryInterpreter2 {
 		hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
 		if (distinct && !distinctBlobCapable) {
 			String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
-			InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, session);
+			InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, extItemDictionary, session);
 			interpretPagingAndSorting(wrapperContext, query, false);
 			RootHibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
 			if (repoConfiguration.isUsingSQLServer() && resultStyle.getIdentifiers("").size() > 1) {

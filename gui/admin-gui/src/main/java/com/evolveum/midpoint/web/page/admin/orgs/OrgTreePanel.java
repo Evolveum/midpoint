@@ -307,6 +307,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		}
 
 		public void collapseAll() {
+			if (getExpandedItems() != null) {
+				getExpandedItems().clear();
+			}
 			set.collapseAll();
 		}
 

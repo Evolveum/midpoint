@@ -90,12 +90,12 @@ import java.util.Set;
         @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
         @NamedQuery(name = "listResourceObjectShadows", query = "select s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.item.name, c.item.type, c.item.kind from ROExtDate as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtString", query = "select c.item.name, c.item.type, c.item.kind from ROExtString as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.item.name, c.item.type, c.item.kind from ROExtPolyString as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.item.name, c.item.type, c.item.kind from ROExtLong as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.item.name, c.item.type, c.item.kind from ROExtReference as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtBoolean", query = "select c.item.name, c.item.type, c.item.kind from ROExtBoolean as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.itemId from ROExtDate as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtString", query = "select c.itemId from ROExtString as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.itemId from ROExtPolyString as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.itemId from ROExtLong as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.itemId from ROExtReference as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtBoolean", query = "select c.itemId from ROExtBoolean as c where c.owner.oid = :oid and c.ownerType = :ownerType"),
         @NamedQuery(name = "isAnySubordinateAttempt.oneLowerOid", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid=:dOid"),
         @NamedQuery(name = "isAnySubordinateAttempt.moreLowerOids", query = "select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (:dOids)"),
         @NamedQuery(name = "get.lookupTableLastId", query = "select max(r.id) from RLookupTableRow r where r.ownerOid = :oid"),
@@ -155,7 +155,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private RObjectType objectTypeClass;
     //ObjectType searchable fields
     private RPolyString name;
-    private Set<String> subType;
+    private Set<String> subtype;
     private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
     private REmbeddedReference tenantRef;
@@ -426,12 +426,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             @JoinColumn(name = "object_oid", referencedColumnName = "oid", foreignKey = @javax.persistence.ForeignKey(name = "fk_object_subtype"))
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getSubType() {
-        return subType;
+    public Set<String> getSubtype() {
+        return subtype;
     }
 
-    public void setSubType(Set<String> subType) {
-        this.subType = subType;
+    public void setSubtype(Set<String> subtype) {
+        this.subtype = subtype;
     }
 
     @Transient
@@ -646,7 +646,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (textInfoItems != null ? !textInfoItems.equals(rObject.textInfoItems) : rObject.textInfoItems != null) return false;
         if (operationExecutions != null ? !operationExecutions.equals(rObject.operationExecutions) : rObject.operationExecutions != null) return false;
-        if (subType != null ? !subType.equals(rObject.subType) : rObject.subType != null) return false;
+        if (subtype != null ? !subtype.equals(rObject.subtype) : rObject.subtype != null) return false;
 
         return true;
     }
@@ -677,8 +677,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
         jaxb.setLifecycleState(repo.getLifecycleState());
-        if (repo.getSubType() != null) {
-            jaxb.getSubType().addAll(repo.getSubType());
+        if (repo.getSubtype() != null) {
+            jaxb.getSubtype().addAll(repo.getSubtype());
         }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
@@ -702,7 +702,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setLifecycleState(jaxb.getLifecycleState());
 
-        repo.setSubType(RUtil.listToSet(jaxb.getSubType()));
+        repo.setSubtype(RUtil.listToSet(jaxb.getSubtype()));
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
@@ -741,7 +741,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     public static void copyFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo, RepositoryContext repositoryContext,
 			RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
+        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);
 
         Set<RAnyValue<?>> values = new HashSet<>();
         try {
@@ -749,7 +749,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             //TODO: is this enough? should we try items without definitions?
             if (items != null) {
                 for (Item<?,?> item : items) {
-                    Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, null);
+                    Set<RAnyValue<?>> converted = converter.convertToRValue(item, false);
                     if (generatorResult.isGeneratedOid()) {
                         converted.stream().forEach(v -> v.setTransient(true));
                     }

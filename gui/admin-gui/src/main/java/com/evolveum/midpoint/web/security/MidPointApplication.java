@@ -94,6 +94,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -334,9 +335,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         List<LocaleDescriptor> locales = new ArrayList<>();
 
         Properties properties = new Properties();
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(resource.getInputStream(), "utf-8");
+        try (Reader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
             properties.load(reader);
 
             Map<String, Map<String, String>> localeMap = new HashMap<>();
@@ -357,23 +356,21 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 map.put(key, properties.getProperty(key));
             }
 
-            for (Map.Entry<String, Map<String, String>> entry : localeMap.entrySet()) {
-                Map<String, String> localeDefinition = entry.getValue();
-                if (!localeDefinition.containsKey(entry + PROP_NAME)
-                        || !localeDefinition.containsKey(entry + PROP_FLAG)) {
+            for (String key : localeMap.keySet()) {
+                Map<String, String> localeDefinition = localeMap.get(key);
+                if (!localeDefinition.containsKey(key + PROP_NAME)
+                        || !localeDefinition.containsKey(key + PROP_FLAG)) {
                     continue;
                 }
 
                 LocaleDescriptor descriptor = new LocaleDescriptor(
-                        localeDefinition.get(entry + PROP_NAME),
-                        localeDefinition.get(entry + PROP_FLAG),
-                        localeDefinition.get(entry + PROP_DEFAULT),
-                        WebComponentUtil.getLocaleFromString(entry.getKey())
+                        localeDefinition.get(key + PROP_NAME),
+                        localeDefinition.get(key + PROP_FLAG),
+                        localeDefinition.get(key + PROP_DEFAULT),
+                        WebComponentUtil.getLocaleFromString(key)
                 );
                 locales.add(descriptor);
             }
-        } finally {
-            IOUtils.closeQuietly(reader);
         }
 
         return locales;

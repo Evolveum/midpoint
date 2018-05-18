@@ -292,13 +292,13 @@ public class RAssignmentExtension implements Serializable, EntityState {
     private static void copyFromJAXB(PrismContainerValue containerValue, RAssignmentExtension repo,
                                      RAssignmentExtensionType type, RepositoryContext repositoryContext) throws
             DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
+        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);
 
         Set<RAnyValue> values = new HashSet<>();
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, true, null));
+                values.addAll(converter.convertToRValue(item, true));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

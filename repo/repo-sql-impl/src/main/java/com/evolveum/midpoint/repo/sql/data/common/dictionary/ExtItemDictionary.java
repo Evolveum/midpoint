@@ -18,16 +18,19 @@ package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
+import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitor;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Session;
-import org.hibernate.exception.ConstraintViolationException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.HashMap;
 import java.util.List;
@@ -40,86 +43,147 @@ import java.util.Map;
  */
 public class ExtItemDictionary {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ExtItemDictionary.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExtItemDictionary.class);
 
-	private static final ExtItemDictionary INSTANCE = new ExtItemDictionary();
+    @Autowired
+    private SqlRepositoryServiceImpl repositoryService;
+    @Autowired
+    private BaseHelper baseHelper;
 
-	private ExtItemDictionary() {
-	}
+    private Map<Integer, RExtItem> itemsById;
+    private Map<RExtItem.Key, RExtItem> itemsByKey;
 
-	public static ExtItemDictionary getInstance() {
-		return INSTANCE;
-	}
+    private boolean fetchItemsIfNeeded() {
+        if (itemsByKey != null) {
+            return false;
+        } else {
+            fetchItems();
+            return true;
+        }
+    }
 
-	private Map<Integer, RExtItem> itemsById;
-	private Map<RExtItem.Key, RExtItem> itemsByKey;
+    private void fetchItems() {
+        executeAttempts("fetchExtItems", "fetch ext items", () -> fetchItemsAttempt());
+    }
 
-	private boolean fetchItemsIfNeeded(@NotNull Session session) {
-		if (itemsByKey != null) {
-			return false;
-		} else {
-			fetchItems(session);
-			return true;
-		}
-	}
+    private void fetchItemsAttempt() {
+        Session session = null;
+        try {
+            session = baseHelper.beginReadOnlyTransaction();
 
-	private void fetchItems(@NotNull Session session) {
-		CriteriaQuery<RExtItem> query = session.getCriteriaBuilder().createQuery(RExtItem.class);
-		query.select(query.from(RExtItem.class));
-		List<RExtItem> items = session.createQuery(query).getResultList();
-		LOGGER.debug("Fetched {} item definitions", items.size());
-		
-		itemsById = new HashMap<>(items.size());
-		itemsByKey = new HashMap<>(items.size());
-		for (RExtItem item : items) {
-			itemsById.put(item.getId(), item);
-			itemsByKey.put(item.toKey(), item);
-		}
-	}
+            CriteriaQuery<RExtItem> query = session.getCriteriaBuilder().createQuery(RExtItem.class);
+            query.select(query.from(RExtItem.class));
+            List<RExtItem> items = session.createQuery(query).getResultList();
+            LOGGER.debug("Fetched {} item definitions", items.size());
 
-	//	public RExtItem findItemById(long id) {
-	//		return getItemsById().get(id);
-	//	}
+            itemsById = new HashMap<>(items.size());
+            itemsByKey = new HashMap<>(items.size());
 
-	@NotNull
-	public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, @NotNull Session session) {
-		return createOrFindItemByDefinitionInternal(definition, session, true);
-	}
+            for (RExtItem item : items) {
+                itemsById.put(item.getId(), item);
+                itemsByKey.put(item.toKey(), item);
+            }
 
-	@Nullable
-	public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition, @NotNull Session session) {
-		return createOrFindItemByDefinitionInternal(definition, session, false);
-	}
+            session.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            LOGGER.debug("Exception fetch: {}", ex.getMessage());
+            baseHelper.handleGeneralException(ex, session, null);
+        } finally {
+            baseHelper.cleanupSessionAndResult(session, null);
+        }
+    }
 
-	@Contract("_, _, true -> !null")
-	private synchronized RExtItem createOrFindItemByDefinitionInternal(@NotNull ItemDefinition<?> definition, @NotNull Session session,
-			boolean create) {
-		boolean fetchedNow = fetchItemsIfNeeded(session);
-		RExtItem.Key key = RExtItem.createKeyFromDefinition(definition);
-		RExtItem item = itemsByKey.get(key);
-		if (item == null && !fetchedNow) {
-			LOGGER.debug("Ext item for {} not found, fetching all items.", key);
-			fetchItems(session);
-			item = itemsByKey.get(key);
-		}
-		if (item == null && create) {
-			LOGGER.debug("Ext item for {} not found even in current items; creating it.", key);
-			item = RExtItem.createFromDefinition(definition);
-			try {
-				session.persist(item);
-			} catch (Throwable t) {
-				if (ExceptionUtil.findCause(t, ConstraintViolationException.class) != null) {
-					throw new SerializationRelatedException(t);
-				} else {
-					throw t;
-				}
-			}
-		}
-		return item;
-	}
+    @NotNull
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
+        return createOrFindItemByDefinitionInternal(definition, true, throwExceptionAfterCreate);
+    }
 
-	public synchronized void initialize() {
-		itemsByKey = null;
-		itemsById = null;
-	}
+    @NotNull
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
+        return createOrFindItemByDefinitionInternal(definition, true, true);
+    }
+
+    @Nullable
+    public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
+        return createOrFindItemByDefinitionInternal(definition, false, true);
+    }
+
+    @Contract("_, _, true -> !null")
+    private synchronized RExtItem createOrFindItemByDefinitionInternal(
+            @NotNull ItemDefinition<?> definition, boolean create, boolean throwExceptionAfterCreate) {
+
+        boolean fetchedNow = fetchItemsIfNeeded();
+        RExtItem.Key key = RExtItem.createKeyFromDefinition(definition);
+
+        RExtItem item = itemsByKey.get(key);
+
+        if (item == null && !fetchedNow) {
+            LOGGER.debug("Ext item for {} not found, fetching all items.", key);
+            fetchItems();
+            item = itemsByKey.get(key);
+        }
+        if (item == null && create) {
+            LOGGER.debug("Ext item for {} not found even in current items; creating it.", key);
+
+            item = RExtItem.createFromDefinition(definition);
+
+            final RExtItem i = item;
+            executeAttempts("addExtItem", "Add ext item", () -> addExtItemAttempt(i));
+
+            if (throwExceptionAfterCreate) {
+                throw new SerializationRelatedException("Restarting parent operation");
+            }
+        }
+
+        return item;
+    }
+
+    @PostConstruct
+    public synchronized void initialize() {
+        itemsByKey = null;
+        itemsById = null;
+    }
+
+    private void addExtItemAttempt(RExtItem item) {
+        Session session = null;
+        try {
+            session = baseHelper.beginTransaction();
+            session.persist(item);
+
+            session.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            baseHelper.handleGeneralException(ex, session, null);
+        } finally {
+            baseHelper.cleanupSessionAndResult(session, null);
+        }
+    }
+
+    private void executeAttempts(String operationName, String operationVerb, Runnable runnable) {
+        SqlPerformanceMonitor pm = repositoryService.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operationName);
+        int attempt = 1;
+        try {
+            while (true) {
+                try {
+                    runnable.run();
+                    break;
+                } catch (RuntimeException ex) {
+                    attempt = baseHelper.logOperationAttempt(null, operationVerb, attempt, ex, null);
+                    pm.registerOperationNewAttempt(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+    }
+
+    public RExtItem getItemById(Integer extItemId) {
+        boolean fresh = fetchItemsIfNeeded();
+        RExtItem extItem = itemsById.get(extItemId);
+        if (extItem != null || fresh) {
+            return extItem;
+        }
+        fetchItems();
+        return itemsById.get(extItemId);
+    }
 }

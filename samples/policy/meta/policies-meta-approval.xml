@@ -21,14 +21,14 @@
 
 	<org oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0">
         <name>policy-meta-approval</name>
-        <subType>policy</subType>
+        <subtype>policy</subtype>
         <description>Group of approval polices. This group contains policies that deal with assignment approvals and lifecycle approvals.</description>
         <displayName>Approval policies</displayName>
     </org>
 
     <role oid="834bf178-30fc-11e8-addd-1fc1464266f5">
 	    <name>meta-role-policy-assignment-approval-manager</name>
-	    <subType>policy</subType>
+	    <subtype>policy</subtype>
 	    <displayName>Assignment approval by user's manager</displayName>
 	    <assignment>
 	        <!-- Assignment so this meta-role is part of the policy group -->
@@ -66,7 +66,7 @@
         
     <role oid="0851dd7a-30fc-11e8-88fe-3796232f0574">
 	    <name>meta-role-policy-assignment-approval-role-approver</name>
-	    <subType>policy</subType>
+	    <subtype>policy</subtype>
 	    <displayName>Assignment approval by any role approver</displayName>
 	    <assignment>
 	        <!-- Assignment so this meta-role is part of the policy group -->
@@ -100,7 +100,7 @@
 
     <role oid="a38b7eec-23a3-11e8-9f81-f7fb91a9d52a">
 	    <name>meta-role-policy-assignment-approval-role-owners</name>
-	    <subType>policy</subType>
+	    <subtype>policy</subtype>
 	    <displayName>Assignment approval by all role owners</displayName>
 	    <assignment>
 	        <!-- Assignment so this meta-role is part of the policy group -->
