@@ -59,22 +59,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	QName getTypeName();
 
 	/**
-	 * This means that the entities described by this schema (items, complex types) or their content
-	 * is not defined by fixed (compile-time) schema. I.e. it is known only at run time.
-	 *
-	 * Some examples for "false" value:
-	 *  - c:user, c:UserType - statically defined type with statically defined content.
-	 *
-	 * Some examples for "true" value:
-	 *  - c:extension, c:ExtensionType - although the entity itself (item, type) are defined in
-	 *       the static schema, their content is not known at compile time;
-	 *  - c:attributes, c:ShadowAttributeType - the same as extension/ExtensionType;
-	 *  - ext:weapon (of type xsd:string) - even if the content is statically defined,
-	 *       the definition of the item itself is not known at compile time;
-	 *  - ri:inetOrgPerson, ext:LocationsType, ext:locations - both the entity
-	 *       and their content are known at run time only.
-	 *
-	 *  TODO clarify the third point; provide some tests for the 3rd and 4th point
+	 * This means that this particular definition (of an item or of a type) is part of the runtime schema, e.g.
+	 * extension schema, resource schema or connector schema or something like that. I.e. it is not defined statically.
 	 */
 	boolean isRuntimeSchema();
 

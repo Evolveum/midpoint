@@ -68,9 +68,8 @@ public abstract class DefinitionImpl implements Definition {
     protected boolean inherited = false;
 
 	/**
-     * This means that the item container is not defined by fixed (compile-time) schema.
-     * This in fact means that we need to use getAny in a JAXB types. It does not influence the
-     * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
+	 * This means that this particular definition (of an item or of a type) is part of the runtime schema, e.g.
+	 * extension schema, resource schema or connector schema or something like that. I.e. it is not defined statically.
      */
     protected boolean isRuntimeSchema;
 
