@@ -91,7 +91,9 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -2825,7 +2827,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-        Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(TaskType.F_RESULT, GetOperationOptions.createRetrieve());
+		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, options, result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
@@ -2867,13 +2870,20 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull(taskResult);
 
-         assertTrue(taskResult.isSuccess());
+         assertTrue("Task result is not a success, it is "+taskResult, taskResult.isSuccess());
 
          final Object tokenAfter = findSyncToken(task);
          display("Sync token after", tokenAfter.toString());
          lastSyncToken = (Integer)tokenAfter;
 
          checkAllShadows();
+         
+         // Try without options. The results should NOT be there
+         // MID-4670
+         task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, null, result);
+         taskResult = task.getResult();
+         AssertJUnit.assertNull("Unexpected task result", taskResult);
+         
     }
 
     /**
@@ -3208,10 +3218,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         double usersPerSec = (task.getProgress() * 1000) / importDuration;
         display("Imported " + task.getProgress() + " users in " + importDuration + " milliseconds (" + usersPerSec + " users/sec)");
 
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task has no result", taskResult);
-        TestUtil.assertSuccess("Import task result is not success", taskResult);
-        AssertJUnit.assertTrue("Task failed", taskResult.isSuccess());
+        OperationResultStatusType taskResultStatus = task.getResultStatus();
+        AssertJUnit.assertNotNull("Task has no result status", taskResultStatus);
+        assertEquals("Import task result is not success", OperationResultStatusType.SUCCESS, taskResultStatus);
 
         AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
 
@@ -3368,7 +3377,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-        Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, result);
+        Collection<SelectorOptions<GetOperationOptions>> taskOptions = SelectorOptions.createCollection(TaskType.F_RESULT, GetOperationOptions.createRetrieve());
+        Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, taskOptions, result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
