@@ -43,7 +43,7 @@ public class Search<T> extends Component<T> {
         for (SelenideElement popoverElement : popoverElements) {
             if (popoverElement.isDisplayed()) {
                 popover = popoverElement;
-                break;t
+                break;
             }
         }
         return new Popover<>(this, popover);
