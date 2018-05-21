@@ -15,11 +15,11 @@ import java.io.File;
 public class UserPhotoTests extends TestBase {
 
     private static final String TEST_USER_LEO_NAME= "leonardo";
-    protected static final File PHOTO_SOURCE_FILE_LARGE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_large.jpg");
-    protected static final File PHOTO_SOURCE_FILE_SMALL= new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_small.jpg");
+    private static final File PHOTO_SOURCE_FILE_LARGE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_large.jpg");
+    private static final File PHOTO_SOURCE_FILE_SMALL= new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_small.jpg");
 
-    protected static final String CREATE_USER_WITH_LARGE_PHOTO_DEPENDENCY = "createMidpointUserWithPhotoLarge";
-    protected static final String CREATE_USER_WITH_NORMAL_PHOTO_DEPENDENCY = "createMidpointUserWithPhotoJustRight";
+    private static final String CREATE_USER_WITH_LARGE_PHOTO_DEPENDENCY = "createMidpointUserWithPhotoLarge";
+    private static final String CREATE_USER_WITH_NORMAL_PHOTO_DEPENDENCY = "createMidpointUserWithPhotoJustRight";
 
     @Test
     public void createMidpointUserWithPhotoLarge(){

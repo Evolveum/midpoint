@@ -20,14 +20,14 @@ public class OrganizationStructureTests extends TestBase {
 
     private static final File CSV_RESOURCE_ADVANCED_SYNC = new File("../../samples/resources/csv/resource-csv-groups.xml");
 
-    protected static final File CSV_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-groups.csv");
-    protected static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint-advanced-sync.csv"); //TODO change hard coded path to local web container
-    protected static final File ORG_ACCOUNT_INDUCEMENT_FILE = new File("./src/test/resources/org-account-inducement.xml");
-    protected static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("../../samples/org/org-monkey-island-simple.xml");
+    private static final File CSV_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-groups.csv");
+    private static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint-advanced-sync.csv"); //TODO change hard coded path to local web container
+    private static final File ORG_ACCOUNT_INDUCEMENT_FILE = new File("./src/test/resources/org-account-inducement.xml");
+    private static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("../../samples/org/org-monkey-island-simple.xml");
 
-    protected static final File USER_TEST_RAPHAEL_FILE = new File("./src/test/resources/user-raphael.xml");
+    private static final File USER_TEST_RAPHAEL_FILE = new File("./src/test/resources/user-raphael.xml");
 
-    protected static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
+    private static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
 
     private static final String TEST_USER_GUYBRUSH_NAME = "guybrush";
     private static final String TEST_USER_RAPHAEL_NAME = "raphael";

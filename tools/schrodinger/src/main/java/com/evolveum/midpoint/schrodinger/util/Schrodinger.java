@@ -88,6 +88,14 @@ public class Schrodinger {
         return By.xpath("//" + elementName + "[text()='" + value + "']");
     }
 
+    public static By byElementValueConcrete(String elementName, String value) {
+        if (elementName == null) {
+            elementName = "*";
+        }
+
+        return By.xpath("//" + elementName + "contains(.,\"" + value + "\"");
+    }
+
     public static By bySelfOrAncestorElementAttributeValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue) {
         if (element == null) {
             element = "*";
