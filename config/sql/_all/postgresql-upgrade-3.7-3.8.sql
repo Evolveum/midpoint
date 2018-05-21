@@ -67,6 +67,8 @@ DROP TABLE m_user;
 DROP TABLE m_focus;
 DROP TABLE m_object;
 
+DROP SEQUENCE hibernate_sequence;
+
 CREATE SEQUENCE m_audit_event_id_seq;
 ALTER TABLE m_audit_event ALTER COLUMN id SET NOT NULL;
 ALTER TABLE m_audit_event ALTER COLUMN id SET DEFAULT nextval('m_audit_event_id_seq');
