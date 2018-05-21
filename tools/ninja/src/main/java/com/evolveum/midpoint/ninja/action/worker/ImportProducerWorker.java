@@ -146,7 +146,6 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
                         }
                     }
 
-                    ObjectTypes type = options.getType().iterator().next();
                     if (!matchSelectedType(object.getCompileTimeClass())) {
                         operation.incrementSkipped();
 
