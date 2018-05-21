@@ -77,7 +77,7 @@ public class Schrodinger {
             element = "*";
         }
 
-        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\"][text()=\"" + enclosedText + "\"]/..");
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\"][contains(.,\"" + enclosedText + "\")]/..");
     }
 
     public static By byElementValue(String elementName, String value) {
@@ -109,7 +109,23 @@ public class Schrodinger {
             element = "*";
         }
 
-        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and following-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant::*[text()=\"" + siblingEnclosedText + "\"]]]");
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and following-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+    }
+
+    public static By byPrecedingSiblingElementValue(String element, String attr, String attrValue, String siblingAttr, String siblingAttrValue, String siblingEnclosedText) {
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and preceding-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+    }
+
+    public static By byAncestorElementValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and ancestor::*[@" + ancestorAttr + "=\"" + ancestorAttrValue + "\" and descendant::*[contains(.,\"" + ancestorEnclosedText + "\")]]]");
     }
 
     public static String qnameToString(QName qname) {
