@@ -25,25 +25,25 @@ public class FeedbackBox<T> extends Component<T> {
 
     public Boolean isSuccess() {
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-success")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).exists();
+        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-success")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG).exists();
 
     }
 
     public Boolean isWarning() {
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-warning")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).exists();
+        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-warning")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG).exists();
 
     }
 
     public Boolean isError() {
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-danger")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).exists();
+        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-danger")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG).exists();
 
     }
 
     public Boolean isInfo() {
 
-        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-info")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).exists();
+        return getParentElement().$(By.cssSelector("div.feedback-message.box.box-solid.box-info")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG).exists();
 
     }
 
