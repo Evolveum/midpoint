@@ -3057,7 +3057,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
 		if (checkSubresult) {
-			return result.getLastSubresult();
+			return result != null ? result.getLastSubresult() : null;
 		}
 		return result;
 	}

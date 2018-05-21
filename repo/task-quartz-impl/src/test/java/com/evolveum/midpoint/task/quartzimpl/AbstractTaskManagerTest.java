@@ -213,7 +213,8 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	        }
 		    List<Task> subtasks = task.listSubtasksDeeply(result);
 		    for (Task subtask : subtasks) {
-			    if (subtask.getResult().isError()) {
+			    if (subtask.getResultStatus() == OperationResultStatusType.FATAL_ERROR
+					    || subtask.getResultStatus() == OperationResultStatusType.PARTIAL_ERROR) {
 			    	display("Error detected in subtask, finishing waiting: " + subtask);
 			    	return true;
 			    }
