@@ -294,7 +294,7 @@ public class CertDefinitionDto implements Serializable {
             if (parsedSearchFilter != null) {
                 // check if everything is OK
                 try {
-                    QueryConvertor.parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), prismContext);
+                    QueryConvertor.parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), null, prismContext);
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't parse search filter: " + e.getMessage(), e);
                 }

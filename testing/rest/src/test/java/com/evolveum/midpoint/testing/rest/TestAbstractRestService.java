@@ -1176,24 +1176,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 		
-//		
-//		
-//		PolicyItemsDefinitionType policyItemsDefinitionType = response.readEntity(PolicyItemsDefinitionType.class);
-//		List<PolicyItemDefinitionType> policyItemDefinitions = policyItemsDefinitionType.getPolicyItemDefinition();
-//		for (PolicyItemDefinitionType policyItemDefinition : policyItemDefinitions) {
-//			OperationResultType result = policyItemDefinition.getResult();
-//			OperationResult opResult = OperationResult.createOperationResult(result);
-//			LOGGER.info("opresult: {}", opResult.debugDump());
-//			assertNotNull("Expected localized message, but no one present", result.getMessage());
-//			LocalizableMessageType localizableMessage = result.getUserFriendlyMessage();
-//			assertTrue("Not a single localiable message", localizableMessage instanceof SingleLocalizableMessageType);
-//			SingleLocalizableMessageType singelLocalizableMessage = (SingleLocalizableMessageType) localizableMessage;
-//			assertNotNull("Expected localized message for single localizable message, but no one present", singelLocalizableMessage.getFallbackMessage());
-//			assertNotNull("Expected key in single localizable message, but no one present", singelLocalizableMessage.getKey());
-//			
-//		}
-//
-
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);

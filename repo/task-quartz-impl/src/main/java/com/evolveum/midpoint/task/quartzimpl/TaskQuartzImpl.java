@@ -597,7 +597,15 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public OperationResultStatusType getResultStatus() {
-		return taskResult == null ? null : taskResult.getStatus().createStatusType();
+		if (taskResult == null) {
+			if (taskPrism != null) {
+				return taskPrism.asObjectable().getResultStatus();
+			} else {
+				return null;
+			}
+		} else {
+			return taskResult.getStatus().createStatusType();
+		}
 	}
 
 	public void setResultStatusType(OperationResultStatusType value) {
@@ -2387,26 +2395,17 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Task(");
 		sb.append(TaskQuartzImpl.class.getName());
 		sb.append(")\n");
-		sb.append(taskPrism.debugDump(indent + 1));
-		sb.append("\n  persistenceStatus: ");
-		sb.append(getPersistenceStatus());
-		sb.append("\n  result: ");
-		if (taskResult == null) {
-			sb.append("null");
-		} else {
-			sb.append(taskResult.debugDump());
-		}
+		DebugUtil.debugDumpLabelLn(sb, "prism", indent + 1);
+		sb.append(taskPrism.debugDump(indent + 2));
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "persistenceStatus", getPersistenceStatus(), indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "taskResult", taskResult, indent);
 		return sb.toString();
 	}
 

@@ -1127,7 +1127,7 @@ public class BeanUnmarshaller {
 			return null;
 		}
 		T filterType = instantiate(beanClass);
-		filterType.parseFromXNode(xmap, prismContext);
+		filterType.parseFromXNode(xmap, pc, prismContext);
 		return filterType;
 	}
 

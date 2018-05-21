@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,6 +38,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,6 +67,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConf
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 
 /**
@@ -182,12 +186,23 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				}));
 				item.add(textWrapper);
 				
-				TextField<String> property = new TextField<>(ID_PROPERTY,
-						new PropertyModel<>(item.getModel(), PropertyConstraintType.F_PATH.getLocalPart()));
+				
+				ItemPathType itemPathType = (item.getModelObject() != null ) ? item.getModelObject().getPath() : null;
+				String pathToShow = itemPathType != null ? itemPathType.getItemPath().toString() : null;
+					
+				TextField<String> property = new TextField<>(ID_PROPERTY, Model.of(pathToShow));
+			
 				property.add(new AjaxFormComponentUpdatingBehavior("blur") {
 					private static final long serialVersionUID = 1L;
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
+						Component component = this.getComponent();
+						String newValue = (String) component.getDefaultModelObject();
+						ItemPathType itemPathType = null;
+						if (StringUtils.isNotBlank(newValue)) {
+						  itemPathType = new ItemPathType(newValue);
+						} 
+						item.getModelObject().setPath(itemPathType);
 					}
 				});
 				property.add(AttributeAppender.replace("placeholder",
@@ -247,6 +262,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 			@Override
 			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				//TODO: show error?
 				target.add(form);
 			}
 		};

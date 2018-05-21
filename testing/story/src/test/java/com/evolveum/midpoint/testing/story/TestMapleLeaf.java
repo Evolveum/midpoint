@@ -17,8 +17,11 @@ package com.evolveum.midpoint.testing.story;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.Collection;
@@ -30,21 +33,28 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -61,6 +71,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class TestMapleLeaf extends AbstractStoryTest {
 	
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapleLeaf");
+	
+	public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/story/mapleLeaf/ext";
 	
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 	
@@ -84,11 +96,15 @@ public class TestMapleLeaf extends AbstractStoryTest {
 	private static final File ROLE_MAPLE_LEAF_GRADUATE = new File(TEST_DIR, "role-maple-leaf-graduate.xml");
 	private static final String ROLE_MAPLE_LEAF_GRADUATE_OID = "00000000-role-0000-0000-000011113333";
 	
+	private static final File OBJECT_TEMPLATE_USER = new File(TEST_DIR, "object-template-user.xml");
+	private static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
+	
 	private static final String LDIF_GROUPS =  TEST_DIR + "/mapleLeafGroups.ldif";
 	
 	private static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 	
-	
+	protected static final ItemPath ACTIVATION_EFFECTIVE_STATUS_PATH = new ItemPath(UserType.F_ACTIVATION,
+			ActivationType.F_EFFECTIVE_STATUS);	
 	
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
@@ -126,6 +142,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		importObjectFromFile(ROLE_META_MONKEY_DONKEY);
 		importObjectFromFile(ROLE_SQUIRREL_FILE);
 		importObjectFromFile(SECURITY_POLICY_FILE);
+		importObjectFromFile(OBJECT_TEMPLATE_USER);
 
 	}
 	
@@ -372,6 +389,13 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		executeChanges(userDelta, null, task, result);
 		
 		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
+		PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+		String accountOid = assertAccount(userJackBefore, RESOURCE_OPENDJ_OID);
+		PrismObject<ShadowType> shadowBefore = getShadowModel(accountOid);
+		display("Shadow before: ", shadowBefore.asObjectable());
+		PrismProperty<String> carLicenseBefore = shadowBefore.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE, "carLicense")));
+		assertNotNull("Unexpected car license: " + carLicenseBefore, carLicenseBefore);
+		AssertJUnit.assertNotNull("Unexpected value in car license: " + carLicenseBefore.getRealValue(), carLicenseBefore.getRealValue());
 		
 		//when
 		displayWhen(TEST_NAME);
@@ -398,6 +422,12 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		assertTrue(BooleanUtils.isTrue(password.isForceChange()), "Expected force change set to true, but was: " + BooleanUtils.isTrue(password.isForceChange()));
 		
 		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
+		PrismObject<ShadowType> shadowAfter = getShadowModel(accountOid);
+		display("Shadow after: ", shadowAfter.asObjectable());
+		PrismProperty<String> carLicenseAfter = shadowAfter.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE, "carLicense")));
+		assertNotNull("Unexpected car license: " + carLicenseAfter, carLicenseAfter);
+		AssertJUnit.assertNotNull("Unexpected value in car license: " + carLicenseAfter.getRealValue(), carLicenseAfter.getRealValue());
+		assertNotEquals(carLicenseBefore.getRealValue(), carLicenseAfter.getRealValue(), "Unexpected values. Before: " + carLicenseBefore.getRealValue() + ", after: " + carLicenseAfter.getRealValue());
 	}
 	
 	@Test
@@ -433,5 +463,55 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		assertTrue(BooleanUtils.isTrue(password.isForceChange()), "Expected force change set to true, but was: " + BooleanUtils.isTrue(password.isForceChange()));
 		
 		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
+	}
+	
+	@Test
+	public void test200setArchivedAdministrativeStatus() throws Exception {
+		final String TEST_NAME = "test200setArchivedAdministrativeStatus";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, null, task, result, ActivationStatusType.ARCHIVED);
+		
+		PrismObject<UserType> user = getUser(USER_JACK_OID);
+		PrismProperty<ActivationStatusType> administrativeStatus = user.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
+		assertNotNull("No administrative status property present.", administrativeStatus);
+		assertEquals(administrativeStatus.getRealValue(), ActivationStatusType.ARCHIVED, "Unexpected administrative status");
+		PrismProperty<ActivationStatusType> effectiveStatus = user.findProperty(ACTIVATION_EFFECTIVE_STATUS_PATH);
+		assertNotNull("No effective status property present.", effectiveStatus);
+		assertEquals(effectiveStatus.getRealValue(), ActivationStatusType.ARCHIVED, "Unexpected effective status");
+		
+	}
+	
+	@Test
+	public void test201setUndefinedAdministrativeStatus() throws Exception {
+		final String TEST_NAME = "test201setUndefinedAdministrativeStatus";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		//WHEN
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		String accountOid = assertAccount(userBefore, RESOURCE_OPENDJ_OID);
+		recomputeUser(USER_JACK_OID, task, result);
+		
+		ObjectDelta<UserType> unlinkDelta = createModifyUserUnlinkAccount(USER_JACK_OID, resourceOpenDj);
+		executeChanges(unlinkDelta, null, task, result);
+		assertNotLinked(USER_JACK_OID, accountOid);
+		
+		//THEN
+		displayThen(TEST_NAME);
+		modelService.importFromResource(accountOid, task, result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		PrismProperty<ActivationStatusType> administrativeStatus = userAfter.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
+		assertNull("Administrative status still set.", administrativeStatus);
+		PrismProperty<ActivationStatusType> effectiveStatus = userAfter.findProperty(ACTIVATION_EFFECTIVE_STATUS_PATH);
+		assertNotNull("No effective status property present.", effectiveStatus);
+		assertEquals(effectiveStatus.getRealValue(), ActivationStatusType.ENABLED, "Unexpected effective status");
+		
 	}
 }
