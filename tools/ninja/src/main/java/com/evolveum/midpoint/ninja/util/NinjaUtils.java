@@ -34,6 +34,7 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -147,7 +148,13 @@ public class NinjaUtils {
         }
 
         if (zip) {
-            os = new ZipOutputStream(os);
+            ZipOutputStream zos = new ZipOutputStream(os);
+
+            String entryName = output.getName().replaceAll("\\.", "-") + ".xml";
+            ZipEntry entry = new ZipEntry(entryName);
+            zos.putNextEntry(entry);
+
+            os = zos;
         }
 
         return new OutputStreamWriter(os, charset);

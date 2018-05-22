@@ -21,8 +21,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
-import com.evolveum.midpoint.schrodinger.component.common.table.Table;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithRedirectElements;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -32,14 +31,14 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTable<T> extends TableWithRedirectElements<T> {
+public class UsersTablePage<T> extends TableWithPageRedirect<T> {
 
-    public UsersTable(T parent, SelenideElement parentElement) {
+    public UsersTablePage(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
     @Override
-    public TableWithRedirectElements<T> selectCheckboxByName(String name) {
+    public TableWithPageRedirect<T> selectCheckboxByName(String name) {
         return null;
     }
 
@@ -53,14 +52,14 @@ public class UsersTable<T> extends TableWithRedirectElements<T> {
     }
 
     @Override
-    public Search<UsersTable<T>> search() {
+    public Search<UsersTablePage<T>> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
         return new Search<>(this, searchElement);
     }
 
 
-    public ConfirmationModal<UsersTable<T>> clickEnable() {
+    public ConfirmationModal<UsersTablePage<T>> clickEnable() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("i", "class", "fa fa-user fa-fw", "data-s-id", "topToolbars"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
@@ -73,7 +72,7 @@ public class UsersTable<T> extends TableWithRedirectElements<T> {
 
 
     @Override
-    public UsersTable<T> selectAll() {
+    public UsersTablePage<T> selectAll() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
@@ -81,7 +80,7 @@ public class UsersTable<T> extends TableWithRedirectElements<T> {
         return this;
     }
 
-    public UsersTableDropDown<UsersTable<T>> clickActionDropDown() {
+    public UsersTableDropDown<UsersTablePage<T>> clickActionDropDown() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();

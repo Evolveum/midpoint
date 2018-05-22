@@ -26,6 +26,8 @@ import org.openqa.selenium.By;
 
 import javax.xml.namespace.QName;
 
+import java.io.File;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -77,6 +79,21 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+
+    public PrismForm<T> setFileForUploadAsAttributeValue(String name, File file) {
+        SelenideElement property = findProperty(name);
+        property.$(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
+
+        return this;
+    }
+
+    public PrismForm<T> removeFileAsAttributeValue(String name) {
+        SelenideElement property = findProperty(name);
+        property.$(Schrodinger.byElementAttributeValue("a", "title", "Remove file")).click();
+
+        return this;
+    }
+
     public PrismForm<T> showEmptyAttributes(String containerName) {
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-s-id", "showEmptyFields", "data-s-resource-key", containerName))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
@@ -111,6 +128,16 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> showEmptyAttributes(QName containerName, String value) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> setFileForUploadAsAttributeValue(QName containerName, File file) {
+        // todo implement
+        return this;
+    }
+
+    public PrismForm<T> removeFileAsAttributeValue(QName containerName) {
         // todo implement
         return this;
     }
@@ -152,4 +179,5 @@ public class PrismForm<T> extends Component<T> {
 
         return this;
     }
+
 }

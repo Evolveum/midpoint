@@ -67,6 +67,8 @@ DROP TABLE m_user;
 DROP TABLE m_focus;
 DROP TABLE m_object;
 
+DROP SEQUENCE hibernate_sequence;
+
 CREATE SEQUENCE m_audit_event_id_seq;
 ALTER TABLE m_audit_event ALTER COLUMN id SET NOT NULL;
 ALTER TABLE m_audit_event ALTER COLUMN id SET DEFAULT nextval('m_audit_event_id_seq');
@@ -87,8 +89,8 @@ SELECT setval('m_audit_prop_value_id_seq', (SELECT max(id) + 1 FROM m_audit_prop
 SELECT setval('m_audit_ref_value_id_seq', (SELECT max(id) + 1 FROM m_audit_ref_value), FALSE);
 
 ALTER TABLE m_audit_delta
-  ALTER COLUMN delta TYPE BYTEA USING delta::bytea,
-  ALTER COLUMN fullResult TYPE BYTEA USING fullResult::bytea;
+  ALTER COLUMN delta TYPE BYTEA USING decode(replace(replace(delta, '\', E'\\134'), '''', E'\\047'), 'escape'),
+  ALTER COLUMN fullResult TYPE BYTEA USING decode(replace(replace(fullResult, '\', E'\\134'), '''', E'\\047'),'escape');
 
 ALTER TABLE m_audit_event
   ADD COLUMN targetOwnerType INT4;
