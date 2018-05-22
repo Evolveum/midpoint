@@ -20,27 +20,38 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
@@ -62,6 +73,7 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -100,6 +112,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	private static final String ID_BUTTON_GROUP = "buttonGroup";
 	private static final String ID_BUTTON_REMOVE = "remove";
 	private static final String ID_BUTTON_ADD = "add";
+	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_CONFLICT_RESOLUTION_CONTAINER = "conflictResolutionContainer";
 
 	private static final String ID_LABEL_SIZE = "col-md-4";
@@ -172,6 +185,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 			@Override
 			protected void populateItem(final ListItem<PropertyConstraintType> item) {
 				WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+				textWrapper.setOutputMarkupId(true);
 				textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>() {
 
 					private static final long serialVersionUID = 1L;
@@ -208,12 +222,19 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				property.add(AttributeAppender.replace("placeholder",
 						createStringResource("ObjectPolicyDialog.property.placeholder")));
 				textWrapper.add(property);
+				
+				
 
 				CheckBox oidBound = new CheckBox(ID_OID_BOUND,
                     new PropertyModel<>(item.getModel(), PropertyConstraintType.F_OID_BOUND.getLocalPart()));
+				
 				oidBound.add(AttributeModifier.replace("title",
 						createStringResource("ObjectPolicyDialog.label.oidBound.help")));
-				textWrapper.add(oidBound);
+								textWrapper.add(oidBound);
+				oidBound.add(new PropertyConstraintValidator(item.getModelObject()));
+				oidBound.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+				FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(oidBound));
+				textWrapper.add(feedback);
 
 				WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
 				buttonGroup.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
@@ -262,7 +283,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 			@Override
 			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				//TODO: show error?
+				target.add(getPageBase().getFeedbackPanel());
 				target.add(form);
 			}
 		};
@@ -396,12 +417,41 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 			}
 		};
 	}
+	
+	private static class PropertyConstraintValidator implements IValidator<Boolean> {
+
+        private static final long serialVersionUID = 1L;
+		
+        private PropertyConstraintType propertyConstraintType;
+        
+        private PropertyConstraintValidator(PropertyConstraintType propertyConstraint) {
+            this.propertyConstraintType = propertyConstraint;
+            
+        }
+
+        @Override
+        public void validate(IValidatable<Boolean> validatable) {
+        	
+        	if (propertyConstraintType == null) {
+        		return;
+        	}
+        	 
+            if (BooleanUtils.isTrue(validatable.getValue()) && (propertyConstraintType == null || propertyConstraintType.getPath() == null)) {
+            	ValidationError err = new ValidationError();
+    			err.addKey("propertyConstraintValidator.error");
+    			validatable.error(err);
+            }
+
+        }
+    }
+
 
 	private void cancelPerformed(AjaxRequestTarget target) {
 		getPageBase().hideMainPopup(target);
 	}
 
 	protected void savePerformed(AjaxRequestTarget target) {
+		target.add(getPageBase().getFeedbackPanel());
 		getPageBase().hideMainPopup(target);
 	}
 
