@@ -368,6 +368,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// with the same value. We pretend that this is the same as ADD case.
 				// TODO: maybe we will need better handling in the future. Maybe we would need
 				// to execute the script twice?
+				LOGGER.trace("source triple: {}", sourceTriple);
 				if (sourceTriple.presentInPlusSet(pval)) {
 					hasPlus = true;
 				} else if (sourceTriple.presentInZeroSet(pval)) {
@@ -389,8 +390,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				// Note: There will NOT be a single value that is in both plus and minus (e.g. "replace with itself" case).
 				// That case is handled by the elseif branches above. This case strictly applies to
 				// combination of different values from the plus and minus sets.
+				LOGGER.trace("The combination of values that are both in plus and minus. Evaluating this combination does not make sense. Just skip it.");
 				return;
 			}
+			
+			LOGGER.trace("hasPlus= {}, hasMinus={}, hasZero={}, skipEvaluationPlus={}, skipEvaluationMinus={}", hasPlus, hasMinus, hasZero, skipEvaluationPlus);
 
 			if (hasPlus && skipEvaluationPlus) {
 				// The results will end up in the plus set, therefore we can skip it
