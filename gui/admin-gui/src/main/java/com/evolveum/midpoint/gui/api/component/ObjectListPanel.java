@@ -19,9 +19,12 @@ import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -293,16 +296,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 						private IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
 							Item<?, ?> item = rowModel.getObject().getValue().asPrismContainerValue().findItem(columnPath);
 							if (item != null) {
-								return Model.of(item.getValues().stream()
-										.filter(Objects::nonNull)
-										.map(itemValue -> {
-											if (itemValue instanceof PrismPropertyValue) {
-												return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
-											} else {
-												return itemValue.toString() + " ";      // TODO why + " "?
-											}
-										})
-										.collect(Collectors.joining(", ")));
+								if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
+										item.getDefinition().getValueEnumerationRef().getOid() != null){
+									String lookupTableOid = item.getDefinition().getValueEnumerationRef().getOid();
+									Task task = getPageBase().createSimpleTask("loadLookupTable");
+									OperationResult result = task.getResult();
+
+									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+											.createLookupTableRetrieveOptions();
+									PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+											lookupTableOid, options, getPageBase(), task, result);
+									return getItemValuesString(item, lookupTable);
+								} else {
+									return getItemValuesString(item, null);
+								}
 							} else {
 								return Model.of("");
 							}
@@ -313,6 +320,32 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			}
 		}
 		return columns;
+	}
+
+	private IModel<String> getItemValuesString(Item<?, ?> item, PrismObject<LookupTableType> lookupTable){
+		return Model.of(item.getValues().stream()
+				.filter(Objects::nonNull)
+				.map(itemValue -> {
+					if (itemValue instanceof PrismPropertyValue) {
+						if (lookupTable == null) {
+							return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
+						} else {
+							String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
+							LookupTableType lookupTableObject = lookupTable.getValue().asObjectable();
+							String rowLabel = "";
+							for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
+								if (lookupTableRow.getKey().equals(lookupTableKey)){
+									rowLabel = lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
+									break;
+								}
+							}
+							return rowLabel;
+						}
+					} else {
+						return itemValue.toString() + " ";      // TODO why + " "?
+					}
+				})
+				.collect(Collectors.joining(", ")));
 	}
 
 	protected List<IColumn<SelectableBean<O>, String>> initColumns() {
