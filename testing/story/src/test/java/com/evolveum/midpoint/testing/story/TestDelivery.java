@@ -288,7 +288,7 @@ public class TestDelivery extends AbstractStoryTest {
 	/**
 	 * IT-5 = requires IT-1 (barkeeper does not have it)
 	 */
-	@Test(enabled = false)  // MID-4584
+	@Test
 	public void test150Assign_IT_5() throws Exception {
 		final String TEST_NAME = "test150Assign_IT_5";
 		TestUtil.displayTestTitle(TEST_NAME);
