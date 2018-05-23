@@ -167,7 +167,6 @@ ALTER TABLE m_audit_item ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) RE
 ALTER TABLE m_audit_prop_value ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 
--- TODO fix
 -- ALTER TABLE m_audit_item ALTER COLUMN changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL;
 
 ALTER TABLE m_audit_delta ADD deltaBlob VARBINARY(MAX);
@@ -1232,3 +1231,5 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+GO;
