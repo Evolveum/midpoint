@@ -103,7 +103,7 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
             return;
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store using 'xxxxxxx' function. Now exiting the execution routine.", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store. Now exiting the execution routine.", e, oid);
             return;
         } catch (RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
@@ -648,6 +648,10 @@ mainCycle:
     private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
 		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy());
+	    if (task.getResult() == null) {
+		    LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
+		    task.setResultTransient(task.createUnnamedTaskResult());
+	    }
 
 	    TaskRunResult runResult;
 		if (handler instanceof WorkBucketAwareTaskHandler) {

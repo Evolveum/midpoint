@@ -1877,7 +1877,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // use with care (e.g. w.r.t. dependent tasks)
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
-			OperationResult taskResult = updateTaskResult(task);
+			OperationResult taskResult = updateTaskResult(task, parentResult);
 			task.close(taskResult, true, parentResult);
         } finally {
             if (task.isPersistent()) {
@@ -1893,8 +1893,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	// do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
-		OperationResult taskResult = updateTaskResult(task);
 		try {
+			OperationResult taskResult = updateTaskResult(task, parentResult);
 			task.close(taskResult, false, parentResult);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			throw new SystemException(e);       // shouldn't occur
@@ -1904,11 +1904,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     // returns null if no change is needed in the task
 	@Nullable
-	private OperationResult updateTaskResult(Task task) {
+	private OperationResult updateTaskResult(Task task, OperationResult parentResult) throws SchemaException {
 		OperationResult taskResult = task.getResult();
 		if (taskResult == null) {
-			// should not occur
-			return null;
+			try {
+				task.refresh(parentResult);     // expecting to get the result
+			} catch (ObjectNotFoundException e) {
+				LOGGER.warn("Task result cannot be updated because the task is gone: {}", task, e);
+				return null;
+			}
+			taskResult = task.getResult();
+			if (taskResult == null) {
+				LOGGER.warn("Null task result in {}", task);
+				return null;
+			}
 		}
 		boolean resultChanged = false;
 		// this is a bit of magic to ensure closed tasks will not stay with IN_PROGRESS result (and, if possible, also not with UNKNOWN)
