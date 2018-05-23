@@ -121,9 +121,10 @@
  
  				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(0)
 				this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
-				log.info('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+				log.info('### Extension for evaluateRolePresenceWithMessage:\n{}', extension?.asPrismContainerValue().debugDump())
 
 				def roleRefs = basic.getPropertyValues(extension, rolesAttributeName)
+				log.info('#### roleRefs = {}', roleRefs)
 
 				def allExist = roleRefs?.every { roleRef ->
 					if (roleRef == null || roleRef.oid == null) {
@@ -132,6 +133,7 @@
 					
 					midpoint.isDirectlyAssigned(object, roleRef.oid)
 				}
+				log.info('#### allExist = {}', allExist)
 				matches = assumeExistence && !allExist || !assumeExistence && allExist
 				
 				if (matches) {
