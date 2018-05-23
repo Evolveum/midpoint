@@ -171,6 +171,22 @@ ALTER TABLE m_audit_item ALTER COLUMN changedItemPath NVARCHAR(255) COLLATE data
 
 -- todo m_audit_delta nvarchar(max) to varbinary(max)
 
+ALTER TABLE m_audit_delta ADD deltaBlob VARBINARY(MAX);
+ALTER TABLE m_audit_delta ADD fullResultBlob VARBINARY(MAX);
+
+UPDATE m_audit_delta SET deltaBlob = clob_to_blob(delta) where delta is not null;
+UPDATE m_audit_delta SET fullResultBlob = clob_to_blob(fullResult) where fullResult is not null;
+
+ALTER TABLE m_audit_delta DROP COLUMN delta;
+ALTER TABLE m_audit_delta DROP COLUMN fullResult;
+
+GO;
+
+sp_RENAME 'm_audit_delta.deltaBlob' , 'delta', 'COLUMN';
+sp_RENAME 'm_audit_delta.fullResultBlob' , 'fullResult', 'COLUMN';
+
+GO;
+
 CREATE TABLE m_acc_cert_campaign (
   definitionRef_relation  NVARCHAR(157) COLLATE database_default,
   definitionRef_targetOid NVARCHAR(36) COLLATE database_default,

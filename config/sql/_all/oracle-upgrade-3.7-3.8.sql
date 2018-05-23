@@ -189,10 +189,10 @@ AS
     RETURN l_blob;
   END;
 
-ALTER TABLE m_audit_delta
-  ADD (deltaBlob BLOB, fullResultBlob BLOB);
+ALTER TABLE m_audit_delta ADD (deltaBlob BLOB, fullResultBlob BLOB);
 
-UPDATE m_audit_delta SET deltaBlob = clob_to_blob(delta), fullResultBlob = clob_to_blob(fullResult);
+UPDATE m_audit_delta SET deltaBlob = clob_to_blob(delta) where delta is not null;
+UPDATE m_audit_delta SET fullResultBlob = clob_to_blob(fullResult) where fullResult is not null;
 
 ALTER TABLE m_audit_delta DROP (delta, fullResult);
 
