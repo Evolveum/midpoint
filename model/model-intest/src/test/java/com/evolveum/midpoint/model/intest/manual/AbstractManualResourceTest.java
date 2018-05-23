@@ -34,6 +34,16 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -70,7 +80,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -109,7 +118,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -138,6 +146,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	public static final String USER_PHANTOM_FULL_NAME_WRONG = "Tom Funtom";
 	public static final String ACCOUNT_PHANTOM_DESCRIPTION_MANUAL = "Phantom menace of the opera";
 	public static final String ACCOUNT_PHANTOM_PASSWORD_MANUAL = "PhanthomaS";
+	
+	protected static final File USER_PHOENIX_FILE = new File(TEST_DIR, "user-phoenix.xml");
+	protected static final String USER_PHOENIX_OID = "ed2ca15a-5ccb-11e8-b62d-4b94763188e4";
+	public static final String USER_PHOENIX_USERNAME = "phoenix";
+	public static final String USER_PHOENIX_FULL_NAME = "Phoebe Phoenix";
+	public static final String ACCOUNT_PHOENIX_DESCRIPTION_MANUAL = "from the ashes";
+	public static final String ACCOUNT_PHOENIX_PASSWORD_MANUAL = "VtakOhnivak";
 	
 	protected static final String USER_WILL_NAME = "will";
 	protected static final String USER_WILL_GIVEN_NAME = "Will";
@@ -203,6 +218,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected String jackLastCaseOid;
 
 	private String lastResourceVersion;
+
+	protected String phoenixLastCaseOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1071,7 +1088,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 		
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
 		assertSteadyResources();
 	}
@@ -1092,7 +1109,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
 		assertSteadyResources();
 	}
@@ -1112,7 +1129,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// THEN
 		displayThen(TEST_NAME);
 
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		
 		assertSteadyResources();
 	}
@@ -1133,7 +1150,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		
 		assertSteadyResources();
 	}
@@ -1410,6 +1427,288 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		backingStoreAddPhantom();
 	}
 	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	public void test410AssignPhoenixAccount() throws Exception {
+		final String TEST_NAME = "test410AssignPhoenixAccount";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		addObject(USER_PHOENIX_FILE);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttributeFromCache(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		phoenixLastCaseOid = pendingOperation.getAsynchronousOperationReference();
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	public void test412AddPhoenixToBackingStoreAndCloseTicket() throws Exception {
+		final String TEST_NAME = "test412AddPhoenixToBackingStoreAndCloseTicket";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		backingStoreAddPhoenix();
+		closeCase(phoenixLastCaseOid);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHOENIX_DESCRIPTION_MANUAL);
+
+		assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Let the pending operations exprire. So we have simpler situation in following tests.
+	 * MID-4587
+	 */
+	@Test
+	public void test413PhoenixLetOperationsExpire() throws Exception {
+		final String TEST_NAME = "test413PhoenixLetOperationsExpire";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT1H");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHOENIX_DESCRIPTION_MANUAL);
+
+		assertNoPendingOperation(shadowModel);
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Close case, the account is deleted. But it still *is* in the backing store.
+	 * MID-4587
+	 */
+	@Test
+	public void test414UnassignPhoenixAccount() throws Exception {
+		final String TEST_NAME = "test414UnassignPhoenixAccount";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		phoenixLastCaseOid = pendingOperation.getAsynchronousOperationReference();
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	public void test416PhoenixAccountUnassignCloseCase() throws Exception {
+		final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		closeCase(phoenixLastCaseOid);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		assertShadowDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+
+		assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Account assigned again. But it is still in backing store and still in grace period.
+	 * This is the core test for MID-4587.
+	 * MID-4587
+	 */
+	@Test
+	public void test418AssignPhoenixAccountAgain() throws Exception {
+		final String TEST_NAME = "test418AssignPhoenixAccountAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		phoenixLastCaseOid = assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		
+		// Yes, we really expect two shadows here.
+		// First shadow is dead (the one from previous test).
+		// Second shadow is new one.
+		// MidPoitn cannot collapse these two shadows to one, because they do not
+		// necessarily represent the same account. E.g. the new account may have
+		// different primary identifier (in case that those identifiers are generated).
+		assertLinks(userAfter, 2);
+		
+		int deadShadows = 0;
+		int liveShadows = 0;
+		for (ObjectReferenceType linkRef: userAfter.asObjectable().getLinkRef()) {
+			try {
+				
+				PrismObject<ShadowType> shadowModel = getShadowModelNoFetch(linkRef.getOid());
+				display("Shadow after", shadowModel);
+				Boolean dead = shadowModel.asObjectable().isDead();
+				if (dead != null && dead) {
+					deadShadows++;
+					assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+				} else {
+					liveShadows++;
+					assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+				}
+				
+			} catch (ObjectNotFoundException e) {
+				display("Shadow after", "NOT FOUND: "+linkRef.getOid());
+			}
+		}
+		assertEquals("Unexpected number of dead shadows", 1, deadShadows);
+		assertEquals("Unexpected number of live shadows", 1, liveShadows);
+		
+		assertSteadyResources();
+	}
+	
 	protected boolean are9xxTestsEnabled() {
 		// Disabled by default. These are intense parallel tests and they will fail for resources
 		// that do not have extra consistency checks and do not use proposed shadows.
@@ -1669,7 +1968,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowDead(shadowModelFuture);
 	}
 	
-	protected void assertAccountWillAfterFillNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {
+	protected void assertAccountWillAfterFullNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -1756,6 +2055,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected void backingStoreAddPhantom() throws IOException {
 		if (backingStore != null) {
 			backingStore.addPhantom();
+		}
+	}
+	
+	protected void backingStoreAddPhoenix() throws IOException {
+		if (backingStore != null) {
+			backingStore.addPhoenix();
 		}
 	}
 

@@ -104,21 +104,12 @@ public class ResourceObjectConverter {
 	private static final String OPERATION_DELETE_RESOURCE_OBJECT = DOT_CLASS + "deleteResourceObject";
 	private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
 	
-	
-	@Autowired
-	private EntitlementConverter entitlementConverter;
-
-	@Autowired
-	private MatchingRuleRegistry matchingRuleRegistry;
-	
-	@Autowired
-	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
-	
-	@Autowired
-	private Clock clock;
-
-	@Autowired
-	private PrismContext prismContext;
+	@Autowired private EntitlementConverter entitlementConverter;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;	
+	@Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+	@Autowired private ShadowCaretaker shadowCaretaker;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -240,7 +231,7 @@ public class ResourceObjectConverter {
 	
 
 	public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(ProvisioningContext ctx, 
-			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, OperationResult parentResult)
+			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, boolean skipExplicitUniquenessCheck, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
@@ -264,7 +255,9 @@ public class ResourceObjectConverter {
 			throw e;
 		}
 		
-		checkForAddConflicts(ctx, shadow, result);
+		if (!skipExplicitUniquenessCheck) {
+			checkForAddConflicts(ctx, shadow, result);
+		}
 		
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
@@ -456,10 +449,14 @@ public class ResourceObjectConverter {
 	}
 	
 	public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(
-			ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, OperationProvisioningScriptsType scripts,
-			Collection<? extends ItemDelta> itemDeltas, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+			ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow,
+			OperationProvisioningScriptsType scripts,
+			Collection<? extends ItemDelta> itemDeltas,
+			XMLGregorianCalendar now,
+			OperationResult parentResult)
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+						SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_MODIFY_RESOURCE_OBJECT);
 		
@@ -552,7 +549,20 @@ public class ResourceObjectConverter {
 				LOGGER.trace("Pre-reading resource shadow");
 				preReadShadow = preReadShadow(ctx, identifiers, operations, true, result);  // yes, we need associations here
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Pre-read object:\n{}", preReadShadow==null?null:preReadShadow.debugDump());
+					LOGGER.trace("Pre-read object (straight from the resource):\n{}", preReadShadow==null?null:preReadShadow.debugDump(1));
+				}
+				// If there are pending changes in the shadow then we have to apply to pre-read object.
+				// The pre-read object may be out of date (e.g. in case of semi-manual connectors).
+				// In that case we may falsely remove some of the modifications. E.g. in case that
+				// account is enabled, then disable and then enabled again. If backing store still
+				// has the account as enabled, then the last enable operation would be ignored.
+				// No case is created to re-enable the account. And the account stays disabled at the end.
+				List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+				if (!pendingOperations.isEmpty()) {
+					preReadShadow = shadowCaretaker.applyPendingOperations(ctx, preReadShadow, pendingOperations, true, now);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Pre-read object (applied pending operations):\n{}", preReadShadow==null?null:preReadShadow.debugDump(1));
+					}
 				}
 			}
 			
