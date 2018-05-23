@@ -24,12 +24,17 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
+import javax.xml.namespace.QName;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,7 +42,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -162,6 +169,106 @@ public class TestSemiManualDisable extends TestSemiManual {
 		display("User after", userAfter);
 		assertLinks(userAfter, 0);
 		assertNoShadow(accountOid);
+	}
+	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	@Override
+	public void test416PhoenixAccountUnassignCloseCase() throws Exception {
+		final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		closeCase(phoenixLastCaseOid);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		// Shadow NOT dead. We are disabling instead of deleting
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		// Semi-manual ... we still see old activationStatus value
+		assertActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+
+		assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+
+		assertSteadyResources();
+	}
+	
+	@Test
+	@Override
+	public void test418AssignPhoenixAccountAgain() throws Exception {
+		final String TEST_NAME = "test418AssignPhoenixAccountAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		phoenixLastCaseOid = assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+
+		assertPendingOperationDeltas(shadowModel, 2);
+		PendingOperationType disableOperation = findPendingOperation(shadowModel, OperationResultStatusType.SUCCESS, ChangeTypeType.MODIFY);
+		assertPendingOperation(shadowModel, disableOperation,
+						PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+		assertNotNull("Null completion timestamp", disableOperation.getCompletionTimestamp());
+		PendingOperationType enableOperation = findPendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, null, 
+				ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+		assertPendingOperation(shadowModel, enableOperation,
+				PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+
+		assertSteadyResources();
 	}
 
 	@Override

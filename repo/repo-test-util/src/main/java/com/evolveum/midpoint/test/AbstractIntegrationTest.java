@@ -1771,7 +1771,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
+		if (!OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
+			String message = "Expected IN_PROGRESS, but result status was " + result.getStatus();
+			display (message, result);
+			fail(message);
+		}
 		return result.getAsynchronousOperationReference();
 	}
 
