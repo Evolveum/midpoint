@@ -1,6 +1,5 @@
-package schrodinger.core;
+package schrodinger.scenarios;
 
-import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -20,25 +19,29 @@ import java.io.IOException;
  */
 public class AccountTests extends TestBase {
 
-private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resources/csv/resource-csv-username.xml");
+    private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resources/csv/resource-csv-username.xml");
 
-    private static final File CSV_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
-    private static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint.csv"); //TODO change hard coded path to local web container
+    protected static final File CSV_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
+    protected static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint.csv"); //TODO change hard coded path to local web container
 
-    private static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
+    protected static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
 
-    private static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
-    private static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
-    private static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
-    private static final String ADD_ACCOUNT_DEPENDENCY= "addAccount";
-    private static final String DISABLE_ACCOUNT_DEPENDENCY= "disableAccount";
-    private static final String ENABLE_ACCOUNT_DEPENDENCY= "enableAccount";
+    protected static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
+    protected static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
+    protected static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
+    protected static final String ADD_ACCOUNT_DEPENDENCY= "addAccount";
+    protected static final String DISABLE_ACCOUNT_DEPENDENCY= "disableAccount";
+    protected static final String ENABLE_ACCOUNT_DEPENDENCY= "enableAccount";
+    protected static final String MODIFY_ACCOUNT_PASSWORD_DEPENDENCY= "modifyAccountPassword";
 
-    private static final String CSV_RESOURCE_NAME= "Test CSV: username";
+
+    protected static final String TEST_GROUP_BEFORE_USER_DELETION = "beforeDelete";
+
+    protected static final String CSV_RESOURCE_NAME= "Test CSV: username";
 
     protected static final String TEST_USER_MIKE_NAME= "michelangelo";
-    private static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
-    private static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
+    protected static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
+    protected static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
 
 
     @BeforeSuite
@@ -46,7 +49,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
         FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
     }
 
-    @Test(priority = 1)
+    @Test(priority = 1, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void createMidpointUser(){
         UserPage user = basicPage.newUser();
 
@@ -64,21 +67,22 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
         );
     }
 
-    @Test
+    @Test(groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void importCsvResource(){
         ImportObjectPage importPage = basicPage.importObject();
 
-        Assert.assertTrue(importPage
+        Assert.assertTrue(
+                importPage
                 .getObjectsFromFile()
                 .chooseFile(CSV_RESOURCE_MEDIUM)
                 .clickImport()
-                .feedback()
-                .isSuccess()
+                    .feedback()
+                    .isSuccess()
         );
     }
 
 
-    @Test (dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY})
+    @Test (dependsOnMethods = {IMPORT_CSV_RESOURCE_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
@@ -95,7 +99,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
         );
     }
 
-    @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY})
+    @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void addAccount() {
         ListUsersPage users = basicPage.listUsers();
 
@@ -122,7 +126,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
         );
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountAttribute(){
         ListUsersPage users = basicPage.listUsers();
                 users
@@ -146,7 +150,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
             ;
 
     }
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountPassword(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -173,7 +177,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
 
 
     }
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY})
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void disableAccount(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -197,7 +201,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                     .isSuccess();
     }
 
-    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY})
+    @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY, DISABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void enableAccount(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -221,7 +225,7 @@ private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resource
                     .isSuccess();
     }
 
-    @Test(dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY})
+    @Test(dependsOnMethods = {ENABLE_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void deleteAccount(){
         ListUsersPage users = basicPage.listUsers();
                 users
