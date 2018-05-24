@@ -67,7 +67,7 @@ DROP TABLE m_user;
 DROP TABLE m_focus;
 DROP TABLE m_object;
 
-DROP SEQUENCE hibernate_sequence;
+DROP TABLE hibernate_sequence;
 
 CREATE TABLE m_audit_event_NEW (
   id                BIGINT IDENTITY NOT NULL,
@@ -167,25 +167,21 @@ ALTER TABLE m_audit_item ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) RE
 ALTER TABLE m_audit_prop_value ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 
-ALTER TABLE m_audit_item ALTER COLUMN changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL;
-
--- todo m_audit_delta nvarchar(max) to varbinary(max)
+-- ALTER TABLE m_audit_item ALTER COLUMN changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL;
 
 ALTER TABLE m_audit_delta ADD deltaBlob VARBINARY(MAX);
 ALTER TABLE m_audit_delta ADD fullResultBlob VARBINARY(MAX);
 
-UPDATE m_audit_delta SET deltaBlob = clob_to_blob(delta) where delta is not null;
-UPDATE m_audit_delta SET fullResultBlob = clob_to_blob(fullResult) where fullResult is not null;
+UPDATE m_audit_delta SET deltaBlob = convert(VARBINARY, delta) where delta is not null;
+UPDATE m_audit_delta SET fullResultBlob = convert(VARBINARY, fullResult) where fullResult is not null;
 
 ALTER TABLE m_audit_delta DROP COLUMN delta;
 ALTER TABLE m_audit_delta DROP COLUMN fullResult;
 
-GO;
-
-sp_RENAME 'm_audit_delta.deltaBlob' , 'delta', 'COLUMN';
-sp_RENAME 'm_audit_delta.fullResultBlob' , 'fullResult', 'COLUMN';
-
-GO;
+EXEC sp_rename 'm_audit_delta.deltaBlob', delta, 'COLUMN'
+GO
+EXEC sp_rename 'm_audit_delta.fullResultBlob', fullResult, 'COLUMN'
+GO
 
 CREATE TABLE m_acc_cert_campaign (
   definitionRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -682,7 +678,7 @@ CREATE TABLE m_focus (
   validityStatus          INT,
   costCenter              NVARCHAR(255) COLLATE database_default,
   emailAddress            NVARCHAR(255) COLLATE database_default,
-  hasPhoto                BIT DEFAULT FALSE                     NOT NULL,
+  hasPhoto                BIT DEFAULT 0                     NOT NULL,
   locale                  NVARCHAR(255) COLLATE database_default,
   locality_norm           NVARCHAR(255) COLLATE database_default,
   locality_orig           NVARCHAR(255) COLLATE database_default,
@@ -1235,3 +1231,5 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+GO;

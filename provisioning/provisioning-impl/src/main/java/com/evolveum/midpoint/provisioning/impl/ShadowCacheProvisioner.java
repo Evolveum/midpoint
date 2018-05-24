@@ -18,6 +18,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -63,9 +65,10 @@ public class ShadowCacheProvisioner extends ShadowCache {
 			PrismObject<ShadowType> shadow,
 			Collection<? extends ItemDelta> modifications,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			XMLGregorianCalendar now,
 			OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
-		shadowManager.modifyShadow(ctx, shadow, modifications, opState, parentResult);
+		shadowManager.modifyShadow(ctx, shadow, modifications, opState, now, parentResult);
 	}
 	
 	@Override

@@ -95,7 +95,7 @@ public class DataSourceFactory {
 //        config.setAutoCommit(false);
 
         TransactionIsolation ti = configuration.getTransactionIsolation();
-        if (ti != null) {
+        if (ti != null && TransactionIsolation.SNAPSHOT != ti) {
             config.setTransactionIsolation("TRANSACTION_" + ti.name());
         }
 
