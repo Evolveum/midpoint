@@ -986,7 +986,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 	}
 
 	/**
-	 * MID-3874
+	 * MID-3874, MID-3780
 	 */
 	@Test
     public void test243AutzJackManagerFullControlManagerMinistryOfRumAndDefense() throws Exception {
@@ -999,6 +999,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
         assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        
+        dumpOrgTreeAndUsers();
 
         // precondition
         PrismObject<ShadowType> elaineShadow = getObject(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
@@ -1011,7 +1013,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertJack24xManagerDefense(TEST_NAME, true);
-
+        
         assertGlobalStateUntouched();
 	}
 
@@ -1300,11 +1302,21 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 			// This is expected. The authorizations will mix on-resource and off-resource search.
 			display("Expected exception", e);
 		}
-        result.computeStatus();
-		TestUtil.assertFailure(result);
+        assertFailure(result);
+        
+        assertSearch(UserType.class, null, 5);
 
+        assertAddAllow(USER_CAPSIZE_FILE); // MID-3780
+        
+        assertSearch(UserType.class, null, 6);
 
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
+        
+        assertSearch(UserType.class, null, 5);
+        
+        assertDeleteAllow(UserType.class, USER_CAPSIZE_OID);
+        
+        assertSearch(UserType.class, null, 4);
 
         assertVisibleUsers(4);
 	}

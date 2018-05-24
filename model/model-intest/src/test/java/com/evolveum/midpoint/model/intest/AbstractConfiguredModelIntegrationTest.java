@@ -427,6 +427,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_SCUMM_BAR_DISPLAY_NAME = "Scumm Bar";
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
     protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
+    protected static final String ORG_MINISTRY_OF_DEFENSE_NAME = "F0002";
 	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
 	protected static final String ORG_MINISTRY_OF_RUM_NAME = "F0004";
 	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
