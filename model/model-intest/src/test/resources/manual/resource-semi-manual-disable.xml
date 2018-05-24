@@ -112,6 +112,7 @@
 			<attribute>
 				<ref>ri:fullname</ref>
 				<outbound>
+					<strength>strong</strength>
 					<source>
 						<path>fullName</path>
 					</source>

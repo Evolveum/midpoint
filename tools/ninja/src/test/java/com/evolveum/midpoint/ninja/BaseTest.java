@@ -5,15 +5,18 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -23,6 +26,11 @@ public class BaseTest {
     private static final Logger LOG = LoggerFactory.getLogger(BaseTest.class);
 
     private static final File TARGET_HOME = new File("./target/home");
+
+    public static final String RESOURCES_FOLDER = "./target/test-classes/xml";
+
+    private List<String> systemOut;
+    private List<String> systemErr;
 
     @BeforeMethod
     public final void beforeMethod(Method method) throws Exception {
@@ -77,35 +85,83 @@ public class BaseTest {
 
     protected void executeTest(ExecutionValidator preExecutionValidator,
                                ExecutionValidator postExecutionValidator, String... args) {
+        executeTest(null, preExecutionValidator, postExecutionValidator, false, false, args);
+    }
 
-        Main main = new Main() {
+    protected void executeTest(ExecutionValidator preInit,
+                               ExecutionValidator preExecution,
+                               ExecutionValidator postExecution,
+                               boolean saveOut, boolean saveErr, String... args) {
 
-            @Override
-            protected void preExecute(NinjaContext context) {
-                try {
-                    if (preExecutionValidator != null) {
-                        LOG.info(">>>>>>>>>>>>>>>> Starting pre execution validation");
-                        preExecutionValidator.validate(context);
-                    }
-                } catch (Exception ex) {
-                    logTestExecutionFail("Pre execution test failed with exception", ex);
+        systemOut = new ArrayList<>();
+        systemErr = new ArrayList<>();
+
+        ByteArrayOutputStream bosOut = new ByteArrayOutputStream();
+        ByteArrayOutputStream bosErr = new ByteArrayOutputStream();
+
+        if (saveOut) {
+            System.setOut(new PrintStream(bosOut));
+        }
+
+        if (saveErr) {
+            System.setErr(new PrintStream(bosErr));
+        }
+
+        try {
+            Main main = new Main() {
+
+                @Override
+                protected void preInit(NinjaContext context) {
+                    validate(preInit, context, "pre init");
                 }
-            }
 
-            @Override
-            protected void postExecute(NinjaContext context) {
-                try {
-                    if (postExecutionValidator != null) {
-                        LOG.info(">>>>>>>>>>>>>>>> Starting post execution validation");
-                        postExecutionValidator.validate(context);
-                    }
-                } catch (Exception ex) {
-                    logTestExecutionFail("Post execution test failed with exception", ex);
+                @Override
+                protected void preExecute(NinjaContext context) {
+                    validate(preExecution, context, "pre execution");
                 }
-            }
-        };
 
-        main.run(args);
+                @Override
+                protected void postExecute(NinjaContext context) {
+                    validate(postExecution, context, "post execution");
+                }
+            };
+
+            main.run(args);
+        } finally {
+            try {
+                if (saveOut) {
+                    System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+                    systemOut = IOUtils.readLines(new ByteArrayInputStream(bosOut.toByteArray()), StandardCharsets.UTF_8);
+                }
+
+                if (saveErr) {
+                    System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err)));
+                    systemErr = IOUtils.readLines(new ByteArrayInputStream(bosErr.toByteArray()), StandardCharsets.UTF_8);
+                }
+            } catch (IOException ex) {
+            }
+        }
+    }
+
+    protected List<String> getSystemOut() {
+        return systemOut;
+    }
+
+    protected List<String> getSystemErr() {
+        return systemErr;
+    }
+
+    private void validate(ExecutionValidator validator, NinjaContext context, String message) {
+        if (validator == null) {
+            return;
+        }
+
+        try {
+            LOG.info("Starting {}", message);
+            validator.validate(context);
+        } catch (Exception ex) {
+            logTestExecutionFail("Validation '" + message + "' failed with exception", ex);
+        }
     }
 
     private void logTestExecutionFail(String message, Exception ex) {

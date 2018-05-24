@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -185,18 +186,16 @@ public class ShadowManager {
 	 * Locates the appropriate Shadow in repository that corresponds to the
 	 * provided resource object.
 	 *
-	 * DEAD flag is cleared - in memory as well as in repository.
-	 * 
-	 * @param parentResult
+	 * DEAD flag is cleared - in memory as well as in repository. [is this really needed?]
 	 * 
 	 * @return current shadow object that corresponds to provided
 	 *         resource object or null if the object does not exist
 	 */
-	public PrismObject<ShadowType> lookupShadowInRepository(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
+	public PrismObject<ShadowType> lookupLiveShadowInRepository(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
 			OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		ObjectQuery query = createSearchShadowQuery(ctx, resourceShadow, prismContext,
+		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, resourceShadow, prismContext,
 				parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter:\n{}",
@@ -204,36 +203,42 @@ public class ShadowManager {
 		}
 
 		// TODO: check for errors
-		 List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-		 MiscSchemaUtil.reduceSearchResult(results);
+		 List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		 MiscSchemaUtil.reduceSearchResult(foundShadows);
 
-		LOGGER.trace("lookupShadow found {} objects", results.size());
-
-		if (results.size() == 0) {
-			return null;
-		}
-		if (results.size() > 1) {
-			for (PrismObject<ShadowType> result : results) {
-				LOGGER.trace("Search result:\n{}", result.debugDump());
+		LOGGER.trace("lookupShadow found {} objects", foundShadows.size());
+		
+		PrismObject<ShadowType> liveShadow = null;
+		for (PrismObject<ShadowType> foundShadow : foundShadows) {
+			if (!Boolean.TRUE.equals(foundShadow.asObjectable().isDead())) {
+				if (liveShadow != null) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("More than one live shadow found for resource shadow {}:\n{}\n{}",
+								resourceShadow, liveShadow.debugDump(1), foundShadow.debugDump(1));
+					}
+					LOGGER.error("More than one live shadow found for " + resourceShadow);
+					throw new IllegalStateException("More than one live shadow found for " + resourceShadow);
+				}
 			}
-			LOGGER.error("More than one shadow found for " + resourceShadow);
-			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadow found for " + resourceShadow);
 		}
-		PrismObject<ShadowType> shadow = results.get(0);
-		checkConsistency(shadow);
-
-		if (Boolean.TRUE.equals(shadow.asObjectable().isDead())) {
-			LOGGER.debug("Repository shadow {} is marked as dead - resetting the flag", ObjectTypeUtil.toShortString(shadow));
-			shadow.asObjectable().setDead(false);
+		
+		if (liveShadow == null && foundShadows.size() == 1) {
+			// LEGACY CODE
+			// Not sure about this code. In which case is this automatic resurrection of shadows needed?
+			liveShadow = foundShadows.get(0);
+			LOGGER.debug("Repository shadow {} is marked as dead - resetting the flag (LEGACY)", ObjectTypeUtil.toShortString(liveShadow));
+			liveShadow.asObjectable().setDead(false);
 			List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext).item(ShadowType.F_DEAD).replace().asItemDeltas();
 			try {
-				repositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas, parentResult);
+				repositoryService.modifyObject(ShadowType.class, liveShadow.getOid(), deltas, parentResult);
 			} catch (ObjectAlreadyExistsException e) {
 				throw new SystemException("Unexpected exception when resetting 'dead' flag: " + e.getMessage(), e);
 			}
 		}
-		return shadow;
+
+		checkConsistency(liveShadow);
+
+		return liveShadow;
 	}
 
 	public PrismObject<ShadowType> lookupShadowInRepository(ProvisioningContext ctx, ResourceAttributeContainer identifierContainer,
@@ -273,6 +278,33 @@ public class ShadowManager {
 		PrismObject<ShadowType> shadow = results.get(0);
 		checkConsistency(shadow);
 		return shadow;
+	}
+	
+	public Collection<PrismObject<ShadowType>> lookForPreviousDeadShadows(ProvisioningContext ctx,
+			PrismObject<ShadowType> inputShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		List<PrismObject<ShadowType>> deadShadows = new ArrayList<>();
+		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, inputShadow, prismContext,
+				parentResult);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching for dead shadows using filter:\n{}",
+					query==null?null:query.debugDump(1));
+		}
+		if (query == null) {
+			// No primary identifier. So there are obviously no relevant previous dead shadows.
+			return deadShadows;
+		}
+
+		List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		MiscSchemaUtil.reduceSearchResult(results);
+
+		LOGGER.trace("looking for previous dead shadows, found {} objects", results.size());
+
+		for (PrismObject<ShadowType> foundShadow : results) {
+			if (Boolean.TRUE.equals(foundShadow.asObjectable().isDead())) {
+				deadShadows.add(foundShadow);
+			}
+		}
+		return deadShadows;
 	}
 
 	public PrismObject<ShadowType> lookupConflictingShadowBySecondaryIdentifiers( 
@@ -645,10 +677,13 @@ public class ShadowManager {
 		return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();
 	}
 
-	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
+	private ObjectQuery createSearchShadowQueryByPrimaryIdentifier(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getPrimaryIdentifier();
+		if (identifier == null) {
+			return null;
+		}
 
 		Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
@@ -783,7 +818,7 @@ public class ShadowManager {
 	}
 	
 	// Called when there is an provisioing error and proposed shadow is already created
-	public void handlePropesedShadowError(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+	public void handleProposedShadowError(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
 			String proposedShadowOid, Exception cause, Task task, OperationResult parentResult) {
 		// For now just remove the proposed shadow. Maybe later we can figure out something smarter,
 		// e.g. recording the error in the shadow.
@@ -999,6 +1034,7 @@ public class ShadowManager {
 			ProvisioningContext ctx, 
 			PrismObject<ShadowType> oldRepoShadow,
 			ProvisioningOperationState<AsynchronousOperationResult> opState, 
+			XMLGregorianCalendar now,
 			OperationResult parentResult) 
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
@@ -1012,7 +1048,7 @@ public class ShadowManager {
 			PendingOperationType existingPendingOperation = findExistingPendingOperation(currentShadow, proposedDelta, false);
 			if (existingPendingOperation != null) {
 				LOGGER.trace("Found existing pending operation for delete of {}, updating", currentShadow);
-				updatePendingOperation(ctx, currentShadow, opState, existingPendingOperation, parentResult);				
+				updatePendingOperation(ctx, currentShadow, opState, existingPendingOperation, now, parentResult);				
 				return;
 			}
 		}
@@ -1200,11 +1236,12 @@ public class ShadowManager {
 			PrismObject<ShadowType> shadow,
 			ProvisioningOperationState<A> opState,
 			PendingOperationType existingPendingOperation,
+			XMLGregorianCalendar now,
 			OperationResult parentResult) 
 					throws SchemaException, ObjectNotFoundException {
 		List<PendingOperationType> pendingExecutionOperations = new ArrayList<>(1);
 		pendingExecutionOperations.add(existingPendingOperation);
-		updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, parentResult);
+		updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, parentResult);
 	}
 	
 	public <A extends AsynchronousOperationResult> void updatePendingOperations(
@@ -1212,6 +1249,7 @@ public class ShadowManager {
 			PrismObject<ShadowType> shadow,
 			ProvisioningOperationState<A> opState,
 			List<PendingOperationType> pendingExecutionOperations,
+			XMLGregorianCalendar now,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		Collection<? extends ItemDelta> repoDeltas = new ArrayList<>();
 		OperationResultStatusType resultStatus = opState.getResultStatusType();
@@ -1223,12 +1261,21 @@ public class ShadowManager {
 			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_EXECUTION_STATUS, executionStatus, shadow.getDefinition());
 			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_RESULT_STATUS, resultStatus, shadow.getDefinition());
 			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference, shadow.getDefinition());
-			
-			// TODO: timestamps
+			if (existingPendingOperation.getRequestTimestamp() == null) {
+				// This is mostly failsafe. We do not want operations without timestamps. Those would be quite difficult to cleanup.
+				// Therefore unprecise timestamp is better than no timestamp.
+				addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_REQUEST_TIMESTAMP, now, shadow.getDefinition());
+			}
+			if (executionStatus == PendingOperationExecutionStatusType.COMPLETED && existingPendingOperation.getCompletionTimestamp() == null) {
+				addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_COMPLETION_TIMESTAMP, now, shadow.getDefinition());
+			}
+			if (executionStatus == PendingOperationExecutionStatusType.EXECUTING && existingPendingOperation.getOperationStartTimestamp() == null) {
+				addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now, shadow.getDefinition());
+			}
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Updating pending operations in {}\n:{}", shadow, DebugUtil.debugDump(repoDeltas, 1));
+			LOGGER.trace("Updating pending operations in {}:\n{}\nbased on opstate: {}", shadow, DebugUtil.debugDump(repoDeltas, 1), opState.shortDump());
 		}
 		
 		try {
@@ -1389,6 +1436,7 @@ public class ShadowManager {
 				PrismObject<ShadowType> oldRepoShadow, 
 				Collection<? extends ItemDelta> modifications, 
 				ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+				XMLGregorianCalendar now,
 				OperationResult parentResult) 
 						throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		
@@ -1411,14 +1459,14 @@ public class ShadowManager {
 			if (existingPendingOperation == null) {
 				modifyShadowAttributes(ctx, oldRepoShadow, modifications, parentResult);
 			} else {
-				updatePendingOperation(ctx, oldRepoShadow, opState, existingPendingOperation, parentResult);
+				updatePendingOperation(ctx, oldRepoShadow, opState, existingPendingOperation, now, parentResult);
 			}
 		} else {
 			// operation in progress
 			if (existingPendingOperation == null) {
 				addPendingOperationModify(ctx, oldRepoShadow, modifications, opState, parentResult);
 			} else {
-				updatePendingOperation(ctx, oldRepoShadow, opState, existingPendingOperation, parentResult);
+				updatePendingOperation(ctx, oldRepoShadow, opState, existingPendingOperation, now, parentResult);
 			}
 		}
 
@@ -1781,6 +1829,7 @@ public class ShadowManager {
 			ProvisioningContext ctx, 
 			PrismObject<ShadowType> oldRepoShadow, 
 			ProvisioningOperationState<AsynchronousOperationResult> opState,
+			XMLGregorianCalendar now,
 			OperationResult parentResult) 
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
@@ -1790,7 +1839,7 @@ public class ShadowManager {
 		} else {
 			LOGGER.trace("Recording pending delete operation in repository {}: {}", oldRepoShadow, 
 					opState);
-			recordPendingDeleteOperationAfterExecution(ctx, oldRepoShadow, opState, parentResult);
+			recordPendingDeleteOperationAfterExecution(ctx, oldRepoShadow, opState, now, parentResult);
 		}
 	}
 	

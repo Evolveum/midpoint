@@ -4,12 +4,16 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.evolveum.midpoint.ninja.action.Action;
 import com.evolveum.midpoint.ninja.impl.Command;
+import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.io.FileUtils;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -77,6 +81,8 @@ public class Main {
 
             context = new NinjaContext(jc);
 
+            preInit(context);
+
             action.init(context, options);
 
             preExecute(context);
@@ -89,6 +95,10 @@ public class Main {
         } finally {
             cleanupResources(base, context);
         }
+    }
+
+    protected void preInit(NinjaContext context) {
+        // intentionally left out empty
     }
 
     protected void preExecute(NinjaContext context) {

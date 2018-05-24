@@ -13,7 +13,7 @@ public class ProxyCreator {
 
     public static <T> T getProxy(Class<T> type, Supplier<T> factory) {
         return (T) Proxy.newProxyInstance(ProxyCreator.class.getClassLoader(), new Class<?>[]{type},
-                new LazyInvocationHandler<T>(factory));
+            new LazyInvocationHandler<>(factory));
     }
 
     private static class LazyInvocationHandler<T> implements InvocationHandler {

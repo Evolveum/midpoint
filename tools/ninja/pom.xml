@@ -250,6 +250,9 @@
                         <goals>
                             <goal>repackage</goal>
                         </goals>
+                        <configuration>
+                            <layout>ZIP</layout>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

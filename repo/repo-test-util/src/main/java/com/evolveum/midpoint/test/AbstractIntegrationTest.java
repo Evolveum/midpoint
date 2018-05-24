@@ -1631,9 +1631,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void displayWhen(String testName) {
 		TestUtil.displayWhen(testName);
 	}
+	
+	protected void displayWhen(String testName, String stage) {
+		TestUtil.displayWhen(testName + " ("+stage+")");
+	}
 
 	protected void displayThen(String testName) {
 		TestUtil.displayThen(testName);
+	}
+	
+	protected void displayThen(String testName, String stage) {
+		TestUtil.displayThen(testName + " ("+stage+")");
 	}
 
 	protected void displayCleanup(String testName) {
@@ -1765,7 +1773,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
+		if (!OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
+			String message = "Expected IN_PROGRESS, but result status was " + result.getStatus();
+			display (message, result);
+			fail(message);
+		}
 		return result.getAsynchronousOperationReference();
 	}
 
