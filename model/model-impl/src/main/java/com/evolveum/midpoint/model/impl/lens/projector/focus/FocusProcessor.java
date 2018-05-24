@@ -419,6 +419,10 @@ public class FocusProcessor {
 		}
 
 		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
+			if (propertyConstraintType.getPath() == null) {
+				LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", objectPolicyConfigurationType);
+				throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + objectPolicyConfigurationType + " defined in system configuration.");
+			}
 			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
 			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
 				PrismProperty<Object> prop = focusNew.findProperty(itemPath);

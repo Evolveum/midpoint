@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.util.DebugUtil;
 import org.springframework.stereotype.Component;
 
@@ -69,6 +71,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
 			Collection<? extends ItemDelta> modifications,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			XMLGregorianCalendar now,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {

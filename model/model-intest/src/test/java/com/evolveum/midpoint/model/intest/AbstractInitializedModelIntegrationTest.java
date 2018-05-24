@@ -368,6 +368,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);
 	}
 
+	@Override
+	protected String getTopOrgOid() {
+		return ORG_GOVERNOR_OFFICE_OID;
+	}
+	
 	protected void assertMonkeyIslandOrgSanity() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		assertMonkeyIslandOrgSanity(0);
 	}

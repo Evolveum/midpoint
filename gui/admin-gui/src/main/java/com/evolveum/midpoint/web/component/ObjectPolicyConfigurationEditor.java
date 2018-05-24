@@ -37,6 +37,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -57,6 +58,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationEditor.class);
 
+	private static final String DOT_CLASS = ObjectPolicyConfigurationEditor.class.getName() + ".";
 
     private static final String ID_LABEL = "label";
     private static final String ID_REPEATER = "repeater";
@@ -324,10 +326,12 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 			@Override
              protected void savePerformed(AjaxRequestTarget target){
                  ObjectPolicyConfigurationType oldConfig = getModel().getObject().getConfig();
-                 ObjectPolicyConfigurationType newConfig = getModel().getObject().preparePolicyConfig();
+                 OperationResult result = new OperationResult(DOT_CLASS + "preparePropertyConstraint");
+                 ObjectPolicyConfigurationType newConfig = getModel().getObject().preparePolicyConfig(result);
 //
                  ObjectPolicyConfigurationEditor.this.replace(oldConfig, newConfig);
                  ObjectPolicyConfigurationEditor.this.getPageBase().hideMainPopup(target);
+                 getPageBase().showResult(result, false);
                  target.add(ObjectPolicyConfigurationEditor.this);
              }
     	};

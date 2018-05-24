@@ -39,6 +39,8 @@ public interface BackingStore {
 	
 	void addPhantom()  throws IOException;
 	
+	void addPhoenix()  throws IOException;
+	
 	void deleteAccount(String username) throws IOException;
 	
 	void displayContent() throws IOException;

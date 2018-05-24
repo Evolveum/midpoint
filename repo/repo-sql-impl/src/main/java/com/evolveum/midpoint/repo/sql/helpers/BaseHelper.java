@@ -114,12 +114,12 @@ public class BaseHelper {
 		rollbackTransaction(session, null, null, false);
 	}
 
-	public void rollbackTransaction(Session session, Exception ex, OperationResult result, boolean fatal) {
+	public void rollbackTransaction(Session session, Throwable ex, OperationResult result, boolean fatal) {
 		String message = ex != null ? ex.getMessage() : "null";
 		rollbackTransaction(session, ex, message, result, fatal);
 	}
 
-	public void rollbackTransaction(Session session, Exception ex, String message, OperationResult result,
+	public void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result,
 			boolean fatal) {
 		if (StringUtils.isEmpty(message) && ex != null) {
 			message = ex.getMessage();
@@ -147,7 +147,7 @@ public class BaseHelper {
 		}
 	}
 
-	public void handleGeneralException(Exception ex, Session session, OperationResult result) {
+	public void handleGeneralException(Throwable ex, Session session, OperationResult result) {
 		if (ex instanceof RuntimeException) {
 			handleGeneralRuntimeException((RuntimeException) ex, session, result);
 		} else {
@@ -174,7 +174,7 @@ public class BaseHelper {
 		}
 	}
 
-	public void handleGeneralCheckedException(Exception ex, Session session, OperationResult result) {
+	public void handleGeneralCheckedException(Throwable ex, Session session, OperationResult result) {
 		LOGGER.error("General checked exception occurred.", ex);
 
 		boolean fatal = !isExceptionRelatedToSerialization(ex);
@@ -227,13 +227,13 @@ public class BaseHelper {
 		return attempt + 1;
 	}
 
-	private boolean isExceptionRelatedToSerialization(Exception ex) {
+	private boolean isExceptionRelatedToSerialization(Throwable ex) {
 		boolean rv = isExceptionRelatedToSerializationInternal(ex);
 		LOGGER.trace("Considering if exception {} is related to serialization: returning {}", ex, rv, ex);
 		return rv;
 	}
 
-	private boolean isExceptionRelatedToSerializationInternal(Exception ex) {
+	private boolean isExceptionRelatedToSerializationInternal(Throwable ex) {
 
 		if (ex instanceof PessimisticLockException
 				|| ex instanceof LockAcquisitionException

@@ -146,8 +146,7 @@ public class ObjectUpdater {
             ConstraintViolationException constEx = findConstraintViolationException(ex);
             if (constEx == null) {
                 baseHelper.handleGeneralException(ex, session, result);
-                // it wont go here as exception will be thrown
-                return oid;
+                throw new AssertionError("shouldn't be here");
             }
 
             handleConstraintViolationException(session, constEx, result);
@@ -487,23 +486,23 @@ public class ObjectUpdater {
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
             LOGGER.trace("Committed!");
-        } catch (ObjectNotFoundException ex) {
+        } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (ConstraintViolationException ex) {
-            handleConstraintViolationException(session, ex, result);
+        } catch (PersistenceException ex) {
+            ConstraintViolationException constEx = findConstraintViolationException(ex);
+	        if (constEx != null) {
+		        handleConstraintViolationException(session, constEx, result);
+		        baseHelper.rollbackTransaction(session, constEx, result, true);
+		        LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
+		        // we don't know if it's only name uniqueness violation, or something else,
+		        // therefore we're throwing it always as ObjectAlreadyExistsException
 
-            baseHelper.rollbackTransaction(session, ex, result, true);
-
-            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
-            // we don't know if it's only name uniqueness violation, or something else,
-            // therefore we're throwing it always as ObjectAlreadyExistsException
-
-            //todo improve (we support only 5 DB, so we should probably do some hacking in here)
-            throw new ObjectAlreadyExistsException(ex);
-        } catch (SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
-            throw ex;
+		        //todo improve (we support only 5 DB, so we should probably do some hacking in here)
+		        throw new ObjectAlreadyExistsException(constEx);
+	        } else {
+	            baseHelper.handleGeneralException(ex, session, result);
+	        }
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
@@ -544,7 +543,7 @@ public class ObjectUpdater {
         SQLException sqlException = baseHelper.findSqlException(ex);
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
-            LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[]{ex, sqlException, nextException});
+            LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", ex, sqlException, nextException);
             String[] okStrings = new String[] {
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
                     "duplicate key value violates unique constraint \"m_reference_pkey\""

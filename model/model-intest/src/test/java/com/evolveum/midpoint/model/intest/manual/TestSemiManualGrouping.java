@@ -171,7 +171,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowMid1NoFetch, 
 				PendingOperationExecutionStatusType.EXECUTION_PENDING, null);
 		
-		clockForward("PT20M");
+		clockForward("PT3M");
 		
 		// WHEN (mid2)
 		displayWhen(TEST_NAME, "mid2");
@@ -197,10 +197,11 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 
 		assertAttribute(shadowMid2NoFetch, ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME);
 
-		assertPendingOperationDeltas(shadowMid2NoFetch, 1);
-//		PendingOperationType fizzledAddOperation = findPendingOperation(shadowMid2NoFetch, OperationResultStatusType.HANDLED_ERROR, ChangeTypeType.ADD);
-//		assertPendingOperation(shadowMid2NoFetch, fizzledAddOperation,
-//						PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.HANDLED_ERROR);
+		assertPendingOperationDeltas(shadowMid2NoFetch, 2);
+		PendingOperationType fizzledAddOperation = findPendingOperation(shadowMid2NoFetch, OperationResultStatusType.HANDLED_ERROR, ChangeTypeType.ADD);
+		assertPendingOperation(shadowMid2NoFetch, fizzledAddOperation,
+						PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.HANDLED_ERROR);
+		assertNotNull("Null completion timestamp", fizzledAddOperation.getCompletionTimestamp());
 		PendingOperationType reconOperation = findPendingOperation(shadowMid2NoFetch, null, ChangeTypeType.MODIFY);
 		assertPendingOperation(shadowMid2NoFetch, reconOperation,
 				PendingOperationExecutionStatusType.EXECUTION_PENDING, null);

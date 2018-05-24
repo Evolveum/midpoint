@@ -6636,6 +6636,36 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="deprecated" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This setting can be used to control the value of "deprecated" flag determined from
+                        the schema. I.e. it can be used to override the value taken from the schema.
+                        E.g. it can be used to "unmark" a deprecated item, so it will behave as normal,
+                        non-deprecated item. This may be used as a temporary measure during the period of
+                        migrating the configuration to non-deprecated setting.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="experimental" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This setting can be used to control the value of "experimental" flag determined from
+                        the schema. I.e. it can be used to override the value taken from the schema.
+                        E.g. it can be used to "unmark" an experimental item, so it will behave as normal,
+                        non-experimental item.
+                        USE WITH CARE. Experimental items are marked as experimental for a reason.
+                        When those items are "unmarked", they will not get any less experimental.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    	<a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
