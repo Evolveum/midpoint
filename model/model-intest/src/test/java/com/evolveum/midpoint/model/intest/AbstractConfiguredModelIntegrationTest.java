@@ -343,8 +343,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 00);
 
 	// Has null name, doesn not have given name, no employeeType
-	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR + "/user-three-headed-monkey.xml";
+	protected static final File USER_THREE_HEADED_MONKEY_FILE = new File(COMMON_DIR, "/user-three-headed-monkey.xml");
 	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
+	protected static final String USER_THREE_HEADED_MONKEY_NAME = "monkey";
+	protected static final String USER_THREE_HEADED_MONKEY_FULL_NAME = "Three-Headed Monkey";
+	
 
 	// Elaine has account on the dummy resources (default, red, blue)
 	// The accounts are also assigned
@@ -427,6 +430,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_SCUMM_BAR_DISPLAY_NAME = "Scumm Bar";
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
     protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
+    protected static final String ORG_MINISTRY_OF_DEFENSE_NAME = "F0002";
 	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
 	protected static final String ORG_MINISTRY_OF_RUM_NAME = "F0004";
 	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";

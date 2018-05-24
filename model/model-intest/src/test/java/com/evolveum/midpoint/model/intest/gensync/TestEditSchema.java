@@ -1045,6 +1045,11 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		valueEnumerationRef = timezoneDef.getValueEnumerationRef();
 		assertNotNull("No valueEnumerationRef for timezone", valueEnumerationRef);
 		assertEquals("Wrong valueEnumerationRef OID for timezone", SystemObjectsType.LOOKUP_TIMEZONES.value(), valueEnumerationRef.getOid());
+		
+		// Deprecated. But deprecation flag in overridden in object template (MID-4680)
+		PrismPropertyDefinition<String> employeeTypeDef = editDef.findPropertyDefinition(UserType.F_EMPLOYEE_TYPE);
+		assertNotNull("No definition for employeeType in user", employeeTypeDef);
+		assertEquals("Wrong deprecation flag for employeeType", false, employeeTypeDef.isDeprecated());
 
 		PrismContainerDefinition<CredentialsType> credentialsDef = editDef.findContainerDefinition(UserType.F_CREDENTIALS);
 		assertNotNull("No definition for credentials in user", credentialsDef);

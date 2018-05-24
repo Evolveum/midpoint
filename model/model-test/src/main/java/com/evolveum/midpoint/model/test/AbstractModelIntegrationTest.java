@@ -569,8 +569,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, options, task, result);
+		executeChanges(objectDelta, options, task, result);
 	}
 
 	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -2002,31 +2001,54 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
+	
+	protected List<PrismObject<UserType>> getSubOrgUsers(String baseOrgOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+				.isDirectChildOf(baseOrgOid)
+				.build();
+		return modelService.searchObjects(UserType.class, query, null, task, result);
+	}
 
 	protected String dumpOrgTree(String topOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return dumpOrgTree(topOrgOid, false);
+	}
+	
+	protected String dumpOrgTree(String topOrgOid, boolean dumpUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assertSubOrgs");
 		OperationResult result = task.getResult();
 		PrismObject<OrgType> topOrg = modelService.getObject(OrgType.class, topOrgOid, null, task, result);
-		String dump = dumpOrgTree(topOrg, task, result);
+		String dump = dumpOrgTree(topOrg, dumpUsers, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		return dump;
 	}
 
-	protected String dumpOrgTree(PrismObject<OrgType> topOrg, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected String dumpOrgTree(PrismObject<OrgType> topOrg, boolean dumpUsers, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		StringBuilder sb = new StringBuilder();
 		dumpOrg(sb, topOrg, 0);
 		sb.append("\n");
-		dumpSubOrgs(sb, topOrg.getOid(), 1, task, result);
+		dumpSubOrgs(sb, topOrg.getOid(), dumpUsers, 1, task, result);
 		return sb.toString();
 	}
 
-	private void dumpSubOrgs(StringBuilder sb, String baseOrgOid, int indent, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	private void dumpSubOrgs(StringBuilder sb, String baseOrgOid, boolean dumpUsers, int indent, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrgOid, task, result);
 		for (PrismObject<OrgType> suborg: subOrgs) {
 			dumpOrg(sb, suborg, indent);
+			if (dumpUsers) {
+				dumpOrgUsers(sb, suborg.getOid(), dumpUsers, indent + 1, task, result);
+			}
 			sb.append("\n");
-			dumpSubOrgs(sb, suborg.getOid(), indent + 1, task, result);
+			dumpSubOrgs(sb, suborg.getOid(), dumpUsers, indent + 1, task, result);
+		}
+	}
+	
+	private void dumpOrgUsers(StringBuilder sb, String baseOrgOid, boolean dumpUsers, int indent, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		List<PrismObject<UserType>> subUsers = getSubOrgUsers(baseOrgOid, task, result);
+		for (PrismObject<UserType> subuser: subUsers) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append(subuser);
 		}
 	}
 
@@ -4884,6 +4906,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		display("Org tree", dumpOrgTree(getTopOrgOid()));
+	}
+	
+	protected void dumpOrgTreeAndUsers() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		display("Org tree", dumpOrgTree(getTopOrgOid(), true));
 	}
 
 	protected String getTopOrgOid() {

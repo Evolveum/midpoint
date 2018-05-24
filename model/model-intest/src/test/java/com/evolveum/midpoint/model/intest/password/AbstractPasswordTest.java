@@ -144,6 +144,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		initDummyResourcePirate(RESOURCE_DUMMY_LIFECYCLE_NAME, RESOURCE_DUMMY_LIFECYCLE_FILE, RESOURCE_DUMMY_LIFECYCLE_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_SOUVENIR_NAME, RESOURCE_DUMMY_SOUVENIR_FILE, RESOURCE_DUMMY_SOUVENIR_OID, initTask, initResult);
 
+		repoAddObjectFromFile(USER_THREE_HEADED_MONKEY_FILE, UserType.class, true, initResult);
+		
 		importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
 		initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
 
@@ -391,8 +393,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -528,8 +529,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_UGLY_OID, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -951,6 +951,66 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
      	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
 		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
+	}
+	
+	/**
+	 * Three headed monkey has no credentials. No password, nothing.
+	 * Just three heads.
+	 * MID-4631
+	 */
+	@Test
+    public void test150AssignMonkeyDummyAccount() throws Exception {
+		final String TEST_NAME = "test150AssignMonkeyDummyAccount";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+		// THEN
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		String accountOid = getSingleLinkOid(userAfter);
+
+        // Check account in dummy resource
+        assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME, USER_THREE_HEADED_MONKEY_FULL_NAME, true);
+	}
+	
+	/**
+	 * Three headed monkey has no credentials. No password, nothing.
+	 * Just three heads.
+	 * MID-4631
+	 */
+	@Test
+    public void test152ModifyUserMonkeyPassword() throws Exception {
+		final String TEST_NAME = "test152ModifyUserMonkeyPassword";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_1_CLEAR, task, result);
+
+		// THEN
+		assertSuccess(result);
+
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+
+		assertUserPassword(userAfter, USER_PASSWORD_1_CLEAR);
 	}
 
 	@Test
