@@ -136,6 +136,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File USER_ESTEVAN_FILE = new File(TEST_DIR, "user-estevan.xml");
 	protected static final String USER_ESTEVAN_OID = "00000000-0000-0000-0000-110000000012";
+	
+	protected static final File USER_CAPSIZE_FILE = new File(TEST_DIR, "user-capsize.xml");
+	protected static final String USER_CAPSIZE_OID = "bab2c6a8-5f2a-11e8-97d2-4fc12ba39043";
 
 	protected static final File USER_ANGELICA_FILE = new File(TEST_DIR, "user-angelica.xml");
 	protected static final String USER_ANGELICA_NAME = "angelika";
@@ -624,6 +627,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupDelete(UserType.class, USER_DRAKE_OID, task, result);
         cleanupDelete(UserType.class, USER_RAPP_OID, task, result);
         cleanupDelete(UserType.class, USER_MANCOMB_OID, task, result);
+        cleanupDelete(UserType.class, USER_CAPSIZE_OID, task, result);
         cleanupAdd(USER_LARGO_FILE, task, result);
         cleanupAdd(USER_LECHUCK_FILE, task, result);
         cleanupAdd(USER_ESTEVAN_FILE, task, result);
