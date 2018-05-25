@@ -19,7 +19,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.PopupableObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -29,23 +29,19 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
@@ -279,13 +275,10 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
     }
 
     private void addNewShadowRefValuePerformed(AjaxRequestTarget target, RefinedAssociationDefinition def){
-        ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(def,
-                getPageBase().getPrismContext(), resourceModel.getObject().getOid());
-        Task task = getPageBase().createAnonymousTask("Adding new shadow");
-        ObjectBrowserPanel<ShadowType> objectBrowserPanel = new ObjectBrowserPanel<ShadowType>(
-                getPageBase().getMainPopupBodyId(), ShadowType.class, Arrays.asList(ShadowType.COMPLEX_TYPE),
-                false, getPageBase(),
-                filter) {
+        PopupableObjectListPanel<ShadowType> objectBrowserPanel = new PopupableObjectListPanel<ShadowType>(getPageBase().getMainPopupBodyId(),
+                ShadowType.class, SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch()),
+                false, ConstructionAssociationPanel.this.getPageBase(), null) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -303,16 +296,27 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());
                 ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+                Task task = getPageBase().createAnonymousTask("Adding new shadow");
                 ContainerValueWrapper<ResourceObjectAssociationType> valueWrapper =
                         factory.createContainerValueWrapper(associationWrapper, newAssociation,
                                 associationWrapper.getObjectStatus(), ValueStatus.ADDED, associationWrapper.getPath(), task);
 //                                        valueWrapper.setShowEmpty(true, false);
                 associationWrapper.getValues().add(valueWrapper);
 
-                target.add(ConstructionAssociationPanel.this);
-            }
+                target.add(ConstructionAssociationPanel.this);            }
 
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+               ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(def,
+                        ConstructionAssociationPanel.this.getPageBase().getPrismContext(), resourceModel.getObject().getOid());
+                if (query == null) {
+                    query = new ObjectQuery();
+                }
+                query.addFilter(filter);
+                return query;
+            }
         };
+        objectBrowserPanel.setOutputMarkupId(true);
 
         getPageBase().showMainPopup(objectBrowserPanel, target);
 

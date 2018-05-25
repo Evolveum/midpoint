@@ -71,6 +71,9 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
     private boolean isMultiple;
+    private IModel<String> label;
+    private String labelSize;
+    private String textSize;
 
     public GenericMultiValueLabelEditPanel(String id, IModel<List<T>> value, IModel<String> label,
                                            String labelSize, String textSize, boolean isMultiple){
@@ -78,10 +81,14 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         this.isMultiple = isMultiple;
         setOutputMarkupId(true);
 
-        initLayout(label, labelSize, textSize);
+        this.label = label;
+        this.labelSize = labelSize;
+        this.textSize = textSize;
     }
 
-    private void initLayout(final IModel<String> label, final String labelSize, final String textSize){
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
         Label l = new Label(ID_LABEL, label);
         l.setVisible(getLabelVisibility());

@@ -569,8 +569,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, options, task, result);
+		executeChanges(objectDelta, options, task, result);
 	}
 
 	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {

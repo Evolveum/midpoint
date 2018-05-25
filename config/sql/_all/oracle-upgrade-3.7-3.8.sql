@@ -160,7 +160,7 @@ ALTER TABLE m_audit_item ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) RE
 ALTER TABLE m_audit_prop_value ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 
-ALTER TABLE m_audit_item MODIFY changedItemPath VARCHAR2(255 CHAR) NOT NULL;
+ALTER TABLE m_audit_item MODIFY changedItemPath VARCHAR2(255 CHAR);
 
 CREATE OR REPLACE FUNCTION clob_to_blob (p_data  IN  CLOB)
   RETURN BLOB
