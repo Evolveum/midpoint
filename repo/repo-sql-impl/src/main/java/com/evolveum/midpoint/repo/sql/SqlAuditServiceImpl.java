@@ -229,7 +229,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 }
                 RAuditEventRecord raudit = (RAuditEventRecord) o;
 
-                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext());
+                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext(), getConfiguration().isUsingSQLServer());
 
                 // TODO what if original name (in audit log) differs from the current one (in repo) ?
                 audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
