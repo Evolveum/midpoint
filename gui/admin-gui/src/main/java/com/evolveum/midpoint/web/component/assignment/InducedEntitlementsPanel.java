@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -93,6 +94,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(AttributeModifier.append("style", "white-space: pre-line"));
                 item.add(new Label(componentId, getAssociationLabelModel(rowModel.getObject())));
             }
         });
