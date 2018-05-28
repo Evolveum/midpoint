@@ -560,7 +560,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 	 * Analogy of:
 	 * MODIFY/replace (credentials/password) + MODIFY/add (credentials/password/metadata)   [MID-4593]
 	 */
-	@Test(enabled = false)      // MID-4690
+	@Test      // MID-4690
 	public void testObjectDeltaUnion() throws Exception {
 		final String TEST_NAME="testObjectDeltaUnion";
 		displayTestTile(TEST_NAME);
