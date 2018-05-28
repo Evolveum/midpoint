@@ -294,11 +294,17 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	 *   from the above definition.
 	 */
 	public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath) {
-    	return findItemDelta(itemPath, ItemDelta.class, Item.class);
+		//noinspection unchecked
+		return findItemDelta(itemPath, ItemDelta.class, Item.class, false);
     }
 
-    private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
-    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType) {
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath, boolean strict) {
+		//noinspection unchecked
+		return findItemDelta(itemPath, ItemDelta.class, Item.class, strict);
+    }
+
+    public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
+    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
@@ -308,7 +314,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
             itemDelta.addValuesToAdd(item.getClonedValues());
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
-            return findModification(propertyPath, deltaType, false);
+            return findModification(propertyPath, deltaType, strict);
         } else {
             return null;
         }
@@ -425,12 +431,12 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 
     @SuppressWarnings("unchecked")
 	public <X> PropertyDelta<X> findPropertyDelta(ItemPath propertyPath) {
-    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
+    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class, false);
     }
 
     @SuppressWarnings("unchecked")
 	public <X extends Containerable> ContainerDelta<X> findContainerDelta(ItemPath propertyPath) {
-    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
+    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class, false);
     }
 
     public <X extends Containerable> ContainerDelta<X> findContainerDelta(QName name) {
