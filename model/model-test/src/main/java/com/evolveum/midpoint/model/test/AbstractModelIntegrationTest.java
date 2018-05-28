@@ -197,9 +197,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigur
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
@@ -218,6 +221,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -5066,6 +5072,152 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <T> T runPrivileged(Producer<T> producer) {
 		return securityContextManager.runPrivileged(producer);
+	}
+
+	protected void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		assertEquals("Wrong number of pending operations in "+shadow, expectedNumber, pendingOperations.size());
+	}
+
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
+		return assertSinglePendingOperation(shadow, requestStart, requestEnd,
+				OperationResultStatusType.IN_PROGRESS, null, null);
+	}
+	
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResultStatus) {
+		assertPendingOperationDeltas(shadow, 1);
+		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0), 
+				null, null, expectedExecutionStatus, expectedResultStatus, null, null);
+	}
+
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
+			OperationResultStatusType expectedStatus,
+			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
+		assertPendingOperationDeltas(shadow, 1);
+		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0),
+				requestStart, requestEnd, expectedStatus, completionStart, completionEnd);
+	}
+
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
+		return assertPendingOperation(shadow, pendingOperation, requestStart, requestEnd,
+				OperationResultStatusType.IN_PROGRESS, null, null);
+	}
+	
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
+			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResultStatus) {
+		return assertPendingOperation(shadow, pendingOperation, null, null,
+				expectedExecutionStatus, expectedResultStatus, null, null);
+	}
+	
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation) {
+		return assertPendingOperation(shadow, pendingOperation, null, null,
+				OperationResultStatusType.IN_PROGRESS, null, null);
+	}
+	
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
+			OperationResultStatusType expectedResultStatus,
+			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
+		PendingOperationExecutionStatusType expectedExecutionStatus;
+		if (expectedResultStatus == OperationResultStatusType.IN_PROGRESS) {
+			expectedExecutionStatus = PendingOperationExecutionStatusType.EXECUTING;
+		} else {
+			expectedExecutionStatus = PendingOperationExecutionStatusType.COMPLETED;
+		}
+		return assertPendingOperation(shadow, pendingOperation, requestStart, requestEnd, expectedExecutionStatus, expectedResultStatus, completionStart, completionEnd);
+	}
+
+	protected PendingOperationType assertPendingOperation(
+			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
+			PendingOperationExecutionStatusType expectedExecutionStatus,
+			OperationResultStatusType expectedResultStatus,
+			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
+		assertNotNull("No operation ", pendingOperation);
+
+		ObjectDeltaType deltaType = pendingOperation.getDelta();
+		assertNotNull("No delta in pending operation in "+shadow, deltaType);
+		// TODO: check content of pending operations in the shadow
+
+		TestUtil.assertBetween("No request timestamp in pending operation in "+shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
+
+		PendingOperationExecutionStatusType executiontStatus = pendingOperation.getExecutionStatus();
+		assertEquals("Wrong execution status in pending operation in "+shadow, expectedExecutionStatus, executiontStatus);
+		
+		OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
+		assertEquals("Wrong result status in pending operation in "+shadow, expectedResultStatus, resultStatus);
+
+		// TODO: assert other timestamps
+		
+		if (expectedExecutionStatus == PendingOperationExecutionStatusType.COMPLETED) {
+			TestUtil.assertBetween("No completion timestamp in pending operation in "+shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
+		}
+
+		return pendingOperation;
+	}
+
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStaus) {
+		return findPendingOperation(shadow, expectedExecutionStaus, null, null, null);
+	}
+	
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			OperationResultStatusType expectedResult) {
+		return findPendingOperation(shadow, null, expectedResult, null, null);
+	}
+
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			OperationResultStatusType expectedResult, ItemPath itemPath) {
+		return findPendingOperation(shadow, null, expectedResult, null, itemPath);
+	}
+	
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStaus, ItemPath itemPath) {
+		return findPendingOperation(shadow, expectedExecutionStaus, null, null, itemPath);
+	}
+
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			OperationResultStatusType expectedResult, ChangeTypeType expectedChangeType) {
+		return findPendingOperation(shadow, null, expectedResult, expectedChangeType, null);
+	}
+
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
+			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResult,
+			ChangeTypeType expectedChangeType, ItemPath itemPath) {
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		for (PendingOperationType pendingOperation: pendingOperations) {
+			if (expectedExecutionStatus != null && !expectedExecutionStatus.equals(pendingOperation.getExecutionStatus())) {
+				continue;
+			}
+			if (expectedResult != null && !expectedResult.equals(pendingOperation.getResultStatus())) {
+				continue;
+			}
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (expectedChangeType != null) {
+				if (!expectedChangeType.equals(delta.getChangeType())) {
+					continue;
+				}
+			}
+			if (itemPath == null) {
+				return pendingOperation;
+			}
+			assertNotNull("No delta in pending operation in "+shadow, delta);
+			for (ItemDeltaType itemDelta: delta.getItemDelta()) {
+				ItemPath deltaPath = itemDelta.getPath().getItemPath();
+				if (itemPath.equivalent(deltaPath)) {
+					return pendingOperation;
+				}
+			}
+		}
+		return null;
 	}
 
 }

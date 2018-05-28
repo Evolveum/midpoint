@@ -1384,7 +1384,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 			case ENCRYPTION:
 				assertNotNull(message+": no value", actualValue);
-				assertTrue(message+": unenctypted value: "+actualValue, actualValue.isEncrypted());
+				assertTrue(message+": unencrypted value: "+actualValue, actualValue.isEncrypted());
 				String actualClearPassword = protector.decryptString(actualValue);
 				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
 				assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
@@ -1765,6 +1765,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		TestUtil.assertSuccess(message, result);
+	}
+	
+	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		assertEquals("Unexpected result status", expectedStatus, result.getStatus());
 	}
 
 	protected String assertInProgress(OperationResult result) {

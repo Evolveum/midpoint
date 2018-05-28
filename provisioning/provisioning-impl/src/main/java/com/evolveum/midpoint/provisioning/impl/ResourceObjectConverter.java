@@ -2397,7 +2397,7 @@ public class ResourceObjectConverter {
 				
 				status = ((AsynchronousOperationQueryable)connector).queryOperationStatus(asyncRef, result);
 				
-			} catch (ObjectNotFoundException | SchemaException e) {
+			} catch (ObjectNotFoundException | SchemaException | ConfigurationException | CommunicationException e) {
 				result.recordFatalError(e);
 				throw e;
 			}
