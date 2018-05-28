@@ -1384,7 +1384,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 			case ENCRYPTION:
 				assertNotNull(message+": no value", actualValue);
-				assertTrue(message+": unenctypted value: "+actualValue, actualValue.isEncrypted());
+				assertTrue(message+": unencrypted value: "+actualValue, actualValue.isEncrypted());
 				String actualClearPassword = protector.decryptString(actualValue);
 				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
 				assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
