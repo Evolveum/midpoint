@@ -55,11 +55,13 @@ public class ImportConsumerWorker extends BaseWorker<ImportOptions, PrismObject>
                         continue;
                     }
 
-                    CryptoUtil.encryptValues(protector, object);
-
-                    RepositoryService repository = context.getRepository();
                     RepoAddOptions opts = createRepoAddOptions(options);
 
+                    if (!opts.isAllowUnencryptedValues()) {
+                        CryptoUtil.encryptValues(protector, object);
+                    }
+
+                    RepositoryService repository = context.getRepository();
                     repository.addObject(object, opts, new OperationResult("Import object"));
 
                     operation.incrementTotal();
