@@ -76,7 +76,7 @@ public class ShadowCacheProvisioner extends ShadowCache {
 		
 		// TODO: error handling
 		//do not merge deltas when complete postponed operation is set to false, because it can cause some unexpected behavior..
-		if (!ProvisioningOperationOptions.isCompletePostponed(options)){
+		if (!ProvisioningOperationOptions.isCompletePostponed(options)) {
 			return modifications;
 		}
 		
@@ -88,28 +88,6 @@ public class ShadowCacheProvisioner extends ShadowCache {
 		
 		return modifications;
 		
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private ObjectDelta mergeDeltas(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications)
-			throws SchemaException {
-		ShadowType shadowType = shadow.asObjectable();
-		if (shadowType.getObjectChange() != null) {
-
-			ObjectDeltaType deltaType = shadowType.getObjectChange();
-			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-					deltaType.getItemDelta(), shadow.getDefinition());
-
-            // pendingModifications must come before modifications, otherwise REPLACE of value X (pending),
-            // followed by ADD of value Y (current) would become "REPLACE X", which is obviously wrong.
-            // See e.g. MID-1709.
-			return ObjectDelta.summarize(
-                    ObjectDelta.createModifyDelta(shadow.getOid(), pendingModifications,
-                            ShadowType.class, getPrismContext()),
-                    ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
-                            ShadowType.class, getPrismContext()));
-		}
-		return null;
 	}
 
 }

@@ -1766,6 +1766,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		TestUtil.assertSuccess(message, result);
 	}
+	
+	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		assertEquals("Unexpected result status", expectedStatus, result.getStatus());
+	}
 
 	protected String assertInProgress(OperationResult result) {
 		if (result.isUnknown()) {
