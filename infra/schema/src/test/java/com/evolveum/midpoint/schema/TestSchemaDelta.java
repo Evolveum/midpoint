@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,14 +34,8 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -557,5 +553,48 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		for (ObjectDelta<UserType> offspring : out.offsprings) {
 			assertDeltaOid(offspring, OID);
 		}
+	}
+
+
+	/**
+	 * Analogy of:
+	 * MODIFY/replace (credentials/password) + MODIFY/add (credentials/password/metadata)   [MID-4593]
+	 */
+	@Test(enabled = false)      // MID-4690
+	public void testObjectDeltaUnion() throws Exception {
+		final String TEST_NAME="testObjectDeltaUnion";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue("hi");
+		PasswordType newPassword = new PasswordType(getPrismContext()).value(value);
+		ObjectDelta<UserType> userDelta1 = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).replace(newPassword)
+				.asObjectDeltaCast("001");
+		MetadataType newMetadata = new MetadataType(getPrismContext()).requestorComment("comment");
+		ObjectDelta<UserType> userDelta2 = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA)
+					.add(newMetadata)
+				.asObjectDeltaCast("001");
+
+		// WHEN
+		ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
+
+		// THEN
+		display("result", userDeltaUnion);
+
+		PrismObject<UserType> userWithSeparateDeltas = new UserType(getPrismContext()).asPrismObject();
+		userDelta1.applyTo(userWithSeparateDeltas);
+		userDelta2.applyTo(userWithSeparateDeltas);
+		display("userWithSeparateDeltas after", userWithSeparateDeltas);
+
+		PrismObject<UserType> userWithUnion = new UserType(getPrismContext()).asPrismObject();
+		userDeltaUnion.applyTo(userWithUnion);
+		display("userWithUnion after", userWithUnion);
+
+		ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, false, true);       // set to isLiteral = false after fixing MID-4688
+		display("diff", diff.debugDump());
+		assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
 	}
 }

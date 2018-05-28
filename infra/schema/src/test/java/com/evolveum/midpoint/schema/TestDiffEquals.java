@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -508,5 +509,46 @@ public class TestDiffEquals {
         ObjectDelta<RoleType> delta = role1.diff(role2, true, true);
         assertFalse(delta.isEmpty());
     }
+
+	@Test(enabled = false)      // MID-4688
+	public void testDiffWithMetadata() {
+		System.out.println("\n\n===[ testDiffWithMetadata ]===\n");
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue("abc");
+
+		PrismObject<UserType> user1 = new UserType(prismContext)
+				.beginCredentials()
+					.beginPassword()
+						.value(value.clone())
+						.beginMetadata()
+							.requestorComment("hi")
+						.<PasswordType>end()
+					.<CredentialsType>end()
+				.<UserType>end()
+				.asPrismObject();
+		PrismObject<UserType> user2 = new UserType(prismContext)
+				.beginCredentials()
+					.beginPassword()
+						.value(value.clone())
+						.beginMetadata()
+						.<PasswordType>end()
+					.<CredentialsType>end()
+				.<UserType>end()
+				.asPrismObject();
+
+		ObjectDelta<UserType> diffIgnoreMetadataNotLiteral = user1.diff(user2, true, false);
+		ObjectDelta<UserType> diffWithMetadataAndLiteral = user1.diff(user2, false, true);
+		ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, false, false);
+
+		assertTrue("Diff ignoring metadata is not empty:\n" + diffIgnoreMetadataNotLiteral.debugDump(),
+				diffIgnoreMetadataNotLiteral.isEmpty());
+		assertFalse("Diff not ignoring metadata (literal) is empty:\n" + diffWithMetadataAndLiteral.debugDump(),
+				diffWithMetadataAndLiteral.isEmpty());
+		assertFalse("Diff not ignoring metadata (non-literal) is empty:\n" + diffWithMetadataNotLiteral.debugDump(),
+				diffWithMetadataNotLiteral.isEmpty());
+	}
+
 
 }

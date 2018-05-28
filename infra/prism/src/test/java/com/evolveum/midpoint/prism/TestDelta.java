@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -1087,7 +1085,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testObjectDeltaFindItemDeltaModifyProperty ]===\n");
 		// GIVEN
 
-    	ObjectDelta<UserType> userDelta = createDeltaForFindItem();
+    	ObjectDelta<UserType> userDelta = createDeltaForFindItem(false);
     	ItemPath itemDeltaPath = new ItemPath(UserType.F_GIVEN_NAME);
 
 		// WHEN
@@ -1101,10 +1099,11 @@ public class TestDelta {
     }
 
 	@Test
-    public void testObjectDeltaFindItemDeltaModifyPropertyInContainer() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaFindItemDeltaModifyPropertyInContainer ]===\n");
+    public void testObjectDeltaFindItemDeltaModifyPropertyInAddedContainer() throws Exception {
+		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyPropertyInAddedContainer";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
-		ObjectDelta<UserType> userDelta = createDeltaForFindItem();
+		ObjectDelta<UserType> userDelta = createDeltaForFindItem(false);
 		System.out.println("Object delta:\n"+userDelta.debugDump());
 
 		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
@@ -1120,14 +1119,82 @@ public class TestDelta {
     			((PropertyDelta)itemDelta).getValuesToAdd(), Boolean.TRUE);
     }
 
-	private ObjectDelta<UserType> createDeltaForFindItem() throws SchemaException {
+	@Test
+	public void testObjectDeltaFindItemDeltaModifyNonExistentPropertyInAddedContainer() throws Exception {
+		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyNonExistentPropertyInAddedContainer";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		ObjectDelta<UserType> userDelta = createDeltaForFindItem(false);
+		System.out.println("Object delta:\n"+userDelta.debugDump());
+
+		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALID_TO);        // not present in the delta
+
+		// WHEN
+		ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
+
+		// THEN
+		System.out.println("Item delta:\n"+(itemDelta==null?"null":itemDelta.debugDump()));
+		assertNull("Found delta even if it shouldn't", itemDelta);
+	}
+
+	@Test
+	public void testObjectDeltaFindItemDeltaModifyPropertyInReplacedContainer() throws Exception {
+		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyPropertyInReplacedContainer";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		ObjectDelta<UserType> userDelta = createDeltaForFindItem(true);
+		System.out.println("Object delta:\n"+userDelta.debugDump());
+
+		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+
+		// WHEN
+		ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
+
+		// THEN
+		System.out.println("Item delta:\n"+(itemDelta==null?"null":itemDelta.debugDump()));
+		PrismAsserts.assertInstanceOf(PropertyDelta.class, itemDelta);
+		assertEquals(itemDeltaPath, itemDelta.getPath());
+		// TODO
+		// What kind of delta should we return? Currently we return REPLACE one. But this can
+		// cause problems when finding deltas during delta merge operation. FindItemDelta should
+		// be specified more precisely.
+		//
+		// See MID-4689
+		//
+//		PrismAsserts.assertPropertyValues("Wrong replace values in "+itemDelta,
+//				((PropertyDelta)itemDelta).getValuesToReplace(), Boolean.TRUE);
+	}
+
+	@Test(enabled = false)      // MID-4689
+    public void testObjectDeltaFindItemDeltaModifyNonExistentPropertyInReplacedContainer() throws Exception {
+		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyNonExistentPropertyInReplacedContainer";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		ObjectDelta<UserType> userDelta = createDeltaForFindItem(true);
+		System.out.println("Object delta:\n"+userDelta.debugDump());
+
+		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALID_TO);        // not present in the delta
+
+		// WHEN
+    	ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
+
+        // THEN
+    	System.out.println("Item delta:\n"+(itemDelta==null?"null":itemDelta.debugDump()));
+    	assertNull("Found delta even if it shouldn't", itemDelta);
+    }
+
+	private ObjectDelta<UserType> createDeltaForFindItem(boolean containerReplace) throws SchemaException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
     			UserType.F_LOCALITY, PrismTestUtil.getPrismContext(), "Caribbean");
     	userDelta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, "Guybrush");
 
     	ContainerDelta<ActivationType> activationDelta = userDelta.createContainerModification(new ItemPath(UserType.F_ACTIVATION));
     	PrismContainerValue<ActivationType> activationCVal = new PrismContainerValue();
-    	activationDelta.addValueToAdd(activationCVal);
+    	if (containerReplace) {
+		    activationDelta.addValueToReplace(activationCVal);
+	    } else {
+		    activationDelta.addValueToAdd(activationCVal);
+	    }
 
     	PrismProperty<Boolean> enabledProperty = activationCVal.createProperty(ActivationType.F_ENABLED);
     	enabledProperty.setRealValue(Boolean.TRUE);
@@ -1550,7 +1617,7 @@ public class TestDelta {
 		user.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("foo"));
 		PrismProperty<PolyString> anamesProp = user.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
 		anamesProp.addRealValue(PrismTestUtil.createPolyString("foobar"));
-		
+
     	return user;
 	}
 
