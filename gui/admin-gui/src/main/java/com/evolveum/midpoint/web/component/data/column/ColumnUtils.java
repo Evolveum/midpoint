@@ -280,7 +280,10 @@ public class ColumnUtils {
 
 			@Override
 			public IModel<String> getDisplayModel(){
-				return createStringResource("pageContentAccounts.isProtected");
+				//TODO what for this label is needed? getHeader is overrided and sends "" as label
+//				return createStringResource("pageContentAccounts.isProtected");
+				//fix for icon column width
+				return null;
 			}
 		};
 	}
