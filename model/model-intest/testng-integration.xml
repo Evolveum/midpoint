@@ -135,6 +135,7 @@
             <!--  DISABLED MID-4166 
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/> -->
+            <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
     <test name="Security" preserve-order="true" parallel="false" verbose="10">

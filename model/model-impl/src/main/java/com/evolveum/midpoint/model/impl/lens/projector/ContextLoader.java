@@ -105,77 +105,100 @@ public class ContextLoader {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 
+	private static final String OPERATION_LOAD = ContextLoader.class.getName()+".load";
+	private static final String OPERATION_LOAD_PROJECTION = ContextLoader.class.getName()+".loadProjection";
+
 	public <F extends ObjectType> void load(LensContext<F> context, String activityDescription,
-			Task task, OperationResult result)
+			Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         context.checkAbortRequested();
 
 		context.recompute();
-
-		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			preprocessProjectionContext(context, projectionContext, task, result);
-		}
-
-		if (consistencyChecks) context.checkConsistence();
-
-		determineFocusContext((LensContext<? extends FocusType>)context, result);
-
-		LensFocusContext<F> focusContext = context.getFocusContext();
-    	if (focusContext != null) {
-			loadObjectCurrent(context, result);
-
-			context.recomputeFocus();
-
-			loadFromSystemConfig(context, task, result);
-
-	    	if (FocusType.class.isAssignableFrom(context.getFocusClass())) {
-		        // this also removes the accountRef deltas
-		        loadLinkRefs((LensContext<? extends FocusType>)context, task, result);
-				LOGGER.trace("loadLinkRefs done");
-	    	}
+		
+		OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
+		
+		try {
 	
-	    	// Some cleanup
-	    	if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().isModify() && focusContext.getPrimaryDelta().isEmpty()) {
-	    		focusContext.setPrimaryDelta(null);
-	    	}
-
-	    	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-	    		if (projectionContext.getSynchronizationIntent() != null) {
-	    			// Accounts with explicitly set intent are never rotten. These are explicitly requested actions
-	    			// if they fail then they really should fail.
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				preprocessProjectionContext(context, projectionContext, task, result);
+			}
+	
+			if (consistencyChecks) context.checkConsistence();
+	
+			determineFocusContext((LensContext<? extends FocusType>)context, result);
+	
+			LensFocusContext<F> focusContext = context.getFocusContext();
+	    	if (focusContext != null) {
+				loadObjectCurrent(context, result);
+	
+				context.recomputeFocus();
+	
+				loadFromSystemConfig(context, task, result);
+	
+		    	if (FocusType.class.isAssignableFrom(context.getFocusClass())) {
+			        // this also removes the accountRef deltas
+			        loadLinkRefs((LensContext<? extends FocusType>)context, task, result);
+					LOGGER.trace("loadLinkRefs done");
+		    	}
+		
+		    	// Some cleanup
+		    	if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().isModify() && focusContext.getPrimaryDelta().isEmpty()) {
+		    		focusContext.setPrimaryDelta(null);
+		    	}
+	
+		    	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+		    		if (projectionContext.getSynchronizationIntent() != null) {
+		    			// Accounts with explicitly set intent are never rotten. These are explicitly requested actions
+		    			// if they fail then they really should fail.
+		    			projectionContext.setFresh(true);
+		    		}
+	    		}
+		
+		    	setPrimaryDeltaOldValue(focusContext);
+		
+	    	} else {
+	    		// Projection contexts are not rotten in this case. There is no focus so there is no way to refresh them.
+	    		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 	    			projectionContext.setFresh(true);
 	    		}
-    		}
+	    	}
 	
-	    	setPrimaryDeltaOldValue(focusContext);
+	    	removeRottenContexts(context);
+	    	
+	    	if (consistencyChecks) context.checkConsistence();
 	
-    	} else {
-    		// Projection contexts are not rotten in this case. There is no focus so there is no way to refresh them.
-    		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-    			projectionContext.setFresh(true);
-    		}
-    	}
+	    	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+	            context.checkAbortRequested();
+	            // TODO: not perfect. Practically, we want loadProjection operation to contain all the projection
+	            // results. But for that we would need code restructure.
+	            OperationResult projectionResult = result.createMinorSubresult(OPERATION_LOAD_PROJECTION);
+	            try {
+	            	finishLoadOfProjectionContext(context, projectionContext, task, projectionResult);
+	            } catch (Throwable e) {
+	            	projectionResult.recordFatalError(e);
+	    			throw e;
+	            }
+	            projectionResult.computeStatus();
+			}
+	
+	        if (consistencyChecks) context.checkConsistence();
+	
+	        context.recompute();
 
-    	removeRottenContexts(context);
-    	
-    	if (consistencyChecks) context.checkConsistence();
+	        if (consistencyChecks) {
+	        	fullCheckConsistence(context);
+	        }
 
-    	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-            context.checkAbortRequested();
-    		finishLoadOfProjectionContext(context, projectionContext, task, result);
+	        LensUtil.traceContext(LOGGER, activityDescription, "after load", false, context, false);
+	        
+	        result.computeStatusComposite();
+	        
+		} catch (Throwable e) {
+			result.recordFatalError(e);
+			throw e;
 		}
-
-        if (consistencyChecks) context.checkConsistence();
-
-        context.recompute();
-
-        if (consistencyChecks) {
-        	fullCheckConsistence(context);
-        }
-
-        LensUtil.traceContext(LOGGER, activityDescription, "after load", false, context, false);
 	}
 
 
@@ -222,7 +245,7 @@ public class ContextLoader {
 
 
 	/**
-	 * Make sure that the projection context is loaded as approppriate.
+	 * Make sure that the projection context is loaded as appropriate.
 	 */
 	public <F extends ObjectType> void makeSureProjectionIsLoaded(LensContext<F> context,
 																  LensProjectionContext projectionContext, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

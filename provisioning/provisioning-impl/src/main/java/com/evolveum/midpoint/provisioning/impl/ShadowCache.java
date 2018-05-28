@@ -481,7 +481,7 @@ public abstract class ShadowCache {
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start adding shadow object:\n{}", shadowToAdd.debugDump());
+			LOGGER.trace("Start adding shadow object:\n{}", shadowToAdd.debugDump(1));
 		}
 
 		ProvisioningContext ctx = ctxFactory.create(shadowToAdd, task, parentResult);
@@ -516,6 +516,10 @@ public abstract class ShadowCache {
 		String proposedShadowOid = shadowManager.addNewProposedShadow(ctx, shadowToAdd, task, parentResult);
 
 		ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
+		if (proposedShadowOid == null && shadowToAdd.getOid() != null) {
+			// legacy ... from old consistency code
+			opState.setExistingShadowOid(shadowToAdd.getOid());
+		}
 		opState.setExistingShadowOid(proposedShadowOid);
 		PrismObject<ShadowType> addedShadow = null;
 
@@ -2912,5 +2916,27 @@ public abstract class ShadowCache {
 			return null;
 		}
 		return passwordDefinition.getCompareStrategy();
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected ObjectDelta mergeDeltas(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications)
+			throws SchemaException {
+		ShadowType shadowType = shadow.asObjectable();
+		if (shadowType.getObjectChange() != null) {
+
+			ObjectDeltaType deltaType = shadowType.getObjectChange();
+			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
+					deltaType.getItemDelta(), shadow.getDefinition());
+
+            // pendingModifications must come before modifications, otherwise REPLACE of value X (pending),
+            // followed by ADD of value Y (current) would become "REPLACE X", which is obviously wrong.
+            // See e.g. MID-1709.
+			return ObjectDelta.summarize(
+                    ObjectDelta.createModifyDelta(shadow.getOid(), pendingModifications,
+                            ShadowType.class, getPrismContext()),
+                    ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
+                            ShadowType.class, getPrismContext()));
+		}
+		return null;
 	}
 }

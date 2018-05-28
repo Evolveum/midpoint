@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -60,17 +61,15 @@ public class ShadowCacheReconciler extends ShadowCache {
 	public String afterAddOnResource(ProvisioningContext ctx, 
 			PrismObject<ShadowType> shadowToAdd, 
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			OperationResult parentResult) 
-					throws SchemaException, ObjectAlreadyExistsException,
-					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult = opState.getAsyncResult();
 		if (addResult == null) {
 			return opState.getExistingShadowOid();
 		}
 		PrismObject<ShadowType> shadow = addResult.getReturnValue();
 		cleanShadowInRepository(shadow, parentResult);
-
-		return shadow.getOid();
+		opState.setExistingShadowOid(shadow.getOid());  // hack: MID-4542
+		return shadowManager.addNewActiveRepositoryShadow(ctx, shadowToAdd, opState, parentResult);
 	}
 
 	@Override
@@ -80,7 +79,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 			Collection<? extends ItemDelta> modifications, 
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			XMLGregorianCalendar now,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {
 			cleanShadowInRepository(shadow, parentResult);
@@ -89,7 +88,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 			throw new SystemException("While modifying object in the repository got exception: " + ex.getMessage(), ex);
 		}
 		LOGGER.trace("Shadow cleaned up successfully.");
-		
+		shadowManager.modifyShadow(ctx, shadow, modifications, opState, now, parentResult);
 	}
 	
 	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
@@ -153,8 +152,8 @@ public class ShadowCacheReconciler extends ShadowCache {
 		ObjectDeltaType shadowDelta = shadow.asObjectable().getObjectChange();
 		
 		//TODO: error handling
-		if (shadowDelta != null){
-		modifications = DeltaConvertor.toModifications(
+		if (shadowDelta != null) {
+			modifications = DeltaConvertor.toModifications(
 				shadowDelta.getItemDelta(), shadow.getDefinition());
 		
 		}
@@ -163,7 +162,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 		ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
 				modifications, ShadowType.class, getPrismContext());
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump());
+			LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump(1));
 		}
 		
 		ContainerDelta<ShadowAssociationType> associationDelta = objectDelta.findContainerDelta(ShadowType.F_ASSOCIATION);
@@ -174,14 +173,17 @@ public class ShadowCacheReconciler extends ShadowCache {
 			
 		}
 		
-		if (modifications == null){
-			modifications =  new ArrayList<ItemDelta>();
+		ObjectDelta mergedDelta = mergeDeltas(shadow, modifications);
+
+		if (mergedDelta != null) {
+			modifications = mergedDelta.getModifications();
+		}
+		
+		if (modifications == null) {
+			modifications = new ArrayList<>();
 		}
 		
 		return modifications;
-		
-		
 	}
-	
 	
 }
