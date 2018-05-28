@@ -282,7 +282,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			boolean credentialValueChanged = false;
 			boolean checkMinOccurs = false;
 			ObjectDelta<UserType> focusDelta = focusContext.getDelta();
-			ContainerDelta<R> containerDelta = focusDelta.findContainerDelta(getCredentialsContainerPath());
+			ContainerDelta<R> containerDelta = focusDelta.findContainerDelta(getCredentialsContainerPath());        // e.g. credentials/password
 			if (containerDelta != null) {
 				if (containerDelta.isAdd()) {
 					for (PrismContainerValue<R> cVal : containerDelta.getValuesToAdd()) {
