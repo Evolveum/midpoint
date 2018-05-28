@@ -692,7 +692,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		}
 	}
 
-	@Test
+	@Test(enabled = false)          // MID-4681
 	public void test230WorkerException() throws Exception {
 		final String TEST_NAME = "test230WorkerException";
 		OperationResult result = createResult(TEST_NAME, LOGGER);

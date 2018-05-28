@@ -138,7 +138,7 @@ public class AuditTest extends BaseSQLRepoTest {
 			Query query = session.createQuery("from " + RAuditEventRecord.class.getSimpleName() + " order by id");
 			List<RAuditEventRecord> records = query.list();
 			assertEquals(expectedCount, records.size());
-			AuditEventRecord eventRecord = RAuditEventRecord.fromRepo(records.get(index), prismContext);
+			AuditEventRecord eventRecord = RAuditEventRecord.fromRepo(records.get(index), prismContext, baseHelper.getConfiguration().isUsingSQLServer());
 			session.getTransaction().commit();
 			return eventRecord;
 		} finally {

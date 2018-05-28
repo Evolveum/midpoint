@@ -69,6 +69,8 @@ DROP TABLE m_object;
 
 DROP TABLE hibernate_sequence;
 
+GO
+
 CREATE TABLE m_audit_event_NEW (
   id                BIGINT IDENTITY NOT NULL,
   attorneyName      NVARCHAR(255) COLLATE database_default,
@@ -167,20 +169,28 @@ ALTER TABLE m_audit_item ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) RE
 ALTER TABLE m_audit_prop_value ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 
--- ALTER TABLE m_audit_item ALTER COLUMN changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL;
-
 ALTER TABLE m_audit_delta ADD deltaBlob VARBINARY(MAX);
 ALTER TABLE m_audit_delta ADD fullResultBlob VARBINARY(MAX);
 
-UPDATE m_audit_delta SET deltaBlob = convert(VARBINARY, delta) where delta is not null;
-UPDATE m_audit_delta SET fullResultBlob = convert(VARBINARY, fullResult) where fullResult is not null;
+GO
+
+UPDATE m_audit_delta SET deltaBlob = convert(VARBINARY(MAX), delta) where delta is not null;
+UPDATE m_audit_delta SET fullResultBlob = convert(VARBINARY(MAX), fullResult) where fullResult is not null;
+UPDATE m_audit_delta SET checksum = lower(convert(NVARCHAR(32), hashbytes('MD5', concat(delta, fullResult)), 2));
+
+GO
 
 ALTER TABLE m_audit_delta DROP COLUMN delta;
 ALTER TABLE m_audit_delta DROP COLUMN fullResult;
 
-EXEC sp_rename 'm_audit_delta.deltaBlob', delta, 'COLUMN'
 GO
+
+EXEC sp_rename 'm_audit_delta.deltaBlob', delta, 'COLUMN'
+
+GO
+
 EXEC sp_rename 'm_audit_delta.fullResultBlob', fullResult, 'COLUMN'
+
 GO
 
 CREATE TABLE m_acc_cert_campaign (
@@ -1232,4 +1242,4 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
-GO;
+GO

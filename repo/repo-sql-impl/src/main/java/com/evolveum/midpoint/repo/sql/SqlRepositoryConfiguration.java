@@ -410,17 +410,17 @@ public class SqlRepositoryConfiguration {
             defaultLockForUpdateViaSql = false;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
-	        defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
+	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = true;
 	        defaultUseReadOnlyTransactions = true;
         } else if (isUsingOracle()) {
-	        defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
+	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = true;
 	        defaultUseReadOnlyTransactions = true;
         } else if (isUsingPostgreSQL()) {
-	        defaultTransactionIsolation = TransactionIsolation.REPEATABLE_READ;
+	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = false;
 	        defaultUseReadOnlyTransactions = true;
