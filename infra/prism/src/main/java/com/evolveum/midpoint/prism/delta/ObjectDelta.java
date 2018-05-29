@@ -237,7 +237,8 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
     	ItemPath itemPath = itemDelta.getPath();
-    	D existingModification = (D) findModification(itemPath, itemDelta.getClass());
+	    // We use 'strict' finding mode because of MID-4690 (TODO)
+    	D existingModification = (D) findModification(itemPath, itemDelta.getClass(), true);
     	if (existingModification != null) {
     		existingModification.merge(itemDelta);
     		return existingModification;
@@ -272,12 +273,38 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     	}
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath propertyPath) {
-    	return findItemDelta(propertyPath, ItemDelta.class, Item.class);
+	/**
+	 * TODO specify this method!
+	 *
+	 * An attempt:
+	 *
+	 * Given this ADD or MODIFY object delta OD, finds an item delta ID such that "ID has the same effect on an item specified
+	 * by itemPath as OD" (simply said).
+	 *
+	 * More precisely,
+	 * - if OD is ADD delta: ID is ADD delta that adds values of the item present in the object being added
+	 * - if OD is MODIFY delta: ID is such delta that:
+	 *      1. Given ANY object O, let O' be O after application of OD.
+	 *      2. Let I be O(itemPath), I' be O'(itemPath).
+	 *      3. Then I' is the same as I after application of ID.
+	 *   ID is null if no such item delta exists - or cannot be found easily.
+	 *
+	 * Problem:
+	 * - If OD contains more than one modification that affects itemPath the results from findItemDelta can be differ
+	 *   from the above definition.
+	 */
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath) {
+		//noinspection unchecked
+		return findItemDelta(itemPath, ItemDelta.class, Item.class, false);
     }
 
-    private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
-    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType) {
+	public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath, boolean strict) {
+		//noinspection unchecked
+		return findItemDelta(itemPath, ItemDelta.class, Item.class, strict);
+    }
+
+    public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
+    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
@@ -287,7 +314,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
             itemDelta.addValuesToAdd(item.getClonedValues());
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
-            return findModification(propertyPath, deltaType);
+            return findModification(propertyPath, deltaType, strict);
         } else {
             return null;
         }
@@ -311,9 +338,9 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
         		CompareResult compareComplex = modification.getPath().compareComplex(propertyPath);
         		if (compareComplex == CompareResult.EQUIVALENT) {
         			deltas.add(new PartiallyResolvedDelta<>((ItemDelta<IV, ID>) modification, null));
-        		} else if (compareComplex == CompareResult.SUBPATH) {
+        		} else if (compareComplex == CompareResult.SUBPATH) {   // path in modification is shorter than propertyPath
         			deltas.add(new PartiallyResolvedDelta<>((ItemDelta<IV, ID>) modification, null));
-        		} else if (compareComplex == CompareResult.SUPERPATH) {
+        		} else if (compareComplex == CompareResult.SUPERPATH) { // path in modification is longer than propertyPath
         			deltas.add(new PartiallyResolvedDelta<>((ItemDelta<IV, ID>) modification,
                         modification.getPath().remainder(propertyPath)));
         		}
@@ -329,7 +356,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
             Item item = objectToAdd.findItem(propertyPath, Item.class);
             return item != null;
         } else if (changeType == ChangeType.MODIFY) {
-            ItemDelta modification = findModification(propertyPath, ItemDelta.class);
+            ItemDelta modification = findModification(propertyPath, ItemDelta.class, false);
             return modification != null;
         } else {
             return false;
@@ -404,21 +431,21 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
 
     @SuppressWarnings("unchecked")
 	public <X> PropertyDelta<X> findPropertyDelta(ItemPath propertyPath) {
-    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
+    	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class, false);
     }
 
     @SuppressWarnings("unchecked")
 	public <X extends Containerable> ContainerDelta<X> findContainerDelta(ItemPath propertyPath) {
-    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
+    	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class, false);
     }
 
     public <X extends Containerable> ContainerDelta<X> findContainerDelta(QName name) {
     	return findContainerDelta(new ItemPath(name));
     }
 
-    private <D extends ItemDelta> D findModification(ItemPath propertyPath, Class<D> deltaType) {
+    private <D extends ItemDelta> D findModification(ItemPath propertyPath, Class<D> deltaType, boolean strict) {
     	if (isModify()) {
-    		return ItemDelta.findItemDelta(modifications, propertyPath, deltaType);
+    		return ItemDelta.findItemDelta(modifications, propertyPath, deltaType, strict);
     	} else if (isAdd()) {
     		Item<PrismValue, ItemDefinition> item = getObjectToAdd().findItem(propertyPath);
     		if (item == null) {
@@ -433,7 +460,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     }
 
     private  <D extends ItemDelta> D findModification(QName itemName, Class<D> deltaType) {
-    	return findModification(new ItemPath(itemName), deltaType);
+    	return findModification(new ItemPath(itemName), deltaType, false);
     }
 
     public ReferenceDelta findReferenceModification(QName itemName) {
@@ -441,7 +468,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     }
 
     public ReferenceDelta findReferenceModification(ItemPath itemPath) {
-        return findModification(itemPath, ReferenceDelta.class);
+        return findModification(itemPath, ReferenceDelta.class, false);
     }
 
     /**
@@ -722,11 +749,12 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
         if (changeType == ChangeType.ADD) {
         	modificationToMerge.applyTo(objectToAdd);
         } else if (changeType == ChangeType.MODIFY) {
-        	ItemDelta myDelta = findModification(modificationToMerge.getPath(), ItemDelta.class);
-            if (myDelta == null) {
+        	// We use 'strict' finding mode because of MID-4690 (TODO)
+        	ItemDelta existingModification = findModification(modificationToMerge.getPath(), ItemDelta.class, true);
+            if (existingModification == null) {
                 addModification(modificationToMerge.clone());
             } else {
-                myDelta.merge(modificationToMerge);
+                existingModification.merge(modificationToMerge);
             }
         } // else it is DELETE. There's nothing to do. Merging anything to delete is still delete
     }
@@ -1937,7 +1965,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
 		} else if (isDelete()) {
 			return Collections.emptyList();
 		} else {
-			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class);
+			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class, false);
 			if (itemDelta != null) {
 				if (itemDelta.getValuesToReplace() != null) {
 					return (List<PrismValue>) itemDelta.getValuesToReplace();
@@ -1967,7 +1995,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
 		} else if (isDelete()) {
 			return Collections.emptyList();
 		} else {
-			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class);
+			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class, false);
 			if (itemDelta != null) {
 				if (itemDelta.getValuesToDelete() != null) {
 					return (List<PrismValue>) itemDelta.getValuesToDelete();
