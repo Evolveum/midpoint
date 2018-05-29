@@ -27,7 +27,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.jws.WebParam;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -94,8 +93,13 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(AttributeModifier.append("style", "white-space: pre-line"));
-                item.add(new Label(componentId, getAssociationLabelModel(rowModel.getObject())));
+                String assocLabel = getAssociationLabel(rowModel.getObject());
+                //in case when association label contains "-" symbol, break-all words property will
+                //wrap the label text incorrectly. In order to avoid this, we add additional style
+                if (assocLabel != null && assocLabel.contains("-")){
+                    item.add(AttributeModifier.append("style", "white-space: pre-line"));
+                }
+                item.add(new Label(componentId, Model.of(assocLabel)));
             }
         });
 
@@ -162,14 +166,14 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     }
 
-    private IModel<String> getAssociationLabelModel(ContainerValueWrapper<AssignmentType> assignmentWrapper){
+    private String getAssociationLabel(ContainerValueWrapper<AssignmentType> assignmentWrapper){
         if (assignmentWrapper == null){
-            return Model.of("");
+            return "";
         }
         AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
         ConstructionType construction = assignment.getConstruction();
         if (construction == null || construction.getAssociation() == null){
-            return Model.of("");
+            return "";
         }
         StringBuilder sb = new StringBuilder();
         for (ResourceObjectAssociationType association : construction.getAssociation()){
@@ -189,7 +193,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                 sb.append(shadowDisplayName);
             }
         }
-        return Model.of(sb.toString());
+        return sb.toString();
 
     }
 
