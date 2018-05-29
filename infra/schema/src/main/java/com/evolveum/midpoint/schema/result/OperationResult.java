@@ -554,6 +554,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		boolean allNotApplicable = true;
 		String newMessage = null;
 		for (OperationResult sub : getSubresults()) {
+			if (sub == null) {
+				continue;
+			}
+
 			if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allNotApplicable = false;
 			}
