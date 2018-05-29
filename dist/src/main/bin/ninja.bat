@@ -43,7 +43,7 @@ rem ----- Execute The Requested Command ---------------------------------------
 
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
-start /b java -jar "%cd%\lib\ninja.jar" -m "%MIDPOINT_HOME%" %*
+java -jar "%cd%\lib\ninja.jar" -m "%MIDPOINT_HOME%" %*
 goto end
 
 

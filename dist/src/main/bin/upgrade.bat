@@ -37,7 +37,7 @@ del /F /S /Q %MIDPOINT_EXISTING_FOLDER%\doc\* 1>nul
 echo Copying from %DIST_DIR% into %MIDPOINT_EXISTING_FOLDER%
 xcopy /S /E /Y /Q "%DIST_DIR%\*" %MIDPOINT_EXISTING_FOLDER%
 
-echo Upgrade finished
+echo MidPoint installation upgrade finished.
 
 goto :end
 
