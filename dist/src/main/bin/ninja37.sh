@@ -65,6 +65,17 @@ else
   _RUNJAVA="$JAVA_HOME"/bin/java
 fi
 
+while getopts ":j:" opt; do
+  case $opt in
+    j)
+      JDBC_DRIVER=$OPTARG
+      ;;
+  esac
+done
+
+if [ ! -z "$JDBC_DRIVER" ] ; then
+   _RUNJAVA="$_RUNJAVA -Dloader.path=$JDBC_DRIVER"
+fi
 
 exec "$_RUNJAVA" -jar $SCRIPT_PATH../lib/ninja-3.7.2-SNAPSHOT.jar -m $MIDPOINT_HOME $@
 
