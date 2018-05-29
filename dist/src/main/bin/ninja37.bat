@@ -15,11 +15,11 @@ set LOADER_PATH=
 :argloop
 IF NOT "%1"=="" (
     IF "%1"=="-j" (
-        SET LOADER_PATH=-Dloader.path=%2
+        SET LOADER_PATH="-Dloader.path=%2"
         SHIFT
     )
     IF "%1"=="--jdbc" (
-        SET LOADER_PATH=-Dloader.path=%2
+        SET LOADER_PATH="-Dloader.path=%2"
         SHIFT
     )
     SHIFT
@@ -52,9 +52,9 @@ rem ----- Execute The Requested Command ---------------------------------------
 set RUN_JAVA=java
 if not "%JAVA_HOME%" == "" set RUN_JAVA=%JAVA_HOME%\bin\java
 
-echo Using LOADER_PATH:     "%LOADER_PATH%"
+echo Using LOADER_PATH:     %LOADER_PATH%
 echo Using RUN_JAVA:        "%RUN_JAVA%"
 
-"%RUN_JAVA%" "%LOADER_PATH%" -jar "%NINJA_JAR_PATH%" -m "%MIDPOINT_HOME%" %PARAMETERS%
+"%RUN_JAVA%" %LOADER_PATH% -jar "%NINJA_JAR_PATH%" -m "%MIDPOINT_HOME%" %PARAMETERS%
 
 :end
