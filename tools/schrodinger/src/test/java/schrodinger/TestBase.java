@@ -21,10 +21,13 @@ import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.*;
 
+import java.io.File;
 import java.lang.reflect.Method;
 
 /**
@@ -69,5 +72,17 @@ public abstract class TestBase {
     @AfterMethod
     public void afterMethod(Method method) {
         LOG.info("Finished test {}.{}", method.getDeclaringClass().getName(), method.getName());
+    }
+
+    protected void importObject(File source) {
+
+        ImportObjectPage importPage = basicPage.importObject();
+        Assert.assertTrue(
+                importPage
+                        .getObjectsFromFile()
+                        .chooseFile(source)
+                        .clickImport()
+                        .feedback()
+                        .isSuccess());
     }
 }

@@ -58,8 +58,8 @@
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>ninja</artifactId>
             <version>3.8-SNAPSHOT</version>
-        </dependency> 
-    	<dependency><!-- Not used, but required for surefire plugin not to complain -->
+        </dependency>
+        <dependency><!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -99,6 +99,31 @@
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl,META-INF/*</includes>
                             <excludes>xml/ns/test/**,xml/ns/private/**,prism/**</excludes>
                             <outputDirectory>${project.basedir}/target/schemadist</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-model</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.tools</groupId>
+                                    <artifactId>ninja</artifactId>
+                                    <version>3.7.2-SNAPSHOT</version> <!-- TODO switch to 3.7.2 -->
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>target/lib</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

@@ -290,7 +290,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 					target.add(PageForgotPassword.this);
 				} else {
 					getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-					LOGGER.error("Failed to sent none to user: {} ", result.getMessage());
+					LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
 					throw new RestartResponseException(PageForgotPassword.this);
 				}
 

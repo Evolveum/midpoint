@@ -2,7 +2,7 @@ package com.evolveum.midpoint.schrodinger.page.user;
 
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.user.UsersTable;
+import com.evolveum.midpoint.schrodinger.component.user.UsersTablePage;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import org.openqa.selenium.By;
 
@@ -13,10 +13,10 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class ListUsersPage extends BasicPage {
 
-    public UsersTable<ListUsersPage> table() {
+    public UsersTablePage<ListUsersPage> table() {
         SelenideElement box = $(By.cssSelector(".box.boxed-table.object-user-box"));
 
-        return new UsersTable<>(this, box);
+        return new UsersTablePage<>(this, box);
     }
 
     public FeedbackBox<ListUsersPage> feedback() {

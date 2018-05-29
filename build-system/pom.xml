@@ -74,7 +74,7 @@
         <cron4j.version>2.2.3</cron4j.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
-        <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
+        <jdbc.postgres>42.2.2</jdbc.postgres>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>7.10.0</wicket.version>

@@ -41,7 +41,7 @@ Matches if the role 'roleRef' is not assigned to the user.
 									object : object,
 									ruleEvaluationContext : ruleEvaluationContext,
 									assumeExistence : true,
-									rolesAttributeName : 'k20RoleRef',
+									rolesAttributeName : 'roleRef',
 									evaluatorHelper: evaluatorHelper,
 									constraint: constraint
 								])

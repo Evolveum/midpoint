@@ -1384,7 +1384,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 			case ENCRYPTION:
 				assertNotNull(message+": no value", actualValue);
-				assertTrue(message+": unenctypted value: "+actualValue, actualValue.isEncrypted());
+				assertTrue(message+": unencrypted value: "+actualValue, actualValue.isEncrypted());
 				String actualClearPassword = protector.decryptString(actualValue);
 				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
 				assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
@@ -1629,9 +1629,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void displayWhen(String testName) {
 		TestUtil.displayWhen(testName);
 	}
+	
+	protected void displayWhen(String testName, String stage) {
+		TestUtil.displayWhen(testName + " ("+stage+")");
+	}
 
 	protected void displayThen(String testName) {
 		TestUtil.displayThen(testName);
+	}
+	
+	protected void displayThen(String testName, String stage) {
+		TestUtil.displayThen(testName + " ("+stage+")");
 	}
 
 	protected void displayCleanup(String testName) {
@@ -1758,12 +1766,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		TestUtil.assertSuccess(message, result);
 	}
+	
+	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		assertEquals("Unexpected result status", expectedStatus, result.getStatus());
+	}
 
 	protected String assertInProgress(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
+		if (!OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
+			String message = "Expected IN_PROGRESS, but result status was " + result.getStatus();
+			display (message, result);
+			fail(message);
+		}
 		return result.getAsynchronousOperationReference();
 	}
 

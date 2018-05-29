@@ -94,18 +94,23 @@ public class ExtItemDictionary {
     }
 
     @NotNull
-    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, Session session) {
-        return createOrFindItemByDefinitionInternal(definition, session, true);
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
+        return createOrFindItemByDefinitionInternal(definition, true, throwExceptionAfterCreate);
+    }
+
+    @NotNull
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
+        return createOrFindItemByDefinitionInternal(definition, true, true);
     }
 
     @Nullable
-    public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition, Session session) {
-        return createOrFindItemByDefinitionInternal(definition, session, false);
+    public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
+        return createOrFindItemByDefinitionInternal(definition, false, true);
     }
 
     @Contract("_, _, true -> !null")
     private synchronized RExtItem createOrFindItemByDefinitionInternal(
-            @NotNull ItemDefinition<?> definition, Session session, boolean create) {
+            @NotNull ItemDefinition<?> definition, boolean create, boolean throwExceptionAfterCreate) {
 
         boolean fetchedNow = fetchItemsIfNeeded();
         RExtItem.Key key = RExtItem.createKeyFromDefinition(definition);
@@ -120,29 +125,17 @@ public class ExtItemDictionary {
         if (item == null && create) {
             LOGGER.debug("Ext item for {} not found even in current items; creating it.", key);
 
-            boolean restartSession = shouldRestartParentOperation(session);
-
-            if (restartSession) {
-                session.getTransaction().rollback();
-            }
-
             item = RExtItem.createFromDefinition(definition);
 
             final RExtItem i = item;
             executeAttempts("addExtItem", "Add ext item", () -> addExtItemAttempt(i));
 
-            if (restartSession) {
+            if (throwExceptionAfterCreate) {
                 throw new SerializationRelatedException("Restarting parent operation");
             }
         }
 
         return item;
-    }
-
-    private boolean shouldRestartParentOperation(Session session) {
-        return baseHelper.getConfiguration().isUsingH2()
-                && session != null
-                && session.isDirty();
     }
 
     @PostConstruct
@@ -182,5 +175,15 @@ public class ExtItemDictionary {
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
+    }
+
+    public RExtItem getItemById(Integer extItemId) {
+        boolean fresh = fetchItemsIfNeeded();
+        RExtItem extItem = itemsById.get(extItemId);
+        if (extItem != null || fresh) {
+            return extItem;
+        }
+        fetchItems();
+        return itemsById.get(extItemId);
     }
 }

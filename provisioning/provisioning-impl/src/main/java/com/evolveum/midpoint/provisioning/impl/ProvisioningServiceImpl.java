@@ -106,6 +106,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Service(value = "provisioningService")
 @Primary
 public class ProvisioningServiceImpl implements ProvisioningService {
+	
+	private static final String OPERATION_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() +".refreshShadow";
 
 	@Autowired ShadowCacheFactory shadowCacheFactory;
 	@Autowired ResourceManager resourceManager;
@@ -863,7 +865,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(shadow, "Shadow for refresh must not be null.");
-		OperationResult result = parentResult.createSubresult(ProvisioningServiceImpl.class.getName() +".finishOperation");
+		OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_SHADOW);
 
 		LOGGER.debug("Refreshing shadow {}", shadow);
 

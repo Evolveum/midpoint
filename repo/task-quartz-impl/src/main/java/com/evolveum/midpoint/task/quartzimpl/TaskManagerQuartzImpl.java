@@ -36,6 +36,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -130,6 +131,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<>();
+
+    // primary handlers URIs - these will be taken into account when searching for handler matching a given task category
+    private Map<String,TaskHandler> primaryHandlersUris = new HashMap<>();
 
 	private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
 
@@ -861,7 +865,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 
 		try {
-			addTaskToRepositoryAndQuartz(taskImpl, parentResult);
+			addTaskToRepositoryAndQuartz(taskImpl, null, parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
 			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);
@@ -872,18 +876,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
-	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+	public String addTask(PrismObject<TaskType> taskPrism, RepoAddOptions options, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "addTask");
 		Task task = createTaskInstance(taskPrism, result);			// perhaps redundant, but it's more convenient to work with Task than with Task prism
         if (task.getTaskIdentifier() == null) {
             task.getTaskPrismObject().asObjectable().setTaskIdentifier(generateTaskIdentifier().toString());
         }
-		String oid = addTaskToRepositoryAndQuartz(task, result);
+		String oid = addTaskToRepositoryAndQuartz(task, options, result);
         result.computeStatus();
         return oid;
 	}
 
-	private String addTaskToRepositoryAndQuartz(Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+	private String addTaskToRepositoryAndQuartz(Task task, RepoAddOptions options,
+			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
 
         if (task.isLightweightAsynchronousTask()) {
             throw new IllegalStateException("A task with lightweight task handler cannot be made persistent; task = " + task);
@@ -897,7 +902,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
         String oid;
         try {
-		     oid = repositoryService.addObject(taskPrism, null, result);
+		     oid = repositoryService.addObject(taskPrism, options, result);
         } catch (ObjectAlreadyExistsException | SchemaException e) {
             result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
             throw e;
@@ -1507,6 +1512,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public void registerHandler(String uri, TaskHandler handler) {
         LOGGER.trace("Registering task handler for URI {}", uri);
 		handlers.put(uri, handler);
+		primaryHandlersUris.put(uri, handler);
+	}
+
+	@Override
+	public void registerAdditionalHandlerUri(String uri, TaskHandler handler) {
+		LOGGER.trace("Registering additional URI for a task handler: {}", uri);
+		handlers.put(uri, handler);
 	}
 
 	public TaskHandler getHandler(String uri) {
@@ -1518,9 +1530,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public List<String> getAllTaskCategories() {
-
         Set<String> categories = new HashSet<>();
-        for (TaskHandler h : handlers.values()) {
+        for (TaskHandler h : primaryHandlersUris.values()) {
             List<String> cat = h.getCategoryNames();
             if (cat != null) {
                 categories.addAll(cat);
@@ -1536,20 +1547,28 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public String getHandlerUriForCategory(String category) {
-        for (Map.Entry<String,TaskHandler> h : handlers.entrySet()) {
+		Set<String> found = new HashSet<>();
+        for (Map.Entry<String,TaskHandler> h : primaryHandlersUris.entrySet()) {
             List<String> cats = h.getValue().getCategoryNames();
             if (cats != null) {
 				if (cats.contains(category)) {
-					return h.getKey();
+					found.add(h.getKey());
 				}
             } else {
                 String cat = h.getValue().getCategoryName(null);
                 if (category.equals(cat)) {
-                    return h.getKey();
+                    found.add(h.getKey());
                 }
             }
         }
-        return null;
+        if (found.isEmpty()) {
+        	return null;
+        } else if (found.size() == 1) {
+        	return found.iterator().next();
+        } else {
+        	LOGGER.warn("More task handlers found for category {}; returning none.", category);
+        	return null;
+        }
     }
     //endregion
 
@@ -1858,7 +1877,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // use with care (e.g. w.r.t. dependent tasks)
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
-			OperationResult taskResult = updateTaskResult(task);
+			OperationResult taskResult = updateTaskResult(task, parentResult);
 			task.close(taskResult, true, parentResult);
         } finally {
             if (task.isPersistent()) {
@@ -1874,8 +1893,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	// do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
-		OperationResult taskResult = updateTaskResult(task);
 		try {
+			OperationResult taskResult = updateTaskResult(task, parentResult);
 			task.close(taskResult, false, parentResult);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			throw new SystemException(e);       // shouldn't occur
@@ -1885,11 +1904,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     // returns null if no change is needed in the task
 	@Nullable
-	private OperationResult updateTaskResult(Task task) {
+	private OperationResult updateTaskResult(Task task, OperationResult parentResult) throws SchemaException {
 		OperationResult taskResult = task.getResult();
 		if (taskResult == null) {
-			// should not occur
-			return null;
+			try {
+				task.refresh(parentResult);     // expecting to get the result
+			} catch (ObjectNotFoundException e) {
+				LOGGER.warn("Task result cannot be updated because the task is gone: {}", task, e);
+				return null;
+			}
+			taskResult = task.getResult();
+			if (taskResult == null) {
+				LOGGER.warn("Null task result in {}", task);
+				return null;
+			}
 		}
 		boolean resultChanged = false;
 		// this is a bit of magic to ensure closed tasks will not stay with IN_PROGRESS result (and, if possible, also not with UNKNOWN)

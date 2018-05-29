@@ -4,7 +4,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -33,6 +32,8 @@ import java.io.*;
 import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
 
 /**
  * @author lazyman
@@ -156,7 +157,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
 
         ResultHandler handler = (object, parentResult) -> {
             try {
-                String xml = page.getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
+                String xml = page.getPrismContext().xmlSerializer().options(createSerializeForExport()).serialize(object);
                 writer.write('\t');
                 writer.write(xml);
                 writer.write('\n');

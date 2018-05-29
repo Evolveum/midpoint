@@ -406,7 +406,7 @@ public class IntegrationTestTools {
 	}
 
 	public static void displayJaxb(String title, Object o, QName defaultElementName) throws SchemaException {
-		String serialized = PrismTestUtil.serializeAnyData(o, defaultElementName);
+		String serialized = o != null ? PrismTestUtil.serializeAnyData(o, defaultElementName) : "(null)";
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(serialized);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" + serialized);
@@ -472,9 +472,10 @@ public class IntegrationTestTools {
 
 	public static void display(String title, OperationResult result) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(result.debugDump());
+		String debugDump = result != null ? result.debugDump() : "(null)";
+		System.out.println(debugDump);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
-				+ result.debugDump());
+				+ debugDump);
 	}
 
 	public static void display(String title, OperationResultType result) throws SchemaException {

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
@@ -72,6 +74,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 	@Autowired protected SecurityEnforcer securityEnforcer;
 	@Autowired protected SecurityContextManager securityContextManager;
 	@Autowired protected TaskService taskService;
+	@Autowired @Qualifier("cacheRepositoryService") protected RepositoryService cacheRepositoryService;
 
     // todo move to some helper?
 

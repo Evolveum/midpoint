@@ -37,12 +37,10 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -74,6 +72,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -863,7 +863,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         List shadows = session.createQuery("from RShadow").list();
         LOGGER.info("shadows:\n{}", shadows);
         //noinspection unchecked
-        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.item.id, e.value from ROExtString e").list();
+        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").list();
         for (Object[] extString : extStrings) {
             LOGGER.info("-> {}", Arrays.asList(extString));
         }
@@ -904,6 +904,17 @@ public class ModifyTest extends BaseSQLRepoTest {
         obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
         assertEquals(1, obj.getStrings().size());
         close(session);
+
+        // now test the "export" serialization option
+
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, accountOid, createRawCollection(), result);
+        String xml = prismContext.xmlSerializer().options(createSerializeForExport()).serialize(shadow);
+        System.out.println("Serialized for export:\n" + xml);
+        PrismObject<Objectable> shadowReparsed = prismContext.parseObject(xml);
+        System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
+        Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
+        assertNotNull(attr1Reparsed);
+        assertFalse("Reparsed attribute is raw", attr1Reparsed.getValue(0).isRaw());
     }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {

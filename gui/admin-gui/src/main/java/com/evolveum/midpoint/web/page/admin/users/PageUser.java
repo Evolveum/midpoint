@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.FocusPersonasTabPanel;
 import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -183,6 +184,19 @@ public class PageUser extends PageAdminFocus<UserType> {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior authorization;
+                authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL);
+                tabs.add(
+                        new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public WebMarkupContainer createPanel(String panelId) {
+                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+                            }
+
+                        });
+
                 if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
                     authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
                     tabs.add(

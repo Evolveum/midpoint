@@ -85,6 +85,15 @@
       <directory>${project.basedir}/src/main/bin</directory>
       <outputDirectory>/bin</outputDirectory>
     </fileSet>
+      <fileSet>
+          <directory>target/lib</directory>
+          <outputDirectory>/lib</outputDirectory>
+          <directoryMode>755</directoryMode>
+          <fileMode>644</fileMode>
+          <includes>
+              <include>ninja-*</include>
+          </includes>
+      </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>

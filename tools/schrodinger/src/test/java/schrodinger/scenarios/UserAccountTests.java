@@ -1,4 +1,4 @@
-package schrodinger.core;
+package schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -10,8 +10,13 @@ import org.testng.annotations.Test;
  */
 public class UserAccountTests extends AccountTests {
 
+    private static final String DISABLE_MP_USER_DEPENDENCY = "disableUser";
+    private static final String ENABLE_MP_USER_DEPENDENCY = "enableUser";
+    private static final String BULK_DISABLE_MP_USER_DEPENDENCY = "bulkDisableUsers";
 
-    @Test
+
+
+    @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY}, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyUserAttribute(){
         ListUsersPage usersPage = basicPage.listUsers();
             usersPage
@@ -32,7 +37,7 @@ public class UserAccountTests extends AccountTests {
                         .feedback()
                         .isSuccess();
     }
-    @Test
+    @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY, MODIFY_ACCOUNT_PASSWORD_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyUserPassword(){
         ListUsersPage usersPage = basicPage.listUsers();
             usersPage
@@ -46,7 +51,7 @@ public class UserAccountTests extends AccountTests {
                         .selectTabBasic()
                             .form()
                             .showEmptyAttributes("Password")
-                            .addProtectedAttributeValue("Value","5ecr3t")
+                            .addProtectedAttributeValue("Value","S36re7")
                         .and()
                     .and()
                     .checkKeepDisplayingResults()
@@ -56,7 +61,7 @@ public class UserAccountTests extends AccountTests {
 
     }
 
-    @Test
+    @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void disableUser(){
         ListUsersPage usersPage = basicPage.listUsers();
             usersPage
@@ -79,7 +84,7 @@ public class UserAccountTests extends AccountTests {
                     .isSuccess();
     }
 
-    @Test
+    @Test (dependsOnMethods = {DISABLE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void enableUser(){
         ListUsersPage usersPage = basicPage.listUsers();
             usersPage
@@ -102,7 +107,7 @@ public class UserAccountTests extends AccountTests {
                     .isSuccess();
     }
 
-    @Test
+    @Test (dependsOnMethods = {ENABLE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void bulkDisableUsers(){
         ListUsersPage usersPage = basicPage.listUsers();
             usersPage
@@ -123,7 +128,7 @@ public class UserAccountTests extends AccountTests {
             ;
     }
 
-    @Test
+    @Test (dependsOnMethods = {BULK_DISABLE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void bulkEnableUsers(){
         ListUsersPage usersPage = basicPage.listUsers();
             usersPage
@@ -142,7 +147,7 @@ public class UserAccountTests extends AccountTests {
         ;
     }
 
-    @Test
+    @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void searchUser(){
     ListUsersPage usersPage = basicPage.listUsers();
     Assert.assertTrue(
@@ -157,7 +162,7 @@ public class UserAccountTests extends AccountTests {
        );
     }
 
-    @Test
+    @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void searchUserFromHome(){
         HomePage homePage = basicPage.home();
         Assert.assertTrue(
@@ -172,7 +177,7 @@ public class UserAccountTests extends AccountTests {
 
     }
 
-    @Test
+    @Test (dependsOnGroups = {TEST_GROUP_BEFORE_USER_DELETION})
     public void bulkDeleteUsers(){
         ListUsersPage usersPage = basicPage.listUsers();
         usersPage

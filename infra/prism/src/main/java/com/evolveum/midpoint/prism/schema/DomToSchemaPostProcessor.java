@@ -388,9 +388,8 @@ class DomToSchemaPostProcessor {
 					// Create an inner PropertyContainer. It is assumed that
 					// this is a XSD complex type
 					XSComplexType complexType = (XSComplexType) xsType;
-					ComplexTypeDefinition complexTypeDefinition = null;
-					if (typeFromAnnotation != null && complexType != null
-							&& !typeFromAnnotation.equals(getType(xsType))) {
+					ComplexTypeDefinition complexTypeDefinition;
+					if (typeFromAnnotation != null && !typeFromAnnotation.equals(getType(xsType))) {
 						// There is a type override annotation. The type that
 						// the schema parser determined is useless
 						// We need to locate our own complex type definition
@@ -411,10 +410,10 @@ class DomToSchemaPostProcessor {
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
 					PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(
 							xsType, p, complexTypeDefinition, containerAnnotation, false);
-					if (isAny(xsType)) {
-						((PrismContainerDefinitionImpl) containerDefinition).setRuntimeSchema(true);
-						((PrismContainerDefinitionImpl) containerDefinition).setDynamic(true);
-					}
+//					if (isAny(xsType)) {
+//						((PrismContainerDefinitionImpl) containerDefinition).setRuntimeSchema(true);
+//						((PrismContainerDefinitionImpl) containerDefinition).setDynamic(true);
+//					}
 					((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
 					((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
 

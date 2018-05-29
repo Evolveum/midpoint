@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author semancik
@@ -204,7 +205,7 @@ public class PrismMarshaller {
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
-        if (definition != null && definition.isDynamic() && isInstantiable(definition)) {
+        if (definition != null && (definition.isDynamic() || shouldPutTypeInExportMode(ctx, definition)) && isInstantiable(definition)) {
 			if (xnode.getTypeQName() == null) {
 				xnode.setTypeQName(definition.getTypeName());
 			}
@@ -213,7 +214,22 @@ public class PrismMarshaller {
         return xnode;
     }
 
-    // TODO FIXME first of all, Extension definition should not be marked as dynamic
+	private boolean shouldPutTypeInExportMode(SerializationContext ctx, ItemDefinition definition) {
+		if (!SerializationContext.isSerializeForExport(ctx) || definition == null || !definition.isRuntimeSchema()) {
+			return false;
+		}
+		QName itemName = definition.getName();
+		if (StringUtils.isEmpty(itemName.getNamespaceURI())) {
+			return true;            // ambiguous item name - let's put xsi:type, to be on the safe side
+		}
+		// we assume that all runtime elements which are part of the schema registry are retrievable by element name
+		// (might not be the case for sub-items of custom extension containers! we hope providing xsi:type there will cause no harm)
+		List<ItemDefinition> definitionsInRegistry = getSchemaRegistry()
+				.findItemDefinitionsByElementName(itemName, ItemDefinition.class);
+		return definitionsInRegistry.isEmpty();       // no definition in registry => xsi:type should be put
+	}
+
+	// TODO FIXME first of all, Extension definition should not be marked as dynamic
 	private boolean isInstantiable(ItemDefinition definition) {
 		if (definition.isAbstract()) {
 			return false;
