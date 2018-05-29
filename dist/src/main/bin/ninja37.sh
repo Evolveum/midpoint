@@ -48,8 +48,8 @@ fi
 
 cd "$SCRIPT_PATH../lib"
 
-if [ ! -f ninja-3.7.2.jar ] ; then
-	echo "ERROR: ninja-3.7.2.jar is not in /lib directory"
+if [ ! -f ninja-3.7.2-SNAPSHOT.jar ] ; then
+	echo "ERROR: ninja-3.7.2-SNAPSHOT.jar is not in /lib directory"
 	exit 1
 fi 
 
@@ -66,6 +66,6 @@ else
 fi
 
 
-exec "$_RUNJAVA" -jar $SCRIPT_PATH../lib/ninja-3.7.2.jar -m $MIDPOINT_HOME $@
+exec "$_RUNJAVA" -jar $SCRIPT_PATH../lib/ninja-3.7.2-SNAPSHOT.jar -m $MIDPOINT_HOME $@
 
 
