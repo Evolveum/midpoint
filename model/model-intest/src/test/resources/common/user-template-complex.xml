@@ -120,6 +120,11 @@
 	    	</expression>
 	    </mapping>
     </item>
+    
+    <item>
+    	<ref>employeeType</ref>
+    	<deprecated>false</deprecated>
+    </item>
 
 	<item>
 		<ref>extension/badLuck</ref>

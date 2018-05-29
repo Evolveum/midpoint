@@ -556,7 +556,7 @@ public class RAuditEventRecord implements Serializable {
         return repo;
     }
 
-    public static AuditEventRecord fromRepo(RAuditEventRecord repo, PrismContext prismContext) {
+    public static AuditEventRecord fromRepo(RAuditEventRecord repo, PrismContext prismContext, boolean useUtf16) {
 
         AuditEventRecord audit = new AuditEventRecord();
         audit.setChannel(repo.getChannel());
@@ -587,7 +587,7 @@ public class RAuditEventRecord implements Serializable {
         List<ObjectDeltaOperation> odos = new ArrayList<>();
         for (RObjectDeltaOperation rodo : repo.getDeltas()) {
             try {
-                ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext);
+                ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext, useUtf16);
                 if (odo != null) {
                     odos.add(odo);
                 }

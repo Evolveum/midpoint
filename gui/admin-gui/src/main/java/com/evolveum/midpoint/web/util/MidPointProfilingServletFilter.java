@@ -62,13 +62,13 @@ public class MidPointProfilingServletFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        if(LOGGER.isTraceEnabled()){
+        if (LOGGER.isTraceEnabled()) {
             long startTime = System.nanoTime();
 
             try {
             	chain.doFilter(request, response);
         	} catch (IOException | ServletException | RuntimeException | Error e) {
-        		LOGGER.error("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
+        		LOGGER.debug("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
         		throw e;
         	}
 
@@ -85,7 +85,7 @@ public class MidPointProfilingServletFilter implements Filter {
         	try {
         		chain.doFilter(request, response);
         	} catch (IOException | ServletException | RuntimeException | Error e) {
-        		LOGGER.error("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
+        		LOGGER.debug("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
         		throw e;
         	}
          }

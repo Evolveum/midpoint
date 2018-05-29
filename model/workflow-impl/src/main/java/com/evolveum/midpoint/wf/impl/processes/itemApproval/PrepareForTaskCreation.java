@@ -18,10 +18,9 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.MidpointParsingMigrator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,7 +34,6 @@ import org.activiti.engine.delegate.JavaDelegate;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil.getRequiredVariable;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
@@ -72,14 +70,15 @@ public class PrepareForTaskCreation implements JavaDelegate {
 		execution.setVariableLocal(ProcessVariableNames.ASSIGNEE, assignee);
 		execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
 
-		List<?> additionalInformation;
+		List<InformationType> additionalInformation;
         if (stageDef.getAdditionalInformation() != null) {
 			try {
 				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
 				WfStageComputeHelper stageComputer = SpringApplicationContextHolder.getStageComputeHelper();
 				ExpressionVariables variables = stageComputer.getDefaultVariables(execution, wfTask, result);
 				additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
-						"additional information expression", Object.class, DOMUtil.XSD_STRING, null, opTask, result);
+						"additional information expression", InformationType.class, InformationType.COMPLEX_TYPE,
+						true, this::createInformationType, opTask, result);
 			} catch (Throwable t) {
         		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
 			}
@@ -88,30 +87,20 @@ public class PrepareForTaskCreation implements JavaDelegate {
 		}
 		if (!additionalInformation.isEmpty()) {
 			execution.setVariableLocal(CommonProcessVariableNames.ADDITIONAL_INFORMATION,
-					new SingleItemSerializationSafeContainerImpl<>(
-							wrapAdditionalInformationIfNeeded(additionalInformation), prismContext));
+					new SingleItemSerializationSafeContainerImpl<>(additionalInformation, prismContext));
 		}
 
         LOGGER.debug("Creating work item for assignee={}, candidateGroups={}, additionalInformation='{}'",
 				assignee, candidateGroups, additionalInformation);
     }
 
-	// TODO localizable
-	@SuppressWarnings("unchecked")
-	private List<InformationType> wrapAdditionalInformationIfNeeded(List<?> data) {		// data is not empty
-		if (data.stream().allMatch(o -> o instanceof String)) {
-			InformationType info = new InformationType();
-			for (Object o : data) {
-				InformationPartType part = new InformationPartType();
-				part.setLocalizableText(LocalizationUtil.createForFallbackMessage((String) o));
-				info.getPart().add(part);
-			}
-			return Collections.singletonList(info);
-		} else if (data.stream().allMatch(o -> o instanceof InformationType)) {
-			return (List<InformationType>) data;
-		} else {
-			throw new SystemException("Couldn't create 'additional information' structure from list of "
-				+ data.stream().map(o -> o != null ? o.getClass().getSimpleName() : null).collect(Collectors.joining(", ", "[", "]")));
-		}
+	private InformationType createInformationType(Object o) {
+    	if (o == null || o instanceof InformationType) {
+    		return (InformationType) o;
+	    } else if (o instanceof String) {
+		    return MidpointParsingMigrator.stringToInformationType((String) o);
+	    } else {
+    		throw new IllegalArgumentException("Object cannot be converted into InformationType: " + o);
+	    }
 	}
 }

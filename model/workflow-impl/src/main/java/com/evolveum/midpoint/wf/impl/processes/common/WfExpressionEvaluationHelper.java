@@ -66,14 +66,14 @@ public class WfExpressionEvaluationHelper {
 			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,
-				ObjectReferenceType.COMPLEX_TYPE, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
+				ObjectReferenceType.COMPLEX_TYPE, false, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
 	}
 
 	@SuppressWarnings("unchecked")
 	@NotNull
 	public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
 			String contextDescription, Class<T> clazz, QName typeName,
-			Function<Object, Object> additionalConvertor, Task task,
+			boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
 			OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionFactory expressionFactory = getExpressionFactory();
@@ -84,6 +84,9 @@ public class WfExpressionEvaluationHelper {
 			resultDef = new PrismReferenceDefinitionImpl(resultName, typeName, prismContext);
 		} else {
 			resultDef = new PrismPropertyDefinitionImpl<>(resultName, typeName, prismContext);
+		}
+		if (multiValued) {
+			resultDef.setMaxOccurs(-1);
 		}
 		Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, contextDescription, task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task, result);
@@ -112,7 +115,7 @@ public class WfExpressionEvaluationHelper {
 			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
-				Boolean.class, DOMUtil.XSD_BOOLEAN, null, task, result);
+				Boolean.class, DOMUtil.XSD_BOOLEAN, false, null, task, result);
 		return MiscUtil.getSingleValue(values, false, contextDescription);
 	}
 
@@ -120,7 +123,7 @@ public class WfExpressionEvaluationHelper {
 			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<String> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
-				String.class, DOMUtil.XSD_STRING, null, task, result);
+				String.class, DOMUtil.XSD_STRING, false, null, task, result);
 		return MiscUtil.getSingleValue(values, null, contextDescription);
 	}
 }

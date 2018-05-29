@@ -578,15 +578,14 @@ public class ObjectRetriever {
 
                     prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, resultType.getStatus());
                 }
-
-
-            } else {
-                Query<ROperationResultStatus> query = session.getNamedQuery("get.taskStatus");
-                query.setParameter("oid", prismObject.getOid());
-
-                ROperationResultStatus status = query.uniqueResult();
-                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
             }
+//            else {
+//                Query<ROperationResultStatus> query = session.getNamedQuery("get.taskStatus");
+//                query.setParameter("oid", prismObject.getOid());
+//
+//                ROperationResultStatus status = query.uniqueResult();
+//                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
+//            }
         }
 
         if (partialValueHolder != null) {

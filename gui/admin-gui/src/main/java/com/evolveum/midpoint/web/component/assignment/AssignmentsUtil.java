@@ -283,7 +283,11 @@ public class AssignmentsUtil {
     	if (assignment.getTargetRef() == null) {
     		return;
     	}
-    	sb.append(" - "  + RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel());
+
+        String hdrLabel = RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel();
+        if (hdrLabel != null && !hdrLabel.isEmpty()) {
+            sb.append(" - "  + hdrLabel);
+        }
 
     }
 

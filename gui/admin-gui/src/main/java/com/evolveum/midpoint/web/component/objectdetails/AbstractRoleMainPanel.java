@@ -330,6 +330,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
 							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
 						count++;
+						break;
 					}
 				}
 			}

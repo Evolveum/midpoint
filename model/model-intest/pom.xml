@@ -163,6 +163,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>ucf-api</artifactId>
+			<version>3.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-quartz-impl</artifactId>
 			<version>3.8-SNAPSHOT</version>

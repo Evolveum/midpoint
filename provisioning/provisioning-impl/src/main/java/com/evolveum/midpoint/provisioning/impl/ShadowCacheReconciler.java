@@ -20,11 +20,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.util.DebugUtil;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -34,6 +37,9 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,21 +61,23 @@ public class ShadowCacheReconciler extends ShadowCache {
 	public String afterAddOnResource(ProvisioningContext ctx, 
 			PrismObject<ShadowType> shadowToAdd, 
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult = opState.getAsyncResult();
 		if (addResult == null) {
 			return opState.getExistingShadowOid();
 		}
 		PrismObject<ShadowType> shadow = addResult.getReturnValue();
 		cleanShadowInRepository(shadow, parentResult);
-		return shadow.getOid();
+		opState.setExistingShadowOid(shadow.getOid());  // hack: MID-4542
+		return shadowManager.addNewActiveRepositoryShadow(ctx, shadowToAdd, opState, parentResult);
 	}
 
 	@Override
 	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
 			Collection<? extends ItemDelta> modifications,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+			XMLGregorianCalendar now,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {
 			cleanShadowInRepository(shadow, parentResult);
@@ -78,6 +86,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 			throw new SystemException("While modifying object in the repository got exception: " + ex.getMessage(), ex);
 		}
 		LOGGER.trace("Shadow cleaned up successfully.");
+		shadowManager.modifyShadow(ctx, shadow, modifications, opState, now, parentResult);
 	}
 	
 	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
@@ -85,8 +94,11 @@ public class ShadowCacheReconciler extends ShadowCache {
 		List<ItemDelta<?, ?>> itemDeltas =
 				ProvisioningUtil.createShadowCleanupAndReconciliationDeltas(shadow, repoShadowBefore, getPrismContext());
 
-		LOGGER.trace("Cleaning up repository shadow:\n{}\nThe current object is:\n{}\nAnd computed deltas are:\n{}",
-				repoShadowBefore.debugDumpLazily(), shadow.debugDumpLazily(), DebugUtil.debugDumpLazily(itemDeltas));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Cleaning up repository shadow:\n{}\nThe current object is:\n{}\nAnd computed deltas are:\n{}",
+					repoShadowBefore.debugDumpLazily(), shadow.debugDumpLazily(), DebugUtil.debugDumpLazily(itemDeltas));
+		}
+		
 		try {
 			ConstraintsChecker.onShadowModifyOperation(itemDeltas);
 			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, parentResult);
@@ -107,8 +119,8 @@ public class ShadowCacheReconciler extends ShadowCache {
 		ObjectDeltaType shadowDelta = shadow.asObjectable().getObjectChange();
 		
 		//TODO: error handling
-		if (shadowDelta != null){
-		modifications = DeltaConvertor.toModifications(
+		if (shadowDelta != null) {
+			modifications = DeltaConvertor.toModifications(
 				shadowDelta.getItemDelta(), shadow.getDefinition());
 		
 		}
@@ -117,7 +129,7 @@ public class ShadowCacheReconciler extends ShadowCache {
 		ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
 				modifications, ShadowType.class, getPrismContext());
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump());
+			LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump(1));
 		}
 		
 		ContainerDelta<ShadowAssociationType> associationDelta = objectDelta.findContainerDelta(ShadowType.F_ASSOCIATION);
@@ -128,14 +140,17 @@ public class ShadowCacheReconciler extends ShadowCache {
 			
 		}
 		
-		if (modifications == null){
+		ObjectDelta mergedDelta = mergeDeltas(shadow, modifications);
+
+		if (mergedDelta != null) {
+			modifications = mergedDelta.getModifications();
+		}
+		
+		if (modifications == null) {
 			modifications = new ArrayList<>();
 		}
 		
 		return modifications;
-		
-		
 	}
-	
 	
 }

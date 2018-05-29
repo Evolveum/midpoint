@@ -3554,10 +3554,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // [pm] commented out, as progress in recon task is now determined not only using # of changes
         //AssertJUnit.assertEquals(0, task.getProgress());
 
-        // Test for presence of a result. It should be there and it should
-        // indicate success
+        // Test for presence of a result. It was not fetched - so it should NOT be there
         OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull(taskResult);
+        AssertJUnit.assertNull(taskResult);
+
+        // However, the task should indicate success
+        AssertJUnit.assertEquals(OperationResultStatusType.SUCCESS, task.getResultStatus());
 
         // STOP the task. We don't need it any more and we don't want to give it a chance to run more than once
         taskManager.deleteTask(TASK_OPENDJ_RECON_OID, result);
