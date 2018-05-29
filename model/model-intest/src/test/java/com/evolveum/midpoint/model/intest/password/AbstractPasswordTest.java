@@ -3253,7 +3253,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	/**
 	 *  MID-4593
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test920AddCredentials() throws Exception {
 		final String TEST_NAME = "test920AddCredentials";
 		displayTestTitle(TEST_NAME);
@@ -3294,7 +3294,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	/**
 	 *  MID-4593
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test922ReplaceCredentials() throws Exception {
 		final String TEST_NAME = "test922ReplaceCredentials";
 		displayTestTitle(TEST_NAME);
@@ -3335,7 +3335,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	/**
 	 *  MID-4593
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test924AddPassword() throws Exception {
 		final String TEST_NAME = "test924AddPassword";
 		displayTestTitle(TEST_NAME);
@@ -3373,7 +3373,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	/**
 	 *  MID-4593
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test926ReplacePassword() throws Exception {
 		final String TEST_NAME = "test926ReplacePassword";
 		displayTestTitle(TEST_NAME);
@@ -3411,7 +3411,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	/**
 	 *  MID-4593
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test928AddPasswordValue() throws Exception {
 		final String TEST_NAME = "test928AddPasswordValue";
 		displayTestTitle(TEST_NAME);
@@ -3448,7 +3448,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	/**
 	 *  MID-4593
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test929ReplacePasswordValue() throws Exception {
 		final String TEST_NAME = "test929ReplacePasswordValue";
 		displayTestTitle(TEST_NAME);

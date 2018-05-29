@@ -25,7 +25,6 @@ with a lowercase letter and must be at least 6 characters long.</description>
 		<warnBeforeExpiration>9</warnBeforeExpiration>
 		<lockAfterExpiration>0</lockAfterExpiration>
 		<minPasswordAge>0</minPasswordAge>
-		<passwordHistoryLength>3</passwordHistoryLength>
 	</lifetime>
 	<stringPolicy>
 		<description>String validation policy</description>

@@ -40,12 +40,12 @@ user:
   fullName: "Darth Adder"
   givenName: "Darth"
   familyName: "Adder"
-  employeeType : 
+  employeeType :
   - "user"
   - "123user"
   - "employeE"
   employeeNumber : "123456"
-  organization : 
+  organization :
   - "Org1"
   - "Org2"
   - "Org3"
@@ -53,11 +53,11 @@ user:
     password:
       value:
         '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
-        clearValue: "iamyouruncle"
+        clearValue: "Iamy0urUncle"
     securityQuestions:
     - questionAnswer:
         id: 1
         questionIdentifier: "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001"
         questionAnswer:
           '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
-          clearValue: "iamyouruncle"
+          clearValue: "Iamy0urUncle"

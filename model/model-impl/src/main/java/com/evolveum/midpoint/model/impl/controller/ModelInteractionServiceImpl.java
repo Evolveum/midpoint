@@ -1329,7 +1329,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			evaluator.setOriginResolver(getOriginResolver(object));
 			evaluator.setTask(task);
 			evaluator.setShortDesc(" rest validate ");
-			if (object != null && path != null && SchemaConstants.PATH_PASSWORD.isSuperPathOrEquivalent(path)) {
+			if (object != null && path != null && path.isSuperPathOrEquivalent(SchemaConstants.PATH_PASSWORD)) {
 				evaluator.setSecurityPolicy(getSecurityPolicy((PrismObject<UserType>) object, task, parentResult));
 				PrismContainer<PasswordType> password = object.findContainer(SchemaConstants.PATH_PASSWORD);
 				PasswordType passwordType = null;
