@@ -2,71 +2,57 @@
 
 setlocal
 
-set "BIN_DIR=%~dp0%~2"
-if not "%MIDPOINT_HOME%" == "" goto gotHome
-cd "%BIN_DIR%.."
-mkdir var
-cd var
-mkdir log 
-cd "%BIN_DIR%.."
-set "MIDPOINT_HOME=%cd%\var"
-echo %MIDPOINT_HOME%
-echo %BIN_DIR%
-:gotHome
+set BIN_DIR=%~dp0
+set LIB_DIR=%BIN_DIR%..\lib
 
-rem if script for start and stop exists
-if exist "%BIN_DIR%\midpoint.bat" goto okBoot
-echo %BIN_DIR%
-echo The midpoint.bat file is not in \bin directory or is no accessible
-goto end
-:okBoot
-
-rem if start/stop out file exists
-if not "%BOOT_OUT%" == "" goto okOut
-set "BOOT_OUT=%MIDPOINT_HOME%\log\midpoint.out"
-echo %BOOT_OUT%
-:okOut
-
-rem MIDPOINT_WAR if not defined
-if exist "%cd%\lib\midpoint.war" goto gotWar
-echo The midpoint.war is not in \lib directory
-echo Can not start midPoint
-goto end
-:gotWar
-
-if "%MIDPOINT_HOME%" == "%MIDPOINT_HOME:;=%" goto homeNoSemicolon
+if "%MIDPOINT_HOME%" == "" (
+    cd "%BIN_DIR%.."
+    if not exist var mkdir var
+    if not exist var\log mkdir var\log
+    set "MIDPOINT_HOME=%BIN_DIR%..\var"
+)
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
-echo Unable to start as MIDPOINT_HOME contains a semicolon (;) character
-goto end
-:homeNoSemicolon
 
+if not exist "%BIN_DIR%midpoint.bat" (
+    echo Error: The midpoint.bat file is not in bin directory or is not accessible.
+    goto end
+)
+
+if not exist "%LIB_DIR%\midpoint.war" (
+    echo Error: The midpoint.war is not in the lib directory
+    goto end
+)
+
+if not "%MIDPOINT_HOME%" == "%MIDPOINT_HOME:;=%" (
+    echo Error: MIDPOINT_HOME contains a semicolon ";" character.
+    goto end
+)
+
+if "%BOOT_OUT%" == "" set BOOT_OUT=%MIDPOINT_HOME%\log\midpoint.out
+echo Using BOOT_OUT:        "%BOOT_OUT%"
 
 rem ----- Execute The Requested Command ---------------------------------------
 
-echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
+if "%1" == "start" goto doStart
+if "%1" == "stop" goto doStop
 
-set _EXECJAVA=%_RUNJAVA%
-set _NOHUP=nohup
-set ACTION=start
-
-if ""%1"" == ""start"" goto doStart
-if ""%1"" == ""stop"" goto doStop
+echo Error: No command given. Specify either start or stop.
+goto end
 
 :doStart
 shift
-goto execStart
+set RUN_JAVA=javaw
+if not "%JAVA_HOME%" == "" set RUN_JAVA=%JAVA_HOME%\bin\javaw
+
+echo Using RUN_JAVA:        "%RUN_JAVA%"
+echo Using JAVA_OPTS:       "%JAVA_OPTS%"
+echo Using parameters:      "%*"
+start /b %RUN_JAVA% -jar %JAVA_OPTS% -Xms2048M -Xmx2048M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
+goto end
 
 :doStop
 shift
-goto execStop
-
-:execStart
-echo "%cd%\lib\midpoint.war"
-start /b javaw -jar -Xms2048M -Xmx2048M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks -Dmidpoint.home="%MIDPOINT_HOME%" "%cd%\lib\midpoint.war" > "%BOOT_OUT%" 2>&1 &
-goto end
-
-:execStop
-echo "%cd%\lib\midpoint.war"
 FOR /F "usebackq tokens=5" %%i IN (`netstat -aon ^| findstr "0.0.0.0:8080"`) DO taskkill /F /PID %%i
+goto end
 
 :end
