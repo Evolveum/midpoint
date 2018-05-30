@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
-import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -4754,12 +4754,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
     @Test
     public void test1230ApplicableDistinctAndOrderBy() throws Exception {
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EMPLOYEE_TYPE).startsWith("e")
+                .asc(UserType.F_NAME)
+                .build();
+
         Session session = open();
         try {
-            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                    .item(UserType.F_EMPLOYEE_TYPE).startsWith("e")
-                    .asc(UserType.F_NAME)
-                    .build();
             String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
             String expected;
             SqlRepositoryConfiguration config = getConfiguration();
@@ -4772,8 +4773,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "  u.datesCount,\n"
                         + "  u.referencesCount,\n"
                         + "  u.polysCount,\n"
-                        + "  u.booleansCount,\n"
-                        + "  u.nameCopy.orig\n"
+                        + "  u.booleansCount\n"
                         + "from\n"
                         + "  RUser u\n"
                         + "where\n"
@@ -4781,7 +4781,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "    select distinct\n"
                         + "      u.oid\n"
                         + "    from\n"
-                        + "      RUser u left join u.employeeType e where e like :e )\n"
+                        + "      RUser u left join u.employeeType e where e like :e)\n"
                         + "order by u.nameCopy.orig asc";
             } else {
                 expected = "select distinct\n"
@@ -4802,6 +4802,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         } finally {
             close(session);
         }
+
+        SearchResultList<PrismObject<UserType>> objects = repositoryService
+                .searchObjects(UserType.class, query, null, new OperationResult("dummy"));
+        System.out.println("objects: " + objects);
+        // just to know if the execution was successful
     }
 
     @Test
@@ -4839,7 +4844,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "        a.targetRef.targetOid = :targetOid and\n"
                         + "        a.targetRef.relation in (:relation)\n"
                         + "      ))\n"
-                        + "order by u.name.orig asc";
+                        + "order by u.nameCopy.orig asc";
             } else {
                 expected = "select distinct\n"
                         + "  u.oid,\n"
