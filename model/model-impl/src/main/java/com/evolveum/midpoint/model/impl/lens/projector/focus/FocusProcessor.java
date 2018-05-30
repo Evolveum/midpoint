@@ -578,8 +578,9 @@ public class FocusProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(lifecycleStateNew, activationNew, validityStatusNew);
-		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(lifecycleStateCurrent, activationCurrent, validityStatusCurrent);
+		LifecycleStateModelType lifecycleModel = focusContext.getLifecycleModel();
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(lifecycleStateNew, activationNew, validityStatusNew, lifecycleModel);
+		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(lifecycleStateCurrent, activationCurrent, validityStatusCurrent, lifecycleModel);
 
 		if (effectiveStatusCurrent == effectiveStatusNew) {
 			// No change, (almost) no work
@@ -822,7 +823,7 @@ public class FocusProcessor {
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
 			AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
 			ActivationType currentActivationType = assignmentType.getActivation();
-			ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType);
+			ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType, null);
 			if (currentActivationType == null) {
 				PrismContainerDefinition<ActivationType> activationDef = focusContext.getObjectDefinition().findContainerDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION);
 				ContainerDelta<ActivationType> activationDelta = activationDef.createEmptyDelta(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
 
         ActivationType activation = principal.getUser().getActivation();
         if (activation != null) {
-        	activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation);
+        	activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation, null);
         }
 	}
 

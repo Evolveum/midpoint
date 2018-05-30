@@ -44,6 +44,10 @@
     	<subtype>employee</subtype>
    		<lifecycleStateModel>
    			<state>
+   				<name>proposed</name>
+   				<!-- no forcedActivationStatus, changing the default to undefined -->
+   			</state>
+   			<state>
    				<name>active</name>
    				<transition>
    					<name>archival</name>
@@ -57,6 +61,7 @@
    			</state>
    			<state>
    				<name>archived</name>
+   				<forcedActivationStatus>archived</forcedActivationStatus>
    				<entryAction>
    					<name>archival-data-reduction</name>
    					<dataReduction>

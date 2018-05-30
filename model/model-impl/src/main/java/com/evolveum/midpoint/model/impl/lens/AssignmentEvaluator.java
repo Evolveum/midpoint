@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -103,6 +104,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private final PrismObject<SystemConfigurationType> systemConfiguration;
 	private final MappingEvaluator mappingEvaluator;
 	private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
+	private final LifecycleStateModelType focusStateModel;
 
 	private AssignmentEvaluator(Builder<F> builder) {
 		repository = builder.repository;
@@ -119,6 +121,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 		systemConfiguration = builder.systemConfiguration;
 		mappingEvaluator = builder.mappingEvaluator;
 		evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
+		
+		LensFocusContext<F> focusContext = lensContext.getFocusContext();
+		if (focusContext != null) {
+			focusStateModel = focusContext.getLifecycleModel();
+		} else {
+			focusStateModel = null;
+		}
 	}
 
 	public RepositoryService getRepository() {
@@ -334,7 +343,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		final boolean isDirectAssignment = ctx.assignmentPath.size() == 1;
 
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		boolean isAssignmentValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer);
+		boolean isAssignmentValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer, focusStateModel);
 		if (isAssignmentValid || segment.isValidityOverride()) {
 			// Note: validityOverride is currently the same as "isDirectAssignment" - which is very probably OK.
 			// Direct assignments are visited even if they are not valid (i.e. effectively disabled).
@@ -684,7 +693,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		checkRelationWithTarget(segment, targetType, relation);
 
-		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer);
+		LifecycleStateModelType targetStateModel = ModelUtils.determineLifecycleModel(targetType.asPrismObject(), systemConfiguration);
+		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer, targetStateModel);
 		if (!isTargetValid) {
 			isValid = false;
 		}

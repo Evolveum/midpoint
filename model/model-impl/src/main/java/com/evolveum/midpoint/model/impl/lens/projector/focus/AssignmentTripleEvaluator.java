@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -67,12 +68,20 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	private Task task;
 	private OperationResult result;
 
+	private LifecycleStateModelType focusStateModel;
+
 	public LensContext<F> getContext() {
 		return context;
 	}
 
 	public void setContext(LensContext<F> context) {
 		this.context = context;
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext != null) {
+			focusStateModel = focusContext.getLifecycleModel();
+		} else {
+			focusStateModel = null;
+		}
 	}
 
 	public ObjectType getSource() {
@@ -342,9 +351,9 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 	                	// not significant, i.e. reconciliation can handle them.
 	                	boolean isValidOld = LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
-	                			assignmentCValOld.asContainerable(), now, activationComputer);
+	                			assignmentCValOld.asContainerable(), now, activationComputer, focusStateModel);
 	                	boolean isValid = LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
-	                			assignmentCValNew.asContainerable(), now, activationComputer);
+	                			assignmentCValNew.asContainerable(), now, activationComputer, focusStateModel);
 						ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
 								createAssignmentIdiInternalChange(assignmentCVal, subItemDeltas);
 	                	if (isValid == isValidOld) {

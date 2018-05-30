@@ -554,21 +554,21 @@ public class LensUtil {
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
-    public static boolean isAssignmentValid(FocusType focus, AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+    public static boolean isAssignmentValid(FocusType focus, AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
     	String focusLifecycleState = focus.getLifecycleState();
-		if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState)) {
+		if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
 			return false;
 		}
-		return isValid(assignmentType.getLifecycleState(), assignmentType.getActivation(), now, activationComputer);
+		return isValid(assignmentType.getLifecycleState(), assignmentType.getActivation(), now, activationComputer, focusStateModel);
 	}
 
-	public static boolean isFocusValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer);
+	public static boolean isFocusValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer, focusStateModel);
 	}
 
-	private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+	private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
 		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus, focusStateModel);
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 

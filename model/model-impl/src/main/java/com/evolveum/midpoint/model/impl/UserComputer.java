@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -33,11 +34,11 @@ public class UserComputer {
 	@Autowired(required = true)
 	private ActivationComputer activationComputer;
 
-	public void recompute(PrismObject<UserType> user) {
+	public void recompute(PrismObject<UserType> user, LifecycleStateModelType lifecycleModel) {
 		UserType userType = user.asObjectable();
 		ActivationType activationType = userType.getActivation();
 		if (activationType != null) {
-			activationComputer.computeEffective(userType.getLifecycleState(), activationType);
+			activationComputer.computeEffective(userType.getLifecycleState(), activationType, lifecycleModel);
 		}
 	}
 

@@ -58,6 +58,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	// this is not to be serialized into XML, but let's not mark it as transient
 	@NotNull private Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
 
+	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
+		super(objectTypeClass, lensContext);
+	}
+	
 	private int getProjectionWave() {
 		return getLensContext().getProjectionWave();
 	}
@@ -77,13 +81,16 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	public ObjectPolicyConfigurationType getObjectPolicyConfigurationType() {
 		return objectPolicyConfigurationType;
 	}
-
+	
 	public void setObjectPolicyConfigurationType(ObjectPolicyConfigurationType objectPolicyConfigurationType) {
 		this.objectPolicyConfigurationType = objectPolicyConfigurationType;
 	}
-
-	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
-		super(objectTypeClass, lensContext);
+	
+	public LifecycleStateModelType getLifecycleModel() {
+		if (objectPolicyConfigurationType == null) {
+			return null;
+		}
+		return objectPolicyConfigurationType.getLifecycleStateModel();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,7 +228,7 @@ public class OperationalDataManager {
 		// The effectiveStatus of existing assignments is processed in FocusProcessor.processAssignmentActivation()
 		// We cannot process that here. Because this code is not even triggered when there is no delta. So recompute will not work.
 		ActivationType activationType = assignmentType.getActivation();
-		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), activationType);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), activationType, null);
 		if (activationType == null) {
 			activationType = new ActivationType();
 			assignmentType.setActivation(activationType);
