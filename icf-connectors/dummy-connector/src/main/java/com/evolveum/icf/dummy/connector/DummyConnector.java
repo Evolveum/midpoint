@@ -323,7 +323,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 						} catch (ObjectAlreadyExistsException e) {
 							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
 						} catch (SchemaViolationException e) {
-							throw new org.identityconnectors.framework.common.exceptions.ConnectorException("Schema exception: " + e.getMessage(), e);
+							throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
 						}
 						// We need to change the returned uid here (only if the mode is not set to UUID)
 						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
@@ -386,7 +386,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		// We need to change the returned uid here
 		        		uid = new Uid(newName);
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change password on group");
+		        		throw new InvalidAttributeValueException("Attempt to change password on group");
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
 		        		group.setEnabled(getBooleanNotNull(attr));
@@ -404,7 +404,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	try {
 							group.replaceAttributeValues(name, values);
 						} catch (SchemaViolationException e) {
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -436,17 +436,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		// We need to change the returned uid here
 		        		uid = new Uid(newName);
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change password on privilege");
+		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change enable on privilege");
+		        		throw new InvalidAttributeValueException("Attempt to change enable on privilege");
 		
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
 							priv.replaceAttributeValues(name, attr.getValue());
 						} catch (SchemaViolationException e) {
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -478,17 +478,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		// We need to change the returned uid here
 		        		uid = new Uid(newName);
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change password on org");
+		        		throw new InvalidAttributeValueException("Attempt to change password on org");
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change enable on org");
+		        		throw new InvalidAttributeValueException("Attempt to change enable on org");
 		
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
 							org.replaceAttributeValues(name, attr.getValue());
 						} catch (SchemaViolationException e) {
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -546,12 +546,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 		        		if (account.getPassword() != null) {
-		        			throw new IllegalArgumentException("Attempt to add value for password while password is already set");
+		        			throw new InvalidAttributeValueException("Attempt to add value for password while password is already set");
 		        		}
 		        		changePassword(account,attr);
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
 		
 		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
 						account.addAuxiliaryObjectClassNames(attr.getValue());
@@ -563,10 +563,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
@@ -588,10 +587,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        for (Attribute attr : valuesToAdd) {
 		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on group");
+		        		throw new InvalidAttributeValueException("Attempt to change password on group");
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
 		
 		        	} else {
 			        	String name = attr.getName();
@@ -608,10 +607,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
@@ -633,10 +631,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        for (Attribute attr : valuesToAdd) {
 		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on privilege");
+		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
 		
 		        	} else {
 			        	String name = attr.getName();
@@ -645,10 +643,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -670,10 +667,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        for (Attribute attr : valuesToAdd) {
 		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on org");
+		        		throw new InvalidAttributeValueException("Attempt to change password on org");
 		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable org");
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable org");
 		
 		        	} else {
 			        	String name = attr.getName();
@@ -682,10 +679,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
@@ -741,7 +737,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 		        		throw new UnsupportedOperationException("Removing password value is not supported");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
 		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
 		        		account.deleteAuxiliaryObjectClassNames(attr.getValue());
 					} else {
@@ -751,10 +747,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
@@ -775,9 +770,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on group");
+		        		throw new InvalidAttributeValueException("Attempt to change password on group");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
 		        	} else {
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
@@ -793,10 +788,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -817,9 +811,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on privilege");
+		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -827,10 +821,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -851,9 +844,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on org");
+		        		throw new InvalidAttributeValueException("Attempt to change password on org");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable org");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable org");
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -861,10 +854,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -1644,7 +1636,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		for (String name : dummyObject.getAttributeNames()) {
 			DummyAttributeDefinition attrDef = dummyObject.getAttributeDefinition(name);
 			if (attrDef == null) {
-				throw new IllegalArgumentException("Unknown account attribute '"+name+"'");
+				throw new InvalidAttributeValueException("Unknown account attribute '"+name+"'");
 			}
 			if (!attrDef.isReturnedByDefault()) {
 				if (attributesToGet != null && !attributesToGet.contains(name)) {
@@ -1806,14 +1798,14 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				if (configuration.getSupportValidity()) {
 					newAccount.setValidFrom(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("ENABLE_DATE specified in the account attributes while not supporting it");
+					throw new InvalidAttributeValueException("ENABLE_DATE specified in the account attributes while not supporting it");
 				}
 
 			} else if (attr.is(OperationalAttributeInfos.DISABLE_DATE.getName())) {
 				if (configuration.getSupportValidity()) {
 					newAccount.setValidTo(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("DISABLE_DATE specified in the account attributes while not supporting it");
+					throw new InvalidAttributeValueException("DISABLE_DATE specified in the account attributes while not supporting it");
 				}
 
 			} else if (attr.is(OperationalAttributeInfos.LOCK_OUT.getName())) {
@@ -1825,10 +1817,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				try {
 					newAccount.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
-					// we cannot throw checked exceptions. But this one looks suitable.
 					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 					// The framework should deal with it ... somehow
-					throw new IllegalArgumentException(e.getMessage(),e);
+					throw new InvalidAttributeValueException(e.getMessage(),e);
 				}
 			}
 		}
@@ -1838,7 +1829,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 
 		if (configuration.getRequireExplicitEnable() && enabled == null) {
-			throw new IllegalArgumentException("Explicit value for ENABLE attribute was not provided and the connector is set to require it");
+			throw new InvalidAttributeValueException("Explicit value for ENABLE attribute was not provided and the connector is set to require it");
 		}
 
 		return newAccount;
@@ -1860,7 +1851,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-				throw new IllegalArgumentException("Password specified for a group");
+				throw new InvalidAttributeValueException("Password specified for a group");
 
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				enabled = getBooleanNotNull(attr);
@@ -1870,14 +1861,14 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				if (configuration.getSupportValidity()) {
 					newGroup.setValidFrom(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("ENABLE_DATE specified in the group attributes while not supporting it");
+					throw new InvalidAttributeValueException("ENABLE_DATE specified in the group attributes while not supporting it");
 				}
 
 			} else if (attr.is(OperationalAttributeInfos.DISABLE_DATE.getName())) {
 				if (configuration.getSupportValidity()) {
 					newGroup.setValidTo(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("DISABLE_DATE specified in the group attributes while not supporting it");
+					throw new InvalidAttributeValueException("DISABLE_DATE specified in the group attributes while not supporting it");
 				}
 
 			} else {
@@ -1885,7 +1876,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				try {
 					newGroup.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
-					throw new IllegalArgumentException(e.getMessage(),e);
+					throw new InvalidAttributeValueException(e.getMessage(),e);
 				}
 			}
 		}
@@ -1908,17 +1899,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-				throw new IllegalArgumentException("Password specified for a privilege");
+				throw new InvalidAttributeValueException("Password specified for a privilege");
 
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-				throw new IllegalArgumentException("Unsupported ENABLE attribute in privilege");
+				throw new InvalidAttributeValueException("Unsupported ENABLE attribute in privilege");
 
 			} else {
 				String name = attr.getName();
 				try {
 					newPriv.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
-					throw new IllegalArgumentException(e.getMessage(),e);
+					throw new InvalidAttributeValueException(e.getMessage(),e);
 				}
 			}
 		}
