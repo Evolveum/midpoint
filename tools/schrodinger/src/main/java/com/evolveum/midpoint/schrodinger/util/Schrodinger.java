@@ -77,7 +77,19 @@ public class Schrodinger {
             element = "*";
         }
 
-        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\"][contains(.,\"" + enclosedText + "\")]/..");
+        return byElementValue(element, attr, attrValue, null, enclosedText);
+    }
+
+    public static By byElementValue(String element, String attr, String attrValue, String enclosingElement, String enclosedText) {
+
+        if (element == null) {
+            element = "*";
+        }
+        if (enclosingElement == null) {
+            enclosingElement = ".";
+        }
+
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\"][contains(" + enclosingElement + ",\"" + enclosedText + "\")]/..");
     }
 
     public static By byElementValue(String elementName, String value) {
@@ -88,14 +100,6 @@ public class Schrodinger {
         return By.xpath("//" + elementName + "[text()='" + value + "']");
     }
 
-    public static By byElementValueConcrete(String elementName, String value) {
-        if (elementName == null) {
-            elementName = "*";
-        }
-
-        return By.xpath("//" + elementName + "contains(.,\"" + value + "\"");
-    }
-
     public static By bySelfOrAncestorElementAttributeValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue) {
         if (element == null) {
             element = "*";
@@ -104,7 +108,7 @@ public class Schrodinger {
         return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and ancestor-or-self::*[@" + ancestorAttr + "=\"" + ancestorAttrValue + "\"]]");
     }
 
-    public static By bySelfOrDescendantElementAttributeValue(String element, String attr, String attrValue, String descendantAttr, String descendantAttrValue) {
+    public static By byDescendantOrSelfElementAttributeValue(String element, String attr, String attrValue, String descendantAttr, String descendantAttrValue) {
         if (element == null) {
             element = "*";
         }
@@ -112,28 +116,80 @@ public class Schrodinger {
         return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and descendant-or-self::*[@" + descendantAttr + "=\"" + descendantAttrValue + "\"]]");
     }
 
-    public static By byFollowingSiblingElementValue(String element, String attr, String attrValue, String siblingAttr, String siblingAttrValue, String siblingEnclosedText) {
+    public static By byFollowingSiblingEnclosedValue(String element, String attr, String attrValue, String siblingAttr, String siblingAttrValue, String siblingEnclosedText) {
         if (element == null) {
             element = "*";
         }
 
-        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and following-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and following-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
     }
 
-    public static By byPrecedingSiblingElementValue(String element, String attr, String attrValue, String siblingAttr, String siblingAttrValue, String siblingEnclosedText) {
+    public static By byPrecedingSiblingEnclosedValue(String element, String attr, String attrValue, String siblingAttr, String siblingAttrValue, String siblingEnclosedText) {
         if (element == null) {
             element = "*";
         }
 
-        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and preceding-sibling::*[@" + siblingAttr + "=\"" + siblingAttrValue + "\" and descendant::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+        StringBuilder xpathBuilder = new StringBuilder("//").append(element).append("[");
+
+        if (attr != null) {
+            xpathBuilder.append("@").append(attr).append("=\"").append(attrValue).append("\" and preceding-sibling::*[");
+        } else {
+            xpathBuilder.append("not(@*)").append(" and preceding-sibling::*[");
+        }
+
+        if (siblingAttr != null) {
+            xpathBuilder.append("@").append(siblingAttr).append("=\"").append(siblingAttrValue).append("\" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+        } else {
+            xpathBuilder.append("not(@*)").append(" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+        }
+
+        return By.xpath(xpathBuilder.toString());
     }
 
-    public static By byAncestorElementValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
+    public static By byAncestorPrecedingSiblingElementValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
         if (element == null) {
             element = "*";
         }
 
-        return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and ancestor::*[@" + ancestorAttr + "=\"" + ancestorAttrValue + "\" and descendant::*[contains(.,\"" + ancestorEnclosedText + "\")]]]");
+        StringBuilder xpathBuilder = new StringBuilder("//").append(element).append("[ancestor::*[");
+
+        if (ancestorAttr != null) {
+            xpathBuilder.append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue)
+                    .append("\" and preceding-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]")
+                    .append(" or preceding-sibling::*[").append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue)
+                    .append("\" and descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]");
+        } else {
+            xpathBuilder.append("preceding-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]]");
+        }
+
+        if (attr != null) {
+            xpathBuilder.append("[@").append(attr).append("=\"").append(attrValue).append("\"]");
+        }
+
+        return By.xpath(xpathBuilder.toString());
+    }
+
+    public static By byAncestorFollowingSiblingElementValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
+        if (element == null) {
+            element = "*";
+        }
+
+        StringBuilder xpathBuilder = new StringBuilder("//").append(element).append("[ancestor::*[");
+
+        if (ancestorAttr != null) {
+            xpathBuilder.append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue)
+                    .append("\" and following-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]")
+                    .append(" or following-sibling::*[").append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue)
+                    .append("\" and descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]");
+        } else {
+            xpathBuilder.append("following-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]]");
+        }
+
+        if (attr != null) {
+            xpathBuilder.append("[@").append(attr).append("=\"").append(attrValue).append("\"]");
+        }
+
+        return By.xpath(xpathBuilder.toString());
     }
 
     public static String qnameToString(QName qname) {

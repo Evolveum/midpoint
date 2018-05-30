@@ -101,6 +101,27 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public Boolean compareAttibuteValue(String name, String expectedValue) {
+        SelenideElement property = findProperty(name);
+        SelenideElement value = property.$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        String valueElemen = value.getValue();
+
+        if (!valueElemen.isEmpty()) {
+
+            return valueElemen.equals(expectedValue);
+
+        } else if (!expectedValue.isEmpty()) {
+
+            return false;
+
+        } else {
+
+            return true;
+
+        }
+
+    }
+
     public PrismForm<T> addAttributeValue(QName name, String value) {
         SelenideElement property = findProperty(name);
 
@@ -155,10 +176,10 @@ public class PrismForm<T> extends Component<T> {
 
         if (doesElementAttrValueExist) {
             element = $(Schrodinger.byElementAttributeValue(null, "contains",
-                    Schrodinger.DATA_S_QNAME, "#" + name));
+                    Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT);
 
         } else {
-            element = $(By.xpath("//span[@data-s-id=\"label\"][text()=\"" + name + "\"]/.."))
+            element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/.."))
                     .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
         }
 

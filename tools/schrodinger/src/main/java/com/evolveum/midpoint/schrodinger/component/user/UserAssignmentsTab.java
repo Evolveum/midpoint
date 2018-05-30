@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
-import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTable;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -58,7 +57,7 @@ public class UserAssignmentsTab extends Component<UserPage> {
             @Override
             public AbstractTableWithPrismView<UserAssignmentsTab> selectCheckboxByName(String name) {
 
-                $(Schrodinger.byFollowingSiblingElementValue("td", "class", "check", "data-s-id", "3", name))
+                $(Schrodinger.byFollowingSiblingEnclosedValue("td", "class", "check", "data-s-id", "3", name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
                 return this;
@@ -67,7 +66,7 @@ public class UserAssignmentsTab extends Component<UserPage> {
             @Override
             public AbstractTableWithPrismView<UserAssignmentsTab> unassignByName(String name) {
 
-                $(Schrodinger.byAncestorElementValue("button", "title", "Unassign", "data-s-id", "3", name))
+                $(Schrodinger.byAncestorPrecedingSiblingElementValue("button", "title", "Unassign", null, null, name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
                 return this;

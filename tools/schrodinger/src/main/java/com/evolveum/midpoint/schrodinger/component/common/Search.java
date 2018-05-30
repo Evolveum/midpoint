@@ -45,6 +45,7 @@ public class Search<T> extends Component<T> {
                 popover = popoverElement;
                 break;
             }
+            popover = popoverElement;
         }
         return new Popover<>(this, popover);
     }
