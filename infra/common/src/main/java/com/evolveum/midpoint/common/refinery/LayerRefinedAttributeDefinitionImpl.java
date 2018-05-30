@@ -660,12 +660,12 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 	
 	@Override
-	public Object getAnnotation(QName qname) {
+	public <A> A getAnnotation(QName qname) {
 		return refinedAttributeDefinition.getAnnotation(qname);
 	}
 
 	@Override
-	public void setAnnotation(QName qname, Object value) {
+	public <A> void setAnnotation(QName qname, A value) {
 		refinedAttributeDefinition.setAnnotation(qname, value);
 	}
 

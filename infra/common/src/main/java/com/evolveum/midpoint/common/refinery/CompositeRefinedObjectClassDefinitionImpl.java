@@ -760,12 +760,12 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 	
 	@Override
-	public Object getAnnotation(QName qname) {
+	public <A> A getAnnotation(QName qname) {
 		return structuralObjectClassDefinition.getAnnotation(qname);
 	}
 
 	@Override
-	public void setAnnotation(QName qname, Object value) {
+	public <A> void setAnnotation(QName qname, A value) {
 		structuralObjectClassDefinition.setAnnotation(qname, value);
 	}
 

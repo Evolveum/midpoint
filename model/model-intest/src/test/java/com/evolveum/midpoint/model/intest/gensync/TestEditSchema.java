@@ -73,6 +73,9 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -1027,6 +1030,10 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertEquals("Wrong costCenter displayOrder", (Integer)123, costCenterDef.getDisplayOrder());
 		assertTrue("costCenter not readable", costCenterDef.canRead());
 		PrismAsserts.assertEmphasized(costCenterDef, true);
+		FormItemValidationType validationAnnotation = costCenterDef.getAnnotation(ItemRefinedDefinitionType.F_VALIDATION);
+		assertNotNull("No validation annotation in costCenter", validationAnnotation);
+		ExpressionType validationExpression = validationAnnotation.getServer().get(0).getExpression();
+		assertNotNull("No validation expression annotation in costCenter", validationExpression);
 
 		// This has overridden lookup def in object template
 		PrismPropertyDefinition<String> preferredLanguageDef = editDef.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);

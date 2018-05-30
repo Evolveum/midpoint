@@ -1347,12 +1347,12 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public Object getAnnotation(QName qname) {
+	public <A> A getAnnotation(QName qname) {
 		return originalObjectClassDefinition.getAnnotation(qname);
 	}
 
 	@Override
-	public void setAnnotation(QName qname, Object value) {
+	public <A> void setAnnotation(QName qname, A value) {
 		throw new UnsupportedOperationException("TODO");
 	}
 	
