@@ -543,10 +543,10 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		}
 		if (administrativeStatus != null){
 			return Model.of(WebModelServiceUtils
-					.getEffectiveStatus(lifecycleStatus, activation, getPageBase()).value().toLowerCase());
+					.getAssignmentEffectiveStatus(lifecycleStatus, activation, getPageBase()).value().toLowerCase());
 		} else {
 			return AssignmentsUtil.createActivationTitleModel(WebModelServiceUtils
-							.getEffectiveStatus(lifecycleStatus, activation, getPageBase()),
+							.getAssignmentEffectiveStatus(lifecycleStatus, activation, getPageBase()),
 					validFrom, validTo, AssignmentPanel.this);
 		}
 

@@ -2002,6 +2002,66 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="forcedActivationStatus" type="tns:ActivationStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    		Activation status forced by this lifecycle state. If lifecycle state
+                    		implies activation status, then such status will be forced to all objects
+                    		that are in that lifecycle state. Such objects will have the effective status
+                    		set to the value of forcedActivationStatus regardless of other activation setting.
+                    		I.e. administrativeStatus and validity are not considered in this case.
+                    	</p>
+                    	<p>
+                    		If no forced status is specified for a state that is explicitly defined,
+                    		the "undefined" is implied. In that case the usual activation computation
+                    		takes place (e.g. administrativeStatus and validity).
+                    	</p>
+                    	<p>
+                    		However, there is a couple of hardcoded lifecycle states. If these states
+                    		are not explicitly defined in a lifecycle model, the hardcoded defaults are applied
+                    		for activation in these hardcoded states ("undefined" for active and deprecated
+                    		states, "archived" for archived state, "disabled" for all other states). To turn off this default behaviour
+                    		those hardcoded lifecycle states need to be explicitly defined in the state model
+                    		and the forcedActivationStatus property shoule be left undefined.
+                    	</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activeAssignments" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    		Setting that specifies whether object assignments should be considered
+                    		active in this lifecycle state. If set to true, then assignments are considered
+                    		active. That means that the assignments will be computed as usual.
+                    		If set to false then all object assignments are considered inactive. Which
+                    		means that they will be ignored (as if they do not exist at all).
+                    	</p>
+                    	<p>
+                    		If this setting is not specified then the result of forced activation status
+                    		determines behavior of the assignments. If forced activation is "disabled" or
+                    		"archived" then the assignments are considered to be inactive. If forced activation
+                    		status is "enabled" or if it is not defined at all then the assignments are considered
+                    		active.
+                    	</p>
+                    	<p>
+                    		However, there is a couple of hardcoded lifecycle states. If these states
+                    		are not explicitly defined in a lifecycle model, the hardcoded defaults are applied
+                    		for activation in these hardcoded states ("undefined" for active and deprecated
+                    		states, "disabled" for all other states). To turn off this default behaviour
+                    		those hardcoded lifecycle states need to be explicitly defined in the state model
+                    		and the forcedActivationStatus property shoule be left undefined.
+                    	</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: activationStatus -->
             <xsd:element name="entryAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>

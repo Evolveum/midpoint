@@ -661,8 +661,8 @@ public class WebModelServiceUtils {
 								ObjectPaging.createPaging(LookupTableRowType.F_LABEL, OrderDirection.ASCENDING))));
 	}
 
-	public static ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
-        return pageBase.getModelInteractionService().getEffectiveStatus(lifecycleStatus, activationType);
+	public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
+        return pageBase.getModelInteractionService().getAssignmentEffectiveStatus(lifecycleStatus, activationType);
     }
 
 	public static void assumePowerOfAttorney(PrismObject<UserType> donor,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
@@ -151,8 +152,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         }
 
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-
-    	userComputer.recompute(user);
+        LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
+    	
+		userComputer.recompute(user, lifecycleModel);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
         return principal;
@@ -168,6 +170,17 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
 		} 
         return systemConfiguration;
+    }
+    
+    private LifecycleStateModelType getLifecycleModel(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) {
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+		try {
+			return ModelUtils.determineLifecycleModel(user, systemConfiguration.asObjectable());
+		} catch (ConfigurationException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
     }
 
     @Override
@@ -356,7 +369,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return null;
 		}
 		if (owner.canRepresent(UserType.class)) {
-			userComputer.recompute((PrismObject<UserType>)owner);
+			PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+	        LifecycleStateModelType lifecycleModel = getLifecycleModel((PrismObject<UserType>)owner, systemConfiguration);
+			userComputer.recompute((PrismObject<UserType>)owner, lifecycleModel);
 		}
 		return owner;
 	}

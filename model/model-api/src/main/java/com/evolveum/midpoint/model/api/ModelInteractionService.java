@@ -309,12 +309,9 @@ public interface ModelInteractionService {
 			throws SchemaException;
 
 	/**
-	 * computes effective status for the current ActivationType object
-	 * @param lifecycleStatus
-	 * @param activationType
-	 * @return
+	 * Computes effective status for the current ActivationType in for an assignment
 	 */
-	ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType);
+	ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 	
 	MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) 
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;

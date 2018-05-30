@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -76,6 +77,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 	 * Setup jack. Setting subtype to employee will put him under lifecycle
 	 * control. But before that we want him to have at least one
 	 * processing basis role.
+	 * This starts from "draft" state.
 	 */
     @Test
     public void test050SetupJack() throws Exception {
@@ -90,6 +92,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_GAMBLER_OID, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_DRAFT);
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, SUBTYPE_EMPLOYEE);
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, USER_JACK_TELEPHONE_NUMBER);
 
@@ -100,8 +103,69 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 2);
+        assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_DRAFT);
+        assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
+        assertLinks(userAfter, 0);
+    }
+    
+    /**
+     * Transition Jack to proposed lifecycle state (manual transition).
+     * Proposed state should have effective status of "disabled" by default.
+     * But that is overridden in the lifecycle model. So the user should be
+     * enabled. 
+     */
+    @Test
+    public void test060TransitionJackToProposed() throws Exception {
+		final String TEST_NAME = "test060TransitionJackToProposed";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_PROPOSED);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 2);
+        assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_PROPOSED);
+        assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
+        assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
+        assertLinks(userAfter, 0);
+    }
+    
+    /**
+     * Transition Jack to default lifecycle (active) state (manual transition).
+     * This prepares jack for next tests. 
+     */
+    @Test
+    public void test090TransitionJackToDefaultActive() throws Exception {
+		final String TEST_NAME = "test090TransitionJackToDefaultActive";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result /* no value */);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 2);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
+        assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
         assertLinks(userAfter, 0);
     }
     

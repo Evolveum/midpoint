@@ -1559,8 +1559,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
-		return activationComputer.getEffectiveStatus(lifecycleStatus, activationType);
+	public ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
+		return activationComputer.getEffectiveStatus(lifecycleStatus, activationType, null);
 	}
 	
 	@Override
