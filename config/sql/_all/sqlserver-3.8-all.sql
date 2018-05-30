@@ -560,7 +560,7 @@ CREATE TABLE m_focus (
   validityStatus          INT,
   costCenter              NVARCHAR(255) COLLATE database_default,
   emailAddress            NVARCHAR(255) COLLATE database_default,
-  hasPhoto                BIT DEFAULT FALSE                     NOT NULL,
+  hasPhoto                BIT DEFAULT 0                     NOT NULL,
   locale                  NVARCHAR(255) COLLATE database_default,
   locality_norm           NVARCHAR(255) COLLATE database_default,
   locality_orig           NVARCHAR(255) COLLATE database_default,

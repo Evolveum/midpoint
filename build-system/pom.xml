@@ -1466,8 +1466,8 @@
 					<!-- it's used for bamboo build to load jdbc libraries which can not 
 						be installed to public maven repository (MS SQL, ORACLE) -->
 					<additionalClasspathElements>
-						<additionalClasspathElement>/opt/Bamboo_db_configs/mssqljdbc4.jar</additionalClasspathElement>
-						<additionalClasspathElement>/opt/Bamboo_db_configs/ojdbc6.jar</additionalClasspathElement>
+						<additionalClasspathElement>/opt/jenkins_db_configs/mssqljdbc4.jar</additionalClasspathElement>
+						<additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
 						<!-- used running tests on windows machines -->
 						<additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER
 							4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>

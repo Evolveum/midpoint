@@ -1,0 +1,3 @@
+"login","firstname","lastname","disabled","password","groups"
+"admin","admin","admin",false,"",""
+"raphael","Raffaello","Sanzio da Urbino","false","",""

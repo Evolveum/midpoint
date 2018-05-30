@@ -102,6 +102,8 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
     public static final String OPERATION_CLEANUP_CAMPAIGNS = INTERFACE_DOT + "cleanupCampaigns";
 
+    private static final int CASES_DELTAS_BATCH_SIZE = 60;          // there are 6 deltas for single case modification (TODO)
+
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ModelService modelService;
@@ -256,8 +258,8 @@ public class CertificationManagerImpl implements CertificationManager {
             } else {
                 final CertificationHandler handler = findCertificationHandler(campaign);
                 final AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
-                final List<ItemDelta<?,?>> deltas = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
-                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+                final ModificationsToExecute modifications = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
+                updateHelper.modifyCampaignViaModel(campaignOid, modifications, task, result);
                 updateHelper.afterStageOpen(campaignOid, stage, task, result);
             }
         } catch (RuntimeException e) {
@@ -299,8 +301,8 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                List<ItemDelta<?,?>> deltas = updateHelper.getDeltasForStageClose(campaign, result);
-                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+                ModificationsToExecute modifications = updateHelper.getDeltasForStageClose(campaign, result);
+                updateHelper.modifyCampaignViaModel(campaignOid, modifications, task, result);
                 updateHelper.afterStageClose(campaignOid, task, result);
             }
         } catch (RuntimeException e) {
@@ -311,7 +313,7 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    @Override
+	@Override
     public void startRemediation(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");

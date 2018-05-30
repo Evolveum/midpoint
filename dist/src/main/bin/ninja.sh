@@ -46,9 +46,9 @@ fi
 
 [ -z "$MIDPOINT_HOME" ] && MIDPOINT_HOME=`cd "$SCRIPT_PATH../var" >/dev/null; pwd`
 
-cd "$SCRIPT_PATH../lib"
+#cd "$SCRIPT_PATH../lib"
 
-if [ ! -f ninja.jar ] ; then 
+if [ ! -f lib/ninja.jar ] ; then
 	echo "ERROR: ninja.jar is not in /lib directory"
 	exit 1
 fi 
@@ -65,7 +65,18 @@ else
   _RUNJAVA="$JAVA_HOME"/bin/java
 fi
 
+while getopts ":j:" opt; do
+  case $opt in
+    j)
+      JDBC_DRIVER=$OPTARG
+      ;;
+  esac
+done
 
-exec "$_RUNJAVA" -jar $SCRIPT_PATH../lib/ninja.jar -m $MIDPOINT_HOME $@
+if [ ! -z "$JDBC_DRIVER" ] ; then
+   JDBC_DRIVER="-Dloader.path=$JDBC_DRIVER"
+fi
+
+exec "$_RUNJAVA" $JDBC_DRIVER -jar $SCRIPT_PATH../lib/ninja.jar -m $MIDPOINT_HOME $@
 
 

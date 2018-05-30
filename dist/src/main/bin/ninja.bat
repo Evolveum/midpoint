@@ -2,50 +2,59 @@
 
 setlocal
 
-set "BIN_DIR=%~dp0"
+set NINJA_JAR=ninja.jar
 
-rem if script for execution is in bin directory
-if exist "%BIN_DIR%\ninja.bat" goto okBoot
-echo %BIN_DIR%
-echo The keys.bat file is not in \bin
-goto end
-:okBoot
+set BIN_DIR=%~dp0
+set ROOT_DIR=%BIN_DIR%..
+set VAR_DIR=%ROOT_DIR%\var
+set NINJA_JAR_PATH=%ROOT_DIR%\lib\%NINJA_JAR%
 
-rem set midpoint.home
-if not "%MIDPOINT_HOME%" == "" goto gotHome
-cd "%BIN_DIR%.."
-if exist "%BIN_DIR%..\var" goto setHome
-echo %BIN_DIR%
-echo ERROR: midpoint.home directory desn't exist
-goto end
-:setHome
+set PARAMETERS=%*
 
-set "MIDPOINT_HOME=%cd%\var"
-echo %MIDPOINT_HOME%
-echo %BIN_DIR%
-:gotHome
+set LOADER_PATH=
+:argloop
+IF NOT "%1"=="" (
+    IF "%1"=="-j" (
+        SET LOADER_PATH="-Dloader.path=%2"
+        SHIFT
+    )
+    IF "%1"=="--jdbc" (
+        SET LOADER_PATH="-Dloader.path=%2"
+        SHIFT
+    )
+    SHIFT
+    GOTO :argloop
+)
 
-rem NINJA_JAR if not defined
-if exist "%cd%\lib\ninja.jar" goto gotJar
-echo The ninja.jar is not in \lib directory
-echo Can not start ninja
-goto end
-:gotJar
+if "%MIDPOINT_HOME%" == "" (
+    if not exist "%VAR_DIR%" (
+        echo Error: Default midpoint.home directory "%VAR_DIR%" does not exist.
+        goto end
+    )
+    set MIDPOINT_HOME=%VAR_DIR%
+)
 
-if "%MIDPOINT_HOME%" == "%MIDPOINT_HOME:;=%" goto homeNoSemicolon
+if not "%MIDPOINT_HOME%" == "%MIDPOINT_HOME:;=%" (
+    echo Error: Unable to start as MIDPOINT_HOME contains a semicolon ";" character
+    goto end
+)
+
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
-echo Unable to start as MIDPOINT_HOME contains a semicolon (;) character
-goto end
-:homeNoSemicolon
 
+if not exist "%NINJA_JAR_PATH%" (
+    echo Error: %NINJA_JAR% is not in the lib directory.
+    echo Cannot start ninja
+    goto end
+)
 
 rem ----- Execute The Requested Command ---------------------------------------
 
-echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
+set RUN_JAVA=java
+if not "%JAVA_HOME%" == "" set RUN_JAVA=%JAVA_HOME%\bin\java
 
-start /b java -jar "%cd%\lib\ninja.jar" -m "%MIDPOINT_HOME%" %*
-goto end
+echo Using LOADER_PATH:     %LOADER_PATH%
+echo Using RUN_JAVA:        "%RUN_JAVA%"
 
+"%RUN_JAVA%" %LOADER_PATH% -jar "%NINJA_JAR_PATH%" -m "%MIDPOINT_HOME%" %PARAMETERS%
 
 :end
-
