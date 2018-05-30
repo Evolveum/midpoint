@@ -674,12 +674,12 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 	
 	@Override
-	public Object getAnnotation(QName qname) {
+	public <A> A getAnnotation(QName qname) {
 		return refinedObjectClassDefinition.getAnnotation(qname);
 	}
 
 	@Override
-	public void setAnnotation(QName qname, Object value) {
+	public <A> void setAnnotation(QName qname, A value) {
 		refinedObjectClassDefinition.setAnnotation(qname, value);
 	}
 

@@ -247,16 +247,16 @@ public abstract class DefinitionImpl implements Definition {
 	}
 
 	@Override
-	public Object getAnnotation(QName qname) {
+	public <A> A getAnnotation(QName qname) {
 		if (annotations == null) {
 			return null;
 		} else {
-			return annotations.get(qname);
+			return (A) annotations.get(qname);
 		}
 	}
 
 	@Override
-	public void setAnnotation(QName qname, Object value) {
+	public <A> void setAnnotation(QName qname, A value) {
 		if (annotations == null) {
 			// Lazy init. Most definitions will not have any annotations.
 			// We do not want to fill memory with empty hashmaps.

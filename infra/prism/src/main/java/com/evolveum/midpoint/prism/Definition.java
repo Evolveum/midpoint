@@ -184,8 +184,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	 * They are somehow transient. E.g. they are not serialized to
 	 * XSD schema definitions (yet).
 	 */
-	Object getAnnotation(QName qname);
-	void setAnnotation(QName qname, Object value);
+	<A> A getAnnotation(QName qname);
+	<A> void setAnnotation(QName qname, A value);
 
 	@NotNull
 	Definition clone();

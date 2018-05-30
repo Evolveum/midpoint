@@ -606,6 +606,11 @@ public class SchemaTransformer {
 			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
 			((ItemDefinitionImpl) itemDef).setValueEnumerationRef(valueEnumerationRVal);
 		}
+		
+		FormItemValidationType templateValidation = templateItemDefType.getValidation();
+		if (templateValidation != null) {
+			itemDef.setAnnotation(ItemRefinedDefinitionType.F_VALIDATION, templateValidation.clone());
+		}
 	}
 
 
