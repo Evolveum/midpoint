@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -61,6 +63,7 @@ public abstract class DefinitionImpl implements Definition {
     protected String deprecatedSince;
     protected boolean experimental = false;
     protected boolean elaborate = false;
+    private Map<QName,Object> annotations;
 
     /**
      * whether an item is inherited from a supertype (experimental feature)
@@ -241,6 +244,25 @@ public abstract class DefinitionImpl implements Definition {
 	@Override
 	public Class getTypeClass() {
 		return XsdTypeMapper.toJavaType(getTypeName());
+	}
+
+	@Override
+	public Object getAnnotation(QName qname) {
+		if (annotations == null) {
+			return null;
+		} else {
+			return annotations.get(qname);
+		}
+	}
+
+	@Override
+	public void setAnnotation(QName qname, Object value) {
+		if (annotations == null) {
+			// Lazy init. Most definitions will not have any annotations.
+			// We do not want to fill memory with empty hashmaps.
+			annotations = new HashMap<>();
+		}
+		annotations.put(qname, value);
 	}
 
 	public abstract void revive(PrismContext prismContext);

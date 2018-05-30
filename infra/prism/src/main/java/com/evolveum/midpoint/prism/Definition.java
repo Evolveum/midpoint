@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,6 +168,24 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 
 	// todo suspicious, please investigate and document
 	Class getTypeClass();
+	
+	/**
+	 * Returns generic definition annotation. Annotations are a method to
+	 * extend schema definitions. 
+	 * This may be annotation stored in the schema definition file (e.g. XSD)
+	 * or it may be a dynamic annotation determined at run-time.
+	 * 
+	 * Annotation value should be a prism-suported object. E.g. a prims "bean"
+	 * (JAXB annotated class), prism item, prism value or something like that.
+	 * 
+	 * EXPERIMENTAL. Hic sunt liones. This may change at any moment.
+	 * 
+	 * Note: annotations are only partially supported now (3.8).
+	 * They are somehow transient. E.g. they are not serialized to
+	 * XSD schema definitions (yet).
+	 */
+	Object getAnnotation(QName qname);
+	void setAnnotation(QName qname, Object value);
 
 	@NotNull
 	Definition clone();
