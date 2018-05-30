@@ -1347,6 +1347,16 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
+	public Object getAnnotation(QName qname) {
+		return originalObjectClassDefinition.getAnnotation(qname);
+	}
+
+	@Override
+	public void setAnnotation(QName qname, Object value) {
+		throw new UnsupportedOperationException("TODO");
+	}
+	
+	@Override
 	public Integer getInstantiationOrder() {
 		return null;
 	}

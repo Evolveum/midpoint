@@ -758,6 +758,16 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public Collection<TypeDefinition> getStaticSubTypes() {
 		return emptySet();
 	}
+	
+	@Override
+	public Object getAnnotation(QName qname) {
+		return structuralObjectClassDefinition.getAnnotation(qname);
+	}
+
+	@Override
+	public void setAnnotation(QName qname, Object value) {
+		structuralObjectClassDefinition.setAnnotation(qname, value);
+	}
 
 	@Override
 	public Integer getInstantiationOrder() {

@@ -6666,6 +6666,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO: display as FormItemDisplayType -->
+            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validation rules for the item. Validation rule may be applied in the
+                        user interface. But server-side validation may also be applied during
+                        the computation process.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.8</a:since>
+                    	<a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -19124,26 +19138,56 @@
                         used to override this default behavior. It is used for default included
                         types like text, label, combo, password, checkbox, etc. or class name for
                         custom implementation.
+                        
+                        NOTE: widget was never really working it will probably not work. It is deprecated
+                        now. Later on it will be replaced by an equivalent setting in FormItemDisplayType.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- Note: available values are defined by the "set" in the binding. -->
-            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
+            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0">
+            	
+            </xsd:element>
             <!-- TODO: condition -->
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true" />
 
     <xsd:complexType name="FormItemValidationType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Validation rules for the item. Validation rule may be applied in the
+                user interface. But server-side validation may also be applied during
+                the computation process.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+      			<a:experimental>true</a:experimental>
+      		</xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="server" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="server" type="tns:FormItemServerValidationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!--TODO -->
+                        Server-side validation.
                     </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:experimental>true</a:experimental>
+            		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="client" type="tns:FormItemClientValidationType" minOccurs="0" />
+            <xsd:element name="client" type="tns:FormItemClientValidationType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Client-side validation.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:experimental>true</a:experimental>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -19156,10 +19200,41 @@
 
                 TODO: add event type attribute to client element for this validator
             </xsd:documentation>
+            <xsd:appinfo>
+      			<a:experimental>true</a:experimental>
+      		</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="event" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
             <xsd:element name="script" type="xsd:string" minOccurs="1" />
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="FormItemServerValidationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Server-side validation rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+      			<a:experimental>true</a:experimental>
+      		</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Validation expression. Value of the validated input will be passed as expression variable.
+        				The expression is supposed to return operation result (OperationResult) indicating success,
+        				failure and providing an optional message.
+        				Null output is considered to be validation success.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.8</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <!-- TODO later: limitation of the validation (e.g. GUI-only, projector-only, ... -->
         </xsd:sequence>
     </xsd:complexType>
 
