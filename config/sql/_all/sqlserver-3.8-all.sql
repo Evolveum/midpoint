@@ -381,7 +381,7 @@ CREATE TABLE m_object_ext_string (
 );
 CREATE TABLE m_object_subtype (
   object_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  subType    NVARCHAR(255) COLLATE database_default
+  subtype    NVARCHAR(255) COLLATE database_default
 );
 CREATE TABLE m_object_text_info (
   owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
