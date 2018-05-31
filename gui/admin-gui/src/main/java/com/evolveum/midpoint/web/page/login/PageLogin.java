@@ -101,7 +101,7 @@ public class PageLogin extends PageBase {
         	
         	@Override
         	public void onClick(AjaxRequestTarget target) {
-        		setResponsePage(PageSelfRegistration.class);
+        		setResponsePage(PageSelfRegistrationNew.class);
         	}
         };
         registration.add(new VisibleEnableBehaviour() {
@@ -114,7 +114,12 @@ public class PageLogin extends PageBase {
                 RegistrationsPolicyType registrationPolicies = null;
                 try {
                 	Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
-                	registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
+                	registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
+
+                	if (registrationPolicies != null && registrationPolicies.getSelfRegistration() == null) {
+                		registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
+                	}
+                	
                 } catch (ObjectNotFoundException | SchemaException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }

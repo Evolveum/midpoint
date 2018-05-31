@@ -32,6 +32,7 @@ public class PageRegistrationBase extends PageBase {
 
 	private ResetPolicyDto resetPasswordPolicy;
 	private SelfRegistrationDto selfRegistrationDto;
+	private SelfRegistrationDto postAuthenticationDto;
 
 	public PageRegistrationBase() {
 //		initSelfRegistrationConfiguration();
@@ -45,6 +46,23 @@ public class PageRegistrationBase extends PageBase {
 		this.selfRegistrationDto = new SelfRegistrationDto();
 		try {
 			this.selfRegistrationDto.initSelfRegistrationDto(securityPolicy);
+		} catch (SchemaException e) {
+			LOGGER.error("Failed to initialize self registration configuration.", e);
+			getSession().error(
+					createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
+							.getString());
+			throw new RestartResponseException(PageLogin.class);
+		}
+
+	}
+	
+	private void initPostAuthenticationConfiguration() {
+
+		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
+
+		this.postAuthenticationDto = new SelfRegistrationDto();
+		try {
+			this.postAuthenticationDto.initSelfRegistrationDto(securityPolicy);
 		} catch (SchemaException e) {
 			LOGGER.error("Failed to initialize self registration configuration.", e);
 			getSession().error(
@@ -120,6 +138,16 @@ public class PageRegistrationBase extends PageBase {
 			initResetCredentialsConfiguration();
 		}
 		return resetPasswordPolicy;
+	}
+	
+	public SelfRegistrationDto getPostAuthenticationConfiguration() {
+
+		if (postAuthenticationDto == null) {
+			initPostAuthenticationConfiguration();
+		}
+
+		return postAuthenticationDto;
+
 	}
 
 	public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
