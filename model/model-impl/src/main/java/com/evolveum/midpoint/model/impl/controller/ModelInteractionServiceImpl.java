@@ -744,14 +744,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	@Deprecated
+	public RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
 		// TODO: check for user membership in an organization (later versions)
 
-					OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
-					return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_REGISTRATION, user, task, result);
+		OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
+		return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_REGISTRATION, user, task,
+				result);
 	}
 
+	@Override
+	public RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+		OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
+		return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_FLOW, user, task,
+				result);
+	}
+
+	
 	@Override
 	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO: check for user membership in an organization (later versions)
