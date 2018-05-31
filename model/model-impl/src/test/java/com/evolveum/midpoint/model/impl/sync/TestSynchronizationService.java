@@ -600,6 +600,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	}
 
 	/**
+	 * Schema violation error on the connector while doing synchronization.
+	 * While we cannot really execute any connector operation (e.g. we cannot
+	 * reconcile), we still want the shadow linked to the user.
 	 * MID-3787
 	 */
 	@Test
@@ -642,8 +645,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         displayThen(TEST_NAME);
         getDummyResource().resetBreakMode();
         assertPartialError(result);
-        LensContext<UserType> context = cleanDebugListener();
 
+        LensContext<UserType> context = cleanDebugListener();
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
@@ -658,22 +661,80 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 
 		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
-		//it this really expected?? delta was already executed, should we expect it in the secondary delta?
-//		assertNotNull("Missing account secondary delta", accCtx.getSecondaryDelta());
-//		assertIterationDelta(accCtx.getSecondaryDelta(), 0, "");
 
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertLinks(userAfter, 1);
+        
 		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
-        assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadow);
+	}
+	
+	/**
+	 * Pretend that the account is updated. It is already linked.
+	 * There is still schema violation error on the connector while doing
+	 * synchronization.
+	 * The shadow should still be linked.
+	 * MID-3787
+	 */
+	@Test
+    public void test202UpdatedAccountJackSchemaViolation() throws Exception {
+		final String TEST_NAME = "test202UpdatedAccountJackSchemaViolation";
+        displayTestTitle(TEST_NAME);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		assertLinks(userBefore, 1);
+		setDebugListener();
+
+		display("Dummy resource before", getDummyResource());
+		
+		getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
+
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        PrismObject<ShadowType> accountShadowJackBefore = getShadowModelNoFetch(accountShadowJackDummyOid);
+        change.setCurrentShadow(accountShadowJackBefore);
+        change.setResource(getDummyResourceObject());
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        synchronizationService.notifyChange(change, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        getDummyResource().resetBreakMode();
+        assertPartialError(result);
+
+        LensContext<UserType> context = cleanDebugListener();
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+
+        assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
+
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		assertLinks(userAfter, 1);
-		assertLinked(userAfter, shadow);
+        
+		PrismObject<ShadowType> shadowAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
+        assertSituation(shadowAfter, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadowAfter);
+
 	}
 	
 	@Test
