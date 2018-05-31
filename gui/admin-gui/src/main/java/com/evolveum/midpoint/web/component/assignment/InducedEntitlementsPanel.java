@@ -170,13 +170,20 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         if (assignmentWrapper == null){
             return "";
         }
-        AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
-        ConstructionType construction = assignment.getConstruction();
-        if (construction == null || construction.getAssociation() == null){
-            return "";
+        ContainerWrapper<ConstructionType> constructionWrapper = assignmentWrapper.findContainerWrapper(assignmentWrapper.getPath()
+                .append(AssignmentType.F_CONSTRUCTION));
+        if (constructionWrapper == null || constructionWrapper.findContainerValueWrapper(constructionWrapper.getPath()) == null){
+            return null;
         }
+        ContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionWrapper.findContainerValueWrapper(constructionWrapper.getPath())
+                .findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
+        if (associationWrapper == null || associationWrapper.getValues() == null){
+            return null;
+        }
+
         StringBuilder sb = new StringBuilder();
-        for (ResourceObjectAssociationType association : construction.getAssociation()){
+        for (ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper : associationWrapper.getValues()){
+            ResourceObjectAssociationType association = associationValueWrapper.getContainerValue().asContainerable();
             if (association.getOutbound() == null || association.getOutbound().getExpression() == null){
                 continue;
             }

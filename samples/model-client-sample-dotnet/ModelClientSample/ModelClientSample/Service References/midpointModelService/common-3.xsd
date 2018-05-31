@@ -5282,7 +5282,7 @@
                                 comply with the type definition specified in this element.
 
                                 This QName instead of URI becase it may refer to a foreign (non-midPoint)
-                                schema. Such schemas may have uknown URI-QName mapping, therefore using
+                                schema. Such schemas may have unknown URI-QName mapping, therefore using
                                 QName seems to be more reliable.
                             </xsd:documentation>
             </xsd:annotation>
