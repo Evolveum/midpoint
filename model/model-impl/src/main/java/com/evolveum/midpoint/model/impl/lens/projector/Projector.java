@@ -316,6 +316,10 @@ public class Projector {
 
 	        context.checkAbortRequested();
 
+	    	if (!projectionContext.isCanProject()) {
+	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because of limited propagation");
+				return;
+	    	}
 
 	    	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 	    			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
@@ -327,7 +331,7 @@ public class Projector {
 	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
 				return;
 	    	}
-
+	    	
 	
 	    	LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 	
