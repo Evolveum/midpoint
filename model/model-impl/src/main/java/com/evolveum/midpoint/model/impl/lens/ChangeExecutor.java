@@ -332,6 +332,12 @@ public class ChangeExecutor {
 				} catch (SchemaException | ObjectNotFoundException | PreconditionViolationException | CommunicationException |
 						ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 					recordProjectionExecutionException(e, projCtx, subResult, SynchronizationPolicyDecision.BROKEN);
+					
+					// We still want to update the links here. E.g. this may be live sync case where we discovered new account
+					// try to reconcile, but the reconciliation fails. We still want this shadow linked to user.
+					if (focusContext != null) {
+						updateLinks(focusContext, projCtx, task, subResult);
+					}
 
 				} catch (ObjectAlreadyExistsException e) {
 
