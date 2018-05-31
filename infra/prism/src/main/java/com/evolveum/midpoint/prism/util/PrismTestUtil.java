@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,6 +58,9 @@ public class PrismTestUtil {
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
+
+	private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
+	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
 
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
@@ -210,6 +215,27 @@ public class PrismTestUtil {
 			throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
 		}
 		return ((LogicalFilter) filter).getConditions().get(index);
+	}
+
+	public static void display(String title, String value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(value);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ value);
+	}
+
+	public static void display(String title, DebugDumpable dumpable) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
+				+ (dumpable == null ? "null" : dumpable.debugDump(1)));
+	}
+
+	public static void display(String title, Object value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(PrettyPrinter.prettyPrint(value));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ PrettyPrinter.prettyPrint(value));
 	}
 
 	public static void displayQuery(ObjectQuery query) {
