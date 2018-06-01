@@ -17,13 +17,6 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="db-specific" parallel="false">
-    <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.SequenceTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureConcurrencyTest"/>
-        </classes>
-    </test>
     <test name="Performance Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.repo.sql.closure.OrgClosurePerformanceTest1"/>
