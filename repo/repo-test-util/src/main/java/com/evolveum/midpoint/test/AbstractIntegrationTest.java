@@ -2346,7 +2346,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
 		return (Collection)MiscUtil.createCollection(deltas);
 	}
-	
+
+	public static String getAttributeValue(ShadowType repoShadow, QName name) {
+		return IntegrationTestTools.getAttributeValue(repoShadow, name);
+	}
+
 	/**
 	 * Convenience method for shadow values that are read directly from repo (post-3.8).
 	 * This may ruin the "rawness" of the value. But it is OK for test asserts.
