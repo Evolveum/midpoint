@@ -951,7 +951,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
         display("Repo shadow after rename", repoShadow);
 
-        String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
+        String repoPrimaryIdentifier = getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName(), String.class);
         if ("dn".equals(getPrimaryIdentifierAttributeName())) {
         	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME).toLowerCase(), repoPrimaryIdentifier);
         } else {
@@ -1000,7 +1000,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
         display("Repo shadow after rename", repoShadow);
 
-        String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
+        String repoPrimaryIdentifier = getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName(), String.class);
         if ("dn".equals(getPrimaryIdentifierAttributeName())) {
         	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME).toLowerCase(), repoPrimaryIdentifier);
         } else {
@@ -1317,7 +1317,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
         display("Repo shadow after rename", repoShadow);
 
-        String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
+        String repoPrimaryIdentifier = getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName(), String.class);
         if ("dn".equals(getPrimaryIdentifierAttributeName())) {
         	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_BARBOSSA_USERNAME).toLowerCase(), repoPrimaryIdentifier);
         } else {

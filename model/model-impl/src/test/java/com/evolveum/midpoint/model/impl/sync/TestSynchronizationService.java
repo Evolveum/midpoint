@@ -44,7 +44,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
@@ -67,6 +69,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestSynchronizationService extends AbstractInternalModelIntegrationTest {
 
 	public static final File TEST_DIR = new File("src/test/resources/sync");
+	
+	public static final File RESOURCE_DUMMY_LIMITED_FILE = new File(TEST_DIR, "resource-dummy-limited.xml");
+	public static final String RESOURCE_DUMMY_LIMITED_OID = "cbe8baa0-64dd-11e8-9760-076bd690e1c4";
+	public static final String RESOURCE_DUMMY_LIMITED_NAME = "limited";
+	public static final String RESOURCE_DUMMY_LIMITED_NAMESPACE = MidPointConstants.NS_RI;
 
 	public static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
 	public static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
@@ -78,9 +85,20 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Autowired ClockworkMedic clockworkMedic;
 
 	private String accountShadowJackDummyOid = null;
+	private String accountShadowJackDummyLimitedOid;
 	private String accountShadowCalypsoDummyOid = null;
 	
 	private MockLensDebugListener mockListener;
+
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		LOGGER.trace("initSystem");
+		super.initSystem(initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_LIMITED_NAME,
+				RESOURCE_DUMMY_LIMITED_FILE, RESOURCE_DUMMY_LIMITED_OID, initTask, initResult);
+	}
 
 	@Test
     public void test010AddedAccountJack() throws Exception {
@@ -737,6 +755,205 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
 	}
 	
+	/**
+	 * Assign dummy account. The account already exists, the shadow exists, it is even linked.
+	 * But up until now it was not really reconciled because there was an error. But now everything
+	 * is fixed.
+	 */
+	@Test
+    public void test210AssignJackDummy() throws Exception {
+		final String TEST_NAME = "test210AssignJackDummy";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        setDebugListener();
+        getDummyResource().resetBreakMode();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        LensContext<UserType> context = cleanDebugListener();
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+
+        assertNotNull("Missing user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", null, accCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
+
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertLinks(userAfter, 1);
+        
+		PrismObject<ShadowType> shadowAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
+        assertSituation(shadowAfter, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadowAfter);
+	}
+	
+	/**
+	 * Add another account .. to prepare for next tests.
+	 */
+	@Test
+    public void test212AssignJackDummyLimited() throws Exception {
+		final String TEST_NAME = "test212AssignJackDummyLimited";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        setDebugListener();
+        getDummyResource().resetBreakMode();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_LIMITED_OID, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        LensContext<UserType> context = cleanDebugListener();
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+
+        assertNotNull("Missing user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", null, accCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
+
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertLinks(userAfter, 2);
+		accountShadowJackDummyLimitedOid = assertAccount(userAfter, RESOURCE_DUMMY_LIMITED_OID);
+        
+		PrismObject<ShadowType> shadowDummyAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
+        assertSituation(shadowDummyAfter, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadowDummyAfter);
+		
+		PrismObject<ShadowType> shadowDummyLimitedAfter = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
+        assertSituation(shadowDummyLimitedAfter, SynchronizationSituationType.LINKED);
+	}
+	
+	/**
+	 * Limited dummy resource has limited propagation (limitPropagation=true).
+	 * Therefore it should only read/write to its own resource.
+	 * Ruin both jack's accounts, so reconciliation would normally try to
+	 * fix both accounts. The initiate sync from limted dummy. As limited
+	 * dummy should only care about itself, it should not fix the other
+	 * dummy account. Also, is should not even read full dummy account.
+	 * MID-3805
+	 */
+	@Test
+    public void test214UpdatedAccountJackLimited() throws Exception {
+		final String TEST_NAME = "test214UpdatedAccountJackLimited";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		assertLinks(userBefore, 2);
+		getDummyResource().resetBreakMode();
+		setDebugListener();
+
+		getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
+			.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
+		getDummyResource(RESOURCE_DUMMY_LIMITED_NAME).getAccountByUsername(USER_JACK_USERNAME)
+		.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
+		
+		display("Dummy resource before", getDummyResource());
+
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
+        change.setCurrentShadow(accountShadowLimitedJackBefore);
+        change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED_NAME));
+
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
+        // Make sure that default dummy resource is not touched
+        getDummyResource().setBreakMode(BreakMode.ASSERTION_ERROR);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        synchronizationService.notifyChange(change, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        getDummyResource().resetBreakMode();
+
+        LensContext<UserType> context = cleanDebugListener();
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+
+        assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+
+        ResourceShadowDiscriminator ratDummy = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtxDummy = context.findProjectionContext(ratDummy);
+		assertNotNull("No account sync context for "+ratDummy, accCtxDummy);
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtxDummy.getPrimaryDelta());
+		assertEquals("Wrong fullShadow for "+ratDummy, false, accCtxDummy.isFullShadow());
+		assertEquals("Wrong canProject for "+ratDummy, false, accCtxDummy.isCanProject());
+		
+		ResourceShadowDiscriminator ratDummyLimited = new ResourceShadowDiscriminator(RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtxDummyLimited = context.findProjectionContext(ratDummyLimited);
+		assertNotNull("No account sync context for "+ratDummyLimited, accCtxDummyLimited);
+		assertEquals("Wrong fullShadow for "+ratDummyLimited, true, accCtxDummyLimited.isFullShadow());
+		assertEquals("Wrong canProject for "+ratDummyLimited, true, accCtxDummyLimited.isCanProject());
+
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
+
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 5);
+		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
+		
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertLinks(userAfter, 2);
+		
+		display("Dummy resource after", getDummyResource());
+        
+		PrismObject<ShadowType> shadowDummyAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
+        assertSituation(shadowDummyAfter, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadowDummyAfter);
+		
+		PrismObject<ShadowType> shadowDummyLimitedAfter = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
+        assertSituation(shadowDummyLimitedAfter, SynchronizationSituationType.LINKED);
+        assertLinked(userAfter, shadowDummyLimitedAfter);
+
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIMITED_NAME, USER_JACK_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Caribbean");
+	}
+	
 	@Test
     public void test300AddedGroupPirates() throws Exception {
 		final String TEST_NAME = "test300AddedGroupPirates";
@@ -746,6 +963,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         setDebugListener();
+        getDummyResource().resetBreakMode();
 
         PrismObject<ShadowType> shadowPirates = repoAddObjectFromFile(SHADOW_PIRATES_DUMMY_FILE, result);
         provisioningService.applyDefinition(shadowPirates, task, result);
