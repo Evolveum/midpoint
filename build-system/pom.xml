@@ -1469,6 +1469,8 @@
 						<additionalClasspathElement>/opt/jenkins_db_configs/mssqljdbc4.jar</additionalClasspathElement>
 						<additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
 						<!-- used running tests on windows machines -->
+                        <additionalClasspathElement>c:\midpoint\jdbc-drivers\sqljdbc42.jar</additionalClasspathElement>
+                        <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
 						<additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER
 							4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
 					</additionalClasspathElements>
