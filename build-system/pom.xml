@@ -1434,6 +1434,10 @@
 									<name>suitename</name>
 									<value>Integration</value>
 								</property>
+								<property>
+									<name>usedefaultlisteners</name>
+									<value>false</value> <!-- do not generate HTML to make the runs faster -->
+								</property>
 							</properties>
 						</configuration>
 					</execution>
