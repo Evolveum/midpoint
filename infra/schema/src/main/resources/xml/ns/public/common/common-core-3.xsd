@@ -2727,6 +2727,9 @@
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="allowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
