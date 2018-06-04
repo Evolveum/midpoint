@@ -216,7 +216,7 @@
 							It is mostly used to indicate that the object is not complete or
 							there is some problem with the object. This is used instead of
 							exception if the object is part of larger structures (lists as in
-							list/search operations or composite objets). If not present then
+							list/search operations or composite objects). If not present then
 							the "SUCCESS" state is assumed.
                         </p>
 
@@ -256,7 +256,7 @@
 	        			<a:objectReference>tns:parentOrgRef</a:objectReference>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
-	        </xsd:element>	
+	        </xsd:element>
 	        <xsd:element name="parentOrgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
@@ -308,7 +308,7 @@
                         <p>
 	                        Reference to the tenant to which this object belongs. It is a computed value set automatically
 	                        by midPoint. It is determined from the organizational structure. Even though this value is
-	                        compted it is also stored in the repository due to performance reasons.
+	                        computed it is also stored in the repository due to performance reasons.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -605,7 +605,7 @@
 	                    The relation or a "role" of this reference. It may further specify
 	                    the meaning of the reference. E.g. it may specify whether the objects
 	                    linked by the reference are analogous, form a composition, aggregation, 
-	                    are mebers of the org or managers of the org, etc.
+	                    are members of the org or managers of the org, etc.
                     </p>
                 </xsd:documentation>
             </xsd:annotation>
@@ -2666,7 +2666,7 @@
                                 Model context of the operation that is to be executed within this task.
                                 This is NOT a live information: it is a serialized form of a model context.
                                 Currently there is a specialized task handler that takes this context,
-                                unmarshalls and executes it.
+                                unmarshals and executes it.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2727,6 +2727,9 @@
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="allowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -3567,11 +3570,11 @@
                                 Set of personas linked to this focal object.
                                 E.g. a set of virtual identities linked to a user. This is the set of
                                 "secondary" focal objects that belongs to this focal object in a sense
-                                that the currect focal object is in control over the linked focal objects.
+                                that the current focal object is in control over the linked focal objects.
                                 E.g. this reference can be used to link user object which specified a physical
                                 person with his virtual identities (personas) that specify his identity as an
                                 employee, system administrator, customer, etc.
-                                The deafalt meaning is that the personas are ""analogous", i.e. the represent
+                                The default meaning is that the personas are "analogous", i.e. the represent
                                 different facets of the same physical person. However, this meaning may be 
                                 theoretically overridden by using various relation parameters in this reference. 
                                 </p>
@@ -3613,7 +3616,7 @@
                     <xsd:element name="iteration" type="xsd:int" minOccurs="0">
                     <xsd:annotation>
                     	<xsd:documentation>
-                    		Iteration number. Starts with 0. It is used to iterativelly find unique identifier
+                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
                     		for the object.
                     	</xsd:documentation>
                     	<xsd:appinfo>
@@ -3624,8 +3627,8 @@
                     <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
 	                    <xsd:annotation>
 	                    	<xsd:documentation>
-	                    		Iteration token. String value that is usualy a suffix to the identifier based
-	                    		on iteration number. E.g. ".007". It is used to iterativelly find unique identifier
+	                    		Iteration token. String value that is usually a suffix to the identifier based
+	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
 	                    		for the object.
 	                    	</xsd:documentation>
 	                    	<xsd:appinfo>
@@ -3705,7 +3708,7 @@
                                   all role members after the role definition is changed.
                                 </p>
                                 <p>
-                                	TODO. NOT IMPLEMENTED YET. EXPERIMENAL. UNSTABLE.
+                                	TODO. NOT IMPLEMENTED YET. EXPERIMENTAL. UNSTABLE.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -3774,9 +3777,9 @@
 									user interfaces. The format is IETF language tag defined in BCP 47, where
 									underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
 									language code optionally followed by ISO 3166-1 two letter country code
-									separated by underscore. The languages that do not have coutry-specific
-									variants are usually specified by using a two-letter coutry code ("sk",
-									"cs", "tr"). Languages with coutry-specific variants have country-specific
+									separated by underscore. The languages that do not have country-specific
+									variants are usually specified by using a two-letter country code ("sk",
+									"cs", "tr"). Languages with country-specific variants have country-specific
 									subtags ("pt_BR", "zn_CN").
 									If no value is specified in this property then system default locale is assumed.
 								</p>
@@ -3806,9 +3809,9 @@
 									related to location and culture. The format is IETF language tag defined in BCP 47, where
 									underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
 									language code optionally followed by ISO 3166-1 two letter country code
-									separated by underscore. The languages that do not have coutry-specific
-									variants are usually specified by using a two-letter coutry code ("sk",
-									"cs", "tr"). Languages with coutry-specific variants have country-specific
+									separated by underscore. The languages that do not have country-specific
+									variants are usually specified by using a two-letter country code ("sk",
+									"cs", "tr"). Languages with country-specific variants have country-specific
 									subtags ("pt_BR", "zn_CN").
 									If not specified then system default locale is assumed.
 								</p>
@@ -3898,7 +3901,7 @@
             	It differs from the account, as "account" represents a data structure in a target system while
             	"user" represents data structure in midPoint. One user typically has many accounts.
             	Properties of User object typically describe the user as a physical person.
-            	Therefore the user obect defines handful of properties that are commonly used to describe users
+            	Therefore the user object defines handful of properties that are commonly used to describe users
             	in the IDM solutions (employees, customers, partners, etc.) Custom extensions are possible by utilizing
             	the "extension" container.
             </xsd:documentation>
@@ -4033,7 +4036,7 @@
                                 <p>
 	                                The meaning of this property is to take part in the formatted full
 	                                name of the person, e.g. William "Bootstrap" Turner. It is not intended
-	                                to be used as a username or login name. This value is usually changable
+	                                to be used as a username or login name. This value is usually changeable
 	                                by the user itself and it defines how the user wants other to address him.
 	                                Therefore it is not ideal for use as an identifier.
                                 </p>
@@ -4192,7 +4195,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                             	<p>
-	                                Name or (preferrably) immutable identifier of organizational unit that the user belongs to.
+	                                Name or (preferably) immutable identifier of organizational unit that the user belongs to.
 	                                The format is deployment-specific. This property together with organization
 	                                may be used to provide easy-to-use data about organizational membership of the user.
                                 </p>
@@ -4200,7 +4203,7 @@
 	                                This is multi-valued property to allow membership of a user to several
 	                                organizational units. Please note that midPoint does not maintain ordering in
 	                                multi-value properties therefore this is not usable to model a complex
-	                                organization hierachies. Use OrgType instead.
+	                                organization hierarchies. Use OrgType instead.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4300,7 +4303,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- More credentail types may be here, such as OTP seeds, X.509 credentials, 
+            <!-- More credential types may be here, such as OTP seeds, X.509 credentials,
 				etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -4322,7 +4325,7 @@
                         this is default user password or administration password,
                         whether this is a nonce for registration or password reset
                         and so on. Simply speaking the name is used to distinguish
-                        credetials that have the same type but different purpose.
+                        credentials that have the same type but different purpose.
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:operational>true</a:operational>
@@ -4547,7 +4550,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The source from where the login came. It is supposed to be human-readable,
-                        e.g. a hotname, IP address, etc.
+                        e.g. a hostname, IP address, etc.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4630,7 +4633,7 @@
 							<li>archived: Inactive historical definition. It is no longer used.
 										It is maintained only for historical, auditing and
 										sentimental reasons.</li>
-							<li>failed: Unexpected error has occured during assignment lifecycle. Result
+							<li>failed: Unexpected error has occurred during assignment lifecycle. Result
 										of that event is that the assignment is rendered inactive.
 										The situation cannot be automatically remedied. Manual action
 										is needed.</li>
@@ -4782,7 +4785,7 @@
 			<xsd:element name="focusType" type="xsd:QName" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Type of focal object that this assingnment/inducement applies to. E.g UserType, RoleType, OrgType, ...
+						Type of focal object that this assignment/inducement applies to. E.g UserType, RoleType, OrgType, ...
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>AssignmentType.focusType</a:displayName>
@@ -4977,7 +4980,7 @@
 	                Type that defines activation properties. Determines whether something is active
 	                (and working) or inactive (e.g. disabled).
                 </p><p>
-	                It applies to several object types. It may apply to user, account, assignement, etc.
+	                It applies to several object types. It may apply to user, account, assignment, etc.
 	                The data in this type define if the described concept is active, from when it is active
 	                and until when. The "active" means that it works. If something is not active, it should
 	                not work or not cause any effect. E.g. inactive user should not be able to log in or run
@@ -5070,9 +5073,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                     	<p>
-	                        This property holds the result of vality period computation with respect to the current
+	                        This property holds the result of validity period computation with respect to the current
 	                        date and time. E.g. it specifies whether the entity is before the validity period,
-	                        in the validity perion or after validity period.
+	                        in the validity period or after validity period.
                         </p><p>
 	                        This holds the result of a computation, therefore it is kind of VIRTUAL property
 	                        that is recomputed every time. It SHOULD NOT be set directly but it rather should be
@@ -5151,7 +5154,7 @@
             			<p>
 	            			Timestamp of last modification of the effective validity state, i.e. last time the validity
 	            			state was recomputed with result that was different than the previous recomputation. It is
-	            			used to avoid repreated validity change deltas.
+	            			used to avoid repeated validity change deltas.
 	            			Note: This timestamp is used for recording purposes. Changing it will NOT change
 	            			the activation state.
             			</p>
@@ -5203,9 +5206,9 @@
         <xsd:annotation>
             <xsd:documentation>
                 An enumeration that indicates the activation status of a particular entity.
-                The activation status detemines whether the entity is active (enabled)
+                The activation status determines whether the entity is active (enabled)
                 or inactive (disabled, archived, etc.). Please see documentation of individual
-                enumaration values for more details.
+                enumeration values for more details.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -5232,11 +5235,11 @@
                 		<p>
 	                		The entity is inactive.
                 		</p><p>
-	                		It has beed disabled, haven't reaced the activation period, etc.
-	                		This is used to idicate that the entity is TEMPORARILY inactive
+	                		It has been disabled, haven't reached the activation period, etc.
+	                		This is used to indicate that the entity is TEMPORARILY inactive
 	                		and there is an intent to enabled the entity later.
                 		</p><p>
-	                		Usualy used for an employee on parental leave, sabbatical, temporarily disabled
+	                		Usually used for an employee on parental leave, sabbatical, temporarily disabled
 	                		account for security reasons, etc.
                 		</p>
                 	</xsd:documentation>
@@ -5249,7 +5252,7 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		<p>
-	                		The entitity is inactive.
+	                		The entity is inactive.
                 		</p><p>
 	                		It is no longer active and there are no plans to ever re-activate it.
 	                		This is a PERMANENT state of deactivation.
@@ -5385,7 +5388,7 @@
 
                                 Connector reference is MANDATORY. Although the
                                 schema does not enforce it (due to various JAXB
-                                reasons), exactly one of the connecotor or
+                                reasons), exactly one of the connector or
                                 connectorRef MUST be present in the resource object.
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -5398,7 +5401,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specification of additional connector(s). Additional connectors may add
-                                capabilities to this resource, e.g. scripting capability or capapility for
+                                capabilities to this resource, e.g. scripting capability or capability for
                                 reading the exported resource content.
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -5430,7 +5433,7 @@
                                 supports.
 
                                 Resource schema is only available at run-time
-                                and can be diffrent for every resource instance,
+                                and can be different for every resource instance,
                                 even for resource instances of the same type.
                                 It is supposed to be dynamically interpreted in
                                 run-time.
@@ -5457,7 +5460,7 @@
                                 The value of this element indicates administrator decisions what connector capabilities
                                 to use, what capabilities to simulate and how to simulate them.
                                 
-                                The valus of this element indicates what the connector is allowed to do.
+                                The values of this element indicates what the connector is allowed to do.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -5482,7 +5485,7 @@
     <xsd:complexType name="OperationalStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Structure containing metada about operational state of the resource.
+                Structure containing metadata about operational state of the resource.
                 E.g. if resource is up or down, when it was last checked, etc.
                 It should not contain configuration, just the operational state.
             </xsd:documentation>
@@ -5572,7 +5575,7 @@
             <xsd:documentation>
                 This element contains the XSD-formatted definition of schema.
 
-                The schema available in this definition is expeceted to comply
+                The schema available in this definition is expected to comply
                 to the usual midPoint schema structure (properties, property
                 containers), although it should not contain objects (persistent
                 objects identified by OID).
@@ -5611,7 +5614,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The timestamp of a time moment when the object was retrieved from the source.
-                        Used mostly for diagnostics and general visibility. As this is relativelly rough
+                        Used mostly for diagnostics and general visibility. As this is relatively rough
                         granularity and the time in distributed system is relative anyway, it is not really
                         useful for anything else.
                     </xsd:documentation>
@@ -5643,7 +5646,7 @@
             	<xsd:annotation>
             		<xsd:documentation>
             			Specification of an object class that has to be automatically generated into a schema.
-            			If at least one generateObjectClass specification is present then only the objectclasses
+            			If at least one generateObjectClass specification is present then only the object classes
             			specified by the generateObjectClass elements will be generated an no other object class
             			will be passed into the schema.
             		</xsd:documentation>
@@ -5662,7 +5665,7 @@
                 This element belongs to ResourceType and should
                 not be used elsewhere. This is a top-level
                 element to make the implementation
-                (JAXB marshall/unmarshall) easier.
+                (JAXB marshal/unmarshal) easier.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -5674,8 +5677,8 @@
         	<xsd:annotation>
         		<xsd:documentation>
         			The objectClass part of schema handling definition provides a mechanism to redefine schema
-        			objectclasses. The objectclasses are tough of as being fairly abstract. This definition
-        			may define default values to este for each instance of this object class. It may define
+        			object classes. The object classes are tough of as being fairly abstract. This definition
+        			may define default values to set for each instance of this object class. It may define
         			default mapping. But these definitions should be directly used in constructions in roles
         			and assignments. The objectType definitions below are supposed to be used for that purpose.
         		</xsd:documentation>
@@ -5687,8 +5690,8 @@
         		<xsd:documentation>
         			The objectType part of schema handling definition provides a mechanism to define
         			concrete types of objects that this resource supports. There should be definitions
-        			of account types, entitletement types, etc.
-        			There are the definitions that should be used in constrcutions in roles, orgs,
+        			of account types, entitlement types, etc.
+        			There are the definitions that should be used in constructions in roles, orgs,
         			assignments, etc.
         		</xsd:documentation>
         	</xsd:annotation>
@@ -5979,10 +5982,10 @@
 	        				Operation grouping is feature that groups several operations on a resource
 	        				into a single operation. This can be used in case midPoint creates a lot of
 	        				small operations. But we want to group all of them into a single big operation.
-	        				This means that small operations are deplayed for a specified interval. Then
+	        				This means that small operations are delayed for a specified interval. Then
 	        				all the operations are grouped into a single operation and executed at once.
 	        				This approach slightly delays the operations. But it may be huge advantage for
-	        				resources where the operations are constly (manual resources, slow resources).
+	        				resources where the operations are costly (manual resources, slow resources).
         				</p> 
         				<p>
         					This parameter specifies a maximum interval between the operation is requested
@@ -6004,7 +6007,7 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				If set to true then midPoint will validate the schema of objects that leave
-        				and enter midPoint by the connectors. MidPoint will checks if datatypes and
+        				and enter midPoint by the connectors. MidPoint will checks if data types and
         				multiplicity is correct and issue hard errors in any mismatch.
         				
         				EXPERIMENTAL: this feature is used mostly for internal checks during 
@@ -6045,7 +6048,7 @@
                 		Use of this option may be DANGEROUS. Especially when used to set generic errors as non-critical.
                 		Generic errors means that midPoint has absolutely no idea what is going on. Otherwise the
                 		error would be classified to a more specific category. Continuing an operation where midPoint
-                		has no idea what is going on may have severe consequences. The results are unpredicatble.
+                		has no idea what is going on may have severe consequences. The results are unpredictable.
                 		If you use this setting then you are on your own. Hic sunt liones.
             		</xsd:documentation>
             		<xsd:appinfo>
@@ -6056,7 +6059,7 @@
             <xsd:element name="pendingOperationGracePeriod" type="xsd:duration" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Duration for which the completed asychronous operations will be kept in the
+            			Duration for which the completed asynchronous operations will be kept in the
             			shadow objects. This may be needed to avoid repeating operations in semi-manual
             			resources. But this may also be desirable in other cases if the administrator
             			wants to inspect result of an asynchronous operation.
@@ -6142,7 +6145,7 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		Record all operations to pending deltas. The operations
-                		are recoreded even before they are started.
+                		are recorded even before they are started.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALL"/>
@@ -6185,7 +6188,7 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects policy violations. The operation failed because it violates
-        				defined policies (e.g. exlusion policies), it fails data consistency checks,
+        				defined policies (e.g. exclusion policies), it fails data consistency checks,
         				etc.
         			</xsd:documentation>
         		</xsd:annotation>
@@ -6731,7 +6734,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Indicated if the attribute should be considered as secondary identifier. If set to true,
-                                this attribue is stored in repository and user for example by synchronization (correlation
+                                this attribute is stored in repository and user for example by synchronization (correlation
                                 rule), consistency mechanism, etc.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -6770,7 +6773,7 @@
                                 $account - the account to be changed
 	
                                 Motivation: This is "value construction" type, it is
-                                using similar format that is used eleswhere in the system
+                                using similar format that is used elsewhere in the system
                                 (e.g. in roles) and therefore a common expression processor can be
                                 used to process all of that. E.g. a single processor may take into a
                                 consideration both schema handling and dynamic attributes set by roles.
@@ -6789,8 +6792,8 @@
 	
                                 Explanation: This is not a "value construction" as it is not constructing a new
                                 attribute value. It is rather using attribute value that was set be someone else.
-                                A simpler way how to express the assignement is needed here, especially a simple way how
-                                to express assignment target. Some rules may use that information and we definitelly need that
+                                A simpler way how to express the assignment is needed here, especially a simple way how
+                                to express assignment target. Some rules may use that information and we definitely need that
                                 to
                                 generate correct relative change descriptions.
                             </xsd:documentation>
@@ -7103,7 +7106,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- TODO: ignore, read (compare password by readin password value), resourceAuthenticate, ... -->
+            <!-- TODO: ignore, read (compare password by reading password value), resourceAuthenticate, ... -->
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -7133,7 +7136,7 @@
         			<xsd:documentation>
         				The way how an resource password is compared with the current password.
         				This strategy is used when midPoint needs to compare candidate password
-        				with existing resource passowrd. E.g. used in password policies that state
+        				with existing resource password. E.g. used in password policies that state
         				that passwords on several resources cannot be the same.
         			</xsd:documentation>
         			<xsd:appinfo>
@@ -7153,7 +7156,7 @@
             	<xsd:annotation>
             		<xsd:documentation>
             			Defines how user password is constructed if he user is created or updated from this account.
-            			The "target" part of the assignment is implictly set to user's password, therefore it may be
+            			The "target" part of the assignment is implicitly set to user's password, therefore it may be
             			omitted.
             		</xsd:documentation>
             	</xsd:annotation>
@@ -7327,15 +7330,15 @@
             <xsd:documentation>
                 Definition of iteration properties for a resource account or other resource objects.
                 Iteration is a process of choosing unique (or otherwise acceptable) values. E.g. it
-                is ususally used to generate unique usernames.
+                is usually used to generate unique user names.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="maxIterations" type="xsd:int">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Maximum number of itteration attempts. The number specifies attempts
-        				beyound the first one, which is not considered to be an iteration.
+        				Maximum number of iteration attempts. The number specifies attempts
+        				beyond the first one, which is not considered to be an iteration.
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
@@ -7378,7 +7381,7 @@
      		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
      			<xsd:annotation>
      				<xsd:documentation>
-     					The filter used to match the object. If the object mathces then it is regarded to be
+     					The filter used to match the object. If the object matches then it is regarded to be
      					protected.
      					
      					Although this is minOccurs=0 it is a mandatory attribute for all current practical uses.
@@ -7537,7 +7540,7 @@
             <xsd:enumeration value="always">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		Always reselve the reference. Do not store the OID. 
+                		Always resolve the reference. Do not store the OID.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALWAYS"/>
@@ -7573,7 +7576,7 @@
 		                       has the specified auxiliary object class.
 		                   </xsd:documentation>
 		               </xsd:annotation>
-		           </xsd:element>
+					</xsd:element>
 		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
 		     		<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -7652,7 +7655,7 @@
 		     					must be done to fully resolve object-to-subject associations. This attribute provides a
 		     					short-cut mechanism. It is used in cases when there is additional (virtual) attribute that
 		     					goes in the opposite direction as the primary object-to-subject association attribute.
-		     					The assocition short-cut is only usable for object-to-subject associations.
+		     					The association short-cut is only usable for object-to-subject associations.
 		     					
 		     					This property specifies name of the attribute from with a value for association attribute
 		     					short-cut is taken. The values of this attribute are expected to appear in association
@@ -7714,11 +7717,11 @@
         <xsd:annotation>
             <xsd:documentation>
                 Collection of resource capabilities. Each element in this collection defines a specific resource
-                capability. Stardard midpoint capabilities are defined in a separate namespace. But that is not
+                capability. Standard midpoint capabilities are defined in a separate namespace. But that is not
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
                 
-                Each capability should have boolean propery "enabled" with true default value. This is used in
+                Each capability should have boolean property "enabled" with true default value. This is used in
                 the configured capabilities section to disable individual capabilities.
                 
                 This part defines native and configured capabilities. The effective capabilities of the resource
@@ -7974,7 +7977,7 @@
             <xsd:enumeration value="reconcile">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		Not stritcly a provisioning operation. But we understand it
+                		Not strictly a provisioning operation. But we understand it
                 		in a broader sense of "comparing states".
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -8008,7 +8011,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The script will be executed on "resource", it means
-                        it will be executed on the target sytem. Please refer
+                        it will be executed on the target system. Please refer
                         to the
                         connector documentation for more details, e.g.
                         in case of multi-host resources.
@@ -8050,7 +8053,7 @@
 	<xsd:complexType name="CommandLineScriptType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies a command to be executen on an operating system command-line.
+                Specifies a command to be executed on an operating system command-line.
             </xsd:documentation>
             <xsd:appinfo>
             	<a:since>3.7</a:since>
@@ -8060,7 +8063,7 @@
             <xsd:element name="macro" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Command-line macro. Any occurence of the macro will be replaced in the command-line code.
+                        Command-line macro. Any occurrence of the macro will be replaced in the command-line code.
                         The order of arguments is not significant.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -8110,7 +8113,7 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		<p>
-                			Plain exececution using OS services (exec).
+                			Plain execution using OS services (exec).
                 		</p>
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -8143,7 +8146,7 @@
                 This element belongs to ResourceType and should
                 not be used elsewhere. This is a top-level
                 element to make the implementation (JAXB
-                marshall/unmarshall) easier.
+                marshal/unmarshal) easier.
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -8580,7 +8583,7 @@
 						Note: There are no formal limitations about the characters used in the
 						name, length of the name and so on. However, special characters in the function
 						name may prohibit reasonable use of the function in some scripting languages.
-						Therefore the recommendation is to use only aplhanumeric names and to avoid
+						Therefore the recommendation is to use only alphanumeric names and to avoid
 						white spaces in the names. 
 					</xsd:documentation>
 				</xsd:annotation>
@@ -8757,7 +8760,7 @@
             <xsd:enumeration value="filterEqualNull">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The expression will be intepreted as an EQUAL filter
+                        The expression will be interpreted as an EQUAL filter
                         that looks for entries with no (null) value.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -8768,7 +8771,7 @@
             <xsd:enumeration value="filterUndefined">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The expression will be intepreted as an UNDEFINED filter.
+                        The expression will be interpreted as an UNDEFINED filter.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FILTER_UNDEFINED"/>
@@ -8778,7 +8781,7 @@
             <xsd:enumeration value="filterNone">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The expression will be intepreted as an NONE filter.
+                        The expression will be interpreted as an NONE filter.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FILTER_NONE"/>
@@ -8788,7 +8791,7 @@
             <xsd:enumeration value="filterAll">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The expression will be intepreted as an NONE filter.
+                        The expression will be interpreted as an NONE filter.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FILTER_ALL"/>
@@ -9047,7 +9050,7 @@
             <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        DEPECATED. Used allowEmptyValues in ExpressionType instead.
+                        DEPRECATED. Used allowEmptyValues in ExpressionType instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
@@ -9184,7 +9187,7 @@
 		        			<xsd:documentation>
 		        				Fixed OID. If this OID is present then no search will be done. 
 		        				
-		        				It is planned to be used to "remeber" the search result. E.g. to
+		        				It is planned to be used to "remember" the search result. E.g. to
 		        				search for the target on import and then store the fixed OID.
 		        				But this is not yet implemented.
 		        			</xsd:documentation>
@@ -9224,7 +9227,7 @@
 		            	<xsd:annotation>
 		            		<xsd:documentation>
 		            			Populate assignment, association,... (any container) specific attributes, e.g activation status, validTo, validFrom 
-		            			and can be also used for setting assignmnet parameters
+		            			and can be also used for setting assignment parameters
 		            		</xsd:documentation>
 		            	</xsd:annotation>
 		            </xsd:element>
@@ -9353,7 +9356,7 @@
 		        				Specifies orgType of an organization tree to recurse upward.
 		        				In case that the expression applies to an org, it will recurse the org
 		        				tree upwards and create associations for all the orgs in the hierarchy.
-		        				Only orgs with the orgType mathing this specification will be processed.
+		        				Only orgs with the orgType matching this specification will be processed.
 		        			</xsd:documentation>
 		        		</xsd:annotation>
 		        	</xsd:element>
@@ -9557,7 +9560,7 @@
                         confirmation expressions should return true if the user should be owner of the account. It
                         should return false if the user cannot be owner of the account.
 
-                        The evaluation of the confirmation expression may be relativelly inefficient, as it will only
+                        The evaluation of the confirmation expression may be relatively inefficient, as it will only
                         be run for candidate entries returned by correlation expression.
 
                         The expression variables should be set as follows:
@@ -9597,7 +9600,7 @@
             	<xsd:annotation>
             		<xsd:documentation>
             			If set to true, applicable synchronization reactions will propagate changes only form/to source 
-            			resource. In the case focus cotains links to another resource this will be not recomputed
+            			resource. In the case focus contains links to another resource this will be not recomputed
             			and after reaction execution there may be small inconsistencies.
             			
             			It can improve performance for example for initial import.
@@ -9820,7 +9823,7 @@
                             <xsd:documentation>
                                 Identifier of the old shadow. According to this identifier, the shadow will be
                                 fetched from the repo (resource). It may be null in the case when the notification
-                                describes the ADD object sitaution.
+                                describes the ADD object situation.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -10192,8 +10195,8 @@
      				<xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
      					<xsd:annotation>
 							<xsd:documentation>
-								Complex description of synchronization situations. This is multi-valued proprty and it should
-								store only a single value for each channel (the most recent one). All the older values shoule be
+								Complex description of synchronization situations. This is multi-valued property and it should
+								store only a single value for each channel (the most recent one). All the older values should be
 								removed on each update.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -10254,7 +10257,7 @@
                     			Protected shadows cannot be changed. They are out of IDM control.
                     			This is only informational property. Changing it will have no effect on
                     			whether object is protected or not. Object protection is a strict policy that
-                    			cannot be easily overriden.
+                    			cannot be easily overridden.
                     			
                     			This is "virtual" property. It is not stored in the repository.
                     		</xsd:documentation>
@@ -10550,7 +10553,7 @@
     				<xsd:documentation>
     					<p>
     						Execution status. This property indicates in which execution stage
-    						the operation is, e.g. whether it is requeste, being executed, completed,
+    						the operation is, e.g. whether it is requested, being executed, completed,
     						and so on.
     					</p>
     				</xsd:documentation>
@@ -10601,7 +10604,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Execution status. This property indicates in which execution stage
-				the operation is, e.g. whether it is requeste, being executed, completed,
+				the operation is, e.g. whether it is requested, being executed, completed,
 				and so on.
             </xsd:documentation>
             <xsd:appinfo>
@@ -10638,7 +10641,7 @@
             <xsd:enumeration value="executing">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		Operation is being executed. The excution process is running,
+                		Operation is being executed. The execution process is running,
                 		manual execution task is created and still open and so on.
                 		The execution may take quite a long time.
                 	</xsd:documentation>
@@ -10653,7 +10656,7 @@
                 		Execution is complete. Operation is not executed any more.
                 		For manual operations this means that the case/ticket is closed.
                 		The operation may be successful or it may have ended up with an error.
-                		This informtion is in another property. This state indicates only that
+                		This information is in another property. This state indicates only that
                 		the operation execution is done. It does NOT indicate success or failure.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -10729,7 +10732,7 @@
         <xsd:annotation>
             <xsd:documentation>
             	<p>
-	            	Abstract class that conins the "essence" of a role.
+	            	Abstract class that contains the "essence" of a role.
 	            	This is kind of "Roleable" interface when speaking in Java terms.
             	</p>
 				<p>            	
@@ -10757,7 +10760,7 @@
                             	<p>
 	                            	Human-readable name of the role or org. It may be quite long, container national characters
 	                            	and there is no uniqueness requirement. It is used if the "name" property contains a code that
-	                            	is not entirelly user-friendly.
+	                            	is not entirely user-friendly.
                             	</p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -10859,9 +10862,9 @@
 		                    			same results regardless of its position in the assignment/inducement
 		                    			hierarchy. I.e. evaluation of this roles does not depend on the assignment
 		                    			parameters of focus or any of the preceding roles. This flag is used
-		                    			to enable aggresive caching of role evaluation, so idempotent roles
+		                    			to enable aggressive caching of role evaluation, so idempotent roles
 		                    			are only evaluated once regardless of their position in the hierarchy
-		                    			as we can assume that any subsequent eveluation will produce exactly
+		                    			as we can assume that any subsequent evaluation will produce exactly
 		                    			the same results as the first evaluation. This is a very important
 		                    			feature that allows efficient evaluation of big role hierarchies.
 		                    		</p>  
@@ -10884,7 +10887,7 @@
 	                    				Note: it is perfectly OK for some dynamic roles to be marked as
 	                    				idempotent - even if the role contains complex expressions and conditions.
 	                    				If those conditions depend only on the environment or properties of the
-	                    				focus then their outcome does not depend on their posittion in
+	                    				focus then their outcome does not depend on their position in
 	                    				assignment/inducement hierarchy and these roles can be made idempotent.   
 	                    			</p>
                     			</p>
@@ -10914,7 +10917,7 @@
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			<p>
-	                    			Indication of the level of risk associated with the persissions that this role assigns.
+	                    			Indication of the level of risk associated with the permissions that this role assigns.
 	                    			This may be a numeric value, textual label are any other suitable machine-processable indication.
                     			</p>
                     		</xsd:documentation>
@@ -11079,7 +11082,7 @@
 		               <xsd:annotation>
 		                   <xsd:documentation>
 		                   		<p>
-			                       Specification of role autoassignmnt properties. Those properties
+			                       Specification of role auto-assignment properties. Those properties
 			                       are evaluated to detect whether a role should be automatically
 			                       assigned to focus.
 		                       </p>
@@ -11099,9 +11102,9 @@
        			same results regardless of its position in the assignment/inducement
        			hierarchy. I.e. evaluation of this roles does not depend on the assignment
        			parameters of focus or any of the preceding roles. This flag is used
-       			to enable aggresive caching of role evaluation, so idempotent roles
+       			to enable aggressive caching of role evaluation, so idempotent roles
        			are only evaluated once regardless of their position in the hierarchy
-       			as we can assume that any subsequent eveluation will produce exactly
+       			as we can assume that any subsequent evaluation will produce exactly
        			the same results as the first evaluation. This is a very important
        			feature that allows efficient evaluation of big role hierarchies.
             </xsd:documentation>
@@ -11197,7 +11200,7 @@
      		<xsd:element name="dpoContact" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Contact information for data privacy oficier
+     					Contact information for data privacy officer
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.dpoContact</a:displayName>
@@ -11214,7 +11217,7 @@
      					<p>
      						This is a free-form field that can be used to describe data processing
      						purposes in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11234,7 +11237,7 @@
      					<p>
      						This is a free-form field that can be used to describe legitimate
      						interests in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11253,7 +11256,7 @@
      					<p>
      						This is a free-form field that can be used to describe recipients
      						in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11272,7 +11275,7 @@
      					<p>
      						This is a free-form field that can be used to describe storage period
      						in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11286,12 +11289,12 @@
      			<xsd:annotation>
      				<xsd:documentation>
      					<p>
-	     					Desription of data erasure practices, especially the period for data erasure.
+	     					Description of data erasure practices, especially the period for data erasure.
      					</p>
      					<p>
      						This is a free-form field that can be used to describe data erasure
      						in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11305,13 +11308,13 @@
      			<xsd:annotation>
      				<xsd:documentation>
      					<p>
-     						Description whether automated decision making (e.g. profilig) is part of the
+     						Description whether automated decision making (e.g. profiling) is part of the
      						data processing.
      					</p>
      					<p>
      						This is a free-form field that can be used to describe automated decision making
      						in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11331,7 +11334,7 @@
      					<p>
      						This is a free-form field that can be used to describe security measures
      						in a human-readable form suitable to be displayed to user.
-     						This is NOT structured information. Structurted information schema
+     						This is NOT structured information. Structured information schema
      						is planned for future midPoint releases.
      					</p>
      				</xsd:documentation>
@@ -11348,7 +11351,7 @@
      	<xsd:annotation>
      		<xsd:documentation>
      			<p>
-     				Specification of role autoassignmnt properties. Those properties
+     				Specification of role auto-assignment properties. Those properties
                     are evaluated to detect whether a role should be automatically
                     assigned to focus.
      			</p>
@@ -11401,7 +11404,7 @@
      	<xsd:annotation>
      		<xsd:documentation>
      			<p>
-     				Specification of role autoassignmnt properties. Those properties
+     				Specification of role auto-assignment properties. Those properties
                     are evaluated to detect whether a role should be automatically
                     assigned to focus.
                     This is "focal" specification. It is applied on the focus (similarly
@@ -11426,7 +11429,7 @@
      						used to manipulate content of the assignment.
      					</p>
      					<p>
-     						This is mostly equivalent to the object tempate mapping, but default
+     						This is mostly equivalent to the object template mapping, but default
      						target is set to the assignment of this role.
      					</p>
      				</xsd:documentation>
@@ -11500,7 +11503,7 @@
         					Decision that this authorization specifies. If the decision is "allow" (which is the
         					default) then this authorization allows access. If the decision is "deny" then this
         					authorization denies access. Denial is a final decisions. If at least one applicable
-        					authorization denies access then the access is always denied, regadless of any other
+        					authorization denies access then the access is always denied, regardless of any other
         					allow authorizations.
         				</p>
         				<p>
@@ -11527,7 +11530,7 @@
         	<xsd:element name="phase" type="tns:AuthorizationPhaseType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Specifies when to conduct authorizationa and what exactly to authorize.
+        				Specifies when to conduct authorization and what exactly to authorize.
         				If no phase is specified then the authorization applies to all phases.
         			</xsd:documentation>
         		</xsd:annotation>
@@ -11554,7 +11557,7 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				<p>
-	        				Specification of items that form a scope of this authorization. This autorization will
+	        				Specification of items that form a scope of this authorization. This authorization will
 	        				only affect the items specified in this element. If no items are specified then the
 	        				authorization applies to all items in the objects.
         				</p>
@@ -11671,7 +11674,7 @@
                 	<xsd:documentation>
                 		Authorize the requested operations. I.e. the authorization happens
                 		at the beginning of request processing. 
-                		The request may be spread to many other oprations but in this case
+                		The request may be spread to many other operations but in this case
                 		only the explicitly requested set is authorized.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -11684,7 +11687,7 @@
                 	<xsd:documentation>
                 		Authorize the executed operations. I.e. the authorization happens
                 		at the end of request processing. 
-                		The request may be spread to many other oprations but in this case
+                		The request may be spread to many other operations but in this case
                 		all the requested and computed operations are authorized.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -11698,7 +11701,7 @@
     <xsd:simpleType name="AuthorizationEnforcementStrategyType">
         <xsd:annotation>
         	<xsd:documentation>
-        		Limitations of this authotization when it is applied to other authorizations.
+        		Limitations of this authorization when it is applied to other authorizations.
    				For example this specification may limit the power of attorney.
         	</xsd:documentation>
             <xsd:appinfo>
@@ -11713,7 +11716,7 @@
                 		The authorization will always be enforced for all applicable operations.
                 		Even at the cost of running inefficient operation. If the authorization
                 		cannot be enforced then the operation results in an error. We would rather
-                		stop the operation entirelly than risking data exposure.
+                		stop the operation entirely than risking data exposure.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALWAYS_ENFORCE"/>
@@ -11727,7 +11730,7 @@
                 	    If this setting is applied then midPoint may skip this authorization during evaluation
                 	    of search operation. This is used for authorization that may be inefficient to evaluate
                 	    for search operations, especially when used in situations where there is another broader
-                	    authorization which is good enough to limit the seach results.
+                	    authorization which is good enough to limit the search results.
         				Setting this strategy may cause that broader search results are returned. Use with care.
         				This setting influences search operations only. It does not influence other operations, 
         				such as read, modify or assign.
@@ -11762,7 +11765,7 @@
         				Limitation of action. If any action is specified then the authorization
         				is limited only to those actions.
         				E.g. if this is applied to attorney authorization then only those
-        				actions from the object are considere to be delegated to attorney.
+        				actions from the object are considered to be delegated to attorney.
         				Actions that are not part of this list are not delegated.
         				If the list is empty then there is no limitation. All actions
         				are delegated.
@@ -11822,7 +11825,7 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				Filter that an object must match to be considered selected by this statement.
-        				This filter MUST NOT containt organization unit clauses. It may only contain
+        				This filter MUST NOT contain organization unit clauses. It may only contain
         				property clauses, logical operations and so on.
         			</xsd:documentation>
         		</xsd:annotation>
@@ -11885,8 +11888,8 @@
 		        	<xsd:element name="allowInactive" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        		<xsd:annotation>
 		        			<xsd:documentation>
-		        				If set to false (defaul) the specification will apply only to active relations
-		        				(e.g active delegations). If set to true then the specificaiton will also be applied 
+		        				If set to false (default) the specification will apply only to active relations
+		        				(e.g active delegations). If set to true then the specification will also be applied
 		        				to inactive relations (e.g. expired delegations).
 		        				Only partially implemented. Works only for some cases (delegator).
 		        				EXPERIMENTAL. Use at your own risk.
@@ -12057,7 +12060,7 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				Specifies the relation that the subject needs to have to the org for this condition to
-        				trigger. This is usually null (memeber) realtion or manager relation.
+        				trigger. This is usually null (member) relation or manager relation.
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
@@ -12065,7 +12068,7 @@
 	        	<xsd:annotation>
         			<xsd:documentation>
         				Scope of application that will be used to select objects relative to the reference node.
-        				It determines which objects will be selected (those above or below the refence node, shallow or deep, etc.)
+        				It determines which objects will be selected (those above or below the reference node, shallow or deep, etc.)
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
@@ -12175,7 +12178,7 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		All ancestors of the reference node, including ancestors of ancestors.
-                		I.e. all the nodes that are on any path between the refernce node and the
+                		I.e. all the nodes that are on any path between the reference node and the
                 		root node.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -12186,7 +12189,7 @@
             <xsd:enumeration value="none">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		No objects belong to the scope. Used in conjuction with
+                		No objects belong to the scope. Used in conjunction with
                 		includeReferenceOrg option to target only the reference node
                 		and no other node in the hierarchy.
                 	</xsd:documentation>
@@ -12526,8 +12529,8 @@
 			                <xsd:annotation>
 			                    <xsd:documentation>
 			                        Object subtype of the target persona.
-			                        Constructions with the same type and substype configuraton are
-			                        interpretes as if they describe the same persona.
+			                        Constructions with the same type and subtype configuration are
+			                        interpreted as if they describe the same persona.
 			                    </xsd:documentation>
 			                    <xsd:appinfo>
 			                    	<a:since>3.6</a:since>
@@ -12560,7 +12563,7 @@
             	TODO: update
                 The user template used to create new users. It
                 contains fixed values or expressions that can set-up
-                a new user obejct. It is used only during user creation in the
+                a new user object. It is used only during user creation in the
                 synchronization code, but will be most likely used also
                 on other places later.
 
@@ -12698,7 +12701,7 @@
         <xsd:annotation>
             <xsd:documentation>
             	<p>
-	            	Organizational unit, division, section, object gropup, team, project or any other form of
+	            	Organizational unit, division, section, object group, team, project or any other form of
 	            	organizing things and/or people. The OrgType objects are designed to form a hierarchical
 	            	organizational structure (or rather several parallel organizational structures).
             	</p>
@@ -13001,12 +13004,12 @@
     			<xsd:annotation>
     				<xsd:documentation>
     					Lookup table key column. This is the mandatory (non-null) column that usually
-    					works as a mapping key. If the lookup table is used as an emumeration (there is no value column)
+    					works as a mapping key. If the lookup table is used as an enumeration (there is no value column)
     					then the value of key column will be stored in the property when selected.
     					If the lookup table is used as a map, the value of key column will be matched to the
     					input variable.
     					
-    					The value of the key is limited to a usual size of a "databse string". The actual size
+    					The value of the key is limited to a usual size of a "database string". The actual size
     					constraint depends on the type of the database used as midPoint repository. It is
     					not recommended to use long values as keys.
     				</xsd:documentation>
@@ -13020,11 +13023,11 @@
     					as output.
     					
     					This column has no use if the lookup table is used as an enumeration.
-    					The value of the key is limited to a usual size of a "databse string". The actual size
+    					The value of the key is limited to a usual size of a "database string". The actual size
     					constraint depends on the type of the database used as midPoint repository. We expect that
     					this column may contain quasi-structured data. But this column is not intended for a very rich
     					data structures, such as long XML snippets. If structured data must be stored in this column
-    					then we recommend to use very tight "microformats" such as separating the values with collons.
+    					then we recommend to use very tight "microformats" such as separating the values with colons.
     					
     					A special-purpose CLOB column for richer data formats might be added in the future.
     				</xsd:documentation>
@@ -13033,7 +13036,7 @@
     		<xsd:element name="label" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Columnt that contains a user-friendly label for corresponding to the key.
+    					Column that contains a user-friendly label for corresponding to the key.
     					This label will be displayed in user interface as a representation of the key.
     					The label has no meaning when the lookup table is used to map values.
     				</xsd:documentation>
@@ -13042,7 +13045,7 @@
     		<xsd:element name="lastChangeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Timestamp of the last change of the row. This is automatically manintaned by
+    					Timestamp of the last change of the row. This is automatically maintained by
     					the repository. It is updated every time the row is created or updated.
     					This row is intended to act as a "token" if the lookup table needs to be synchronized
     					with external resource.
@@ -13309,7 +13312,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO: sucess message? -->
+            <!-- TODO: success message? -->
         </xsd:sequence>
     </xsd:complexType>
     
@@ -13363,7 +13366,7 @@
             <xsd:enumeration value="object">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		Object is the orgin. Object usually means the user.
+                		Object is the origin. Object usually means the user.
                 		E.g. in case of password policy, object is the user
                 		who's password is changed. 
                 	</xsd:documentation>
@@ -13402,7 +13405,7 @@
             <xsd:enumeration value="projection">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		One of object's projecion is the origin.
+                		One of object's projection is the origin.
                 		E.g. in case of user password specific projection
                 		linked to the user will be scanned.
                 		If this origin type is selected then also
@@ -13581,7 +13584,7 @@
             <xsd:documentation>
                 Type used to represent Java objects that are otherwise unknown to the system and cannot be
                 represented in "canonical" XML form. This must be used only in diagnostics messages intended
-                to be displayed to the human user. It must not be used in places indended for computer processing.
+                to be displayed to the human user. It must not be used in places intended for computer processing.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -13702,7 +13705,7 @@
 	                    <xsd:annotation>
 							<xsd:documentation>
 								Definition of default object templates for a individual object type. The templates will be used
-								"universally" during all operations with specified object types - unless the templates are overriden
+								"universally" during all operations with specified object types - unless the templates are overridden
 								in other definitions (e.g. in resource).
 								
 								DEPRECATED. Use defaultObjectPolicyConfiguration instead.
@@ -13739,7 +13742,7 @@
                     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                A configuration for user notifications. In future, it might be overriden e.g. at a level
+                                A configuration for user notifications. In future, it might be overridden e.g. at a level
                                 of a user.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -14215,7 +14218,7 @@
 	           			<xsd:annotation>
 	           				<xsd:documentation>
 	           					Type of the widget. It is an identifier that specifies the content
-	           					of the winget (e.g. what will be inside the box).
+	           					of the widget (e.g. what will be inside the box).
 	           					THIS IS NOT USED YET. It is only for future use.
 	           				</xsd:documentation>
 	           			</xsd:annotation>
@@ -14320,7 +14323,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Hyperlink with a label, menu and other data that control a rich presentation of the link.
-                Not all parameters that are present in this data strucutre might be supported in all the places
+                Not all parameters that are present in this data structure might be supported in all the places
                 where a link is used. Which parameter will be used depends on where exactly is the link used and
                 how it is rendered (as an menu item, application launch button, etc.)
             </xsd:documentation>
@@ -14480,8 +14483,8 @@
 					<xsd:documentation>
 						Specification of policies that are applicable to this object type.
 						This should refer to all applicable policies, not just those that
-						are applied. The puspose is primarily for presentation purposes,
-						so the user inteface can present choice of all policies to the
+						are applied. The purpose is primarily for presentation purposes,
+						so the user interface can present choice of all policies to the
 						user.
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -14497,8 +14500,8 @@
 			<xsd:documentation>
 				Specification of policies that are applicable to this object type.
 				This should refer to all applicable policies, not just those that
-				are applied. The puspose is primarily for presentation purposes,
-				so the user inteface can present choice of all policies to the
+				are applied. The purpose is primarily for presentation purposes,
+				so the user interface can present choice of all policies to the
 				user.
 			</xsd:documentation>
 			<xsd:appinfo>
@@ -14644,7 +14647,7 @@
 					<xsd:documentation>
 						The whole operation should fail. This is to be used mainly for testing purposes,
 						to check if conflict detection algorithm does not yield false positive results.
-						This fails with a system error. This is a definitive, non-recoverable fauilure.
+						This fails with a system error. This is a definitive, non-recoverable failure.
 						TODO: align with "error"
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -14781,7 +14784,7 @@
             <xsd:enumeration value="positive">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Assignements will be enforced only in a positive manner.
+                        Assignments will be enforced only in a positive manner.
                         E.i. If a non-existing account is assigned it will be created.
                         If existing account is not assigned it will NOT be removed.
                         
@@ -14847,7 +14850,7 @@
         	<xsd:element name="name" type="xsd:string" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Free-form hook name. Used for diagnostic purposed (e.g. in logfiles)
+        				Free-form hook name. Used for diagnostic purposed (e.g. in log files)
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
@@ -14929,7 +14932,7 @@
     <xsd:complexType name="AdvancedLoggingConfigurationType" mixed="true">
         <xsd:annotation>
             <xsd:documentation>
-                Contains free form loging configuration.
+                Contains free form logging configuration.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -15315,7 +15318,7 @@
                 Specifies constraints on assignments that are placed in the same focus. It can be used
                 to prohibit multiple assignment of the same role and for similar cases.
                 There are several individual constraints in the type. There is a logical AND between them.
-                This means that if no contraint can be violated. All active constratints must be satified
+                This means that if no constraint can be violated. All active constraints must be satisfied
                 at the same time.
             </xsd:documentation>
             <xsd:appinfo>
@@ -15370,7 +15373,7 @@
         	<xsd:element name="collection" type="tns:ObjectCollectionUseType" minOccurs="0" maxOccurs="unbounded">
 			    <xsd:annotation>
 			        <xsd:documentation>
-			            Reference to the colleciot, its visibility, etc.
+			            Reference to the collection, its visibility, etc.
 			        </xsd:documentation>
 			        <xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -15428,7 +15431,7 @@
     			<xsd:annotation>
     				<xsd:documentation>
     					Name of the rule. It is used to record processing of the rule
-    					in the logfiles and for similar diagnostic reasons.
+    					in the log files and for similar diagnostic reasons.
     				</xsd:documentation>
     				<xsd:appinfo>
 		            	<a:displayName>PolicyRuleType.name</a:displayName>
@@ -15773,7 +15776,7 @@
 			<xsd:element name="default" type="tns:CredentialPolicyType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Common setting applied to all other credetials type. Any of this
+						Common setting applied to all other credentials type. Any of this
 						setting can be overridden in the individual credentials setting.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -15860,7 +15863,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						If set to true then the new credential will have the forceChange flag set.
-						Which usualy means that the user will have to change the credential on next logon.
+						Which usually means that the user will have to change the credential on next logon.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7.1</a:since>
@@ -15932,7 +15935,7 @@
 	<xsd:complexType name="AbstractAuthenticationPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Authentication management policy. It specifies configurations for differrent authentication methods
+				Authentication management policy. It specifies configurations for different authentication methods
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
@@ -15942,7 +15945,7 @@
 			<xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                A configuration for user notifications. In future, it might be overriden e.g. at a level
+                                A configuration for user notifications. In future, it might be overridden e.g. at a level
                                 of a user.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -15958,7 +15961,7 @@
 	<xsd:complexType name="AbstractCredentialsResetPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Authentication management policy. It specifies configurations for differrent authentication methods
+				Authentication management policy. It specifies configurations for different authentication methods
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
@@ -15974,7 +15977,7 @@
 			<xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
 					    <xsd:annotation>
 					        <xsd:documentation>
-					            Reference to form which is dispalyed for registration
+					            Reference to form which is displayed for registration
 					        </xsd:documentation>
 					        <xsd:appinfo>
 								<a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
@@ -16136,7 +16139,7 @@
 					<xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
 					    <xsd:annotation>
 					        <xsd:documentation>
-					            Reference to form which is dispalyed for registration
+					            Reference to form which is displayed for registration
 					        </xsd:documentation>
 					        <xsd:appinfo>
 								<a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
@@ -16195,7 +16198,7 @@
             <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Maximal number of value occurences.
+            			Maximal number of value occurrences.
             			If not specified then the default schema limitation is imposed.
             		</xsd:documentation>
             	</xsd:annotation>
@@ -16236,7 +16239,7 @@
 			<xsd:element name="lockoutFailedAttemptsDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						The duration in which the failed attemps must happen for the credential to be locked-out.
+						The duration in which the failed attempts must happen for the credential to be locked-out.
 						The failed attempt counter is re-set after this duration (counted from the last failed attempt).
 						The credential is NOT locked-out during this duration.
 					</xsd:documentation>
@@ -16287,7 +16290,7 @@
 	<xsd:simpleType name="CredentialsPropagationUserControlType">
         <xsd:annotation>
             <xsd:documentation>
-                Constraintes that define how propagation of credentials can be controled by the
+                Constraints that define how propagation of credentials can be controlled by the
 						user. E.g. if user can choose where the password change will be propagated.
             </xsd:documentation>
             <xsd:appinfo>
@@ -16470,7 +16473,7 @@
                 		MidPoint should be able not to store the credentials when
                 		this setting is used. But there may be side effects
                 		that are not completely addressed yet.
-                		This is not entirelly tests and not supported.
+                		This is not entirely tested and not supported.
                 		Use at your own risk.
                 	</xsd:documentation>
                     <xsd:appinfo>
@@ -16643,7 +16646,7 @@
 			<!-- TODO: sabri 
 				settings that apply to a specific security question should go here, like this:
 				<xsd:element name="something" type="xsd:string" minOccurs="0"/>
-				What comes to my mind here is a key to localization file. That definitelly should be here.
+				What comes to my mind here is a key to localization file. That definitely should be here.
 				What else?
 			 -->
 			 <!-- In later versions we may want to add an expression here. The expression could product an expected answer
@@ -16855,7 +16858,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 The enum describes the operation during the account was processed.
-                But the operation failed and the account was not sucessfully treated
+                But the operation failed and the account was not successfully treated
                 so the account should have the information about the type of failed operation.
                 E.g. the account should be deleted, but it fails. The account needs to be
                 assigned with the tombstone to be deleted later.
@@ -18056,7 +18059,7 @@
                 This element belongs to ReportType and should
                 not be used elsewhere. This is a top-level
                 element to make the implementation (JAXB
-                marshall/unmarshall) easier.
+                marshal/unmarshal) easier.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -18483,7 +18486,7 @@
        			           We will also need a reference to which menu section we want to display it. E.g. We would
        			           like to display role catalog under "roles", even though it is in fact org tree. -->
        			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
-       			<!-- TODO: refernce to object collection (MID-3517) -->
+       			<!-- TODO: reference to object collection (MID-3517) -->
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
            		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto"/>
            		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
@@ -18626,7 +18629,7 @@
 	           				as an primary input for the expression (planned for future).
 	           				Even if expression is used to display the column value, we need some reference
 	           				field that will be used to sort the table when sorting by this column is selected.
-	           				We cannot sorty by the output of the expression as that is not stored in the repo.
+	           				We cannot sort by the output of the expression as that is not stored in the repo.
 	           			</xsd:documentation>
 	           		</xsd:annotation>
 	           	</xsd:element>
@@ -18656,7 +18659,7 @@
        						The first column has no value in this element.
        						If there are multiple columns that specify the same preceding columns then
        						the implementation may choose any ordering of such columns. However, the
-       						algorithm should be deterministic: the same ordring should be used every
+       						algorithm should be deterministic: the same ordering should be used every
        						time (alphabeting ordering based on "path" or displayOrder from the schema
        						are good candidates for deterministic ordering).
        					</xsd:documentation>
@@ -18796,7 +18799,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         There is no save button on the details page. Only preview button is there. User must go
-                        to the preview page to save the results. The save button on the preview page will be dissabled
+                        to the preview page to save the results. The save button on the preview page will be disabled
                         if there are any errors during preview (e.g. policy rule violations).
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -18950,9 +18953,9 @@
                 </p>
             </xsd:documentation>
         </xsd:annotation>
-        <!-- Originally (approx. midPoint 3.4) this datat type was meant ony for specificaiton of "declarative"
+        <!-- Originally (approx. midPoint 3.4) this data type was meant ony for specification of "declarative"
              forms that specify fields for items. But later (3.7.1) it was discovered that this should be
-             reused to specify wider range of forms. E.g. parameteric built-in forms (such as "data protection" tab).
+             reused to specify wider range of forms. E.g. parametric built-in forms (such as "data protection" tab).
              Or even parametric declarative or custom forms. No schema changes were made in 3.7.1.
              Use case: specify "data protection" tab filter, layout and columns in just one place in the system
              (FormType object). And the reuse the specification at several places (e.g. adminGuiConfig in several roles).
@@ -18962,7 +18965,7 @@
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
                 	<!-- includeRef and formDefinition are used to specify "declarative" custom form.
-                	     Ideally, this should be insided its own container. But as this was not done
+                	     Ideally, this should be inside its own container. But as this was not done
                 	     originally (approx. midPoint 3.4) we cannot change it now. So we leave it as
                 	     it is.
                 	-->
@@ -19532,7 +19535,7 @@
 			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						Short name of the merge cofiguration that also works as identifier for this configuration.
+						Short name of the merge configuration that also works as identifier for this configuration.
 						It has to be unique among all the applicable merge configurations.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -19764,7 +19767,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Free form description that specifies the details of this deployment.
-						It may be significantly long (few paragraps). It has no special purpose	
+						It may be significantly long (few paragraphs). It has no special purpose
 						other then a form of "on-line" documentation for the deployment. It will
 						NOT be displayed on every page. It will most likely be displayed on a system
 						configuration pages or in configuration summaries.

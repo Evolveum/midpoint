@@ -539,6 +539,8 @@ public class ObjectUpdater {
         // more likely it is a serialization-related one.
         //
         // TODO: somewhat generalize this approach - perhaps by retrying all operations not dealing with OID/name uniqueness
+        //
+        // see MID-4698
 
         SQLException sqlException = baseHelper.findSqlException(ex);
         if (sqlException != null) {
