@@ -26,22 +26,16 @@
             <div class="box-body">
             <form wicket:id="mainForm">
             	<div wicket:id="contentArea"></div>
-            	<div class="col-md-offset-6">
-                        <div wicket:id="captcha"/>
-
-                        <a class="btn btn-default" wicket:id="back"/>
-                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
-                    </div>
-                    </form>
+           </form>
 			    <wicket:fragment wicket:id="staticContent">
-			    	
+			    	<div wicket:id="staticForm">
 			          <div style="text-align: center">
                         <h3 wicket:id="welcome"/>
                     </div>
                     <div>
                         <label wicket:id="additionalText"></label>
                     </div>
-                    <div wicket:id="staticForm">
+                    
                         <table class="table table-striped">
                             <tr>
                                 <td>
@@ -86,17 +80,23 @@
                             </tr>
                         </table>
                     </div>
-					
-                    
+					<div class="col-md-offset-6">
+                        <div wicket:id="captcha"/>
 
-                    <div wicket:id="feedback"/>
-                   
+                        <a class="btn btn-default" wicket:id="back"/>
+                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
+                    </div>	                   
 			    </wicket:fragment>
 			    <wicket:fragment wicket:id="dynamicContent">
 			          <div wicket:id="dynamicForm">
                         <div wicket:id="registrationForm"></div>
                     </div>
+					<div class="col-md-offset-6">
+                        <div wicket:id="captcha"/>
 
+                        <a class="btn btn-default" wicket:id="back"/>
+                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
+                    </div>
 			    </wicket:fragment>
 
             	<wicket:fragment wicket:id="messageContent">

@@ -19,16 +19,22 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -40,6 +46,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -66,7 +73,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	private static final String ID_WRAPPER_CONTENT = "wrapperContent";
 
 	private IModel<UserType> userModel;
-	
+	private ObjectWrapper<UserType> objectWrapper;
 	
 	@Override
 	public void initalizeModel() {
@@ -98,7 +105,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	protected WebMarkupContainer initStaticLayout() {
 		Task task = createSimpleTask(OPERATION_LOAD_WRAPPER);
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(PagePostAuthentication.this);
-		ObjectWrapper<UserType> objectWrapper = owf.createObjectWrapper("Details", "User Details", userModel.getObject().asPrismObject(), ContainerStatus.MODIFYING, task);
+		objectWrapper = owf.createObjectWrapper("Details", "User Details", userModel.getObject().asPrismObject(), ContainerStatus.MODIFYING, task);
 		
 		Form<?> form = getMainForm();
 		PrismPanel<UserType> prismPanel = new PrismPanel<>(ID_WRAPPER_CONTENT, new ContainerWrapperListFromObjectWrapperModel(Model.of(objectWrapper), getVisibleContainers()), new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), form, null, this);
@@ -123,5 +130,34 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		return false;
 	}
 
-	
+	@Override
+	protected void submitRegistration(AjaxRequestTarget target) {
+		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+		ObjectDelta<UserType> userDelta = null;
+		try {
+			if (!isCustomFormDefined()) {
+				userDelta = objectWrapper.getObjectDelta();
+			} else {
+				userDelta = getDynamicFormPanel().getObjectDelta();
+			}
+
+			getPrismContext().adopt(userDelta);
+			userDelta.addModificationDeleteProperty(UserType.F_LIFECYCLE_STATE, getPostAuthenticationConfiguration().getRequiredLifecycleState());
+			WebModelServiceUtils.save(userDelta, result, this);
+			result.recordSuccessIfUnknown();
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Error during saving user.", e);
+			result.recordFatalError("Could not save user.", e);
+		}
+		
+		result.computeStatus();
+		showResult(result);
+		target.add(getFeedbackPanel());
+		navigateToNext(getMidpointApplication().getHomePage());
+	}
+		
+	@Override
+	protected boolean isBackButtonVisible() {
+		return false;
+	}
 }

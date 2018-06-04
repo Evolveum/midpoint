@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -216,9 +217,21 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         OperationResult result = task.getResult();
 
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
-
+        
 		if (!userType.getAssignment().isEmpty()) {
 			LensContext<UserType> lensContext = new LensContextPlaceholder<>(userType.asPrismObject(), prismContext);
+			//FIXME: quick hack TODO: coppied from ContextLoader
+			ObjectPolicyConfigurationType policyConfigurationType;
+			try {
+				policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(userType.asPrismObject(), systemConfiguration.asObjectable());
+			} catch (ConfigurationException e) {
+				throw new SchemaException(e.getMessage(), e);
+			}
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
+						FocusTypeUtil.determineSubTypes(userType.asPrismObject()), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+			}
+            lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
 			AssignmentEvaluator.Builder<UserType> builder =
 					new AssignmentEvaluator.Builder<UserType>()
 							.repository(repositoryService)

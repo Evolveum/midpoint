@@ -62,7 +62,7 @@ public class PageRegistrationBase extends PageBase {
 
 		this.postAuthenticationDto = new SelfRegistrationDto();
 		try {
-			this.postAuthenticationDto.initSelfRegistrationDto(securityPolicy);
+			this.postAuthenticationDto.initPostAuthenticationDto(securityPolicy);
 		} catch (SchemaException e) {
 			LOGGER.error("Failed to initialize self registration configuration.", e);
 			getSession().error(
