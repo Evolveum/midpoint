@@ -81,7 +81,7 @@
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Timestamp when the event occured.
+                        Timestamp when the event occurred.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -95,7 +95,7 @@
             <xsd:element name="sessionIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identitification of (interactive) session in which the event occured.
+                        Identification of (interactive) session in which the event occurred.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

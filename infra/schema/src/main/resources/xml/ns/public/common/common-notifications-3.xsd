@@ -61,7 +61,7 @@
             <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What to put into "From" field of mail messages (unless overriden by specific situation).
+                        What to put into "From" field of mail messages (unless overridden by specific situation).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -173,7 +173,7 @@
             <xsd:enumeration value="starttlsRequired">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Uses STARTTLS feature. If it is not available on the server, the mesage sending fails.
+                        Uses STARTTLS feature. If it is not available on the server, the message sending fails.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STARTTLS_REQUIRED"/>
