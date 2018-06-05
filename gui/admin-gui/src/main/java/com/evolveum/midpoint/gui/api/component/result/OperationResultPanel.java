@@ -267,6 +267,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 				String msg = null;
 				if (result.getUserFriendlyMessage() != null) {
+					
+					//TODO: unify with WebModelServiceUtil.translateMessage()
 					LocalizationService service = page.getLocalizationService();
 					Locale locale = page.getSession().getLocale();
 

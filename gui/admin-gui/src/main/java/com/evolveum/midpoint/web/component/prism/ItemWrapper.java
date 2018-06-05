@@ -25,9 +25,13 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -111,4 +115,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	boolean isShowEmpty();
 	
 	void setShowEmpty(boolean isShowEmpty, boolean recursive);
+	
+	ExpressionType getFormItemValidator();
+
 }

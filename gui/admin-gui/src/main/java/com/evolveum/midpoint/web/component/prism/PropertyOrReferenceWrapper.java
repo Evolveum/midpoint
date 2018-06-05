@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2010-2017 Evolveum
+ *  Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,12 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
@@ -306,5 +311,20 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	@Override
 	public String getDeprecatedSince() {
 		return getItemDefinition().getDeprecatedSince();
+	}
+	
+	@Override
+	public ExpressionType getFormItemValidator() {
+		FormItemValidationType formItemValidation = item.getDefinition().getAnnotation(ItemRefinedDefinitionType.F_VALIDATION);
+		if (formItemValidation == null) {
+			return null;
+		}
+		
+		List<FormItemServerValidationType> serverValidators = formItemValidation.getServer();
+		if (CollectionUtils.isNotEmpty(serverValidators)) {
+			return serverValidators.iterator().next().getExpression();
+		}
+		
+		return null;
 	}
 }

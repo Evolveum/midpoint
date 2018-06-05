@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -24,6 +25,9 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+
+import java.util.Locale;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,6 +44,8 @@ public interface ModelServiceLocator {
 	ModelService getModelService();
 
 	ModelInteractionService getModelInteractionService();
+	
+	LocalizationService getLocalizationService();
 
 	Task createSimpleTask(String operationName);
 
@@ -71,4 +77,6 @@ public interface ModelServiceLocator {
 	default ObjectResolver getModelObjectResolver() {
 		return null;
 	}
+	
+	public Locale getLocale();
 }

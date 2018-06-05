@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -64,6 +65,7 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -235,6 +237,16 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			@Override
 			public ExpressionFactory getExpressionFactory() {
 				return expressionFactory;
+			}
+
+			@Override
+			public LocalizationService getLocalizationService() {
+				return localizationService;
+			}
+
+			@Override
+			public Locale getLocale() {
+				return Locale.US;
 			}
 
 		};

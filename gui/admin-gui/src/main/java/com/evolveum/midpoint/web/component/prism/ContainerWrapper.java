@@ -561,4 +561,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public boolean isExperimental() {
 		return getItemDefinition().isExperimental();
 	}
+
+	@Override
+	public ExpressionType getFormItemValidator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
