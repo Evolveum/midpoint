@@ -25,11 +25,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -59,6 +64,8 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 	public static final String SUBTYPE_EMPLOYEE = "employee";
 	private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
 
+	private String accontJackOid;
+
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -66,6 +73,8 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_HEADMASTER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CARETAKER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_GAMBLER_FILE, initResult);
+		
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
     }
 	
 	@Override
@@ -92,6 +101,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_GAMBLER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_DRAFT);
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, SUBTYPE_EMPLOYEE);
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, USER_JACK_TELEPHONE_NUMBER);
@@ -102,12 +112,30 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 2);
+        assertAssignments(userAfter, 3);
         assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_DRAFT);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
+        // User is in draft lifecycle. Assignments are not active. Therefore account does not exist yet.
         assertLinks(userAfter, 0);
     }
+    
+    @Test
+    public void test052PrincipalJackDraft() throws Exception {
+		final String TEST_NAME = "test052AutzJackDraft";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        assertNotAuthorized(principal, AUTZ_GAMBLE_URL);
+        assertNotAuthorized(principal, AUTZ_APPARATE_URL);
+	}
     
     /**
      * Transition Jack to proposed lifecycle state (manual transition).
@@ -133,12 +161,35 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 2);
+        assertAssignments(userAfter, 3);
         assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_PROPOSED);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
-        assertLinks(userAfter, 0);
+        // Although we are in the proposed lifecycle and assignments would not be active by default
+        // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
+        // considered active.
+        accontJackOid = getSingleLinkOid(userAfter);
     }
+    
+    @Test
+    public void test062PrincipalJackProposed() throws Exception {
+		final String TEST_NAME = "test062PrincipalJackProposed";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        // Although we are in the proposed lifecycle and assignments would not be active by default
+        // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
+        // considered active. Their authorizations should be applied to principal.
+        assertAuthorized(principal, AUTZ_GAMBLE_URL);
+        assertAuthorized(principal, AUTZ_APPARATE_URL);
+	}
     
     /**
      * Transition Jack to default lifecycle (active) state (manual transition).
@@ -162,12 +213,29 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 2);
+        assertAssignments(userAfter, 3);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
-        assertLinks(userAfter, 0);
+        assertLinks(userAfter, 1);
     }
+    
+    @Test
+    public void test092PrincipalJackDefaultActive() throws Exception {
+		final String TEST_NAME = "test092PrincipalJackDefaultActive";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        assertAuthorized(principal, AUTZ_GAMBLE_URL);
+        assertAuthorized(principal, AUTZ_APPARATE_URL);
+	}
     
     private void assertTelephoneNumber(PrismObject<UserType> user, Object expectedTelephoneNumber) {
     	assertEquals("Wrong telephoe number in "+user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
@@ -196,7 +264,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 3);
+        assertAssignments(userAfter, 4);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
     }
@@ -220,7 +288,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 2);
+        assertAssignments(userAfter, 3);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
     }
@@ -248,7 +316,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 1);
+        assertAssignments(userAfter, 2);
         assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_ARCHIVED);
         assertTelephoneNumber(userAfter, null);
     }
@@ -276,7 +344,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-        assertAssignments(userAfter, 2);
+        assertAssignments(userAfter, 3);
         assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_ARCHIVED);
         assertTelephoneNumber(userAfter, null);
     }

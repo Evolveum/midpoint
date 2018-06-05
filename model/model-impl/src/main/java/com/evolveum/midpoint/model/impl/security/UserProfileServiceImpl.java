@@ -219,19 +219,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
         
 		if (!userType.getAssignment().isEmpty()) {
-			LensContext<UserType> lensContext = new LensContextPlaceholder<>(userType.asPrismObject(), prismContext);
-			//FIXME: quick hack TODO: coppied from ContextLoader
-			ObjectPolicyConfigurationType policyConfigurationType;
-			try {
-				policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(userType.asPrismObject(), systemConfiguration.asObjectable());
-			} catch (ConfigurationException e) {
-				throw new SchemaException(e.getMessage(), e);
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-						FocusTypeUtil.determineSubTypes(userType.asPrismObject()), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
-			}
-            lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
+			LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
 			AssignmentEvaluator.Builder<UserType> builder =
 					new AssignmentEvaluator.Builder<UserType>()
 							.repository(repositoryService)
@@ -289,6 +277,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
+	}
+
+	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+		LensContext<UserType> lensContext = new LensContextPlaceholder<>(user, prismContext);
+		ObjectPolicyConfigurationType policyConfigurationType;
+		try {
+			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
+		} catch (ConfigurationException e) {
+			throw new SchemaException(e.getMessage(), e);
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
+					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+		}
+        lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
+		return lensContext;
 	}
 
 	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
