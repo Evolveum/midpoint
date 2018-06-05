@@ -3,6 +3,8 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 
+import com.evolveum.midpoint.web.session.AuditLogStorage;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -26,37 +28,56 @@ public class PageAuditLogViewer extends PageBase {
 	}
 
     private void initLayout(){
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, Model.of(new AuditSearchDto()), false) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, new IModel<AuditSearchDto>() {
+			@Override
+			public AuditSearchDto getObject() {
+				return getAuditLogStorage().getSearchDto();
+			}
+
+			@Override
+			public void setObject(AuditSearchDto auditSearchDto) {
+				getAuditLogStorage().setSearchDto(auditSearchDto);
+			}
+
+			@Override
+			public void detach() {
+
+			}
+		}, false) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
-				getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
-				getPageBase().getSessionStorage().getAuditLog().setPageNumber(0);
+				getAuditLogStorage().setSearchDto(searchDto);
+				getAuditLogStorage().setPageNumber(0);
 			}
 
 			@Override
 			protected void resetAuditSearchStorage() {
-				getPageBase().getSessionStorage().getAuditLog().setSearchDto(new AuditSearchDto());
+				getAuditLogStorage().setSearchDto(new AuditSearchDto());
 				
 			}
 
 			@Override
 			protected void updateCurrentPage(long current) {
-				getPageBase().getSessionStorage().getAuditLog().setPageNumber(current);
+				getAuditLogStorage().setPageNumber(current);
 				
 			}
 
 			@Override
 			protected long getCurrentPage() {
-				return getPageBase().getSessionStorage().getAuditLog().getPageNumber();
+				return getAuditLogStorage().getPageNumber();
 			}
         	
         };
         panel.setOutputMarkupId(true);
         add(panel);
     }
+
+    private AuditLogStorage getAuditLogStorage(){
+		return getSessionStorage().getAuditLog();
+	}
 
 
 }
