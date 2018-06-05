@@ -29,7 +29,9 @@ public class PageAuditLogViewer extends PageBase {
 
     private void initLayout(){
         AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, new IModel<AuditSearchDto>() {
-			@Override
+            private static final long serialVersionUID = 1L;
+
+            @Override
 			public AuditSearchDto getObject() {
 				return getAuditLogStorage().getSearchDto();
 			}
