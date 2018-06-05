@@ -176,7 +176,11 @@ GO
 
 UPDATE m_audit_delta SET deltaBlob = convert(VARBINARY(MAX), delta) where delta is not null;
 UPDATE m_audit_delta SET fullResultBlob = convert(VARBINARY(MAX), fullResult) where fullResult is not null;
-UPDATE m_audit_delta SET checksum = lower(convert(NVARCHAR(32), hashbytes('MD5', concat(delta, fullResult)), 2));
+-- This one should be used for SQL Server 2016 and later
+-- UPDATE m_audit_delta SET checksum = lower(convert(NVARCHAR(32), hashbytes('MD5', concat(delta, fullResult)), 2));
+
+-- The following is for SQL Server 2014 and earlier (but should work also for newer versions)
+UPDATE m_audit_delta SET checksum = lower(convert(NVARCHAR(32), master.sys.fn_repl_hash_binary(cast(concat(delta, fullResult) as varbinary(MAX))), 2));
 
 GO
 
