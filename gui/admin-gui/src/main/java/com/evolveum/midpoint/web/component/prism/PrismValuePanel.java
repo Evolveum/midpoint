@@ -82,6 +82,7 @@ import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.web.util.DateValidator;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -380,7 +381,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		return isAccessible(definition, getContainerStatus(propertyWrapper));
 	}
 
-	private Panel createInputComponent(String id, IModel<String> labelModel, Form form) {
+	private <T> Panel createInputComponent(String id, IModel<String> labelModel, Form form) {
 		ValueWrapper valueWrapper = getModelObject();
 		ContainerWrapper objectWrapper = null;
 		if (valueWrapper.getItem().getParent() != null) {
@@ -405,6 +406,9 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 			} else if (ActivationType.F_VALID_TO.equals(property.getElementName())) {
 				DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
 				validator.setDateTo((DateTimeField) inputPanel.getBaseFormComponent());
+			} else if (valueWrapper.getItem().getFormItemValidator() != null) {
+				ExpressionValidator<T> expressionValidator = new ExpressionValidator<>(inputPanel, getModelObject().getValue().getRealValue(), valueWrapper.getItem().getFormItemValidator(), getPageBase());
+				form.add(expressionValidator);
 			}
 
 			final List<FormComponent> formComponents = inputPanel.getFormComponents();

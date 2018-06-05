@@ -19,60 +19,66 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
+	<wicket:extend>
 
-    <div class="col-md-offset-2 col-md-8 col-lg-offset-2  col-lg-4">
-        <div class="panel panel-default">
-            <div class="box-body">
-            	<form wicket:id="mainForm">
-            	<div wicket:id="contentArea">
-            	<div class="col-md-offset-6">
-                        <div wicket:id="captcha"/>
+		<div class="col-md-offset-2 col-md-8 col-lg-offset-2  col-lg-4">
+			<div class="panel panel-default">
+				<div class="box-body">
+					<form wicket:id="mainForm">
+						<div wicket:id="contentArea"></div>
 
-                        <a class="btn btn-default" wicket:id="back"/>
-                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
-                    </div>
-                 </div>
-            	
-				</form>
-			    <wicket:fragment wicket:id="staticContent">
-			    
-                    <div wicket:id="wrapperContent">
-                     </div>
-                    
-			    </wicket:fragment>
-			    <wicket:fragment wicket:id="dynamicContent">
-			     
-			          <div wicket:id="dynamicForm">
-                        <div wicket:id="registrationForm"></div>
-                    </div>
 
-                    
-                    
-			    </wicket:fragment>
+					</form>
+					<wicket:fragment wicket:id="staticContent">
 
-            	<wicket:fragment wicket:id="messageContent">
-	                <div style="text-align: center">
-	                    <h2 wicket:id="registrationInfo"></h2>
-	                </div>
-	            </wicket:fragment>
-	            
-            </div>
-        </div>
-    </div>
+						<div wicket:id="wrapperContent"></div>
 
-    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
+						<div class="col-md-offset-6">
+							<div wicket:id="captcha" />
 
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
-</wicket:extend>
+							<a class="btn btn-default" wicket:id="back" /> <a
+								class="btn btn-primary" wicket:id="submitRegistration" />
+						</div>
+
+					</wicket:fragment>
+					<wicket:fragment wicket:id="dynamicContent">
+
+						<div wicket:id="dynamicForm">
+							<div wicket:id="registrationForm"></div>
+						</div>
+
+
+
+					</wicket:fragment>
+
+					<wicket:fragment wicket:id="messageContent">
+						<div style="text-align: center">
+							<h2 wicket:id="registrationInfo"></h2>
+						</div>
+
+						<div class="col-md-offset-6">
+							<div wicket:id="captcha" />
+
+							<a class="btn btn-default" wicket:id="back" /> <a
+								class="btn btn-primary" wicket:id="submitRegistration" />
+						</div>
+					</wicket:fragment>
+
+				</div>
+			</div>
+		</div>
+
+		<wicket:remove>This css is used to hide sidebar menu</wicket:remove>
+		<style type="text/css">
+.content-wrapper, .right-side, .main-footer {
+	margin-left: 0px;
+	-moz-transition: none;
+	-webkit-transition: none;
+	-o-transition: color 0 ease-in;
+	transition: none;
+}
+</style>
+	</wicket:extend>
 
 </body>
 </html>

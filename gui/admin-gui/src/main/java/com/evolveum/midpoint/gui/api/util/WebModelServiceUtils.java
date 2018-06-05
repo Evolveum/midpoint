@@ -36,6 +36,7 @@ import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -761,5 +762,12 @@ public class WebModelServiceUtils {
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot load certification configuration", t);
 			return null;
 		}
+	}
+	
+	public static String translateMessage(OperationResult result, ModelServiceLocator page) {
+		LocalizationService service = page.getLocalizationService();
+		Locale locale = page.getLocale();
+
+		return service.translate(result.getUserFriendlyMessage(), locale);
 	}
 }
