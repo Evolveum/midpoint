@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ public class AdminGuiTestConstants {
     public static final String USER_JACK_FULL_NAME = "Jack Sparrow";
     public static final String USER_JACK_GIVEN_NAME = "Jack";
     public static final String USER_JACK_FAMILY_NAME = "Sparrow";
+    public static final String USER_JACK_SHIP = "Black Pearl";
 
     public static final File USER_EMPTY_FILE = new File(COMMON_DIR, "user-empty.xml");
     public static final String USER_EMPTY_OID = "50053534-36dc-11e6-86f7-035182a6f678";

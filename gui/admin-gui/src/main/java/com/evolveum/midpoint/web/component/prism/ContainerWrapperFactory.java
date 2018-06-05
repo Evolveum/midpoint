@@ -416,7 +416,10 @@ public class ContainerWrapperFactory {
 		}
 		if (property == null) {
 			PrismProperty<T> newProperty = def.instantiate();
-			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
+			// We cannot just get path from newProperty.getPath(). The property is not added to the container, so it does not know its path.
+			// Definitions are reusable, they do not have paths either.
+			ItemPath propPath = containerValue.getPath().subPath(newProperty.getElementName());
+			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
 		}
 		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
 	}

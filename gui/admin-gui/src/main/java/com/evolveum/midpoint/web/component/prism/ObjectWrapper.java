@@ -412,19 +412,25 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 				continue;
 			}
 
+			// TODO: this is all wrong. Some container wrappers can produce more than one
+			// container. E.g. main wrapper may be produce the object itself, but also the
+			// extension container.
+			// So, maybe a better way would be to create empty object first.
+			// And then let each wrapper to "fill in" the object.
+			// e.g. containerWrapper.fillInAddModifications(delta);
+			// MID-4706
 			PrismContainer containerToAdd = containerWrapper.createContainerAddDelta();
 			if (containerWrapper.isMain()) {
 				object = (PrismObject) containerToAdd;
-				continue;
+			} else {
+				object.getValue().addReplaceExisting(containerToAdd);
 			}
 
-			object.getValue().addReplaceExisting(containerToAdd);
-
 		}
-
+		
 		// cleanup empty containers
 		cleanupEmptyContainers(object);
-
+		
 		ObjectDelta delta = ObjectDelta.createAddDelta(object);
 
 		// returning container to previous order

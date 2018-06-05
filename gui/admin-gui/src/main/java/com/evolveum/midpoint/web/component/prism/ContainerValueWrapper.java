@@ -399,39 +399,37 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 
 		PrismContainerValue<C> newValue = containerValue.clone();
-		try {
-			newValue.addAllReplaceExisting((Collection) getUpdatedContainerValueItems(containerValue.getPrismContext()));
-		} catch (TunnelException e) {
-			throw new SchemaException(e.getMessage(), e);
-		}
-
-		return newValue;
-	}
-
-	public Collection<Item> getUpdatedContainerValueItems(PrismContext prismContext) throws SchemaException {
-		Collection<Item> updatedItems = new ArrayList<>();
+		
 		for (ItemWrapper item : getItems()) {
-			try {
-				if (!item.hasChanged()) {
-					continue;
-				}
+			if (!item.hasChanged()) {
+				continue;
+			}
 
-				if (item instanceof ContainerWrapper) {
-					PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
-					updatedItems.add(containerToAdd);
+			if (item instanceof ContainerWrapper) {
+				
+				PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
+				newValue.addReplaceExisting(containerToAdd);
+				
+			} else {
+
+				PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
+				ItemPath path = propOrRef.getPath();
+				Item updatedItem = propOrRef.getUpdatedItem(containerValue.getPrismContext());
+				
+				if (path.size() == 2 && path.startsWithName(ObjectType.F_EXTENSION)) {
+					
+					// HACK HACK HACK: MID-4705, TODO: MID-4706
+					PrismContainer<Containerable> extensionContainer = newValue.findOrCreateContainer(ObjectType.F_EXTENSION);
+					extensionContainer.getValue().addReplaceExisting(updatedItem);
 					
 				} else {
-
-					PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
-					Item updatedItem = propOrRef.getUpdatedItem(prismContext);
-					updatedItems.add(updatedItem);
-
+				
+					newValue.addReplaceExisting(updatedItem);
 				}
-			} catch (SchemaException ex) {
-				throw new TunnelException("Cannot create add delta for container value: " + containerValue, ex);
+
 			}
 		}
-		return updatedItems;
+		return newValue;
 	}
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
@@ -711,6 +709,20 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return null;
 	}
+	
+	public ItemWrapper findPropertyWrapper(ItemPath itemPath) {
+		Validate.notNull(itemPath, "Item path must not be null.");
+		for (ItemWrapper wrapper : getItems()) {
+			if (wrapper instanceof ContainerWrapper) {
+				continue;
+			}
+			if (itemPath.equivalent(wrapper.getPath())) {
+				return (PropertyOrReferenceWrapper) wrapper;
+			}
+		}
+		return null;
+	}
+
 
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
 		return findContainerWrapper(new ItemPath(qname));
@@ -791,6 +803,5 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
 	}
-
 
 }
