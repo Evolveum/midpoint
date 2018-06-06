@@ -1,2 +1,0 @@
-ALTER TABLE m_audit_delta ALTER COLUMN delta VARBINARY(MAX);
-ALTER TABLE m_audit_delta  ALTER COLUMN fullResult VARBINARY(MAX);
