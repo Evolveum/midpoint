@@ -81,6 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
@@ -113,7 +114,8 @@ public abstract class AbstractWebserviceTest {
 
     public static final File COMMON_DIR = new File("src/test/resources/common");
     
-    public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
+    public static final String MIDPOINT_URL_PREFIX = "http://localhost:8080/midpoint/";
+    public static final String ENDPOINT = MIDPOINT_URL_PREFIX + "ws/model-3";
     public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
@@ -166,6 +168,9 @@ public abstract class AbstractWebserviceTest {
 	
 	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	
+	public static final File NODE_LOCALHOST_FILE = new File(COMMON_DIR, "node-localhost.xml");
+ 	public static final String NODE_LOCALHOST_OID = "9e2b5f9a-6993-11e8-93c1-1fcf99d5cd08";
 	
 	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
  	
@@ -384,13 +389,17 @@ public abstract class AbstractWebserviceTest {
     }
 	
 	protected <O extends ObjectType> String addObject(O object) throws FaultMessage {
+		return addObject(object, null);
+	}
+	
+	protected <O extends ObjectType> String addObject(O object, ModelExecuteOptionsType options) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setObjectType(getTypeQName(object.getClass()));
     	delta.setChangeType(ChangeTypeType.ADD);
     	delta.setObjectToAdd(object);
 		deltaList.getDelta().add(delta);
-		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, options);
 		assertSuccess(deltaOpList);
 		return deltaOpList.getDeltaOperation().get(0).getObjectDelta().getOid();
     }
@@ -429,6 +438,11 @@ public abstract class AbstractWebserviceTest {
 		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
 		assertEquals("Wrong user givenName", expGivenName, ModelClientUtil.getOrig(user.getGivenName()));
 		assertEquals("Wrong user familyName", expFamilyName, ModelClientUtil.getOrig(user.getFamilyName()));
+	}
+	
+	protected void assertTask(TaskType user, String expOid, String expName) {
+		assertEquals("Wrong user oid", expOid, user.getOid());
+		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
 	}
 
 	
