@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.init.StartupConfiguration;
-import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -116,7 +115,6 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     private static ConfigurableApplicationContext applicationContext = null;
     
     @Autowired StartupConfiguration startupConfiguration;
-    @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
 
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
@@ -232,7 +230,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     @Bean
     public ServletRegistrationBean reportPeerQueryInterceptor() {
         ServletRegistrationBean registration = new ServletRegistrationBean();
-        registration.setServlet(new ReportPeerQueryInterceptor(nodeAuthenticator));
+        registration.setServlet(new ReportPeerQueryInterceptor());
         registration.addUrlMappings("/report");
 
         return registration;
