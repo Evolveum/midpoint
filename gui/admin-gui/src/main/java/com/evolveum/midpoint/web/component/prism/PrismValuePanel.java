@@ -407,8 +407,9 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
 				validator.setDateTo((DateTimeField) inputPanel.getBaseFormComponent());
 			} else if (valueWrapper.getItem().getFormItemValidator() != null) {
-				ExpressionValidator<T> expressionValidator = new ExpressionValidator<>(inputPanel, getModelObject().getValue().getRealValue(), valueWrapper.getItem().getFormItemValidator(), getPageBase());
-				form.add(expressionValidator);
+				ExpressionValidator<T> expressionValidator = new ExpressionValidator<>(valueWrapper.getItem().getFormItemValidator(), getPageBase());
+				inputPanel.getBaseFormComponent().add(expressionValidator);
+//				form.add(expressionValidator);
 			}
 
 			final List<FormComponent> formComponents = inputPanel.getFormComponents();
