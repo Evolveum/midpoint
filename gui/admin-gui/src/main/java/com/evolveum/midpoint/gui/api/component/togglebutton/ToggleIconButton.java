@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.component.togglebutton;
 
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -25,7 +26,7 @@ import org.apache.wicket.model.Model;
  *
  * @author semancik
  */
-public abstract class ToggleIconButton<T> extends AjaxLink<T> {
+public abstract class ToggleIconButton<T> extends AjaxButton{
 	private static final long serialVersionUID = 1L;
 
 	private String cssClassOff;
@@ -43,12 +44,12 @@ public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 		initLayout();
 	}
 
-	public ToggleIconButton(String id, IModel<T> model) {
+	public ToggleIconButton(String id, IModel model) {
 		super(id, model);
 		initLayout();
 	}
 
-	public ToggleIconButton(String id, IModel<T> model, String cssClassOff, String cssClassOn) {
+	public ToggleIconButton(String id, IModel model, String cssClassOff, String cssClassOn) {
 		super(id, model);
 		this.cssClassOff = cssClassOff;
 		this.cssClassOn = cssClassOn;
@@ -57,18 +58,18 @@ public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 
 	private void initLayout() {
 		setEscapeModelStrings(false);
-		setBody(new Model<String>(){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				if (isOn()) {
-					return "<i class=\""+cssClassOn+"\"></i>";
-				} else {
-					return "<i class=\""+cssClassOff+"\"></i>";
-				}
-			}
-        });
+//		setBody(new Model<String>(){
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public String getObject() {
+//				if (isOn()) {
+//					return "<i class=\""+cssClassOn+"\"></i>";
+//				} else {
+//					return "<i class=\""+cssClassOff+"\"></i>";
+//				}
+//			}
+//        });
 	}
 
 	public abstract boolean isOn();

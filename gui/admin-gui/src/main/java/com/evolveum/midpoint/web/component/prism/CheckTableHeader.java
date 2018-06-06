@@ -37,6 +37,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -157,9 +158,14 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         	private static final long serialVersionUID = 1L;
 
         	@Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
         		onClickPerformed(target);
             }
+        	
+        	@Override
+    		protected void onError(AjaxRequestTarget target, Form<?> form) {
+    	target.add(getPageBase().getFeedbackPanel());
+    		}
 
         	@Override
 			public boolean isOn() {

@@ -68,6 +68,7 @@ import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -272,11 +273,15 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				GuiStyleConstants.CLASS_ICON_COLLAPSE) {
 			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+				@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				nameClickPerformed(target);
 			}
 
+			@Override
+    		protected void onError(AjaxRequestTarget target, Form<?> form) {
+    	target.add(getPageBase().getFeedbackPanel());
+    		}
 			@Override
 			public boolean isOn() {
 				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
