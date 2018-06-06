@@ -352,37 +352,8 @@ public class ContainerWrapperFactory {
         		return;
         	}
         	
-        	ContainerWrapper<C> subContainerWrapper;
-//        	if (((PrismContainerDefinition) itemDef).getCompileTimeClass() != null
-//					&& ((PrismContainerDefinition) itemDef).getCompileTimeClass().equals(ResourceObjectAssociationType.class)){
-//        		if (!ConstructionType.class.equals(cWrapper.getDefinition().getCompileTimeClass())){
-//        			return;
-//				}
-//				ConstructionType construction = (ConstructionType)cWrapper.getContainerValue().getValue();
-//				Task task = modelServiceLocator.createSimpleTask("Load resource ref");
-//				PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(construction.getResourceRef(),
-//						modelServiceLocator, task, result);
-//
-//				result.computeStatusIfUnknown();
-//				if (!result.isAcceptable()) {
-//					LOGGER.error("Cannot find resource referenced from shadow. {}", result.getMessage());
-//					result.recordPartialError("Could not find resource referenced from shadow.");
-//					return;
-//				}
-//				try {
-//					PrismContainer<ResourceObjectAssociationType> assocContainer = cWrapper.getContainer().getItem()
-//							.findOrCreateContainer(ConstructionType.F_ASSOCIATION);
-//					subContainerWrapper = createAssociationWrapper(resource, construction.getKind(), construction.getIntent() , assocContainer,
-//							cWrapper.getObjectStatus(), assocContainer == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
-//							new ItemPath(ConstructionType.F_ASSOCIATION));
-//				} catch (SchemaException ex){
-//					LOGGER.error("Cannot create association container wrapper for construction.", ex);
-//					return;
-//				}
-//
-//			} else {
-        		subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty, task);
-//			}
+        	ContainerWrapper<C> subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper, onlyEmpty, task);
+
         	
         	if (subContainerWrapper == null) {
         		return;
