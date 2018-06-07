@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,14 +49,16 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
 
     private static final String NAMESPACE = "http://concurrency";
 
+    private static final int WORKER_COUNT = 4;
+
     @Test
     public void testSerializationExceptions() throws Exception {
         OperationResult result = new OperationResult("testSerializationExceptions");
 
-        Worker<UserType>[] workers = new Worker[4];
+        Worker<UserType>[] workers = new Worker[WORKER_COUNT];
         for (int i = 0; i < workers.length; i++) {
             UserType userType = new UserType();
-            userType.setName(new PolyStringType("worker" + i));
+            userType.setName(new PolyStringType("" + System.currentTimeMillis() + " worker" + i));
             prismContext.adopt(userType);
 
             PrismObject user = userType.asPrismObject();
@@ -109,7 +110,7 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
 
         @Override
         public void run() {
-            LOGGER.info("Starting {} for oid {} index {}", this, oid, index);
+            LOGGER.info("Starting for oid {} index {}", oid, index);
 
             OperationResult result = new OperationResult("Test: " + attribute + index);
             try {
@@ -130,7 +131,7 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
                 result.computeStatus();
             }
 
-            LOGGER.info("Finished {} for oid {} index {}", this, oid, index);
+            LOGGER.info("Finished for oid {} index {}", oid, index);
         }
     }
 }
