@@ -424,9 +424,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 					delta.addModification(pDelta);
 				}
 			} else if (itemWrapper instanceof ReferenceWrapper) {
-				if (containerPath.equals(ItemPath.EMPTY_PATH) && itemWrapper.getPath().getSegments().size() > 1){
-					containerPath = itemWrapper.getPath().allExceptLast();
-				}
 				ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
 				if (!pDelta.isEmpty()) {
 					delta.addModification(pDelta);
@@ -448,7 +445,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
-		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
+		ReferenceDelta pDelta = new ReferenceDelta(referenceWrapper.getPath(), propertyDef,
 				propertyDef.getPrismContext());
 		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
 		return pDelta;
