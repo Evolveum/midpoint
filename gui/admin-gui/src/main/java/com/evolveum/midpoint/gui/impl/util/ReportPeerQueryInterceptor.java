@@ -49,8 +49,12 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ReportPeerQueryInterceptor.class);
 
-	@Autowired
 	private NodeAuthenticationEvaluator nodeAuthenticator;
+	
+	public ReportPeerQueryInterceptor(NodeAuthenticationEvaluator nodeAuthenticator) {
+		super();
+		this.nodeAuthenticator = nodeAuthenticator;
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
