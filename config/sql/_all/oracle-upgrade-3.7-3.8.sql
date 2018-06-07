@@ -515,7 +515,7 @@ CREATE TABLE m_object_ext_string (
 ) INITRANS 30;
 CREATE TABLE m_object_subtype (
   object_oid VARCHAR2(36 CHAR) NOT NULL,
-  subType    VARCHAR2(255 CHAR)
+  subtype    VARCHAR2(255 CHAR)
 ) INITRANS 30;
 CREATE TABLE m_object_text_info (
   owner_oid VARCHAR2(36 CHAR)  NOT NULL,
@@ -907,8 +907,15 @@ CREATE INDEX iAExtensionString
   ON m_assignment_ext_string (stringValue) INITRANS 30;
 CREATE INDEX iAssignmentReferenceTargetOid
   ON m_assignment_reference (targetOid) INITRANS 30;
+CREATE INDEX iAuditDeltaRecordId
+  ON m_audit_delta (record_id) INITRANS 30;
+CREATE INDEX iAuditItemRecordId
+  ON m_audit_item (record_id) INITRANS 30;
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid) INITRANS 30;
+
+ALTER TABLE m_ext_item
+  ADD CONSTRAINT iExtItemDefinition UNIQUE (itemName, itemType, kind);
 CREATE INDEX iObjectNameOrig
   ON m_object (name_orig) INITRANS 30;
 CREATE INDEX iObjectNameNorm
