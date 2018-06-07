@@ -49,6 +49,11 @@
             <level>WARN</level>
             <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
         </classLogger>
+        <!-- Diesabled because of MID-4636 -->
+        <classLogger>
+            <level>OFF</level>
+            <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
+        </classLogger>
         <classLogger>
             <!-- disabled because of MID-1612, jasper library needs to be fixed -->
             <level>OFF</level>
