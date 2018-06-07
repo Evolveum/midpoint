@@ -691,7 +691,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.5.1</version>
+                <version>1.6</version>
                 <exclusions>
 					<exclusion> <!-- Version in dependency of org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j conflicts with xalan. Can be removed when connector version is bumped beyond 1.4.2.17 -->
                         <groupId>xml-apis</groupId>

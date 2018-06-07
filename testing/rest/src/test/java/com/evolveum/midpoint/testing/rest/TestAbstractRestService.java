@@ -33,9 +33,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -45,12 +48,16 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -68,7 +75,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
  	public static final String USER_DARTHADDER_FILE = "user-darthadder";
  	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
  	public static final String USER_DARTHADDER_USERNAME = "darthadder";
- 	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
+ 	public static final String USER_DARTHADDER_PASSWORD = "Iamy0urUncle";
 
  	// Authorizations, but no password
  	public static final String USER_NOPASSWORD_FILE = "user-nopassword";
@@ -91,6 +98,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD = "policy-validate-implicit-password";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT = "policy-validate-password-history-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI = "policy-validate-implicit-multi";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT = "policy-validate-implicit-multi-conflict";
 
@@ -958,16 +966,41 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 	}
 
 	private OperationResult traceResponse(Response response) throws SchemaException {
+		return traceResponse(response, false);
+	}
+	
+	private OperationResult traceResponse(Response response, boolean assertMessages) throws SchemaException {
 		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
+			LOGGER.info("coverting result");
 			OperationResultType result = response.readEntity(OperationResultType.class);
 			LOGGER.info("####RESULT");
 			OperationResult opResult = OperationResult.createOperationResult(result);
 			LOGGER.info(opResult.debugDump());
+			if (assertMessages) {
+				LocalizableMessageType localizableMessage = result.getUserFriendlyMessage();
+				assertLocalizableMessage(localizableMessage);
+			}
 			return opResult;
 		}
 
 		return null;
 	}
+	
+	private void assertLocalizableMessage(LocalizableMessageType localizableMessage) {
+		if (localizableMessage instanceof LocalizableMessageListType) {
+			List<LocalizableMessageType> localizableMessages = ((LocalizableMessageListType) localizableMessage).getMessage();
+			for (LocalizableMessageType subLocalizableMessage : localizableMessages) {
+				assertLocalizableMessage(subLocalizableMessage);
+			}
+		} else if (localizableMessage instanceof SingleLocalizableMessageType) {
+			SingleLocalizableMessageType singelLocalizableMessage = (SingleLocalizableMessageType) localizableMessage;
+			assertNotNull("Expected localized message for single localizable message, but no one present", singelLocalizableMessage.getFallbackMessage());
+			assertNotNull("Expected key in single localizable message, but no one present", singelLocalizableMessage.getKey());
+		}
+		
+		LOGGER.info("localizable message: " + localizableMessage);
+	}
+	
 
 	@Test
 	public void test510validateValueExplicit() throws Exception {
@@ -1009,7 +1042,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
-		traceResponse(response);
+		traceResponse(response, true);
 
 		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
@@ -1091,9 +1124,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
+	
 	@Test
-	public void test515validateValueImplicitPassword() throws Exception {
-		final String TEST_NAME = "test515validateValueImplicitPassword";
+	public void test515validatePasswordHistoryConflict() throws Exception {
+		final String TEST_NAME = "test515validatePasswordHistoryConflict";
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -1102,15 +1136,15 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		getDummyAuditService().clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
+		traceResponse(response, true);
 
-		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-
-
+		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
+		
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
@@ -1166,6 +1200,34 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
+	@Test
+	public void test518validateValueImplicitPassword() throws Exception {
+		final String TEST_NAME = "test518validateValueImplicitPassword";
+		displayTestTitle(this, TEST_NAME);
+
+		OperationResult result = new OperationResult(TEST_NAME);
+		addObject(SECURITY_POLICY_NO_HISTORY, RepoAddOptions.createOverwrite(), result);
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
 	@Test
 	public void test520GeneratePasswordsUsingScripting() throws Exception {
 		final String TEST_NAME = "test520GeneratePasswordsUsingScripting";
