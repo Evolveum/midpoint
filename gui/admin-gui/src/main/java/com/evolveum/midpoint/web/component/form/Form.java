@@ -57,7 +57,7 @@ public class Form<T> extends org.apache.wicket.markup.html.form.Form<T> {
         SecurityUtils.appendHiddenInputForCsrf(resp);
 
         if (addFakeInputFields) {
-            resp.write("<input style=\"display:none\">\n<input type=\"password\" style=\"display:none\">");
+            resp.write("<input style=\"display:none\">");
         }
     }
 }
