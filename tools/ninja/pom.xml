@@ -23,12 +23,12 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>tools</artifactId>
-        <version>3.7.2-SNAPSHOT</version>
+        <version>3.7.2</version>
     </parent>
 
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>ninja</artifactId>
-    <version>3.7.2-SNAPSHOT</version>
+    <version>3.7.2</version>
     <packaging>jar</packaging>
 
     <name>ninja</name>

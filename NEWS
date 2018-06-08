@@ -1,19 +1,16 @@
-midPoint 3.7.1 "Darwin" Update 1
+midPoint 3.7.2 "Darwin" Update 2
 ----------------------------------
 
-Release 3.7.1 is a twenty fourth midPoint release. It is the fist maintenance
-update for 3.7.x version family code-named Darwin. The 3.7.1 release brings
+Release 3.7.2 is a twenty fifth midPoint release. It is the fist maintenance
+update for 3.7.x version family code-named Darwin. The 3.7.2 release brings
 stability improvements and several minor features.
 
-Release date: 8th March 2018
+Release date: 8th June 2018
 
 Changes with respect to version 3.7:
-    Provisioning Propagation
-    Password Policy: prohibited projection values
-    Negative item enumeration in authorizations (exceptItem)
-    Ad-hoc provisioning script execution
-    Improved handling of function libraries
-    Improved SMS gateway support (HTTP POST method)
+    Support for CredSSP version 5 and 6
+    Various bugfixes
+    Ninja tool ready for upgrade to midPoint 3.8
     Miscellaneous improvements
 
 Java 7 environment is no longer supported.
