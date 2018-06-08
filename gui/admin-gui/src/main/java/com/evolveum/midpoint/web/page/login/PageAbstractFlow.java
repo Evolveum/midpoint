@@ -66,6 +66,8 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
 	private static final String PARAM_USER_OID = "user";
 	
+	protected PageParameters pageParameters;
+	
 	public abstract void initalizeModel();
 	public abstract IModel<UserType> getUserModel();
 	public abstract boolean isCustomFormDefined();
@@ -75,11 +77,16 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 	protected abstract boolean isBackButtonVisible();
 	protected abstract ObjectReferenceType getCustomFormRef();
 	
-	public PageAbstractFlow() {
+	public PageAbstractFlow(PageParameters pageParameters) {
+		this.pageParameters = pageParameters;
 		initalizeModel();
 		initLayout();
 	}
-
+//	
+//	public PageAbstractFlow() {
+//		this(null);
+//	}
+//	
 	private void initLayout() {
 
 		

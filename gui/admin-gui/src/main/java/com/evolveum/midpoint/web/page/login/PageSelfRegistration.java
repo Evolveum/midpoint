@@ -95,22 +95,17 @@ public class PageSelfRegistration extends PageAbstractFlow {
 	private static final String ID_TOOLTIP = "tooltip";
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_REGISTRATION_SUBMITED = "registrationInfo";
-	private static final String ID_CAPTCHA = "captcha";
 	
 	private static final String ID_STATIC_FORM = "staticForm";
-	private static final String ID_DYNAMIC_FORM = "dynamicForm";
-	private static final String ID_DYNAMIC_FORM_PANEL = "registrationForm";
+	
 	
 	private static final String PARAM_USER_OID = "user";
 
 	
 	private IModel<UserType> userModel;
 	
-	private PageParameters pageParameters;
-	
 	public PageSelfRegistration(PageParameters pageParameters) {
-		this.pageParameters = pageParameters;
-		initalizeModel();
+		super(pageParameters);
 	}
 	
 	private String getOidFromParams(PageParameters pageParameters) {
@@ -304,30 +299,13 @@ public class PageSelfRegistration extends PageAbstractFlow {
 	
 	@Override
 	protected WebMarkupContainer initDynamicLayout() {
-//		final Form<?> mainForm = new Form<>(ID_MAIN_FORM);
-		WebMarkupContainer dynamicRegistrationForm = createMarkupContainer(ID_DYNAMIC_FORM, getMainForm());
-//				new VisibleEnableBehaviour() {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public boolean isVisible() {
-//						return isCustomFormDefined();
-//					}
-//				}, mainForm);
-//
-		
 		DynamicFormPanel<UserType> dynamicForm = runPrivileged(
 				() -> {
 					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 					return createDynamicPanel(getMainForm(), task);
 				});
 
-		if (dynamicForm != null) {
-			dynamicRegistrationForm.add(dynamicForm);
-		}
-		
-		return dynamicRegistrationForm;
+		return dynamicForm;
 	}
 
 	private WebMarkupContainer createMarkupContainer(String id, Form<?> mainForm) {
@@ -432,7 +410,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		} else {
 			LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
 			ObjectDelta<UserType> delta = null;
-			if (getSelfRegistrationConfiguration().getFormRef() == null) {
+			if (!isCustomFormDefined()) {
 				delta = ObjectDelta.createEmptyModifyDelta(UserType.class,
 						getOidFromParams(getPageParameters()), getPrismContext());
 				if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
@@ -460,8 +438,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		UserType userType = getUserModel().getObject();
 		UserType userToSave = userType.clone();
 
-		if (selfRegistrationConfiguration.getFormRef() == null) {
-			userType.clone();
+		if (!isCustomFormDefined()) {
+			applyPassword(userToSave);
 			if (selfRegistrationConfiguration.getRequiredLifecycleState() != null) {
 				String userLifecycle = userToSave.getLifecycleState();
 				if (!selfRegistrationConfiguration.getRequiredLifecycleState().equals(userLifecycle)) {
@@ -477,7 +455,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 									.getString());
 					throw new RestartResponseException(this);
 				}
-
+				
 			}
 		} else {
 
@@ -490,7 +468,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		}
 
 		// CredentialsType credentials =
-		createCredentials(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task, result);
+		applyNonce(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task, result);
 		// userToSave.setCredentials(credentials);
 		if (selfRegistrationConfiguration.getInitialLifecycleState() != null) {
 			LOGGER.trace("Setting initial lifecycle state of registered user to {}",
@@ -508,23 +486,23 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
 	}
 
-	private void createCredentials(UserType user, NonceCredentialsPolicyType noncePolicy, Task task,
-			OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		NonceType nonceType = createNonce(noncePolicy, task, result);
-
-		// PasswordType password = createPassword();
-
-		CredentialsType credentials = user.getCredentials();
-		if (user.getCredentials() == null) {
-			credentials = new CredentialsType();
-			user.setCredentials(credentials);
-		}
-
-		credentials.setNonce(nonceType);
-		// credentials.setPassword(password);
-		// return credentials;
-
-	}
+//	private void createCredentials(UserType user, NonceCredentialsPolicyType noncePolicy, Task task,
+//			OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+//		NonceType nonceType = createNonce(noncePolicy, task, result);
+//
+////		 PasswordType password = createPassword();
+//
+//		CredentialsType credentials = user.getCredentials();
+//		if (user.getCredentials() == null) {
+//			credentials = new CredentialsType();
+//			user.setCredentials(credentials);
+//		}
+//
+//		credentials.setNonce(nonceType);
+////		 credentials.setPassword(password);
+//		// return credentials;
+//
+//	}
 
 	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ProtectedStringType nonceCredentials = new ProtectedStringType();
@@ -532,9 +510,29 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
 		NonceType nonceType = new NonceType();
 		nonceType.setValue(nonceCredentials);
+		
+		
 		return nonceType;
 	}
 
+	private void applyPassword(UserType user) {
+		getCredentials(user).setPassword(createPassword());
+	}
+	
+	private void applyNonce(UserType user, NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		getCredentials(user).setNonce(createNonce(noncePolicy, task, result));
+	}
+	
+	private CredentialsType getCredentials(UserType user) {
+		CredentialsType credentials = user.getCredentials();
+		if (user.getCredentials() == null) {
+			credentials = new CredentialsType();
+			user.setCredentials(credentials);
+		}
+		
+		return credentials;
+	}
+	
 	private PasswordType createPassword() {
 		PasswordType password = new PasswordType();
 		ProtectedStringType protectedString = new ProtectedStringType();
