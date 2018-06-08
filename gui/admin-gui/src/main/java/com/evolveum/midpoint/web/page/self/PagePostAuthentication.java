@@ -23,6 +23,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -75,6 +76,11 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
 	private IModel<UserType> userModel;
 	private ObjectWrapper<UserType> objectWrapper;
+	
+	public PagePostAuthentication(PageParameters pageParameters) {
+		super(pageParameters);
+		// TODO Auto-generated constructor stub
+	}
 	
 	@Override
 	public void initalizeModel() {

@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.util.UrlUtils;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private String defaultTargetUrl;
-    private static final String OPERATION_LOAD_FLOW_POLICY = MidPointApplication.class.getName() + ".loadFlowPolicy";
     
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
@@ -54,31 +54,14 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
     		throws ServletException, IOException {
     	
-    	
-    	MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
-    	if (midpointPrincipal != null) {
-    		UserType user = midpointPrincipal.getUser();
-    		Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
-    		OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
-    		RegistrationsPolicyType registrationPolicyType = null;
-			try {
-				registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
-				SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
-	    		String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
-	    		if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
-	    			 String requestUrl = request.getRequestURL().toString();
-	    			 if (requestUrl.contains("spring_security_login")) {
-	    				 String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
-	    				 getRedirectStrategy().sendRedirect(request, response, target);
-	    				 return;
-	    			 }
-	    			 
-	    		}
-			} catch (ObjectNotFoundException | SchemaException e) {
-//				LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
-			}
+    	if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
+    		String requestUrl = request.getRequestURL().toString();
+			 if (requestUrl.contains("spring_security_login")) {
+				 String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
+				 getRedirectStrategy().sendRedirect(request, response, target);
+				 return;
+			 }
     	}
-    	
     	super.onAuthenticationSuccess(request, response, authentication);
     }
 

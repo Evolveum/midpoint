@@ -207,6 +207,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<? extends PageBase> getHomePage() {
+    	if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+    		return PagePostAuthentication.class;
+    	}
+    	
     	if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             return PageDashboard.class;

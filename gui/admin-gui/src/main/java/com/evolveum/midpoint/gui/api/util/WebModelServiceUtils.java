@@ -770,4 +770,27 @@ public class WebModelServiceUtils {
 
 		return service.translate(result.getUserFriendlyMessage(), locale);
 	}
+	
+	public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
+		MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
+    	if (midpointPrincipal != null) {
+    		UserType user = midpointPrincipal.getUser();
+    		String OPERATION_LOAD_FLOW_POLICY = WebModelServiceUtils.class.getName() + ".loadFlowPolicy";
+    		Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
+    		OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
+    		RegistrationsPolicyType registrationPolicyType = null;
+			try {
+				registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
+				SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
+	    		String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
+	    		if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
+	    			return true; 
+	    			 
+	    		}
+			} catch (ObjectNotFoundException | SchemaException e) {
+				LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
+			}
+    	}
+    	return false;
+	}
 }
