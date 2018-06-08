@@ -137,11 +137,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	private boolean canAddDefault() {
-		return getItemDefinition().canAdd() && getItemDefinition().isEmphasized();
+		return getItemDefinition().canAdd() && (getItemDefinition().isEmphasized() || getItemDefinition().getMinOccurs() == 1);
 	}
 	
 	private boolean canReadOrModifyAndNonEmpty() {
-		return getItemDefinition().canRead() && (!getItem().isEmpty() || getItemDefinition().isEmphasized()); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
+		return getItemDefinition().canRead() && (!getItem().isEmpty() || getItemDefinition().isEmphasized() || getItemDefinition().getMinOccurs() == 1); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
 	}
 	
 	private boolean canReadOrModifyAndShowEmpty() {

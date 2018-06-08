@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Jack's account on a resource with identified by resourceRef.  -->
+
+<form xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+   <name>Post authentication form</name>
+   <formDefinition>
+      <display>
+         <label>Please fill in required fields</label>
+      </display>
+      <formItems list="true">
+         <formFieldGroup>
+            <name>Additional information</name>
+            <formItems list="true">
+               <formField>
+                  <binding>
+                  	<c:path>nickName</c:path>
+                  </binding>
+                  <display>
+                     <label>Nickname</label>
+                     <help>Your nickname if you have one</help>
+                     <minOccurs>0</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>c:emailAddress</c:path>
+                  </binding>
+                  <display>
+                     <label>Personal Email</label>
+                     <help>Is used to finish registration process</help>
+                     <minOccurs>0</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>c:telephoneNumber</c:path>
+                  </binding>
+                  <display>
+                     <label>Personal phone number</label>
+                     <minOccurs>0</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                   <c:path>c:preferredLanguage</c:path>
+                  </binding>
+                  <display>
+                     <help>Which language do you preffer?</help>
+                     <minOccurs>0</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                   <c:path>jpegPhoto</c:path>
+                  </binding>
+                  <display>
+                     <help>Is yoused as your profile photo</help>
+                     <minOccurs>0</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>c:credentials/password</c:path>
+                  </binding>
+                  <display>
+                     <label> </label>
+                     <help>minimal length 5, use of minimal unique characters 3,...</help>
+                     <minOccurs>1</minOccurs>
+                  </display>
+               </formField>
+            </formItems>
+         </formFieldGroup>
+      </formItems>
+   </formDefinition>
+</form>
