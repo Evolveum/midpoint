@@ -430,7 +430,7 @@ public class SchemaToDomProcessor {
 			} else if (def instanceof PrismReferenceDefinition) {
 				addReferenceDefinition((PrismReferenceDefinition) def, sequence);
 			} else {
-				throw new IllegalArgumentException("Uknown definition "+def+"("+def.getClass().getName()+") in complex type definition "+def);
+				throw new IllegalArgumentException("Unknown definition "+def+"("+def.getClass().getName()+") in complex type definition "+def);
 			}
 		}
 

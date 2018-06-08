@@ -97,6 +97,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.fasterxml.jackson.databind.util.RawValue;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -2343,5 +2345,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
 		return (Collection)MiscUtil.createCollection(deltas);
+	}
+
+	public static String getAttributeValue(ShadowType repoShadow, QName name) {
+		return IntegrationTestTools.getAttributeValue(repoShadow, name);
+	}
+
+	/**
+	 * Convenience method for shadow values that are read directly from repo (post-3.8).
+	 * This may ruin the "rawness" of the value. But it is OK for test asserts.
+	 */
+	protected <T> T getAttributeValue(PrismObject<? extends ShadowType> shadow, QName attrName, Class<T> expectedClass) throws SchemaException {
+		Object value = ShadowUtil.getAttributeValue(shadow, attrName);
+		if (value == null) {
+			return (T) value;
+		}
+		if (expectedClass.isAssignableFrom(value.getClass())) {
+			return (T)value;
+		}
+		if (value instanceof RawType) {
+			T parsedRealValue = ((RawType)value).getParsedRealValue(expectedClass);
+			return parsedRealValue;
+		}
+		fail("Expected that attribute "+attrName+" is "+expectedClass+", but it was "+value.getClass()+": "+value);
+		return null; // not reached
 	}
 }

@@ -74,9 +74,15 @@ public abstract class TestBase {
         LOG.info("Finished test {}.{}", method.getDeclaringClass().getName(), method.getName());
     }
 
-    protected void importObject(File source) {
+    protected void importObject(File source,Boolean overrideExistingObject) {
 
         ImportObjectPage importPage = basicPage.importObject();
+
+        if(overrideExistingObject){
+            importPage
+                    .checkOverwriteExistingObject();
+        }
+
         Assert.assertTrue(
                 importPage
                         .getObjectsFromFile()
@@ -85,4 +91,9 @@ public abstract class TestBase {
                         .feedback()
                         .isSuccess());
     }
+
+    protected void importObject(File source) {
+        importObject(source,false);
+    }
+
 }

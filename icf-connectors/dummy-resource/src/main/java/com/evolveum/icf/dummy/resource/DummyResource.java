@@ -910,6 +910,8 @@ public class DummyResource implements DebugDumpable {
 			throw new IllegalStateException("Generic error (simulated error)");
 		} else if (breakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else if (breakMode == BreakMode.ASSERTION_ERROR) {
+			throw new AssertionError("Assertion error");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
 			throw new RuntimeException("Unknown "+operation+" break mode "+getBreakMode);

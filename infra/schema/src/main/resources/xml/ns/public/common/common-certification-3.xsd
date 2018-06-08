@@ -63,7 +63,7 @@
                     <xsd:element name="scopeDefinition" type="tns:AccessCertificationScopeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies the standard scope of certifications of this type. (In the future it can be overriden
+                                Specifies the standard scope of certifications of this type. (In the future it can be overridden
                                 in specific certification campaign.)
                             </xsd:documentation>
                         </xsd:annotation>

@@ -216,7 +216,11 @@ public class BaseHelper {
 		} else {
 			CONTENTION_LOGGER.trace(message, objects);
 		}
-		LOGGER.debug(message, objects);
+		if (attempt >= SqlRepositoryServiceImpl.MAIN_LOG_WARN_THRESHOLD) {
+			LOGGER.warn(message, objects);
+		} else {
+			LOGGER.debug(message, objects);
+		}
 		if (waitTime > 0) {
 			try {
 				Thread.sleep(waitTime);

@@ -105,17 +105,11 @@ public class OrgClosureManager {
      * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
-                                                        Collection<? extends ItemDelta> modifications, Session session,
-                                                        String oid, Class<T> type, Operation operation, Context closureContext) {
-
-        if (!isEnabled()) {
+		    Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
+		    Context closureContext) {
+        if (!isEnabled() || !OrgType.class.isAssignableFrom(type)) {
             return;
         }
-
-        if (!OrgType.class.isAssignableFrom(type)) {
-            return;
-        }
-
         session.flush();
         session.clear();
 
@@ -902,13 +896,15 @@ public class OrgClosureManager {
         } else if (isOracle()) {
             NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
-        } else if (isPostgreSQL()) {
-            // currently not used
-            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
-            q.executeUpdate();
+//        } else if (isPostgreSQL()) {
+//            // currently not used
+//            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+//            q.executeUpdate();
         } else if (isSQLServer()) {
             NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
+        } else {
+        	throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
         }
         LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
 

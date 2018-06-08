@@ -25,12 +25,10 @@ public class OrganizationStructureTests extends TestBase {
     private static final File ORG_ACCOUNT_INDUCEMENT_FILE = new File("./src/test/resources/org-account-inducement.xml");
     private static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("../../samples/org/org-monkey-island-simple.xml");
 
-    private static final File USER_TEST_RAPHAEL_FILE = new File("./src/test/resources/user-raphael.xml");
-
-    private static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
+    protected static final File USER_TEST_RAPHAEL_FILE = new File("./src/test/resources/user-raphael.xml");
 
     private static final String TEST_USER_GUYBRUSH_NAME = "guybrush";
-    private static final String TEST_USER_RAPHAEL_NAME = "raphael";
+    protected static final String TEST_USER_RAPHAEL_NAME = "raphael";
 
     private static final String NAME_ORG_UNIT_ASSIGN= "P0001";
     private static final String NAME_ORG_UNIT_UNASSIGN= "Save Elaine";
@@ -158,7 +156,7 @@ public class OrganizationStructureTests extends TestBase {
                 .clickByName("CSV (target with groups)")
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue("File path",CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue("File path",AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
                     .and()
                 .and()
                 .clickSaveAndTestConnection()

@@ -83,6 +83,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
     
     public static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+    public static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
     public static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
     public static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
     public static final QName PIRACY_SECRET = new QName(NS_PIRACY, "secret");

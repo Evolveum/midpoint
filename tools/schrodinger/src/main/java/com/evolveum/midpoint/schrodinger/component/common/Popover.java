@@ -18,7 +18,7 @@ public class Popover<T> extends Component<T> {
     }
 
     public Popover<T> inputValue(String input) {
-        getParentElement().$(By.cssSelector("input.form-control.input-sm")).setValue(input);
+        getParentElement().$(Schrodinger.byDataId("textInput")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).setValue(input);
 
         return this;
     }

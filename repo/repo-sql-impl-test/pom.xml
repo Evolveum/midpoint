@@ -193,7 +193,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <suiteXmlFiles>
-                                <suiteXmlFile>testng.xml</suiteXmlFile>
+                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
                                 <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>
                             </suiteXmlFiles>
                         </configuration>

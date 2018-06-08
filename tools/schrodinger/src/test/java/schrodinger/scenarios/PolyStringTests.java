@@ -19,6 +19,7 @@ public class PolyStringTests extends TestBase {
     private static final String TEST_USER_JOZKO_FULL_NAME = "Jožko Jörg Nguyễn Trißtan Guðmund Mrkvička";
     private static final String TEST_USER_JOZKO_ADDITIONAL_NAME = "Jörg Nguyễn Trißtan Guðmund ";
 
+    private static final String CREATE_USER_WITH_DIACRITIC_DEPENDENCY = "createUserWithDiacritic";
     @Test
     public void createUserWithDiacritic(){
         UserPage user = basicPage.newUser();
@@ -40,7 +41,7 @@ public class PolyStringTests extends TestBase {
 
     }
 
-    @Test
+    @Test (dependsOnMethods = {CREATE_USER_WITH_DIACRITIC_DEPENDENCY})
     public void searchForUserWithDiacritic(){
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -53,7 +54,9 @@ public class PolyStringTests extends TestBase {
                             .updateSearch()
                        .and()
                        .currentTableContains(TEST_USER_JOZKO_NAME)
-       );
+        );
+
+        Assert.assertTrue(
                usersPage
                        .table()
                             .search()
@@ -61,8 +64,8 @@ public class PolyStringTests extends TestBase {
                                 .inputValue(TEST_USER_JOZKO_NAME_NO_DIAC)
                             .updateSearch()
                        .and()
-                       .currentTableContains(TEST_USER_JOZKO_NAME_NO_DIAC);
-
+                       .currentTableContains(TEST_USER_JOZKO_NAME)
+        );
     }
 
 }

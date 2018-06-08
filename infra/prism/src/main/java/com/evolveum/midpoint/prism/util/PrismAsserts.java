@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,6 +162,20 @@ public class PrismAsserts {
 		fail("Oid "+oid+" not found in reference "+ref);
 	}
 
+	public static void assertItems(PrismContainer<?> object, int expectedNumberOfItems) {
+		List<PrismContainerValue> values = (List)object.getValues();
+		if (expectedNumberOfItems == 0) {
+			if (values.isEmpty()) {
+				return;
+			}
+		}
+		if (values.size() > 1) {
+			fail("More than one value in "+object);
+		}
+		PrismContainerValue cval = values.get(0);
+		assertEquals("Wrong number of items in "+object, expectedNumberOfItems, cval.getItems().size());
+	}
+	
 	public static void assertNoItem(PrismContainer<?> object, QName itemName) {
 		assertNoItem(object, new ItemPath(itemName));
 	}

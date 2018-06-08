@@ -48,8 +48,10 @@ fi
 
 #cd "$SCRIPT_PATH../lib"
 
-if [ ! -f lib/ninja.jar ] ; then
-	echo "ERROR: ninja.jar is not in /lib directory"
+NINJA_JAR=ninja-3.7.2-SNAPSHOT.jar
+
+if [ ! -f lib/$NINJA_JAR ] ; then
+	echo "ERROR: $NINJA_JAR is not in /lib directory"
 	exit 1
 fi 
 
@@ -77,6 +79,6 @@ if [ ! -z "$JDBC_DRIVER" ] ; then
    JDBC_DRIVER="-Dloader.path=$JDBC_DRIVER"
 fi
 
-exec "$_RUNJAVA" $JDBC_DRIVER -jar $SCRIPT_PATH../lib/ninja.jar -m $MIDPOINT_HOME $@
+exec "$_RUNJAVA" $JDBC_DRIVER -jar $SCRIPT_PATH../lib/$NINJA_JAR -m $MIDPOINT_HOME $@
 
 

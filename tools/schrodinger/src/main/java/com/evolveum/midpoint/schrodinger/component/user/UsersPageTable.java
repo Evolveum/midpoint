@@ -31,9 +31,9 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTablePage<T> extends TableWithPageRedirect<T> {
+public class UsersPageTable<T> extends TableWithPageRedirect<T> {
 
-    public UsersTablePage(T parent, SelenideElement parentElement) {
+    public UsersPageTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
@@ -52,14 +52,14 @@ public class UsersTablePage<T> extends TableWithPageRedirect<T> {
     }
 
     @Override
-    public Search<UsersTablePage<T>> search() {
+    public Search<UsersPageTable<T>> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
         return new Search<>(this, searchElement);
     }
 
 
-    public ConfirmationModal<UsersTablePage<T>> clickEnable() {
+    public ConfirmationModal<UsersPageTable<T>> clickEnable() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("i", "class", "fa fa-user fa-fw", "data-s-id", "topToolbars"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
@@ -72,7 +72,7 @@ public class UsersTablePage<T> extends TableWithPageRedirect<T> {
 
 
     @Override
-    public UsersTablePage<T> selectAll() {
+    public UsersPageTable<T> selectAll() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
@@ -80,7 +80,7 @@ public class UsersTablePage<T> extends TableWithPageRedirect<T> {
         return this;
     }
 
-    public UsersTableDropDown<UsersTablePage<T>> clickActionDropDown() {
+    public UsersTableDropDown<UsersPageTable<T>> clickActionDropDown() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();

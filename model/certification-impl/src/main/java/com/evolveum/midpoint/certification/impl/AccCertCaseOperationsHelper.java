@@ -128,11 +128,10 @@ public class AccCertCaseOperationsHelper {
 		updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltaList, task, result);
 	}
 
-    <F extends FocusType> List<ItemDelta<?,?>> getDeltasToCreateCases(
-            final AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
-            final CertificationHandler handler, final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        final List<ItemDelta<?,?>> rv = new ArrayList<>();
+    <F extends FocusType> void getDeltasToCreateCases(
+		    final AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
+		    final CertificationHandler handler, ModificationsToExecute modifications,
+		    final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         final String campaignShortName = toShortString(campaign);
 
@@ -197,9 +196,9 @@ public class AccCertCaseOperationsHelper {
         AccessCertificationReviewerSpecificationType reviewerSpec =
                 reviewersHelper.findReviewersSpecification(campaign, 1, task, result);
 
-        ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(F_CASE,
-                AccessCertificationCampaignType.class, prismContext);
         for (AccessCertificationCaseType _case : caseList) {
+	        ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(F_CASE,
+			        AccessCertificationCampaignType.class, prismContext);
             _case.setStageNumber(1);
             _case.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
             _case.setCurrentStageDeadline(stage.getDeadline());
@@ -215,11 +214,11 @@ public class AccCertCaseOperationsHelper {
             PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
             caseDelta.addValueToAdd(caseCVal);
 			LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDumpLazily());
+			modifications.add(caseDelta);
         }
-        rv.add(caseDelta);
 
-        LOGGER.trace("Created {} deltas to create {} cases for campaign {}", rv.size(), caseList.size(), campaignShortName);
-        return rv;
+        LOGGER.trace("Created {} deltas (in {} batches) to create {} cases for campaign {}", modifications.getTotalDeltasCount(),
+		        modifications.batches.size(), caseList.size(), campaignShortName);
     }
 
     private List<AccessCertificationWorkItemType> createWorkItems(List<ObjectReferenceType> forReviewers, int forStage) {
@@ -234,12 +233,12 @@ public class AccCertCaseOperationsHelper {
         return workItems;
     }
 
-    List<ItemDelta<?,?>> getDeltasToAdvanceCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    void getDeltasToAdvanceCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
+		    ModificationsToExecute modifications, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
 
         LOGGER.trace("Advancing reviewers and timestamps for cases in {}", toShortString(campaign));
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
-        List<ItemDelta<?,?>> rv = new ArrayList<>(caseList.size());
 
         int stageToBe = campaign.getStageNumber() + 1;
 
@@ -259,7 +258,7 @@ public class AccCertCaseOperationsHelper {
 			_case.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
 			AccessCertificationResponseType currentOutcome = computationHelper.computeOutcomeForStage(_case, campaign, stageToBe);
 			AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(_case, campaign, currentOutcome);
-			rv.addAll(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+			modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 					.item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
 					.item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
 					.item(F_CASE, caseId, F_CURRENT_STAGE_DEADLINE).replace(stage.getDeadline())
@@ -269,14 +268,13 @@ public class AccCertCaseOperationsHelper {
 					.asItemDeltas());
         }
 
-        LOGGER.debug("Created {} deltas to advance {} cases for campaign {}", rv.size(), caseList.size(), toShortString(campaign));
-        return rv;
+        LOGGER.debug("Created {} deltas (in {} batches) to advance {} cases for campaign {}", modifications.getTotalDeltasCount(),
+		        modifications.batches.size(), caseList.size(), toShortString(campaign));
     }
 
     // computes outcomes at stage close (stage-level and overall) and creates appropriate deltas
-    List<ItemDelta<?,?>> createOutcomeDeltas(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        List<ItemDelta<?,?>> rv = new ArrayList<>();
-
+    void createOutcomeDeltas(AccessCertificationCampaignType campaign, ModificationsToExecute modifications,
+		    OperationResult result) throws SchemaException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Updating current outcome for cases in {}", toShortString(campaign));
         }
@@ -286,13 +284,14 @@ public class AccCertCaseOperationsHelper {
 			if (_case.getStageNumber() != campaign.getStageNumber()) {
 				continue;
 			}
+			List<ItemDelta<?,?>> deltas = new ArrayList<>();
 			String newStageOutcome = OutcomeUtils.toUri(computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber()));
 			if (!Objects.equals(newStageOutcome, _case.getCurrentStageOutcome())) {
-				rv.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 						.item(F_CASE, _case.asPrismContainerValue().getId(), F_CURRENT_STAGE_OUTCOME).replace(newStageOutcome)
 						.asItemDelta());
 			}
-			rv.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 					.item(F_CASE, _case.asPrismContainerValue().getId(), F_EVENT).add(new StageCompletionEventType()
 							.timestamp(clock.currentTimeXMLGregorianCalendar())
 							.stageNumber(campaign.getStageNumber())
@@ -301,12 +300,12 @@ public class AccCertCaseOperationsHelper {
 
 			String newOverallOutcome = OutcomeUtils.toUri(computationHelper.computeOverallOutcome(_case, campaign, newStageOutcome));
 			if (!Objects.equals(newOverallOutcome, _case.getOutcome())) {
-				rv.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 						.item(F_CASE, _case.asPrismContainerValue().getId(), F_OUTCOME).replace(newOverallOutcome)
 						.asItemDelta());
 			}
+			modifications.add(deltas);
 		}
-        return rv;
     }
 
     // TODO temporary implementation - should be done somehow in batches in order to improve performance

@@ -539,14 +539,23 @@ public class ObjectUpdater {
         // more likely it is a serialization-related one.
         //
         // TODO: somewhat generalize this approach - perhaps by retrying all operations not dealing with OID/name uniqueness
+        //
+        // see MID-4698
 
         SQLException sqlException = baseHelper.findSqlException(ex);
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
             LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", ex, sqlException, nextException);
             String[] okStrings = new String[] {
+                    "Violation of PRIMARY KEY constraint 'PK__m_org_cl__",
+                    "Violation of PRIMARY KEY constraint 'PK__m_refere__",
+                    "Violation of PRIMARY KEY constraint 'PK__m_assign__",
+                    "Violation of PRIMARY KEY constraint 'PK__m_operat__",
+                    "is not present in table \"m_ext_item\"",
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
-                    "duplicate key value violates unique constraint \"m_reference_pkey\""
+                    "duplicate key value violates unique constraint \"m_reference_pkey\"",
+                    "duplicate key value violates unique constraint \"m_assignment_pkey\"",
+                    "duplicate key value violates unique constraint \"m_operation_execution_pkey\""     // TODO resolve more intelligently (and completely!)
             };
             String msg1;
             if (sqlException.getMessage() != null) {

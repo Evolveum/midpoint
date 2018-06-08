@@ -81,10 +81,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
+    	// Web (SOAP) services
         web.ignoring().antMatchers("/model/**");
         web.ignoring().antMatchers("/ws/**");
 
+        // REST service
         web.ignoring().antMatchers("/rest/**");
+        
+        // Special intra-cluster service to download and delete report outputs
+        web.ignoring().antMatchers("/report");
 
         web.ignoring().antMatchers("/js/**");
         web.ignoring().antMatchers("/css/**");

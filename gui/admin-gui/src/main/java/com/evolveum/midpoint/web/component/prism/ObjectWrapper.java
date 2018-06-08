@@ -313,10 +313,6 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	public void sort() {
 		getContainers().forEach(ContainerWrapper -> ContainerWrapper.sort());
-//		ContainerWrapper main = findMainContainerWrapper();
-//		if (main != null) {
-//			main.sort(pageBase);
-//		}
 		computeStripes();
 	}
 
@@ -330,10 +326,6 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
 		}
 
-		if (ContainerStatus.ADDING.equals(getStatus())) {
-			return createAddingObjectDelta();
-		}
-
 		ObjectDelta<O> delta = new ObjectDelta<>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
 		delta.setOid(object.getOid());
 
@@ -343,8 +335,14 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
 			containerWrapper.collectModifications(delta);
-//			containerWrapper.collectDeleteDelta(delta, object.getPrismContext());
-//			containerWrapper.collectAddDelta(delta, object.getPrismContext());
+		}
+		
+		if (ContainerStatus.ADDING.equals(getStatus())) {
+			delta.applyTo(object);
+			cleanupEmptyContainers(object);
+			ObjectDelta<O> addDelta = ObjectDelta.createAddDelta(object);
+			return addDelta;
+			
 		}
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());
@@ -397,49 +395,6 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			return false;
 		}
 		return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
-	}
-
-	private ObjectDelta createAddingObjectDelta() throws SchemaException {
-		PrismObject object = this.object.clone();
-
-		List<ContainerWrapper<? extends Containerable>> containers = getContainers();
-		// sort containers by path size
-		Collections.sort(containers, new PathSizeComparator());
-
-		for (ContainerWrapper containerWrapper : getContainers()) {
-
-			if (!containerWrapper.hasChanged()) {
-				continue;
-			}
-
-			PrismContainer containerToAdd = containerWrapper.createContainerAddDelta();
-			if (containerWrapper.isMain()) {
-				object = (PrismObject) containerToAdd;
-				continue;
-			}
-
-			object.getValue().addReplaceExisting(containerToAdd);
-
-		}
-
-		// cleanup empty containers
-		cleanupEmptyContainers(object);
-
-		ObjectDelta delta = ObjectDelta.createAddDelta(object);
-
-		// returning container to previous order
-		Collections.sort(containers, new ItemWrapperComparator());
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Creating delta from wrapper {}: adding object, creating complete ADD delta:\n{}", this,
-					delta.debugDump());
-		}
-
-		if (InternalsConfig.consistencyChecks) {
-			delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
-		}
-
-		return delta;
 	}
 
 	private void cleanupEmptyContainers(PrismContainer container) {
