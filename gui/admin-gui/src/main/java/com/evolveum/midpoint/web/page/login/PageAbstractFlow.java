@@ -54,8 +54,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 	
 	private static final String ID_TOOLTIP = "tooltip";
 
-	private static final String ID_DYNAMIC_FORM_PANEL = "registrationForm";
-	
 	private static final String ID_DYNAMIC_FORM = "dynamicForm";
 	protected static final String ID_CONTENT_AREA = "contentArea";
 
@@ -75,6 +73,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 	protected abstract WebMarkupContainer initDynamicLayout();
 	protected abstract void submitRegistration(AjaxRequestTarget target);
 	protected abstract boolean isBackButtonVisible();
+	protected abstract ObjectReferenceType getCustomFormRef();
 	
 	public PageAbstractFlow() {
 		initalizeModel();
@@ -103,6 +102,8 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 			
 		}	
 		
+		fragment.setOutputMarkupId(true);
+		content.setOutputMarkupId(true);
 		initCaptchaAndButtons(fragment);
 		fragment.add(content);
 		mainForm.add(fragment);
@@ -292,13 +293,13 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 //	}
 	
 	protected DynamicFormPanel<UserType> createDynamicPanel(Form<?> mainForm, Task task) {
-		final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
+		final ObjectReferenceType ort = getCustomFormRef();
 
 		if (ort == null) {
 			return null;
 		}
 		
-		return new DynamicFormPanel<>(ID_DYNAMIC_FORM_PANEL,
+		return new DynamicFormPanel<>(ID_DYNAMIC_FORM,
 				getUserModel(), ort.getOid(), mainForm, task, PageAbstractFlow.this, true);
 	}
 	
@@ -311,7 +312,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
 	protected DynamicFormPanel<UserType> getDynamicFormPanel() {
 		return (DynamicFormPanel<UserType>) get(
-				createComponentPath(ID_MAIN_FORM, ID_DYNAMIC_FORM, ID_DYNAMIC_FORM_PANEL));
+				createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_DYNAMIC_FORM));
 	}
 	
 

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication")}, 
@@ -120,9 +121,8 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	@Override
 	protected WebMarkupContainer initDynamicLayout() {
 		Task task = createSimpleTask(OPERATION_LOAD_DYNAMIC_FORM);
-		Form<?> form = new Form<>(ID_MAIN_FORM);
-		form.add(createDynamicPanel(form, task));
-		return form;
+		Form<?> form = getMainForm();
+		return createDynamicPanel(form, task);
 	}
 	
 	@Override
@@ -142,7 +142,6 @@ public class PagePostAuthentication extends PageAbstractFlow {
 			}
 
 			getPrismContext().adopt(userDelta);
-			userDelta.addModificationDeleteProperty(UserType.F_LIFECYCLE_STATE, getPostAuthenticationConfiguration().getRequiredLifecycleState());
 			WebModelServiceUtils.save(userDelta, result, this);
 			result.recordSuccessIfUnknown();
 		} catch (SchemaException e) {
@@ -151,13 +150,43 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		}
 		
 		result.computeStatus();
-		showResult(result);
+		
+		if (result.isAcceptable()) {
+			OperationResult lifecycleResult = runPrivileged(() -> {
+				ObjectDelta<UserType> lifecycleDelta = ObjectDelta.createModificationDeleteProperty(UserType.class,
+						userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE, getPrismContext(),
+						getPostAuthenticationConfiguration().getRequiredLifecycleState());
+				OperationResult opResult = new OperationResult(OPERATION_SAVE_USER);
+				Task task = createAnonymousTask(OPERATION_SAVE_USER);
+				WebModelServiceUtils.save(lifecycleDelta, opResult, task, PagePostAuthentication.this);
+				result.recordSuccessIfUnknown();
+				return result;
+			});
+		}
+		
+		if (!result.isAcceptable()) {
+			showResult(result);
+			target.add(PagePostAuthentication.this);
+		} else {
+			navigateToNext(getMidpointApplication().getHomePage());
+		}
+		
 		target.add(getFeedbackPanel());
-		navigateToNext(getMidpointApplication().getHomePage());
+		
 	}
 		
 	@Override
 	protected boolean isBackButtonVisible() {
+		return false;
+	}
+
+	@Override
+	protected ObjectReferenceType getCustomFormRef() {
+		return getPostAuthenticationConfiguration().getFormRef();
+	}
+	
+	@Override
+	protected boolean isLogoLinkEnabled() {
 		return false;
 	}
 }

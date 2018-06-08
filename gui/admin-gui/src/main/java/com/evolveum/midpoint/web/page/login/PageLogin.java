@@ -101,7 +101,7 @@ public class PageLogin extends PageBase {
         	
         	@Override
         	public void onClick(AjaxRequestTarget target) {
-        		setResponsePage(PageSelfRegistrationNew.class);
+        		setResponsePage(PageSelfRegistration.class);
         	}
         };
         registration.add(new VisibleEnableBehaviour() {

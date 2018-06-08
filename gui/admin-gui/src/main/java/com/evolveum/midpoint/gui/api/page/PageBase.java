@@ -805,7 +805,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 
-        AjaxLink logo = new AjaxLink(ID_LOGO) {
+        AjaxLink<String> logo = new AjaxLink<String>(ID_LOGO) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -815,9 +815,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         logo.add(new VisibleEnableBehaviour() {
+        	
+        	 private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
                 return !isCustomLogoVisible();
+            }
+            
+            @Override
+            public boolean isEnabled() {
+            	return isLogoLinkEnabled();
             }
         });
         mainHeader.add(logo);
@@ -2093,6 +2100,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return true;
         }
         return false;
+    }
+    
+    protected boolean isLogoLinkEnabled() {
+    	return true;
     }
 
     private String getSubscriptionId() {
