@@ -135,7 +135,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	}
 
 	private String generateFullQuery(Map<String, Object> parameters, boolean ordered, boolean isCount) {
-		String query = auditEventQuery;
 		boolean filteredOnChangedItem = parameters.get(PARAMETER_CHANGED_ITEM) != null;
 		boolean filteredOnValueRefTargetNames = filteredOnValueRefTargetNames(parameters);
 		List<String> conditions = new ArrayList<>();
@@ -211,6 +210,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
 			parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}
+		String query = auditEventQuery;
 		if (query == null) {
 			query = AUDIT_RECORDS_QUERY_CORE;
 			if (filteredOnChangedItem) {
