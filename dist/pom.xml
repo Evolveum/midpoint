@@ -119,7 +119,7 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.tools</groupId>
                                     <artifactId>ninja</artifactId>
-                                    <version>3.7.2-SNAPSHOT</version> <!-- TODO switch to 3.7.2 -->
+                                    <version>3.7.2</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
