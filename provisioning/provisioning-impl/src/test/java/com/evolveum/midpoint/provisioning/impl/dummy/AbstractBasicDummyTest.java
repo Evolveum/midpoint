@@ -121,6 +121,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -617,6 +618,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
 		// TODO: better look inside
 
+		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList,
+				UpdateCapabilityType.class);
+		assertUpdateCapability(capUpdate);
+		
 		capabilitiesCachingMetadataType = resourceType.getCapabilities().getCachingMetadata();
 		assertNotNull("No capabilities caching metadata", capabilitiesCachingMetadataType);
 		assertNotNull("No capabilities caching metadata timestamp", capabilitiesCachingMetadataType.getRetrievalTimestamp());
@@ -638,6 +643,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		}
 
 		assertSteadyResource();
+	}
+
+	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
+		assertNotNull("native update capability not present", capUpdate);
+		assertNull("native update capability is manual", capUpdate.isManual());
+		assertNull("native update capability is delta", capUpdate.isDelta());
 	}
 
 	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {

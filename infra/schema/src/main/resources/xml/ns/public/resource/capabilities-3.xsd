@@ -401,6 +401,29 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractWriteCapabilityType">
+				<xsd:sequence>
+					<xsd:element name="delta" type="xsd:boolean" minOccurs="0" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									If set to true then resource supports update operation that takes complete delta as an
+									argument. Or in other words: the resource can execute complex updates
+									that add/remove/replace values of several attributes in one operation.
+								</p>
+								<p>
+									If set to false then resource cannot execute complex updates in one
+									operation. Several operations may be needed, e.g. one operation to
+									add values, separate operation to delete values. This may cause
+									schema violations. E.g. deleting last value of a mandatory multi-valued
+									attribute just to immediately add new value. Such operation may fail.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

@@ -14,6 +14,8 @@ import org.identityconnectors.framework.common.objects.OperationalAttributeInfos
 import org.identityconnectors.framework.common.objects.Uid;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -124,28 +126,43 @@ public class ConnIdNameMapper {
 		return attrDef.getName();
 	}
 
-	public String convertAttributeNameToIcf(ResourceAttribute<?> attribute, ObjectClassComplexTypeDefinition ocDef)
+	public String convertAttributeNameToConnId(PropertyDelta<?> attributeDelta, ObjectClassComplexTypeDefinition ocDef)
 			throws SchemaException {
-		ResourceAttributeDefinition attrDef = attribute.getDefinition();
-		if (attrDef == null) {
-			attrDef = ocDef.findAttributeDefinition(attribute.getElementName());
+		PrismPropertyDefinition<?> propDef = attributeDelta.getDefinition();
+		ResourceAttributeDefinition attrDef;
+		if (propDef != null && (propDef instanceof ResourceAttributeDefinition)) {
+			attrDef = (ResourceAttributeDefinition)propDef;
+		} else {
+			attrDef = ocDef.findAttributeDefinition(attributeDelta.getElementName());
 			if (attrDef == null) {
-				throw new SchemaException("No attribute "+attribute.getElementName()+" in object class "+ocDef.getTypeName());
+				throw new SchemaException("No attribute "+attributeDelta.getElementName()+" in object class "+ocDef.getTypeName());
 			}
 		}
-		return convertAttributeNameToIcf(attrDef);
+		return convertAttributeNameToConnId(attrDef);
 	}
+	
+	public String convertAttributeNameToConnId(ResourceAttribute<?> attribute, ObjectClassComplexTypeDefinition ocDef)
+				throws SchemaException {
+			ResourceAttributeDefinition attrDef = attribute.getDefinition();
+			if (attrDef == null) {
+				attrDef = ocDef.findAttributeDefinition(attribute.getElementName());
+				if (attrDef == null) {
+					throw new SchemaException("No attribute "+attribute.getElementName()+" in object class "+ocDef.getTypeName());
+				}
+			}
+			return convertAttributeNameToConnId(attrDef);
+		}
 
-	public <T> String convertAttributeNameToIcf(QName attributeName, ObjectClassComplexTypeDefinition ocDef, String desc)
+	public <T> String convertAttributeNameToConnId(QName attributeName, ObjectClassComplexTypeDefinition ocDef, String desc)
 			throws SchemaException {
 		ResourceAttributeDefinition<T> attrDef = ocDef.findAttributeDefinition(attributeName);
 		if (attrDef == null) {
 			throw new SchemaException("No attribute "+attributeName+" in object class "+ocDef.getTypeName() + " " + desc);
 		}
-		return convertAttributeNameToIcf(attrDef);
+		return convertAttributeNameToConnId(attrDef);
 	}
 
-	public String convertAttributeNameToIcf(ResourceAttributeDefinition<?> attrDef)
+	public String convertAttributeNameToConnId(ResourceAttributeDefinition<?> attrDef)
 			throws SchemaException {
 		if (attrDef.getFrameworkAttributeName() != null) {
 			return attrDef.getFrameworkAttributeName();

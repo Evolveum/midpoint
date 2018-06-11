@@ -60,7 +60,7 @@ public class ValueOperation extends Operation {
 		if (valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
-				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
+				String icfName = icfNameMapper.convertAttributeNameToConnId(propName, getInterpreter()
 						.getObjectClassDefinition(), "(attribute in the filter)");
 				
 				if (objectFilter instanceof EqualFilter) {

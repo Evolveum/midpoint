@@ -317,34 +317,34 @@ public class ConnIdConvertor {
 		return shadowPrism;
 	}
 
-	Set<Attribute> convertFromResourceObject(ResourceAttributeContainer attributesPrism,
+	Set<Attribute> convertFromResourceObjectToConnIdAttributes(ResourceAttributeContainer attributesPrism,
 			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
-		return convertFromResourceObject(resourceAttributes, ocDef);
+		return convertFromResourceObjectToConnIdAttributes(resourceAttributes, ocDef);
 	}
 
-	Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute<?>> resourceAttributes,
+	private Set<Attribute> convertFromResourceObjectToConnIdAttributes(Collection<ResourceAttribute<?>> mpResourceAttributes,
 			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 
 		Set<Attribute> attributes = new HashSet<>();
-		if (resourceAttributes == null) {
+		if (mpResourceAttributes == null) {
 			// returning empty set
 			return attributes;
 		}
 
-		for (ResourceAttribute<?> attribute : resourceAttributes) {
+		for (ResourceAttribute<?> attribute : mpResourceAttributes) {
 			attributes.add(convertToConnIdAttribute(attribute, ocDef));
 		}
 		return attributes;
 	}
 
-	Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+	private Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		QName midPointAttrQName = mpAttribute.getElementName();
 		if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
 			throw new SchemaException("ICF UID explicitly specified in attributes");
 		}
 
-		String connIdAttrName = icfNameMapper.convertAttributeNameToIcf(mpAttribute, ocDef);
+		String connIdAttrName = icfNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
 
 		Set<Object> connIdAttributeValues = new HashSet<>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
@@ -358,43 +358,6 @@ public class ConnIdConvertor {
 		}
 	}
 	
-	AttributeDelta convertToConnIdAttributeDeltaWithAddValues(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
-		return convertToConnIdAttributeDelta(mpAttribute, ocDef, true, true);
-	}
-	
-	AttributeDelta convertToConnIdAttributeDeltaWithRemoveValues(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
-		return convertToConnIdAttributeDelta(mpAttribute, ocDef, true, false);
-	}
-	
-	AttributeDelta convertToConnIdAttributeDeltaWithReplaceValues(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
-		return convertToConnIdAttributeDelta(mpAttribute, ocDef, false, false);
-	}
-	
-	private AttributeDelta convertToConnIdAttributeDelta(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef, boolean isMultivalue, boolean isAdd) throws SchemaException {
-		QName midPointAttrQName = mpAttribute.getElementName();
-		if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
-			throw new SchemaException("ICF UID explicitly specified in attributes");
-		}
-
-		String connIdAttrName = icfNameMapper.convertAttributeNameToIcf(mpAttribute, ocDef);
-
-		Set<Object> connIdAttributeValues = new HashSet<Object>();
-		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
-			connIdAttributeValues.add(ConnIdUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
-		}
-
-		try {
-			if(!isMultivalue){
-				return AttributeDeltaBuilder.build(connIdAttrName, connIdAttributeValues);
-			} else if(isAdd){
-				return AttributeDeltaBuilder.build(connIdAttrName, connIdAttributeValues, null);
-			} else {
-				return AttributeDeltaBuilder.build(connIdAttrName, null, connIdAttributeValues);
-			}
-		} catch (IllegalArgumentException e) {
-			throw new SchemaException(e.getMessage(), e);
-		}
-	}
 	
 	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
 		List<Object> values = icfAttr.getValue();
