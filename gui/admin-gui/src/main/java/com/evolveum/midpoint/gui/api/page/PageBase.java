@@ -892,7 +892,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public boolean isVisible() {
-                return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
+                return isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
             }
         });
         footerContainer.add(version);
