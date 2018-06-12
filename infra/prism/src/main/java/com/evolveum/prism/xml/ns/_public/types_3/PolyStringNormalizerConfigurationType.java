@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ItemDeltaType", propOrder = {
+@XmlType(name = "PolyStringNormalizerConfigurationType", propOrder = {
     "className",
     "trim",
     "nfkd",
