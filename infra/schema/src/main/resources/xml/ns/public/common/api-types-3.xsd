@@ -294,7 +294,7 @@
     <!-- the following types are related to script execution; these are experimental for now -->
     <xsd:complexType name="XmlScriptsType">
         <xsd:sequence>
-            <xsd:any minOccurs="0" maxOccurs="unbounded" />         <!-- objects substituable with s:expression should be put here -->
+            <xsd:any minOccurs="0" maxOccurs="unbounded" />         <!-- objects substitutable with s:expression should be put here -->
         </xsd:sequence>
     </xsd:complexType>
 

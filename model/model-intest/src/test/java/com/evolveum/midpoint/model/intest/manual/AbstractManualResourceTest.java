@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -71,6 +72,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -122,6 +124,21 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
 	protected static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
 
+	protected static final File USER_PHANTOM_FILE = new File(TEST_DIR, "user-phantom.xml");
+	protected static final String USER_PHANTOM_OID = "5b12cc6e-575c-11e8-bc16-3744f9bfcac8";
+	public static final String USER_PHANTOM_USERNAME = "phantom";
+	public static final String USER_PHANTOM_FULL_NAME = "Thomas Phantom";
+	public static final String USER_PHANTOM_FULL_NAME_WRONG = "Tom Funtom";
+	public static final String ACCOUNT_PHANTOM_DESCRIPTION_MANUAL = "Phantom menace of the opera";
+	public static final String ACCOUNT_PHANTOM_PASSWORD_MANUAL = "PhanthomaS";
+	
+	protected static final File USER_PHOENIX_FILE = new File(TEST_DIR, "user-phoenix.xml");
+	protected static final String USER_PHOENIX_OID = "ed2ca15a-5ccb-11e8-b62d-4b94763188e4";
+	public static final String USER_PHOENIX_USERNAME = "phoenix";
+	public static final String USER_PHOENIX_FULL_NAME = "Phoebe Phoenix";
+	public static final String ACCOUNT_PHOENIX_DESCRIPTION_MANUAL = "from the ashes";
+	public static final String ACCOUNT_PHOENIX_PASSWORD_MANUAL = "VtakOhnivak";
+	
 	protected static final String USER_WILL_NAME = "will";
 	protected static final String USER_WILL_GIVEN_NAME = "Will";
 	protected static final String USER_WILL_FAMILY_NAME = "Turner";
@@ -186,6 +203,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected String jackLastCaseOid;
 
 	private String lastResourceVersion;
+
+	protected String phoenixLastCaseOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1058,7 +1077,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 		
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
 		assertSteadyResources();
 	}
@@ -1079,7 +1098,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
 		assertSteadyResources();
 	}
@@ -1099,7 +1118,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// THEN
 		displayThen(TEST_NAME);
 
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		
 		assertSteadyResources();
 	}
@@ -1120,7 +1139,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		assertAccountWillAfterFillNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
+		assertAccountWillAfterFullNameModification(TEST_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		
 		assertSteadyResources();
 	}
@@ -1317,6 +1336,366 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowPassword(shadowModelFuture);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Create phantom account in the backing store. MidPoint does not know anything about it.
+	 * At the same time, there is phantom user that has the account assigned. But it is not yet
+	 * provisioned. MidPoint should find existing account and it it should figure out that
+	 * there is nothing to do. Just to link the account.
+	 * related to MID-4614
+	 */
+	@Test
+	public void test400PhantomAccount() throws Exception {
+		final String TEST_NAME = "test400PhantomAccount";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		setupPhantom(TEST_NAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHANTOM_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		result.computeStatus();
+		// This should theoretically always return IN_PROGRESS, as there is
+		// reconciliation operation going on. But due to various "peculiarities"
+		// of a consistency mechanism this sometimes returns in progress and
+		// sometimes it is just success.
+		OperationResultStatus status = result.getStatus();
+		if (status != OperationResultStatus.IN_PROGRESS && status != OperationResultStatus.SUCCESS) {
+			fail("Unexpected result status in "+result);
+		}
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHANTOM_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME);
+		if (supportsBackingStore()) {
+			assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME_WRONG);
+		} else {
+			assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME);
+		}
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHANTOM_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModel);
+
+		if (isDirect()) {
+			assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		} else {
+			assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTION_PENDING, null);
+		}
+
+		assertSteadyResources();
+	}
+	
+	protected void setupPhantom(final String TEST_NAME) throws Exception {
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		addObject(USER_PHANTOM_FILE);
+		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_PHANTOM_OID, getResourceOid(), null, true);
+		repositoryService.modifyObject(UserType.class, USER_PHANTOM_OID, userDelta.getModifications(), result);
+		PrismObject<UserType> userBefore = getUser(USER_PHANTOM_OID);
+		display("User before", userBefore);
+
+		backingStoreAddPhantom();
+	}
+	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	public void test410AssignPhoenixAccount() throws Exception {
+		final String TEST_NAME = "test410AssignPhoenixAccount";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		addObject(USER_PHOENIX_FILE);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttributeFromCache(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		phoenixLastCaseOid = pendingOperation.getAsynchronousOperationReference();
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	public void test412AddPhoenixToBackingStoreAndCloseTicket() throws Exception {
+		final String TEST_NAME = "test412AddPhoenixToBackingStoreAndCloseTicket";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		backingStoreAddPhoenix();
+		closeCase(phoenixLastCaseOid);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHOENIX_DESCRIPTION_MANUAL);
+
+		assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Let the pending operations exprire. So we have simpler situation in following tests.
+	 * MID-4587
+	 */
+	@Test
+	public void test413PhoenixLetOperationsExpire() throws Exception {
+		final String TEST_NAME = "test413PhoenixLetOperationsExpire";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT1H");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+		
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHOENIX_FULL_NAME);
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHOENIX_DESCRIPTION_MANUAL);
+
+		assertNoPendingOperation(shadowModel);
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Close case, the account is deleted. But it still *is* in the backing store.
+	 * MID-4587
+	 */
+	@Test
+	public void test414UnassignPhoenixAccount() throws Exception {
+		final String TEST_NAME = "test414UnassignPhoenixAccount";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		assertShadowNotDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		phoenixLastCaseOid = pendingOperation.getAsynchronousOperationReference();
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * MID-4587
+	 */
+	@Test
+	public void test416PhoenixAccountUnassignCloseCase() throws Exception {
+		final String TEST_NAME = "test416PhoenixAccountUnassignCloseCase";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		closeCase(phoenixLastCaseOid);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_PHOENIX_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		String shadowOid = getSingleLinkOid(userAfter);
+		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
+		display("Shadow after", shadowModel);
+
+		assertShadowDead(shadowModel);
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHOENIX_USERNAME);
+
+		assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Account assigned again. But it is still in backing store and still in grace period.
+	 * This is the core test for MID-4587.
+	 * MID-4587
+	 */
+	@Test
+	public void test418AssignPhoenixAccountAgain() throws Exception {
+		final String TEST_NAME = "test418AssignPhoenixAccountAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		phoenixLastCaseOid = assertInProgress(result);
+		
+		// Make sure the operation will be picked up by propagation task
+		clockForward("PT3M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		runPropagation();
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_PHOENIX_OID);
+		display("User after", userAfter);
+		
+		// Yes, we really expect two shadows here.
+		// First shadow is dead (the one from previous test).
+		// Second shadow is new one.
+		// MidPoitn cannot collapse these two shadows to one, because they do not
+		// necessarily represent the same account. E.g. the new account may have
+		// different primary identifier (in case that those identifiers are generated).
+		assertLinks(userAfter, 2);
+		
+		int deadShadows = 0;
+		int liveShadows = 0;
+		for (ObjectReferenceType linkRef: userAfter.asObjectable().getLinkRef()) {
+			try {
+				
+				PrismObject<ShadowType> shadowModel = getShadowModelNoFetch(linkRef.getOid());
+				display("Shadow after", shadowModel);
+				Boolean dead = shadowModel.asObjectable().isDead();
+				if (dead != null && dead) {
+					deadShadows++;
+					assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+				} else {
+					liveShadows++;
+					assertSinglePendingOperation(shadowModel, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+				}
+				
+			} catch (ObjectNotFoundException e) {
+				display("Shadow after", "NOT FOUND: "+linkRef.getOid());
+			}
+		}
+		assertEquals("Unexpected number of dead shadows", 1, deadShadows);
+		assertEquals("Unexpected number of live shadows", 1, liveShadows);
 		
 		assertSteadyResources();
 	}
@@ -1580,7 +1959,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowDead(shadowModelFuture);
 	}
 	
-	protected void assertAccountWillAfterFillNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {
+	protected void assertAccountWillAfterFullNameModification(final String TEST_NAME, PendingOperationExecutionStatusType executionStage) throws Exception {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -1662,6 +2041,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected void backingStoreDeleteJack() throws IOException {
 		if (backingStore != null) {
 			backingStore.deleteJack();
+		}
+	}
+	
+	protected void backingStoreAddPhantom() throws IOException {
+		if (backingStore != null) {
+			backingStore.addPhantom();
+		}
+	}
+	
+	protected void backingStoreAddPhoenix() throws IOException {
+		if (backingStore != null) {
+			backingStore.addPhoenix();
 		}
 	}
 
@@ -1843,140 +2234,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		}
 	}
 
-	protected void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
-		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		assertEquals("Wrong number of pending operations in "+shadow, expectedNumber, pendingOperations.size());
-	}
-
-	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd, PendingOperationExecutionStatusType executionStage) {
-		assertPendingOperationDeltas(shadow, 1);
-		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0), 
-				requestStart, requestEnd, 
-				getExpectedExecutionStatus(executionStage), getExpectedResultStatus(executionStage),
-				null, null);
-	}
-	
-	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
-		return assertSinglePendingOperation(shadow, requestStart, requestEnd,
-				OperationResultStatusType.IN_PROGRESS, null, null);
-	}
-
-	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
-			OperationResultStatusType expectedStatus,
-			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
-		assertPendingOperationDeltas(shadow, 1);
-		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0),
-				requestStart, requestEnd, expectedStatus, completionStart, completionEnd);
-	}
-
-	protected PendingOperationType assertPendingOperation(
-			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
-		return assertPendingOperation(shadow, pendingOperation, requestStart, requestEnd,
-				OperationResultStatusType.IN_PROGRESS, null, null);
-	}
-	
-	protected PendingOperationType assertPendingOperation(
-			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
-			OperationResultStatusType expectedResultStatus,
-			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
-		PendingOperationExecutionStatusType expectedExecutionStatus;
-		if (expectedResultStatus == OperationResultStatusType.IN_PROGRESS) {
-			expectedExecutionStatus = PendingOperationExecutionStatusType.EXECUTING;
-		} else {
-			expectedExecutionStatus = PendingOperationExecutionStatusType.COMPLETED;
-		}
-		return assertPendingOperation(shadow, pendingOperation, requestStart, requestEnd, expectedExecutionStatus, expectedResultStatus, completionStart, completionEnd);
-	}
-
-	protected PendingOperationType assertPendingOperation(
-			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
-			PendingOperationExecutionStatusType expectedExecutionStatus,
-			OperationResultStatusType expectedResultStatus,
-			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
-		assertNotNull("No operation ", pendingOperation);
-
-		ObjectDeltaType deltaType = pendingOperation.getDelta();
-		assertNotNull("No delta in pending operation in "+shadow, deltaType);
-		// TODO: check content of pending operations in the shadow
-
-		TestUtil.assertBetween("No request timestamp in pending operation in "+shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
-
-		PendingOperationExecutionStatusType executiontStatus = pendingOperation.getExecutionStatus();
-		assertEquals("Wrong execution status in pending operation in "+shadow, expectedExecutionStatus, executiontStatus);
-		
-		OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
-		assertEquals("Wrong result status in pending operation in "+shadow, expectedResultStatus, resultStatus);
-
-		// TODO: assert other timestamps
-		
-		if (expectedExecutionStatus == PendingOperationExecutionStatusType.COMPLETED) {
-			TestUtil.assertBetween("No completion timestamp in pending operation in "+shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
-		}
-
-		return pendingOperation;
-	}
-
-	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			PendingOperationExecutionStatusType expectedExecutionStaus) {
-		return findPendingOperation(shadow, expectedExecutionStaus, null, null, null);
-	}
-	
-	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			OperationResultStatusType expectedResult) {
-		return findPendingOperation(shadow, null, expectedResult, null, null);
-	}
-
-	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			OperationResultStatusType expectedResult, ItemPath itemPath) {
-		return findPendingOperation(shadow, null, expectedResult, null, itemPath);
-	}
-	
-	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			PendingOperationExecutionStatusType expectedExecutionStaus, ItemPath itemPath) {
-		return findPendingOperation(shadow, expectedExecutionStaus, null, null, itemPath);
-	}
-
-	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			OperationResultStatusType expectedResult, ChangeTypeType expectedChangeType) {
-		return findPendingOperation(shadow, null, expectedResult, expectedChangeType, null);
-	}
-
-	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow,
-			PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResult,
-			ChangeTypeType expectedChangeType, ItemPath itemPath) {
-		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		for (PendingOperationType pendingOperation: pendingOperations) {
-			if (expectedExecutionStatus != null && !expectedExecutionStatus.equals(pendingOperation.getExecutionStatus())) {
-				continue;
-			}
-			if (expectedResult != null && !expectedResult.equals(pendingOperation.getResultStatus())) {
-				continue;
-			}
-			ObjectDeltaType delta = pendingOperation.getDelta();
-			if (expectedChangeType != null) {
-				if (!expectedChangeType.equals(delta.getChangeType())) {
-					continue;
-				}
-			}
-			if (itemPath == null) {
-				return pendingOperation;
-			}
-			assertNotNull("No delta in pending operation in "+shadow, delta);
-			for (ItemDeltaType itemDelta: delta.getItemDelta()) {
-				ItemPath deltaPath = itemDelta.getPath().getItemPath();
-				if (itemPath.equivalent(deltaPath)) {
-					return pendingOperation;
-				}
-			}
-		}
-		return null;
-	}
 
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
 		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
@@ -2036,6 +2293,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	protected void runPropagation() throws Exception {
+		runPropagation(null);
+	}
+	
+	protected void runPropagation(OperationResultStatusType expectedStatus) throws Exception {
 		// nothing by default
 	}
 	
@@ -2062,5 +2323,22 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		}
 		assertEquals("Resource version mismatch", lastResourceVersion, currentResourceVersion);
 	}
+	
+	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {
+		for (ItemDeltaType itemDelta: deltaType.getItemDelta()) {
+			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
+				return;
+			}
+		}
+		fail("No modification for "+itemPath+" in delta");
+	}
 
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd, PendingOperationExecutionStatusType executionStage) {
+		assertPendingOperationDeltas(shadow, 1);
+		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0), 
+				requestStart, requestEnd, 
+				getExpectedExecutionStatus(executionStage), getExpectedResultStatus(executionStage),
+				null, null);
+	}
 }

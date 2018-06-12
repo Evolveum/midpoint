@@ -79,16 +79,9 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
     }
 
     @Id
-    @Column(name = "item_id", updatable = false, insertable = false)
+    @Column(name = "item_id")
     public Integer getItemId() {
         return super.getItemId();
-    }
-
-    @MapsId("item")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(foreignKey = @javax.persistence.ForeignKey(name = "fk_a_ext_poly_item"))
-    public RExtItem getItem() {
-        return super.getItem();
     }
 
     @Column(name = "orig")

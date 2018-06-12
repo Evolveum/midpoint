@@ -54,7 +54,8 @@ public class SearchFactory {
     static {
         SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
                 new ItemPath(ObjectType.F_NAME),
-                new ItemPath(ObjectType.F_LIFECYCLE_STATE)));
+                new ItemPath(ObjectType.F_LIFECYCLE_STATE),
+                new ItemPath(ObjectType.F_SUBTYPE)));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));

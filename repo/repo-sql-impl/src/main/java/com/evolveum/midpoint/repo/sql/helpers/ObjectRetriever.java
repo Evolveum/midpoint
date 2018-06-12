@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -577,15 +578,14 @@ public class ObjectRetriever {
 
                     prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, resultType.getStatus());
                 }
-
-
-            } else {
-                Query<ROperationResultStatus> query = session.getNamedQuery("get.taskStatus");
-                query.setParameter("oid", prismObject.getOid());
-
-                ROperationResultStatus status = query.uniqueResult();
-                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
             }
+//            else {
+//                Query<ROperationResultStatus> query = session.getNamedQuery("get.taskStatus");
+//                query.setParameter("oid", prismObject.getOid());
+//
+//                ROperationResultStatus status = query.uniqueResult();
+//                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
+//            }
         }
 
         if (partialValueHolder != null) {
@@ -609,35 +609,44 @@ public class ObjectRetriever {
         query.setParameter("ownerType", RObjectExtensionType.ATTRIBUTES);
 
 		@SuppressWarnings({"unchecked", "raw"})
-		List<Object[]> values = query.list();
-        if (values == null || values.isEmpty()) {
+		List<Integer> identifiers = query.list();
+        if (identifiers == null || identifiers.isEmpty()) {
             return;
         }
 
-        for (Object[] value : values) {
-            QName name = RUtil.stringToQName((String) value[0]);
-            QName type = RUtil.stringToQName((String) value[1]);
+        for (Integer extItemId : identifiers) {
+	        if (extItemId == null) {
+		        // Just skip. Cannot throw exceptions here. Otherwise we
+		        // could break raw reading.
+	        	continue;
+	        }
+	        RExtItem extItem = extItemDictionary.getItemById(extItemId);
+	        if (extItem == null) {
+	        	continue;
+	        }
+	        QName name = RUtil.stringToQName(extItem.getName());
+            QName type = RUtil.stringToQName(extItem.getType());
             Item item = attributes.findItem(name);
 
             if (item == null) {
-            	// Just skip. Cannot throw exceptions here. Otherwise we
-            	// could break raw reading.
             	continue;
             }
 
             // A switch statement used to be here
             // but that caused strange trouble with OpenJDK. This if-then-else works.
             if (item.getDefinition() == null) {
-                RItemKind rValType = (RItemKind) value[2];
+                RItemKind rValType = extItem.getKind();
                 if (rValType == RItemKind.PROPERTY) {
                     PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
                     def.setMinOccurs(0);
                     def.setMaxOccurs(-1);
+                    def.setRuntimeSchema(true);
                     item.applyDefinition(def, true);
                 } else if (rValType == RItemKind.REFERENCE) {
                     PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
 	                def.setMinOccurs(0);
 	                def.setMaxOccurs(-1);
+	                def.setRuntimeSchema(true);
                     item.applyDefinition(def, true);
                 } else {
                     throw new UnsupportedOperationException("Unsupported value type " + rValType);

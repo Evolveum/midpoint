@@ -226,9 +226,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			return runResult;
 		}
 
-		opResult.computeStatus("Live sync run has failed");
-
         opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + changesProcessed);
+        opResult.computeStatus();
 
         // This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);

@@ -62,6 +62,7 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
@@ -463,6 +464,10 @@ public final class RUtil {
     }
 
     public static String getXmlFromByteArray(byte[] array, boolean compressed) {
+        return getXmlFromByteArray(array, compressed, false);
+    }
+
+    public static String getXmlFromByteArray(byte[] array, boolean compressed, boolean useUtf16) {
         if (array == null) {
             return null;
         }
@@ -476,14 +481,20 @@ public final class RUtil {
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
                     gzip = new GZIPInputStream(new ByteArrayInputStream(array));
                     IOUtils.copy(gzip, out);
-                    xml = new String(out.toByteArray(), StandardCharsets.UTF_8.name());
+                    xml = new String(out.toByteArray(), StandardCharsets.UTF_8);
                 } catch (ZipException ex) {
-                    LOGGER.warn("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
+                    LOGGER.debug("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
 
-                    xml = new String(array, StandardCharsets.UTF_8.name());
+                    // utf-16 will be used only under specific conditions
+                    // - we're using SQL Server
+                    // - we are trying to read audit delta or fullResult which aren't compressed - data before 3.8 release
+                    // These data couldn't be migrated from nvarchar(max) to varbinary(max) without breaking encoding as
+                    // SQL Server doesn't support utf8 and uses ucs2 encoding (compatible to read with utf16)
+                    Charset ch = useUtf16 ? StandardCharsets.UTF_16LE : StandardCharsets.UTF_8;
+                    xml = new String(array, ch);
                 }
             } else {
-                xml = new String(array, StandardCharsets.UTF_8.name());
+                xml = new String(array, StandardCharsets.UTF_8);
             }
         } catch (Exception ex) {
             throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);

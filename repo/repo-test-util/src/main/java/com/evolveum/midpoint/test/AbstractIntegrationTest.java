@@ -97,6 +97,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.fasterxml.jackson.databind.util.RawValue;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -1384,7 +1386,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 			case ENCRYPTION:
 				assertNotNull(message+": no value", actualValue);
-				assertTrue(message+": unenctypted value: "+actualValue, actualValue.isEncrypted());
+				assertTrue(message+": unencrypted value: "+actualValue, actualValue.isEncrypted());
 				String actualClearPassword = protector.decryptString(actualValue);
 				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
 				assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
@@ -1629,9 +1631,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void displayWhen(String testName) {
 		TestUtil.displayWhen(testName);
 	}
+	
+	protected void displayWhen(String testName, String stage) {
+		TestUtil.displayWhen(testName + " ("+stage+")");
+	}
 
 	protected void displayThen(String testName) {
 		TestUtil.displayThen(testName);
+	}
+	
+	protected void displayThen(String testName, String stage) {
+		TestUtil.displayThen(testName + " ("+stage+")");
 	}
 
 	protected void displayCleanup(String testName) {
@@ -1758,12 +1768,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		TestUtil.assertSuccess(message, result);
 	}
+	
+	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		assertEquals("Unexpected result status", expectedStatus, result.getStatus());
+	}
 
 	protected String assertInProgress(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
-		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
+		if (!OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
+			String message = "Expected IN_PROGRESS, but result status was " + result.getStatus();
+			display (message, result);
+			fail(message);
+		}
 		return result.getAsynchronousOperationReference();
 	}
 
@@ -2324,5 +2345,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected Collection<ObjectDelta<? extends ObjectType>> createDetlaCollection(ObjectDelta<?>... deltas) {
 		return (Collection)MiscUtil.createCollection(deltas);
+	}
+
+	public static String getAttributeValue(ShadowType repoShadow, QName name) {
+		return IntegrationTestTools.getAttributeValue(repoShadow, name);
+	}
+
+	/**
+	 * Convenience method for shadow values that are read directly from repo (post-3.8).
+	 * This may ruin the "rawness" of the value. But it is OK for test asserts.
+	 */
+	protected <T> T getAttributeValue(PrismObject<? extends ShadowType> shadow, QName attrName, Class<T> expectedClass) throws SchemaException {
+		Object value = ShadowUtil.getAttributeValue(shadow, attrName);
+		if (value == null) {
+			return (T) value;
+		}
+		if (expectedClass.isAssignableFrom(value.getClass())) {
+			return (T)value;
+		}
+		if (value instanceof RawType) {
+			T parsedRealValue = ((RawType)value).getParsedRealValue(expectedClass);
+			return parsedRealValue;
+		}
+		fail("Expected that attribute "+attrName+" is "+expectedClass+", but it was "+value.getClass()+": "+value);
+		return null; // not reached
 	}
 }

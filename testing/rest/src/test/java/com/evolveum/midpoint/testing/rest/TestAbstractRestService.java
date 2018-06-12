@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptResponseType;
@@ -52,12 +53,16 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -76,7 +81,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
  	public static final String USER_DARTHADDER_FILE = "user-darthadder";
  	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
  	public static final String USER_DARTHADDER_USERNAME = "darthadder";
- 	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
+ 	public static final String USER_DARTHADDER_PASSWORD = "Iamy0urUncle";
 
  	// Authorizations, but no password
  	public static final String USER_NOPASSWORD_FILE = "user-nopassword";
@@ -1131,34 +1136,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
-	@Test
-	public void test515validateValueImplicitPassword() throws Exception {
-		final String TEST_NAME = "test515validateValueImplicitPassword";
-		displayTestTitle(this, TEST_NAME);
-
-		WebClient client = prepareClient();
-		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
-
-		getDummyAuditService().clear();
-
-		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
-
-		TestUtil.displayThen(TEST_NAME);
-		displayResponse(response);
-
-
-		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
-
-
-		display("Audit", getDummyAuditService());
-		getDummyAuditService().assertRecords(2);
-		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
-	}
 	
 	@Test
-	public void test516validatePasswordHistoryConflict() throws Exception {
-		final String TEST_NAME = "test516validatePasswordHistoryConflict";
+	public void test515validatePasswordHistoryConflict() throws Exception {
+		final String TEST_NAME = "test515validatePasswordHistoryConflict";
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -1176,24 +1157,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
 		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 		
-//		
-//		
-//		PolicyItemsDefinitionType policyItemsDefinitionType = response.readEntity(PolicyItemsDefinitionType.class);
-//		List<PolicyItemDefinitionType> policyItemDefinitions = policyItemsDefinitionType.getPolicyItemDefinition();
-//		for (PolicyItemDefinitionType policyItemDefinition : policyItemDefinitions) {
-//			OperationResultType result = policyItemDefinition.getResult();
-//			OperationResult opResult = OperationResult.createOperationResult(result);
-//			LOGGER.info("opresult: {}", opResult.debugDump());
-//			assertNotNull("Expected localized message, but no one present", result.getMessage());
-//			LocalizableMessageType localizableMessage = result.getUserFriendlyMessage();
-//			assertTrue("Not a single localiable message", localizableMessage instanceof SingleLocalizableMessageType);
-//			SingleLocalizableMessageType singelLocalizableMessage = (SingleLocalizableMessageType) localizableMessage;
-//			assertNotNull("Expected localized message for single localizable message, but no one present", singelLocalizableMessage.getFallbackMessage());
-//			assertNotNull("Expected key in single localizable message, but no one present", singelLocalizableMessage.getKey());
-//			
-//		}
-//
-
 		display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
@@ -1249,6 +1212,34 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
 
+	@Test
+	public void test518validateValueImplicitPassword() throws Exception {
+		final String TEST_NAME = "test518validateValueImplicitPassword";
+		displayTestTitle(this, TEST_NAME);
+
+		OperationResult result = new OperationResult(TEST_NAME);
+		addObject(SECURITY_POLICY_NO_HISTORY, RepoAddOptions.createOverwrite(), result);
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+
+
+		display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
 	@Test
 	public void test520GeneratePasswordsUsingScripting() throws Exception {
 		final String TEST_NAME = "test520GeneratePasswordsUsingScripting";

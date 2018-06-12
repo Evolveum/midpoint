@@ -298,7 +298,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, true, null));
+                values.addAll(converter.convertToRValue(item, true));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

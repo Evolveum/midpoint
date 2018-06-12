@@ -811,18 +811,20 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
     }
 
     public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
-    	return findItemDelta(deltas, propertyPath, PropertyDelta.class);
+    	return findItemDelta(deltas, propertyPath, PropertyDelta.class, false);
     }
 
     public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
-    	return findItemDelta(deltas, propertyPath, ContainerDelta.class);
+    	return findItemDelta(deltas, propertyPath, ContainerDelta.class, false);
     }
 
     public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, QName name) {
     	return findContainerDelta(deltas, new ItemPath(name));
     }
 
-    public static <DD extends ItemDelta> DD findItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath, Class<DD> deltaType) {
+    // 'strict' means we avoid returning deltas that only partially match. This is NOT a definite solution, see MID-4689
+    public static <DD extends ItemDelta> DD findItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath,
+		    Class<DD> deltaType, boolean strict) {
         if (deltas == null) {
             return null;
         }
@@ -831,8 +833,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
                 return (DD) delta;
             }
             // e.g. when deleting credentials we match also deletion of credentials/password (is that correct?)
-            if ((delta instanceof ContainerDelta<?>) && delta.getPath().isSubPath(propertyPath)) {
-            	return (DD) ((ContainerDelta)delta).getSubDelta(propertyPath.substract(delta.getPath()));
+            if (!strict && delta instanceof ContainerDelta<?> && delta.getPath().isSubPath(propertyPath)) {
+	            //noinspection unchecked
+	            return (DD) ((ContainerDelta)delta).getSubDelta(propertyPath.remainder(delta.getPath()));
             }
         }
         return null;
@@ -852,7 +855,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
     }
 
     public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, QName itemName, Class<D> deltaType) {
-    	return findItemDelta(deltas, new ItemPath(itemName), deltaType);
+    	return findItemDelta(deltas, new ItemPath(itemName), deltaType, false);
     }
 
     public static ReferenceDelta findReferenceModification(Collection<? extends ItemDelta> deltas, QName itemName) {
@@ -1153,9 +1156,15 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	/**
 	 * Merge specified delta to this delta. This delta is assumed to be
-	 * chronologically earlier, delta provided in the parameter is chronilogically later.
+	 * chronologically earlier, delta provided in the parameter is chronologically later.
+	 *
+	 * TODO do we expect that the paths of "this" delta and deltaToMerge are the same?
+	 * From the code it seems so.
 	 */
 	public void merge(ItemDelta<V,D> deltaToMerge) {
+//		if (!getPath().equivalent(deltaToMerge.getPath())) {
+//			throw new AssertionError("Different paths in itemDelta merge: this=" + this + ", deltaToMerge=" + deltaToMerge);
+//		}
 		if (deltaToMerge.isEmpty()) {
 			return;
 		}

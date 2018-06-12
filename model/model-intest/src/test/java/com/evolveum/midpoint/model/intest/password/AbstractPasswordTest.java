@@ -118,6 +118,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
 	protected static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
 
+	public static final String PASSWORD_HELLO_WORLD = "H3ll0w0rld";
+
 	protected String accountJackOid;
 	protected String accountJackRedOid;
 	protected String accountJackBlueOid;
@@ -144,6 +146,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		initDummyResourcePirate(RESOURCE_DUMMY_LIFECYCLE_NAME, RESOURCE_DUMMY_LIFECYCLE_FILE, RESOURCE_DUMMY_LIFECYCLE_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_SOUVENIR_NAME, RESOURCE_DUMMY_SOUVENIR_FILE, RESOURCE_DUMMY_SOUVENIR_OID, initTask, initResult);
 
+		repoAddObjectFromFile(USER_THREE_HEADED_MONKEY_FILE, UserType.class, true, initResult);
+		
 		importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
 		initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
 
@@ -391,8 +395,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -528,8 +531,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_UGLY_OID, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -951,6 +953,66 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
      	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
 		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
+	}
+	
+	/**
+	 * Three headed monkey has no credentials. No password, nothing.
+	 * Just three heads.
+	 * MID-4631
+	 */
+	@Test
+    public void test150AssignMonkeyDummyAccount() throws Exception {
+		final String TEST_NAME = "test150AssignMonkeyDummyAccount";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+		// THEN
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		String accountOid = getSingleLinkOid(userAfter);
+
+        // Check account in dummy resource
+        assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME, USER_THREE_HEADED_MONKEY_FULL_NAME, true);
+	}
+	
+	/**
+	 * Three headed monkey has no credentials. No password, nothing.
+	 * Just three heads.
+	 * MID-4631
+	 */
+	@Test
+    public void test152ModifyUserMonkeyPassword() throws Exception {
+		final String TEST_NAME = "test152ModifyUserMonkeyPassword";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_1_CLEAR, task, result);
+
+		// THEN
+		assertSuccess(result);
+
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+
+		assertUserPassword(userAfter, USER_PASSWORD_1_CLEAR);
 	}
 
 	@Test
@@ -3188,6 +3250,237 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertNoUserPasswordNotifications();
 	}
 
+	/**
+	 *  MID-4593
+	 */
+	@Test
+	public void test920AddCredentials() throws Exception {
+		final String TEST_NAME = "test920AddCredentials";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(0, task, result);
+
+		UserType alice = new UserType(prismContext).name("alice");
+		addObject(alice.asPrismObject(), task, result);
+
+		PrismObject<UserType> aliceReloaded = getUser(alice.getOid());
+		assertNull("alice has credentials", aliceReloaded.asObjectable().getCredentials());
+
+		// WHEN
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue(PASSWORD_HELLO_WORLD);
+		CredentialsType credentials = new CredentialsType(prismContext)
+				.beginPassword()
+						.value(value)
+				.end();
+		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_CREDENTIALS).add(credentials)
+				.asObjectDeltaCast(alice.getOid());
+
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		PrismObject<UserType> aliceAfter = getUser(alice.getOid());
+		display("alice after credentials add", aliceAfter);
+		assertUserPassword(aliceAfter, PASSWORD_HELLO_WORLD);
+		assertPasswordCreateMetadata(aliceAfter);
+	}
+
+	/**
+	 *  MID-4593
+	 */
+	@Test
+	public void test922ReplaceCredentials() throws Exception {
+		final String TEST_NAME = "test922ReplaceCredentials";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(0, task, result);
+
+		UserType user = new UserType(prismContext).name("bob");
+		addObject(user.asPrismObject(), task, result);
+
+		PrismObject<UserType> userReloaded = getUser(user.getOid());
+		assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
+
+		// WHEN
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue(PASSWORD_HELLO_WORLD);
+		CredentialsType credentials = new CredentialsType(prismContext)
+				.beginPassword()
+						.value(value)
+				.end();
+		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_CREDENTIALS).replace(credentials)
+				.asObjectDeltaCast(user.getOid());
+
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("user after operation", userAfter);
+		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
+		assertPasswordCreateMetadata(userAfter);
+	}
+
+	/**
+	 *  MID-4593
+	 */
+	@Test
+	public void test924AddPassword() throws Exception {
+		final String TEST_NAME = "test924AddPassword";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(0, task, result);
+
+		UserType user = new UserType(prismContext).name("charlie");
+		addObject(user.asPrismObject(), task, result);
+
+		PrismObject<UserType> userReloaded = getUser(user.getOid());
+		assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
+
+		// WHEN
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue(PASSWORD_HELLO_WORLD);
+		PasswordType password = new PasswordType(prismContext).value(value);
+		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).add(password)
+				.asObjectDeltaCast(user.getOid());
+
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("user after operation", userAfter);
+		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
+		assertPasswordCreateMetadata(userAfter);
+	}
+
+	/**
+	 *  MID-4593
+	 */
+	@Test
+	public void test926ReplacePassword() throws Exception {
+		final String TEST_NAME = "test926ReplacePassword";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(0, task, result);
+
+		UserType user = new UserType(prismContext).name("david");
+		addObject(user.asPrismObject(), task, result);
+
+		PrismObject<UserType> userReloaded = getUser(user.getOid());
+		assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
+
+		// WHEN
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue(PASSWORD_HELLO_WORLD);
+		PasswordType password = new PasswordType(prismContext).value(value);
+		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).replace(password)
+				.asObjectDeltaCast(user.getOid());
+
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("user after operation", userAfter);
+		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
+		assertPasswordCreateMetadata(userAfter);
+	}
+
+	/**
+	 *  MID-4593
+	 */
+	@Test
+	public void test928AddPasswordValue() throws Exception {
+		final String TEST_NAME = "test928AddPasswordValue";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(0, task, result);
+
+		UserType user = new UserType(prismContext).name("eve");
+		addObject(user.asPrismObject(), task, result);
+
+		PrismObject<UserType> userReloaded = getUser(user.getOid());
+		assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
+
+		// WHEN
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue(PASSWORD_HELLO_WORLD);
+		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).add(value)
+				.asObjectDeltaCast(user.getOid());
+
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("user after operation", userAfter);
+		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
+		assertPasswordModifyMetadata(userAfter);
+	}
+
+	/**
+	 *  MID-4593
+	 */
+	@Test
+	public void test929ReplacePasswordValue() throws Exception {
+		final String TEST_NAME = "test929ReplacePasswordValue";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		prepareTest();
+
+		setPasswordMinOccurs(0, task, result);
+
+		UserType user = new UserType(prismContext).name("frank");
+		addObject(user.asPrismObject(), task, result);
+
+		PrismObject<UserType> userReloaded = getUser(user.getOid());
+		assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
+
+		// WHEN
+		ProtectedStringType value = new ProtectedStringType();
+		value.setClearValue(PASSWORD_HELLO_WORLD);
+		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace(value)
+				.asObjectDeltaCast(user.getOid());
+
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("user after operation", userAfter);
+		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
+		assertPasswordModifyMetadata(userAfter);
+	}
 
 	protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -3227,4 +3520,27 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertProtectedString("Wrong password value in repo shadow "+shadow, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
 	}
 
+	private void assertPasswordCreateMetadata(PrismObject<UserType> user) {
+		CredentialsType credentials = user.asObjectable().getCredentials();
+		assertNotNull("No credentials", credentials);
+		PasswordType password = credentials.getPassword();
+		assertNotNull("No credentials/password", password);
+		MetadataType metadata = password.getMetadata();
+		assertNotNull("No credentials/password/metadata", metadata);
+		assertNotNull("No credentials/password/metadata/createTimestamp", metadata.getCreateTimestamp());
+		assertNotNull("No credentials/password/metadata/creatorRef", metadata.getCreatorRef());
+		assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_GUI_USER_URI, metadata.getCreateChannel());
+	}
+
+	private void assertPasswordModifyMetadata(PrismObject<UserType> user) {
+		CredentialsType credentials = user.asObjectable().getCredentials();
+		assertNotNull("No credentials", credentials);
+		PasswordType password = credentials.getPassword();
+		assertNotNull("No credentials/password", password);
+		MetadataType metadata = password.getMetadata();
+		assertNotNull("No credentials/password/metadata", metadata);
+		assertNotNull("No credentials/password/metadata/modifyTimestamp", metadata.getModifyTimestamp());
+		assertNotNull("No credentials/password/metadata/modifierRef", metadata.getModifierRef());
+		assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_GUI_USER_URI, metadata.getModifyChannel());
+	}
 }

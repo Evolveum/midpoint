@@ -53,6 +53,7 @@ import org.apache.wicket.model.*;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+
 /**
  * Created by honchar.
  */
@@ -281,7 +282,6 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
     private void addNewShadowRefValuePerformed(AjaxRequestTarget target, RefinedAssociationDefinition def){
         ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(def,
                 getPageBase().getPrismContext(), resourceModel.getObject().getOid());
-        Task task = getPageBase().createAnonymousTask("Adding new shadow");
         ObjectBrowserPanel<ShadowType> objectBrowserPanel = new ObjectBrowserPanel<ShadowType>(
                 getPageBase().getMainPopupBodyId(), ShadowType.class, Arrays.asList(ShadowType.COMPLEX_TYPE),
                 false, getPageBase(),
@@ -303,10 +303,10 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());
                 ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+                Task task = getPageBase().createAnonymousTask("Adding new shadow");
                 ContainerValueWrapper<ResourceObjectAssociationType> valueWrapper =
                         factory.createContainerValueWrapper(associationWrapper, newAssociation,
                                 associationWrapper.getObjectStatus(), ValueStatus.ADDED, associationWrapper.getPath(), task);
-//                                        valueWrapper.setShowEmpty(true, false);
                 associationWrapper.getValues().add(valueWrapper);
 
                 target.add(ConstructionAssociationPanel.this);

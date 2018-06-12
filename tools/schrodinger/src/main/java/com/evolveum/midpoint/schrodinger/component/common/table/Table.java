@@ -60,6 +60,6 @@ public class Table<T> extends Component<T> {
 
     public boolean currentTableContains(String name) {
 
-        return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).is(Condition.visible);
+        return $(Schrodinger.byElementValue("Span", name)).is(Condition.visible);
     }
 }

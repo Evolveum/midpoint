@@ -25,10 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -97,10 +94,9 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         List<ExportProducerWorker> producers = new ArrayList<>();
 
         if (options.getOid() != null) {
-            ObjectTypes type = options.getType();
-            if (type == null) {
-                type = ObjectTypes.OBJECT;
-            }
+            Set<ObjectTypes> types = options.getType();
+
+            ObjectTypes type = types.isEmpty() ? ObjectTypes.OBJECT : types.iterator().next();
 
             InOidFilter filter = InOidFilter.createInOid(options.getOid());
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -151,8 +147,10 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
                 return shadowProducers;
             }
 
+            List<RefFilter> existingResourceRefs = new ArrayList<>();
             for (PrismObject obj : list) {
                 RefFilter resourceRefFilter = createResourceRefFilter(obj.getOid());
+                existingResourceRefs.add(resourceRefFilter);
 
                 ObjectFilter fullFilter = resourceRefFilter;
                 if (filter != null) {
@@ -161,6 +159,20 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
                 shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, fullFilter));
             }
+
+            // all other shadows (no resourceRef or non existing resourceRef)
+            List<ObjectFilter> notFilters = new ArrayList<>();
+            existingResourceRefs.forEach(f -> notFilters.add(NotFilter.createNot(f)));
+
+            ObjectFilter fullFilter = OrFilter.createOr(
+                    AndFilter.createAnd(notFilters),
+                    createResourceRefFilter(null)
+            );
+            if (filter != null) {
+                fullFilter = AndFilter.createAnd(fullFilter, filter);
+            }
+
+            shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, fullFilter));
         } catch (Exception ex) {
             shadowProducers.clear();
 
@@ -171,14 +183,17 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
     }
 
     private RefFilter createResourceRefFilter(String oid) throws SchemaException {
-        PrismReferenceValue val = new PrismReferenceValue(oid, ResourceType.COMPLEX_TYPE);
+        List<PrismReferenceValue> values = new ArrayList<>();
+        if (oid != null) {
+            values.add(new PrismReferenceValue(oid, ResourceType.COMPLEX_TYPE));
+        }
 
         PrismContext prismContext = context.getPrismContext();
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismReferenceDefinition def = registry.findItemDefinitionByFullPath(ShadowType.class,
                 PrismReferenceDefinition.class, ShadowType.F_RESOURCE_REF);
 
-        return RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), def, Arrays.asList(val));
+        return RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), def, values);
     }
 
     private ExportProducerWorker createProducer(BlockingQueue<PrismObject> queue, OperationStatus operation,

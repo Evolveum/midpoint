@@ -180,6 +180,10 @@ public class PrismTestUtil {
         return getPrismContext().parserFor(data).type(type).parseRealValue();
     }
 
+    public static <T> T parseAtomicValueCompat(String data, QName type) throws SchemaException {
+        return getPrismContext().parserFor(data).compat().type(type).parseRealValue();
+    }
+
     public static <T> T parseAnyValue(File file) throws SchemaException, IOException {
         return getPrismContext().parserFor(file).parseRealValue();
     }

@@ -20,14 +20,14 @@ public class ExportOptions extends BaseImportExportOptions {
     @Parameter(names = {P_OUTPUT, P_OUTPUT_LONG}, descriptionKey = "export.output")
     private File output;
 
-    @Parameter(names = {P_SPLIT, P_SPLIT_LONG}, descriptionKey = "export.split")
-    private boolean split;
+//    @Parameter(names = {P_SPLIT, P_SPLIT_LONG}, descriptionKey = "export.split")
+//    private boolean split;
 
     public File getOutput() {
         return output;
     }
 
-    public boolean isSplit() {
-        return split;
-    }
+//    public boolean isSplit() {
+//        return split;
+//    }
 }

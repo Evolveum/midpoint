@@ -410,11 +410,21 @@ public class SqlRepositoryConfiguration {
             defaultLockForUpdateViaSql = false;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
-	        defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
+	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = true;
 	        defaultUseReadOnlyTransactions = true;
         } else if (isUsingOracle()) {
+        	/*
+        	 * Isolation of SERIALIZABLE causes false ORA-8177 (serialization) exceptions even for single-thread scenarios
+        	 * since midPoint 3.8 and/or Oracle 12c (to be checked more precisely).
+        	 *
+        	 * READ_COMMITTED is currently a problem for MySQL and PostgreSQL because of org closure conflicts. However,
+        	 * in case of Oracle (and SQL Server and H2) we explicitly lock the whole M_ORG_CLOSURE_TABLE during closure
+        	 * updates. Therefore we can use READ_COMMITTED isolation for Oracle.
+        	 *
+        	 * (This is maybe the optimal solution also for other databases - to be researched later.)
+        	 */
 	        defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
 	        defaultLockForUpdateViaHibernate = false;
 	        defaultLockForUpdateViaSql = true;

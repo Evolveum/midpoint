@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -105,6 +106,7 @@ public abstract class RestServiceInitializer {
 	public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
 	public static final File VALUE_POLICY_SIMPLE = new File(BASE_REPO_DIR, "value-policy-simple.xml");
 	public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
+	public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
 
 	ApplicationContext applicationContext = null;
 
@@ -190,8 +192,12 @@ public abstract class RestServiceInitializer {
 	}
 
 	protected <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
+		return addObject(file, null, result);
+	}
+	
+	protected <O extends ObjectType> PrismObject<O> addObject(File file, RepoAddOptions options, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
 		PrismObject<O> object = getPrismContext().parseObject(file);
-		String oid = getRepositoryService().addObject(object, null, result);
+		String oid = getRepositoryService().addObject(object, options, result);
 		object.setOid(oid);
 		return object;
 	}

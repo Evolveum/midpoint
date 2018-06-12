@@ -17,9 +17,14 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.util.convert.IConverter;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -31,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -61,6 +67,10 @@ public class ObjectPolicyDialogDto implements Serializable{
         type = config.getType();
         subtype = config.getSubtype();
 
+//        for (PropertyConstraintType constraint : config.getPropertyConstraint()) {
+//        	propertyConstraintsList.add(new PropertyConstraintTypeDto(constraint));
+//        }
+        
         propertyConstraintsList = config.getPropertyConstraint();
         
         if (propertyConstraintsList.isEmpty()) {
@@ -73,12 +83,15 @@ public class ObjectPolicyDialogDto implements Serializable{
         }
     }
 
-    public ObjectPolicyConfigurationType preparePolicyConfig(){
+    public ObjectPolicyConfigurationType preparePolicyConfig(OperationResult result){
         ObjectPolicyConfigurationType newConfig = new ObjectPolicyConfigurationType();
 
         for (PropertyConstraintType constraintType : propertyConstraintsList) {
         		PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
-        		if (!constraint.isEmpty()) {
+        		if (BooleanUtils.isTrue(constraintType.isOidBound()) && constraintType.getPath() == null) {
+        			result.recordWarning("Skipping setting property constraint, no path was defined.");
+        		}
+        		if (!constraint.isEmpty() && constraintType.getPath() != null) {
         			newConfig.getPropertyConstraint().add(constraint.clone().asContainerable());
         		}
         }
@@ -93,7 +106,8 @@ public class ObjectPolicyDialogDto implements Serializable{
             ref.setTargetName(new PolyStringType(templateRef.getName()));
 	        newConfig.setObjectTemplateRef(ref);
         }
-
+        
+        result.recordSuccessIfUnknown();
         return newConfig;
     }
 
@@ -219,6 +233,6 @@ public class ObjectPolicyDialogDto implements Serializable{
 		return "ObjectPolicyDialogDto(propertyConstraintsList=" + propertyConstraintsList + ", config="
 				+ config + ", type=" + type + ", subtype=" + subtype + ", templateRef=" + templateRef + ")";
 	}
-
-
+	
+	
 }

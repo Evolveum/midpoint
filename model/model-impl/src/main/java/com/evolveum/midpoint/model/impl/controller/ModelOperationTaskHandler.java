@@ -153,9 +153,6 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
 	@PostConstruct
 	private void initialize() {
-        if (LOGGER.isTraceEnabled()) {
-		    LOGGER.trace("Registering with taskManager as a handler for " + MODEL_OPERATION_TASK_URI);
-        }
 		taskManager.registerHandler(MODEL_OPERATION_TASK_URI, this);
 	}
 }

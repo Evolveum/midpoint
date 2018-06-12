@@ -28,6 +28,7 @@ public enum BreakMode {
 	CONFLICT, // results in AlreadyExists exceptions
 	GENERIC,
 	UNSUPPORTED,
-	RUNTIME;
+	RUNTIME,
+	ASSERTION_ERROR;
 
 }

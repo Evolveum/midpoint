@@ -136,13 +136,19 @@ public class TaskQuartzImpl implements Task {
      *
      * This one is the live value of this task's result. All operations working with this task
      * should work with this value. This value is explicitly updated from the value in prism
-     * when fetching task from repo (or creating anew), see initializeFromRepo().
+     * when fetching task from repo (or creating anew).
      *
      * The value in taskPrism is updated when necessary, e.g. when getting taskPrism
      * (for example, used when persisting task to repo), etc, see the code.
      *
      * Note that this means that we SHOULD NOT get operation result from the prism - we should
      * use task.getResult() instead!
+     *
+     * This result can be null if the task was created from taskPrism retrieved from repo without fetching the result.
+     * Such tasks should NOT be used to execute handlers, as the result information would be lost.
+     *
+     * Basically, the result should be initialized only when a new transient task is created. It should be then persisted
+     * into the repository. Tasks that are to execute handlers should be fetched from the repository with their results.
      */
 	private OperationResult taskResult;
 
@@ -201,13 +207,15 @@ public class TaskQuartzImpl implements Task {
 		setBindingTransient(DEFAULT_BINDING_TYPE);
 		setProgressTransient(0);
 		setObjectTransient(null);
-		createOrUpdateTaskResult(operationName);
+		createOrUpdateTaskResult(operationName, true);
 
 		setDefaults();
 	}
 
 	/**
 	 * Assumes that the task is persistent
+	 *
+	 * NOTE: if the result in prism is null, task result will be kept null as well (meaning it was not fetched from the repository).
 	 *
 	 * @param operationName if null, default op. name will be used
 	 */
@@ -216,19 +224,8 @@ public class TaskQuartzImpl implements Task {
 		this(taskManager);
 		this.repositoryService = repositoryService;
 		this.taskPrism = taskPrism;
-		createOrUpdateTaskResult(operationName);
+		createOrUpdateTaskResult(operationName, false);
 
-		setDefaults();
-	}
-
-	/**
-	 * Analogous to the previous constructor.
-	 *
-	 * @param taskPrism
-	 */
-	private void replaceTaskPrism(PrismObject<TaskType> taskPrism) {
-		this.taskPrism = taskPrism;
-		createOrUpdateTaskResult(null);
 		setDefaults();
 	}
 
@@ -246,20 +243,22 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	private void createOrUpdateTaskResult(String operationName) {
+	private void createOrUpdateTaskResult(String operationName, boolean create) {
 		OperationResultType resultInPrism = taskPrism.asObjectable().getResult();
-		if (resultInPrism == null) {
+		if (resultInPrism == null && create) {
 			if (operationName == null) {
-				resultInPrism = new OperationResult(DOT_INTERFACE + "run").createOperationResultType();
+				resultInPrism = createUnnamedTaskResult().createOperationResultType();
 			} else {
 				resultInPrism = new OperationResult(operationName).createOperationResultType();
 			}
 			taskPrism.asObjectable().setResult(resultInPrism);
 		}
-		try {
-			taskResult = OperationResult.createOperationResult(resultInPrism);
-		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(), e);
+		if (resultInPrism != null) {
+			try {
+				taskResult = OperationResult.createOperationResult(resultInPrism);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
 		}
 	}
 	//endregion
@@ -597,7 +596,15 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public OperationResultStatusType getResultStatus() {
-		return taskResult == null ? null : taskResult.getStatus().createStatusType();
+		if (taskResult == null) {
+			if (taskPrism != null) {
+				return taskPrism.asObjectable().getResultStatus();
+			} else {
+				return null;
+			}
+		} else {
+			return taskResult.getStatus().createStatusType();
+		}
 	}
 
 	public void setResultStatusType(OperationResultStatusType value) {
@@ -2387,26 +2394,17 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Task(");
 		sb.append(TaskQuartzImpl.class.getName());
 		sb.append(")\n");
-		sb.append(taskPrism.debugDump(indent + 1));
-		sb.append("\n  persistenceStatus: ");
-		sb.append(getPersistenceStatus());
-		sb.append("\n  result: ");
-		if (taskResult == null) {
-			sb.append("null");
-		} else {
-			sb.append(taskResult.debugDump());
-		}
+		DebugUtil.debugDumpLabelLn(sb, "prism", indent + 1);
+		sb.append(taskPrism.debugDump(indent + 2));
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "persistenceStatus", getPersistenceStatus(), indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "taskResult", taskResult, indent);
 		return sb.toString();
 	}
 
@@ -2498,7 +2496,9 @@ public class TaskQuartzImpl implements Task {
 		result.addArbitraryObjectAsParam("task", this);
 		result.addParam("taskPrism", taskPrism);
 
-		replaceTaskPrism(taskPrism);
+		this.taskPrism = taskPrism;
+		createOrUpdateTaskResult(null, false);
+		setDefaults();
 		resolveOwnerRef(result);
 		result.recordSuccessIfUnknown();
 	}
@@ -3236,5 +3236,10 @@ public class TaskQuartzImpl implements Task {
 	public String getExecutionGroup() {
 		TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
 		return executionConstraints != null ? executionConstraints.getGroup() : null;
+	}
+
+	@NotNull
+	public OperationResult createUnnamedTaskResult() {
+		return new OperationResult(DOT_INTERFACE + "run");
 	}
 }

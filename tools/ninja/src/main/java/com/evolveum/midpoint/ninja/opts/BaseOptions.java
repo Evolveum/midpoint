@@ -19,6 +19,8 @@ package com.evolveum.midpoint.ninja.opts;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
+import java.io.File;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -39,6 +41,12 @@ public class BaseOptions {
 
     public static final String P_VERSION = "-V";
     public static final String P_VERSION_LONG = "--version";
+
+    public static final String P_JDBC = "-j";
+    public static final String P_JDBC_LONG = "--jdbc";
+
+    @Parameter(names = {P_JDBC, P_JDBC_LONG}, descriptionKey = "base.jdbc", hidden = true)
+    private File jdbc;
 
     @Parameter(names = {P_HELP, P_HELP_LONG}, help = true, descriptionKey = "base.help")
     private boolean help = false;
@@ -73,5 +81,9 @@ public class BaseOptions {
 
     public boolean isVersion() {
         return version;
+    }
+
+    public File getJdbc() {
+        return jdbc;
     }
 }

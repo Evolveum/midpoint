@@ -7,6 +7,7 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
  * Created by matus on 5/9/2018.
  */
 public abstract class AbstractTable<T> extends Table<T> {
+
     public AbstractTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }

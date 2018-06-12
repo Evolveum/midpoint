@@ -83,5 +83,5 @@
     	<item>roleMembershipRef</item>
     	<item>delegatedRef</item>
     </authorization>
-    <subType>system</subType>
+    <subtype>system</subtype>
 </role>

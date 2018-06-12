@@ -104,6 +104,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
+    public static final int MAIN_LOG_WARN_THRESHOLD = 8;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);

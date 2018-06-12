@@ -332,6 +332,12 @@ public class ChangeExecutor {
 				} catch (SchemaException | ObjectNotFoundException | PreconditionViolationException | CommunicationException |
 						ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 					recordProjectionExecutionException(e, projCtx, subResult, SynchronizationPolicyDecision.BROKEN);
+					
+					// We still want to update the links here. E.g. this may be live sync case where we discovered new account
+					// try to reconcile, but the reconciliation fails. We still want this shadow linked to user.
+					if (focusContext != null) {
+						updateLinks(focusContext, projCtx, task, subResult);
+					}
 
 				} catch (ObjectAlreadyExistsException e) {
 
@@ -1242,9 +1248,17 @@ public class ChangeExecutor {
 				options = context.getOptions();
 			}
 
+			RepoAddOptions addOpt = new RepoAddOptions();
+			if (ModelExecuteOptions.isOverwrite(options)) {
+				addOpt.setOverwrite(true);
+			}
+			if (ModelExecuteOptions.isNoCrypt(options)) {
+				addOpt.setAllowUnencryptedValues(true);
+			}
+
 			String oid;
 			if (objectTypeToAdd instanceof TaskType) {
-				oid = addTask((TaskType) objectTypeToAdd, result);
+				oid = addTask((TaskType) objectTypeToAdd, addOpt, result);
 			} else if (objectTypeToAdd instanceof NodeType) {
 				throw new UnsupportedOperationException("NodeType cannot be added using model interface");
 			} else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
@@ -1261,13 +1275,6 @@ public class ChangeExecutor {
 			} else {
 				FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
 
-				RepoAddOptions addOpt = new RepoAddOptions();
-				if (ModelExecuteOptions.isOverwrite(options)) {
-					addOpt.setOverwrite(true);
-				}
-				if (ModelExecuteOptions.isNoCrypt(options)) {
-					addOpt.setAllowUnencryptedValues(true);
-				}
 				oid = cacheRepositoryService.addObject(objectToAdd, addOpt, result);
 				if (oid == null) {
 					throw new SystemException(
@@ -1401,10 +1408,10 @@ public class ChangeExecutor {
 
 
 
-	private String addTask(TaskType task, OperationResult result)
-			throws ObjectAlreadyExistsException, ObjectNotFoundException {
+	private String addTask(TaskType task, RepoAddOptions addOpt, OperationResult result)
+			throws ObjectAlreadyExistsException {
 		try {
-			return taskManager.addTask(task.asPrismObject(), result);
+			return taskManager.addTask(task.asPrismObject(), addOpt, result);
 		} catch (ObjectAlreadyExistsException ex) {
 			throw ex;
 		} catch (Exception ex) {

@@ -91,10 +91,11 @@ public class DataSourceFactory {
         config.setMinimumIdle(configuration.getMinPoolSize());
         config.setMaximumPoolSize(configuration.getMaxPoolSize());
 
+        config.setIsolateInternalQueries(true);
 //        config.setAutoCommit(false);
 
         TransactionIsolation ti = configuration.getTransactionIsolation();
-        if (ti != null) {
+        if (ti != null && TransactionIsolation.SNAPSHOT != ti) {
             config.setTransactionIsolation("TRANSACTION_" + ti.name());
         }
 

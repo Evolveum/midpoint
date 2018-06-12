@@ -562,6 +562,16 @@ public class SchemaTransformer {
 		if (emphasized != null) {
 			((ItemDefinitionImpl) itemDef).setEmphasized(emphasized);
 		}
+		
+		Boolean deprecated = templateItemDefType.isDeprecated();
+		if (deprecated != null) {
+			((ItemDefinitionImpl) itemDef).setDeprecated(deprecated);
+		}
+		
+		Boolean experimental = templateItemDefType.isExperimental();
+		if (experimental != null) {
+			((ItemDefinitionImpl) itemDef).setExperimental(experimental);
+		}
 
 		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
 		if (limitations != null) {

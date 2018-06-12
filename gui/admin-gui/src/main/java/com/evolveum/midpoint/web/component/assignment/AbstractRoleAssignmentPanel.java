@@ -46,12 +46,14 @@ import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -199,23 +201,33 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            }
            
            for (T object : assignmentsList){
-        	   PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-        	   ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
-        	   AssignmentType assignmentType = newAssignment.asContainerable();
-        	   if (ResourceType.class.equals(object.getClass())) {
-        		   ConstructionType constructionType = new ConstructionType();
-        		   constructionType.setResourceRef(ref);
-        		   constructionType.setKind(kind);
-        		   constructionType.setIntent(intent);
-        		   assignmentType.setConstruction(constructionType);
-        	   } else {
-        		   assignmentType.setTargetRef(ref);
-        	   }
-        	   createNewAssignmentContainerValueWrapper(newAssignment);
+        	   PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
+        	   PrismContainerValue<AssignmentType> newAssignment;
+			try {
+				newAssignment = definition.instantiate().createNewValue();
+				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
+	        	   AssignmentType assignmentType = newAssignment.asContainerable();
+	        	   if (ResourceType.class.equals(object.getClass())) {
+	        		   ConstructionType constructionType = new ConstructionType();
+	        		   constructionType.setResourceRef(ref);
+	        		   constructionType.setKind(kind);
+	        		   constructionType.setIntent(intent);
+	        		   assignmentType.setConstruction(constructionType);
+	        	   } else {
+	        		   assignmentType.setTargetRef(ref);
+	        	   }
+	        	   createNewAssignmentContainerValueWrapper(newAssignment);
+	        	   refreshTable(target);
+	               reloadSavePreviewButtons(target);
+			} catch (SchemaException e) {
+				getSession().error("Cannot create new assignment " + e.getMessage());
+				target.add(getPageBase().getFeedbackPanel());
+				target.add(this);
+			}
+        	   
            }
 
-            refreshTable(target);
-            reloadSavePreviewButtons(target);
+           
        }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {

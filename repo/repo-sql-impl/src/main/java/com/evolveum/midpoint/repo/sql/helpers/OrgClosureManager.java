@@ -40,7 +40,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.jdbc.Work;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
@@ -50,9 +49,9 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
+
+import static java.util.Collections.singletonList;
 
 /**
  * This class and its subclasses provides org. closure table handling.
@@ -106,23 +105,17 @@ public class OrgClosureManager {
      * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
-                                                        Collection<? extends ItemDelta> modifications, Session session,
-                                                        String oid, Class<T> type, Operation operation, Context closureContext) {
-
-        if (!isEnabled()) {
+		    Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
+		    Context closureContext) {
+        if (!isEnabled() || !OrgType.class.isAssignableFrom(type)) {
             return;
         }
-
-        if (!OrgType.class.isAssignableFrom(type)) {
-            return;
-        }
-
         session.flush();
         session.clear();
 
         long time = System.currentTimeMillis();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("################# Starting {} for org. closure for {} oid={}.", new Object[]{operation, type.getSimpleName(), oid});
+            LOGGER.debug("################# Starting {} for org. closure for {} oid={}.", operation, type.getSimpleName(), oid);
         }
 
         List<ReferenceDelta> deltas = filterParentRefDeltas(modifications);
@@ -549,7 +542,7 @@ public class OrgClosureManager {
             // So, in H2, we insert the edges one-by-one
             if (isH2()) {
                 for (Edge edge : edges) {
-                    addIndependentEdgesInternal(Arrays.asList(edge), context, session);
+                    addIndependentEdgesInternal(singletonList(edge), context, session);
                 }
             } else {
                 addIndependentEdgesInternal(edges, context, session);
@@ -784,7 +777,7 @@ public class OrgClosureManager {
             // for the reason for this decomposition, see addIndependentEdges
             if (isH2()) {
                 for (Edge edge : edges) {
-                    removeIndependentEdgesInternal(Arrays.asList(edge), context, session);
+                    removeIndependentEdgesInternal(singletonList(edge), context, session);
                 }
             } else {
                 removeIndependentEdgesInternal(edges, context, session);
@@ -903,13 +896,15 @@ public class OrgClosureManager {
         } else if (isOracle()) {
             NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
-        } else if (isPostgreSQL()) {
-            // currently not used
-            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
-            q.executeUpdate();
+//        } else if (isPostgreSQL()) {
+//            // currently not used
+//            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+//            q.executeUpdate();
         } else if (isSQLServer()) {
             NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
+        } else {
+        	throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
         }
         LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
 
@@ -925,7 +920,7 @@ public class OrgClosureManager {
         String deltaTempTableName;
 
         if (context.temporaryTableName != null) {
-            deltaTempTableName = context.temporaryTableName;                  // table was created on the beginning of trasaction
+            deltaTempTableName = context.temporaryTableName;                  // table was created on the beginning of transaction
         } else if (isOracle()) {
             deltaTempTableName = TEMP_DELTA_TABLE_NAME_FOR_ORACLE;            // table definition is global
         } else {
@@ -958,13 +953,8 @@ public class OrgClosureManager {
                     "PRIMARY KEY (descendant_oid, ancestor_oid))";
 //            NativeQuery createTableQuery = session.createNativeQuery(createTableSql);
 //            createTableQuery.executeUpdate();  <--- this does not work because the temporary table gets deleted when the command terminates (preparedStatement issue - maybe something like this: https://support.microsoft.com/en-us/kb/280134 ?)
-            session.doWork(new Work() {
-                @Override
-                public void execute(Connection connection) throws SQLException {
-                    connection.createStatement().execute(createTableSql);
-                }
-            });
-            if (LOGGER.isTraceEnabled()) LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);
+            session.doWork(connection -> connection.createStatement().execute(createTableSql));
+            LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);
 
             NativeQuery insertQuery = session.createNativeQuery("insert into " + deltaTempTableName + " " + selectClause);
             start = System.currentTimeMillis();
@@ -994,8 +984,8 @@ public class OrgClosureManager {
             start = System.currentTimeMillis();
             count = query1.executeUpdate();
         }
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary delta table {} ({} ms).",
-                new Object[] {count, deltaTempTableName, System.currentTimeMillis()-start});
+        LOGGER.trace("Added {} records to temporary delta table {} ({} ms).", count, deltaTempTableName,
+                System.currentTimeMillis()-start);
 
         if (isPostgreSQL()) {
             start = System.currentTimeMillis();

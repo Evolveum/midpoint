@@ -24,6 +24,7 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismSerializer;
+import com.evolveum.midpoint.prism.SerializationOptions;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -46,7 +47,9 @@ public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject>
 
         // todo handle split option
 
-        PrismSerializer<String> serializer = context.getPrismContext().xmlSerializer();
+        PrismSerializer<String> serializer = context.getPrismContext()
+                .xmlSerializer()
+                .options(SerializationOptions.createSerializeForExport());
 
         try (Writer writer = createWriter()) {
             while (!shouldConsumerStop()) {

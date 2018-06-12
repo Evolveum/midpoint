@@ -89,7 +89,7 @@ public class ObjectDeltaUpdater {
     public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                           PrismObject<T> prismObject, Session session) throws SchemaException {
 
-        LOGGER.debug("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
+        LOGGER.trace("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
 
         // normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
 
@@ -200,7 +200,7 @@ public class ObjectDeltaUpdater {
 
         handleObjectCommonAttributes(type, processedModifications, prismObject, object, idGenerator);
 
-        LOGGER.debug("Entity changes applied");
+        LOGGER.trace("Entity changes applied");
 
         return object;
     }
@@ -425,7 +425,7 @@ public class ObjectDeltaUpdater {
         try {
             Collection<PrismEntityPair<RAnyValue>> extValues = new ArrayList<>();
             for (PrismValue value : values) {
-                RAnyValue extValue = converter.convertToRValue(value, object == null, null);
+                RAnyValue extValue = converter.convertToRValue(value, object == null);
                 if (extValue == null) {
                     continue;
                 }
@@ -473,12 +473,17 @@ public class ObjectDeltaUpdater {
                                                    RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
 
         Collection<RAnyValue> filtered = new ArrayList<>();
+        RExtItem extItemDefinition = extItemDictionary.findItemByDefinition(def);
+        if (extItemDefinition == null) {
+            return filtered;
+        }
         for (RAnyValue value : existing) {
-            if (!value.getName().equals(RUtil.qnameToString(def.getName()))
-                    || !value.getType().equals(RUtil.qnameToString(def.getTypeName()))) {
+            if (value.getItemId() == null) {
+                continue;       // suspicious
+            }
+            if (!value.getItemId().equals(extItemDefinition.getId())) {
                 continue;
             }
-
             if (value instanceof ROExtValue) {
                 ROExtValue oValue = (ROExtValue) value;
                 if (!objectOwnerType.equals(oValue.getOwnerType())) {

@@ -18,18 +18,22 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
 import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -43,16 +47,23 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -289,19 +300,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 			collator.setDecomposition(Collator.FULL_DECOMPOSITION);     // slower but more precise
 			
-//			List<ItemWrapper> containerWrappers = new ArrayList<>();
-//			List<ItemWrapper> propertyOrReferenceWrapper = new ArrayList<>();
-//			for(ItemWrapper w : properties) {
-//				if (w instanceof ContainerWrapper) {
-//					containerWrappers.add(w);
-//					continue;
-//				}
-//				
-//				if (PropertyOrReferenceWrapper.class.isAssignableFrom(w.getClass())) {
-//					propertyOrReferenceWrapper.add(w);
-//				}
-//			}
-			
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
@@ -399,39 +397,63 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 
 		PrismContainerValue<C> newValue = containerValue.clone();
-		try {
-			newValue.addAllReplaceExisting((Collection) getUpdatedContainerValueItems(containerValue.getPrismContext()));
-		} catch (TunnelException e) {
-			throw new SchemaException(e.getMessage(), e);
-		}
-
-		return newValue;
-	}
-
-	public Collection<Item> getUpdatedContainerValueItems(PrismContext prismContext) throws SchemaException {
-		Collection<Item> updatedItems = new ArrayList<>();
+		
 		for (ItemWrapper item : getItems()) {
-			try {
-				if (!item.hasChanged()) {
-					continue;
+			if (!item.hasChanged()) {
+				continue;
+			}
+
+			if (item instanceof ContainerWrapper) {
+				
+				PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
+				newValue.addReplaceExisting(containerToAdd);
+				
+			} else {
+
+				PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
+				ItemPath path = propOrRef.getPath();
+				ItemDelta itemDelta = collectAddModifications(propOrRef);
+				
+				ItemPath itemPath = itemDelta.getParentPath().remainder(getContainer().getPath());
+				if (itemPath.first() instanceof IdItemPathSegment) {
+					itemPath = itemPath.tail();
 				}
-
-				if (item instanceof ContainerWrapper) {
-					PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
-					updatedItems.add(containerToAdd);
-					
-				} else {
-
-					PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
-					Item updatedItem = propOrRef.getUpdatedItem(prismContext);
-					updatedItems.add(updatedItem);
-
-				}
-			} catch (SchemaException ex) {
-				throw new TunnelException("Cannot create add delta for container value: " + containerValue, ex);
+				itemDelta.setParentPath(itemPath);
+				
+				itemDelta.applyTo(newValue);
+		
 			}
 		}
-		return updatedItems;
+		return newValue;
+	}
+	
+	public <C extends Containerable> ItemDelta collectAddModifications(PropertyOrReferenceWrapper itemWrapper)
+			throws SchemaException {
+		ItemPath containerPath = getPath() != null ? getPath() : ItemPath.EMPTY_PATH;
+		if (itemWrapper instanceof PropertyWrapper) {
+			ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
+			if (!pDelta.isEmpty()) {
+				// HACK to remove a password replace delta is to be created
+				if (getContainer().getName().equals(CredentialsType.F_PASSWORD)) {
+					if (pDelta.getValuesToDelete() != null) {
+						pDelta.resetValuesToDelete();
+						pDelta.setValuesToReplace(new ArrayList());
+					}
+				}
+			}
+
+			return pDelta;
+		}
+
+		if (itemWrapper instanceof ReferenceWrapper) {
+			ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
+			if (!pDelta.isEmpty()) {
+				return pDelta;
+			}
+		}
+
+		LOGGER.trace("Delta from wrapper: ignoring {}", itemWrapper);
+		return null;
 	}
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
@@ -457,6 +479,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 					delta.addModification(pDelta);
 				}
 			} else if (itemWrapper instanceof ReferenceWrapper) {
+//				if (containerPath.equals(ItemPath.EMPTY_PATH) && itemWrapper.getPath().getSegments().size() > 1){
+//					containerPath = itemWrapper.getPath().allExceptLast();
+//				}
 				ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
 				if (!pDelta.isEmpty()) {
 					delta.addModification(pDelta);
@@ -478,7 +503,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
-		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
+		ReferenceDelta pDelta = new ReferenceDelta(referenceWrapper.getPath(), propertyDef,
 				propertyDef.getPrismContext());
 		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
 		return pDelta;
@@ -711,6 +736,20 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return null;
 	}
+	
+	public ItemWrapper findPropertyWrapper(ItemPath itemPath) {
+		Validate.notNull(itemPath, "Item path must not be null.");
+		for (ItemWrapper wrapper : getItems()) {
+			if (wrapper instanceof ContainerWrapper) {
+				continue;
+			}
+			if (itemPath.equivalent(wrapper.getPath())) {
+				return (PropertyOrReferenceWrapper) wrapper;
+			}
+		}
+		return null;
+	}
+
 
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
 		return findContainerWrapper(new ItemPath(qname));
@@ -791,6 +830,5 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
 	}
-
 
 }

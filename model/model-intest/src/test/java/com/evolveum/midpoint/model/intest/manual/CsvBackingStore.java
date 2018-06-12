@@ -119,6 +119,32 @@ public class CsvBackingStore implements BackingStore {
 	}
 	
 	@Override
+	public void addPhantom() throws IOException {
+		appendToCsv(new String[]{
+				AbstractManualResourceTest.USER_PHANTOM_USERNAME,
+				// Wrong fullname here ... by purpose. We wonder whether reconciliation fixes this.
+				AbstractManualResourceTest.USER_PHANTOM_FULL_NAME_WRONG,
+				AbstractManualResourceTest.ACCOUNT_PHANTOM_DESCRIPTION_MANUAL, 
+				"",
+				"false",
+				AbstractManualResourceTest.ACCOUNT_PHANTOM_PASSWORD_MANUAL
+			});
+	}
+	
+	@Override
+	public void addPhoenix() throws IOException {
+		appendToCsv(new String[]{
+				AbstractManualResourceTest.USER_PHOENIX_USERNAME,
+				AbstractManualResourceTest.USER_PHOENIX_FULL_NAME,
+				AbstractManualResourceTest.ACCOUNT_PHOENIX_DESCRIPTION_MANUAL, 
+				"",
+				"false",
+				AbstractManualResourceTest.ACCOUNT_PHOENIX_PASSWORD_MANUAL
+			});
+	}
+
+	
+	@Override
 	public void deleteAccount(String username) throws IOException {
 		deleteInCsv(username);
 	}
@@ -193,7 +219,7 @@ public class CsvBackingStore implements BackingStore {
 	}
 
 	private String formatCsvLine(String[] data) {
-		return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(","));
+		return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(",")) + "\n";
 	}
 
 	@Override

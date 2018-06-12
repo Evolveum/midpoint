@@ -39,6 +39,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
@@ -172,13 +173,20 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return domParser.serializeSingleElementMapToElement(filterClauseXNode);
     }
 
-    public static SearchFilterType createFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
+    // xnode should be correct (expecting it was just created by serializing something)
+    public static SearchFilterType createFromSerializedXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
-        filter.parseFromXNode(xnode, prismContext);
+        filter.parseFromXNode(xnode, null, prismContext);
         return filter;
     }
 
-    public void parseFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
+    public static SearchFilterType createFromParsedXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
+        SearchFilterType filter = new SearchFilterType();
+        filter.parseFromXNode(xnode, pc, prismContext);
+        return filter;
+    }
+
+    public void parseFromXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
     	if (xnode == null || xnode.isEmpty()) {
     		this.filterClauseXNode = null;
     		this.description = null;
@@ -206,7 +214,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
                 throw new SchemaException("Filter clause has more than one item: " + xfilter);
             }
     		this.filterClauseXNode = xfilter;
-            QueryConvertor.parseFilterPreliminarily(xfilter, prismContext);
+            QueryConvertor.parseFilterPreliminarily(xfilter, pc, prismContext);
     	}
     }
 

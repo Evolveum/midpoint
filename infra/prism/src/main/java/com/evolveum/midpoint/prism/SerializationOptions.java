@@ -24,6 +24,13 @@ public class SerializationOptions implements Cloneable {
 	private boolean serializeCompositeObjects;
     private boolean serializeReferenceNames;
 	private ItemNameQualificationStrategy itemNameQualificationStrategy;
+
+	/**
+	 * Makes the serialized form "standalone". Currently this means that values for items that are not present in the
+	 * schema registry (like attributes or connector configuration properties) will get xsi:type information.
+	 */
+	private boolean serializeForExport;
+
 //	private NameQualificationStrategy itemTypeQualificationStrategy;
 //	private NameQualificationStrategy itemPathQualificationStrategy;
 //	private NameQualificationStrategy genericQualificationStrategy;
@@ -62,6 +69,24 @@ public class SerializationOptions implements Cloneable {
 
 	public static boolean isSerializeCompositeObjects(SerializationOptions options) {
 		return options != null && options.isSerializeCompositeObjects();
+	}
+
+	public boolean isSerializeForExport() {
+		return serializeForExport;
+	}
+
+	public void setSerializeForExport(boolean serializeForExport) {
+		this.serializeForExport = serializeForExport;
+	}
+
+	public static SerializationOptions createSerializeForExport() {
+		SerializationOptions serializationOptions = new SerializationOptions();
+		serializationOptions.setSerializeForExport(true);
+		return serializationOptions;
+	}
+
+	public static boolean isSerializeForExport(SerializationOptions options) {
+    	return options != null && options.isSerializeForExport();
 	}
 
 	//	public ItemNameQualificationStrategy getItemNameQualificationStrategy() {
@@ -115,14 +140,15 @@ public class SerializationOptions implements Cloneable {
 
 	@Override
 	protected SerializationOptions clone() {
-		SerializationOptions clone = null;
+		SerializationOptions clone;
 		try {
 			clone = (SerializationOptions) super.clone();
 		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
+			throw new IllegalStateException(e);
 		}
-		clone.serializeReferenceNames = this.serializeReferenceNames;
+		clone.serializeReferenceNames = serializeReferenceNames;
 		clone.itemNameQualificationStrategy = itemNameQualificationStrategy;
+		clone.serializeForExport = serializeForExport;
 		return clone;
 	}
 }

@@ -215,7 +215,7 @@ public class WfStageComputeHelper {
 			Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), variables,
 				"automatic completion expression", String.class,
-				DOMUtil.XSD_STRING, createOutcomeConvertor(), opTask, result);
+				DOMUtil.XSD_STRING, false, createOutcomeConvertor(), opTask, result);
 		LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
 		Set<String> distinctOutcomes = new HashSet<>(outcomes);
 		if (distinctOutcomes.isEmpty()) {

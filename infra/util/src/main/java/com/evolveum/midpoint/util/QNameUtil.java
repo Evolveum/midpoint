@@ -163,7 +163,8 @@ public class QNameUtil {
 		}
 	}
 
-    public static QName uriToQName(String uri, boolean allowUnqualified) {
+	@NotNull
+    public static QName uriToQName(@NotNull String uri, boolean allowUnqualified) {
 		return uriToQNameInfo(uri, allowUnqualified).name;
 	}
 
@@ -179,7 +180,7 @@ public class QNameUtil {
 
 	@NotNull
     public static QNameInfo uriToQNameInfo(@NotNull String uri, boolean allowUnqualified) {
-		Validate.notNull(uri);
+		Validate.notNull(uri, "null URI");
         int index = uri.lastIndexOf("#");
         if (index != -1) {
             String ns = uri.substring(0, index);

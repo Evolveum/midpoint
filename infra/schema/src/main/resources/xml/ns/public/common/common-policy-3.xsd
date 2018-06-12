@@ -180,7 +180,7 @@
 					<xsd:element name="assignment" type="tns:AssignmentModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								Constraint that triggers when the object is assigned, usassignmed or the assignment is modified.
+								Constraint that triggers when the object is assigned, unassigned or the assignment is modified.
 								Modification of an assignment, i.e. where this object is a target of assignment that is being modified.
 								(This constraint should be perhaps named assignmentModification.)
 							</xsd:documentation>

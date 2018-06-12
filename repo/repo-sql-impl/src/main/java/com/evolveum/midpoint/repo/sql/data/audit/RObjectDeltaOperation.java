@@ -38,13 +38,16 @@ import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
+
 /**
  * @author lazyman
  */
 @Ignore
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
-@Table(name = RObjectDeltaOperation.TABLE_NAME)
+@Table(name = RObjectDeltaOperation.TABLE_NAME, indexes = {
+        @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID)})
 public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     private static final long serialVersionUID = -1065600513263271161L;
@@ -284,21 +287,21 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         return auditDelta;
     }
 
-    public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext)
+    public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext, boolean useUtf16)
             throws DtoTranslationException {
 
         ObjectDeltaOperation odo = new ObjectDeltaOperation();
         try {
             if (operation.getDelta() != null) {
                 byte[] data = operation.getDelta();
-                String xmlDelta = RUtil.getXmlFromByteArray(data, true);
+                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
 
                 ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
             if (operation.getFullResult() != null) {
                 byte[] data = operation.getFullResult();
-                String xmlResult = RUtil.getXmlFromByteArray(data, true);
+                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
 
                 OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
