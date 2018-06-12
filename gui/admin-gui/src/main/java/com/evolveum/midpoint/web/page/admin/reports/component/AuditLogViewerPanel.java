@@ -370,59 +370,60 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     		(Function<ObjectType, String> & Serializable) (ObjectType o) ->
         		o.getName().getOrig();
 
-	private void initAuditLogViewerTable(Form mainForm) {
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this) {
+    private Map<String, Object> getAuditEventProviderParameters() {
+        Map<String, Object> parameters = new HashMap<>();
+
+        AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
+        parameters.put(AuditEventRecordProvider.PARAMETER_FROM, search.getFrom());
+        parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
+
+        if (search.getChannel() != null) {
+            parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, QNameUtil.qNameToUri(search.getChannel()));
+        }
+        parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
+
+        if (search.getInitiatorName() != null) {
+            parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());
+        }
+
+        if (search.getTargetOwnerName() != null) {
+            parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_OWNER_NAME, search.getTargetOwnerName().getOid());
+        }
+        List<String> targetOids = new ArrayList<>();
+        if (isNotEmpty(search.getTargetNamesObjects())) {
+            targetOids.addAll(search.getTargetNamesObjects().stream()
+                    .map(ObjectType::getOid)
+                    .collect(toList()));
+        }
+        if (isNotEmpty(search.getTargetNames())) {
+            targetOids.addAll(search.getTargetNames().stream()
+                    .map(ObjectReferenceType::getOid)
+                    .collect(toList()));
+        }
+        if (!targetOids.isEmpty()) {
+            parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_NAMES, targetOids);
+        }
+        if (search.getChangedItem().toItemPath() != null) {
+            ItemPath itemPath = search.getChangedItem().toItemPath();
+            parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, CanonicalItemPath.create(itemPath).asString());
+        }
+        parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_TYPE, search.getEventType());
+        parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_STAGE, search.getEventStage());
+        parameters.put(AuditEventRecordProvider.PARAMETER_OUTCOME, search.getOutcome());
+        if (isNotEmpty(search.getvalueRefTargetNames())) {
+            parameters.put(AuditEventRecordProvider.PARAMETER_VALUE_REF_TARGET_NAMES,
+                    search.getvalueRefTargetNames().stream()
+                            .map(ObjectType::getName)
+                            .map(PolyStringType::getOrig)
+                            .collect(toList()));
+        }
+        return parameters;
+    }
+
+    private void initAuditLogViewerTable(Form mainForm) {
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this, null,
+                this::getAuditEventProviderParameters) {
             private static final long serialVersionUID = 1L;
-
-            public Map<String, Object> getParameters() {
-                Map<String, Object> parameters = new HashMap<>();
-
-                AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
-                parameters.put(AuditEventRecordProvider.PARAMETER_FROM, search.getFrom());
-                parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
-
-                if (search.getChannel() != null) {
-                    parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, QNameUtil.qNameToUri(search.getChannel()));
-                }
-                parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
-
-                if (search.getInitiatorName() != null) {
-                    parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());
-                }
-
-                if (search.getTargetOwnerName() != null) {
-                    parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_OWNER_NAME, search.getTargetOwnerName().getOid());
-                }
-                List<String> targetOids = new ArrayList<>();
-                if (isNotEmpty(search.getTargetNamesObjects())) {
-                    targetOids.addAll(search.getTargetNamesObjects().stream()
-                    		.map(ObjectType::getOid)
-                    		.collect(toList()));
-                }
-                if (isNotEmpty(search.getTargetNames())) {
-                    targetOids.addAll(search.getTargetNames().stream()
-                    		.map(ObjectReferenceType::getOid)
-                    		.collect(toList()));
-                }
-                if (!targetOids.isEmpty()) {
-    				parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_NAMES, targetOids);
-                }
-                if (search.getChangedItem().toItemPath() != null) {
-                	ItemPath itemPath = search.getChangedItem().toItemPath();
-                	parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, CanonicalItemPath.create(itemPath).asString());
-                }
-                parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_TYPE, search.getEventType());
-                parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_STAGE, search.getEventStage());
-                parameters.put(AuditEventRecordProvider.PARAMETER_OUTCOME, search.getOutcome());
-                if (isNotEmpty(search.getvalueRefTargetNames())) {
-	                parameters.put(AuditEventRecordProvider.PARAMETER_VALUE_REF_TARGET_NAMES,
-	                		search.getvalueRefTargetNames().stream()
-	                		.map(ObjectType::getName)
-	                		.map(PolyStringType::getOrig)
-	                		.collect(toList()));
-                }
-                return parameters;
-            }
 
             @Override
             protected void saveCurrentPage(long from, long count) {
