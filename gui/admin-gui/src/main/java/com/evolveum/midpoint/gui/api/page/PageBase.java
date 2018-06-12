@@ -876,7 +876,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
         footerContainer.setOutputMarkupId(true);
-        footerContainer.add(getFooterVisibleBehaviour());
+        footerContainer.add(AttributeAppender.append("class", isFooterVisible() ? "main-footer" : "main-footer-invisible"));
         add(footerContainer);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
@@ -2082,15 +2082,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public boolean isVisible() {
-                String subscriptionId = getSubscriptionId();
-                if (StringUtils.isEmpty(subscriptionId)) {
-                    return true;
-                }
-                return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
-                        (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-                                && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+                return isFooterVisible();
             }
         };
+    }
+
+    private boolean isFooterVisible(){
+        String subscriptionId = getSubscriptionId();
+        if (StringUtils.isEmpty(subscriptionId)) {
+            return true;
+        }
+        return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+                (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+                        && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
     }
 
     protected String determineDataLanguage() {
