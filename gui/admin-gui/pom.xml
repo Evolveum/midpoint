@@ -210,7 +210,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.32</version>
+            <version>0.35</version>
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
@@ -404,11 +404,6 @@
 			<artifactId>spring-aspects</artifactId>
 			<scope>runtime</scope> 
 		</dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
-			<groupId>org.springframework</groupId> 
-			<artifactId>spring-aop</artifactId>
-			<scope>runtime</scope> 
-		</dependency>
         <dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
@@ -544,6 +539,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
+        <dependency> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+		</dependency>
 
         <!-- SPRING SECURITY -->
         <dependency>
@@ -721,6 +720,7 @@
 		</dependency>
 
         <!-- TEST -->
+        
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
@@ -756,6 +756,11 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+    		<groupId>javax.annotation</groupId>
+    		<artifactId>javax.annotation-api</artifactId>
+    		<scope>test</scope>
+		</dependency>
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>

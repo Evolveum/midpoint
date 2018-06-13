@@ -63,10 +63,9 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <spring.boot.version>1.5.8.e1</spring.boot.version> <!-- can be replaced by a stock version;
-                ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
-        <spring.version>4.3.14.RELEASE</spring.version>
-        <spring.security.version>4.2.4.RELEASE</spring.security.version>
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version> 
+        <spring.version>5.0.5.RELEASE</spring.version>
+        <spring.security.version>5.0.5.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -828,6 +827,11 @@
 	        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
 				<groupId>org.springframework</groupId> 
 				<artifactId>spring-aop</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jcl</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
             <dependency>

@@ -28,6 +28,10 @@
             <level>ERROR</level>
             <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
         </classLogger>
+		<classLogger>
+            <level>TRACE</level>
+            <package>org.springframework.*</package>
+        </classLogger>
         <classLogger>
             <!-- disabled because of MID-744, helper insert messages on ERROR
             level which should not be there (probably should be on TRACE) -->

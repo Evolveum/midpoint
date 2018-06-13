@@ -3856,7 +3856,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		String decryptedUserPassword = protector.decryptString(protectedStringType);
 		assertNotNull("Null password in " + source, decryptedUserPassword);
 		if (decryptedUserPassword.startsWith("{") || decryptedUserPassword.contains("}")) {
-			assertTrue("Wrong password hash in "+source+": "+decryptedUserPassword+", expected "+expectedPassword, ldapShaPasswordEncoder.isPasswordValid(decryptedUserPassword, expectedPassword, null));
+			assertTrue("Wrong password hash in "+source+": "+decryptedUserPassword+", expected "+expectedPassword, ldapShaPasswordEncoder.matches(decryptedUserPassword, expectedPassword));
 		} else {
 			assertEquals("Wrong password in "+source, expectedPassword, decryptedUserPassword);
 		}
