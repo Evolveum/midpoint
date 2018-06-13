@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.7</p>
+            <p>Version: 3.8</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>

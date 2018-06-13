@@ -21,7 +21,7 @@
 	<groupId>com.evolveum.midpoint.samples</groupId>
 	<artifactId>model-client-sample</artifactId>
 	<!-- NOTE: no parent. We want this to be completely stand-alone. -->
-	<version>3.8-SNAPSHOT</version>
+	<version>3.8</version>
 	<properties>
 		<project.source.version>1.8</project.source.version>
     	<cxf.version>3.1.6</cxf.version>
@@ -159,7 +159,7 @@
         <dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-client</artifactId>
-			<version>3.8-SNAPSHOT</version>
+			<version>3.8</version>
 		</dependency>
 		<dependency>
             <groupId>org.apache.cxf</groupId>

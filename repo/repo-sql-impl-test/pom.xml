@@ -25,7 +25,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.8-SNAPSHOT</version>
+        <version>3.8</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -36,37 +36,37 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-api</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
         </dependency>
         
         <dependency>
@@ -132,13 +132,13 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
             <scope>test</scope>
         </dependency>
 		<dependency>
@@ -177,7 +177,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
-            <version>3.8-SNAPSHOT</version>
+            <version>3.8</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
