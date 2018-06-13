@@ -1,6 +1,6 @@
 Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
 
-MidPoint 3.8 "Watt"
+MidPoint 3.8.x "Watt" support branch
 ------------------------------------
 
 General information:
