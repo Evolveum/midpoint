@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>tools</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.8</version>
+		<version>3.8.1-SNAPSHOT</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
