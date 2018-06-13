@@ -29,6 +29,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
@@ -81,10 +82,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test010AddedAccountJack() throws Exception {
 		final String TEST_NAME = "test010AddedAccountJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -142,10 +143,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test020ModifyLootAbsolute() throws Exception {
 		final String TEST_NAME = "test020ModifyLootAbsolute";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -203,10 +204,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test021ModifyLootAbsoluteEmpty() throws Exception {
 		final String TEST_NAME = "test021ModifyLootAbsoluteEmpty";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -268,10 +269,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test030Reconcile() throws Exception {
 		final String TEST_NAME = "test030Reconcile";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -318,10 +319,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test039DeletedAccountJack() throws Exception {
 		final String TEST_NAME = "test039DeletedAccountJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
@@ -388,10 +389,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test050AddedAccountCalypso() throws Exception {
 		final String TEST_NAME = "test050AddedAccountCalypso";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -440,10 +441,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test051CalypsoRecon() throws Exception {
 		final String TEST_NAME = "test051CalypsoRecon";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -488,10 +489,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test100AddedAccountJack() throws Exception {
 		final String TEST_NAME = "test100AddedAccountJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -518,9 +519,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
 		// WHEN
+        displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -561,10 +565,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test199DeletedAccountJackTotal() throws Exception {
 		final String TEST_NAME = "test199DeletedAccountJackTotal";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();
@@ -614,13 +618,154 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		assertNoObject(ShadowType.class, accountShadowJackDummyOid, task, result);
 	}
 
+	/**
+	 * Schema violation error on the connector while doing synchronization.
+	 * While we cannot really execute any connector operation (e.g. we cannot
+	 * reconcile), we still want the shadow linked to the user.
+	 * MID-3787
+	 */
 	@Test
-    public void test210AddedGroupPirates() throws Exception {
-		final String TEST_NAME = "test210AddedGroupPirates";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+    public void test200AddedAccountJackSchemaViolation() throws Exception {
+		final String TEST_NAME = "test200AddedAccountJackSchemaViolation";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		assertLinks(userBefore, 0);
+		
+		MockLensDebugListener mockListener = new MockLensDebugListener();
+        clockwork.setDebugListener(mockListener);
+
+        PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
+        accountShadowJackDummyOid = accountShadowJack.getOid();
+        provisioningService.applyDefinition(accountShadowJack, task, result);
+        assertNotNull("No oid in shadow", accountShadowJack.getOid());
+        DummyAccount dummyAccount = new DummyAccount();
+        dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccount.setPassword("deadMenTellNoTales");
+        dummyAccount.setEnabled(true);
+        dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Sparrow");
+        getDummyResource().addAccount(dummyAccount);
+
+		display("Dummy resource before", getDummyResource());
+		
+		getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
+
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setCurrentShadow(accountShadowJack);
+        change.setResource(getDummyResourceObject());
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        synchronizationService.notifyChange(change, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        getDummyResource().resetBreakMode();
+        assertPartialError(result);
+        LensContext<UserType> context = mockListener.getLastSyncContext();
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+
+        assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
+
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertLinks(userAfter, 1);
+        
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
+        assertSituation(shadow, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadow);
+	}
+	
+	/**
+	 * Pretend that the account is updated. It is already linked.
+	 * There is still schema violation error on the connector while doing
+	 * synchronization.
+	 * The shadow should still be linked.
+	 * MID-3787
+	 */
+	@Test
+    public void test202UpdatedAccountJackSchemaViolation() throws Exception {
+		final String TEST_NAME = "test202UpdatedAccountJackSchemaViolation";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		assertLinks(userBefore, 1);
+		
+		MockLensDebugListener mockListener = new MockLensDebugListener();
+        clockwork.setDebugListener(mockListener);
+
+		display("Dummy resource before", getDummyResource());
+		
+		getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
+
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        PrismObject<ShadowType> accountShadowJackBefore = getShadowModelNoFetch(accountShadowJackDummyOid);
+        change.setCurrentShadow(accountShadowJackBefore);
+        change.setResource(getDummyResourceObject());
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        synchronizationService.notifyChange(change, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        getDummyResource().resetBreakMode();
+        assertPartialError(result);
+
+        LensContext<UserType> context = mockListener.getLastSyncContext();
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+
+        assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        		ActivationStatusType.ENABLED);
+
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
+
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertLinks(userAfter, 1);
+        
+		PrismObject<ShadowType> shadowAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
+        assertSituation(shadowAfter, SynchronizationSituationType.LINKED);
+		assertLinked(userAfter, shadowAfter);
+
+	}
+	
+	@Test
+    public void test300AddedGroupPirates() throws Exception {
+		final String TEST_NAME = "test300AddedGroupPirates";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         MockLensDebugListener mockListener = new MockLensDebugListener();

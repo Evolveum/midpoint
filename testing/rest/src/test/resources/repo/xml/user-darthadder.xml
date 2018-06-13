@@ -46,14 +46,14 @@
 	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 		<c:password>
 			<c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-				<clearValue>iamyouruncle</clearValue>
+				<clearValue>Iamy0urUncle</clearValue>
 			</c:value>
 		</c:password>
 		<securityQuestions>
 			<questionAnswer id="1">
 				<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
 				<questionAnswer>
-					<t:clearValue>iamyouruncle</t:clearValue>
+					<t:clearValue>Iamy0urUncle</t:clearValue>
 				</questionAnswer>
 			</questionAnswer>
 		</securityQuestions>
