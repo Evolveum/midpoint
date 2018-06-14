@@ -112,6 +112,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 	private static final String OPERATION_LOAD_MANAGERS = DOT_CLASS + "loadManagers";
+	private static final String OPERATION_UNASSIGN_MANAGERS = DOT_CLASS + "unassignManagers";
 	private static final String OPERATION_LOAD_MEMBER_RELATION_OBJECTS = DOT_CLASS + "loadMemberRelationObjects";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
@@ -363,21 +364,26 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
-		OperationResult parentResult = new OperationResult("Remove manager");
-		Task task = getPageBase().createSimpleTask("Remove manager");
+		OperationResult parentResult = new OperationResult(OPERATION_UNASSIGN_MANAGERS);
+		Task task = getPageBase().createSimpleTask(OPERATION_UNASSIGN_MANAGERS);
 		try {
 
 			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(
 					manager.asPrismObject().getCompileTimeClass(), manager.getOid(), FocusType.F_ASSIGNMENT,
 					getPageBase().getPrismContext(), createAssignmentToModify(SchemaConstants.ORG_MANAGER));
 
-			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
-					null, task, parentResult);
-			parentResult.computeStatus();
-		} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException
-				| ExpressionEvaluationException | CommunicationException | ConfigurationException
-				| PolicyViolationException | SecurityViolationException e) {
+			List<ObjectType> managerList = new ArrayList<>();
+			managerList.add(manager);
 
+			executeMemberOperation(task, FocusType.COMPLEX_TYPE,
+					createQueryForMemberAction(QueryScope.SELECTED, managerList, SchemaConstants.ORG_MANAGER, true), delta,
+					TaskCategory.EXECUTE_CHANGES, target);
+
+//			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
+//					null, task, parentResult);
+//			parentResult.computeStatus();
+		} catch (SchemaException e) {
+//
 			parentResult.recordFatalError("Failed to remove manager " + e.getMessage(), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Failed to remove manager", e);
 			getPageBase().showResult(parentResult);
@@ -727,13 +733,16 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
+		return createQueryForMemberAction(scope, getMemberTable().getSelectedObjects(), orgRelation, isFocus);
+	}
+
+	private ObjectQuery createQueryForMemberAction(QueryScope scope, List<ObjectType> selectedObjects, QName orgRelation, boolean isFocus) {
 
 		ObjectQuery query = null;
 		switch (scope) {
 			case SELECTED:
-				List<ObjectType> objects = getMemberTable().getSelectedObjects();
 				List<String> oids = new ArrayList<>();
-				for (ObjectType object : objects) {
+				for (ObjectType object : selectedObjects) {
 					if (satisfyConstraints(isFocus, object.getClass())) {
 						oids.add(object.getOid());
 					}
