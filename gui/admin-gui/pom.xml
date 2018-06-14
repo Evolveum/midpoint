@@ -210,7 +210,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.35</version>
+            <version>0.32</version>
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>

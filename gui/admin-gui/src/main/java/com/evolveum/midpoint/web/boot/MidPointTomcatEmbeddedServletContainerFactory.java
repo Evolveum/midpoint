@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.web.boot;
 
 import org.apache.catalina.startup.Tomcat;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,12 +28,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * 
  * @author semancik
  */
-public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatServletWebServerFactory {
+public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatEmbeddedServletContainerFactory {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointTomcatEmbeddedServletContainerFactory.class);
 
 	@Override
-	protected TomcatWebServer getTomcatWebServer(Tomcat tomcat) {
+	protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(Tomcat tomcat) {
 
 		// We are setting up fake context here. This context does not really do anything.
 		// But it is "mapped" to the root URL (/ ... or rather "" in Tomcat parlance).
@@ -44,7 +44,7 @@ public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatServlet
 		RootRootContext rootRootContext = new RootRootContext();
 		tomcat.getHost().addChild(rootRootContext);
 		
-		return super.getTomcatWebServer(tomcat);
+		return super.getTomcatEmbeddedServletContainer(tomcat);
 	}
 	
 	

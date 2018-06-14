@@ -23,8 +23,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.autoconfigure.web.EmbeddedServletContainerAutoConfiguration.BeanPostProcessorsRegistrar;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -50,11 +51,11 @@ public class EmbeddedTomcatAutoConfiguration {
 	
 	@Configuration
 	@ConditionalOnClass({ Servlet.class, Tomcat.class })
-	@ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
+	@ConditionalOnMissingBean(value = EmbeddedServletContainerFactory.class, search = SearchStrategy.CURRENT)
 	public static class EmbeddedTomcat {
 
 		@Bean
-		public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
+		public TomcatEmbeddedServletContainerFactory tomcatEmbeddedServletContainerFactory() {
 			return new MidPointTomcatEmbeddedServletContainerFactory();
 		}
 
