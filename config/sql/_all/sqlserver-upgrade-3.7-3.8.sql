@@ -905,8 +905,15 @@ CREATE INDEX iAExtensionString
   ON m_assignment_ext_string (stringValue);
 CREATE INDEX iAssignmentReferenceTargetOid
   ON m_assignment_reference (targetOid);
+CREATE INDEX iAuditDeltaRecordId
+  ON m_audit_delta (record_id);
+CREATE INDEX iAuditItemRecordId
+  ON m_audit_item (record_id);
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
+
+ALTER TABLE m_ext_item
+  ADD CONSTRAINT iExtItemDefinition UNIQUE (itemName, itemType, kind);
 CREATE INDEX iObjectNameOrig
   ON m_object (name_orig);
 CREATE INDEX iObjectNameNorm

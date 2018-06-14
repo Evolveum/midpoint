@@ -45,8 +45,16 @@
 		<label>Suomi</label>
 	</row>
 	<row>
+		<key>fr</key>
+		<label>Français</label>
+	</row>
+	<row>
 		<key>hu</key>
 		<label>Magyar</label>
+	</row>
+	<row>
+		<key>it</key>
+		<label>Italiano</label>
 	</row>
 	<row>
 		<key>pl</key>

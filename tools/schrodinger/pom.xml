@@ -22,14 +22,14 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.8-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>schrodinger</artifactId>
-    <version>3.8-SNAPSHOT</version>
+    <version>3.9-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>schrodinger</name>

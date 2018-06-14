@@ -38,13 +38,16 @@ import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
+
 /**
  * @author lazyman
  */
 @Ignore
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
-@Table(name = RObjectDeltaOperation.TABLE_NAME)
+@Table(name = RObjectDeltaOperation.TABLE_NAME, indexes = {
+        @Index(name = "iAuditDeltaRecordId", columnList = COLUMN_RECORD_ID)})
 public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     private static final long serialVersionUID = -1065600513263271161L;

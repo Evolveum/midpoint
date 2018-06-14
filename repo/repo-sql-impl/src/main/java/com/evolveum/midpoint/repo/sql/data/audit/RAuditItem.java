@@ -22,11 +22,14 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import org.hibernate.annotations.ForeignKey;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RAuditItem.COLUMN_RECORD_ID;
+
 @Ignore
 @Entity
 @IdClass(RAuditItemId.class)
 @Table(name = RAuditItem.TABLE_NAME, indexes = {
-		@Index(name = "iChangedItemPath", columnList = "changedItemPath")})
+		@Index(name = "iChangedItemPath", columnList = "changedItemPath"),
+		@Index(name = "iAuditItemRecordId", columnList = COLUMN_RECORD_ID)})
 public class RAuditItem implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_item";

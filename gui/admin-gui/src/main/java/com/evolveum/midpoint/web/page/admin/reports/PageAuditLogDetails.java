@@ -161,17 +161,15 @@ public class PageAuditLogDetails extends PageBase {
         initLayoutBackButton();
     }
 
-    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel){
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this){
-            private static final long serialVersionUID = 1L;
+	public Map<String, Object> getAuditEventRecordProviderParameters() {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
+		return parameters;
+	}
 
-            public Map<String, Object> getParameters() {
-                Map<String, Object> parameters = new HashMap<>();
-                parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
-                return parameters;
-            }
-        };
-
+	private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel) {
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this, null,
+		        this::getAuditEventRecordProviderParameters);
 
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
                 ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE, TASK_EVENTS_TABLE_SIZE) {

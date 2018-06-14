@@ -327,13 +327,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
-//	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
-//		PrismContainerValue<C> pcv = container.createNewValue();
-//		ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
-//		wrapper.setShowEmpty(showEmpty, true);
-//		return wrapper;
-//	}
-
 	public void sort() {
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
 			valueWrapper.sort();
@@ -420,13 +413,15 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 			switch (containerValueWrapper.getStatus()) {
 				case ADDED:
-					PrismContainerValue<C> valueToAdd = containerValueWrapper.createContainerValueAddDelta();
-					if (getItemDefinition().isMultiValue()) {
-						delta.addModificationAddContainer(getPath(), valueToAdd);
+					if (!isMain()) {
+						PrismContainerValue<C> valueToAdd = containerValueWrapper.createContainerValueAddDelta();
+						if (getItemDefinition().isMultiValue()) {
+							delta.addModificationAddContainer(getPath(), valueToAdd);
+							break;
+						}
+						delta.addModificationReplaceContainer(getPath(), valueToAdd);
 						break;
 					}
-					delta.addModificationReplaceContainer(getPath(), valueToAdd);
-					break;
 				case NOT_CHANGED:
 					containerValueWrapper.collectModifications(delta);
 					break;

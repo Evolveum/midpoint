@@ -25,10 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -52,6 +49,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
@@ -335,6 +333,20 @@ public class ReportFunctions {
 //    Object parseObjectFromXML (String xml) throws SchemaException {
 //        return prismContext.parserFor(xml).xml().parseAnyData();
 //    }
+
+    public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems()
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = task.getResult();
+        SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, null,
+                resolveItemsNamed(
+                        WorkItemType.F_ASSIGNEE_REF,
+                        new ItemPath(PrismConstants.T_PARENT, WfContextType.F_OBJECT_REF),
+                        new ItemPath(PrismConstants.T_PARENT, WfContextType.F_TARGET_REF),
+                        new ItemPath(PrismConstants.T_PARENT, WfContextType.F_REQUESTER_REF)), task, result);
+        return PrismContainerValue.toPcvList(workItems);
+    }
 
     /**
      * Retrieves all definitions.
