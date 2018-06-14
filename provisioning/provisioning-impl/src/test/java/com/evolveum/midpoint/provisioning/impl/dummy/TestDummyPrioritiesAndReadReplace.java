@@ -87,7 +87,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 
@@ -244,23 +244,31 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 43);
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Gun");
-
-
-		// BEWARE: very brittle!
-		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result, ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".update");
-		assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
-		checkAttributesUpdated(updatesExecuted.get(0), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
-		checkAttributesUpdated(updatesExecuted.get(1), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
-		checkAttributesUpdated(updatesExecuted.get(2), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-
+		
+		assertTest123ModifyObjectReplaceResult(result);
+		
 		syncServiceMock.assertNotifySuccessOnly();
 
-		//assertSteadyResource();
+	}
+	
+	protected void assertTest123ModifyObjectReplaceResult(OperationResult result) {
+		// BEWARE: very brittle!
+		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result, ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
+		assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
+		checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+		checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+		checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 	}
 
-	private void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
+	protected void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
 		assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
 		Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributes").toString());
+		assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
+	}
+	
+	protected void checkAttributesDelta(OperationResult operationResult, String operation, String... attributeNames) {
+		assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
+		Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributesDelta").toString());
 		assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
 	}
 
@@ -351,22 +359,21 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "orange juice");
 
-
-		// BEWARE: very brittle!
-		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result,
-				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".update",
-				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".addAttributeValues",
-				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".removeAttributeValues");
-		assertEquals("Wrong number of updates executed", 5, updatesExecuted.size());
-		checkAttributesUpdated(updatesExecuted.get(0), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);		// prio 0, read-replace
-		checkAttributesUpdated(updatesExecuted.get(1), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);			// prio 1, read-replace
-		checkAttributesUpdated(updatesExecuted.get(2), "addAttributeValues", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME); // prio none, not read-replace
-		checkAttributesUpdated(updatesExecuted.get(3), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);	// prio none, read-replace + real replace
-		checkAttributesUpdated(updatesExecuted.get(4), "removeAttributeValues", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);	 // prio none, not read-replace
-
+		assertTest150ModifyObjectAddDeleteResult(result);
+		
 		syncServiceMock.assertNotifySuccessOnly();
 
 		//assertSteadyResource();
+	}
+	
+	protected void assertTest150ModifyObjectAddDeleteResult(OperationResult result) {
+		// BEWARE: very brittle!
+		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result,
+				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
+		assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
+		checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);		// prio 0, read-replace
+		checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);			// prio 1, read-replace
+		checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);	// prio none, read-replace + real replace
 	}
 
 }

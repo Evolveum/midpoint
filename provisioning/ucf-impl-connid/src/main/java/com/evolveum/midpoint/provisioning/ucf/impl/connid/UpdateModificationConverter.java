@@ -74,7 +74,7 @@ public class UpdateModificationConverter extends AbstractModificationConverter {
 				// It should also make no substantial difference in such case.
 				// But it is working around some connector bugs.
 				// update with EMTPY value. The connIdAttributeValues is NOT used in this branch
-				attributesToUpdate.add(AttributeBuilder.build(connIdAttrName, Collections.EMPTY_LIST));
+				attributesToUpdate.add(AttributeBuilder.build(connIdAttrName));
 			}
 		}
 		if (delta.isReplace()) {
@@ -90,7 +90,7 @@ public class UpdateModificationConverter extends AbstractModificationConverter {
 	@Override
 	protected <T> void collectReplace(String connIdAttrName, T connIdAttrValue) throws SchemaException {
 		if (connIdAttrValue == null) {
-			attributesToUpdate.add(AttributeBuilder.build(connIdAttrName, Collections.EMPTY_LIST));
+			attributesToUpdate.add(AttributeBuilder.build(connIdAttrName));
 		} else {
 			attributesToUpdate.add(AttributeBuilder.build(connIdAttrName, connIdAttrValue));
 		}

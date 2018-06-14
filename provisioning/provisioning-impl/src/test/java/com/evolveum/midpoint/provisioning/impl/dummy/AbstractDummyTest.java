@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -160,7 +161,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(getResourceDummyFilename(), IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(getResourceDummyFile(), getDummyConnectorType(), initResult);
 		resourceType = resource.asObjectable();
 
 		dummyResourceCtl = DummyResourceContoller.create(null);
@@ -180,6 +181,14 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 			setIcfUid(shadowDaemon, dummyAccountDaemon.getId());
 		}
 		repositoryService.addObject(shadowDaemon, null, initResult);
+	}
+	
+	protected String getDummyConnectorType() {
+		return IntegrationTestTools.DUMMY_CONNECTOR_TYPE;
+	}
+	
+	protected Class<?> getDummyConnectorClass() {
+		return  DummyConnector.class;
 	}
 
 	protected void extraDummyResourceInit() throws Exception {
@@ -205,7 +214,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		return icfUidAttr.getRealValue();
 	}
 
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 

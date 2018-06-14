@@ -1691,10 +1691,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 		delta.checkConsistence();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
 				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
@@ -1745,10 +1747,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 		delta.checkConsistence();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
 				delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
@@ -1779,9 +1783,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);

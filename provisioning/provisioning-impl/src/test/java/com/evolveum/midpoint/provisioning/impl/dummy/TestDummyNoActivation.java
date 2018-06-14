@@ -62,7 +62,7 @@ public class TestDummyNoActivation extends TestDummy {
 	}
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 

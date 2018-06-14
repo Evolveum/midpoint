@@ -76,7 +76,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	public static final String ACCOUNT_FETTUCINI_CARLO_FULLNAME = "Carlo Fettucini";
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 

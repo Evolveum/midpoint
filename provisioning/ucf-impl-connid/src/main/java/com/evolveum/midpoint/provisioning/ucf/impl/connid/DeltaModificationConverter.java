@@ -68,6 +68,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
 				// It should also make no substantial difference in such case.
 				// But it is working around some connector bugs.
 				// update with EMTPY value. The connIdAttributeValues is NOT used in this branch
+				// Explicitly replace with empty list. Passing null here would mean "no replace in this delta".
 				deltaBuilder.addValueToReplace(connIdAttrName, Collections.EMPTY_LIST);
 			}
 		}
@@ -76,7 +77,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
 			if (isInModifiedAuxilaryClass == PlusMinusZero.PLUS) {
 				deltaBuilder.addValueToAdd(connIdAttributeValues);
 			} else {
-				deltaBuilder.addValueToReplace(connIdAttrName, connIdAttributeValues);
+				deltaBuilder.addValueToReplace(connIdAttributeValues);
 			}
 		}
 		attributesDelta.add(deltaBuilder.build());
@@ -85,6 +86,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
 	@Override
 	protected <T> void collectReplace(String connIdAttrName, T connIdAttrValue) throws SchemaException {
 		if (connIdAttrValue == null) {
+			// Explicitly replace with empty list. Passing null here would mean "no replace in this delta".
 			attributesDelta.add(AttributeDeltaBuilder.build(connIdAttrName, Collections.EMPTY_LIST));
 		} else {
 			attributesDelta.add(AttributeDeltaBuilder.build(connIdAttrName, connIdAttrValue));

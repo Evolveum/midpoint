@@ -400,7 +400,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilder(this.getClass(), indent);
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
 		debugDumpOutput(sb, indent);
 		DebugUtil.debugDumpWithLabel(sb, "additionalOperations", additionalOperations, indent + 1);
 		return sb.toString();

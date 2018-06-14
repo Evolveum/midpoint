@@ -90,7 +90,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 	}
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 

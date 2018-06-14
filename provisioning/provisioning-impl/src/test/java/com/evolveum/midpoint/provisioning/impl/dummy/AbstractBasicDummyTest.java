@@ -648,7 +648,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
 		assertNotNull("native update capability not present", capUpdate);
 		assertNull("native update capability is manual", capUpdate.isManual());
-		assertNull("native update capability is delta", capUpdate.isDelta());
+		assertNotNull("native update capability is null", capUpdate.isDelta());
+		assertTrue("native update capability is NOT delta", capUpdate.isDelta());
 	}
 
 	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
@@ -922,7 +923,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(getResourceDummyFile());
 		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
 		resource.asObjectable().getConnectorRef().setOid(this.resourceType.getConnectorRef().getOid());
 		// Make sure this object has a different OID than the one already loaded. This avoids caching
@@ -952,7 +953,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(getResourceDummyFile());
 		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
 		resource.asObjectable().getConnectorRef().setOid(this.resourceType.getConnectorRef().getOid());
 		ObjectDelta<ResourceType> delta = resource.createAddDelta();
@@ -1048,7 +1049,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertEquals("Unexpected size of operational status", 1, operationalStatuses.size());
 		ConnectorOperationalStatus operationalStatus = operationalStatuses.get(0);
 
-		assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
+		assertEquals("Wrong connectorClassName", getDummyConnectorClass().getName(), operationalStatus.getConnectorClassName());
 		assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
 		assertEquals("Wrong poolConfigMaxSize", (Integer)10, operationalStatus.getPoolConfigMaxSize());
 		assertEquals("Wrong poolConfigMinIdle", (Integer)1, operationalStatus.getPoolConfigMinIdle());
