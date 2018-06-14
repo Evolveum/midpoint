@@ -549,8 +549,14 @@ public class ConnectorManager {
 		for (Entry<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry: connectorInstanceCache.entrySet()) {
 			connectorInstanceCacheEntry.getValue().connectorInstance.dispose();
 		}
-		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
-			connectorFactory.shutdown();
+		if (connectorFactories != null) {
+			// Skip this in the very rare case that we are shutting down before we were fully
+			// initialized. This should not happen under normal circumstances.
+			// Generally, do not call getConnectorFactories() from here. This is
+			// spring "destroy" method. We should not work with spring context here.
+			for (ConnectorFactory connectorFactory: connectorFactories) {
+				connectorFactory.shutdown();
+			}
 		}
 	}
 
