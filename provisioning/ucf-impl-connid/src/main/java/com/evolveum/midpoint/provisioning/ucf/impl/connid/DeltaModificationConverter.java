@@ -54,7 +54,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
 				// Force "update" for single-valued attributes instead of "add". This is saving one
 				// read in some cases. It should also make no substantial difference in such case.
 				// But it is working around some connector bugs.
-				deltaBuilder.addValueToReplace(connIdAttrName, connIdAttributeValues);
+				deltaBuilder.addValueToReplace(connIdAttributeValues);
 			}
 		}
 		if (delta.isDelete()) {
@@ -69,7 +69,7 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
 				// But it is working around some connector bugs.
 				// update with EMTPY value. The connIdAttributeValues is NOT used in this branch
 				// Explicitly replace with empty list. Passing null here would mean "no replace in this delta".
-				deltaBuilder.addValueToReplace(connIdAttrName, Collections.EMPTY_LIST);
+				deltaBuilder.addValueToReplace(Collections.EMPTY_LIST);
 			}
 		}
 		if (delta.isReplace()) {
