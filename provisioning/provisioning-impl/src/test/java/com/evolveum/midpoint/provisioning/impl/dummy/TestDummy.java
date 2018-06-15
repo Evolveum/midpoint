@@ -2124,17 +2124,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 		return ObjectOrdering.createOrdering(new ItemPath(ShadowType.F_ATTRIBUTES, attrQname), direction);
 	}
 
-	protected void assertApproxNumberOfAllResults(SearchResultMetadata searchMetadata, Integer expectedNumber) {
-		if (expectedNumber == null) {
-			if (searchMetadata == null) {
-				return;
-			}
-			assertNull("Unexpected approximate number of search results in search metadata, expected null but was "+searchMetadata.getApproxNumberOfAllResults(), searchMetadata.getApproxNumberOfAllResults());
-		} else {
-			assertEquals("Wrong approximate number of search results in search metadata", expectedNumber, searchMetadata.getApproxNumberOfAllResults());
-		}
-	}
-
 	@Test
 	public void test194SearchIcfNameRepoizedNoFetch() throws Exception {
 		final String TEST_NAME = "test194SearchIcfNameRepoizedNoFetch";

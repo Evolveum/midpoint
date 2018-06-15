@@ -384,7 +384,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test010Connection() throws Exception {
 		final String TEST_NAME = "test010Connection";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 
@@ -404,7 +404,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	@Test
     public void test020Schema() throws Exception {
 		final String TEST_NAME = "test020Schema";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         display("Resource schema", resourceSchema);
@@ -440,7 +440,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	@Test
     public void test030Capabilities() throws Exception {
 		final String TEST_NAME = "test030Capabilities";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         CapabilitiesType capabilities = resourceType.getCapabilities();
         display("Resource capabilities", capabilities);
@@ -525,7 +525,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("Searching shadows, options="+options+", query", query);
 		SearchResultMetadata searchResultMetadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
 

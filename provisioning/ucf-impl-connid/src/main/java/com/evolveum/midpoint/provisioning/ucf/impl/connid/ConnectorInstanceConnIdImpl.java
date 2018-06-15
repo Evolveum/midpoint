@@ -2367,6 +2367,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			private void recordResume() {
 				recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 			}
+			
+			@Override
+            public String toString() {
+            	return "(midPoint searching result handler)";
+            }
 		};
 
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
@@ -2567,16 +2572,21 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             Filter filter = convertFilterToIcf(query, objectClassDefinition);
             final Holder<Integer> fetched = new Holder<>(0);
 
-            ResultsHandler icfHandler = new ResultsHandler() {
+            ResultsHandler connIdHandler = new ResultsHandler() {
                 @Override
                 public boolean handle(ConnectorObject connectorObject) {
                     fetched.setValue(fetched.getValue()+1);         // actually, this should execute at most once
                     return false;
                 }
+                
+                @Override
+                public String toString() {
+                	return "(midPoint counting result handler)";
+                }
             };
             InternalMonitor.recordConnectorOperation("search");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-            SearchResult searchResult = connIdConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
+            SearchResult searchResult = connIdConnectorFacade.search(icfObjectClass, filter, connIdHandler, options);
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 
             if (searchResult == null || searchResult.getRemainingPagedResults() == -1) {

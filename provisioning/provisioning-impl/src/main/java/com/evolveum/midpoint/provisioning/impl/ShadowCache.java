@@ -2000,10 +2000,21 @@ public abstract class ShadowCache {
 						countHolder.setValue(count);
 						return true;
 					}
+					
+					@Override
+					public String toString() {
+						return "(ShadowCache simulated counting handler)";
+					}
 				};
 
 				query = query.clone();
 				ObjectPaging paging = ObjectPaging.createEmptyPaging();
+				// Explicitly set offset. This makes a difference for some resources.
+				// E.g. LDAP connector will detect presence of an offset and it will initiate VLV search which
+				// can estimate number of results. If no offset is specified then continuous/linear search is
+				// assumed (e.g. Simple Paged Results search). Such search does not have ability to estimate
+				// number of results.
+				paging.setOffset(0);
 				paging.setMaxSize(1);
 				query.setPaging(paging);
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(

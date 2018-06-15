@@ -565,6 +565,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			query = query.cloneEmpty();
 			query.setFilter(filter);
 		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start of counting objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
+		}
 
 		if (filter != null && filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
@@ -597,6 +601,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.cleanupResult();
 		}
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Finished counting objects: {}", count);
+		}
+		
 		return count;
     }
 
@@ -956,7 +964,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(handler, "Handler must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start of search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
+			LOGGER.trace("Start of (iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
 		}
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
