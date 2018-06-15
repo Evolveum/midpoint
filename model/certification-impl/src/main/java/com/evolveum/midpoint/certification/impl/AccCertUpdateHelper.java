@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -50,13 +51,13 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,6 +67,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
@@ -73,13 +75,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkI
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_EVENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_CLOSED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType.F_END_TIMESTAMP;
 import static java.util.Collections.singleton;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author mederly
@@ -103,14 +105,22 @@ public class AccCertUpdateHelper {
     @Autowired private Clock clock;
     @Autowired private AccCertExpressionHelper expressionHelper;
 
-	public static final String CLASS_DOT = AccCertUpdateHelper.class.getName() + ".";
-	public static final String OPERATION_DELETE_OBSOLETE_CAMPAIGN = CLASS_DOT + "deleteObsoleteCampaign";
-	public static final String OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER = CLASS_DOT + "cleanupCampaignsByNumber";
-	public static final String OPERATION_CLEANUP_CAMPAIGNS_BY_AGE = CLASS_DOT + "cleanupCampaignsByAge";
+	private static final String CLASS_DOT = AccCertUpdateHelper.class.getName() + ".";
+	private static final String OPERATION_DELETE_OBSOLETE_CAMPAIGN = CLASS_DOT + "deleteObsoleteCampaign";
+	private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_NUMBER = CLASS_DOT + "cleanupCampaignsByNumber";
+	private static final String OPERATION_CLEANUP_CAMPAIGNS_BY_AGE = CLASS_DOT + "cleanupCampaignsByAge";
 
     //region ================================ Campaign create ================================
 
-    AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition,
+	AccessCertificationCampaignType createCampaign(PrismObject<AccessCertificationDefinitionType> definition,
+			OperationResult result, Task task)
+			throws SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		AccessCertificationCampaignType newCampaign = createCampaignObject(definition.asObjectable(), task, result);
+		addObjectPreAuthorized(newCampaign, task, result);
+		return newCampaign;
+	}
+
+	private AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition,
 			Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException {
         AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
@@ -144,13 +154,14 @@ public class AccCertUpdateHelper {
         newCampaign.setEndTimestamp(null);
         newCampaign.setState(CREATED);
         newCampaign.setStageNumber(0);
+        newCampaign.setIteration(1);
 
         return newCampaign;
     }
 
 	<O extends ObjectType> AccessCertificationCampaignType createAdHocCampaignObject(
 			AccessCertificationDefinitionType definition, PrismObject<O> focus, Task task,
-			OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+			OperationResult result) throws SecurityViolationException, SchemaException {
     	definition.setName(PolyStringType.fromOrig(PolyString.getOrig(definition.getName()) + " " + PolyString.getOrig(focus.getName())));
     	definition.setLastCampaignIdUsed(null);
 		AccessCertificationCampaignType campaign = createCampaignObject(definition, task, result);
@@ -192,12 +203,12 @@ public class AccCertUpdateHelper {
         return prefix + " " + i;
     }
 
-    public void recordLastCampaignIdUsed(String definitionOid, int lastIdUsed, Task task, OperationResult result) {
+    private void recordLastCampaignIdUsed(String definitionOid, int lastIdUsed, Task task, OperationResult result) {
         try {
             List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_ID_USED).replace(lastIdUsed)
                     .asItemDeltas();
-            modifyObjectViaModel(AccessCertificationDefinitionType.class, definitionOid, modifications, task, result);
+            modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, definitionOid, modifications, task, result);
         } catch (SchemaException|ObjectNotFoundException|RuntimeException|ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update last campaign ID for definition {}", e, definitionOid);
         }
@@ -207,30 +218,48 @@ public class AccCertUpdateHelper {
 
     //region ================================ Stage open ================================
 
-    public ModificationsToExecute getDeltasForStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
-		    CertificationHandler handler, final Task task, OperationResult result)
+	void openNextStage(AccessCertificationCampaignType campaign, CertificationHandler handler, Task task,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		boolean skipEmptyStages = campaign.getIteration() > 1;        // TODO make configurable
+		int requestedStageNumber = campaign.getStageNumber() + 1;
+		for (;;) {
+			Holder<Integer> workItemsCreatedHolder = new Holder<>(0);
+			AccessCertificationStageType stage = createStage(campaign, requestedStageNumber);
+			ModificationsToExecute modifications = getDeltasForStageOpen(campaign, stage, handler, workItemsCreatedHolder, task, result);
+			if (!skipEmptyStages || workItemsCreatedHolder.getValue() != 0) {
+				modifyCampaignPreAuthorized(campaign.getOid(), modifications, task, result);
+				afterStageOpen(campaign.getOid(), stage, task, result);       // notifications, bookkeeping, ...
+				return;
+			}
+			LOGGER.debug("No work items created, skipping to the next stage");
+			requestedStageNumber++;
+			if (requestedStageNumber > CertCampaignTypeUtil.getNumberOfStages(campaign)) {
+				result.recordWarning("No more (non-empty) stages available");
+				return;
+			}
+		}
+	}
+
+	private ModificationsToExecute getDeltasForStageOpen(AccessCertificationCampaignType campaign,
+			AccessCertificationStageType stage, CertificationHandler handler,
+			Holder<Integer> workItemsCreatedHolder, final Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        Validate.notNull(campaign, "certificationCampaign");
-        Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
 
         int stageNumber = campaign.getStageNumber();
         int newStageNumber = stageNumber + 1;
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("getDeltasForStageOpen starting; campaign = {}, stage number = {}",
-                    ObjectTypeUtil.toShortString(campaign), stageNumber);
-        }
+	    LOGGER.trace("getDeltasForStageOpen starting; campaign = {}, stage number = {}", ObjectTypeUtil.toShortStringLazy(campaign), stageNumber);
 
 	    ModificationsToExecute rv = new ModificationsToExecute();
-        if (stageNumber == 0) {
-            caseHelper.getDeltasToCreateCases(campaign, stage, handler, rv, task, result);
+        if (stageNumber == 0 && campaign.getIteration() == 1) {
+            caseHelper.getDeltasToCreateCases(campaign, stage, handler, rv, workItemsCreatedHolder, task, result);
         } else {
-            caseHelper.getDeltasToAdvanceCases(campaign, stage, rv, task, result);
+            caseHelper.getDeltasToAdvanceCases(campaign, stage, rv, workItemsCreatedHolder, task, result);
         }
 		rv.createNewBatch();
         rv.add(createStageAddDelta(stage));
         rv.add(createDeltasToRecordStageOpen(campaign, stage));
-		rv.add(createTriggersForTimedActions(campaign.getOid(), 0,
+		rv.add(getDeltasToCreateTriggersForTimedActions(campaign.getOid(), 0,
 				XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()),
 				CertCampaignTypeUtil.findStageDefinition(campaign, newStageNumber).getTimedActions()));
 
@@ -246,20 +275,17 @@ public class AccCertUpdateHelper {
     private List<ItemDelta<?,?>> createDeltasToRecordStageOpen(AccessCertificationCampaignType campaign,
 		    AccessCertificationStageType newStage) throws SchemaException {
 
-        final List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
+        List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
 
         itemDeltaList.add(createStageNumberDelta(newStage.getNumber()));
+        itemDeltaList.add(createStateDelta(IN_REVIEW_STAGE));
 
-        final PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(IN_REVIEW_STAGE);
-        itemDeltaList.add(stateDelta);
-
-        final boolean campaignJustCreated = newStage.getNumber() == 1;
-        if (campaignJustCreated) {
-            PropertyDelta<XMLGregorianCalendar> startDelta = createStartTimeDelta(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-            itemDeltaList.add(startDelta);
+        boolean campaignJustStarted = newStage.getNumber() == 1;
+        if (campaignJustStarted) {
+            itemDeltaList.add(createStartTimeDelta(clock.currentTimeXMLGregorianCalendar()));
         }
 
-        final XMLGregorianCalendar stageDeadline = newStage.getDeadline();
+        XMLGregorianCalendar stageDeadline = newStage.getDeadline();
         if (stageDeadline != null) {
             // auto-closing and notifications triggers
             final AccessCertificationStageDefinitionType stageDef =
@@ -294,10 +320,11 @@ public class AccCertUpdateHelper {
         return itemDeltaList;
     }
 
-    protected AccessCertificationStageType createStage(AccessCertificationCampaignType campaign, int requestedStageNumber) {
+    private AccessCertificationStageType createStage(AccessCertificationCampaignType campaign, int requestedStageNumber) {
         AccessCertificationStageType stage = new AccessCertificationStageType(prismContext);
+        stage.setIteration(campaign.getIteration());
         stage.setNumber(requestedStageNumber);
-        stage.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        stage.setStartTimestamp(clock.currentTimeXMLGregorianCalendar());
 
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
 		XMLGregorianCalendar deadline = computeDeadline(stage.getStartTimestamp(), stageDef.getDuration(), stageDef.getDeadlineRounding());
@@ -329,8 +356,8 @@ public class AccCertUpdateHelper {
 		return deadline;
 	}
 
-	void afterStageOpen(String campaignOid, AccessCertificationStageType newStage, Task task,
-                        OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	private void afterStageOpen(String campaignOid, AccessCertificationStageType newStage, Task task,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         // notifications
         final AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
         if (campaign.getStageNumber() == 1) {
@@ -340,19 +367,19 @@ public class AccCertUpdateHelper {
 
 		notifyReviewers(campaign, false, task, result);
 
-        if (newStage.getNumber() == 1 && campaign.getDefinitionRef() != null) {
+        if (newStage.getNumber() == 1 && campaign.getIteration() == 1 && campaign.getDefinitionRef() != null) {
             List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
-                    .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+                    .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
                     .asItemDeltas();
-            modifyObjectViaModel(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
+            modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
         }
     }
 
 	private void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
-		final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
-		Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
+		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), campaign.getIteration(), null, result);
+		Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
 		for (String reviewerOid : reviewers) {
-			List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
+			List<AccessCertificationCaseType> cases = queryHelper.getOpenCasesForReviewer(campaign, reviewerOid, result);
 			boolean notify = !unansweredOnly ||
 					cases.stream()
 							.flatMap(c -> c.getWorkItem().stream())
@@ -368,7 +395,7 @@ public class AccCertUpdateHelper {
 	}
 
 	@NotNull
-	public List<ObjectReferenceType> getReviewerAndDeputies(ObjectReferenceType actualReviewerRef, Task task,
+	List<ObjectReferenceType> getReviewerAndDeputies(ObjectReferenceType actualReviewerRef, Task task,
 			OperationResult result) throws SchemaException {
 		List<ObjectReferenceType> reviewerOrDeputiesRef = new ArrayList<>();
 		reviewerOrDeputiesRef.add(actualReviewerRef);
@@ -379,8 +406,8 @@ public class AccCertUpdateHelper {
 	//endregion
     //region ================================ Delegation/escalation ================================
 
-    public void delegateWorkItems(String campaignOid, List<AccessCertificationWorkItemType> workItems,
-            DelegateWorkItemActionType delegateAction, Task task, OperationResult result)
+    void delegateWorkItems(String campaignOid, List<AccessCertificationWorkItemType> workItems,
+		    DelegateWorkItemActionType delegateAction, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
 		    SecurityViolationException {
         LOGGER.info("Going to delegate {} work item(s) in campaign {}", workItems.size(), campaignOid);
@@ -402,6 +429,10 @@ public class AccCertUpdateHelper {
 			if (workItem.getCloseTimestamp() != null) {
 				throw new IllegalStateException("Couldn't delegate a work item that is already closed: " + workItem);
 			}
+			// actually, stage/iteration should match, as the work item is not closed
+			if (workItem.getIteration() != campaign.getIteration()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current iteration. Current iteration: " + campaign.getIteration() + ", work item iteration: " + workItem.getIteration());
+			}
 			if (workItem.getStageNumber() != campaign.getStageNumber()) {
 				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + campaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
 			}
@@ -409,24 +440,27 @@ public class AccCertUpdateHelper {
 
 			WorkItemEventCauseInformationType causeInformation = null;			// TODO
 
+			//noinspection ConstantConditions
 			LOGGER.trace("Delegating work item {} to {}: cause={}", workItem, delegates, causeInformation);
 			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
 			WorkItemDelegationMethodType method = getDelegationMethod(delegateAction);
 			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
 			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			//noinspection ConstantConditions
 			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation);
 			event.setTimestamp(now);
 			event.setInitiatorRef(initiator);
 			event.setAttorneyRef(attorney);
 			event.setWorkItemId(workItem.getId());
 			event.setEscalationLevel(workItem.getEscalationLevel());
-
-			addDeltasForAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
+			event.setStageNumber(campaign.getStageNumber());
+			event.setIteration(campaign.getIteration());
+			addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
 
 			// notification (after modifications)
 		}
-		modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+		modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
 		// TODO notifications
 
@@ -438,17 +472,12 @@ public class AccCertUpdateHelper {
 
 	@NotNull
 	private WorkItemDelegationMethodType getDelegationMethod(DelegateWorkItemActionType delegateAction) {
-		WorkItemDelegationMethodType method = delegateAction.getDelegationMethod();
-		if (method == null) {
-			method = WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
-		}
-		return method;
+		return defaultIfNull(delegateAction.getDelegationMethod(), WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
 	}
 
 	public void escalateCampaign(String campaignOid, EscalateWorkItemActionType escalateAction,
 			WorkItemEventCauseInformationType causeInformation, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-			SecurityViolationException {
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException {
 		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
 		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
@@ -489,6 +518,9 @@ public class AccCertUpdateHelper {
 			if (workItem.getStageNumber() != workItemCampaign.getStageNumber()) {
 				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + workItemCampaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
 			}
+			if (workItem.getIteration() != workItemCampaign.getIteration()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current iteration. Current stage: " + workItemCampaign.getIteration() + ", work item iteration: " + workItem.getIteration());
+			}
 			if (workItem.getOutput() != null && workItem.getOutput().getOutcome() != null) {
 				// It is a bit questionable to skip this work item (as it is not signed off),
 				// but it is also not quite OK to escalate it, as there's some output present.
@@ -515,9 +547,10 @@ public class AccCertUpdateHelper {
 			event.setAttorneyRef(attorney);
 			event.setWorkItemId(workItem.getId());
 			event.setEscalationLevel(workItem.getEscalationLevel());
-
+			event.setStageNumber(campaign.getStageNumber());
+			event.setIteration(campaign.getIteration());
 			List<ItemDelta<?, ?>> deltas = new ArrayList<>();
-			addDeltasForAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
+			addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
 			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 					.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ESCALATION_LEVEL).replace(newEscalationLevel)
 					.asItemDelta());
@@ -532,10 +565,10 @@ public class AccCertUpdateHelper {
 				.item(F_STAGE, stageId, AccessCertificationStageType.F_ESCALATION_LEVEL).replace(newEscalationLevel)
 				.asItemDelta());
 		AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
-		modifications.add(createTriggersForTimedActions(campaignOid, newStageEscalationLevelNumber,
+		modifications.add(getDeltasToCreateTriggersForTimedActions(campaignOid, newStageEscalationLevelNumber,
 				XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()), stageDefinition.getTimedActions()));
 
-		modifyCampaignViaModel(campaignOid, modifications, task, result);
+		modifyCampaignPreAuthorized(campaignOid, modifications, task, result);
 
 		campaign = generalHelper.getCampaign(campaignOid, null, task, result);
 		// TODO differentiate between "old" and "new" reviewers
@@ -547,7 +580,7 @@ public class AccCertUpdateHelper {
 
     }
 
-	private void addDeltasForAssigneesAndEvent(List<ItemDelta<?, ?>> deltas, AccessCertificationWorkItemType workItem,
+	private void addDeltasForNewAssigneesAndEvent(List<ItemDelta<?, ?>> deltas, AccessCertificationWorkItemType workItem,
 			AccessCertificationCaseType aCase, List<ObjectReferenceType> newAssignees, WorkItemDelegationEventType event)
 			throws SchemaException {
 		deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -581,7 +614,7 @@ public class AccCertUpdateHelper {
 
 	// see also MidpointUtil.createTriggersForTimedActions (in workflow-impl)
 	@NotNull
-	public List<ItemDelta<?, ?>> createTriggersForTimedActions(String campaignOid, int escalationLevel, Date workItemCreateTime,
+	private List<ItemDelta<?, ?>> getDeltasToCreateTriggersForTimedActions(String campaignOid, int escalationLevel, Date workItemCreateTime,
 			Date workItemDeadline, List<WorkItemTimedActionsType> timedActionsList) {
 		LOGGER.trace("Creating triggers for timed actions for certification campaign {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
 				campaignOid, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
@@ -597,42 +630,86 @@ public class AccCertUpdateHelper {
 						.asItemDeltas();
 			}
 		} catch (SchemaException | RuntimeException e) {
-			throw new SystemException("Couldn't create trigger(s) for campaign " + campaignOid + ": " + e.getMessage(), e);
+			throw new SystemException("Couldn't create deltas for creating trigger(s) for campaign " + campaignOid + ": " + e.getMessage(), e);
 		}
 	}
 
 	//endregion
 
-    //region ================================ Campaign and stage close ================================
+	//region ================================ Campaign iteration ================================
 
-    void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        LOGGER.info("Closing campaign {}", ObjectTypeUtil.toShortString(campaign));
-		XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-        int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
-        // TODO issue a warning if we are not in a correct state
+    void reiterateCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result)
+		    throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+	    LOGGER.info("Reiterating campaign {}", ObjectTypeUtil.toShortString(campaign));
+	    if (campaign.getState() != CLOSED) {
+		    throw new IllegalStateException("Campaign is not in CLOSED state");
+	    }
 		ModificationsToExecute modifications = new ModificationsToExecute();
-        modifications.add(createStageNumberDelta(lastStageNumber + 1));
-        modifications.add(createStateDelta(CLOSED));
+        modifications.add(createStageNumberDelta(0));
+        modifications.add(createStateDelta(CREATED));
         modifications.add(createTriggerDeleteDelta());
-		modifications.add(createEndTimeDelta(now));
-        createWorkItemsCloseDeltas(campaign, modifications, now, result);
+		modifications.add(createStartTimeDelta(null));
+		modifications.add(createEndTimeDelta(null));
+		int newIteration = campaign.getIteration() + 1;
+		modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(AccessCertificationCampaignType.F_ITERATION).replace(newIteration)
+				.asItemDelta());
 
-        modifyCampaignViaModel(campaign.getOid(), modifications, task, result);
+	    createCasesReiterationDeltas(campaign, newIteration, modifications, result);
 
-        AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, result);
-        LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
-        eventHelper.onCampaignEnd(updatedCampaign, task, result);
-
-        if (campaign.getDefinitionRef() != null) {
-            List<ItemDelta<?,?>> definitionDeltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
-                    .item(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP).replace(now)
-                    .asItemDeltas();
-            modifyObjectViaModel(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), definitionDeltas, task, result);
-        }
+        modifyCampaignPreAuthorized(campaign.getOid(), modifications, task, result);
     }
 
+	private void createCasesReiterationDeltas(AccessCertificationCampaignType campaign, int newIteration,
+			ModificationsToExecute modifications, OperationResult result) throws SchemaException {
+		ObjectQuery unresolvedCasesQuery = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+				.item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
+				.build();
+		List<AccessCertificationCaseType> unresolvedCases = queryHelper
+				.searchCases(campaign.getOid(), unresolvedCasesQuery, null, result);
+		for (AccessCertificationCaseType aCase : unresolvedCases) {
+			modifications.add(
+					DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+							.item(F_CASE, aCase.getId(), F_ITERATION).replace(newIteration)
+							.item(F_CASE, aCase.getId(), F_STAGE_NUMBER).replace(0)
+							.item(F_CASE, aCase.getId(), F_CURRENT_STAGE_OUTCOME).replace()
+							.item(F_CASE, aCase.getId(), F_CURRENT_STAGE_DEADLINE).replace()
+							.item(F_CASE, aCase.getId(), F_CURRENT_STAGE_CREATE_TIMESTAMP).replace()
+							.asItemDeltas());
+		}
+	}
+
+	//endregion
+
+	//region ================================ Campaign and stage close ================================
+
+	void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+		LOGGER.info("Closing campaign {}", ObjectTypeUtil.toShortString(campaign));
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
+		// TODO issue a warning if we are not in a correct state
+		ModificationsToExecute modifications = new ModificationsToExecute();
+		modifications.add(createStageNumberDelta(lastStageNumber + 1));
+		modifications.add(createStateDelta(CLOSED));
+		modifications.add(createTriggerDeleteDelta());
+		modifications.add(createEndTimeDelta(now));
+		createWorkItemsCloseDeltas(campaign, modifications, now, result);
+
+		modifyCampaignPreAuthorized(campaign.getOid(), modifications, task, result);
+
+		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, result);
+		eventHelper.onCampaignEnd(updatedCampaign, task, result);
+
+		if (campaign.getDefinitionRef() != null) {
+			List<ItemDelta<?,?>> definitionDeltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+					.item(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP).replace(now)
+					.asItemDeltas();
+			modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), definitionDeltas, task, result);
+		}
+	}
+
 	private void createWorkItemsCloseDeltas(AccessCertificationCampaignType campaign, ModificationsToExecute modifications,
-			XMLGregorianCalendar now, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			XMLGregorianCalendar now, OperationResult result) throws SchemaException {
 		ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext);
 		List<AccessCertificationWorkItemType> openWorkItems = queryHelper.searchOpenWorkItems(query, null, false, null, result);
 		LOGGER.debug("There are {} open work items for {}", openWorkItems.size(), ObjectTypeUtil.toShortString(campaign));
@@ -646,34 +723,35 @@ public class AccCertUpdateHelper {
 		}
 	}
 
-	ModificationsToExecute getDeltasForStageClose(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+	ModificationsToExecute getDeltasForStageClose(AccessCertificationCampaignType campaign, OperationResult result) throws
+			SchemaException {
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ModificationsToExecute rv = new ModificationsToExecute();
-		caseHelper.createOutcomeDeltas(campaign, rv, result);
+		caseHelper.createOutcomeAndEventDeltasForCasesOnStageClose(campaign, rv, result);
 		rv.createNewBatch();
 		createWorkItemsCloseDeltas(campaign, rv, now, result);
 		rv.createNewBatch();
-        rv.add(createStateDelta(REVIEW_STAGE_DONE));
-        rv.add(createStageEndTimeDelta(campaign, now));
-        rv.add(createTriggerDeleteDelta());
-        return rv;
-    }
+		rv.add(createStateDelta(REVIEW_STAGE_DONE));
+		rv.add(createStageEndTimeDelta(campaign, now));
+		rv.add(createTriggerDeleteDelta());
+		return rv;
+	}
 
-    private ItemDelta createStageEndTimeDelta(AccessCertificationCampaignType campaign, XMLGregorianCalendar now) throws SchemaException {
-        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
-        Long stageId = stage.asPrismContainerValue().getId();
-        assert stageId != null;
+	private ItemDelta createStageEndTimeDelta(AccessCertificationCampaignType campaign, XMLGregorianCalendar now) throws SchemaException {
+		AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
+		Long stageId = stage.asPrismContainerValue().getId();
+		assert stageId != null;
 		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 				.item(F_STAGE, stageId, F_END_TIMESTAMP).replace(now)
 				.asItemDelta();
-    }
+	}
 
-    void afterStageClose(String campaignOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        final AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-        eventHelper.onCampaignStageEnd(campaign, task, result);
-    }
+	void afterStageClose(String campaignOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		final AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+		eventHelper.onCampaignStageEnd(campaign, task, result);
+	}
 
-	public void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result) {
+	void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result) {
 		if (policy.getMaxAge() != null) {
 			cleanupCampaignsByDate(policy.getMaxAge(), task, result);
 		}
@@ -719,7 +797,7 @@ public class AccCertUpdateHelper {
 		LOGGER.info("Starting cleanup for closed certification campaigns deleting up to {} (max age '{}').", deleteCampaignsFinishedUpTo, maxAge);
 
 		OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS_BY_AGE);
-		XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteCampaignsFinishedUpTo);
+		XMLGregorianCalendar timeXml = createXMLGregorianCalendar(deleteCampaignsFinishedUpTo);
 		int deleted = 0;
 		Set<String> poisonedCampaigns = new HashSet<>();
 		try {
@@ -775,10 +853,11 @@ public class AccCertUpdateHelper {
 
 	//endregion
 
-    //region ================================ Auxiliary methods for delta processing ================================
+	//region ================================ Auxiliary methods for delta processing ================================
 
+    @SuppressWarnings("SameParameterValue")
     List<ItemDelta<?,?>> createDeltasForStageNumberAndState(int number, AccessCertificationCampaignStateType state) {
-        final List<ItemDelta<?,?>> rv = new ArrayList<>();
+        List<ItemDelta<?,?>> rv = new ArrayList<>();
         rv.add(createStageNumberDelta(number));
         rv.add(createStateDelta(state));
         return rv;
@@ -792,30 +871,33 @@ public class AccCertUpdateHelper {
         return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
     }
 
-    private PropertyDelta<XMLGregorianCalendar> createStartTimeDelta(XMLGregorianCalendar date) {
-        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_START_TIMESTAMP, date);
+    private ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {
+		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(AccessCertificationCampaignType.F_START_TIMESTAMP).replace(date)
+				.asItemDelta();
     }
 
-    private PropertyDelta<XMLGregorianCalendar> createEndTimeDelta(XMLGregorianCalendar date) {
-        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_END_TIMESTAMP, date);
-    }
+	private ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
+		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
+				.asItemDelta();
+	}
 
     private ContainerDelta createTriggerDeleteDelta() {
         return ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
 
-    private ItemDelta createStageAddDelta(AccessCertificationStageType stage) {
-        ContainerDelta<AccessCertificationStageType> stageDelta = ContainerDelta.createDelta(F_STAGE,
-                AccessCertificationCampaignType.class, prismContext);
-        stageDelta.addValueToAdd(stage.asPrismContainerValue());
-        return stageDelta;
+    private ItemDelta createStageAddDelta(AccessCertificationStageType stage) throws SchemaException {
+		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(F_STAGE).add(stage)
+				.asItemDelta();
     }
 
     //endregion
 
     //region ================================ Model and repository operations ================================
 
-    void addObject(ObjectType objectType, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    void addObjectPreAuthorized(ObjectType objectType, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createAddDelta(objectType.asPrismObject());
         Collection<ObjectDeltaOperation<? extends ObjectType>> ops;
         try {
@@ -834,17 +916,17 @@ public class AccCertUpdateHelper {
          */
     }
 
-	void modifyCampaignViaModel(String campaignOid, ModificationsToExecute modifications, Task task, OperationResult result)
+	void modifyCampaignPreAuthorized(String campaignOid, ModificationsToExecute modifications, Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 		for (List<ItemDelta<?, ?>> batch : modifications.batches) {
 			if (!batch.isEmpty()) {
 				LOGGER.trace("Applying {} changes to campaign {}", batch.size(), campaignOid);
-				modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
+				modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
 			}
 		}
 	}
 
-	<T extends ObjectType> void modifyObjectViaModel(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+	<T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, itemDeltas, objectClass, prismContext);
         try {
             ModelExecuteOptions options = ModelExecuteOptions.createRaw().setPreAuthorized();
@@ -859,10 +941,9 @@ public class AccCertUpdateHelper {
 //    }
 
     // TODO implement more efficiently
-    public AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+    AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign,
+		    OperationResult result) throws ObjectNotFoundException, SchemaException {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
     }
-
 	//endregion
 }

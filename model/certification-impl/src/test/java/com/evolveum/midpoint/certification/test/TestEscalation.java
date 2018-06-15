@@ -134,7 +134,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationService.openNextStage(campaignOid, 1, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -404,6 +404,73 @@ public class TestEscalation extends AbstractCertificationTest {
 		display("campaign after escalation", campaign);
 		assertStateAndStage(campaign, AccessCertificationCampaignStateType.IN_REMEDIATION, 2);
     }
+
+	@Test
+	public void test200Reiteration() throws Exception {
+		final String TEST_NAME = "test200Reiteration";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+        clock.resetOverride();
+        certificationManager.closeCampaign(campaignOid, true, task, result);
+        certificationManager.reiterateCampaign(campaignOid, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign after reiteration", campaign);
+		assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 2);
+    }
+
+	@Test
+	public void test210OpenFirstStage() throws Exception {
+		final String TEST_NAME = "test210OpenFirstStage";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		certificationService.openNextStage(campaignOid, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign in stage 1", campaign);
+
+		assertAfterCampaignStart(campaign, certificationDefinition, 7, 2, 2);
+		List<AccessCertificationCaseType> caseList = campaign.getCase();
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);  // from iteration 1
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
+
+		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), 8 /*TODO*/);
+
+		assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
+		display("dummy transport", dummyTransport);
+	}
 
 	protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
         assertEquals("Wrong number of certification cases", 7, caseList.size());

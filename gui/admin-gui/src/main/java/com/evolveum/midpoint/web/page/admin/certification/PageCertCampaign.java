@@ -105,6 +105,7 @@ public class PageCertCampaign extends PageAdminCertification {
 	private static final String ID_CAMPAIGN_OWNER = "campaignOwner";
 	private static final String ID_CAMPAIGN_NUMBER_OF_STAGES = "campaignNumberOfStages";
 	private static final String ID_CAMPAIGN_CURRENT_STATE = "campaignCurrentState";
+	private static final String ID_CAMPAIGN_ITERATION = "campaignIteration";
 	private static final String ID_CAMPAIGN_TIME = "campaignTime";
 	private static final String ID_STAGE_TIME = "stageTime";
 	private static final String ID_ESCALATION_LEVEL_INFO_CONTAINER = "escalationLevelInfoContainer";
@@ -220,6 +221,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		mainForm.add(new Label(ID_CAMPAIGN_DESCRIPTION, new PropertyModel<>(campaignModel, CertCampaignDto.F_DESCRIPTION)));
 		mainForm.add(new Label(ID_CAMPAIGN_OWNER, new PropertyModel<>(campaignModel, CertCampaignDto.F_OWNER_NAME)));
 		mainForm.add(new Label(ID_CAMPAIGN_NUMBER_OF_STAGES, new PropertyModel<>(campaignModel, CertCampaignDto.F_NUMBER_OF_STAGES)));
+		mainForm.add(new Label(ID_CAMPAIGN_ITERATION, new PropertyModel<>(campaignModel, CertCampaignDto.F_ITERATION)));
 		mainForm.add(new Label(ID_CAMPAIGN_CURRENT_STATE, new PropertyModel<>(campaignModel, CertCampaignDto.F_CURRENT_STATE)));
 		mainForm.add(new Label(ID_CAMPAIGN_TIME, new AbstractReadOnlyModel<String>() {
 			@Override
@@ -476,17 +478,16 @@ public class PageCertCampaign extends PageAdminCertification {
 		OperationResult result = new OperationResult(OPERATION_ADVANCE_LIFECYCLE);
 		try {
 			AccessCertificationService acs = getCertificationService();
-			int currentStage = campaignModel.getObject().getCurrentStageNumber();
 			Task task;
 			switch (action) {
 				case OP_START_CAMPAIGN:
 				case OP_OPEN_NEXT_STAGE:
 					task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-					acs.openNextStage(campaignOid, currentStage + 1, task, result);
+					acs.openNextStage(campaignOid, task, result);
 					break;
 				case OP_CLOSE_STAGE:
 					task = createSimpleTask(OPERATION_CLOSE_STAGE);
-					acs.closeCurrentStage(campaignOid, currentStage, task, result);
+					acs.closeCurrentStage(campaignOid, task, result);
 					break;
 				case OP_START_REMEDIATION:
 					task = createSimpleTask(OPERATION_START_REMEDIATION);

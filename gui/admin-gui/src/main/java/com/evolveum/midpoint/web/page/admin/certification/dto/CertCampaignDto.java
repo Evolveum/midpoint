@@ -43,6 +43,7 @@ public class CertCampaignDto extends Selectable {
     public static final String F_DESCRIPTION = "description";
     public static final String F_OWNER_NAME = "ownerName";
     public static final String F_CURRENT_STATE = "currentState";
+    public static final String F_ITERATION = "iteration";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_CAMPAIGN_START = "campaignStart";
     public static final String F_CAMPAIGN_END = "campaignEnd";
@@ -91,6 +92,10 @@ public class CertCampaignDto extends Selectable {
 
     public String getCurrentState() {
         return currentStateName;
+    }
+
+    public Integer getIteration() {
+        return campaign.getIteration();
     }
 
     public int getNumberOfStages() {

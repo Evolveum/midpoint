@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -42,7 +43,7 @@ import java.util.List;
 @Component
 public class AccessCertificationCloseStageApproachingTriggerHandler implements TriggerHandler {
 
-	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage-approaching/handler-3";
+	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage-approaching/handler-3";
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageApproachingTriggerHandler.class);
 
@@ -74,8 +75,9 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 			}
 
 			eventHelper.onCampaignStageDeadlineApproaching(campaign, task, result);
-			List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
-			Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
+			List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(),
+					campaign.getIteration(), null, result);
+			Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
 			for (String reviewerOid : reviewers) {
 				List<AccessCertificationCaseType> reviewerCaseList = queryHelper.selectOpenCasesForReviewer(caseList, reviewerOid);
 				ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);

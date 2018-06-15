@@ -19,10 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
+import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -68,6 +65,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private Integer ownerId;
     private Integer id;
 
+    private Integer iteration;
     private Integer stageNumber;
     private Set<RCertWorkItemReference> assigneeRef = new HashSet<>();
     private REmbeddedReference performerRef;
@@ -129,9 +127,18 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		this.id = id;
 	}
 
-    @Column
+	@Column
+	public Integer getIteration() {
+		return iteration;
+	}
+
+	@Column
 	public Integer getStageNumber() {
     	return stageNumber;
+	}
+
+	public void setIteration(Integer iteration) {
+		this.iteration = iteration;
 	}
 
 	public void setStageNumber(Integer stageNumber) {
@@ -197,6 +204,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
 				Objects.equals(ownerId, that.ownerId) &&
 				Objects.equals(id, that.id) &&
+				Objects.equals(iteration, that.iteration) &&
 				Objects.equals(stageNumber, that.stageNumber) &&
 				Objects.equals(assigneeRef, that.assigneeRef) &&
 				Objects.equals(performerRef, that.performerRef) &&
@@ -208,7 +216,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 	@Override
 	public int hashCode() {
 		return Objects
-				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, performerRef, outcome, outputChangeTimestamp, closeTimestamp);
+				.hash(ownerOwnerOid, ownerId, id, iteration, stageNumber, assigneeRef, performerRef, outcome, outputChangeTimestamp, closeTimestamp);
 	}
 
 	@Transient
@@ -244,6 +252,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 			throw new IllegalArgumentException("No ID for access certification work item: " + workItem);
 		}
 		rWorkItem.setId(idInt);
+		rWorkItem.setIteration(workItem.getIteration());
 		rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));

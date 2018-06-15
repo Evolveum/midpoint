@@ -139,7 +139,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationService.openNextStage(campaignOid, 1, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

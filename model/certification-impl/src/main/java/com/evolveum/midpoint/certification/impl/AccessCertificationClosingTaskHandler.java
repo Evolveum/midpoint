@@ -113,7 +113,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		PrismObject<SystemConfigurationType> systemConfigurationObject;
 		try {
 			campaign = helper.getCampaign(campaignOid, null, task, opResult);
-			caseList = queryHelper.searchCases(campaignOid, null, null, opResult);
+			caseList = queryHelper.getAllCurrentIterationCases(campaignOid, campaign.getIteration(), null, opResult);
 			systemConfigurationObject = objectCache.getSystemConfiguration(opResult);
 		} catch (ObjectNotFoundException|SchemaException e) {
 			opResult.computeStatus();
@@ -136,9 +136,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void applyMetadataDeltas(ObjectContext objectCtx,
-			RunContext runContext,
-			OperationResult opResult) {
+	private void applyMetadataDeltas(ObjectContext objectCtx, RunContext runContext, OperationResult opResult) {
 		ObjectType object = objectCtx.object;
 		List<ItemDelta<?, ?>> deltas = objectCtx.modifications;
 		try {
@@ -149,7 +147,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 				repositoryService.modifyObject(object.getClass(), object.getOid(), deltas, opResult);
 				runContext.task.incrementProgressAndStoreStatsIfNeeded();
 			}
-		} catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
+		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update certification metadata for {}", e, toShortString(object));
 		}
 	}

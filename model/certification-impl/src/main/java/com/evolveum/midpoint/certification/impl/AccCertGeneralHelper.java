@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -27,17 +26,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 
 /**
  * @author mederly
@@ -45,16 +38,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Component
 public class AccCertGeneralHelper {
 
+    @Autowired private PrismContext prismContext;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired
-    private PrismContext prismContext;
-
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;     // lazily evaluated
 
-    public PrismObjectDefinition<AccessCertificationCampaignType> getCampaignObjectDefinition() {
+    PrismObjectDefinition<AccessCertificationCampaignType> getCampaignObjectDefinition() {
         if (campaignObjectDefinition != null) {
             return campaignObjectDefinition;
         }
@@ -65,19 +56,11 @@ public class AccCertGeneralHelper {
         return campaignObjectDefinition;
     }
 
-    AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, options, parentResult).asObjectable();
+    @SuppressWarnings("SameParameterValue")
+    AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
+            @SuppressWarnings("unused") Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        return repositoryService
+                .getObject(AccessCertificationCampaignType.class, campaignOid, options, parentResult).asObjectable();
     }
 
-    // TODO move to OutcomeUtils
-    public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
-        AccessCertificationResponseType outcome = OutcomeUtils.fromUri(aCase.getOutcome());
-        List<AccessCertificationResponseType> revokes;
-        if (campaign.getRemediationDefinition() != null && !campaign.getRemediationDefinition().getRevokeOn().isEmpty()) {
-            revokes = campaign.getRemediationDefinition().getRevokeOn();
-        } else {
-            revokes = Collections.singletonList(REVOKE);
-        }
-        return revokes.contains(outcome);
-    }
 }

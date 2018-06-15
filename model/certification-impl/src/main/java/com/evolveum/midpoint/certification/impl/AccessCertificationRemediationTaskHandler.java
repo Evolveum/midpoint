@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -113,9 +115,9 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             int revokedOk = 0;
             int revokedError = 0;
 
-            List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, opResult);
+            List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaignOid, campaign.getIteration(), null, opResult);
             for (AccessCertificationCaseType _case : caseList) {
-                if (helper.isRevoke(_case, campaign)) {
+                if (OutcomeUtils.isRevoke(_case, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");
                     final Long caseId = _case.asPrismContainerValue().getId();
                     caseResult.addContext("caseId", caseId);
@@ -125,7 +127,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                         caseResult.computeStatus();
                         revokedOk++;
 						task.incrementProgressAndStoreStatsIfNeeded();
-                    } catch (Exception e) {     // TODO
+                    } catch (CommonException | RuntimeException e) {
                         String message = "Couldn't revoke case " + caseId + ": " + e.getMessage();
                         LoggingUtils.logUnexpectedException(LOGGER, message, e);
                         caseResult.recordPartialError(message, e);

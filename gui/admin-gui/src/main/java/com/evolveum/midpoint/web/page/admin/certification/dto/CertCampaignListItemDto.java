@@ -40,6 +40,7 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_ITERATION = "iteration";
     public static final String F_STATE = "state";
     public static final String F_CURRENT_STAGE_NUMBER = "currentStageNumber";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
@@ -73,6 +74,10 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
 
     public AccessCertificationCampaignStateType getState() {
         return campaign.getState();
+    }
+
+    public Integer getIteration() {
+        return campaign.getIteration();
     }
 
     public String getDescription() {

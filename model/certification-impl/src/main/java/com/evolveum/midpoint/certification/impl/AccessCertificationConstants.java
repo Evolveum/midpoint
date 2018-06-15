@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 /**
  * @author mederly
  */
+@SuppressWarnings("WeakerAccess")
 public class AccessCertificationConstants {
 
     public static final String NS_CERTIFICATION_TASK_PREFIX = SchemaConstants.NS_CERTIFICATION + "/task";

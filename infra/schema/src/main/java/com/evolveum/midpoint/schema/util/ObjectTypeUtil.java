@@ -123,16 +123,23 @@ public class ObjectTypeUtil {
     public static String toShortString(ObjectType object) {
         if (object == null) {
             return "null";
+        } else {
+	        return getShortTypeName(object)
+			        + ": "
+			        + object.getName()
+			        + " (OID:"
+			        + object.getOid()
+			        + ")";
         }
-        StringBuilder builder = new StringBuilder();
-        builder.append(getShortTypeName(object));
-        builder.append(": ");
-        builder.append(object.getName());
-        builder.append(" (OID:");
-        builder.append(object.getOid());
-        builder.append(")");
+    }
 
-        return builder.toString();
+    public static Object toShortStringLazy(ObjectType object) {
+		return new Object() {
+			@Override
+			public String toString() {
+				return toShortString(object);
+			}
+		};
     }
 
     public static String toShortString(AssignmentType assignment) {

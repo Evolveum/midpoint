@@ -127,7 +127,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationService.openNextStage(roleInducementCampaignOid, 1, task, result);
+        certificationService.openNextStage(roleInducementCampaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -295,7 +295,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         // WHEN+THEN
         TestUtil.displayWhen(TEST_NAME);
         try {
-            certificationService.openNextStage(campaignOid, 1, task, result);
+            certificationService.openNextStage(campaignOid, task, result);
             fail("Unexpected success");
         } catch (SecurityViolationException e) {
             System.out.println("Got expected denial exception: " + e.getMessage());
@@ -317,7 +317,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationService.openNextStage(campaignOid, 1, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -767,7 +767,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         // WHEN+THEN
         TestUtil.displayWhen(TEST_NAME);
         try {
-            certificationService.closeCurrentStage(campaignOid, 1, task, result);
+            certificationService.closeCurrentStage(campaignOid, task, result);
             fail("Unexpected success");
         } catch (SecurityViolationException e) {
             System.out.println("Got expected deny exception: " + e.getMessage());
@@ -807,7 +807,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationService.closeCurrentStage(campaignOid, 1, task, result);
+        certificationService.closeCurrentStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -993,16 +993,19 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                 .name("c1")
                 .state(CLOSED)
                 .stageNumber(0)
+                .iteration(1)
                 .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-PT10M")));
         AccessCertificationCampaignType c2 = new AccessCertificationCampaignType(prismContext)
                 .name("c2")
                 .state(CLOSED)
                 .stageNumber(0)
+                .iteration(1)
                 .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2D")));
         AccessCertificationCampaignType c3 = new AccessCertificationCampaignType(prismContext)
                 .name("c3")
                 .state(CLOSED)
                 .stageNumber(0)
+                .iteration(1)
                 .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2M")));
         repositoryService.addObject(c1.asPrismObject(), null, result);
         repositoryService.addObject(c2.asPrismObject(), null, result);

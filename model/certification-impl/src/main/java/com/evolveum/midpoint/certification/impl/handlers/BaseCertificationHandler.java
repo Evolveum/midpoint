@@ -52,29 +52,14 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(BaseCertificationHandler.class);
 
-    @Autowired
-    protected PrismContext prismContext;
-
-    @Autowired
-    protected ModelService modelService;
-
-    @Autowired
-    protected ObjectResolver objectResolver;
-
-    @Autowired
-    protected CertificationManagerImpl certificationManager;
-
-    @Autowired
-    protected AccCertGeneralHelper helper;
-
-    @Autowired
-    protected AccCertResponseComputationHelper computationHelper;
-
-    @Autowired
-    protected AccCertReviewersHelper reviewersHelper;
-
-    @Autowired
-    protected AccCertExpressionHelper expressionHelper;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected ModelService modelService;
+    @Autowired protected ObjectResolver objectResolver;
+    @Autowired protected CertificationManagerImpl certificationManager;
+    @Autowired protected AccCertGeneralHelper helper;
+    @Autowired protected AccCertResponseComputationHelper computationHelper;
+    @Autowired protected AccCertReviewersHelper reviewersHelper;
+    @Autowired protected AccCertExpressionHelper expressionHelper;
 
     // default implementation, depending only on the expressions provided
     public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -114,13 +99,14 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 //	}
 
 	// TODO move to some helper?
-	protected void revokeAssignmentCase(AccessCertificationAssignmentCaseType assignmentCase,
+	void revokeAssignmentCase(AccessCertificationAssignmentCaseType assignmentCase,
 			AccessCertificationCampaignType campaign, OperationResult caseResult, Task task)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
 			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
 		String objectOid = assignmentCase.getObjectRef().getOid();
 		Class<? extends Objectable> clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
+		//noinspection unchecked
 		PrismContainerValue<AssignmentType> cval = assignmentCase.getAssignment().asPrismContainerValue().clone();
 
 		ContainerDelta assignmentDelta;

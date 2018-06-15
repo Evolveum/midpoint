@@ -49,6 +49,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
     public static final String F_REVIEW_REQUESTED = "reviewRequested";
     public static final String F_DEADLINE_AS_STRING = "deadlineAsString";
     public static final String F_CONFLICTING_TARGETS = "conflictingTargets";
+    public static final String F_ITERATION = "iteration";
 
     private AccessCertificationCaseType certCase;
     private String objectName;
@@ -89,6 +90,10 @@ public class CertCaseOrWorkItemDto extends Selectable {
             case TARGET: return getTargetType();
             default: return null;
         }
+    }
+
+    public Integer getIteration() {
+    	return certCase.getIteration();
     }
 
     public String getTargetName() {

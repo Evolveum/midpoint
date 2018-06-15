@@ -127,7 +127,7 @@ jack->CTO                   none (A) -> A
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.openNextStage(campaignOid, 1, task, result);
+        certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -221,7 +221,7 @@ jack->CTO                   none (A) -> A
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.closeCurrentStage(campaignOid, 1, task, result);
+        certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -259,7 +259,7 @@ jack->CTO                   none (A) -> A
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.openNextStage(campaignOid, 2, task, result);
+        certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -459,7 +459,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.closeCurrentStage(campaignOid, 2, task, result);
+        certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -495,7 +495,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.openNextStage(campaignOid, 3, task, result);
+        certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -657,7 +657,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.closeCurrentStage(campaignOid, 3, task, result);
+        certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -712,7 +712,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.openNextStage(campaignOid, 4, task, result);
+        certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -875,7 +875,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.closeCurrentStage(campaignOid, 4, task, result);
+        certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

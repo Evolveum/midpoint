@@ -18,11 +18,19 @@ package com.evolveum.midpoint.certification.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * TEMPORARY
@@ -46,6 +54,16 @@ public class OutcomeUtils {
 		}
 	}
 
+	@NotNull
+	public static AccessCertificationResponseType normalizeToNonNull(AccessCertificationResponseType value) {
+		return defaultIfNull(value, NO_RESPONSE);
+	}
+
+	@Nullable
+	public static AccessCertificationResponseType normalizeToNull(AccessCertificationResponseType value) {
+		return value != NO_RESPONSE ? value : null;
+	}
+
 	public static AccessCertificationResponseType fromUri(String uri) {
 		if (uri == null) {
 			return null;
@@ -64,7 +82,7 @@ public class OutcomeUtils {
 		}
 	}
 
-	public static List<AccessCertificationResponseType> fromUri(List<String> uris) {
+	public static List<AccessCertificationResponseType> fromUris(List<String> uris) {
 		return uris.stream()
 				.map(uri -> fromUri(uri))
 				.collect(Collectors.toList());
@@ -78,5 +96,16 @@ public class OutcomeUtils {
 
 		return QNameUtil.match(outcomeQName, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME)
 				|| QNameUtil.match(outcomeQName, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME);
+	}
+
+	public static boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
+	    AccessCertificationResponseType outcome = fromUri(aCase.getOutcome());
+	    List<AccessCertificationResponseType> revokes;
+	    if (campaign.getRemediationDefinition() != null && !campaign.getRemediationDefinition().getRevokeOn().isEmpty()) {
+	        revokes = campaign.getRemediationDefinition().getRevokeOn();
+	    } else {
+	        revokes = Collections.singletonList(REVOKE);
+	    }
+	    return revokes.contains(outcome);
 	}
 }

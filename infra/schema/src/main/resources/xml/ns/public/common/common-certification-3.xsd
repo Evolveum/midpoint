@@ -120,8 +120,7 @@
                     <xsd:element name="lastCampaignStartedTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When the last campaign of this type was started?
-                                CURRENTLY NOT USED.
+                                When the last campaign of this type was started (in its first iteration)?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -129,7 +128,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the last campaign of this type was closed? Deletion is not recorded in this attribute.
-                                CURRENTLY NOT USED.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -471,11 +469,11 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="reiteration" type="xsd:int" minOccurs="0">
+                    <xsd:element name="iteration" type="xsd:int" default="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Which reiteration this campaign is in. Zero means the regular (first) run;
-                                1 means first reiteration, etc.
+                                Which iteration this campaign is in. 1 means the regular (first) run;
+                                2 means first repetition, etc.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>
@@ -529,10 +527,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="reiteration" type="xsd:int" minOccurs="0">
+            <xsd:element name="iteration" type="xsd:int" default="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Which reiteration this stage is part of. Zero means the first (i.e. regular) run.
+                        Which iteration this stage is part of. 1 means the first (i.e. regular) run.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.9</a:since>
@@ -834,7 +832,7 @@
                 </xsd:annotation>
             </xsd:element>
             -->
-            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
+            <xsd:element name="stageNumber" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
                         The number of current stage in which this case is.
@@ -847,10 +845,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="iteration" type="xsd:int" default="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Iteration this case takes part of. Case is "enabled" for a current campaign stage if and only if
+                        case.iteration == campaign.iteration (beware of null comparison).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="workItem" type="tns:AccessCertificationWorkItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work items for this stage. Some might be completed; however, they remain here until the stage is closed.
+                        Work items for this stage. Some might be completed. Work items are not deleted.
                     </xsd:documentation>
                     <xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -875,7 +881,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's
@@ -884,7 +890,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The outcome, taking into account all closed stages plus current stage (if any).
@@ -946,10 +952,10 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="reiteration" type="xsd:int" minOccurs="0">
+                    <xsd:element name="iteration" type="xsd:int" default="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Which reiteration this work item is part of. Zero means the first (i.e. regular) run.
+                                Which iteration this work item is part of. 1 means the first (i.e. regular) run.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.9</a:since>

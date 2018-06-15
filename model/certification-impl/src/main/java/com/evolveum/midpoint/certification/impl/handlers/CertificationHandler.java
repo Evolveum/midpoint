@@ -42,30 +42,22 @@ public interface CertificationHandler {
     /**
      * Creates certification cases for a given midPoint object (e.g. user, role, org, ...).
      * It's expected to use campaign.scopeDefinition to do that.
-     *
-     * @param object
-     * @param campaign
-     * @param task
-     * @param parentResult
-     * @return
      */
-    <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object,
+            AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+		    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+		    CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Implements the automated REVOKE for a given certification case.
-     *
-     * @param aCase
-     * @param campaign
-     * @param task
-     * @param caseResult
      */
-    void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task,
+		    OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException,
+		    ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException,
+		    ConfigurationException, ObjectNotFoundException;
 
     /**
      * Returns the default objectType to search for when preparing a list of certification cases.
-     *
-     * @return
      */
     QName getDefaultObjectType();
-
 }

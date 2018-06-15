@@ -45,7 +45,7 @@ import java.util.List;
 @Component
 public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
-	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-3";
+	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-3";
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccCertTimedActionTriggerHandler.class);
 
@@ -84,7 +84,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 				}
 				executeActions(actions, campaign, triggerScannerTask, result);
 			}
-		} catch (RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
+		} catch (CommonException | RuntimeException e) {
 			String message = "Exception while handling campaign trigger for " + campaign + ": " + e.getMessage();
 			result.recordFatalError(message, e);
 			throw new SystemException(message, e);
@@ -93,8 +93,9 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, AccessCertificationCampaignType campaign,
-			Task wfTask, OperationResult result) throws SchemaException {
+			Task wfTask, OperationResult result) {
 		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
 		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
 		// TODO notifications before
@@ -160,7 +161,8 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 		updateHelper.escalateCampaign(campaign.getOid(), escalateAction, causeInformation, task, result);
 	}
 
-	private void executeNotificationAction(AccessCertificationCampaignType campaign, @NotNull WorkItemNotificationActionType notificationAction, OperationResult result) throws SchemaException {
+	@SuppressWarnings("unused")
+	private void executeNotificationAction(AccessCertificationCampaignType campaign, @NotNull WorkItemNotificationActionType notificationAction, OperationResult result) {
 //		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
 //		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 //			for (ObjectReferenceType assignee : campaign.getAssigneeRef()) {
@@ -172,7 +174,4 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 		// TODO implement
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
-
-
-
 }

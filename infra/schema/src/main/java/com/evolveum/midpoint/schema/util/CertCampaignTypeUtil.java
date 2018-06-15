@@ -45,6 +45,7 @@ public class CertCampaignTypeUtil {
         return null;
     }
 
+    @NotNull
     public static AccessCertificationStageDefinitionType getCurrentStageDefinition(AccessCertificationCampaignType campaign) {
         return findStageDefinition(campaign, campaign.getStageNumber());
     }
@@ -59,13 +60,15 @@ public class CertCampaignTypeUtil {
         throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(campaign));
     }
 
+    @NotNull
     public static AccessCertificationStageType findStage(AccessCertificationCampaignType campaign, int stageNumber) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == stageNumber) {
+            if (stage.getNumber() == stageNumber && stage.getIteration() == campaign.getIteration()) {
                 return stage;
             }
         }
-        throw new IllegalStateException("No stage " + stageNumber + " in " + ObjectTypeUtil.toShortString(campaign));
+        throw new IllegalStateException("No stage " + stageNumber + " (iteration " + campaign.getIteration() + " in "
+                + ObjectTypeUtil.toShortString(campaign));
     }
 
     public static AccessCertificationCaseType findCase(AccessCertificationCampaignType campaign, long caseId) {
@@ -145,6 +148,7 @@ public class CertCampaignTypeUtil {
     }
 
     // active cases = cases that are to be responded to in this stage
+	// TODO iteration
     public static int getActiveCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int open = 0;
         if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
@@ -441,13 +445,6 @@ public class CertCampaignTypeUtil {
         return campaign != null ? campaign.asObjectable() : null;
     }
 
-    public static List<String> getOutcomesFromCompletedStages(AccessCertificationCaseType aCase) {
-        return aCase.getEvent().stream()
-                .filter(e -> e instanceof StageCompletionEventType)
-                .map(e -> ((StageCompletionEventType) e).getOutcome())
-                .collect(Collectors.toList());
-    }
-
     @NotNull
     public static List<StageCompletionEventType> getCompletedStageEvents(AccessCertificationCaseType aCase) {
         return aCase.getEvent().stream()
@@ -485,5 +482,20 @@ public class CertCampaignTypeUtil {
         }
         AccessCertificationStageType stage = getCurrentStage(campaign);
         return stage != null ? WfContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()) : null;
+    }
+
+    // returns reviewers for non-closed work items
+    public static Collection<String> getActiveReviewers(List<AccessCertificationCaseType> caseList) {
+        Set<String> oids = new HashSet<>();
+        for (AccessCertificationCaseType aCase : caseList) {
+			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+				if (workItem.getCloseTimestamp() == null) {
+					for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
+						oids.add(reviewerRef.getOid());
+					}
+				}
+			}
+        }
+        return oids;
     }
 }

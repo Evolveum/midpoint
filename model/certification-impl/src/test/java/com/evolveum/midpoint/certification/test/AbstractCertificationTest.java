@@ -337,13 +337,20 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
+    	assertAfterCampaignStart(campaign, definition, cases, 1, 1);
+	}
+
+	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases, int iteration, int expectedStages)
+			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
         assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
         assertDefinitionAndOwner(campaign, definition);
         assertApproximateTime("start time", new Date(), campaign.getStartTimestamp());
         assertNull("Unexpected end time", campaign.getEndTimestamp());
         assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
-        assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().get(0);
+        assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
+        AccessCertificationStageType stage = campaign.getStage().stream().filter(s -> s.getIteration() == iteration && s.getNumber() == 1).findFirst().orElse(null);
+        assertNotNull("No stage #1 for current iteration", stage);
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStartTimestamp());
         assertNotNull("stage 1 deadline", stage.getDeadline());       // too lazy to compute exact datetime
@@ -352,7 +359,11 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 		PrismObject<AccessCertificationDefinitionType> def = getObjectViaRepo(AccessCertificationDefinitionType.class, definition.getOid());
 		assertApproximateTime("last campaign started", new Date(), def.asObjectable().getLastCampaignStartedTimestamp());
-		assertNull("unexpected last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
+		if (iteration == 1) {
+			assertNull("unexpected last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
+		} else {
+			assertNotNull("last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
+		}
 		assertCases(campaign.getOid(), cases);
     }
 
@@ -370,6 +381,10 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertNull("unexpected stage end", stage.getEndTimestamp());
 	}
 
+	protected void assertStateStageIteration(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage, int iteration) {
+		assertStateAndStage(campaign, state, stage);
+		assertEquals("Unexpected iteration", iteration, campaign.getIteration());
+	}
 
 	protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
 		assertEquals("Unexpected campaign state", state, campaign.getState());

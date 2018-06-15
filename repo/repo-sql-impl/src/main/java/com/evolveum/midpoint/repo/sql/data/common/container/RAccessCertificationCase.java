@@ -89,6 +89,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
     private String currentStageOutcome;
+    private Integer iteration;
     private Integer stageNumber;
     private String outcome;
 
@@ -173,6 +174,10 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return currentStageOutcome;
     }
 
+    public Integer getIteration() {
+        return iteration;
+    }
+
     public Integer getStageNumber() {
         return stageNumber;
     }
@@ -232,6 +237,10 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.currentStageOutcome = currentStageOutcome;
     }
 
+    public void setIteration(Integer iteration) {
+        this.iteration = iteration;
+    }
+
     public void setStageNumber(Integer stageNumber) {
         this.stageNumber = stageNumber;
     }
@@ -270,6 +279,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
                 Objects.equals(reviewDeadline, that.reviewDeadline) &&
                 Objects.equals(remediedTimestamp, that.remediedTimestamp) &&
                 currentStageOutcome == that.currentStageOutcome &&
+                Objects.equals(iteration, that.iteration) &&
                 Objects.equals(stageNumber, that.stageNumber) &&
                 Objects.equals(outcome, that.outcome);
     }
@@ -277,7 +287,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     @Override
     public int hashCode() {
         return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
-                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, stageNumber,
+                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, iteration, stageNumber,
                 outcome);
     }
 
@@ -337,6 +347,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setReviewDeadline(case1.getCurrentStageDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
         rCase.setCurrentStageOutcome(case1.getCurrentStageOutcome());
+        rCase.setIteration(case1.getIteration());
         rCase.setStageNumber(case1.getStageNumber());
         rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();

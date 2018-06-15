@@ -75,9 +75,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
  * TODO: consider the enormous size of audit events in case of big campaigns (e.g. thousands or tens of thousands
  * certification cases).
  *
- * We try to carry out repo update in one operation to ensure atomicity; unless we need to carry out them on separate
- * objects (e.g. certification definition + certification campaign).
- *
  * Methods in this module (e.g. searchCases) are to be called from outside only, as they carry out the authorization.
  * For pre-authorized versions please see various helpers, e.g. AccCertQueryHelper.
  *
@@ -88,21 +85,20 @@ public class CertificationManagerImpl implements CertificationManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManager.class);
 
-    public static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
-    public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";
-    public static final String OPERATION_CREATE_CAMPAIGN = INTERFACE_DOT + "createCampaign";
-    public static final String OPERATION_CREATE_AD_HOC_CAMPAIGNS = INTERFACE_DOT + "createAdHocCampaigns";
-    public static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
-    public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
-    public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
-    public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
-    public static final String OPERATION_COUNT_OPEN_WORK_ITEMS = INTERFACE_DOT + "countOpenWorkItems";
-    public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
-    public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
-    public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
-    public static final String OPERATION_CLEANUP_CAMPAIGNS = INTERFACE_DOT + "cleanupCampaigns";
-
-    private static final int CASES_DELTAS_BATCH_SIZE = 60;          // there are 6 deltas for single case modification (TODO)
+    private static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
+    //public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";
+    private static final String OPERATION_CREATE_CAMPAIGN = INTERFACE_DOT + "createCampaign";
+    private static final String OPERATION_CREATE_AD_HOC_CAMPAIGNS = INTERFACE_DOT + "createAdHocCampaigns";
+    private static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
+    private static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
+    private static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
+    private static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
+    private static final String OPERATION_COUNT_OPEN_WORK_ITEMS = INTERFACE_DOT + "countOpenWorkItems";
+    private static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
+    private static final String OPERATION_REITERATE_CAMPAIGN = INTERFACE_DOT + "reiterateCampaign";
+    private static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
+    private static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
+    private static final String OPERATION_CLEANUP_CAMPAIGNS = INTERFACE_DOT + "cleanupCampaigns";
 
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -126,7 +122,7 @@ public class CertificationManagerImpl implements CertificationManager {
         registeredHandlers.put(handlerUri, handler);
     }
 
-    public CertificationHandler findCertificationHandler(AccessCertificationCampaignType campaign) {
+    CertificationHandler findCertificationHandler(AccessCertificationCampaignType campaign) {
         if (StringUtils.isBlank(campaign.getHandlerUri())) {
             throw new IllegalArgumentException("No handler URI for access certification campaign " + ObjectTypeUtil.toShortString(campaign));
         }
@@ -148,9 +144,7 @@ public class CertificationManagerImpl implements CertificationManager {
         try {
             PrismObject<AccessCertificationDefinitionType> definition = repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
             securityEnforcer.authorize(ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(), null, AuthorizationParameters.Builder.buildObject(definition), null, task, result);
-            AccessCertificationCampaignType newCampaign = updateHelper.createCampaignObject(definition.asObjectable(), task, result);
-            updateHelper.addObject(newCampaign, task, result);
-            return newCampaign;
+	        return updateHelper.createCampaign(definition, result, task);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -159,7 +153,7 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    // This is an action that can be run in unprivileged context. No authorizations are checked. Take care when and where you call it.
+	// This is an action that can be run in unprivileged context. No authorizations are checked. Take care when and where you call it.
     // Child result is intentionally created only when a certification campaign is to be started (to avoid useless creation of many empty records)
 	<O extends ObjectType> void startAdHocCertifications(PrismObject<O> focus,
 			List<CertificationPolicyActionType> actions, Task task, OperationResult parentResult)
@@ -205,8 +199,8 @@ public class CertificationManagerImpl implements CertificationManager {
 		try {
 			AccessCertificationDefinitionType definition = repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result).asObjectable();
 			AccessCertificationCampaignType newCampaign = updateHelper.createAdHocCampaignObject(definition, focus, task, result);
-			updateHelper.addObject(newCampaign, task, result);
-			openNextStage(newCampaign.getOid(), 1, task, result);
+			updateHelper.addObjectPreAuthorized(newCampaign, task, result);
+			openNextStage(newCampaign.getOid(), task, result);
 			result.computeStatus();
 		} catch (RuntimeException|SchemaException|ObjectNotFoundException|SecurityViolationException|ObjectAlreadyExistsException|ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't create ad-hoc certification campaign: " + e.getMessage(), e);
@@ -214,25 +208,18 @@ public class CertificationManagerImpl implements CertificationManager {
 		}
     }
 
-
-
     @Override
-    public void openNextStage(String campaignOid, int requestedStageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        Validate.notNull(campaignOid, "campaignOid");
-        Validate.notNull(task, "task");
-        Validate.notNull(parentResult, "parentResult");
-
+    public void openNextStage(@NotNull String campaignOid, @NotNull Task task, @NotNull OperationResult parentResult)
+		    throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+		    ExpressionEvaluationException, CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createSubresult(OPERATION_OPEN_NEXT_STAGE);
         result.addParam("campaignOid", campaignOid);
-        result.addParam("requestedStageNumber", requestedStageNumber);
 
         try {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
             result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortString(campaign));
-            }
+	        LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortStringLazy(campaign));
 
             securityEnforcer.authorize(ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
             		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
@@ -240,30 +227,24 @@ public class CertificationManagerImpl implements CertificationManager {
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
-            LOGGER.trace("openNextStage: currentStageNumber={}, stages={}, requestedStageNumber={}, state={}", currentStageNumber, stages, requestedStageNumber, state);
+            LOGGER.trace("openNextStage: currentStageNumber={}, stages={}, state={}", currentStageNumber, stages, state);
             if (IN_REVIEW_STAGE.equals(state)) {
-                result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the stage " + currentStageNumber + " is currently open.");
+                result.recordFatalError("Couldn't advance to the next review stage as the stage " + currentStageNumber + " is currently open.");
             } else if (IN_REMEDIATION.equals(state)) {
-                result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign is currently in the remediation phase.");
+                result.recordFatalError("Couldn't advance to the next review stage as the campaign is currently in the remediation phase.");
             } else if (CLOSED.equals(state)) {
-                result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign is already closed.");
+                result.recordFatalError("Couldn't advance to the next review stage as the campaign is already closed.");
             } else if (!REVIEW_STAGE_DONE.equals(state) && !CREATED.equals(state)) {
                 throw new IllegalStateException("Unexpected campaign state: " + state);
-            } else if (REVIEW_STAGE_DONE.equals(state) && requestedStageNumber != currentStageNumber+1) {
-                result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign is currently in stage " + currentStageNumber);
-            } else if (CREATED.equals(state) && requestedStageNumber != 1) {
-                result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign was just created");
-            } else if (requestedStageNumber > stages) {
-                result.recordFatalError("Couldn't advance to review stage " + requestedStageNumber + " as the campaign has only " + stages + " stages");
+            } else if (currentStageNumber >= stages) {
+	            result.recordFatalError(
+			            "Couldn't advance to the next review stage as the campaign has only " + stages + " stages");
             } else {
-                final CertificationHandler handler = findCertificationHandler(campaign);
-                final AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
-                final ModificationsToExecute modifications = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
-                updateHelper.modifyCampaignViaModel(campaignOid, modifications, task, result);
-                updateHelper.afterStageOpen(campaignOid, stage, task, result);
+                CertificationHandler handler = findCertificationHandler(campaign);
+                updateHelper.openNextStage(campaign, handler, task, result);
             }
         } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't move to certification campaign stage " + requestedStageNumber + ": unexpected exception: " + e.getMessage(), e);
+            result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -271,14 +252,13 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void closeCurrentStage(String campaignOid, int stageNumberToClose, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
 
         OperationResult result = parentResult.createSubresult(OPERATION_CLOSE_CURRENT_STAGE);
         result.addParam("campaignOid", campaignOid);
-        result.addParam("stageNumber", stageNumberToClose);
 
         try {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
@@ -294,19 +274,17 @@ public class CertificationManagerImpl implements CertificationManager {
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
-            LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, stageNumberToClose={}, state={}", currentStageNumber, stages, stageNumberToClose, state);
+            LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, state={}", currentStageNumber, stages, state);
 
-            if (stageNumberToClose != currentStageNumber) {
-                result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as the campaign is not in that stage");
-            } else if (!IN_REVIEW_STAGE.equals(state)) {
-                result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
+			if (!IN_REVIEW_STAGE.equals(state)) {
+                result.recordFatalError("Couldn't close the current review stage as it is currently not open");
             } else {
                 ModificationsToExecute modifications = updateHelper.getDeltasForStageClose(campaign, result);
-                updateHelper.modifyCampaignViaModel(campaignOid, modifications, task, result);
+                updateHelper.modifyCampaignPreAuthorized(campaignOid, modifications, task, result);
                 updateHelper.afterStageClose(campaignOid, task, result);
             }
         } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't close certification campaign stage " + stageNumberToClose+ ": unexpected exception: " + e.getMessage(), e);
+            result.recordFatalError("Couldn't close current certification campaign stage: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -344,7 +322,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 result.recordFatalError("Couldn't start the remediation as the last stage was not properly closed.");
             } else {
                 List<ItemDelta<?,?>> deltas = updateHelper.createDeltasForStageNumberAndState(lastStageNumber + 1, IN_REMEDIATION);
-                updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+                updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
                     remediationTaskHandler.launch(campaign, result);
@@ -367,8 +345,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Override
     public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+            Task task, OperationResult parentResult) {
         throw new UnsupportedOperationException("not available any more");
     }
 
@@ -483,9 +460,31 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    // this method delegates the authorization to the model
+	@Override
+	public void reiterateCampaign(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException {
+		OperationResult result = parentResult.createSubresult(OPERATION_REITERATE_CAMPAIGN);
+
+		try {
+			AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+			securityEnforcer.authorize(ModelAuthorizationAction.REITERATE_CERTIFICATION_CAMPAIGN.getUrl(), null,
+					AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
+			updateHelper.reiterateCampaign(campaign, task, result);
+		} catch (RuntimeException e) {
+			result.recordFatalError("Couldn't reiterate certification campaign: unexpected exception: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+
+	// this method delegates the authorization to the model
     @Override
-    public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task,
+		    OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+		    ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");

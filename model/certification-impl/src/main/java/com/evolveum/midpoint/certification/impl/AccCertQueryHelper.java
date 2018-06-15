@@ -28,9 +28,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -51,6 +49,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Component
 public class AccCertQueryHelper {
 
+    @SuppressWarnings("unused")
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertQueryHelper.class);
 
     @Autowired private PrismContext prismContext;
@@ -61,24 +60,30 @@ public class AccCertQueryHelper {
     // public because of certification tests
     public List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-
-        ObjectQuery newQuery;
-        InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
-        newQuery = replaceFilter(query, inOidFilter);
-
+        InOidFilter campaignFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
+	    ObjectQuery newQuery = addFilter(query, campaignFilter);
 		return repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
     }
 
-    private ObjectQuery replaceFilter(ObjectQuery query, ObjectFilter newFilter) {
+    public List<AccessCertificationCaseType> getAllCurrentIterationCases(String campaignOid, int iteration,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+	    ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+			    .ownerId(campaignOid)
+			    .and().item(AccessCertificationCaseType.F_ITERATION).eq(iteration)
+			    .build();
+		return repositoryService.searchContainers(AccessCertificationCaseType.class, query, options, result);
+    }
+
+    private ObjectQuery addFilter(ObjectQuery query, ObjectFilter additionalFilter) {
         ObjectQuery newQuery;
         if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(newFilter);
+            newQuery = ObjectQuery.createObjectQuery(additionalFilter);
         } else {
             newQuery = query.clone();
             if (query.getFilter() == null) {
-                newQuery.setFilter(newFilter);
+                newQuery.setFilter(additionalFilter);
             } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), newFilter));
+                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), additionalFilter));
             }
         }
         return newQuery;
@@ -88,45 +93,36 @@ public class AccCertQueryHelper {
     // principal == null => take all work items
     public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
 			boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
+			throws SchemaException {
 		ObjectQuery newQuery = createQueryForOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly);
-
-		// retrieve cases, filtered
 		return repositoryService.searchContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
     }
 
 	private ObjectQuery createQueryForOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
 			boolean notDecidedOnly) throws SchemaException {
-		// enhance filter with reviewerRef + enabled
-		ObjectQuery newQuery;
-
 		ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
 
-		ObjectFilter filterToAdd;
+		ObjectFilter filter;
 		if (notDecidedOnly) {
 			ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
 					.item(F_OUTPUT, F_OUTCOME).isNull()
 					.buildFilter();
-			filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
+			filter = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
 		} else {
-			filterToAdd = reviewerAndEnabledFilter;
+			filter = reviewerAndEnabledFilter;
 		}
-		newQuery = replaceFilter(baseWorkItemsQuery, filterToAdd);
-		return newQuery;
+		return addFilter(baseWorkItemsQuery, filter);
 	}
 
     // principal == null => take all work items
 	int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
 			boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-
-        // enhance filter with reviewerRef + enabled
+			throws SchemaException {
 		ObjectQuery newQuery = createQueryForOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly);
-
         return repositoryService.countContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
     }
 
-    private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) throws SchemaException {
+    private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) {
         return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
 					.exists(F_WORK_ITEM)
 					.block()
@@ -152,13 +148,15 @@ public class AccCertQueryHelper {
     }
 
     // TODO get work items for reviewer/campaign
-    public List<AccessCertificationCaseType> getCasesForReviewer(AccessCertificationCampaignType campaign,
-			String reviewerOid, Task task, OperationResult result) throws SchemaException {
+    List<AccessCertificationCaseType> getOpenCasesForReviewer(AccessCertificationCampaignType campaign,
+		    String reviewerOid, OperationResult result) throws SchemaException {
+	    // note: this is OK w.r.t. iterations, as we are looking for cases with non-closed work items here
         ObjectFilter filter = getReviewerAndEnabledFilter(reviewerOid);
 		return searchCases(campaign.getOid(), ObjectQuery.createObjectQuery(filter), null, result);
     }
 
-    public AccessCertificationCaseType getCase(String campaignOid, long caseId, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
+    public AccessCertificationCaseType getCase(String campaignOid, long caseId, @SuppressWarnings("unused") Task task,
+		    OperationResult result) throws SchemaException {
         ObjectFilter filter = AndFilter.createAnd(
                 InOidFilter.createOwnerHasOidIn(campaignOid),
                 InOidFilter.createInOid(String.valueOf(caseId))
@@ -166,7 +164,6 @@ public class AccCertQueryHelper {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
-
         if (caseList.isEmpty()) {
             return null;
         } else if (caseList.size() == 1) {
@@ -176,7 +173,7 @@ public class AccCertQueryHelper {
         }
     }
 
-    public List<AccessCertificationCaseType> selectOpenCasesForReviewer(List<AccessCertificationCaseType> caseList, String reviewerOid) {
+    List<AccessCertificationCaseType> selectOpenCasesForReviewer(List<AccessCertificationCaseType> caseList, String reviewerOid) {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         cases: for (AccessCertificationCaseType aCase : caseList) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {

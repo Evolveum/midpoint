@@ -258,7 +258,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.openNextStage(campaignOid, 1, task, result);
+        certificationManager.openNextStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -385,7 +385,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        certificationManager.closeCurrentStage(campaignOid, 1, task, result);
+        certificationManager.closeCurrentStage(campaignOid, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
