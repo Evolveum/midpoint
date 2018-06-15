@@ -33,6 +33,7 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesF
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.common.objects.filter.FilterVisitor;
@@ -62,6 +64,7 @@ import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.PoolableConnector;
+import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -384,8 +387,14 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		}
 
 		if (configuration.isSupportReturnDefaultAttributes()) {
-			builder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(), SearchOp.class,
-					SyncOp.class);
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(),
+					SearchOp.class, SyncOp.class);
+		}
+		
+		if (supportsPaging()) {
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildPagedResultsOffset(), SearchOp.class); 
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildPageSize(), SearchOp.class);
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildSortKeys(), SearchOp.class);
 		}
 
         log.info("schema::end");
@@ -673,27 +682,127 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         	return;
         }
 
-        // Brute force: list all, filter out
+        Integer offset = null;
+        Integer pageSize = null;
+        if (supportsPaging() && options != null) {
+        	offset = options.getPagedResultsOffset();
+        	pageSize = options.getPageSize();
+        }
+        
     	Collection<T> allObjects = lister.list();
+    	allObjects = sortObjects(allObjects, options);
+    	int matchingObjects = 0;
+    	int returnedObjects = 0;
+    	// Brute force. Primitive, but efficient.
         for (T object : allObjects) {
         	ConnectorObject co = converter.convert(object, attributesToGet);
         	if (matches(query, co)) {
+        		matchingObjects++;
+        		if (offset != null && matchingObjects < offset) {
+        			continue;
+        		}
+        		if (pageSize != null && returnedObjects >= pageSize) {
+        			// Continue, do not break. We still want to know how much objects match in total.
+        			continue;
+        		}
+        		returnedObjects++;
         		handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
         	}
         }
+        
+        if (supportsPaging() && handler instanceof SearchResultsHandler) {
+        	int skippedObjects = 0;
+        	if (offset != null) {
+        		skippedObjects = offset - 1;
+        	}
+			int remainingResults = matchingObjects - returnedObjects - skippedObjects;
+			SearchResult searchResult = new SearchResult(null, remainingResults, true);
+			((SearchResultsHandler)handler).handleResult(searchResult);
+        }
     }
+    
+    private <T extends DummyObject> Collection<T> sortObjects(Collection<T> allObjects, OperationOptions options) {
+    	if (options == null) {
+    		return allObjects;
+    	}
+    	SortKey[] sortKeys = options.getSortKeys();
+    	if (sortKeys == null || sortKeys.length == 0) {
+    		return allObjects;
+    	}
+    	List<T> list = new ArrayList<>(allObjects);
+    	list.sort((o1,o2) -> compare(o1, o2, sortKeys));
+    	log.ok("Objects sorted by {0}: {1}", Arrays.toString(sortKeys), list);
+		return list;
+	}
+
+	private <T extends DummyObject> int compare(T o1, T o2, SortKey[] sortKeys) {
+		for (SortKey sortKey: sortKeys) {
+			String fieldName = sortKey.getField();
+			Object o1Value = getField(o1, fieldName);
+			Object o2Value = getField(o2, fieldName);
+			int res = compare(o1Value, o2Value, sortKey.isAscendingOrder());
+			if (res != 0) {
+				return res;
+			}
+		}
+		return 0;
+	}
+
+	private <T extends DummyObject> Object getField(T dummyObject, String fieldName) {
+		if (fieldName.equals(Uid.NAME)) {
+			return dummyObject.getId();
+		}
+		if (fieldName.equals(Name.NAME)) {
+			return dummyObject.getName();
+		}
+		return dummyObject.getAttributeValue(fieldName);
+	}
+	
+	private int compare(Object val1, Object val2, boolean ascendingOrder) {
+		int cmp = compareAscending(val1, val2);
+		if (ascendingOrder) {
+			return cmp;
+		} else {
+			return -cmp;
+		}
+	}
+	
+	private int compareAscending(Object val1, Object val2) {
+		if (val1 == null && val2 == null) {
+			return 0;
+		}
+		if (val1 == null) {
+			return 1;
+		}
+		if (val2 == null) {
+			return -1;
+		}
+		Comparator<Comparable> comparator = Comparator.naturalOrder();
+		if (!(val1 instanceof Comparable) || !(val2 instanceof Comparable)) {
+			if (val1.equals(val2)) {
+				return 0;
+			} else {
+				return comparator.compare(val1.toString(), val2.toString());
+			}
+		}
+		return comparator.compare((Comparable)val1, (Comparable)val2);
+	}
+
+	private boolean supportsPaging() {
+		return !DummyConfiguration.PAGING_STRATEGY_NONE.equals(configuration.getPagingStrategy());
+	}
 
     private <T extends DummyObject> void handleObject(T object, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Converter<T> converter, Consumer<T> recorder) throws SchemaViolationException {
     	ConnectorObject co = converter.convert(object, attributesToGet);
     	handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
     }
 
-    private <T extends DummyObject> void handleConnectorObject(T object, ConnectorObject co, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Consumer<T> recorder) {
+    private <T extends DummyObject> boolean handleConnectorObject(T object, ConnectorObject co, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Consumer<T> recorder) {
     	if (recorder != null) {
 			recorder.accept(object);
 		}
 		co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
-		handler.handle(co);
+		return handler.handle(co);
 	}
 
 	private boolean isEqualsFilter(Filter icfFilter, String icfAttrname) {
@@ -1544,6 +1653,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
 				@Override
 				public String visitEndsWithFilter(String p, EndsWithFilter filter) {
+					return null;
+				}
+
+				@Override
+				public String visitEqualsIgnoreCaseFilter(String p, EqualsIgnoreCaseFilter filter) {
 					return null;
 				}
 

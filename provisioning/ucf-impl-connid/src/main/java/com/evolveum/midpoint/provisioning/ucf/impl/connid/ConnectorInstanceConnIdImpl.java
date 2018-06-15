@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.PagingConvertor;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -2320,7 +2321,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         final Holder<Integer> countHolder = new Holder<>(0);
 
-		ResultsHandler icfHandler = new ResultsHandler() {
+		ResultsHandler connIdHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ConnId-specific connector object to a generic
@@ -2446,12 +2447,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 		icfResult.addContext("connector", connIdConnectorFacade.getClass());
 
-		SearchResult icfSearchResult;
+		SearchResult connIdSearchResult;
 		try {
 
 			InternalMonitor.recordConnectorOperation("search");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-			icfSearchResult = connIdConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
+			connIdSearchResult = connIdConnectorFacade.search(icfObjectClass, filter, connIdHandler, options);
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
 
 			icfResult.recordSuccess();
@@ -2487,13 +2488,20 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		SearchResultMetadata metadata = null;
-		if (icfSearchResult != null) {
+		if (connIdSearchResult != null) {
 			metadata = new SearchResultMetadata();
-			metadata.setPagingCookie(icfSearchResult.getPagedResultsCookie());
-			if (icfSearchResult.getRemainingPagedResults() >= 0) {
-				metadata.setApproxNumberOfAllResults(icfSearchResult.getRemainingPagedResults());
+			metadata.setPagingCookie(connIdSearchResult.getPagedResultsCookie());
+			int remainingPagedResults = connIdSearchResult.getRemainingPagedResults();
+			if (remainingPagedResults >= 0) {
+				int offset = 0;
+				Integer connIdOffset = options.getPagedResultsOffset();
+				if (connIdOffset != null && connIdOffset > 0) {
+					offset = connIdOffset - 1;
+				}
+				int allResults = remainingPagedResults + offset + countHolder.getValue();
+				metadata.setApproxNumberOfAllResults(allResults);
 			}
-			if (!icfSearchResult.isAllResultsReturned()) {
+			if (!connIdSearchResult.isAllResultsReturned()) {
 				metadata.setPartialResults(true);
 			}
 		}

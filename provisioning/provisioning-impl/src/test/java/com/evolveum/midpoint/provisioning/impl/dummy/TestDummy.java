@@ -28,6 +28,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -61,7 +63,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -73,6 +78,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -738,27 +744,31 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 	@Test
 	public void test115CountAllAccounts() throws Exception {
-		displayTestTitle("test115CountAllAccounts");
+		final String TEST_NAME = "test115CountAllAccounts";
+		displayTestTitle(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test115countAllShadows");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
 		display("All shadows query", query);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		Integer count = provisioningService.countObjects(ShadowType.class, query, null, null, result);
 
 		// THEN
-		result.computeStatus();
-		display("countObjects result", result);
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		display("Found " + count + " shadows");
 
-		assertEquals("Wrong number of results", null, count);
+		assertEquals("Wrong number of count results", getTest115ExpectedCount(), count);
 
 		assertSteadyResource();
+	}
+	
+	protected Integer getTest115ExpectedCount() {
+		return 4;
 	}
 
 	@Test
@@ -2039,10 +2049,95 @@ public class TestDummy extends AbstractBasicDummyTest {
 				SchemaConstants.ICFS_NAME, getWillRepoIcfName(), null, true,
 				transformNameFromResource(ACCOUNT_WILL_USERNAME));
 	}
+	
+	@Test
+	public void test180SearchNullPagingOffset0Size3() throws Exception {
+		final String TEST_NAME = "test180SearchNullPagingSize5";
+		displayTestTitle(TEST_NAME);
+		ObjectPaging paging = ObjectPaging.createPaging(0,3);
+		paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
+		SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+				getSortedUsernames18x(0,3));
+		assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
+	}
+	
+	/**
+	 * Reverse sort order, so we are sure that this thing is really sorting
+	 * and not just returning data in alphabetical order by default.
+	 */
+	@Test
+	public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
+		final String TEST_NAME = "test181SearchNullPagingOffset0Size3Desc";
+		displayTestTitle(TEST_NAME);
+		ObjectPaging paging = ObjectPaging.createPaging(0,3);
+		paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
+		SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+				getSortedUsernames18xDesc(0,3));
+		assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
+	}
+	
+	@Test
+	public void test182SearchNullPagingOffset1Size2() throws Exception {
+		final String TEST_NAME = "test182SearchNullPagingOffset1Size2";
+		displayTestTitle(TEST_NAME);
+		ObjectPaging paging = ObjectPaging.createPaging(1,2);
+		paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
+		SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+				getSortedUsernames18x(1,2));
+		assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
+	}
+	
+	@Test
+	public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
+		final String TEST_NAME = "test183SearchNullPagingOffset1Size3Desc";
+		displayTestTitle(TEST_NAME);
+		ObjectPaging paging = ObjectPaging.createPaging(2,3);
+		paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
+		SearchResultMetadata searchMetadata = testSeachIterativePaging(TEST_NAME, null, paging, null,
+				getSortedUsernames18xDesc(2,3));
+		assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
+	}
+	
+	protected Integer getTest18xApproxNumberOfSearchResults() {
+		return 5;
+	}
+	
+	protected String[] getSortedUsernames18x(int offset, int pageSize) {
+		return Arrays.copyOfRange(getSortedUsernames18x(), offset, offset + pageSize);
+	}
+	
+	protected String[] getSortedUsernames18xDesc(int offset, int pageSize) {
+		String[] usernames = getSortedUsernames18x();
+		ArrayUtils.reverse(usernames);
+		return Arrays.copyOfRange(usernames, offset, offset + pageSize);
+	}
+	
+	protected String[] getSortedUsernames18x() {
+		return new String[] { transformNameFromResource("Will"), "carla", "daemon", "meathook", transformNameFromResource("morgan") };
+	}
+	
+	protected ObjectOrdering createAttributeOrdering(QName attrQname) {
+		return createAttributeOrdering(attrQname, OrderDirection.ASCENDING);
+	}
+	
+	protected ObjectOrdering createAttributeOrdering(QName attrQname, OrderDirection direction) {
+		return ObjectOrdering.createOrdering(new ItemPath(ShadowType.F_ATTRIBUTES, attrQname), direction);
+	}
+
+	protected void assertApproxNumberOfAllResults(SearchResultMetadata searchMetadata, Integer expectedNumber) {
+		if (expectedNumber == null) {
+			if (searchMetadata == null) {
+				return;
+			}
+			assertNull("Unexpected approximate number of search results in search metadata, expected null but was "+searchMetadata.getApproxNumberOfAllResults(), searchMetadata.getApproxNumberOfAllResults());
+		} else {
+			assertEquals("Wrong approximate number of search results in search metadata", expectedNumber, searchMetadata.getApproxNumberOfAllResults());
+		}
+	}
 
 	@Test
-	public void test180SearchIcfNameRepoizedNoFetch() throws Exception {
-		final String TEST_NAME = "test180SearchIcfNameRepoizedNoFetch";
+	public void test194SearchIcfNameRepoizedNoFetch() throws Exception {
+		final String TEST_NAME = "test194SearchIcfNameRepoizedNoFetch";
 		displayTestTitle(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, SchemaConstants.ICFS_NAME, getWillRepoIcfName(),
 				GetOperationOptions.createNoFetch(), false,
@@ -2050,8 +2145,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	@Test
-	public void test181SearchIcfNameExact() throws Exception {
-		final String TEST_NAME = "test181SearchIcfNameExact";
+	public void test195SearchIcfNameExact() throws Exception {
+		final String TEST_NAME = "test195SearchIcfNameExact";
 		displayTestTitle(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME), null, true,
@@ -2059,8 +2154,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	@Test
-	public void test182SearchIcfNameExactNoFetch() throws Exception {
-		final String TEST_NAME = "test182SearchIcfNameExactNoFetch";
+	public void test196SearchIcfNameExactNoFetch() throws Exception {
+		final String TEST_NAME = "test196SearchIcfNameExactNoFetch";
 		displayTestTitle(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
 				GetOperationOptions.createNoFetch(), false,
@@ -2069,8 +2164,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     // TEMPORARY todo move to more appropriate place (model-intest?)
     @Test
-    public void test183SearchIcfNameAndUidExactNoFetch() throws Exception {
-        final String TEST_NAME = "test183SearchIcfNameAndUidExactNoFetch";
+    public void test197SearchIcfNameAndUidExactNoFetch() throws Exception {
+        final String TEST_NAME = "test197SearchIcfNameAndUidExactNoFetch";
         displayTestTitle(TEST_NAME);
         testSeachIterativeAlternativeAttrFilter(TEST_NAME, SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
         		SchemaConstants.ICFS_UID, willIcfUid,
@@ -2080,8 +2175,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 
     @Test
-	public void test190SearchNone() throws Exception {
-		final String TEST_NAME = "test190SearchNone";
+	public void test198SearchNone() throws Exception {
+		final String TEST_NAME = "test198SearchNone";
 		displayTestTitle(TEST_NAME);
 		ObjectFilter attrFilter = NoneFilter.createNone();
 		testSeachIterative(TEST_NAME, attrFilter, null, true, true, false);
@@ -2093,8 +2188,8 @@ public class TestDummy extends AbstractBasicDummyTest {
      * MID-2822
      */
     @Test
-	public void test195SearchOnAndOffResource() throws Exception {
-		final String TEST_NAME = "test195SearchOnAndOffResource";
+	public void test199SearchOnAndOffResource() throws Exception {
+		final String TEST_NAME = "test199SearchOnAndOffResource";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -2212,7 +2307,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
 
-    private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions,
+    private SearchResultMetadata testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions,
 			final boolean fullShadow, boolean useObjectClassFilter, final boolean useRepo, String... expectedAccountNames) throws Exception {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -2231,7 +2326,6 @@ public class TestDummy extends AbstractBasicDummyTest {
                 query.setFilter(AndFilter.createAnd(query.getFilter(), attrFilter));
             }
         }
-
 
 		display("Query", query);
 
@@ -2262,13 +2356,16 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 
 		// WHEN
+		displayWhen(TEST_NAME);
+		SearchResultMetadata searchMetadata;
         if (useRepo) {
-            repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, false, result);
+        	searchMetadata = repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, false, result);
         } else {
-            provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+            searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
         }
 
 		// THEN
+        displayThen(TEST_NAME);
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
@@ -2293,6 +2390,77 @@ public class TestDummy extends AbstractBasicDummyTest {
             checkConsistency(foundObjects);
         }
         assertSteadyResource();
+        
+        return searchMetadata;
+	}
+    
+    // This has to be a different method than ordinary search. We care about ordering here.
+    // Also, paged search without sorting does not make much sense anyway.
+    private SearchResultMetadata testSeachIterativePaging(final String TEST_NAME, ObjectFilter attrFilter, ObjectPaging paging, GetOperationOptions rootOptions, String... expectedAccountNames) throws Exception {
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+            		SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
+        if (attrFilter != null) {
+            AndFilter filter = (AndFilter) query.getFilter();
+            filter.getConditions().add(attrFilter);
+        }
+    	query.setPaging(paging);
+
+
+		display("Query", query);
+
+		final XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+
+			@Override
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
+				foundObjects.add(shadow);
+
+				XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
+				assertTrue(shadow.canRepresent(ShadowType.class));
+                try {
+					checkAccountShadow(shadow, parentResult, true, startTs, endTs);
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
+				return true;
+			}
+		};
+
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
+
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		result.computeStatus();
+		display("searchObjectsIterative result", result);
+		TestUtil.assertSuccess(result);
+
+		display("found shadows", foundObjects);
+
+		int i = 0;
+		for (String expectedAccountId: expectedAccountNames) {
+			PrismObject<ShadowType> foundObject = foundObjects.get(i);
+			if (!expectedAccountId.equals(foundObject.asObjectable().getName().getOrig())) {
+				fail("Account "+expectedAccountId+" was expected to be found on "+i+" position, but it was not found (found "+foundObject.asObjectable().getName().getOrig()+")");
+			}
+			i++;
+		}
+
+		assertEquals("Wrong number of found objects ("+foundObjects+"): "+foundObjects, expectedAccountNames.length, foundObjects.size());
+        checkConsistency(foundObjects);
+        assertSteadyResource();
+        
+        return searchMetadata;
 	}
 
 	@Test

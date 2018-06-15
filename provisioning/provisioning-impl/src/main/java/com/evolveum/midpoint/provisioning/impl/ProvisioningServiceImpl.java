@@ -956,7 +956,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(handler, "Handler must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start to search object. Query {}", query != null ? query.debugDump() : "(null)");
+			LOGGER.trace("Start of search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
 		}
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -983,17 +983,19 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (filter != null && filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
-			LOGGER.trace("Finished searching. Nothing to do. Filter is NONE");
 			SearchResultMetadata metadata = new SearchResultMetadata();
 			metadata.setApproxNumberOfAllResults(0);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
+			}
 			return metadata;
 		}
 
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
+		SearchResultMetadata metadata = null;
 		if (ShadowType.class.isAssignableFrom(type)) {
 
-			SearchResultMetadata metadata;
 			try {
 
 				metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(query, options, (ResultHandler<ShadowType>)handler, true, task, result);
@@ -1007,8 +1009,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.cleanupResult();
 			}
 
-			return metadata;
-
 		} else {
 
 			ResultHandler<T> internalHandler = (object, objResult) -> handleRepoObject(type, object, options, handler, task, objResult);
@@ -1018,7 +1018,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
 			}
 
-			SearchResultMetadata metadata = null;
 			try {
 
 				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, repoOptions, false, result);	// TODO think about strictSequential flag
@@ -1028,12 +1027,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			} catch (SchemaException | RuntimeException | Error e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			} finally {
+				result.cleanupResult();
 			}
-
-			result.cleanupResult();
-
-			return metadata;
 		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Finished searching. Metadata: {}", metadata != null ? metadata.shortDump() : "(null)");
+		}
+
+		return metadata;
+
 
 	}
 

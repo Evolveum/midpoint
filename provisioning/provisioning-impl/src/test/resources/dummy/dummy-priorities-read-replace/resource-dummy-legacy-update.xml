@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+		xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
 	<name>Dummy Resource</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
@@ -199,6 +198,13 @@
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 	</schemaHandling>
+	<capabilities>
+		<configured>
+			<cap:countObjects>
+				<cap:simulate>pagedSearchEstimate</cap:simulate>
+			</cap:countObjects>
+		</configured>
+	</capabilities>
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
 	</consistency>

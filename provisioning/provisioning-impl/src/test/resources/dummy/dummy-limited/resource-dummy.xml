@@ -23,8 +23,7 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
 	<name>Dummy Resource</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
@@ -34,6 +33,7 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
 			<icfi:supportActivation>false</icfi:supportActivation>
+			<icfi:pagingStrategy>none</icfi:pagingStrategy>
 			<icfi:supportValidity>false</icfi:supportValidity>
 			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
@@ -196,4 +196,11 @@
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 	</schemaHandling>
+	<capabilities>
+		<configured>
+			<cap:countObjects>
+				<cap:simulate>sequentialSearch</cap:simulate>
+			</cap:countObjects>
+		</configured>
+	</capabilities>
 </resource>

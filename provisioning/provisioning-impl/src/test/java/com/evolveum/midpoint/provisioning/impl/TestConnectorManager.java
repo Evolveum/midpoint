@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-	private static final String CONNID_FRAMEWORK_VERSION = "1.4.3.11";
+	private static final String CONNID_FRAMEWORK_VERSION = "1.4.4.0";
 
 	@Autowired
 	private ProvisioningService provisioningService;

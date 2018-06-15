@@ -226,6 +226,9 @@
 	        <cap:activation>
 	            <cap:status/>
 	        </cap:activation>
+			<cap:countObjects>
+				<cap:simulate>pagedSearchEstimate</cap:simulate>
+			</cap:countObjects>
     	</configured>
 	</capabilities>
 </resource>

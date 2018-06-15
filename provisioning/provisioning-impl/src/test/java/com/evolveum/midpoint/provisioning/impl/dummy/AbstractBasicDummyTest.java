@@ -116,6 +116,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
@@ -627,6 +629,18 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull("No capabilities caching metadata timestamp", capabilitiesCachingMetadataType.getRetrievalTimestamp());
 		assertNotNull("No capabilities caching metadata serial number", capabilitiesCachingMetadataType.getSerialNumber());
 
+		// Configured capabilities
+		
+		CapabilityCollectionType configuredCapabilities = resourceType.getCapabilities().getConfigured();
+		if (configuredCapabilities == null) {
+			assertCountConfiguredCapability(null);
+		} else {
+			List<Object> configuredCapabilitiesList = configuredCapabilities.getAny();
+			CountObjectsCapabilityType capCount = CapabilityUtil.getCapability(configuredCapabilitiesList,
+					CountObjectsCapabilityType.class);
+			assertCountConfiguredCapability(capCount);
+		}
+		
 		// Check effective capabilites
 		capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
 		assertNotNull("password capability not found", capCred.getPassword());
@@ -644,12 +658,28 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		assertSteadyResource();
 	}
-
+	
 	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
 		assertNotNull("native update capability not present", capUpdate);
 		assertNull("native update capability is manual", capUpdate.isManual());
 		assertNotNull("native update capability is null", capUpdate.isDelta());
 		assertTrue("native update capability is NOT delta", capUpdate.isDelta());
+	}
+	
+	protected void assertCountConfiguredCapability(CountObjectsCapabilityType capCount) {
+		CountObjectsSimulateType expectedCountSimulation = getCountSimulationMode();
+		if (expectedCountSimulation == null) {
+			assertNull("Unexpected configured count capability", capCount);
+		} else {
+			assertNotNull("configured count capability not present", capCount);
+			CountObjectsSimulateType simulate = capCount.getSimulate();
+			assertNotNull("simulate not present in configured count capability", simulate);
+			assertEquals("Wrong similate in configured count capability", getCountSimulationMode(), simulate);
+		}
+	}
+
+	protected CountObjectsSimulateType getCountSimulationMode() {
+		return CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE;
 	}
 
 	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {

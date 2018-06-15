@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
 /**
- * Almost the same as TestDummy but this is using a resource without activation support.
+ * Almost the same as TestDummy but quite limited:
+ * - no activation support
+ * - no paging
+ * - no count simulation using sequential search
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik
@@ -49,9 +53,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestDummyNoActivation extends TestDummy {
+public class TestDummyLimited extends TestDummy {
 
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-no-activation");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-limited");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
@@ -75,6 +79,11 @@ public class TestDummyNoActivation extends TestDummy {
 		super.initSystem(initTask, initResult);
 
 		syncServiceMock.setSupportActivation(false);
+	}
+	
+	@Override
+	protected CountObjectsSimulateType getCountSimulationMode() {
+		return CountObjectsSimulateType.SEQUENTIAL_SEARCH;
 	}
 
 	@Test
@@ -411,6 +420,32 @@ public class TestDummyNoActivation extends TestDummy {
 		syncServiceMock.assertNotifyFailureOnly();
 
 		assertSteadyResource();
+	}
+	
+	// No paging means no support for server-side sorting
+	// Note: ordering may change here if dummy resource impl is changed
+	@Override
+	protected String[] getSortedUsernames18x() {
+		// daemon, Will, morgan, carla, meathook 
+		return new String[] { "daemon", transformNameFromResource("Will"), transformNameFromResource("morgan"), "carla", "meathook" };
+	}
+	
+	// No paging
+	@Override
+	protected Integer getTest18xApproxNumberOfSearchResults() {
+		return null;
+	}
+	
+	@Test
+	@Override
+	public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
+		// Nothing to do. No sorting support. So desc sorting won't work at all.
+	}
+	
+	@Test
+	@Override
+	public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
+		// Nothing to do. No sorting support. So desc sorting won't work at all.
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,27 @@ import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
 /**
  * Testing expressions in dummy resource configuration.
+ * Also, this resource has no paging support and no object count simulation.
  *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestDummyExpression extends AbstractBasicDummyTest {
+public class TestDummyExpression extends TestDummy {
 
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-expression");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
@@ -65,6 +72,42 @@ public class TestDummyExpression extends AbstractBasicDummyTest {
 			default:
 				break;
 		}
+	}
+	
+	@Override
+	protected CountObjectsSimulateType getCountSimulationMode() {
+		return null;
+	}
+	
+	@Override
+	protected Integer getTest115ExpectedCount() {
+		return null;
+	}
+	
+	// No paging means no support for server-side sorting
+	// Note: ordering may change here if dummy resource impl is changed
+	@Override
+	protected String[] getSortedUsernames18x() {
+		// daemon, Will, morgan, carla, meathook 
+		return new String[] { "daemon", transformNameFromResource("Will"), transformNameFromResource("morgan"), "carla", "meathook" };
+	}
+	
+	// No paging
+	@Override
+	protected Integer getTest18xApproxNumberOfSearchResults() {
+		return null;
+	}
+	
+	@Test
+	@Override
+	public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
+		// Nothing to do. No sorting support. So desc sorting won't work at all.
+	}
+	
+	@Test
+	@Override
+	public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
+		// Nothing to do. No sorting support. So desc sorting won't work at all.
 	}
 
 }

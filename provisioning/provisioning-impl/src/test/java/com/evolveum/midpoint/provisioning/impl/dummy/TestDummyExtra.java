@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 /**
  * Almost the same as TestDummy but with some extra things, such as:
  * * readable password
- * * account-account assciations
+ * * account-account associations
  *
  * @author Radovan Semancik
  *

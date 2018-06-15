@@ -35,6 +35,9 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public static final String PASSWORD_READABILITY_MODE_UNREADABLE = "unreadable";
 	public static final String PASSWORD_READABILITY_MODE_INCOMPLETE = "incomplete";
 	public static final String PASSWORD_READABILITY_MODE_READABLE = "readable";
+	
+	public static final String PAGING_STRATEGY_NONE = "none";
+	public static final String PAGING_STRATEGY_OFFSET = "offset";
 
     private static final Log log = Log.getLog(DummyConfiguration.class);
 
@@ -66,6 +69,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean supportReturnDefaultAttributes = false;				// used e.g. for livesync vs. auxiliary object classes test
 	private boolean requireNameHint = false;
 	private boolean monsterized = false;
+	private String pagingStrategy = PAGING_STRATEGY_OFFSET;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -378,6 +382,15 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setMonsterized(boolean monsterized) {
 		this.monsterized = monsterized;
+	}
+	
+	@ConfigurationProperty
+	public String getPagingStrategy() {
+		return pagingStrategy;
+	}
+
+	public void setPagingStrategy(String pagingStrategy) {
+		this.pagingStrategy = pagingStrategy;
 	}
 
 	/**
