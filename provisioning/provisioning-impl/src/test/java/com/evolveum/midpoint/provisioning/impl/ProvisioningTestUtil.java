@@ -43,8 +43,6 @@ public class ProvisioningTestUtil {
 	public static final File COMMON_TEST_DIR_FILE = new File("src/test/resources/common/");
 	public static final File TEST_DIR_IMPL_FILE = new File("src/test/resources/impl/");
 
-	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_TEST_DIR_FILE, "resource-opendj.xml");
-
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 
 	public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";

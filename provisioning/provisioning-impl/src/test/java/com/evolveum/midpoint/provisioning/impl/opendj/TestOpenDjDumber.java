@@ -53,5 +53,13 @@ public class TestOpenDjDumber extends TestOpenDj {
 	protected void assertConnectorOperationIncrement(int expectedIncrementSmart, int expectedIncrementDumb) {
 		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrementDumb);
 	}
+	
+	/**
+	 * But "dumber" resource do not have any count simulation for groups.
+	 */
+	@Override
+	protected Integer getExpectedLdapGroupCountTest25x() {
+		return null;
+	}
 
 }

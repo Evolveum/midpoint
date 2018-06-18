@@ -126,9 +126,6 @@
 				<cap:pagedSearch>
 					<cap:defaultSortField>ri:uid</cap:defaultSortField>
 				</cap:pagedSearch>
-				<cap:countObjects>
-					<cap:simulate>sequentialSearch</cap:simulate>
-				</cap:countObjects>
 			</configuredCapabilities>
         </objectType>
         
@@ -246,6 +243,9 @@
 	        <cap:read/>
 	        <cap:update/>
 	        <cap:delete/>
+	        <cap:countObjects>
+				<cap:simulate>pagedSearchEstimate</cap:simulate>
+			</cap:countObjects>
 		</configured>
 	</capabilities>
 		

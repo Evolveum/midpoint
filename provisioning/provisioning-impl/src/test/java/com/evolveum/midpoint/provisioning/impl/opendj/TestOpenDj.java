@@ -2043,9 +2043,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		}
 	}
 
+	/**
+	 * Account counting is simulated.
+	 * For "dumber" resource it is defined in schemaHandling as a object-type-specific capability.
+	 */
 	@Test
-	public void test250CountObjects() throws Exception {
-		final String TEST_NAME = "test250CountObjects";
+	public void test250CountAccounts() throws Exception {
+		final String TEST_NAME = "test250CountAccounts";
 		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
@@ -2055,14 +2059,49 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		Integer count = provisioningService.countObjects(ShadowType.class, query, null, task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		assertSuccess(result);
+		display("All accounts count", count);
 
 		assertEquals("Unexpected number of search results", (Integer)14, count);
 	}
 
+	/**
+	 * Account counting is simulated.
+	 * But "dumber" resource do not have any simulation for this.
+	 */
+	@Test
+	public void test252CountLdapGroups() throws Exception {
+		final String TEST_NAME = "test252CountLdapGroups";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_LDAP_GROUPS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		Integer count = provisioningService.countObjects(ShadowType.class, query, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		display("All LDAP groups count", count);
+
+		assertEquals("Unexpected number of search results", getExpectedLdapGroupCountTest25x(), count);
+	}
+	
+	protected Integer getExpectedLdapGroupCountTest25x() {
+		return 1;
+	}
+
+	
 	/**
 	 * The exception comes from the resource. There is no shadow for this object.
 	 */

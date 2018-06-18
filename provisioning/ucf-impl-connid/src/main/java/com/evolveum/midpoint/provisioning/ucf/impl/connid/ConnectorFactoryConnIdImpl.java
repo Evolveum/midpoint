@@ -402,6 +402,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	@Override
 	public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
+		if (cinfo == null) {
+			throw new ObjectNotFoundException("Connector "+connectorType+" cannot be found by ConnId framework");
+		}
 		return generateConnectorConfigurationSchema(cinfo, connectorType);
 	}
 

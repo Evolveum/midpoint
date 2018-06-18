@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,11 +50,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 
 	protected static final File TEST_DIR = new File("src/test/resources/opendj");
-
-	protected static final File RESOURCE_OPENDJ_FILE = ProvisioningTestUtil.RESOURCE_OPENDJ_FILE;
+	
+	public static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	protected static final File RESOURCE_OPENDJ_INITIALIZED_FILE = new File(TEST_DIR, "resource-opendj-initialized.xml");
-	protected static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	protected static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	public static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	protected static final File RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE = new File(TEST_DIR, "resource-opendj-bad-credentials.xml");
 	protected static final String RESOURCE_OPENDJ_BAD_CREDENTIALS_OID = "8bc3ff5a-ef5d-11e4-8bba-001e8c717e5b";
@@ -143,6 +143,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 
 	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
 	protected static final File QUERY_ALL_ACCOUNTS_FILE = new File(TEST_DIR, "query-filter-all-accounts.xml");
+	protected static final File QUERY_ALL_LDAP_GROUPS_FILE = new File(TEST_DIR, "query-filter-all-ldap-groups.xml");
 	protected static final File QUERY_VANHELGEN_FILE = new File(TEST_DIR, "query-vanhelgen.xml");
 
 	protected static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";

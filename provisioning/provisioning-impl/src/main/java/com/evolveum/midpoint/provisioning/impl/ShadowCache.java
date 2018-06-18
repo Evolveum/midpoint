@@ -1954,6 +1954,7 @@ public abstract class ShadowCache {
 				.getEffectiveCapability(CountObjectsCapabilityType.class, resourceType);
 		if (countObjectsCapabilityType == null) {
 			// Unable to count. Return null which means "I do not know"
+			LOGGER.trace("countObjects: cannot count (no counting capability)");
 			result.recordNotApplicableIfUnknown();
 			return null;
 		} else {
@@ -1961,6 +1962,7 @@ public abstract class ShadowCache {
 			if (simulate == null) {
 				// We have native capability
 
+				LOGGER.trace("countObjects: counting with native count capability");
 				ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 				try {
 					ObjectQuery attributeQuery = createAttributeQuery(query);
@@ -1985,6 +1987,7 @@ public abstract class ShadowCache {
 
 			} else if (simulate == CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE) {
 
+				LOGGER.trace("countObjects: simulating counting with paged search estimate");
 				if (!objectClassDef.isPagedSearchEnabled(resourceType)) {
 					throw new ConfigurationException(
 							"Configured count object capability to be simulated using a paged search but paged search capability is not present");
@@ -2035,6 +2038,7 @@ public abstract class ShadowCache {
 
 			} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
 
+				LOGGER.trace("countObjects: simulating counting with sequential search (likely perfomance impact)");
 				// traditional way of counting objects (i.e. counting them one
 				// by one)
 				final Holder<Integer> countHolder = new Holder<>(0);

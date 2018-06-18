@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 	private static final File TEST_DIR = new File("src/test/resources/synchronization/");
 	
-	private static final File RESOURCE_OPENDJ_FILE = ProvisioningTestUtil.RESOURCE_OPENDJ_FILE;
+	private static final File RESOURCE_OPENDJ_FILE = AbstractOpenDjTest.RESOURCE_OPENDJ_FILE;
 	
 	private static final File SYNC_TASK_FILE = new File(TEST_DIR, "sync-task-example.xml");
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
