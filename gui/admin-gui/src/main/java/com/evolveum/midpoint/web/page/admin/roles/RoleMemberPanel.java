@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -40,9 +41,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -431,6 +434,11 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		} else {
 			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
+	}
+
+	@Override
+	protected boolean isAuthorizedToUnassignAllMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI);
 	}
 
 	@Override

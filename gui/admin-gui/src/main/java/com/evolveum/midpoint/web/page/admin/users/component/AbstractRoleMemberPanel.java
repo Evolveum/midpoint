@@ -249,11 +249,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		if (isAuthorizedToUnassignMembers()) {
 			headerMenuItems.addAll(createUnassignMemberInlineMenuItems());
 		}
+		if (isAuthorizedToUnassignAllMembers()) {
+			headerMenuItems.addAll(createUnassignAllMemberInlineMenuItems());
+		}
 		if (isAuthorizedToRecomputeMembers()) {
 			headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
-		}
-		if (isAuthorizedToDeleteMembers()) {
-			headerMenuItems.addAll(createMemberDeleteInlineMenuItems());
 		}
 		return headerMenuItems;
 	}
@@ -270,8 +270,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_MEMBER_TAB_ACTION_URI);
 	}
 
-	protected boolean isAuthorizedToDeleteMembers(){
-		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_URI);
+	protected boolean isAuthorizedToUnassignAllMembers(){
+		return true;
 	}
 
 	protected boolean isAuthorizedToRecomputeMembers(){
@@ -304,10 +304,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					}
 				}));
 		return newMemberMenuItems;
-	}
-
-	protected List<InlineMenuItem> createMemberDeleteInlineMenuItems() {
-		return new ArrayList<>();
 	}
 
 	protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
@@ -361,17 +357,23 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 						removeMembersPerformed(QueryScope.SELECTED, null , target);
 					}
 				}));
+		return unassignMenuItems;
+	}
+
+	protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
+		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
 		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
 				false, new HeaderMenuAction(this) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.ALL, null ,target);
+				removeMembersPerformed(QueryScope.ALL, null, target);
 			}
 		}));
 		return unassignMenuItems;
 	}
+
 
 	protected void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {
 
