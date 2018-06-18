@@ -133,7 +133,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
                 }));
         return assignMemberMenuItems;
     }
-    
+
     protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
 		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
 		unassignMenuItems
@@ -146,7 +146,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 						removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_APPROVER), target);
 					}
 				}));
-		
+
 		unassignMenuItems
 		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignOwnersSelected"),
 				false, new HeaderMenuAction(this) {
@@ -157,7 +157,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_OWNER), target);
 			}
 		}));
-		
+
 		unassignMenuItems
 		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignManagersSelected"),
 				false, new HeaderMenuAction(this) {
@@ -168,49 +168,40 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_MANAGER), target);
 			}
 		}));
-		
-		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
-				false, new HeaderMenuAction(this) {
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeAllMembersPerformed(target);
-			}
-		}));
 		return unassignMenuItems;
 	}
-    
+
     private void removeAllMembersPerformed(AjaxRequestTarget target) {
-    	
+
     	RoleRelationSelectionPanel relatioNSelectionPanel = new RoleRelationSelectionPanel(getPageBase().getMainPopupBodyId(), new RoleRelationSelectionDto()) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onConfirmPerformed(IModel<RoleRelationSelectionDto> model, AjaxRequestTarget target) {
 				getPageBase().hideMainPopup(target);
-				
+
 				RoleRelationSelectionDto relationsSelected = model.getObject();
 				ArrayList<QName> relations=  new ArrayList<>();
 				if (relationsSelected.isApprover()) {
 					relations.add(SchemaConstants.ORG_APPROVER);
 				}
-				
+
 				if (relationsSelected.isOwner()) {
 					relations.add(SchemaConstants.ORG_OWNER);
 				}
-				
+
 				if (relationsSelected.isManager()) {
 					relations.add(SchemaConstants.ORG_MANAGER);
 				}
-				
+
 				removeMembersPerformed(QueryScope.ALL, relations, target);
 			}
 		};
 
 		getPageBase().showMainPopup(relatioNSelectionPanel, target);
-		
+
 	}
 
     @Override
@@ -249,23 +240,23 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 		private boolean approver;
 		private boolean owner;
 		private boolean manager;
-		
+
 		public boolean isApprover() {
 			return approver;
 		}
-		
+
 		public boolean isManager() {
 			return manager;
 		}
-		
+
 		public boolean isOwner() {
 			return owner;
 		}
 	}
 
-    protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
-        return new ArrayList<>();
+    @Override
+    protected boolean isAuthorizedToUnassignAllMembers(){
+        return true;
     }
-
 
 }
