@@ -39,6 +39,7 @@ import javax.naming.directory.AttributeInUseException;
 import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.NoSuchAttributeException;
 import javax.naming.directory.SchemaViolationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -57,6 +58,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -617,6 +619,10 @@ public class ConnIdUtil {
 
 		if (value instanceof PrismPropertyValue) {
 			return convertValueToIcf(((PrismPropertyValue) value).getValue(), protector, propName);
+		}
+		
+		if (value instanceof XMLGregorianCalendar) {
+			return XmlTypeConverter.toZonedDateTime((XMLGregorianCalendar) value);
 		}
 
 		if (value instanceof ProtectedStringType) {

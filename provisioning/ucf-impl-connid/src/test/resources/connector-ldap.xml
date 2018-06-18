@@ -23,7 +23,7 @@
 	<name>ICF com.evolveum.polygon.connector.ldap.LdapConnector</name>
 	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
 	<connectorType>com.evolveum.polygon.connector.ldap.LdapConnector</connectorType>
-	<connectorVersion>1.7-SNAPSHOT</connectorVersion>
+	<connectorVersion>2.0-SNAPSHOT</connectorVersion>
 	<connectorBundle>com.evolveum.polygon.connector-ldap</connectorBundle>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector</namespace>
 	<schema>

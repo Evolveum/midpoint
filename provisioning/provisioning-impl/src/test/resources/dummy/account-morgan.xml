@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 		<ri:ship>Satisfaction</ri:ship>
 		<ri:weapon>cutlass</ri:weapon>
 		<ri:weapon>pistol</ri:weapon>
+		<ri:enlistTimestamp>1663-05-30T14:15:16Z</ri:enlistTimestamp> <!-- MID-4751 -->
 	</attributes>
 	<credentials>
 		<password>

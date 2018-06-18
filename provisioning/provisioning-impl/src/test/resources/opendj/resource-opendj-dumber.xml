@@ -49,6 +49,7 @@ somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
  			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
  			<icfcldap:usePermissiveModify>never</icfcldap:usePermissiveModify>
+ 			<icfcldap:timestampPresentation>string</icfcldap:timestampPresentation>
 		</icfc:configurationProperties>
 		
 		<icfc:connectorPoolConfiguration>

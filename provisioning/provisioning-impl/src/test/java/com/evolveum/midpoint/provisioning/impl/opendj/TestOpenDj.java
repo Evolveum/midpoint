@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
@@ -99,6 +98,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -472,6 +472,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
 		assertNotNull("No definition for createTimestamp", createTimestampDef);
+		assertTimestampType("createTimestamp", createTimestampDef);
 		assertEquals(1, createTimestampDef.getMaxOccurs());
 		assertEquals(0, createTimestampDef.getMinOccurs());
 		assertTrue("No createTimestamp read", createTimestampDef.canRead());
@@ -540,6 +541,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				uuidDef.findAttributeDefinition(new QName(uuidDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 
 		assertShadows(1);
+	}
+
+	protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
+		assertEquals("Wrong "+attrName+"type", DOMUtil.XSD_DATETIME, def.getTypeName());
 	}
 
 	@Test
@@ -729,6 +734,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("Missing activation status", provisioningShadow.getActivation().getAdministrativeStatus());
         assertEquals("Not enabled", ActivationStatusType.ENABLED, provisioningShadow.getActivation().getAdministrativeStatus());
         assertShadowPassword(provisioningShadow);
+        Object createTimestamp = ShadowUtil.getAttributeValue(provisioningShadow, new QName(resourceNamespace, "createTimestamp"));
+        assertTimestamp("createTimestamp", createTimestamp);
 
         ShadowType repoShadow = getShadowRepo(provisioningShadow.getOid()).asObjectable();
         display("Account repo", repoShadow);
@@ -742,6 +749,16 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
 
         assertShadows(2 + getNumberOfBaseContextShadows());
+	}
+
+	protected void assertTimestamp(String attrName, Object timestampValue) {
+		if (!(timestampValue instanceof XMLGregorianCalendar)) {
+			fail("Wrong type of "+attrName+", expected XMLGregorianCalendar but was "+timestampValue.getClass());
+		}
+		assertBetween("Unreasonable date in "+attrName, 
+				XmlTypeConverter.createXMLGregorianCalendar(1900, 1, 1, 0, 0, 0),
+				XmlTypeConverter.createXMLGregorianCalendar(2200, 1, 1, 0, 0, 0),
+				(XMLGregorianCalendar)timestampValue);
 	}
 
 	protected void assertShadowPassword(ShadowType provisioningShadow) throws Exception {

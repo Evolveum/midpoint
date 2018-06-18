@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,20 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.File;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -60,6 +68,21 @@ public class TestOpenDjDumber extends TestOpenDj {
 	@Override
 	protected Integer getExpectedLdapGroupCountTest25x() {
 		return null;
+	}
+	
+	@Override
+	protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
+		assertEquals("Wrong "+attrName+"type", DOMUtil.XSD_STRING, def.getTypeName());
+	}
+	
+	@Override
+	protected void assertTimestamp(String attrName, Object timestampValue) {
+		if (!(timestampValue instanceof String)) {
+			fail("Wrong type of "+attrName+", expected String but was "+timestampValue.getClass());
+		}
+		String str = (String)timestampValue;
+		assertTrue("Timestamp "+attrName+" does not start with 2: "+str, str.startsWith("2"));
+		assertTrue("Timestamp "+attrName+" does not end with Z: "+str, str.endsWith("Z"));
 	}
 
 }

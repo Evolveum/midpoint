@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.time.ZonedDateTime;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -47,12 +49,14 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -75,6 +79,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME = "gossip";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME = "enlistTimestamp";
 
 	public static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
 	public static final QName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
@@ -169,6 +174,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME, ZonedDateTime.class, false, false);
 
 		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();
 		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
@@ -287,7 +293,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		if (checkDisplayOrder) {
 			// TODO: fix, see MID-2642
 			assertTrue("Wrong displayOrder for attribute fullName: "+fullnameDef.getDisplayOrder(),
-					fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250 || fullnameDef.getDisplayOrder() == 260);
+					fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250 || fullnameDef.getDisplayOrder() == 270);
 		}
 
 		// GROUP
@@ -316,7 +322,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
-		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 18);
+		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 19);
 	}
 
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
@@ -328,8 +334,16 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNotNull("No AccountObjectClass definition", accountObjectClassDef);
 		assertTrue("Default account definition is not same as AccountObjectClass", accountDef == accountObjectClassDef);
 		assertEquals("Unexpected number of definitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
-		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
+		
+		ResourceAttributeDefinition<String> treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
+		
+		// MID-4751
+		ResourceAttributeDefinition<XMLGregorianCalendar> enlistTimestampDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
+		PrismAsserts.assertDefinition(enlistTimestampDef,
+				getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
+				DOMUtil.XSD_DATETIME, 0, 1);
+		
 		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
 		assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
 		assertNull("Non-null intent in account definition", accountDef.getIntent());

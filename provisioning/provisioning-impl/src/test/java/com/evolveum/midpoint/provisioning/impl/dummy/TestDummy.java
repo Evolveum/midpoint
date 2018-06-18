@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -202,11 +203,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME, "add");
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
 
 		// THEN
-		displayThen(TEST_NAME);
+		displayThen(TEST_NAME, "add");
 		result.computeStatus();
 		display("add object result", result);
 		TestUtil.assertSuccess("addObject has failed (result)", result);
@@ -218,23 +219,36 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		syncServiceMock.assertNotifySuccessOnly();
 
-		displayWhen(TEST_NAME);
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_MORGAN_OID, null, syncTask, result).asObjectable();
-		displayThen(TEST_NAME);
-		display("account from provisioning", provisioningAccountType);
+		// WHEN
+		displayWhen(TEST_NAME, "get");
+		PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_MORGAN_OID, null, syncTask, result);
+		
+		// THEN
+		displayThen(TEST_NAME, "get");
+		display("account from provisioning", provisioningAccount);
+		ShadowType provisioningAccountType = provisioningAccount.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", transformNameFromResource(ACCOUNT_MORGAN_NAME),
 				provisioningAccountType.getName());
-
+		// MID-4751
+		assertAttribute(provisioningAccount, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME,
+				XmlTypeConverter.createXMLGregorianCalendar(ZonedDateTime.parse(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP)));
+		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_MORGAN_NAME), getIcfUid(provisioningAccountType));
+		display("Dummy account", dummyAccount);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "Captain Morgan", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", ACCOUNT_MORGAN_PASSWORD, dummyAccount.getPassword());
+		// MID-4751
+		ZonedDateTime enlistTimestamp = dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME, ZonedDateTime.class);
+		assertNotNull("No enlistTimestamp in dummy account", enlistTimestamp);
+		assertEqualTime("Wrong enlistTimestamp in dummy account", ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP, enlistTimestamp);
 
 		// Check if the shadow is in the repo
 		PrismObject<ShadowType> shadowFromRepo = getShadowRepo(addedObjectOid);
@@ -3557,19 +3571,19 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH, prismContext, "cptmorgan");
+				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH, prismContext, ACCOUNT_CPTMORGAN_NAME);
 		provisioningService.applyDefinition(delta, task, result);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
 				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		delta.checkConsistence();
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
@@ -3579,18 +3593,59 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		ResourceAttribute<?> identifier = identifiers.iterator().next();
 
-		String shadowUuid = "cptmorgan";
+		String shadowUuid = ACCOUNT_CPTMORGAN_NAME;
 
 		assertDummyAccountAttributeValues(shadowUuid, morganIcfUid,
 				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 
 		PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
-		assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
+		assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, ACCOUNT_CPTMORGAN_NAME, resourceType);
 
 		if (!isIcfNameUidSame()) {
 			shadowUuid = (String) identifier.getRealValue();
 		}
 		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, shadowUuid);
+
+		syncServiceMock.assertNotifySuccessOnly();
+
+		assertSteadyResource();
+	}
+	
+	/**
+	 * MID-4751
+	 */
+	@Test
+	public void test310ModifyMorganEnlistTimestamp() throws Exception {
+		final String TEST_NAME = "test310ModifyMorganEnlistTimestamp";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_MORGAN_OID,
+				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
+				prismContext, 
+				XmlTypeConverter.createXMLGregorianCalendarFromIso8601(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED));
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		delta.checkConsistence();
+		// check if attribute was changed
+		DummyAccount dummyAccount = getDummyAccount(transformNameFromResource(ACCOUNT_CPTMORGAN_NAME), morganIcfUid);
+		display("Dummy account", dummyAccount);
+		ZonedDateTime enlistTimestamp = dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME, ZonedDateTime.class);
+		assertEqualTime("wrong dummy enlist timestamp", ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED, enlistTimestamp);
 
 		syncServiceMock.assertNotifySuccessOnly();
 

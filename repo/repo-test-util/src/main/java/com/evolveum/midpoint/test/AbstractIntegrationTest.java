@@ -129,6 +129,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -2381,5 +2382,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			assertEquals("Wrong approximate number of search results in search metadata", expectedNumber, searchMetadata.getApproxNumberOfAllResults());
 		}
+	}
+	
+	protected void assertEqualTime(String message, String isoTime, ZonedDateTime actualTime) {
+		assertEqualTime(message, ZonedDateTime.parse(isoTime), actualTime);
+	}
+	
+	protected void assertEqualTime(String message, ZonedDateTime expectedTime, ZonedDateTime actualTime) {
+		assertTrue(message+"; expected "+expectedTime+", but was "+actualTime, expectedTime.isEqual(actualTime));
 	}
 }

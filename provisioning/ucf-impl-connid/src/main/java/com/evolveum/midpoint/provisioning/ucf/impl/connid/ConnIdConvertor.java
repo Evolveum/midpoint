@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -384,6 +386,9 @@ public class ConnIdConvertor {
 	private Object convertValueFromIcf(Object icfValue, QName propName) {
 		if (icfValue == null) {
 			return null;
+		}
+		if (icfValue instanceof ZonedDateTime) {
+			return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)icfValue);
 		}
 		if (icfValue instanceof GuardedString) {
 			return fromGuardedString((GuardedString) icfValue);

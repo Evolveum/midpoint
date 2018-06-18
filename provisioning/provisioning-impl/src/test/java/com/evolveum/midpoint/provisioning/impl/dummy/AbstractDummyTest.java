@@ -101,7 +101,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	protected static final String ACCOUNT_CPTMORGAN_NAME = "cptmorgan";
 	protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
+	protected static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP = "1663-05-30T14:15:16Z";
+	protected static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED = "1666-07-08T09:10:11Z";
 
 	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
 	protected static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
