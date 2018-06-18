@@ -263,4 +263,9 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 		}
 	}
 
+    protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
+        return new ArrayList<>();
+    }
+
+
 }
