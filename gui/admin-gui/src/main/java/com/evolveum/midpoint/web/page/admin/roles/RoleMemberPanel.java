@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -435,18 +436,9 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		}
 	}
 
-	protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
-		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
-		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
-				false, new HeaderMenuAction(this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.ALL, null, target);
-			}
-		}));
-		return unassignMenuItems;
+	@Override
+	protected boolean isAuthorizedToUnassignAllMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI);
 	}
 
 	@Override

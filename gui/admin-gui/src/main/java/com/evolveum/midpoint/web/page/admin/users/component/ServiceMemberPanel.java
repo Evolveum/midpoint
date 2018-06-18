@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
