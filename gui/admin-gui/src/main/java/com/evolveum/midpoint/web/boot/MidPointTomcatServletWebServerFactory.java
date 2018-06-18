@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.web.boot;
 
 import org.apache.catalina.startup.Tomcat;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,12 +28,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * 
  * @author semancik
  */
-public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatEmbeddedServletContainerFactory {
+public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServerFactory {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(MidPointTomcatEmbeddedServletContainerFactory.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointTomcatServletWebServerFactory.class);
 
 	@Override
-	protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(Tomcat tomcat) {
+	
+	protected TomcatWebServer getTomcatWebServer(Tomcat tomcat) {
 
 		// We are setting up fake context here. This context does not really do anything.
 		// But it is "mapped" to the root URL (/ ... or rather "" in Tomcat parlance).
@@ -41,10 +42,10 @@ public class MidPointTomcatEmbeddedServletContainerFactory extends TomcatEmbedde
 		// CoyoteAdapter will not execute any Valves and returns 404 immediately. 
 		// So without this the TomcatRootValve will not work.
 		
-		RootRootContext rootRootContext = new RootRootContext();
-		tomcat.getHost().addChild(rootRootContext);
+//		RootRootContext rootRootContext = new RootRootContext();
+//		tomcat.getHost().addChild(rootRootContext);
 		
-		return super.getTomcatEmbeddedServletContainer(tomcat);
+		return super.getTomcatWebServer(tomcat);
 	}
 	
 	

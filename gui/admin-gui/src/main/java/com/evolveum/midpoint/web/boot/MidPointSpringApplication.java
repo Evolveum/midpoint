@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 
+
 import org.apache.catalina.Valve;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.transport.servlet.CXFServlet;
@@ -36,22 +37,36 @@ import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.*;
+import org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.embedded.TomcatWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.web.servlet.ErrorPage;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.ErrorPage;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.boot.web.servlet.server.Session;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
@@ -60,7 +75,7 @@ import javax.servlet.DispatcherType;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -91,18 +106,20 @@ import java.util.concurrent.TimeUnit;
 })
 @ImportAutoConfiguration(classes = {
 		EmbeddedTomcatAutoConfiguration.class,
-        DispatcherServletAutoConfiguration.class,
-        WebMvcAutoConfiguration.class,
-        HttpMessageConvertersAutoConfiguration.class,
-        PropertyPlaceholderAutoConfiguration.class,
-        SecurityAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class,
-        ServerPropertiesAutoConfiguration.class,
-        MultipartAutoConfiguration.class
+		DispatcherServletAutoConfiguration.class,
+		WebMvcAutoConfiguration.class,
+		HttpMessageConvertersAutoConfiguration.class,
+		PropertyPlaceholderAutoConfiguration.class,
+		SecurityAutoConfiguration.class,
+		SecurityFilterAutoConfiguration.class,
+		EmbeddedWebServerFactoryCustomizerAutoConfiguration.class,
+//		ServerPropertiesAutoConfiguration.class,
+		MultipartAutoConfiguration.class
 })
+//@EnableConfigurationProperties(ServerProperties.class)
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
-
+	
     private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 
     private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
@@ -162,13 +179,14 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
             System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
         }
 
-        System.setProperty("spring.config.location", "${midpoint.home}/");
+        //TODO Could not resolve placeholder
+//        System.setProperty("spring.config.location", "${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);
 
         return application.sources(MidPointSpringApplication.class);
     }
-
+    
     @Bean
     public ServletListenerRegistrationBean requestContextListener() {
         return new ServletListenerRegistrationBean(new RequestContextListener());
@@ -194,6 +212,11 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 
         return registration;
+    }
+    
+    @Bean
+    public DelegatingFilterProxy delegatingFilterProxy() {
+    	return new DelegatingFilterProxy();
     }
 
     @Bean
@@ -241,44 +264,116 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlMappings("/static-web/*");
         return registration;
     }
+    
+//    @Value("${server.servlet.session.timeout}")
+//	private int sessionTimeout;
+//    
+//    @Bean
+//    public void serverProperties(ConfigurableServletWebServerFactory server) {
+//    	server.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
+//              "/error/401"));
+//		server.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
+//              "/error/403"));
+//		server.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND,
+//              "/error/404"));
+//		server.addErrorPages(new ErrorPage(HttpStatus.GONE,
+//              "/error/410"));
+//		server.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
+//              "/error"));
+//
+//		Session session = new Session(); 
+//		session.setTimeout(Duration.ofSeconds(sessionTimeout));
+//		server.setSession(session);//.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
+//      
+//			if (server instanceof TomcatServletWebServerFactory) {
+//				customizeTomcat((TomcatServletWebServerFactory) server);
+//			}            
+//	}
+//
+//	private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
+//		// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
+//		// See comments in TomcatRootValve
+//		Valve rootValve = new TomcatRootValve();
+//		tomcatFactory.addEngineValves(rootValve);
+//	}
 
-    @Bean
-    public ServerProperties serverProperties() {
-        return new ServerCustomization();
-    }
-
-    private static class ServerCustomization extends ServerProperties {
-
-        @Value("${server.session.timeout}")
-        private int sessionTimeout;
-
-        @Override
-        public void customize(ConfigurableEmbeddedServletContainer container) {
-            super.customize(container);
-
-            container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
-                    "/error/401"));
-            container.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
-                    "/error/403"));
-            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND,
-                    "/error/404"));
-            container.addErrorPages(new ErrorPage(HttpStatus.GONE,
-                    "/error/410"));
-            container.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "/error"));
-
-            container.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
-            
-            if (container instanceof TomcatEmbeddedServletContainerFactory) {
-                customizeTomcat((TomcatEmbeddedServletContainerFactory) container);
-            }            
-        }
-
-		private void customizeTomcat(TomcatEmbeddedServletContainerFactory tomcatFactory) {
-			// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
-			// See comments in TomcatRootValve
-			Valve rootValve = new TomcatRootValve();
-			tomcatFactory.addEngineValves(rootValve);
-		}
-    }
+//    private static class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+//
+//  	
+//  	
+//    	@Value("${server.servlet.session.timeout}")
+//    	private int sessionTimeout;
+//  	
+//  	
+//    	@Override
+//    	public void customize(ConfigurableServletWebServerFactory server) {
+//    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX sessionTimeout: {} ", sessionTimeout);
+//      	
+//    		server.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
+//                  "/error/401"));
+//    		server.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
+//                  "/error/403"));
+//    		server.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND,
+//                  "/error/404"));
+//    		server.addErrorPages(new ErrorPage(HttpStatus.GONE,
+//                  "/error/410"));
+//    		server.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
+//                  "/error"));
+//
+//    		Session session = new Session(); 
+//    		session.setTimeout(Duration.ofSeconds(sessionTimeout));
+//    		server.setSession(session);//.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
+//          
+//    			if (server instanceof TomcatServletWebServerFactory) {
+//    				customizeTomcat((TomcatServletWebServerFactory) server);
+//    			}            
+//    	}
+//
+//		private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
+//			// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
+//			// See comments in TomcatRootValve
+//			Valve rootValve = new TomcatRootValve();
+//			tomcatFactory.addEngineValves(rootValve);
+//		}
+//    }
+  
+//		@Bean
+//		public ServerProperties serverProperties() {
+//		    return new ServerCustomization();
+//		}
+//
+//    private static class ServerCustomization extends ServerProperties {
+//
+//        @Value("${server.session.timeout}")
+//        private int sessionTimeout;
+//
+//        @Override
+//        public void customize(ConfigurableEmbeddedServletContainer container) {
+//            super.customize(container);
+//
+//            container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
+//                    "/error/401"));
+//            container.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
+//                    "/error/403"));
+//            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND,
+//                    "/error/404"));
+//            container.addErrorPages(new ErrorPage(HttpStatus.GONE,
+//                    "/error/410"));
+//            container.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
+//                    "/error"));
+//
+//            container.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
+//            
+//            if (container instanceof TomcatEmbeddedServletContainerFactory) {
+//                customizeTomcat((TomcatEmbeddedServletContainerFactory) container);
+//            }            
+//        }
+//
+//		private void customizeTomcat(TomcatEmbeddedServletContainerFactory tomcatFactory) {
+//			// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
+//			// See comments in TomcatRootValve
+//			Valve rootValve = new TomcatRootValve();
+//			tomcatFactory.addEngineValves(rootValve);
+//		}
+//    }
 }

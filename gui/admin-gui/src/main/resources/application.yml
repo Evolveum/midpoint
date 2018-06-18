@@ -2,23 +2,25 @@ spring:
   application:
     name: MidPoint
 
-  http:
+  servlet:
     multipart:
       max-file-size: 100Mb
       max-request-size: 100Mb
 
 server:
-  display-name: MidPoint
-  contextPath: /midpoint # Spring Boot 1.x
-  session:
-    timeout: 15  # in minutes. By default spring uses seconds, but tomcat/container (not embedded) uses this value
-                 # as minutes - so we end up with never expiring session.
+  #display-name: MidPoint
+  #contextPath: /midpoint # Spring Boot 1.x
+  
   tomcat:
     basedir: ${midpoint.home}
     max-http-post-size: 104857600 # in bytes
     
   servlet:
     path: /midpoint # Spring Boot 2.0
+    application-display-name: MidPoint
+    session:
+      timeout: 540 #15  # in minutes. By default spring uses seconds, but tomcat/container (not embedded) uses this value
+                 # as minutes - so we end up with never expiring session.
 
 auth:
   logout:

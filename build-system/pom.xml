@@ -63,7 +63,7 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <spring.boot.version>1.5.8.e1</spring.boot.version> <!-- can be replaced by a stock version;
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version> <!-- can be replaced by a stock version;
                 ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
         <spring.version>5.0.5.RELEASE</spring.version>
         <spring.security.version>5.0.5.RELEASE</spring.security.version>
