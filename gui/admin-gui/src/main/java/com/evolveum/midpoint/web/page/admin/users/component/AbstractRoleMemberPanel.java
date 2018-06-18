@@ -249,6 +249,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		if (isAuthorizedToUnassignMembers()) {
 			headerMenuItems.addAll(createUnassignMemberInlineMenuItems());
 		}
+		if (isAuthorizedToUnassignAllMembers()) {
+			headerMenuItems.addAll(createUnassignAllMemberInlineMenuItems());
+		}
 		if (isAuthorizedToRecomputeMembers()) {
 			headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
 		}
@@ -268,6 +271,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected boolean isAuthorizedToUnassignMembers(){
 		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_MEMBER_TAB_ACTION_URI);
+	}
+
+	protected boolean isAuthorizedToUnassignAllMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI);
 	}
 
 	protected boolean isAuthorizedToDeleteMembers(){
@@ -361,16 +368,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 						removeMembersPerformed(QueryScope.SELECTED, null , target);
 					}
 				}));
-		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
-				false, new HeaderMenuAction(this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.ALL, null ,target);
-			}
-		}));
 		return unassignMenuItems;
+	}
+
+	protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
+		return new ArrayList<>();
 	}
 
 	protected void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {

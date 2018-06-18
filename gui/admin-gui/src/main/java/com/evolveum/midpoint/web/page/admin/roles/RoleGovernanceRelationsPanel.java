@@ -251,5 +251,10 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 			return owner;
 		}
 	}
-    
+
+    protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
+        return new ArrayList<>();
+    }
+
+
 }
