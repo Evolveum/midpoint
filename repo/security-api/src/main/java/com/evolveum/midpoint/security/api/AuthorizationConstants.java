@@ -401,6 +401,9 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignMember");
 	public static final String AUTZ_UI_ADMIN_UNASSIGN_MEMBER_TAB_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME);
+	
+	public static final QName AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignAllMembers");
+	public static final String AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_ACTION_QNAME);
 
 	public static final QName AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminRecomputeMember");
 	public static final String AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME);
