@@ -75,6 +75,7 @@
         <hibernate.version>5.2.12.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
         <jdbc.postgres>42.2.2</jdbc.postgres>
+        <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>7.10.0</wicket.version>
@@ -886,6 +887,11 @@
                 <version>${jdbc.postgres}</version>
             </dependency>
             <dependency>
+                <groupId>com.microsoft.sqlserver</groupId>
+                <artifactId>mssql-jdbc</artifactId>
+                <version>${jdbc.sqlserver}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.mariadb.jdbc</groupId>
                 <artifactId>mariadb-java-client</artifactId>
                 <version>${jdbc.mariadb}</version>
@@ -1470,13 +1476,9 @@
 					<!-- it's used for bamboo build to load jdbc libraries which can not 
 						be installed to public maven repository (MS SQL, ORACLE) -->
 					<additionalClasspathElements>
-						<additionalClasspathElement>/opt/jenkins_db_configs/mssqljdbc4.jar</additionalClasspathElement>
 						<additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
 						<!-- used running tests on windows machines -->
-                        <additionalClasspathElement>c:\midpoint\jdbc-drivers\sqljdbc42.jar</additionalClasspathElement>
                         <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
-						<additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER
-							4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
 					</additionalClasspathElements>
 				</configuration>
 				<dependencies>
