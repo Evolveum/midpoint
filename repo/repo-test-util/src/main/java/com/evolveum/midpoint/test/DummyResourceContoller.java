@@ -341,7 +341,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		// MID-4751
 		ResourceAttributeDefinition<XMLGregorianCalendar> enlistTimestampDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
 		PrismAsserts.assertDefinition(enlistTimestampDef,
-				getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
 				DOMUtil.XSD_DATETIME, 0, 1);
 		
 		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());
