@@ -180,7 +180,7 @@ public class SearchFactory {
             }
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
             result.recordFatalError(ex.getMessage());
-            throw new SystemException();
+            throw new SystemException(ex);
         }
     }
 
