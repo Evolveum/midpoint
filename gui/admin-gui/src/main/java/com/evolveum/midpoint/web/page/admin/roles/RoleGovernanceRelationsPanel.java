@@ -254,9 +254,4 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 		}
 	}
 
-    @Override
-    protected boolean isAuthorizedToUnassignAllMembers(){
-        return true;
-    }
-
 }

@@ -276,7 +276,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	protected boolean isAuthorizedToUnassignAllMembers(){
-		return true;
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI);
 	}
 
 	protected boolean isAuthorizedToDeleteMembers(){
