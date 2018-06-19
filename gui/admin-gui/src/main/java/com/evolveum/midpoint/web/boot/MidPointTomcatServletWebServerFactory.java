@@ -42,8 +42,8 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
 		// CoyoteAdapter will not execute any Valves and returns 404 immediately. 
 		// So without this the TomcatRootValve will not work.
 		
-//		RootRootContext rootRootContext = new RootRootContext();
-//		tomcat.getHost().addChild(rootRootContext);
+		RootRootContext rootRootContext = new RootRootContext();
+		tomcat.getHost().addChild(rootRootContext);
 		
 		return super.getTomcatWebServer(tomcat);
 	}

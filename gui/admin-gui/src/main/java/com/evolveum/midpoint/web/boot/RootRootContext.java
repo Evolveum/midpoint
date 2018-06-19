@@ -31,7 +31,7 @@ public class RootRootContext extends StandardContext {
 	
 	public RootRootContext() {
 		super();
-		setPath("/ "); // this means "/"
+		setPath(""); // this means "/"
 		setDisplayName("RootRoot");
 	}
 	

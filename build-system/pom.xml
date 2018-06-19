@@ -65,8 +65,8 @@
         <logback.version>1.2.3</logback.version>
         <spring.boot.version>2.0.1.RELEASE</spring.boot.version> <!-- can be replaced by a stock version;
                 ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
-        <spring.version>5.0.5.RELEASE</spring.version>
-        <spring.security.version>5.0.5.RELEASE</spring.security.version>
+        <spring.version>5.0.6.RELEASE</spring.version>
+        <spring.security.version>5.0.6.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>

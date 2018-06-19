@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 
-
 import org.apache.catalina.Valve;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.transport.servlet.CXFServlet;
@@ -39,7 +38,6 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
@@ -103,10 +101,8 @@ import java.time.Duration;
 		WebMvcAutoConfiguration.class,
 		HttpMessageConvertersAutoConfiguration.class,
 		PropertyPlaceholderAutoConfiguration.class,
-		SecurityAutoConfiguration.class,
 		SecurityFilterAutoConfiguration.class,
 		EmbeddedWebServerFactoryCustomizerAutoConfiguration.class,
-//		ServerPropertiesAutoConfiguration.class,
 		MultipartAutoConfiguration.class
 })
 @SpringBootConfiguration
@@ -120,7 +116,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     
     @Autowired StartupConfiguration startupConfiguration;
     @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
-
+    
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
         String mode = args != null && args.length > 0 ? args[0] : null;
@@ -207,11 +203,6 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
     
     @Bean
-    public DelegatingFilterProxy delegatingFilterProxy() {
-    	return new DelegatingFilterProxy();
-    }
-
-    @Bean
     public FilterRegistrationBean springSecurityFilterChain() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         registration.setFilter(new DelegatingFilterProxy());
@@ -258,13 +249,14 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
     
     @Component
-    public class CustomizationBean implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+    public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
     	
     	@Value("${server.servlet.session.timeout}")
     	private int sessionTimeout;
     	
     	@Override
     	public void customize(ConfigurableServletWebServerFactory server) {
+    		
     		server.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
                   "/error/401"));
     		server.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
@@ -277,12 +269,15 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                   "/error"));
     
     		Session session = new Session(); 
-    		session.setTimeout(Duration.ofSeconds(sessionTimeout));
-    		server.setSession(session);//.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
+    		session.setTimeout(Duration.ofMinutes(sessionTimeout));
+    		server.setSession(session);
+    		
+    		server.setContextPath("/midpoint");
+    		
           
-    			if (server instanceof TomcatServletWebServerFactory) {
-    				customizeTomcat((TomcatServletWebServerFactory) server);
-    			}            
+    		if (server instanceof TomcatServletWebServerFactory) {
+    			customizeTomcat((TomcatServletWebServerFactory) server);
+    		}            
     	}
     
     	private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
