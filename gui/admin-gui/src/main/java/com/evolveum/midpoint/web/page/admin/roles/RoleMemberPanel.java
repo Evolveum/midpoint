@@ -437,11 +437,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected boolean isAuthorizedToUnassignAllMembers(){
-		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI);
-	}
-
-	@Override
 	protected List<QName> getNewMemberSupportedTypes(){
 		return WebComponentUtil.createFocusTypeList();
 	}
