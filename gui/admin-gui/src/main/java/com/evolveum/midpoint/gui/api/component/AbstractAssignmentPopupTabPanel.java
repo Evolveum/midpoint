@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> extends BasePanel<List<O>> {
+public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> extends BasePanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -51,8 +51,8 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
 
     private ObjectTypes type;
 
-    public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type, IModel<List<O>> selectedObjectsList){
-        super(id, selectedObjectsList);
+    public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type){
+        super(id);
         this.type = type;
     }
 
@@ -64,8 +64,7 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     }
 
     private PopupObjectListPanel initObjectListPanel(){
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(), null, true,
-                getPageBase(), getModelObject()) {
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(), true, getPageBase()) {
 
             private static final long serialVersionUID = 1L;
 

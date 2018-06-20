@@ -168,15 +168,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
        @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-           AssignmentPopup popupPanel = new AssignmentPopup(
-                   getPageBase().getMainPopupBodyId()) {
+           AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId()) {
 
     		   private static final long serialVersionUID = 1L;
 
                @Override
-               protected void addPerformed(AjaxRequestTarget target, List selected, QName relation, ShadowKindType kind, String intent) {
-            	   super.addPerformed(target, selected, relation, kind, intent);
-                   addSelectedAssignmentsPerformed(target, selected, relation, kind, intent);
+               protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
+                   super.addPerformed(target, newAssignmentsList);
+                   addSelectedAssignmentsPerformed(target, newAssignmentsList);
                }
 
 //               @Override
@@ -193,30 +192,28 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return RoleType.class;
     }
 
-    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation,
-                                                                          ShadowKindType kind, String intent){
-           if (assignmentsList == null || assignmentsList.isEmpty()){
+    protected void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList){
+           if (newAssignmentsList == null || newAssignmentsList.isEmpty()){
                    warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
            
-           for (T object : assignmentsList){
+           newAssignmentsList.forEach(assignment -> {
         	   PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
         	   PrismContainerValue<AssignmentType> newAssignment;
 			try {
 				newAssignment = definition.instantiate().createNewValue();
-				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
 	        	   AssignmentType assignmentType = newAssignment.asContainerable();
-	        	   if (ResourceType.class.equals(object.getClass())) {
-	        		   ConstructionType constructionType = new ConstructionType();
-	        		   constructionType.setResourceRef(ref);
-	        		   constructionType.setKind(kind);
-	        		   constructionType.setIntent(intent);
-	        		   assignmentType.setConstruction(constructionType);
-	        	   } else {
-	        		   assignmentType.setTargetRef(ref);
-	        	   }
+//	        	   if (ResourceType.class.equals(object.getClass())) {
+//	        		   ConstructionType constructionType = new ConstructionType();
+//	        		   constructionType.setResourceRef(ref);
+//	        		   constructionType.setKind(kind);
+//	        		   constructionType.setIntent(intent);
+//	        		   assignmentType.setConstruction(constructionType);
+//	        	   } else {
+	        		   assignmentType.setTargetRef(assignment.getTargetRef());
+//	        	   }
 	        	   createNewAssignmentContainerValueWrapper(newAssignment);
 	        	   refreshTable(target);
 	               reloadSavePreviewButtons(target);
@@ -226,7 +223,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 				target.add(this);
 			}
         	   
-           }
+           });
 
            
        }

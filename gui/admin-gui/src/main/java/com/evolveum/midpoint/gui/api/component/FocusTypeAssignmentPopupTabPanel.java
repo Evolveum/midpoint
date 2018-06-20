@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
@@ -27,6 +28,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -42,8 +44,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     private static final String DOT_CLASS = FocusTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(FocusTypeAssignmentPopupTabPanel.class);
 
-    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type, IModel<List<F>> selectedObjectsList){
-        super(id, type, selectedObjectsList);
+    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type){
+        super(id, type);
     }
 
     @Override
@@ -59,5 +61,18 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationSelector.setOutputMarkupId(true);
         relationSelector.setOutputMarkupPlaceholderTag(true);
         relationContainer.add(relationSelector);
+    }
+
+    private DropDownChoicePanel getRelationDropDown(){
+        return (DropDownChoicePanel)get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    }
+
+    public QName getRelationValue(){
+        DropDownChoicePanel<RelationTypes> relationPanel = getRelationDropDown();
+        RelationTypes relation = relationPanel.getModel().getObject();
+        if (relation == null) {
+            return SchemaConstants.ORG_DEFAULT;
+        }
+        return relation.getRelation();
     }
 }

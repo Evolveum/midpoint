@@ -3,10 +3,13 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.wicket.Component;
@@ -33,6 +36,13 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private static final String ID_ASSIGN_BUTTON = "assignButton";
     private static final String ID_FORM = "form";
+
+    private FocusTypeAssignmentPopupTabPanel rolesTabPanel;
+    private FocusTypeAssignmentPopupTabPanel orgsTabPanel;
+    private FocusTypeAssignmentPopupTabPanel servicesTabPanel;
+    private FocusTypeAssignmentPopupTabPanel usersTabPanel;
+    private FocusTypeAssignmentPopupTabPanel resourcesTabPanel;
+
 
     public AssignmentPopup(String id){
         super(id);
@@ -71,7 +81,38 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addPerformed(target);
+                List<AssignmentType> newAssignmentsList = new ArrayList<>();
+                if (rolesTabPanel != null){
+                    List<O> selectedRoles = rolesTabPanel.getSelectedObjectsList();
+                    QName relation = rolesTabPanel.getRelationValue();
+                    selectedRoles.forEach(selectedRole -> {
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedRole, relation);
+                        AssignmentType newAssignment = new AssignmentType();
+                        newAssignment.setTargetRef(ref);
+                        newAssignmentsList.add(newAssignment);
+                    });
+                }
+                if (orgsTabPanel != null){
+                    List<O> selectedOrgs = orgsTabPanel.getSelectedObjectsList();
+                    QName relation = orgsTabPanel.getRelationValue();
+                    selectedOrgs.forEach(selectedOrg -> {
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedOrg, relation);
+                        AssignmentType newAssignment = new AssignmentType();
+                        newAssignment.setTargetRef(ref);
+                        newAssignmentsList.add(newAssignment);
+                    });
+                }
+                if (servicesTabPanel != null){
+                    List<O> selectedServices = servicesTabPanel.getSelectedObjectsList();
+                    QName relation = servicesTabPanel.getRelationValue();
+                    selectedServices.forEach(selectedService -> {
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedService, relation);
+                        AssignmentType newAssignment = new AssignmentType();
+                        newAssignment.setTargetRef(ref);
+                        newAssignmentsList.add(newAssignment);
+                    });
+                }
+                addPerformed(target, newAssignmentsList);
 
             }
         };
@@ -84,32 +125,13 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
         VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
         };
 
-
-        List<O> selectedRoles = new ArrayList<>();
-        IModel<List<O>> selectedRolesModel = new IModel<List<O>>() {
-            @Override
-            public List<O> getObject() {
-                return selectedRoles;
-            }
-
-            @Override
-            public void setObject(List<O> os) {
-                selectedRoles.clear();
-                selectedRoles.addAll(os);
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"), authorization) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ROLE, selectedRolesModel){
+                        rolesTabPanel = new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ROLE){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -117,12 +139,15 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                                 tabLabelPanelUpdate(target);
                             }
                         };
+                        return rolesTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        List selectedObjectsList = ((FocusTypeAssignmentPopupTabPanel)this.getPanel()).getObjectListPanel().getSelectedObjects();
-                        return Integer.toString(selectedObjectsList.size());
+                        if (rolesTabPanel == null){
+                            return "0";
+                        }
+                        return Integer.toString(rolesTabPanel.getObjectListPanel().getSelectedObjectsCount());
                     }
                 });
 
@@ -133,7 +158,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ORG, Model.ofList(new ArrayList<>())){
+                        orgsTabPanel = new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ORG){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -142,12 +167,15 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                             }
 
                         };
+                        return orgsTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        List selectedObjectsList = ((FocusTypeAssignmentPopupTabPanel)this.getPanel()).getObjectListPanel().getSelectedObjects();
-                        return Integer.toString(selectedObjectsList.size());
+                        if (orgsTabPanel == null){
+                            return "0";
+                        }
+                        return Integer.toString(orgsTabPanel.getObjectListPanel().getSelectedObjectsCount());
                     }
                 });
 
@@ -158,7 +186,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE, Model.ofList(new ArrayList<>())){
+                        servicesTabPanel = new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -167,12 +195,15 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                             }
 
                         };
+                        return servicesTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        List selectedObjectsList = ((FocusTypeAssignmentPopupTabPanel)this.getPanel()).getObjectListPanel().getSelectedObjects();
-                        return Integer.toString(selectedObjectsList.size());
+                        if (servicesTabPanel == null){
+                            return "0";
+                        }
+                        return Integer.toString(servicesTabPanel.getObjectListPanel().getSelectedObjectsCount());
                     }
                 });
 
@@ -209,7 +240,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
         target.add(getTabbedPanel());
     }
 
-    protected void addPerformed(AjaxRequestTarget target) {
+    protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
         getPageBase().hideMainPopup(target);
     }
 
