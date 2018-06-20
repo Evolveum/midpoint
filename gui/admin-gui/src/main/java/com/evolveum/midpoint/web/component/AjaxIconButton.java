@@ -31,6 +31,8 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
 
     private IModel<String> title;
 
+    private boolean showTitleAsLabel;
+
     public AjaxIconButton(String id, IModel<String> icon, IModel<String> title) {
         super(id, icon);
 
@@ -50,11 +52,23 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
         StringBuilder sb = new StringBuilder();
 
+        String title = this.title.getObject();
+
         String icon = getModelObject();
         if (StringUtils.isNotEmpty(icon)) {
-            sb.append("<i class=\"").append(icon).append("\"></i>");
+            sb.append("<i class=\"").append(icon).append("\"");
+            if (showTitleAsLabel && StringUtils.isNotEmpty(title)) {
+                sb.append(" style=\"margin-right: 5px;\"");
+            }
+            sb.append("></i>");
+        }
+
+        if (StringUtils.isEmpty(icon)) {
+            sb.append(title);
         } else {
-            sb.append(title.getObject());
+            if (showTitleAsLabel) {
+                sb.append(title);
+            }
         }
 
         replaceComponentTagBody(markupStream, openTag, sb.toString());
@@ -67,5 +81,11 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
         if (tag.isOpenClose()) {
             tag.setType(XmlTag.TagType.OPEN);
         }
+    }
+
+    public AjaxIconButton showTitleAsLabel(boolean show) {
+        showTitleAsLabel = show;
+
+        return this;
     }
 }

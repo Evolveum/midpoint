@@ -29,6 +29,7 @@ import java.util.List;
  *  @author shood
  *  @author mederly
  */
+@Deprecated
 public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
     protected MultiButtonPanel panel;
