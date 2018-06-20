@@ -19,15 +19,20 @@ package com.evolveum.midpoint.web.component;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public abstract class AjaxIconButton extends AjaxLink<String> {
+
+    private static final long serialVersionUID = 1L;
 
     private IModel<String> title;
 
@@ -37,6 +42,16 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
         super(id, icon);
 
         this.title = title;
+
+        add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return !AjaxIconButton.this.isEnabled() ? "disabled" : "";
+            }
+        }));
     }
 
     @Override

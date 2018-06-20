@@ -107,34 +107,24 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                                 AjaxIconButton btn = null;
                                 switch (index) {
                                     case 0:
-                                        btn = new AjaxIconButton(componentId, new Model<>("fa fa-circle-o"),
-                                                page.createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle")) {
-
-                                            @Override
-                                            public void onClick(AjaxRequestTarget target) {
-                                                currentStateButtonClicked(target, focusWrapperModel.getObject().getOid(),
-                                                        model.getObject().getEventIdentifier(),
-                                                        WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE),
-                                                        page.getCompileTimeClass());
-                                            }
-                                        };
-                                        btn.showTitleAsLabel(true)
-                                                .add(AttributeAppender.append("class", "btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO));
+                                        btn = buildDefaultButton(componentId, new Model<>("fa fa-circle-o"),
+                                                createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO),
+                                                target ->
+                                                        currentStateButtonClicked(target, focusWrapperModel.getObject().getOid(),
+                                                                model.getObject().getEventIdentifier(),
+                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE),
+                                                                page.getCompileTimeClass()));
                                         break;
                                     case 1:
-                                        btn = new AjaxIconButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
-                                                page.createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle")) {
-
-                                            @Override
-                                            public void onClick(AjaxRequestTarget target) {
-                                                viewObjectXmlButtonClicked(focusWrapperModel.getObject().getOid(),
-                                                        model.getObject().getEventIdentifier(),
-                                                        page.getCompileTimeClass(),
-                                                        WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE));
-                                            }
-                                        };
-                                        btn.showTitleAsLabel(true)
-                                                .add(AttributeAppender.append("class", "btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS));
+                                        btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
+                                                createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle"),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS),
+                                                target ->
+                                                        viewObjectXmlButtonClicked(focusWrapperModel.getObject().getOid(),
+                                                                model.getObject().getEventIdentifier(),
+                                                                page.getCompileTimeClass(),
+                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                 }
 
