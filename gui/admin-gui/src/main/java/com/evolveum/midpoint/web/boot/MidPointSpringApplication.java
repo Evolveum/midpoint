@@ -70,6 +70,7 @@ import java.time.Duration;
 
 /**
  * Created by Viliam Repan (lazyman).
+ * Modified by Lukas Skublik.
  */
 @ImportResource(locations = {
         "classpath:ctx-common.xml",
