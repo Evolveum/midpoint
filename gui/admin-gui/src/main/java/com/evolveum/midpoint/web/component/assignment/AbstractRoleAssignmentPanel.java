@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -167,8 +168,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
        @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-    	   TypedAssignablePanel panel = new TypedAssignablePanel(
-                   getPageBase().getMainPopupBodyId(), getDefaultNewAssignmentFocusType()) {
+           AssignmentPopup popupPanel = new AssignmentPopup(
+                   getPageBase().getMainPopupBodyId()) {
 
     		   private static final long serialVersionUID = 1L;
 
@@ -178,14 +179,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    addSelectedAssignmentsPerformed(target, selected, relation, kind, intent);
                }
 
-               @Override
-               protected List<ObjectTypes> getObjectTypesList(){
-                   return AbstractRoleAssignmentPanel.this.getObjectTypesList();
-               }
+//               @Override
+//               protected List<ObjectTypes> getObjectTypesList(){
+//                   return AbstractRoleAssignmentPanel.this.getObjectTypesList();
+//               }
 
            };
-           panel.setOutputMarkupId(true);
-           getPageBase().showMainPopup(panel, target);
+           popupPanel.setOutputMarkupId(true);
+           getPageBase().showMainPopup(popupPanel, target);
     }
 
     protected Class getDefaultNewAssignmentFocusType(){
