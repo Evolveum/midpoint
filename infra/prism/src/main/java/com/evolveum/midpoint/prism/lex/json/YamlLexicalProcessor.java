@@ -51,6 +51,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	private static final String TAG_INT = YAML + "int";
 	private static final String TAG_BOOL = YAML + "bool";
 	private static final String TAG_FLOAT = YAML + "float";
+	private static final String TAG_BINARY = YAML + "binary";       // base64-encoded string
 	private static final String TAG_NULL = YAML + "null";
 
 	public YamlLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
@@ -126,6 +127,8 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	protected QName tagToTypeName(Object tag, AbstractJsonLexicalProcessor.JsonParsingContext ctx) throws IOException, SchemaException {
 		if (tag == null) {
 			return null;
+		} if (TAG_BINARY.equals(tag)) {
+			return DOMUtil.XSD_STRING;          // base64-encoded string: we store it as string, leaving interpretation to upper layers
 		} if (TAG_STRING.equals(tag)) {
 			return DOMUtil.XSD_STRING;
 		} else if (TAG_BOOL.equals(tag)) {
