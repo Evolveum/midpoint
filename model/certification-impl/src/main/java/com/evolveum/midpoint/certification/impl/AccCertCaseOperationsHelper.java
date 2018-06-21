@@ -16,55 +16,52 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.Objects;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ESCALATION_LEVEL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Logic for certification operations like decision recording, case creation or advancement.
- * TODO specify relation to {@link AccCertUpdateHelper}
  *
  * @author mederly
  */
@@ -73,9 +70,8 @@ public class AccCertCaseOperationsHelper {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertCaseOperationsHelper.class);
 
-    @Autowired private AccCertReviewersHelper reviewersHelper;
     @Autowired private PrismContext prismContext;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+	@Autowired private AccCertExpressionHelper expressionHelper;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private AccCertGeneralHelper generalHelper;
 	@Autowired private AccCertResponseComputationHelper computationHelper;
@@ -133,228 +129,6 @@ public class AccCertCaseOperationsHelper {
 		updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltaList, task, result);
 	}
 
-	/**
-	 *  Creates certification cases (in the form of delta list) on first stage opening.
-	 */
-    <F extends FocusType> void getDeltasToCreateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
-		    CertificationHandler handler, ModificationsToExecute modifications, Holder<Integer> workItemsCreatedHolder, Task task,
-		    OperationResult result) throws SchemaException, ObjectNotFoundException {
-        String campaignShortName = toShortString(campaign);
-
-        AccessCertificationScopeType scope = campaign.getScopeDefinition();
-        LOGGER.trace("Creating cases for scope {} in campaign {}", scope, campaignShortName);
-        if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
-            throw new IllegalStateException("Unsupported access certification scope type: " + scope.getClass() + " for campaign " + campaignShortName);
-        }
-        AccessCertificationObjectBasedScopeType objectBasedScope = (AccessCertificationObjectBasedScopeType) scope;
-
-	    assertNoExistingCases(campaign, result);
-
-	    TypedObjectQuery<F> typedQuery = prepareObjectQuery(objectBasedScope, handler, campaignShortName);
-
-	    List<AccessCertificationCaseType> caseList = new ArrayList<>();
-
-        // create certification cases by executing the query and caseExpression on its results
-        // here the subclasses of this class come into play
-        repositoryService.searchObjectsIterative(typedQuery.getObjectClass(), typedQuery.getObjectQuery(),
-		        (object, parentResult) -> {
-			        try {
-				        caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
-			        } catch (CommonException | RuntimeException e) {
-				        // TODO process the exception more intelligently
-				        throw new SystemException("Cannot create certification case for object " + toShortString(object.asObjectable()) + ": " + e.getMessage(), e);
-			        }
-			        return true;
-		        }, null, true, result);
-
-        AccessCertificationReviewerSpecificationType reviewerSpec =
-                reviewersHelper.findReviewersSpecification(campaign, 1);
-
-        assert campaign.getIteration() == 1;
-
-        for (AccessCertificationCaseType _case : caseList) {
-	        ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(F_CASE,
-			        AccessCertificationCampaignType.class, prismContext);
-	        _case.setIteration(1);
-            _case.setStageNumber(1);
-            _case.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
-            _case.setCurrentStageDeadline(stage.getDeadline());
-
-			List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(_case, campaign, reviewerSpec, task, result);
-			_case.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, _case));
-
-			workItemsCreatedHolder.setValue(workItemsCreatedHolder.getValue() + _case.getWorkItem().size());
-
-            String currentStageOutcome = toUri(computationHelper.computeOutcomeForStage(_case, campaign, 1));
-            _case.setCurrentStageOutcome(currentStageOutcome);
-            _case.setOutcome(toUri(computationHelper.computeOverallOutcome(_case, campaign, currentStageOutcome)));
-
-            @SuppressWarnings({ "raw", "unchecked" })
-            PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
-            caseDelta.addValueToAdd(caseCVal);
-			LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDumpLazily());
-			modifications.add(caseDelta);
-        }
-
-        LOGGER.trace("Created {} deltas (in {} batches) to create {} cases ({} work items) for campaign {}",
-		        modifications.getTotalDeltasCount(), modifications.batches.size(), caseList.size(),
-		        workItemsCreatedHolder.getValue(), campaignShortName);
-    }
-
-	// create a query to find target objects from which certification cases will be created
-	@NotNull
-	private <F extends FocusType> TypedObjectQuery<F> prepareObjectQuery(AccessCertificationObjectBasedScopeType objectBasedScope,
-			CertificationHandler handler, String campaignShortName) throws SchemaException {
-		QName scopeDeclaredObjectType;
-		if (objectBasedScope != null) {
-		    scopeDeclaredObjectType = objectBasedScope.getObjectType();
-		} else {
-		    scopeDeclaredObjectType = null;
-		}
-		QName objectType;
-		if (scopeDeclaredObjectType != null) {
-		    objectType = scopeDeclaredObjectType;
-		} else {
-		    objectType = handler.getDefaultObjectType();
-		}
-		if (objectType == null) {
-		    throw new IllegalStateException("Unspecified object type (and no default one provided) for campaign " + campaignShortName);
-		}
-		@SuppressWarnings({ "unchecked", "raw" })
-		Class<F> objectClass = (Class<F>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectType);
-		if (objectClass == null) {
-		    throw new IllegalStateException("Object class not found for object type " + objectType + " in campaign " + campaignShortName);
-		}
-
-		// TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
-		// It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
-		final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
-		ObjectQuery query = new ObjectQuery();
-		if (searchFilter != null) {
-		    query.setFilter(QueryConvertor.parseFilter(searchFilter, objectClass, prismContext));
-		}
-		return new TypedObjectQuery<>(objectClass, query);
-	}
-
-	private void assertNoExistingCases(AccessCertificationCampaignType campaign, OperationResult result)
-			throws SchemaException {
-		List<AccessCertificationCaseType> existingCases = queryHelper.searchCases(campaign.getOid(), null, null, result);
-		if (!existingCases.isEmpty()) {
-		    throw new IllegalStateException("Unexpected " + existingCases.size() + " certification case(s) in campaign object "
-				    + toShortString(campaign) + ". At this time there should be none.");
-		}
-	}
-
-	private List<AccessCertificationWorkItemType> createWorkItems(List<ObjectReferenceType> forReviewers, int forStage,
-		    int forIteration, AccessCertificationCaseType _case) {
-    	assert forIteration > 0;
-    	boolean avoidRedundantWorkItems = forIteration > 1;           // TODO make configurable
-        List<AccessCertificationWorkItemType> workItems = new ArrayList<>();
-        for (ObjectReferenceType reviewer : forReviewers) {
-        	boolean skipCreation = false;
-        	if (avoidRedundantWorkItems) {
-		        for (AccessCertificationWorkItemType existing : _case.getWorkItem()) {
-			        if (existing.getStageNumber() == forStage
-					        && existing.getOriginalAssigneeRef() != null
-					        && Objects.equals(existing.getOriginalAssigneeRef().getOid(), reviewer.getOid())
-					        && existing.getOutput() != null && normalizeToNull(fromUri(existing.getOutput().getOutcome())) != null) {
-				        skipCreation = true;
-				        LOGGER.trace("Skipping creation of a work item for {}, because the relevant outcome already exists in {}", reviewer, existing);
-				        break;
-			        }
-		        }
-	        }
-	        if (!skipCreation) {
-		        AccessCertificationWorkItemType workItem = new AccessCertificationWorkItemType(prismContext)
-				        .stageNumber(forStage)
-				        .iteration(forIteration)
-				        .assigneeRef(reviewer.clone())
-				        .originalAssigneeRef(reviewer.clone());
-		        workItems.add(workItem);
-	        }
-        }
-        return workItems;
-    }
-
-	/**
-	 * Deltas to advance cases to next stage when opening it.
-	 */
-    void getDeltasToAdvanceCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
-		    ModificationsToExecute modifications, Holder<Integer> workItemsCreatedHolder,
-		    Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        LOGGER.trace("Advancing reviewers and timestamps for cases in {}", toShortString(campaign));
-	    int stageToBe = campaign.getStageNumber() + 1;
-	    int iteration = campaign.getIteration();
-        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), iteration, null, result);
-
-        List<AccessCertificationResponseType> outcomesToStopOn = stageToBe > 1 ?
-		        computationHelper.getOutcomesToStopOn(campaign) : emptyList();
-
-        AccessCertificationReviewerSpecificationType reviewerSpec =
-                reviewersHelper.findReviewersSpecification(campaign, stageToBe);
-
-        for (AccessCertificationCaseType _case : caseList) {
-            if (!computationHelper.advancesToNextStage(_case, campaign, outcomesToStopOn)) {
-                continue;
-            }
-            Long caseId = _case.asPrismContainerValue().getId();
-            assert caseId != null;
-			List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(_case, campaign, reviewerSpec, task, result);
-			List<AccessCertificationWorkItemType> workItems = createWorkItems(reviewers, stageToBe, iteration, _case);
-			workItemsCreatedHolder.setValue(workItemsCreatedHolder.getValue() + workItems.size());
-			_case.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
-			AccessCertificationResponseType currentOutcome = computationHelper.computeOutcomeForStage(_case, campaign, stageToBe);
-			AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(_case, campaign, currentOutcome);
-			modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-					.item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
-					.item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
-					.item(F_CASE, caseId, F_CURRENT_STAGE_DEADLINE).replace(stage.getDeadline())
-					.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(currentOutcome))
-					.item(F_CASE, caseId, F_OUTCOME).replace(toUri(overallOutcome))
-					.item(F_CASE, caseId, F_STAGE_NUMBER).replace(stageToBe)
-					.item(F_CASE, caseId, F_ITERATION).replace(iteration)
-					.asItemDeltas());
-        }
-
-        LOGGER.debug("Created {} deltas (in {} batches) to advance {} cases for campaign {}; work items created: {}",
-		        modifications.getTotalDeltasCount(), modifications.batches.size(), caseList.size(), toShortString(campaign),
-		        workItemsCreatedHolder.getValue());
-    }
-
-    // computes cases outcomes (stage-level and overall) at stage close and creates appropriate deltas
-    void createOutcomeAndEventDeltasForCasesOnStageClose(AccessCertificationCampaignType campaign, ModificationsToExecute modifications,
-		    OperationResult result) throws SchemaException {
-	    LOGGER.trace("Updating current outcome for cases in {}", toShortStringLazy(campaign));
-        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), campaign.getIteration(), null, result);
-		for (AccessCertificationCaseType _case : caseList) {
-			if (!AccCertUtil.isCaseRelevantForStage(_case, campaign)) {
-				continue;
-			}
-			List<ItemDelta<?,?>> deltas = new ArrayList<>();
-			String newStageOutcome = toUri(computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber()));
-			long caseId = _case.asPrismContainerValue().getId();
-			if (!Objects.equals(newStageOutcome, _case.getCurrentStageOutcome())) {
-				deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-						.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcome)
-						.asItemDelta());
-			}
-			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-					.item(F_CASE, caseId, F_EVENT).add(new StageCompletionEventType()
-							.timestamp(clock.currentTimeXMLGregorianCalendar())
-							.stageNumber(campaign.getStageNumber())
-							.iteration(campaign.getIteration())
-							.outcome(newStageOutcome))
-					.asItemDelta());
-			String newOverallOutcome = toUri(computationHelper.computeOverallOutcome(_case, campaign, newStageOutcome));
-			if (!Objects.equals(newOverallOutcome, _case.getOutcome())) {
-				deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-						.item(F_CASE, caseId, F_OUTCOME).replace(newOverallOutcome)
-						.asItemDelta());
-			}
-			modifications.add(deltas);
-		}
-    }
 
     // TODO temporary implementation - should be done somehow in batches in order to improve performance
 	void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)
@@ -369,4 +143,212 @@ public class AccCertCaseOperationsHelper {
         updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid,
 				Collections.singletonList(remediedDelta), task, parentResult);
     }
+
+	//region ================================ Delegation/escalation ================================
+
+	void delegateWorkItems(String campaignOid, List<AccessCertificationWorkItemType> workItems,
+			DelegateWorkItemActionType delegateAction, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
+			SecurityViolationException {
+		LOGGER.info("Going to delegate {} work item(s) in campaign {}", workItems.size(), campaignOid);
+
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
+		result.addContext("user", toShortString(principal.getUser()));
+		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
+		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
+
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+		for (AccessCertificationWorkItemType workItem : workItems) {
+			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCaseChecked(workItem);
+			AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaignChecked(aCase);
+			if (!java.util.Objects.equals(campaign.getOid(), campaignOid)) {
+				throw new IllegalArgumentException("Work item to delegate does not belong to specified campaign (" + campaignOid + ") but to " + campaign);
+			}
+			// TODO reload the work item here (and replace exceptions with logged warnings)
+			if (workItem.getCloseTimestamp() != null) {
+				throw new IllegalStateException("Couldn't delegate a work item that is already closed: " + workItem);
+			}
+			// actually, stage/iteration should match, as the work item is not closed
+			if (workItem.getIteration() != campaign.getIteration()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current iteration. Current iteration: " + campaign.getIteration() + ", work item iteration: " + workItem.getIteration());
+			}
+			if (workItem.getStageNumber() != campaign.getStageNumber()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + campaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
+			}
+			List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, campaign, task, result);
+
+			WorkItemEventCauseInformationType causeInformation = null;			// TODO
+
+			//noinspection ConstantConditions
+			LOGGER.trace("Delegating work item {} to {}: cause={}", workItem, delegates, causeInformation);
+			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+			WorkItemDelegationMethodType method = getDelegationMethod(delegateAction);
+			List<ObjectReferenceType> newAssignees = new ArrayList<>();
+			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			//noinspection ConstantConditions
+			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation);
+			event.setTimestamp(now);
+			event.setInitiatorRef(initiator);
+			event.setAttorneyRef(attorney);
+			event.setWorkItemId(workItem.getId());
+			event.setEscalationLevel(workItem.getEscalationLevel());
+			event.setStageNumber(campaign.getStageNumber());
+			event.setIteration(campaign.getIteration());
+			addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
+
+			// notification (after modifications)
+		}
+		updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+
+		// TODO notifications
+
+		//		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
+		//		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
+		//		eventHelper.onCampaignEnd(updatedCampaign, task, result);
+
+	}
+
+	@NotNull
+	private WorkItemDelegationMethodType getDelegationMethod(DelegateWorkItemActionType delegateAction) {
+		return defaultIfNull(delegateAction.getDelegationMethod(), WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
+	}
+
+	public void escalateCampaign(String campaignOid, EscalateWorkItemActionType escalateAction,
+			WorkItemEventCauseInformationType causeInformation, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException {
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
+		result.addContext("user", toShortString(principal.getUser()));
+		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
+		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
+
+		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
+				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+				null, false, null, result);
+
+		if (workItems.isEmpty()) {
+			LOGGER.debug("No work items, no escalation (campaign: {})", campaignOid);
+			return;
+		}
+
+		LOGGER.info("Going to escalate the campaign {}: {} work item(s)", campaignOid, workItems.size());
+
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		ModificationsToExecute modifications = new ModificationsToExecute();
+		// Currently we expect all open certification work items for a given campaign to have the same escalation level.
+		// Because of consistence with other parts of midPoint we store the escalation level within work item itself.
+		// But we enforce it to be the same for all the open work items.
+		// This behavior will most probably change in the future.
+		AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+		int newStageEscalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumber(campaign) + 1;
+		WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType()
+				.number(newStageEscalationLevelNumber)
+				.name(escalateAction.getEscalationLevelName())
+				.displayName(escalateAction.getEscalationLevelDisplayName());
+		for (AccessCertificationWorkItemType workItem : workItems) {
+			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCaseChecked(workItem);
+			AccessCertificationCampaignType workItemCampaign = CertCampaignTypeUtil.getCampaignChecked(aCase);
+			if (!java.util.Objects.equals(workItemCampaign.getOid(), campaignOid)) {
+				throw new IllegalArgumentException("Work item to delegate does not belong to specified campaign (" + campaignOid + ") but to " + workItemCampaign);
+			}
+			if (workItem.getCloseTimestamp() != null) {
+				throw new IllegalStateException("Couldn't delegate a work item that is already closed: " + workItem);
+			}
+			if (workItem.getStageNumber() != workItemCampaign.getStageNumber()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + workItemCampaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
+			}
+			if (workItem.getIteration() != workItemCampaign.getIteration()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current iteration. Current stage: " + workItemCampaign.getIteration() + ", work item iteration: " + workItem.getIteration());
+			}
+			if (workItem.getOutput() != null && workItem.getOutput().getOutcome() != null) {
+				// It is a bit questionable to skip this work item (as it is not signed off),
+				// but it is also not quite OK to escalate it, as there's some output present.
+				// The latter is less awkward, so let's do it that way.
+				continue;
+			}
+			List<ObjectReferenceType> delegates = computeDelegateTo(escalateAction, workItem, aCase, workItemCampaign, task, result);
+
+			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
+			if (escalationLevel + 1 != newStageEscalationLevelNumber) {
+				throw new IllegalStateException("Different escalation level numbers for certification cases: work item level ("
+						+ newEscalationLevel + ") is different from the stage level (" + newStageEscalationLevelNumber + ")");
+			}
+			LOGGER.debug("Escalating work item {} to level: {}; delegates={}: cause={}", workItem, newEscalationLevel, delegates, causeInformation);
+
+			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+			WorkItemDelegationMethodType method = getDelegationMethod(escalateAction);
+			List<ObjectReferenceType> newAssignees = new ArrayList<>();
+			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation);
+			event.setTimestamp(now);
+			event.setInitiatorRef(initiator);
+			event.setAttorneyRef(attorney);
+			event.setWorkItemId(workItem.getId());
+			event.setEscalationLevel(workItem.getEscalationLevel());
+			event.setStageNumber(campaign.getStageNumber());
+			event.setIteration(campaign.getIteration());
+			List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+			addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
+			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+					.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ESCALATION_LEVEL).replace(newEscalationLevel)
+					.asItemDelta());
+			modifications.add(deltas);
+			// notification (after modifications)
+		}
+		AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
+		assert stage != null;
+		Long stageId = stage.asPrismContainerValue().getId();
+		assert stageId != null;
+		modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(F_STAGE, stageId, AccessCertificationStageType.F_ESCALATION_LEVEL).replace(newEscalationLevel)
+				.asItemDelta());
+		AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
+		modifications.add(updateHelper.getDeltasToCreateTriggersForTimedActions(campaignOid, newStageEscalationLevelNumber,
+				XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()), stageDefinition.getTimedActions()));
+
+		updateHelper.modifyCampaignPreAuthorized(campaignOid, modifications, task, result);
+
+		campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+		// TODO differentiate between "old" and "new" reviewers
+		updateHelper.notifyReviewers(campaign, true, task, result);
+
+		//		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
+		//		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
+		//		eventHelper.onCampaignEnd(updatedCampaign, task, result);
+
+	}
+
+	private void addDeltasForNewAssigneesAndEvent(List<ItemDelta<?, ?>> deltas, AccessCertificationWorkItemType workItem,
+			AccessCertificationCaseType aCase, List<ObjectReferenceType> newAssignees, WorkItemDelegationEventType event)
+			throws SchemaException {
+		deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ASSIGNEE_REF)
+				.replace(PrismReferenceValue.asReferenceValues(newAssignees))
+				.asItemDelta());
+		deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(F_CASE, aCase.getId(), F_EVENT).add(event)
+				.asItemDelta());
+	}
+
+	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction,
+			AccessCertificationWorkItemType workItem, AccessCertificationCaseType aCase,
+			AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+
+		List<ObjectReferenceType> rv = CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef());
+		if (!delegateAction.getApproverExpression().isEmpty()) {
+			ExpressionVariables variables = new ExpressionVariables();
+			variables.addVariableDefinition(ExpressionConstants.VAR_WORK_ITEM, workItem);
+			variables.addVariableDefinition(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase);
+			variables.addVariableDefinition(ExpressionConstants.VAR_CAMPAIGN, campaign);
+			for (ExpressionType expression : delegateAction.getApproverExpression()) {
+				rv.addAll(expressionHelper.evaluateRefExpressionChecked(expression, variables, "computing delegates", task, result));
+			}
+		}
+		return rv;
+	}
+
+	//endregion
+
 }

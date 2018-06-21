@@ -109,7 +109,9 @@ public class CertificationManagerImpl implements CertificationManager {
     @Autowired protected AccCertEventHelper eventHelper;
     @Autowired protected AccCertQueryHelper queryHelper;
     @Autowired protected AccCertUpdateHelper updateHelper;
-    @Autowired protected AccCertCaseOperationsHelper caseHelper;
+    @Autowired protected AccCertOpenerHelper openerHelper;
+	@Autowired protected AccCertCloserHelper closerHelper;
+	@Autowired protected AccCertCaseOperationsHelper operationsHelper;
     @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
     @Autowired private AccessCertificationClosingTaskHandler closingTaskHandler;
 
@@ -144,7 +146,7 @@ public class CertificationManagerImpl implements CertificationManager {
         try {
             PrismObject<AccessCertificationDefinitionType> definition = repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
             securityEnforcer.authorize(ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(), null, AuthorizationParameters.Builder.buildObject(definition), null, task, result);
-	        return updateHelper.createCampaign(definition, result, task);
+	        return openerHelper.createCampaign(definition, result, task);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -198,7 +200,7 @@ public class CertificationManagerImpl implements CertificationManager {
             OperationResult result) {
 		try {
 			AccessCertificationDefinitionType definition = repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result).asObjectable();
-			AccessCertificationCampaignType newCampaign = updateHelper.createAdHocCampaignObject(definition, focus, task, result);
+			AccessCertificationCampaignType newCampaign = openerHelper.createAdHocCampaignObject(definition, focus, task, result);
 			updateHelper.addObjectPreAuthorized(newCampaign, task, result);
 			openNextStage(newCampaign.getOid(), task, result);
 			result.computeStatus();
@@ -241,7 +243,7 @@ public class CertificationManagerImpl implements CertificationManager {
 			            "Couldn't advance to the next review stage as the campaign has only " + stages + " stages");
             } else {
                 CertificationHandler handler = findCertificationHandler(campaign);
-                updateHelper.openNextStage(campaign, handler, task, result);
+                openerHelper.openNextStage(campaign, handler, task, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
@@ -279,9 +281,7 @@ public class CertificationManagerImpl implements CertificationManager {
 			if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close the current review stage as it is currently not open");
             } else {
-                ModificationsToExecute modifications = updateHelper.getDeltasForStageClose(campaign, result);
-                updateHelper.modifyCampaignPreAuthorized(campaignOid, modifications, task, result);
-                updateHelper.afterStageClose(campaignOid, task, result);
+				closerHelper.closeStage(campaign, task, result);
             }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close current certification campaign stage: unexpected exception: " + e.getMessage(), e);
@@ -398,7 +398,7 @@ public class CertificationManagerImpl implements CertificationManager {
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
             		AuthorizationParameters.EMPTY, null, task, result);
-            caseHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
+            operationsHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -420,7 +420,7 @@ public class CertificationManagerImpl implements CertificationManager {
 			// TODO security
 			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,
 					AuthorizationParameters.EMPTY, null, task, result);
-			updateHelper.delegateWorkItems(campaignOid, workItems, delegateAction, task, result);
+			operationsHelper.delegateWorkItems(campaignOid, workItems, delegateAction, task, result);
 		} catch (RuntimeException|CommonException e) {
 			result.recordFatalError("Couldn't delegate work items: unexpected exception: " + e.getMessage(), e);
 			throw e;
@@ -448,7 +448,7 @@ public class CertificationManagerImpl implements CertificationManager {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
             securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
             		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
-            updateHelper.closeCampaign(campaign, task, result);
+            closerHelper.closeCampaign(campaign, task, result);
             if (!noBackgroundTask) {
 	            closingTaskHandler.launch(campaign, result);
             }
@@ -470,7 +470,7 @@ public class CertificationManagerImpl implements CertificationManager {
 			AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
 			securityEnforcer.authorize(ModelAuthorizationAction.REITERATE_CERTIFICATION_CAMPAIGN.getUrl(), null,
 					AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
-			updateHelper.reiterateCampaign(campaign, task, result);
+			openerHelper.reiterateCampaign(campaign, task, result);
 		} catch (RuntimeException e) {
 			result.recordFatalError("Couldn't reiterate certification campaign: unexpected exception: " + e.getMessage(), e);
 			throw e;
@@ -555,7 +555,7 @@ public class CertificationManagerImpl implements CertificationManager {
 	public void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS);
 		try {
-			updateHelper.cleanupCampaigns(policy, task, result);
+			closerHelper.cleanupCampaigns(policy, task, result);
 		} catch (RuntimeException e) {
 			result.recordFatalError("Couldn't cleanup campaigns: unexpected exception: " + e.getMessage(), e);
 			throw e;

@@ -189,7 +189,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
-        assertAfterCampaignCreate(campaign, certificationDefinition);
+        assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentComplete(campaign, 100, 100, 100);
     }
 
@@ -267,8 +267,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
-        assertAfterCampaignStart(campaign, certificationDefinition, 5);
-        checkAllCases(campaign.getCase(), campaignOid);
+        assertSanityAfterCampaignStart(campaign, certificationDefinition, 5);
+        checkAllCases(campaign.getCase());
 
         List<AccessCertificationCaseType> caseList = campaign.getCase();
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, ACCEPT, ACCEPT, null);
@@ -279,16 +279,16 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertPercentComplete(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
     }
 
-    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid)
+    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
         assertEquals("Wrong number of certification cases", 5, caseList.size());
         UserType jack = getUser(USER_JACK_OID).asObjectable();
-        checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
-        checkCase(caseList, USER_JACK_OID, roleATest2bOid, jack, campaignOid);
-        checkCase(caseList, USER_JACK_OID, roleATest2cOid, jack, campaignOid);
-        checkCase(caseList, USER_JACK_OID, roleATest3aOid, jack, campaignOid);
-        checkCase(caseList, USER_JACK_OID, roleATest3bOid, jack, campaignOid);
+        checkCaseSanity(caseList, USER_JACK_OID, roleATest2aOid, jack);
+        checkCaseSanity(caseList, USER_JACK_OID, roleATest2bOid, jack);
+        checkCaseSanity(caseList, USER_JACK_OID, roleATest2cOid, jack);
+        checkCaseSanity(caseList, USER_JACK_OID, roleATest3aOid, jack);
+        checkCaseSanity(caseList, USER_JACK_OID, roleATest3bOid, jack);
     }
 
     @Test
@@ -310,9 +310,9 @@ public class TestSoDCertification extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCases(caseList);
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
-        AccessCertificationCaseType _case = checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
+        AccessCertificationCaseType _case = checkCaseSanity(caseList, USER_JACK_OID, roleATest2aOid, jack);
         assertEquals("Unexpected number of reviewers in a-test-2a case", 1, CertCampaignTypeUtil.getCurrentReviewers(_case).size());
     }
 
@@ -349,7 +349,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         caseList = queryHelper.searchCases(campaignOid, null, null, result);
         displayContainerablesCollection("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCases(caseList);
 
 		test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
 		test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
@@ -357,11 +357,11 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
 		test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
-        assertSingleDecision(test2aCase, REVOKE, "no way", 1, USER_JACK_OID, REVOKE, false);
-        assertSingleDecision(test2bCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, false);
-        assertSingleDecision(test2cCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, false);
-        assertSingleDecision(test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, ACCEPT, false);
-        assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, ACCEPT, false);
+        assertSingleDecision(test2aCase, REVOKE, "no way", 1, 1, USER_JACK_OID, REVOKE, false);
+        assertSingleDecision(test2bCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, false);
+        assertSingleDecision(test2cCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, false);
+        assertSingleDecision(test3aCase, ACCEPT, "OK", 1, 1, USER_JACK_OID, ACCEPT, false);
+        assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, 1, USER_JACK_OID, ACCEPT, false);
 
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, REVOKE, REVOKE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, null);
@@ -394,8 +394,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
-        assertAfterStageClose(campaign, certificationDefinition, 1);
-        checkAllCases(campaign.getCase(), campaignOid);
+        assertSanityAfterStageClose(campaign, certificationDefinition, 1);
+        checkAllCases(campaign.getCase());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 		AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
@@ -404,11 +404,11 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
 		AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
-		assertSingleDecision(test2aCase, REVOKE, "no way", 1, USER_JACK_OID, REVOKE, true);
-		assertSingleDecision(test2bCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, true);
-		assertSingleDecision(test2cCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, true);
-		assertSingleDecision(test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, ACCEPT, true);
-		assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, ACCEPT, true);
+		assertSingleDecision(test2aCase, REVOKE, "no way", 1, 1, USER_JACK_OID, REVOKE, true);
+		assertSingleDecision(test2bCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, true);
+		assertSingleDecision(test2cCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, true);
+		assertSingleDecision(test3aCase, ACCEPT, "OK", 1, 1, USER_JACK_OID, ACCEPT, true);
+		assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, 1, USER_JACK_OID, ACCEPT, true);
 
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, REVOKE, REVOKE, 1);
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, 1);

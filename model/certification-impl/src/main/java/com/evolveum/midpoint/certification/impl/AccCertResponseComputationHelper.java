@@ -65,15 +65,20 @@ public class AccCertResponseComputationHelper {
         return strategyImpl;
     }
 
-	// should be the case enabled in the following stage?
-    boolean advancesToNextStage(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
-		    List<AccessCertificationResponseType> outcomesToStopOn) {
-        if (!AccCertUtil.isCaseRelevantForStage(_case, campaign)) {
-            return false;       // it is not relevant even for the current stage (so it won't advance)
-        }
-        AccessCertificationResponseType currentOutcome = normalizeToNonNull(fromUri(_case.getCurrentStageOutcome()));
-        return !outcomesToStopOn.contains(currentOutcome);
-    }
+//	// should be the case enabled in the following stage?
+//    boolean advancesToNextStage(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+//		    List<AccessCertificationResponseType> outcomesToStopOn) {
+//        if (aCase.getReviewFinishedTimestamp() != null) {
+//        	LOGGER.trace("Case {} review process is already finished", aCase.getId());
+//            return false;       // it is not relevant even for the current stage (so it won't advance)
+//        }
+//        AccessCertificationResponseType currentOutcome = normalizeToNonNull(fromUri(aCase.getCurrentStageOutcome()));
+//	    boolean amongStopped = outcomesToStopOn.contains(currentOutcome);
+//	    // TODO !!!!!!!!!!!!!! is this OK when reiterating? what if stages are skipped?
+//	    LOGGER.trace("Current outcome of case {} ({}: from stage {}) {} among outcomes we stop on", aCase.getId(),
+//			    currentOutcome, aCase.getStageNumber(), amongStopped ? "is" : "is not");
+//	    return !amongStopped;
+//    }
 
 	List<AccessCertificationResponseType> getOutcomesToStopOn(AccessCertificationCampaignType campaign) {
         List<AccessCertificationResponseType> rv;
@@ -105,20 +110,25 @@ public class AccCertResponseComputationHelper {
     }
 
     @NotNull
-    AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType _case,
+    AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType aCase,
 		    AccessCertificationCampaignType campaign, int stageNumber) {
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stageNumber);
-        List<AccessCertificationResponseType> allResponses = getResponses(_case, stageNumber, campaign.getIteration());
+        List<AccessCertificationResponseType> allResponses = getResponses(aCase, stageNumber, campaign.getIteration());
 	    AccessCertificationResponseType outcome;
+	    String base;
         if (allResponses.isEmpty()) {
             outcome = stageDef.getOutcomeIfNoReviewers();
+            base = "<no reviewers available>";
         } else {
             AccessCertificationCaseOutcomeStrategyType outcomeStrategy = defaultIfNull(stageDef.getOutcomeStrategy(), DEFAULT_CASE_STAGE_OUTCOME_STRATEGY);
             OutcomeStrategy strategyImpl = getOutcomeStrategy(outcomeStrategy);
             ResponsesSummary summary = summarize(allResponses);        // TODO eventually merge extraction and summarizing
             outcome = strategyImpl.computeOutcome(summary);
+            base = allResponses.toString();
         }
-        return normalizeToNonNull(outcome);
+	    AccessCertificationResponseType rv = normalizeToNonNull(outcome);
+        LOGGER.trace("computeOutcomeForStage for case {} (stageNumber: {}) returned {} based on {}", aCase.getId(), stageNumber, rv, base);
+	    return rv;
     }
 
     private ResponsesSummary summarize(List<AccessCertificationResponseType> responses) {
@@ -152,9 +162,9 @@ public class AccCertResponseComputationHelper {
     }
 
 	// see https://wiki.evolveum.com/display/midPoint/On+Certification+Campaigns+Iteration
-	private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType _case, int stageNumber, int iteration) {
+	private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
 		List<AccessCertificationResponseType> rv = new ArrayList<>();
-		for (AccessCertificationWorkItemType wi : _case.getWorkItem()) {
+		for (AccessCertificationWorkItemType wi : aCase.getWorkItem()) {
 			if (wi.getStageNumber() == stageNumber) {
 				AccessCertificationResponseType response = normalizeToNonNull(fromUri(WorkItemTypeUtil.getOutcome(wi)));
 				if (response != AccessCertificationResponseType.NO_RESPONSE || wi.getIteration() == iteration) {

@@ -51,7 +51,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
 	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 	@Autowired private AccCertQueryHelper queryHelper;
-	@Autowired private AccCertUpdateHelper updateHelper;
+	@Autowired private AccCertCaseOperationsHelper operationsHelper;
 	@Autowired private CertificationManagerImpl certManager;
 	@Autowired private PrismContext prismContext;
 
@@ -153,12 +153,12 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeEscalateAction(AccessCertificationCampaignType campaign, EscalateWorkItemActionType escalateAction,
 			Task task, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException, ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException {
 		WorkItemEventCauseInformationType causeInformation = new WorkItemEventCauseInformationType()
 				.type(WorkItemEventCauseTypeType.TIMED_ACTION)
 				.name(escalateAction.getName())
 				.displayName(escalateAction.getDisplayName());
-		updateHelper.escalateCampaign(campaign.getOid(), escalateAction, causeInformation, task, result);
+		operationsHelper.escalateCampaign(campaign.getOid(), escalateAction, causeInformation, task, result);
 	}
 
 	@SuppressWarnings("unused")

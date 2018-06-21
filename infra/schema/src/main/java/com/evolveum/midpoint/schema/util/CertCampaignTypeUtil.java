@@ -38,7 +38,7 @@ public class CertCampaignTypeUtil {
 
     public static AccessCertificationStageType getCurrentStage(AccessCertificationCampaignType campaign) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == campaign.getStageNumber()) {
+            if (stage.getNumber() == campaign.getStageNumber() && stage.getIteration() == campaign.getIteration()) {
                 return stage;
             }
         }
@@ -82,9 +82,11 @@ public class CertCampaignTypeUtil {
 
     // to be used in tests (beware: there could be more work items)
     // TODO move to a test class
-    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, int iteration,
+            String reviewerOid) {
         return _case.getWorkItem().stream()
-                .filter(wi -> wi.getStageNumber() == stageNumber && ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
+                .filter(wi -> wi.getStageNumber() == stageNumber && wi.getIteration() == iteration
+                        && ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
                 .findFirst().orElse(null);
     }
 
@@ -365,9 +367,10 @@ public class CertCampaignTypeUtil {
                 .build();
     }
 
-    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
         StageCompletionEventType event = aCase.getEvent().stream()
-                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
+                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber
+                        && e.getIteration() != null && e.getIteration() == iteration)
                 .map(e -> (StageCompletionEventType) e)
                 .findAny().orElseThrow(
                         () -> new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase));
@@ -446,9 +449,10 @@ public class CertCampaignTypeUtil {
     }
 
     @NotNull
-    public static List<StageCompletionEventType> getCompletedStageEvents(AccessCertificationCaseType aCase) {
+    public static List<StageCompletionEventType> getCompletedStageEvents(AccessCertificationCaseType aCase, int iteration) {
         return aCase.getEvent().stream()
                 .filter(e -> e instanceof StageCompletionEventType)
+                .filter(e -> e.getIteration() != null && e.getIteration() == iteration)
                 .map(e -> (StageCompletionEventType) e)
                 .collect(Collectors.toList());
     }

@@ -53,9 +53,9 @@ import static org.testng.AssertJUnit.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
-    protected static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-critical-roles.xml");
+    private static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-critical-roles.xml");
 
-    protected AccessCertificationDefinitionType certificationDefinition;
+    private AccessCertificationDefinitionType certificationDefinition;
 
     private String campaignOid;
 
@@ -94,7 +94,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
         campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
-        assertAfterCampaignCreate(campaign, certificationDefinition);
+        assertSanityAfterCampaignCreate(campaign, certificationDefinition);
     }
 
     /*
@@ -108,7 +108,7 @@ Stage1: oneAcceptAccepts, default: accept, stop on: revoke          (manager)
 Case                        Stage1
 ================================================
 elaine->CEO                 none (A) -> A
-guybrush->COO               cheese: A -> A
+guybrush->COO               cheese: A -> A (in test100)
 administrator->COO          none (A) -> A
 administrator->CEO          none (A) -> A
 jack->CEO                   none (A) -> A
@@ -136,7 +136,7 @@ jack->CTO                   none (A) -> A
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
-        assertAfterCampaignStart(campaign, certificationDefinition, 6);
+        assertSanityAfterCampaignStart(campaign, certificationDefinition, 6);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("unexpected # of cases", 6, caseList.size());
@@ -147,12 +147,12 @@ jack->CTO                   none (A) -> A
         AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        checkSpecificCase(elaineCeoCase, userElaine);
-        checkSpecificCase(guybrushCooCase, userGuybrush);
-        checkSpecificCase(administratorCeoCase, userAdministrator);
-        checkSpecificCase(administratorCooCase, userAdministrator);
-        checkSpecificCase(jackCeoCase, userJack);
-        checkSpecificCase(jackCtoCase, userJack);
+        checkCaseAssignmentSanity(elaineCeoCase, userElaine);
+        checkCaseAssignmentSanity(guybrushCooCase, userGuybrush);
+        checkCaseAssignmentSanity(administratorCeoCase, userAdministrator);
+        checkCaseAssignmentSanity(administratorCooCase, userAdministrator);
+        checkCaseAssignmentSanity(jackCeoCase, userJack);
+        checkCaseAssignmentSanity(jackCtoCase, userJack);
 
         assertCaseReviewers(elaineCeoCase, ACCEPT, 1, Collections.emptyList());
         assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 1, Collections.singletonList(USER_CHEESE_OID));
@@ -201,12 +201,12 @@ jack->CTO                   none (A) -> A
         assertEquals("unexpected # of cases", 6, caseList.size());
         guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
-        assertSingleDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, ACCEPT, false);
+        assertSingleDecision(guybrushCooCase, ACCEPT, null, 1, 1, USER_CHEESE_OID, ACCEPT, false);
 
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaignOid, 100, 100, 100);
-        assertCases(campaignOid, 6);
+        assertCasesCount(campaignOid, 6);
     }
 
     @Test
@@ -231,7 +231,7 @@ jack->CTO                   none (A) -> A
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
 
-        assertAfterStageClose(campaign, certificationDefinition, 1);
+        assertSanityAfterStageClose(campaign, certificationDefinition, 1);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("unexpected # of cases", 6, caseList.size());
@@ -244,7 +244,7 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 1);
 
         assertPercentComplete(campaignOid, 100, 100, 100);
-        assertCases(campaignOid, 6);
+        assertCasesCount(campaignOid, 6);
     }
 
     @Test
@@ -268,7 +268,7 @@ jack->CTO                   none (A) -> A
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
-        assertAfterStageOpen(campaign, certificationDefinition, 2);
+        assertSanityAfterStageOpen(campaign, certificationDefinition, 2);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
@@ -307,7 +307,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaignOid, 17, 17, 0);
-        assertCases(campaignOid, 6);
+        assertCasesCount(campaignOid, 6);
     }
 
     @Test
@@ -401,19 +401,19 @@ jack->CTO                   none (A) -> A       none (A) -> A
         AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertWorkItems(elaineCeoCase, 1);
-        assertWorkItems(guybrushCooCase, 2);
-        assertWorkItems(administratorCooCase, 1);
-        assertWorkItems(administratorCeoCase, 1);
-        assertWorkItems(jackCeoCase, 1);
-        assertWorkItems(jackCtoCase, 0);
+        assertWorkItemsCount(elaineCeoCase, 1);
+        assertWorkItemsCount(guybrushCooCase, 2);
+        assertWorkItemsCount(administratorCooCase, 1);
+        assertWorkItemsCount(administratorCeoCase, 1);
+        assertWorkItemsCount(jackCeoCase, 1);
+        assertWorkItemsCount(jackCtoCase, 0);
 
-        assertSingleDecision(elaineCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, ACCEPT, false);
-        assertSingleDecision(guybrushCooCase, REVOKE, "no", 2, USER_ADMINISTRATOR_OID, REVOKE, false);
-        assertSingleDecision(administratorCooCase, ACCEPT, "ok", 2, USER_ADMINISTRATOR_OID, ACCEPT, false);
-        assertSingleDecision(administratorCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, ACCEPT, false);
-        assertNoDecision(jackCeoCase, 2, NO_RESPONSE, false);
-        assertNoDecision(jackCtoCase, 2, ACCEPT, false);
+        assertSingleDecision(elaineCeoCase, ACCEPT, null, 2, 1, USER_ELAINE_OID, ACCEPT, false);
+        assertSingleDecision(guybrushCooCase, REVOKE, "no", 2, 1, USER_ADMINISTRATOR_OID, REVOKE, false);
+        assertSingleDecision(administratorCooCase, ACCEPT, "ok", 2, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+        assertSingleDecision(administratorCeoCase, ACCEPT, null, 2, 1, USER_ELAINE_OID, ACCEPT, false);
+        assertNoDecision(jackCeoCase, 2, 1, NO_RESPONSE, false);
+        assertNoDecision(jackCtoCase, 2, 1, ACCEPT, false);
 
         assertPercentComplete(campaignOid, 83, 83, 80);
     }
@@ -468,7 +468,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after closing stage 2", campaign);
-        assertAfterStageClose(campaign, certificationDefinition, 2);
+        assertSanityAfterStageClose(campaign, certificationDefinition, 2);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
@@ -504,7 +504,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 3", campaign);
-        assertAfterStageOpen(campaign, certificationDefinition, 3);
+        assertSanityAfterStageOpen(campaign, certificationDefinition, 3);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
@@ -606,22 +606,22 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertWorkItems(elaineCeoCase, 3);
-        assertWorkItems(guybrushCooCase, 2);
-        assertWorkItems(administratorCooCase, 3);
-        assertWorkItems(administratorCeoCase, 3);
-        assertWorkItems(jackCeoCase, 1);
-        assertWorkItems(jackCtoCase, 2);
+        assertWorkItemsCount(elaineCeoCase, 3);
+        assertWorkItemsCount(guybrushCooCase, 2);
+        assertWorkItemsCount(administratorCooCase, 3);
+        assertWorkItemsCount(administratorCeoCase, 3);
+        assertWorkItemsCount(jackCeoCase, 1);
+        assertWorkItemsCount(jackCtoCase, 2);
 
-        assertReviewerDecision(elaineCeoCase, NOT_DECIDED, null, 3, USER_ADMINISTRATOR_OID, NOT_DECIDED, false);
-        assertNoDecision(guybrushCooCase, 3, REVOKE, false);
-        assertReviewerDecision(administratorCooCase, ACCEPT, null, 3, USER_ELAINE_OID, ACCEPT, false);
-        assertReviewerDecision(administratorCooCase, null, null, 3, USER_ADMINISTRATOR_OID, ACCEPT, false);
-        assertReviewerDecision(administratorCeoCase, null, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
-        assertReviewerDecision(administratorCeoCase, null, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
-        assertNoDecision(jackCeoCase, 3, NO_RESPONSE, false);
-        assertReviewerDecision(jackCtoCase, null, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
-        assertReviewerDecision(jackCtoCase, null, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
+        assertReviewerDecision(elaineCeoCase, NOT_DECIDED, null, 3, 1, USER_ADMINISTRATOR_OID, NOT_DECIDED, false);
+        assertNoDecision(guybrushCooCase, 3, 1, REVOKE, false);
+        assertReviewerDecision(administratorCooCase, ACCEPT, null, 3, 1, USER_ELAINE_OID, ACCEPT, false);
+        assertReviewerDecision(administratorCooCase, null, null, 3, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+        assertReviewerDecision(administratorCeoCase, null, null, 3, 1, USER_ELAINE_OID, NO_RESPONSE, false);
+        assertReviewerDecision(administratorCeoCase, null, null, 3, 1, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
+        assertNoDecision(jackCeoCase, 3, 1, NO_RESPONSE, false);
+        assertReviewerDecision(jackCtoCase, null, null, 3, 1, USER_ELAINE_OID, NO_RESPONSE, false);
+        assertReviewerDecision(jackCtoCase, null, null, 3, 1, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
 
         /*
 Case                        Stage1              Stage2                           Stage3
@@ -666,7 +666,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after closing stage 3", campaign);
-        assertAfterStageClose(campaign, certificationDefinition, 3);
+        assertSanityAfterStageClose(campaign, certificationDefinition, 3);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
@@ -721,7 +721,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 4", campaign);
-        assertAfterStageOpen(campaign, certificationDefinition, 4);
+        assertSanityAfterStageOpen(campaign, certificationDefinition, 4);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 6, caseList.size());
@@ -839,19 +839,19 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese:NR -> NR | NR
 */
 
-        assertWorkItems(elaineCeoCase, 3);
-        assertWorkItems(guybrushCooCase, 2);
-        assertWorkItems(administratorCooCase, 4);
-        assertWorkItems(administratorCeoCase, 4);
-        assertWorkItems(jackCeoCase, 1);
-        assertWorkItems(jackCtoCase, 3);
+        assertWorkItemsCount(elaineCeoCase, 3);
+        assertWorkItemsCount(guybrushCooCase, 2);
+        assertWorkItemsCount(administratorCooCase, 4);
+        assertWorkItemsCount(administratorCeoCase, 4);
+        assertWorkItemsCount(jackCeoCase, 1);
+        assertWorkItemsCount(jackCtoCase, 3);
 
-        assertNoDecision(elaineCeoCase, 4, NOT_DECIDED, false);
-        assertNoDecision(guybrushCooCase, 4, REVOKE, false);
-        assertReviewerDecision(administratorCooCase, ACCEPT, null, 4, USER_CHEESE_OID, ACCEPT, false);
-        assertReviewerDecision(administratorCeoCase, ACCEPT, null, 4, USER_CHEESE_OID, ACCEPT, false);
-        assertNoDecision(jackCeoCase, 4, NO_RESPONSE, false);
-        assertNoDecision(jackCtoCase, 4, NO_RESPONSE, false);
+        assertNoDecision(elaineCeoCase, 4, 1, NOT_DECIDED, false);
+        assertNoDecision(guybrushCooCase, 4, 1, REVOKE, false);
+        assertReviewerDecision(administratorCooCase, ACCEPT, null, 4, 1, USER_CHEESE_OID, ACCEPT, false);
+        assertReviewerDecision(administratorCeoCase, ACCEPT, null, 4, 1, USER_CHEESE_OID, ACCEPT, false);
+        assertNoDecision(jackCeoCase, 4, 1, NO_RESPONSE, false);
+        assertNoDecision(jackCtoCase, 4, 1, NO_RESPONSE, false);
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NOT_DECIDED, NOT_DECIDED, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, REVOKE, REVOKE, null);
@@ -884,7 +884,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after closing stage 4", campaign);
-        assertAfterStageClose(campaign, certificationDefinition, 4);
+        assertSanityAfterStageClose(campaign, certificationDefinition, 4);
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 6, caseList.size());
@@ -922,7 +922,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     }
 
     @Test
-    public void test900StartRemediation() throws Exception {
+    public void test495StartRemediation() throws Exception {
         final String TEST_NAME = "test900StartRemediation";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -975,7 +975,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     }
 
     @Test
-    public void test910Statistics() throws Exception {
+    public void test497Statistics() throws Exception {
         final String TEST_NAME = "test910Statistics";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -1007,7 +1007,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     }
 
     @Test
-    public void test920CheckAfterClose() throws Exception {
+    public void test499CheckAfterClose() throws Exception {
         final String TEST_NAME = "test920CheckAfterClose";
         TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator.asPrismObject());
@@ -1027,5 +1027,169 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
                 new HashSet<>(asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID, USER_CHEESE_OID)), singleton("administrator: ok"));
     }
+
+    @Test
+    public void test500Reiterate() throws Exception {
+        final String TEST_NAME = "test500Reiterate";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        dummyTransport.clearMessages();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        //certificationManager.closeCampaign(campaignOid, true, task, result);
+        certificationManager.reiterateCampaign(campaignOid, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        display("campaign after reiteration", campaign);
+        assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 2);
+    }
+
+/*
+AFTER REITERATION
+-----------------
+Expected cases, reviewers and decisions/outcomes:
+
+CEO = 00000000-d34d-b33f-f00d-000000000001
+COO = 00000000-d34d-b33f-f00d-000000000002
+
+Stage1: oneAcceptAccepts, default: accept, stop on: revoke          (manager)
+
+Case                        Stage1
+================================================
+administrator->CEO          none (A) -> A
+jack->CEO                   none (A) -> A
+jack->CTO                   none (A) -> A
+
+
+Stage2: allMustAccept, default: accept, advance on: accept          (target owner)
+
+Case                        Stage1              Stage2
+=============================================================
+administrator->CEO          none (A) -> A       elaine
+jack->CEO                   none (A) -> A       elaine
+jack->CTO                   none (A) -> A       none (A) -> A
+*/
+
+
+	@Test
+    public void test510OpenNextStage() throws Exception {           // next stage is 2 (because the first one has no work items)
+        final String TEST_NAME = "test510OpenNextStage";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        certificationManager.openNextStage(campaignOid, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        display("campaign in stage 2", campaign);
+        assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 5); // stage 1 in iteration 2 was skipped
+
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+		caseList.removeIf(c -> c.getIteration() != 2);
+		assertEquals("Wrong number of certification cases", 3, caseList.size());
+		AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
+		AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
+		AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
+
+		assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+		assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+		assertCaseReviewers(jackCtoCase, ACCEPT, 2, Collections.emptyList());
+
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
+
+		//        assertPercentComplete(campaignOid, 17, 17, 0);
+		assertCasesCount(campaignOid, 6);
+
+        //assertPercentComplete(campaign, 83, 83, 0);
+    }
+
+//    @Test
+//    public void test520CloseFirstStage() throws Exception {
+//        final String TEST_NAME = "test520CloseFirstStage";
+//        TestUtil.displayTestTitle(this, TEST_NAME);
+//
+//        // GIVEN
+//        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+//        task.setOwner(userAdministrator.asPrismObject());
+//        OperationResult result = task.getResult();
+//
+//        // WHEN
+//        TestUtil.displayWhen(TEST_NAME);
+//        certificationManager.closeCurrentStage(campaignOid, task, result);
+//
+//        // THEN
+//        TestUtil.displayThen(TEST_NAME);
+//        result.computeStatus();
+//        TestUtil.assertSuccess(result);
+//
+//        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+//        display("campaign in stage 1", campaign);
+//
+//        assertSanityAfterStageClose(campaign, certificationDefinition, 1);
+//
+//        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+//        assertEquals("unexpected # of cases", 6, caseList.size());
+//
+//        assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
+//        assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, ACCEPT, ACCEPT, 1);
+//        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, ACCEPT, ACCEPT, 1);
+//        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
+//        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
+//        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 1);
+//
+//        assertPercentComplete(campaignOid, 100, 100, 100);
+//        assertCasesCount(campaignOid, 6);
+//    }
+
+//    @Test
+//    public void test530OpenSecondStage() throws Exception {
+//        final String TEST_NAME = "test530OpenSecondStage";
+//        TestUtil.displayTestTitle(this, TEST_NAME);
+//
+//        // GIVEN
+//        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+//        task.setOwner(userAdministrator.asPrismObject());
+//        OperationResult result = task.getResult();
+//
+//        // WHEN
+//        TestUtil.displayWhen(TEST_NAME);
+//        certificationManager.openNextStage(campaignOid, task, result);
+//
+//        // THEN
+//        TestUtil.displayThen(TEST_NAME);
+//        result.computeStatus();
+//        TestUtil.assertSuccess(result);
+//
+//        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+//        display("campaign in stage 2", campaign);
+//        assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 6);
+//
+//        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+//    }
 
 }

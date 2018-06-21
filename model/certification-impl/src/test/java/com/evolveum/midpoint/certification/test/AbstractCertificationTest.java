@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -55,19 +54,21 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
  *
  */
+@SuppressWarnings({ "UnusedReturnValue", "WeakerAccess", "SameParameterValue" })
 public class AbstractCertificationTest extends AbstractUninitializedCertificationTest {
 
 	@Autowired
 	private AccCertResponseComputationHelper computationHelper;
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+//	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
+//	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
 	protected static final File ORGS_AND_USERS_FILE = new File(COMMON_DIR, "orgs-and-users.xml");
 	protected static final File USER_BOB_FILE = new File(COMMON_DIR, "user-bob.xml");
@@ -79,31 +80,31 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
-	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
-	protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
-	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
-	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
-	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
-	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
+//	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
+//	protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
+//	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
+//	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
+//	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
+//	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
 	protected static final String ORG_EROOT_OID = "00000000-8888-6666-0000-300000000000";
 
 	protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
-	protected static final String USER_LECHUCK_OID = "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2";
+//	protected static final String USER_LECHUCK_OID = "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2";
 	protected static final String USER_CHEESE_OID = "c0c010c0-d34d-b33f-f00d-111111111130";
-	protected static final String USER_CHEF_OID = "c0c010c0-d34d-b33f-f00d-111111111131";
-	protected static final String USER_BARKEEPER_OID = "c0c010c0-d34d-b33f-f00d-111111111132";
-	protected static final String USER_CARLA_OID = "c0c010c0-d34d-b33f-f00d-111111111133";
+//	protected static final String USER_CHEF_OID = "c0c010c0-d34d-b33f-f00d-111111111131";
+//	protected static final String USER_BARKEEPER_OID = "c0c010c0-d34d-b33f-f00d-111111111132";
+//	protected static final String USER_CARLA_OID = "c0c010c0-d34d-b33f-f00d-111111111133";
 	protected static final String USER_BOB_OID = "c0c010c0-d34d-b33f-f00d-111111111134";
 	protected static final String USER_BOB_DEPUTY_FULL_OID = "71d27191-df8c-4513-836e-ed01c68a4ab4";
 	protected static final String USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID = "afc1c45d-fdb8-48cf-860b-b305f96a07e3";
-	protected static final String USER_BOB_DEPUTY_NO_PRIVILEGES_OID = "ad371f45-352d-4c1f-80f3-2e279af399ae";
+//	protected static final String USER_BOB_DEPUTY_NO_PRIVILEGES_OID = "ad371f45-352d-4c1f-80f3-2e279af399ae";
 	protected static final String USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID = "0b88d83f-1722-4b13-b7cc-a2d500470d7f";
 	protected static final String USER_ADMINISTRATOR_DEPUTY_NONE_OID = "e38df3fc-3510-45c2-a379-2b4a1406d4b6";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	protected static final String USER_JACK_USERNAME = "jack";
+//	protected static final String USER_JACK_USERNAME = "jack";
 
 	public static final File ROLE_REVIEWER_FILE = new File(COMMON_DIR, "role-reviewer.xml");
 	protected static final String ROLE_REVIEWER_OID = "00000000-d34d-b33f-f00d-ffffffff0000";
@@ -117,7 +118,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
 	public static final File METAROLE_CXO_FILE = new File(COMMON_DIR, "metarole-cxo.xml");
-	protected static final String METAROLE_CXO_OID = "00000000-d34d-b33f-f00d-444444444444";
+//	protected static final String METAROLE_CXO_OID = "00000000-d34d-b33f-f00d-444444444444";
 
 	public static final File ROLE_CEO_FILE = new File(COMMON_DIR, "role-ceo.xml");
 	protected static final String ROLE_CEO_OID = "00000000-d34d-b33f-f00d-000000000001";
@@ -145,18 +146,19 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+//	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
 
 	protected static final String RESOURCE_DUMMY_BLACK_FILENAME = COMMON_DIR + "/resource-dummy-black.xml";
 	protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";
 	protected static final String RESOURCE_DUMMY_BLACK_NAME = "black";
-	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
+//	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
 
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired protected CertificationManagerImpl certificationManager;
 	@Autowired protected AccessCertificationService certificationService;
+	@Autowired protected AccCertCaseOperationsHelper operationsHelper;
 	@Autowired protected AccCertUpdateHelper updateHelper;
 	@Autowired protected AccCertQueryHelper queryHelper;
 
@@ -232,30 +234,39 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		return USER_ADMINISTRATOR_FILE;
 	}
 
-	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
-		AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
-		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
-		assertNotNull("reviewRequestedTimestamp", ccase.getCurrentStageCreateTimestamp());
-		assertNotNull("deadline", ccase.getCurrentStageDeadline());
-		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
-		return checkSpecificCase(ccase, focus);
+	protected AccessCertificationCaseType checkCaseSanity(Collection<AccessCertificationCaseType> caseList, String subjectOid,
+			String targetOid, FocusType focus) {
+		AccessCertificationCaseType aCase = findCase(caseList, subjectOid, targetOid);
+		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", aCase);
+		assertNotNull("reviewRequestedTimestamp", aCase.getCurrentStageCreateTimestamp());
+		assertNotNull("deadline", aCase.getCurrentStageDeadline());
+		assertNull("remediedTimestamp", aCase.getRemediedTimestamp());
+		return checkCaseAssignmentSanity(aCase, focus);
 	}
 
-	protected AccessCertificationCaseType checkWorkItem(Collection<AccessCertificationWorkItemType> workItems, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
-		AccessCertificationWorkItemType workItem = findWorkItem(workItems, subjectOid, targetOid);
-		assertNotNull("Certification work item for " + subjectOid + ":" + targetOid + " was not found", workItem);
-		AccessCertificationCaseType ccase = CertCampaignTypeUtil.getCase(workItem);
-		assertNotNull("No case for " + workItem, ccase);
-		assertNotNull("reviewRequestedTimestamp", ccase.getCurrentStageCreateTimestamp());
-		assertNotNull("deadline", ccase.getCurrentStageDeadline());
-		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
-		return checkSpecificCase(ccase, focus);
+	protected AccessCertificationCaseType checkWorkItemSanity(Collection<AccessCertificationWorkItemType> workItems,
+			String subjectOid, String targetOid, FocusType focus) {
+    	return checkWorkItemSanity(workItems, subjectOid, targetOid, focus, 1);
 	}
 
-	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String objectOid,
-			String targetOid, FocusType focus, String campaignOid, String tenantOid, String orgOid,
+	protected AccessCertificationCaseType checkWorkItemSanity(Collection<AccessCertificationWorkItemType> workItems,
+			String subjectOid, String targetOid, FocusType focus, int iteration) {
+		AccessCertificationWorkItemType workItem = findWorkItem(workItems, subjectOid, targetOid, iteration);
+		assertNotNull("Certification work item for " + subjectOid + ":" + targetOid + " was not found (iteration "
+				+ iteration + ")", workItem);
+		AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCase(workItem);
+		assertNotNull("No case for " + workItem, aCase);
+		assertNotNull("reviewRequestedTimestamp", aCase.getCurrentStageCreateTimestamp());
+		assertNotNull("deadline", aCase.getCurrentStageDeadline());
+		assertNull("remediedTimestamp", aCase.getRemediedTimestamp());
+		return checkCaseAssignmentSanity(aCase, focus);
+	}
+
+
+	protected AccessCertificationCaseType checkCaseSanity(Collection<AccessCertificationCaseType> caseList, String objectOid,
+			String targetOid, FocusType focus, String tenantOid, String orgOid,
 			ActivationStatusType administrativeStatus) {
-		AccessCertificationCaseType aCase = checkCase(caseList, objectOid, targetOid, focus, campaignOid);
+		AccessCertificationCaseType aCase = checkCaseSanity(caseList, objectOid, targetOid, focus);
 		String realTenantOid = aCase.getTenantRef() != null ? aCase.getTenantRef().getOid() : null;
 		String realOrgOid = aCase.getOrgRef() != null ? aCase.getOrgRef().getOid() : null;
 		ActivationStatusType realStatus = aCase.getActivation() != null ? aCase.getActivation().getAdministrativeStatus() : null;
@@ -265,10 +276,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		return aCase;
 	}
 
-	protected AccessCertificationCaseType checkWorkItem(Collection<AccessCertificationWorkItemType> workItems, String objectOid,
-			String targetOid, FocusType focus, String campaignOid,
-			String tenantOid, String orgOid, ActivationStatusType administrativeStatus) {
-		AccessCertificationCaseType aCase = checkWorkItem(workItems, objectOid, targetOid, focus, campaignOid);
+	protected AccessCertificationCaseType checkWorkItemSanity(Collection<AccessCertificationWorkItemType> workItems,
+			String objectOid, String targetOid, FocusType focus, String tenantOid, String orgOid, ActivationStatusType administrativeStatus) {
+		AccessCertificationCaseType aCase = checkWorkItemSanity(workItems, objectOid, targetOid, focus);
 		String realTenantOid = aCase.getTenantRef() != null ? aCase.getTenantRef().getOid() : null;
 		String realOrgOid = aCase.getOrgRef() != null ? aCase.getOrgRef().getOid() : null;
 		ActivationStatusType realStatus = aCase.getActivation() != null ? aCase.getActivation().getAdministrativeStatus() : null;
@@ -278,41 +288,42 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		return aCase;
 	}
 
-	protected AccessCertificationCaseType checkSpecificCase(AccessCertificationCaseType ccase, FocusType focus) {
-		assertEquals("Wrong class for case", AccessCertificationAssignmentCaseType.class, ccase.getClass());
-		AccessCertificationAssignmentCaseType acase = (AccessCertificationAssignmentCaseType) ccase;
-		long id = acase.getAssignment().getId();
+	protected AccessCertificationCaseType checkCaseAssignmentSanity(AccessCertificationCaseType aCase, FocusType focus) {
+		assertEquals("Wrong class for case", AccessCertificationAssignmentCaseType.class, aCase.getClass());
+		AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) aCase;
+		long id = assignmentCase.getAssignment().getId();
 		List<AssignmentType> assignmentList;
-		if (Boolean.TRUE.equals(acase.isIsInducement())) {
+		if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
 			assignmentList = ((AbstractRoleType) focus).getInducement();
 		} else {
 			assignmentList = focus.getAssignment();
 		}
 		for (AssignmentType assignment : assignmentList) {
 			if (id == assignment.getId()) {
-				assertEquals("Wrong assignment in certification case", assignment, acase.getAssignment());
-				return ccase;
+				assertEquals("Wrong assignment in certification case", assignment, assignmentCase.getAssignment());
+				return aCase;
 			}
 		}
-		fail("Assignment with ID " + id + " not found among assignments of " + focus);
-		return null;        // won't come here
+		throw new AssertionError("Assignment with ID " + id + " not found among assignments of " + focus);
 	}
 
 	protected AccessCertificationCaseType findCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid) {
-		for (AccessCertificationCaseType acase : caseList) {
-			if (acase.getTargetRef() != null && acase.getTargetRef().getOid().equals(targetOid) &&
-					acase.getObjectRef() != null && acase.getObjectRef().getOid().equals(subjectOid)) {
-				return acase;
+		for (AccessCertificationCaseType aCase : caseList) {
+			if (aCase.getTargetRef() != null && aCase.getTargetRef().getOid().equals(targetOid) &&
+					aCase.getObjectRef() != null && aCase.getObjectRef().getOid().equals(subjectOid)) {
+				return aCase;
 			}
 		}
 		return null;
 	}
 
-	protected AccessCertificationWorkItemType findWorkItem(Collection<AccessCertificationWorkItemType> workItems, String subjectOid, String targetOid) {
+	protected AccessCertificationWorkItemType findWorkItem(Collection<AccessCertificationWorkItemType> workItems,
+			String subjectOid, String targetOid, int iteration) {
 		for (AccessCertificationWorkItemType workItem : workItems) {
 			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCase(workItem);
 			if (aCase != null && aCase.getTargetRef() != null && aCase.getTargetRef().getOid().equals(targetOid) &&
-					aCase.getObjectRef() != null && aCase.getObjectRef().getOid().equals(subjectOid)) {
+					aCase.getObjectRef() != null && aCase.getObjectRef().getOid().equals(subjectOid) &&
+					workItem.getIteration() == iteration) {
 				return workItem;
 			}
 		}
@@ -326,7 +337,8 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 				Math.abs(actualAsDate.getTime() - expected.getTime()) < 600000);     // 10 minutes
     }
 
-	protected void assertAfterCampaignCreate(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
+    // assumes iteration 1
+	protected void assertSanityAfterCampaignCreate(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
 		assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
 		assertStateAndStage(campaign, CREATED, 0);
 		assertEquals("Unexpected # of stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
@@ -334,16 +346,17 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertNull("Unexpected start time", campaign.getStartTimestamp());
 		assertNull("Unexpected end time", campaign.getEndTimestamp());
 	}
-	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
+	protected void assertSanityAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
-    	assertAfterCampaignStart(campaign, definition, cases, 1, 1);
+    	assertSanityAfterCampaignStart(campaign, definition, cases, 1, 1);
 	}
 
-	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases, int iteration, int expectedStages)
+	protected void assertSanityAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
+			int cases, int iteration, int expectedStages)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
-        assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
+        assertStateStageIteration(campaign, IN_REVIEW_STAGE, 1, iteration);
         assertDefinitionAndOwner(campaign, definition);
         assertApproximateTime("start time", new Date(), campaign.getStartTimestamp());
         assertNull("Unexpected end time", campaign.getEndTimestamp());
@@ -364,16 +377,22 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		} else {
 			assertNotNull("last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
 		}
-		assertCases(campaign.getOid(), cases);
+		assertCasesCount(campaign.getOid(), cases);
     }
 
-	protected void assertAfterStageOpen(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
-		assertStateAndStage(campaign, IN_REVIEW_STAGE, stageNumber);
+	protected void assertSanityAfterStageOpen(AccessCertificationCampaignType campaign,
+			AccessCertificationDefinitionType definition, int stageNumber) {
+    	assertSanityAfterStageOpen(campaign, definition, stageNumber, 1, stageNumber);
+	}
+
+	protected void assertSanityAfterStageOpen(AccessCertificationCampaignType campaign,
+			AccessCertificationDefinitionType definition, int stageNumber, int iteration, int expectedStages) {
+		assertStateStageIteration(campaign, IN_REVIEW_STAGE, stageNumber, iteration);
 		assertDefinitionAndOwner(campaign, definition);
 		assertApproximateTime("start time", new Date(), campaign.getStartTimestamp());
 		assertNull("Unexpected end time", campaign.getEndTimestamp());
 		assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
-		assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
+		assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
 		AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
 		assertEquals("wrong stage #", stageNumber, stage.getNumber());
 		assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
@@ -383,12 +402,16 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 	protected void assertStateStageIteration(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage, int iteration) {
 		assertStateAndStage(campaign, state, stage);
-		assertEquals("Unexpected iteration", iteration, campaign.getIteration());
+		assertIteration(campaign, iteration);
 	}
 
 	protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
 		assertEquals("Unexpected campaign state", state, campaign.getState());
 		assertEquals("Unexpected stage number", stage, campaign.getStageNumber());
+	}
+
+	protected void assertIteration(AccessCertificationCampaignType campaign, int iteration) {
+		assertEquals("Unexpected campaign iteration", iteration, campaign.getIteration());
 	}
 
 	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certificationDefinition) {
@@ -411,7 +434,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertEquals("wrong reviewer oids for "+_case, new HashSet<>(reviewerOidList), realReviewerOids);
 	}
 
-	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response,
+	protected void recordDecision(String campaignOid, AccessCertificationCaseType aCase, AccessCertificationResponseType response,
 			String comment, String reviewerOid, Task task, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		Authentication originalAuthentication = null;
@@ -423,12 +446,13 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		} else {
 			realReviewerOid = securityContextManager.getPrincipal().getOid();
 		}
-		List<AccessCertificationWorkItemType> workItems = _case.getWorkItem().stream()
+		List<AccessCertificationWorkItemType> workItems = aCase.getWorkItem().stream()
 				.filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), realReviewerOid))
-				.filter(wi -> wi.getStageNumber() == _case.getStageNumber())
+				.filter(wi -> wi.getStageNumber() == aCase.getStageNumber())
+				.filter(wi -> wi.getIteration() == aCase.getIteration())
 				.collect(Collectors.toList());
-		assertEquals("Wrong # of current work items for " + realReviewerOid + " in " + _case, 1, workItems.size());
-		long id = _case.asPrismContainerValue().getId();
+		assertEquals("Wrong # of current work items for " + realReviewerOid + " in " + aCase, 1, workItems.size());
+		long id = aCase.asPrismContainerValue().getId();
 		certificationManager.recordDecision(campaignOid, id, workItems.get(0).getId(), response, comment, task, result);
 		if (reviewerOid != null) {
 			SecurityContextHolder.getContext().setAuthentication(originalAuthentication);
@@ -436,10 +460,11 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	}
 
 	// TODO remove redundant check on outcomes (see assertCaseOutcome)
-	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
-			int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
-		List<AccessCertificationWorkItemType> currentWorkItems = getCurrentWorkItems(_case, stageNumber, false);
-		assertEquals("wrong # of decisions for stage " + stageNumber + " for case #" + _case.getId(), 1, currentWorkItems.size());
+	protected void assertSingleDecision(AccessCertificationCaseType aCase, AccessCertificationResponseType response,
+			String comment, int stageNumber, int iteration, String reviewerOid, AccessCertificationResponseType currentStageOutcome,
+			boolean checkHistory) {
+		List<AccessCertificationWorkItemType> currentWorkItems = getCurrentWorkItems(aCase, stageNumber, iteration, false);
+		assertEquals("wrong # of decisions for stage " + stageNumber + " for case #" + aCase.getId(), 1, currentWorkItems.size());
 		AccessCertificationWorkItemType workItem = currentWorkItems.get(0);
 		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
 		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
@@ -449,35 +474,37 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
-		assertEquals("wrong current stage outcome", OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage outcome", OutcomeUtils.toUri(currentStageOutcome), aCase.getCurrentStageOutcome());
 		if (checkHistory) {
-			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
+			assertHistoricOutcome(aCase, stageNumber, iteration, currentStageOutcome);
 		}
 	}
 
-	protected void assertReviewerDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
-										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
-		AccessCertificationWorkItemType workItem = getWorkItemsForReviewer(_case, stageNumber, reviewerOid);
+	protected void assertReviewerDecision(AccessCertificationCaseType aCase, AccessCertificationResponseType response,
+			String comment, int stageNumber, int iteration, String reviewerOid, AccessCertificationResponseType currentStageOutcome,
+			boolean checkHistory) {
+		AccessCertificationWorkItemType workItem = getWorkItemsForReviewer(aCase, stageNumber, iteration, reviewerOid);
 		assertNotNull("No work item for reviewer " + reviewerOid + " in stage " + stageNumber, workItem);
 		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
 		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
-		assertEquals("wrong current stage outcome", OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage outcome", OutcomeUtils.toUri(currentStageOutcome), aCase.getCurrentStageOutcome());
 		if (checkHistory) {
-			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
+			assertHistoricOutcome(aCase, stageNumber, iteration, currentStageOutcome);
 		}
 	}
 
-	protected void assertHistoricOutcome(AccessCertificationCaseType aCase, int stageNumber, AccessCertificationResponseType outcome) {
+	protected void assertHistoricOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration,
+			AccessCertificationResponseType outcome) {
 		boolean found = false;
 		for (CaseEventType event : aCase.getEvent()) {
 			if (!(event instanceof StageCompletionEventType)) {
 				continue;
 			}
 			StageCompletionEventType completionEvent = (StageCompletionEventType) event;
-			if (completionEvent.getStageNumber() == stageNumber) {
+			if (completionEvent.getStageNumber() == stageNumber && completionEvent.getIteration() == iteration) {   // TODO sure about iteration check?
 				assertEquals("Wrong outcome stored for stage #" + stageNumber + " in " + aCase, OutcomeUtils.toUri(outcome), completionEvent.getOutcome());
 				if (found) {
 					fail("Duplicate outcome stored for stage #" + stageNumber + " in " + aCase);
@@ -489,42 +516,49 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	}
 
 	protected void assertCaseHistoricOutcomes(AccessCertificationCaseType aCase, AccessCertificationResponseType... outcomes) {
-		for (int stage = 0; stage < outcomes.length; stage++) {
-			assertHistoricOutcome(aCase, stage+1, outcomes[stage]);
-		}
-		assertEquals("wrong # of stored stage outcomes", outcomes.length, CertCampaignTypeUtil.getCompletedStageEvents(aCase).size());
+    	assertCaseHistoricOutcomes(aCase, 1, outcomes);
 	}
 
+	protected void assertCaseHistoricOutcomes(AccessCertificationCaseType aCase, int iteration, AccessCertificationResponseType... outcomes) {
+		for (int stage = 0; stage < outcomes.length; stage++) {
+			assertHistoricOutcome(aCase, stage+1, iteration, outcomes[stage]);
+		}
+		assertEquals("wrong # of stored stage outcomes", outcomes.length, CertCampaignTypeUtil.getCompletedStageEvents(aCase, iteration).size());
+	}
 
 	// we return also closed ones (TODO: what is meant by 'current' work items?)
-	public List<AccessCertificationWorkItemType> getCurrentWorkItems(AccessCertificationCaseType _case, int stageNumber, boolean decidedOnly) {
+	public List<AccessCertificationWorkItemType> getCurrentWorkItems(AccessCertificationCaseType _case, int stageNumber,
+			int iteration, boolean decidedOnly) {
 		List<AccessCertificationWorkItemType> rv = new ArrayList<>();
 		for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
 			if (decidedOnly && WorkItemTypeUtil.getOutcome(workItem) == null) {
 				continue;
 			}
-			if (workItem.getStageNumber() == stageNumber) {
+			if (workItem.getStageNumber() == stageNumber && workItem.getIteration() == iteration) {
 				rv.add(workItem.clone());
 			}
 		}
 		return rv;
 	}
 
-	public AccessCertificationWorkItemType getWorkItemsForReviewer(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+	public AccessCertificationWorkItemType getWorkItemsForReviewer(AccessCertificationCaseType _case, int stageNumber,
+			int iteration, String reviewerOid) {
 		for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
-			if (workItem.getStageNumber() == stageNumber && ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
+			if (workItem.getStageNumber() == stageNumber && workItem.getIteration() == iteration &&
+					ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
 				return workItem;
 			}
 		}
 		return null;
 	}
 
-	protected void assertNoDecision(AccessCertificationCaseType _case, int stage, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
-		List<AccessCertificationWorkItemType> currentWorkItems = getCurrentWorkItems(_case, stage, true);
+	protected void assertNoDecision(AccessCertificationCaseType _case, int stageNumber, int iteration,
+			AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
+		List<AccessCertificationWorkItemType> currentWorkItems = getCurrentWorkItems(_case, stageNumber, iteration, true);
 		assertEquals("wrong # of decisions", 0, currentWorkItems.size());
 		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 		if (checkHistory) {
-			assertHistoricOutcome(_case, stage, aggregatedResponse);
+			assertHistoricOutcome(_case, stageNumber, iteration, aggregatedResponse);
 		}
 	}
 
@@ -533,13 +567,13 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getStageNumber());
 	}
 
-	protected void assertWorkItems(AccessCertificationCaseType _case, int count) {
+	protected void assertWorkItemsCount(AccessCertificationCaseType _case, int count) {
 		assertEquals("Wrong # of work items", count, _case.getWorkItem().size());
 	}
 
 	protected void assertDecision2(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
-								   int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse) {
-		AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(_case, stageNumber, reviewerOid);
+			int stageNumber, int iteration, String reviewerOid, AccessCertificationResponseType aggregatedResponse) {
+		AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(_case, stageNumber, iteration, reviewerOid);
 		assertNotNull("decision does not exist", workItem);
 		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
 		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
@@ -549,18 +583,20 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 	}
 
-	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException,
+			ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".getObject");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =
-				Arrays.asList(SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE)));
+				singletonList(SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE)));
 		AccessCertificationCampaignType campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, result).asObjectable();
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		return campaign;
 	}
 
-	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
 		OperationResult result = task.getResult();
 		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
@@ -572,47 +608,50 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		return rv;
 	}
 
-	protected void assertAfterStageClose(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) {
-        assertStateAndStage(campaign, REVIEW_STAGE_DONE, stageNumber);
+	protected void assertSanityAfterStageClose(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) {
+    	assertSanityAfterStageClose(campaign, definition, stageNumber, 1, stageNumber);
+	}
+
+	protected void assertSanityAfterStageClose(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
+			int stageNumber, int iteration, int expectedStages) {
+        assertStateStageIteration(campaign, REVIEW_STAGE_DONE, stageNumber, iteration);
         assertDefinitionAndOwner(campaign, definition);
         assertNull("Unexpected end time", campaign.getEndTimestamp());
-        assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
+        assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        assertNotNull(stage);
         assertEquals("wrong stage #", stageNumber, stage.getNumber());
+        assertEquals("wrong stage iteration #", iteration, stage.getIteration());
         assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
         assertApproximateTime("stage end", new Date(), stage.getStartTimestamp());
 
 		for (AccessCertificationCaseType aCase : campaign.getCase()) {
-			if (aCase.getStageNumber() != stageNumber) {
+			if (aCase.getStageNumber() != stageNumber || aCase.getIteration() != iteration) {
 				continue;
 			}
-			checkCaseOutcomes(aCase, campaign, stageNumber);
+			checkCaseOutcomesSanity(aCase, campaign, stageNumber);
 		}
     }
 
-	private void checkCaseOutcomes(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, int stageNumber) {
-		List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>(stageNumber);
-		for (int i = 1; i <= stageNumber; i++) {
-			stageOutcomes.add(checkCaseStageOutcome(aCase, stageNumber));
-		}
-		assertEquals("Wrong # of completed stage outcomes", stageNumber, CertCampaignTypeUtil.getCompletedStageEvents(aCase).size());
+	private void checkCaseOutcomesSanity(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, int stageNumber) {
+		assertEquals("Wrong # of completed stage outcomes", stageNumber, CertCampaignTypeUtil.getCompletedStageEvents(aCase, campaign.getIteration()).size());
 		AccessCertificationResponseType expectedOverall = computationHelper.computeOverallOutcome(aCase, campaign);
 		assertEquals("Inconsistent overall outcome", OutcomeUtils.toUri(expectedOverall), aCase.getOutcome());
 	}
 
-	private AccessCertificationResponseType checkCaseStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
-		return OutcomeUtils.fromUri(CertCampaignTypeUtil.getStageOutcome(aCase, stageNumber));
-	}
+//	private AccessCertificationResponseType getCaseStageOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
+//		return OutcomeUtils.fromUri(CertCampaignTypeUtil.getStageOutcome(aCase, stageNumber, iteration));
+//	}
 
 	// completedStage - if null, checks the stage outcome in the history list
 	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
 			AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
-        AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
-        assertEquals("Wrong stage outcome in " + ccase, OutcomeUtils.toUri(stageOutcome), ccase.getCurrentStageOutcome());
-        assertEquals("Wrong overall outcome in " + ccase, OutcomeUtils.toUri(overallOutcome), ccase.getOutcome());
+        AccessCertificationCaseType aCase = findCase(caseList, subjectOid, targetOid);
+        assertEquals("Wrong stage outcome in " + aCase, OutcomeUtils.toUri(stageOutcome), aCase.getCurrentStageOutcome());
+        assertEquals("Wrong overall outcome in " + aCase, OutcomeUtils.toUri(overallOutcome), aCase.getOutcome());
 
 		if (completedStage != null) {
-			assertHistoricOutcome(ccase, completedStage, stageOutcome);
+			assertHistoricOutcome(aCase, completedStage, aCase.getIteration(), stageOutcome);
 		}
     }
 
@@ -622,7 +661,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertPercentComplete(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
 	}
 
-	protected void assertCases(String campaignOid, int expectedCases)
+	protected void assertCasesCount(String campaignOid, int expectedCases)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		int cases = countCampaignCases(campaignOid);
 		assertEquals("Wrong # of cases for campaign " + campaignOid, expectedCases, cases);
@@ -642,8 +681,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		assertEquals("Wrong decisions complete percentage", expDecisionsDone, decisionsDonePercentage);
     }
 
+	@SuppressWarnings("unused")
 	public void reimportTriggerTask(OperationResult result) throws FileNotFoundException {
-		taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, true, result);
+		taskManager.suspendAndDeleteTasks(singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, true, result);
 		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
 	}
 
